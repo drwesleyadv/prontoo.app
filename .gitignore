@@ -1,0 +1,24 @@
+# Configuração e credenciais da instalação
+/app/config.php
+/.env
+/.env.*
+
+# Estado e dados gerados em runtime
+/storage/
+/error_log
+*.log
+*.lock
+
+# Documentos clínicos gerados
+/pdfs/*.pdf
+/pdfs/*.json
+/pdfs/*.tmp
+/pdfs/*.log
+/pdfs/*.txt
+/pdfs/*.bak
+
+# Arquivos locais de ferramentas e sistema operacional
+/.idea/
+/.vscode/
+/.DS_Store
+Thumbs.db
