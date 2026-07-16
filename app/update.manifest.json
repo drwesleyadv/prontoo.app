@@ -1,0 +1,31 @@
+{
+  "version": "1.7.15.10",
+  "release": "1.7.15.10",
+  "schema_revision": "prontoo_1_7_13_1_clean_schema_r6_multirole",
+  "build": "1.7.15.10-developer-notices-design-system-refinement",
+  "package_type": "developer_panel_incremental_micro_ux",
+  "generated_at": "2026-07-15T18:31:06Z",
+  "minimum_php": "8.4.0",
+  "minimum_mysql": "8.0.30",
+  "database_changes": false,
+  "schema_changes": false,
+  "hash_algorithm": "sha256",
+  "signature_policy": "optional_runtime_configured",
+  "file_count": 13,
+  "total_uncompressed_bytes": 1254921,
+  "files": {
+    "ChangeLog.txt": "007931d7eac4377b6eb6e97d3e573524c1356537db38f63e9ca4b453bc57e3fe",
+    "app/Admin/AdminPages.php": "aedf19476a992faf0162f1834008d2eb261c387fbb925c56c63a51074098a7d7",
+    "app/Ui/Components.php": "ebb8a9f20fce2e5895663bc0f46f151a2619e783ccefa78b426d3bd608181f7c",
+    "app/prontoo.php": "eb2b2f45ef1abf2d26f35cfd7e042db961fa911f909d74b95cd295fe59f79975",
+    "br/index.php": "750bbc733c765209dd08f30c5996a9abdc31ce2c256091e01721613c114e4b2f",
+    "index.php": "bafd8276ca45fd95d23a100812e1a2e9eb541a4f51fdbeb1384c7cd9a262a99e",
+    "public/assets/app-icon-1.7.15.10.png": "a80e14f844ef7093e32f88d30a2da5352129679d56dda653cf65cdbcc712114e",
+    "public/assets/design-system.css": "f4be046dfcc1c09d7a26c90c0071a823eafb06c987dc1d8bd199f9c026bfa90b",
+    "public/assets/favicon-1.7.15.10.ico": "59ca3ba771c1832aee97850304c24f761d6f90cc4f8e469035529296b8665286",
+    "public/assets/favicon-1.7.15.10.png": "3ddd61617bb38287f36dc4a298602aec012d11ff4a56cd44b60cc060ffbde488",
+    "public/assets/pix-1.7.15.10.svg": "355d14fcc3a70040cee01af03c40478c10cb1b914d70971ffd46225714aa4814",
+    "public/assets/prontoo-mark-1.7.15.10.png": "844f5f44286fcc178265e4a2ecb0ad3e1591ac1846775d9192f60b2015b898e0",
+    "version.json": "87a17114d11f37b2f9e148ecc76718d06ae4f4677d839d4f219785dddaf65362"
+  }
+}

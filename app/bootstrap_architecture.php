@@ -1,0 +1,28 @@
+<?php
+declare(strict_types=1);
+$__prontoo_core_files = [
+    __DIR__ . "/Core/Support/Check.php",
+    __DIR__ . "/Core/Tenant/TenantRegistry.php",
+    __DIR__ . "/Core/Readonly/ReadonlyPolicy.php",
+    __DIR__ . "/Core/Database/SqlScopeGuard.php",
+    __DIR__ . "/Core/Database/SchemaHardening.php",
+    __DIR__ . "/Core/Database/TenantIntegrity.php",
+    __DIR__ . "/Core/Integrity/ActionProof.php",
+    __DIR__ . "/Core/Integrity/AuditChain.php",
+    __DIR__ . "/Core/Temporal/PiTime.php",
+    __DIR__ . "/Core/Integrity/PiSequence.php",
+    __DIR__ . "/Core/Integrity/PiIntegrity.php",
+    __DIR__ . "/Core/Metrics/GlobalMetricScope.php",
+    __DIR__ . "/Core/Install/RuntimeContract.php",
+];
+foreach ($__prontoo_core_files as $__prontoo_core_file) {
+    if (!is_file($__prontoo_core_file)) {
+        $root = defined("PRONTOO_ROOT") ? PRONTOO_ROOT : dirname(__DIR__);
+        throw new RuntimeException(
+            "Módulo arquitetural essencial ausente: " .
+                str_replace($root . "/", "", $__prontoo_core_file),
+        );
+    }
+    require_once $__prontoo_core_file;
+}
+unset($__prontoo_core_file, $__prontoo_core_files);

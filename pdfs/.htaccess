@@ -1,0 +1,14 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^([A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf)$ ../index.php?r=document_pdf_file&file=$1 [QSA,L,NC]
+RewriteRule ^ - [F,L]
+</IfModule>
+<IfModule !mod_rewrite.c>
+<FilesMatch "\.pdf$">
+Require all denied
+</FilesMatch>
+</IfModule>
+<FilesMatch "\.(json|tmp|log|txt|bak)$">
+Require all denied
+</FilesMatch>
