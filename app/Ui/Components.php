@@ -772,17 +772,12 @@ function page(string $title, string $body, array $opts = []): void
                 '.png" alt="" aria-hidden="true"></span>';
     $brandVersionHtml = "";
     if ($c && ($c["scope"] ?? "") === "global") {
-        $release = defined("PRONTOO_ASSET_REV")
-            ? preg_replace('/[^0-9.].*$/', "", (string) PRONTOO_ASSET_REV)
+        $publishedVersion = defined("PRONTOO_VERSION")
+            ? (string) PRONTOO_VERSION
             : "";
-        if ($release === "") {
-            $release = defined("PRONTOO_VERSION")
-                ? (string) PRONTOO_VERSION
-                : "";
-        }
         $brandVersionHtml =
             '<small class="pagehead-version">Versão: ' .
-            e($release) .
+            e($publishedVersion) .
             "</small>";
     }
     $brand =

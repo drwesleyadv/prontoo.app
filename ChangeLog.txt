@@ -1,3 +1,11 @@
+Prontoo 1.7.17.3 — propagação única da versão publicada
+
+- version.json permanece como fonte canônica única do número da versão lógica, propagado pelo runtime por PRONTOO_VERSION.
+- pagehead-version passa a consumir exclusivamente PRONTOO_VERSION e deixa de priorizar a revisão independente dos ativos.
+- Runtime, landing, manifesto, changelog e cabeçalho ficam sincronizados em toda publicação, inclusive em mudanças pequenas.
+- PRONTOO_ASSET_REV permanece restrito a URLs e referências de CSS, JavaScript, ícones e imagens.
+- Mantidos schema, banco de dados, permissões, isolamento entre consultórios e compatibilidade com a instalação atual.
+
 Prontoo 1.7.17.2 — deploy contínuo e verde padrão do Prontoo
 
 - Removida integralmente a função Atualização do Desenvolvedor, incluindo tela, rota, ação administrativa, limite especial de upload, invalidação específica de cache, carregamento e módulo responsável pela aplicação manual de pacotes ZIP.
