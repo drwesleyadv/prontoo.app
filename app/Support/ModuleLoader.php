@@ -100,7 +100,6 @@ function prontoo_full_runtime_modules(): array
                 "Domain/Audit/AuditActivity.php",
                 "Domain/Maestro/Maestro.php",
                 "Admin/AdminPages.php",
-                "Admin/AdminUpdate.php",
                 "Pages/Dashboards.php",
             ]),
         ),
@@ -174,7 +173,6 @@ function prontoo_route_module_groups(string $route): array
             "Domain/Leads/Leads.php",
             "Domain/Maestro/Maestro.php",
             "Admin/AdminPages.php",
-            "Admin/AdminUpdate.php",
         ],
     ];
     $map = [
@@ -242,7 +240,6 @@ function prontoo_route_module_groups(string $route): array
         "admin_global_notices" => $tasks + $admin,
         "admin_alerts" => $admin,
         "admin_maintenance" => $admin,
-        "admin_update" => $admin,
         "admin_health" => $admin,
         "admin_performance" => $admin,
         "admin_deleted" => $admin,

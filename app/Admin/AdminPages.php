@@ -627,12 +627,6 @@ function admin_quick_links(): string
             "Manutenção programada e parâmetros globais da plataforma.",
             "construction",
         ],
-        [
-            "admin_update",
-            "Atualização",
-            "Aplicação segura de pacote oficial.",
-            "system_update_alt",
-        ],
     ];
     $h = '<div class="admin-grid admin-grid-context">';
     foreach ($links as $l) {

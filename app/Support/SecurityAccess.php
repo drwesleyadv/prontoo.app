@@ -217,7 +217,6 @@ function guard_request(): void
             (string) ($_GET["r"] ?? ""),
         );
         $maxContent = match ($routeHint) {
-            "admin_update" => 67108864,
             "settings" => 6291456,
             default => 4194304,
         };

@@ -1,3 +1,12 @@
+Prontoo 1.7.17.2 — deploy contínuo e verde padrão do Prontoo
+
+- Removida integralmente a função Atualização do Desenvolvedor, incluindo tela, rota, ação administrativa, limite especial de upload, invalidação específica de cache, carregamento e módulo responsável pela aplicação manual de pacotes ZIP.
+- A publicação passa a depender exclusivamente do fluxo sincronizado Hostoo + GitHub, eliminando a superfície de substituição de arquivos pelo painel.
+- O manifesto de versão permanece como contrato de integridade e rastreabilidade da release, sem oferecer instalação manual pela aplicação.
+- Consultórios recém-criados passam a gravar explicitamente o verde Prontoo (#2f6652) como cor de destaque padrão.
+- O seletor de identidade visual passa a reconhecer o novo tom como “Verde Prontoo”, permitindo sua manutenção posterior em Meu Consultório.
+- Mantidos schema, estrutura do banco, permissões dos consultórios, isolamento entre consultórios e compatibilidade com instalações atuais.
+
 Prontoo 1.7.17.1 — criação definitiva do consultório e orientação contextual
 
 - A etapa 3 de 3 da criação passa a solicitar estado e cidade de atuação pela lista do IBGE, além dos dados jurídicos, nome, telefone e endereço já existentes.

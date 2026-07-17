@@ -501,9 +501,6 @@ function server_json_cache_write_categories(string $route, string $act): array
     if (in_array($route, ["leads", "tasks", "notices", "audit"], true)) {
         $categories = array_merge($categories, ["lookup", "auxiliary"]);
     }
-    if ($route === "admin_update") {
-        return server_json_cache_all_categories();
-    }
     if (str_contains($act, "role") || str_contains($act, "permission")) {
         $categories = array_merge($categories, [
             "context", "cmdbar", "permissions", "clinic", "work_hours",

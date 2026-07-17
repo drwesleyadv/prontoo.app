@@ -972,6 +972,7 @@ function page_signup(): void
             redirect("signup");
         }
         $timezone = timezone_from_location($uf, $city);
+        $accentColor = PRONTOO_DEFAULT_ACCENT_COLOR;
         db_begin_transaction();
         try {
             $pid = upsert_person(
@@ -1037,7 +1038,7 @@ function page_signup(): void
                 )
                 : $trialStart + max(1, default_trial_days()) * 86400;
             q(
-                "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
+                "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
                 [
                     $legalType,
                     trim((string) $_POST["legal_name"]),
@@ -1047,6 +1048,7 @@ function page_signup(): void
                     $profession,
                     $uid,
                     $uid,
+                    $accentColor,
                     trim((string) ($_POST["address_line"] ?? "")),
                     $uf,
                     $city,
@@ -1107,6 +1109,7 @@ function page_signup(): void
                 "cidade" => $city,
                 "uf" => $uf,
                 "timezone" => $timezone,
+                "accent_color" => $accentColor,
                 "onboarding_done" => 1,
             ]);
             db_commit();
