@@ -239,6 +239,13 @@ function patient_health_icon_options(): array
 function clinic_accent_options(): array
 {
     return [
+        PRONTOO_DEFAULT_ACCENT_COLOR => [
+            "label" => "Verde Prontoo",
+            "dark" => "#1d583f",
+            "soft" => "#d9f0df",
+            "soft2" => "#f6fbf7",
+            "profession" => "",
+        ],
         "#064e3b" => [
             "label" => "Verde mineral escuro",
             "dark" => "#043b2d",
