@@ -47,7 +47,12 @@ function onboarding_tip_module_routes(): array
 function onboarding_tip_key(array $c, string $route): string
 {
     $role = (string) ($c["role"] ?? "usuario");
-    return mb_substr($route . ":" . $role, 0, 120);
+    $clinicId = max(0, (int) ($c["clinic_id"] ?? 0));
+    return mb_substr(
+        $route . ":" . $role . ":clinic:" . $clinicId,
+        0,
+        120,
+    );
 }
 function onboarding_tip_dismissed(array $c, string $route): bool
 {
@@ -100,7 +105,7 @@ function onboarding_tip_copy(array $c, string $route): ?array
             "icon" => "space_dashboard",
             "title" => "Seu resumo do dia:",
             "body" =>
-                "O Painel reúne avisos e atalhos para tornar o seu dia mais leve. Comece pelas tarefas e por atividades que seu cargo precisa acompanhar.",
+                "O consultório já está pronto para uso. Para concluir os ajustes iniciais, comece em Meu Consultório: revise aparência e departamentos; depois cadastre a equipe e confira as permissões de cada cargo.",
         ],
         "operations" => [
             "icon" => "account_tree",
@@ -172,19 +177,19 @@ function onboarding_tip_copy(array $c, string $route): ?array
             "icon" => "groups",
             "title" => "Seu time espera clareza!",
             "body" =>
-                "Cadastre colaboradores e cargos antes de distribuir tarefas, configurar agenda profissional ou liberar permissões por setor. Profissionais precisam informar os horários em que estão disponíveis quando participam da Agenda.",
+                "Cadastre aqui os membros da equipe que antes poderiam ser incluídos no assistente inicial. Defina os cargos de cada pessoa e, para profissionais que participam da Agenda, informe também os horários disponíveis.",
         ],
         "permissions" => [
             "icon" => "admin_panel_settings",
             "title" => "Quem pode ver ou alterar o quê?",
             "body" =>
-                "Revise permissões com cuidado: elas controlam o que cada cargo pode ver, criar ou alterar. Mantenha o mínimo necessário para cada função.",
+                "Depois de revisar departamentos e cadastrar a equipe, confira o que cada cargo pode ver, criar ou alterar. Mantenha somente as permissões necessárias para o trabalho de cada ambiente.",
         ],
         "settings" => [
             "icon" => "home_health",
             "title" => "Seu consultório, do seu jeito!",
             "body" =>
-                "Aqui ficam identidade, setores, assinatura e preferências do consultório. Complete esses dados antes de colocar toda a equipe em uso diário.",
+                "A identificação e o fuso já foram definidos na criação. Em Identificação, escolha o ícone e a cor do consultório; em Departamentos, revise nomes e ative somente os ambientes usados pela equipe.",
         ],
     ];
     $tip = $tips[$route] ?? null;
@@ -524,15 +529,11 @@ function login_apply_resolved_credential(
         "audit_body" =>
             "Entrada realizada com a última credencial de trabalho do usuário carregada automaticamente.",
     ]);
-    if (
-        (int) val(
-            "SELECT COUNT(*) FROM pi_clinics WHERE owner_user_id=? AND onboarding_done=0",
-            [$uid],
-        ) > 0
-    ) {
-        redirect("onboarding");
-    }
-    redirect("appointments");
+    redirect(
+        (string) ($choice["role_code"] ?? "") === "gerente"
+            ? "painel"
+            : "appointments",
+    );
 }
 function developer_first_login_clear_json_cache(int $uid): bool
 {
@@ -963,6 +964,14 @@ function page_signup(): void
             flash("Informe CNPJ válido para o consultório.", "bad");
             redirect("signup");
         }
+        $uf = strtoupper(trim((string) ($_POST["address_state"] ?? "")));
+        $city = trim((string) ($_POST["address_city"] ?? ""));
+        $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
+        if (!isset(br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
+            flash("Escolha a cidade de atuação na lista do IBGE.", "bad");
+            redirect("signup");
+        }
+        $timezone = timezone_from_location($uf, $city);
         db_begin_transaction();
         try {
             $pid = upsert_person(
@@ -1028,7 +1037,7 @@ function page_signup(): void
                 )
                 : $trialStart + max(1, default_trial_days()) * 86400;
             q(
-                "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,address_line,onboarding_done,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,0,?,?,'trial',?,?)",
+                "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
                 [
                     $legalType,
                     trim((string) $_POST["legal_name"]),
@@ -1039,6 +1048,11 @@ function page_signup(): void
                     $uid,
                     $uid,
                     trim((string) ($_POST["address_line"] ?? "")),
+                    $uf,
+                    $city,
+                    $cityIbge,
+                    $timezone,
+                    $trialStart,
                     $trialStart,
                     $trialEnd,
                     default_monthly_price_cents(),
@@ -1058,6 +1072,15 @@ function page_signup(): void
                 "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active) VALUES (?,?,?,1,1) ON DUPLICATE KEY UPDATE is_owner=1, active=1",
                 [$uid, $cid, "medico"],
             );
+            $managerRoleId = (int) (val(
+                "SELECT id FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND role_code='gerente' AND active=1 LIMIT 1",
+                [$uid, $cid],
+            ) ?: 0);
+            if ($managerRoleId <= 0) {
+                throw new RuntimeException(
+                    "Não foi possível definir o ambiente Administrativo inicial.",
+                );
+            }
             $ownerRoles = q(
                 "SELECT role_code FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND active=1 AND role_code IN ('gerente','medico')",
                 [$uid, $cid],
@@ -1081,10 +1104,19 @@ function page_signup(): void
                 "clinic_id" => $cid,
                 "nome" => $_POST["display_name"],
                 "owner_user_id" => $uid,
+                "cidade" => $city,
+                "uf" => $uf,
+                "timezone" => $timezone,
+                "onboarding_done" => 1,
             ]);
             db_commit();
+            login_last_credential_remember(
+                $uid,
+                "clinic",
+                $managerRoleId,
+            );
             flash(
-                "Seu consultório foi inaugurado. Insira CPF e Senha para começar a organizá-lo.",
+                "Seu consultório foi inaugurado e configurado. Insira CPF e Senha para entrar como Administrativo.",
             );
             redirect("login");
         } catch (Throwable $e) {
@@ -1200,7 +1232,7 @@ function page_signup(): void
                 'required placeholder="Nome exibido no sistema"',
             ),
         ) .
-        '</div><div class="signup-ds-grid two">' .
+        "</div>" .
         form_row(
             "Telefone principal",
             input(
@@ -1210,16 +1242,7 @@ function page_signup(): void
                 'autocomplete="tel" inputmode="tel" placeholder="(00) 00000-0000"',
             ),
         ) .
-        form_row(
-            "Endereço",
-            input(
-                "address_line",
-                "text",
-                "",
-                'maxlength="180" placeholder="Rua, número, bairro e complemento"',
-            ),
-        ) .
-        "</div>";
+        clinic_location_fields();
     $form =
         '<section class="auth widebox signup-card signup-steps-card signup-ds-shell signup-screen-flow"><header class="signup-ds-hero"><div class="signup-ds-hero-main"><span class="eyebrow signup-opening-label">' .
         icon("home_health") .
@@ -1257,7 +1280,7 @@ function page_signup(): void
         icon("arrow_forward") .
         '<span>Dados do consultório</span></button></div></section><section class="signup-step signup-ds-step signup-screen-panel" data-signup-step="2" hidden><div class="signup-screen-kicker"><span>Etapa 3 de 3</span><strong>Identificação do consultório</strong></div><fieldset class="signup-ds-fieldset"><legend><span class="signup-ds-icon small">' .
         icon("domain_add") .
-        '</span><span><b>Identificação do consultório</b><small>Dados usados para abrir o ambiente inicial.</small></span></legend><p class="field-help">Essas informações podem ser revisadas depois em Meu Consultório.</p>' .
+        '</span><span><b>Identificação do consultório</b><small>Dados definitivos para abrir o ambiente inicial.</small></span></legend><p class="field-help">A cidade de atuação define automaticamente o fuso horário. Identidade visual, departamentos, equipe e permissões serão orientados dentro do consultório.</p>' .
         $clinicFields .
         '</fieldset><div class="signup-actions signup-step-actions signup-ds-actions"><button type="button" class="ghost" data-signup-prev>' .
         icon("arrow_back") .

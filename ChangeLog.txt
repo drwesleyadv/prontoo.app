@@ -1,3 +1,14 @@
+Prontoo 1.7.17.1 — criação definitiva do consultório e orientação contextual
+
+- A etapa 3 de 3 da criação passa a solicitar estado e cidade de atuação pela lista do IBGE, além dos dados jurídicos, nome, telefone e endereço já existentes.
+- O fuso horário é derivado no servidor a partir da UF e da cidade e gravado no mesmo ato transacional da criação do consultório.
+- O consultório já nasce com a configuração inicial concluída, eliminando o redirecionamento para o antigo wizard de Onboarding no primeiro login.
+- O responsável continua recebendo os ambientes Administrativo e Profissional, com o Administrativo registrado como credencial primária para a primeira entrada no novo consultório.
+- Entradas no ambiente Administrativo passam a abrir o Painel, enquanto os demais ambientes continuam abrindo a Agenda.
+- As dicas contextuais do Painel, Meu Consultório, Colaboradores e Permissões orientam os ajustes antes concentrados no wizard: aparência, departamentos, equipe e acessos.
+- O estado de leitura das dicas passa a considerar também o consultório, impedindo que uma dica dispensada em um ambiente oculte a orientação de outro consultório do mesmo usuário.
+- Mantidos schema, tabelas, colunas, permissões padrão, isolamento entre consultórios e compatibilidade com instalações atuais.
+
 Prontoo 1.7.15.10 — refinamento da tela Avisos do Desenvolvedor
 
 - Reorganizada a tela em uma central técnica com hierarquia, superfícies, raios, espaçamentos e cores alinhados ao Design System.
