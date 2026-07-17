@@ -1,7 +1,7 @@
 <?php
 
 const BR_LANDING_ORIGIN = "https://prontoo.app";
-const BR_LANDING_VERSION_FALLBACK = "1.7.17.1";
+const BR_LANDING_VERSION_FALLBACK = "1.7.17.2";
 function br_landing_release_metadata(): array
 {
     static $metadata = null;
