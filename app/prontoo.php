@@ -42,7 +42,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.17.1";
+const PRONTOO_VERSION_FALLBACK = "1.7.17.2";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -153,7 +153,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.15.10";
+const PRONTOO_PREVIOUS_VERSION = "1.7.17.1";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
@@ -214,6 +214,7 @@ if (version_compare(PHP_VERSION, PRONTOO_MIN_PHP_VERSION, "<")) {
     exit(1);
 }
 const PRONTOO_NAME = "Prontoo";
+const PRONTOO_DEFAULT_ACCENT_COLOR = "#2f6652";
 const PRONTOO_DOMAIN = "prontoo.app";
 const PRONTOO_TRIAL_DAYS = 30;
 const PRONTOO_MONTHLY_PRICE_CENTS = 9990;
@@ -221,7 +222,6 @@ const PRONTOO_TRUST_RELEASE_DAYS = 5;
 const PRONTOO_DOCUMENT_PDF_TTL_SECONDS = 86400;
 const PRONTOO_CANONICAL_HOST = "";
 const PRONTOO_TRUST_PROXY_HEADERS = false;
-const PRONTOO_UPDATE_REQUIRE_SIGNATURE = false;
 const PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES = 10;
 const PRONTOO_MAESTRO_CRON_BUDGET_MS = 90000;
 const PRONTOO_MAESTRO_MEMORY_BUDGET_MB = 96;
@@ -245,7 +245,6 @@ const PRONTOO_ADMIN_ACTIONS = [
     "admin_performance" => ["label" => "Performance", "icon" => "speed"],
     "admin_alerts" => ["label" => "Avisos", "icon" => "campaign"],
     "admin_maintenance" => ["label" => "Manutenção", "icon" => "construction"],
-    "admin_update" => ["label" => "Atualização", "icon" => "system_update_alt"],
 ];
 class ProntooHttpError extends RuntimeException
 {
