@@ -20,6 +20,10 @@ final class LayerMap
         'app/Presentation/',
     ];
 
+    private const ENVIRONMENT_PHP_PATHS = [
+        'app/config.php',
+    ];
+
     private function __construct() {}
 
     public static function layerFor(string $relativePath): ?string
@@ -81,6 +85,18 @@ final class LayerMap
         return false;
     }
 
+    public static function isEnvironmentPhpPath(string $relativePath): bool
+    {
+        $path = str_replace('\\', '/', ltrim($relativePath, '/'));
+        return in_array($path, self::ENVIRONMENT_PHP_PATHS, true);
+    }
+
+    /** @return list<string> */
+    public static function environmentPhpPaths(): array
+    {
+        return self::ENVIRONMENT_PHP_PATHS;
+    }
+
     public static function layerFromNamespace(string $namespace): ?string
     {
         $namespace = ltrim($namespace, '\\');
@@ -134,6 +150,10 @@ final class LayerMap
             }
             $path = str_replace('\\', '/', $file->getPathname());
             $normalized = '/' . ltrim(str_replace($root, '', $path), '/');
+            $relative = ltrim($normalized, '/');
+            if (self::isEnvironmentPhpPath($relative)) {
+                continue;
+            }
             $skip = false;
             foreach ($excluded as $fragment) {
                 if (str_contains($normalized, $fragment)) {
