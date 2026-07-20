@@ -10,18 +10,21 @@ use Prontoo\Core\Integrity\PiIntegrity;
 
 final class PdoActionProofStore implements ActionProofPort
 {
-    public function write(string $route, array $context, Decision $decision): void
+    public function write(string $route, array $context, Decision $decision): bool
     {
         if (!function_exists('pdo')) {
-            return;
+            error_log('[Prontoo layered action proof] PDO indisponível para registrar prova.');
+            return false;
         }
         try {
             $payload = [
+                'proof_type' => 'authorization_precondition',
                 'audit_body' => $decision->allowed
-                    ? 'Prova operacional aprovada pelo núcleo de invariantes.'
-                    : 'Prova operacional recusada pelo núcleo de invariantes.',
+                    ? 'Prova de autorização aprovada pelo núcleo de invariantes.'
+                    : 'Prova de autorização recusada pelo núcleo de invariantes.',
                 'integrity_policy' => Canonical::POLICY_VERSION,
                 'route' => Canonical::token($route, 'login'),
+                'action' => (string) ($decision->evidence['action'] ?? ''),
                 'module' => $decision->module,
                 'operation' => $decision->operation,
                 'scope' => $decision->scope,
@@ -52,8 +55,10 @@ final class PdoActionProofStore implements ActionProofPort
                 Canonical::POLICY_VERSION,
                 Canonical::json($payload),
             ]);
+            return true;
         } catch (\Throwable $error) {
             error_log('[Prontoo layered action proof] não foi possível registrar prova: ' . $error->getMessage());
+            return false;
         }
     }
 }
