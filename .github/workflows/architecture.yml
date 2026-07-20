@@ -4,10 +4,10 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply-release:
+  diagnose-release:
     if: github.head_ref == 'agent/1.7.20.6-clean-schema-layer2'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -18,19 +18,24 @@ jobs:
           ref: agent/1.7.20.6-clean-schema-layer2
           fetch-depth: 0
 
-      - name: Apply verified release patch
+      - name: Assemble and dry-run patch
         shell: bash
         run: |
-          set -euo pipefail
-          test -f .release/apply.ready
-          cat .release/patch.part.* > /tmp/prontoo.patch
-          echo '3aee9505e14c6a218400d53f8753ebacc4d189c11c6194a0e9140aff3eff499e  /tmp/prontoo.patch' | sha256sum -c -
+          set -u
+          cat .release/patch.part.* > assembled.patch
+          sha256sum assembled.patch | tee patch-diagnostic.txt
+          echo 'expected 3aee9505e14c6a218400d53f8753ebacc4d189c11c6194a0e9140aff3eff499e' >> patch-diagnostic.txt
           git show origin/main:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          patch --batch --forward -p1 < /tmp/prontoo.patch
-          rm -rf .release
-          rm -f .github/workflows/source-export.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Implementa schema limpo 1.7.20.6 alinhado à camada 2'
-          git push origin HEAD:agent/1.7.20.6-clean-schema-layer2
+          patch --dry-run --batch --forward -p1 < assembled.patch > patch-dry-run.txt 2>&1 || true
+
+      - name: Upload patch diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-patch-diagnostic
+          path: |
+            assembled.patch
+            patch-diagnostic.txt
+            patch-dry-run.txt
+          if-no-files-found: error
+          retention-days: 1
