@@ -36,15 +36,21 @@ final class LayeredKernel
     public static function logicSelfTest(?string $root = null): array
     {
         $authorization = AuthorizationService::logicSelfTest();
+        $credentials = RuntimeCapabilityProvider::logicSelfTest();
+        $middleware = ActionMiddleware::logicSelfTest();
         $mutations = InvariantKernel::logicSelfTest();
         $architecture = $root !== null && $root !== ''
             ? ArchitectureVerifier::report($root, false)
             : ['ok' => true, 'skipped' => true];
         return [
             'ok' => !empty($authorization['ok']) &&
+                !empty($credentials['ok']) &&
+                !empty($middleware['ok']) &&
                 !empty($mutations['ok']) &&
                 !empty($architecture['ok']),
             'authorization' => $authorization,
+            'credentials' => $credentials,
+            'middleware' => $middleware,
             'mutations' => $mutations,
             'architecture' => $architecture,
         ];
