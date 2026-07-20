@@ -30,7 +30,11 @@ jobs:
           from pathlib import Path
           patch = Path('/tmp/prontoo.patch').read_text()
           sections = re.split(r'(?=^diff -ruN )', patch, flags=re.M)
-          kept = [section for section in sections if 'prontoo_original/.github/workflows/architecture.yml' not in section.splitlines()[0] if section]
+          kept = [
+              section
+              for section in sections
+              if section and 'prontoo_original/.github/workflows/architecture.yml' not in section.splitlines()[0]
+          ]
           Path('/tmp/prontoo-no-workflow.patch').write_text(''.join(kept))
           PY
           patch --dry-run --batch --forward -p1 < /tmp/prontoo-no-workflow.patch
