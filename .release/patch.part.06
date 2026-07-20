@@ -1,0 +1,143 @@
+_integrity_alerts": "b495fef2f2347b67f5bac6b57a21822b415da677ab64b96d49f75ad74d7506f8",
++    "pi_lead_events": "f194452d3ea37619a43d1dcf244c363340382c31aff05692e47333591d7e5ad4",
++    "pi_leads": "6567aa14b31814972883a8ffa91451c235b227217b06f0f5d41180266fc499cc",
++    "pi_login_locks": "4c2d8eb0e7aa3652a60af1754b339165057a6bf83ef8eca63ae16b90efad2859",
++    "pi_maestro_executions": "5d5fbefd8a92d9317e54e25235cf457e730a8774b66ef4dbb2bec8b11914603f",
++    "pi_maestro_job_runs": "cb407d2f87a767399b86c95c72e8c2e535760a13cab41a1de87229e2ae0ea6e6",
++    "pi_maestro_job_stats": "1e6ed2d73ed6a24458fb20060fddbbe59e6c0b6917f50bcd723f5880e1cd8789",
++    "pi_maestro_rules": "b1c5d97ee892c9bf7efdfb6e10719f522a9841664e56f2c29d648993e5e9fe62",
++    "pi_meta": "dc30a83b0f4810a7ec0e76311a32fd37993d013ab7b4101a22389684b3fae04b",
++    "pi_notice_reads": "0e0bf28a9ce7b9eeba09e7d154629cc6f3f7bd55c750cbf9cf18379b9d4e7800",
++    "pi_notices": "34e2de1dabeda3fd0a386b163f7345f73f17d7782a91d38f0fbc7c8a9834274d",
++    "pi_patient_guardians": "49c5f24e3a1c361d4a37b4e0051f0191ae45fa2c81509f5b87827626e973d44e",
++    "pi_patient_tabs": "f186b45022f447424b6eb2891f0c3d50f0a767f8a65c8cba5d3442bec4046e49",
++    "pi_patients": "5ed1a36bdac33b68daa89db6e7dc50425179947e8323cd72789e61995491cae0",
++    "pi_permission_rules": "882daea92d14a5590281075e326fa8b6d097fdc1cfbd062e8c17284ff36e66d3",
++    "pi_permissions": "24fececc3a8f1d7778522a28dba5b115c3f11e8e4fc21a8ad72e621a49f59c4a",
++    "pi_persons": "db673cc346e1a0fa3f4ae67b418c5396221ef9c17bab006be2477036abd09f73",
++    "pi_platform_counters": "2ee8df46db3a16887c3e48a0b3cbc6167c3541cd8562749b40c6acc21dccb30a",
++    "pi_procedures": "5f4912843da947e796668beabb65b336bdca3e072a374388a25e9d1c784abd0d",
++    "pi_scope_violations": "36dd884256e5db1d5cc753106b3b74aa29a131c157305750974bb7a5e1af5973",
++    "pi_subscription_payments": "1cadd6b2f9eb67eafa235ddc4b81e70aa2b2e40b4f5ec2118643e53504e40d75",
++    "pi_task_comments": "582bbe4db6a6f2297bf755cb98d83bf487d37d8f61dfe8b19a2fa728fbccb771",
++    "pi_task_details": "63805f679f1049559947c888e22d9f6e2662e27d1022e28e3d40fd2c44f3a994",
++    "pi_task_events": "041ce1ccdfab2c66ec337226ca93a331d81b4e6c81036baae542b0900b55b645",
++    "pi_tasks": "1b17659ce1da84024a4d40d32344cdac7a4b5eb6aa7199571131666e30a32f6f",
++    "pi_user_cmdbar_access": "f1c1b95170a4d5c0559ce4888e5ca020ce05dd87fc681ce67b35fed3b6bb77d4",
++    "pi_user_devices": "eb6d6dfb3e1b79a58d76c583a9483cb596d63973dd95caf0f2d7ec880e56f2f0",
++    "pi_user_onboarding_tips": "67cdcfd734d21e9fe897c159c3461ccaa3a6c1f73ebc7caa0fb83e346eda763d",
++    "pi_user_roles": "043d37cd645d0c87904b64eb0c911b23e1ae2dfcaacb99e6e2a5c415b25becdf",
++    "pi_user_work_hours": "335c7e54fb0b1d608a9d46073e3bd27ff5df82b82b75780ee9a7968c24bef36b",
++    "pi_users": "65deabc27c78791c39aee67677367383450598fbbf149c0156ace7fceeef4e7a"
++  },
++  "intentionally_replaced_tables": [
++    "pi_audit",
++    "pi_action_proofs"
++  ],
++  "removed_support_tables": [
++    "pi_audit_chain_heads",
++    "pi_audit_entities",
++    "pi_audit_event_types",
++    "pi_audit_messages",
++    "pi_checksum_batches",
++    "pi_checksum_events",
++    "pi_checksum_state",
++    "pi_integrity_anchors",
++    "pi_ip_addresses",
++    "pi_record_integrity",
++    "pi_runtime_flags",
++    "pi_sequence",
++    "pi_user_agents"
++  ],
++  "new_support_tables": [
++    "pi_action_ledger"
++  ]
++}
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/Database/schema.sql prontoo_repo/app/Database/schema.sql
+--- prontoo_original/app/Database/schema.sql	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/Database/schema.sql	2026-07-20 21:29:06.302420203 +0000
+@@ -1,93 +1,5 @@
+-CREATE TABLE `pi_audit_chain_heads` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `chain_name` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `last_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`chain_name`),
+-  UNIQUE KEY `uq_audit_chain_heads_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_audit_entities` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `entity_key` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `label` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `entity_key` (`entity_key`),
+-  UNIQUE KEY `uq_audit_entities_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_audit_event_types` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `event_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `label` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `icon` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'radio_button_checked',
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `event_key` (`event_key`),
+-  UNIQUE KEY `uq_audit_event_types_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_audit_messages` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `text_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `friendly_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `text_hash` (`text_hash`),
+-  UNIQUE KEY `uq_audit_messages_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_checksum_batches` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `from_event_id` bigint UNSIGNED NOT NULL,
+-  `to_event_id` bigint UNSIGNED NOT NULL,
+-  `request_rows` int UNSIGNED NOT NULL DEFAULT '0',
+-  `operation_events` int UNSIGNED NOT NULL DEFAULT '0',
+-  `previous_batch_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `batch_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `previous_confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'confirmed',
+-  `error_message` varchar(240) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `started_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `finished_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `duration_ms` int UNSIGNED NOT NULL DEFAULT '0',
+-  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `uq_pi_checksum_batch` (`batch_hash`),
+-  UNIQUE KEY `uq_checksum_batches_seq` (`Seq`),
+-  KEY `idx_pi_checksum_batch_range` (`from_event_id`,`to_event_id`),
+-  KEY `idx_pi_checksum_batch_status` (`status`,`id`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_checksum_state` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `scope_key` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `previous_confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `pending_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `previous_pending_checksum` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `pending_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `request_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `batch_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `last_request_id` char(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `pending_event_id` bigint UNSIGNED DEFAULT NULL,
+-  `confirmed_event_id` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `confirmed_batch_id` bigint UNSIGNED DEFAULT NULL,
+-  `last_batch_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `updated_at` bigint UNSIGNED NOT NU
