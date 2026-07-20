@@ -125,7 +125,8 @@ final class ActionCatalog
 
         // Clinic onboarding and settings.
         $add('onboarding', self::DEFAULT_ACTION, 'clinic', $auth, ['settings:edit'], ['clinic:edit', 'permissions:seed']);
-        $add('settings', ['profile', 'sectors', 'visual'], 'clinic', $clinic, ['settings:edit'], ['clinic:edit']);
+        $add('settings', ['profile', 'visual'], 'clinic', $clinic, ['settings:edit'], ['clinic:edit']);
+        $add('settings', 'sectors', 'clinic', $subscription, ['settings:edit'], ['clinic:edit']);
         $add('settings', 'subscription_claim', 'clinic', $subscription, ['settings:edit'], ['subscription:claim'], [], 'subscription_claim');
 
         // Patients and clinical records.
