@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace Prontoo\Core\Invariant;
 
 use Prontoo\Core\Invariant\Mutation\MutationInvariant;
@@ -14,15 +15,6 @@ final class InvariantKernel
         return Canonical::POLICY_VERSION;
     }
 
-    public static function authorize(
-        string $route,
-        string $method,
-        array $post,
-        array $context,
-    ): Decision {
-        return CapabilityInvariant::evaluate($route, $method, $post, $context);
-    }
-
     public static function guardMutation(string $sql, array $params = []): void
     {
         MutationInvariant::guard($sql, $params);
@@ -35,13 +27,11 @@ final class InvariantKernel
 
     public static function logicSelfTest(): array
     {
-        $capabilities = CapabilityInvariant::logicSelfTest();
         $mutations = MutationInvariant::logicSelfTest();
         return [
-            "ok" => !empty($capabilities["ok"]) && !empty($mutations["ok"]),
-            "policy" => self::policyVersion(),
-            "capabilities" => $capabilities,
-            "mutations" => $mutations,
+            'ok' => !empty($mutations['ok']),
+            'policy' => self::policyVersion(),
+            'mutations' => $mutations,
         ];
     }
 }
