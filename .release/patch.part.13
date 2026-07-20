@@ -1,0 +1,172 @@
+app/Infrastructure/Database/SeqContract.php	2026-07-20 21:24:10.536126830 +0000
+@@ -0,0 +1,82 @@
++<?php
++declare(strict_types=1);
++
++namespace Prontoo\Infrastructure\Database;
++
++final class SeqContract
++{
++    private function __construct() {}
++
++    public static function assert(\PDO $pdo): void
++    {
++        if (self::tableExists($pdo, 'pi_sequence')) {
++            throw new \RuntimeException('A tabela legada pi_sequence não pode existir no schema limpo.');
++        }
++        $rows = $pdo->query(
++            "SELECT t.TABLE_NAME,c.IS_NULLABLE,c.COLUMN_DEFAULT,c.EXTRA " .
++            "FROM information_schema.tables t " .
++            "LEFT JOIN information_schema.columns c ON c.TABLE_SCHEMA=t.TABLE_SCHEMA AND c.TABLE_NAME=t.TABLE_NAME AND c.COLUMN_NAME='Seq' " .
++            "WHERE t.TABLE_SCHEMA=DATABASE() AND t.TABLE_TYPE='BASE TABLE' AND t.TABLE_NAME LIKE 'pi\\_%' ESCAPE '\\\\' " .
++            "ORDER BY t.TABLE_NAME",
++        )?->fetchAll(\PDO::FETCH_ASSOC) ?: [];
++        if ($rows === []) {
++            throw new \RuntimeException('Nenhuma tabela Prontoo foi encontrada para validar Seq.');
++        }
++        foreach ($rows as $row) {
++            $table = (string) ($row['TABLE_NAME'] ?? '');
++            $nullable = strtoupper((string) ($row['IS_NULLABLE'] ?? ''));
++            $default = strtolower(preg_replace('/\s+/', '', (string) ($row['COLUMN_DEFAULT'] ?? '')) ?? '');
++            if ($nullable !== 'NO') {
++                throw new \RuntimeException("Coluna Seq ausente ou anulável em {$table}.");
++            }
++            if (!str_contains($default, 'uuid_short()')) {
++                throw new \RuntimeException("Default nativo de Seq ausente em {$table}.");
++            }
++            if (!self::hasUniqueSeq($pdo, $table)) {
++                throw new \RuntimeException("Índice único de Seq ausente em {$table}.");
++            }
++        }
++    }
++
++    public static function max(\PDO $pdo): int
++    {
++        $tables = $pdo->query(
++            "SELECT TABLE_NAME FROM information_schema.columns " .
++            "WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='Seq' AND TABLE_NAME LIKE 'pi\\_%' ESCAPE '\\\\' " .
++            "ORDER BY TABLE_NAME",
++        )?->fetchAll(\PDO::FETCH_COLUMN) ?: [];
++        $selects = [];
++        foreach ($tables as $table) {
++            $table = (string) $table;
++            if (!preg_match('/^pi_[a-z0-9_]+$/', $table)) {
++                continue;
++            }
++            $selects[] = "SELECT COALESCE(MAX(`Seq`),0) AS max_seq FROM `{$table}`";
++        }
++        if ($selects === []) {
++            return 0;
++        }
++        $value = $pdo->query(
++            'SELECT COALESCE(MAX(max_seq),0) FROM (' . implode(' UNION ALL ', $selects) . ') seq_union',
++        )?->fetchColumn();
++        return max(0, (int) $value);
++    }
++
++    private static function tableExists(\PDO $pdo, string $table): bool
++    {
++        $stmt = $pdo->prepare(
++            'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
++        );
++        $stmt->execute([$table]);
++        return (bool) $stmt->fetchColumn();
++    }
++
++    private static function hasUniqueSeq(\PDO $pdo, string $table): bool
++    {
++        $stmt = $pdo->prepare(
++            "SELECT 1 FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name=? AND column_name='Seq' AND non_unique=0 LIMIT 1",
++        );
++        $stmt->execute([$table]);
++        return (bool) $stmt->fetchColumn();
++    }
++}
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/Install/Installer.php prontoo_repo/app/Install/Installer.php
+--- prontoo_original/app/Install/Installer.php	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/Install/Installer.php	2026-07-20 21:17:26.719385974 +0000
+@@ -805,13 +805,8 @@
+             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+                 \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest(5000);
+             }
+-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiSequence")) {
+-                \Prontoo\Core\Integrity\PiSequence::ensureCounterTable(pdo());
+-            }
+-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+-                \Prontoo\Core\Integrity\PiIntegrity::ensureGlobalSequence(
+-                    15000,
+-                );
++            if (class_exists("\\Prontoo\\Infrastructure\\Database\\SeqContract")) {
++                \Prontoo\Infrastructure\Database\SeqContract::assert(pdo());
+             }
+             db_begin_transaction();
+             $pid = upsert_person($adminName, $adminCpf, $adminBirth);
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/Presentation/Http/ActionMiddleware.php prontoo_repo/app/Presentation/Http/ActionMiddleware.php
+--- prontoo_original/app/Presentation/Http/ActionMiddleware.php	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/Presentation/Http/ActionMiddleware.php	2026-07-20 21:15:17.465926496 +0000
+@@ -48,6 +48,8 @@
+             'clinic_id' => (int) ($decision->evidence['clinic_id'] ?? 0),
+             'contract_hash' => (string) ($decision->evidence['contract_hash'] ?? ''),
+             'decision_proof_hash' => $decision->proofHash,
++            'ledger_id' => (int) ($GLOBALS['PRONTOO_ACTION_LEDGER_ID'] ?? 0),
++            'request_id' => (string) ($GLOBALS['PRONTOO_ACTION_LEDGER_REQUEST_ID'] ?? ''),
+         ];
+     }
+ 
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/Support/Foundation.php prontoo_repo/app/Support/Foundation.php
+--- prontoo_original/app/Support/Foundation.php	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/Support/Foundation.php	2026-07-20 21:16:42.500087307 +0000
+@@ -770,7 +770,7 @@
+     }
+     try {
+         $runtimeOk =
+-            db_table_exists("pi_runtime_flags") || db_table_exists("pi_meta");
++            db_table_exists("pi_meta");
+         $checks["pi_runtime"] = $runtimeOk;
+     } catch (Throwable $e) {
+         $checks["pi_runtime"] = false;
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/Support/SeqFooter.php prontoo_repo/app/Support/SeqFooter.php
+--- prontoo_original/app/Support/SeqFooter.php	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/Support/SeqFooter.php	2026-07-20 21:16:17.122438097 +0000
+@@ -145,28 +145,10 @@
+         return 0;
+     }
+     try {
+-        if (
+-            function_exists("db_table_exists") &&
+-            !db_table_exists("pi_sequence")
+-        ) {
++        if (!class_exists("\Prontoo\Infrastructure\Database\SeqContract")) {
+             return 0;
+         }
+-        $maxSeq =
+-            (int) (pdo()
+-                ->query("SELECT COALESCE(MAX(`Seq`),0) FROM `pi_sequence`")
+-                ?->fetchColumn() ?:
+-            0);
+-        $autoNext = 0;
+-        try {
+-            $st = pdo()->prepare(
+-                "SELECT COALESCE(AUTO_INCREMENT,0) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='pi_sequence' LIMIT 1",
+-            );
+-            $st->execute();
+-            $autoNext = max(0, (int) $st->fetchColumn() - 1);
+-        } catch (Throwable) {
+-            $autoNext = 0;
+-        }
+-        return max(0, $maxSeq, $autoNext);
++        return \Prontoo\Infrastructure\Database\SeqContract::max(pdo());
+     } catch (Throwable $e) {
+         error_log("[Prontoo seq footer max] " . $e->getMessage());
+         return 0;
+diff -ruN '--exclude=source-export.yml' prontoo_original/app/architecture.manifest.json prontoo_repo/app/architecture.manifest.json
+--- prontoo_original/app/architecture.manifest.json	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/app/architecture.manifest.json	2026-07-20 21:28:12.854156337 +0000
+@@ -1,11 +1,11 @@
+ {
+-  "version": "1.7.20.5",
++  "version": "1.7.20.6",
+   "policy": "php-layered-invariants-v2",
+   "architecture": "layered_php_with_invariant_core",
+   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
+   "cl
