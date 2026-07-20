@@ -15,9 +15,9 @@
   "architecture_policy": "php-layered-invariants-v1",
   "architecture_coverage_target_percent": 100,
   "file_count": 25,
-  "total_uncompressed_bytes": 100771,
+  "total_uncompressed_bytes": 101118,
   "files": {
-    ".github/workflows/architecture.yml": "d0ae5be4fe15acfca7fbead9f26da04ebd21b4a6ff7e7337c8c973207e57aa95",
+    ".github/workflows/architecture.yml": "1253be4a7fd3d84280ae006aea1406200ea9d9a7512ac0c259dbc1ea0f04f630",
     "ARCHITECTURE.md": "664838f13c009222d7ccc6a516b05a695265663d17a38c4a58f481c0016e7fb0",
     "ChangeLog.txt": "8bdfaa367e29d9f7abfa2c9f59c93a23f7b308511078e2011c5984c979670972",
     "app/Application/Audit/ActionProofPort.php": "4fafe921cf36ed0be71c30542b5485b4a82f7939c1f2aec077d22b779a335fa0",
