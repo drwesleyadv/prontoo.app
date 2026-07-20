@@ -83,6 +83,7 @@ final class ArchitectureVerifier
         }
 
         $discovered = [];
+        $discoveredSources = [];
         foreach (array_keys($sources) as $source) {
             $path = $root . '/' . $source;
             if (!is_file($path)) {
@@ -90,15 +91,18 @@ final class ArchitectureVerifier
             }
             foreach (self::discoverActionTokens((string) @file_get_contents($path)) as $token) {
                 $discovered[$token] = true;
+                $discoveredSources[$token][$source] = true;
             }
         }
         $unregistered = array_values(array_diff(array_keys($discovered), array_keys($knownActions)));
         sort($unregistered, SORT_STRING);
         foreach ($unregistered as $token) {
+            $locations = implode('|', array_keys((array) ($discoveredSources[$token] ?? [])));
+            $message = 'action_literal_without_contract:' . $token . ($locations !== '' ? ':' . $locations : '');
             if ($strictActions) {
-                $errors[] = 'action_literal_without_contract:' . $token;
+                $errors[] = $message;
             } else {
-                $warnings[] = 'action_literal_without_contract:' . $token;
+                $warnings[] = $message;
             }
         }
 
@@ -121,6 +125,10 @@ final class ArchitectureVerifier
             'runtime_modules_total' => count($runtimeModules),
             'action_contracts_total' => count($contracts),
             'action_literals_discovered' => count($discovered),
+            'action_literal_sources' => array_map(
+                static fn(array $items): array => array_keys($items),
+                $discoveredSources,
+            ),
             'layers' => $layerCounts,
             'errors' => array_values(array_unique($errors)),
             'warnings' => array_values(array_unique($warnings)),
