@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Package repository
         run: |
-          tar --exclude=.git --exclude=source-export.tar.gz -czf source-export.tar.gz .
+          tar --exclude=.git -czf ../source-export.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
           name: source-export
-          path: source-export.tar.gz
+          path: ../source-export.tar.gz
           retention-days: 1
