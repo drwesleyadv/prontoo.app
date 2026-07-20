@@ -1,3 +1,16 @@
+Prontoo 1.7.20.2 — catálogo exato de capacidades por ação
+
+- Remove integralmente a autorização inferida somente pela rota e pela semântica aproximada do nome da ação.
+- Introduz catálogo canônico `rota + ação real → capacidades exigidas`, carregado como módulo arquitetural obrigatório.
+- Toda ação POST autenticada sem contrato explícito passa a ser recusada antes do handler e antes da invalidação de cache ou de qualquer efeito operacional.
+- Ações transversais declaram todas as capacidades diretamente exigidas, como emissão documental pela ficha, recebimento financeiro do paciente e conversão de Interessado em Paciente.
+- Efeitos automáticos de workflow, como sincronização financeira e atualização de tarefas após mudanças da Jornada, permanecem delegados e não ampliam a permissão geral do usuário.
+- Operações de caixa da Recepção continuam restritas ao conjunto exato de ações operacionais, sem conceder administração financeira ampla.
+- Ações públicas, de perfil, onboarding, consultório, equipe, permissões, Agenda, Pacientes, Documentos, Tarefas, Avisos, Financeiro, Maestro e administração global passam a possuir contratos explícitos.
+- O dispatcher passa a autorizar a ação antes da invalidação de cache e antes do descarte da dica de onboarding.
+- Adiciona autotestes determinísticos para ações desconhecidas, compostas, públicas, clínicas e globais.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e verificações legadas como defesa em profundidade.
+
 Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
 
 - Corrige a divergência introduzida pela decomposição da landing: `BR_LANDING_VERSION_FALLBACK` volta a ser declarado em `br/index.php`, arquivo efetivamente inspecionado pelo contrato canônico.

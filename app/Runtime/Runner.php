@@ -348,12 +348,26 @@ function prontoo_run(bool $installMode = false): void
             exit();
         }
         prontoo_boot_database_for_route($r);
-        if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        $isPost = ($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST";
+        if ($isPost) {
             if ($r !== "login_autotest") {
                 check_csrf();
             } elseif (empty($_SESSION["csrf"])) {
                 csrf();
             }
+        }
+        $map = prontoo_route_map();
+        if (
+            $r === "onboarding" &&
+            (int) ($_SESSION["clinic_id"] ?? 0) > 0 &&
+            function_exists("ensure_clinic_trial_active")
+        ) {
+            ensure_clinic_trial_active((int) $_SESSION["clinic_id"], true);
+        }
+        $cNow = $publicHome ? [] : ctx();
+        enforce_read_only($cNow, $r);
+        enforce_action_integrity($cNow, $r);
+        if ($isPost) {
             if (
                 function_exists(
                     "server_json_cache_schedule_invalidation_for_write",
@@ -368,17 +382,6 @@ function prontoo_run(bool $installMode = false): void
                 onboarding_tip_dismiss();
             }
         }
-        $map = prontoo_route_map();
-        if (
-            $r === "onboarding" &&
-            (int) ($_SESSION["clinic_id"] ?? 0) > 0 &&
-            function_exists("ensure_clinic_trial_active")
-        ) {
-            ensure_clinic_trial_active((int) $_SESSION["clinic_id"], true);
-        }
-        $cNow = $publicHome ? [] : ctx();
-        enforce_read_only($cNow, $r);
-        enforce_action_integrity($cNow, $r);
         if (
             !$publicHome &&
             function_exists("maintenance_active") &&
