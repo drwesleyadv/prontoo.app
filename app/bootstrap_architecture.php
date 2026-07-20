@@ -7,6 +7,7 @@ $__prontoo_core_files = [
     __DIR__ . "/Core/Invariant/Canonical.php",
     __DIR__ . "/Core/Invariant/Decision.php",
     __DIR__ . "/Core/Invariant/SqlExpression.php",
+    __DIR__ . "/Core/Invariant/ActionCapabilityCatalog.php",
     __DIR__ . "/Core/Invariant/CapabilityInvariant.php",
     __DIR__ . "/Core/Invariant/Tenant/TenantContext.php",
     __DIR__ . "/Core/Invariant/Tenant/ScopeProof.php",
