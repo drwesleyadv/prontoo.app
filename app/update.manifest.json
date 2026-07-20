@@ -1,10 +1,10 @@
 {
-  "version": "1.7.20.4",
-  "release": "1.7.20.4",
+  "version": "1.7.20.5",
+  "release": "1.7.20.5",
   "schema_revision": "prontoo_1_7_13_1_clean_schema_r6_multirole",
-  "build": "1.7.20.5-runtime-architecture-profile-candidate",
-  "package_type": "runtime_architecture_hotfix_candidate_incremental",
-  "generated_at": "2026-07-20T20:29:36Z",
+  "build": "1.7.20.5-runtime-architecture-profile-hotfix",
+  "package_type": "runtime_architecture_profile_hotfix_incremental",
+  "generated_at": "2026-07-20T20:41:08Z",
   "version_format": "1.month.day.sequence",
   "minimum_php": "8.4.0",
   "minimum_mysql": "8.0.30",
@@ -16,14 +16,16 @@
   "architecture_classification_coverage_target_percent": 100,
   "architecture_native_files_min": 11,
   "architecture_transitional_files_max": 79,
-  "candidate_version": "1.7.20.5",
-  "publication_status": "awaiting_explicit_merge_authorization",
-  "file_count": 3,
-  "total_uncompressed_bytes": 15721,
+  "file_count": 7,
+  "total_uncompressed_bytes": 33201,
   "files": {
     "HOTFIX-1.7.20.5.md": "5f4316c4ccac2289dd67a563d4576f0aba2c4cedabd5ff82979c3472b379a440",
     "app/Core/Architecture/LayerMap.php": "58b2fed61f01f4908655dab6a51e8811f4fe3fd180209fe8312e4813a2951a9e",
-    "app/Core/Install/RuntimeContract.php": "571258aa398e251d0eb04b70a613226db59445f7768e792d5755b1147c72bcb3"
+    "app/Core/Install/RuntimeContract.php": "571258aa398e251d0eb04b70a613226db59445f7768e792d5755b1147c72bcb3",
+    "app/architecture.manifest.json": "e65ac702273aca6932faa0e887f5317637b22591a81ac8c5ecaf67b95132cf54",
+    "app/prontoo.php": "f7f86773ad1ccf7a21be6bed51dd036e05aa3684423503c5f1315fc4e1b1ce20",
+    "br/index.php": "c73d30392b8abb78a19991ab67b0ea5b08cd17cb95e2b1eaf2e38648258fd626",
+    "version.json": "d80ffa9ee8ea8689d33fa61bdd89cdefd171077139740925fa3cea28939fa872"
   },
   "removed_files": [
     "app/Core/Invariant/ActionCapabilityCatalog.php",
