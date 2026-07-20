@@ -17,6 +17,11 @@ use Prontoo\Runtime\LayeredKernel;
 
 final class RuntimeContract
 {
+    private const REPOSITORY_ONLY_ERROR_PREFIXES = [
+        'architecture_native_files_below_baseline:',
+        'architecture_transitional_files_above_ceiling:',
+    ];
+
     private function __construct() {}
 
     public static function requiredCoreFunctions(): array
@@ -157,12 +162,46 @@ final class RuntimeContract
         }
     }
 
+    private static function assertRuntimeArchitecture(string $root): void
+    {
+        $report = ArchitectureVerifier::report($root, false);
+        $runtimeErrors = [];
+        $repositoryOnly = [];
+        foreach ((array) ($report['errors'] ?? []) as $error) {
+            $error = (string) $error;
+            $repositoryMetric = false;
+            foreach (self::REPOSITORY_ONLY_ERROR_PREFIXES as $prefix) {
+                if (str_starts_with($error, $prefix)) {
+                    $repositoryMetric = true;
+                    break;
+                }
+            }
+            if ($repositoryMetric) {
+                $repositoryOnly[] = $error;
+            } else {
+                $runtimeErrors[] = $error;
+            }
+        }
+        if ($repositoryOnly !== []) {
+            error_log(
+                '[Prontoo architecture repository metric] ' .
+                implode(', ', array_slice($repositoryOnly, 0, 12)),
+            );
+        }
+        if ($runtimeErrors !== []) {
+            throw new \RuntimeException(
+                'Contrato arquitetural divergente: ' .
+                implode(', ', array_slice($runtimeErrors, 0, 12)),
+            );
+        }
+    }
+
     public static function assert(string $root, string $version): void
     {
         self::assertVersionContract($root, $version);
         self::assertTypes();
         self::assertFunctions(self::requiredCoreFunctions());
-        ArchitectureVerifier::assert($root, false);
+        self::assertRuntimeArchitecture($root);
 
         if (self::fullRuntimeExpected()) {
             self::assertFunctions(self::requiredFullFunctions());
