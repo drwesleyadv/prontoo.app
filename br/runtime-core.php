@@ -1,7 +1,6 @@
 <?php
 
 const BR_LANDING_ORIGIN = "https://prontoo.app";
-const BR_LANDING_VERSION_FALLBACK = "1.7.17.4";
 function br_landing_release_metadata(): array
 {
     static $metadata = null;
@@ -112,4 +111,3 @@ $brLandingAsset = (string) ($_GET["asset"] ?? "");
 if ($brLandingAsset !== "") {
     br_landing_send_asset($brLandingAsset);
 }
-
