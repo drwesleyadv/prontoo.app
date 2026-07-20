@@ -1,3 +1,11 @@
+Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
+
+- Corrige a divergência introduzida pela decomposição da landing: `BR_LANDING_VERSION_FALLBACK` volta a ser declarado em `br/index.php`, arquivo efetivamente inspecionado pelo contrato canônico.
+- `br/runtime-core.php` passa a consumir o fallback já declarado, sem redefinição e sem mudança no HTML renderizado.
+- Elimina o fatal “Contrato de versão divergente: br/index.php” durante o carregamento do runtime.
+- Formaliza em `VERSIONING.md` a regra permanente `1.mês.dia.sequência`, com sequência reiniciada em `1` a cada novo dia de publicação.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e contratos da camada 2.
+
 Prontoo 1.7.17.4 — camada 2 por invariantes especializadas
 
 - A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relações e estado válido.
