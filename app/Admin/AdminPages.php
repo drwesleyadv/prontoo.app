@@ -1472,7 +1472,7 @@ function admin_global_sequence_series_30d(): array
             "value" => 0,
         ];
         $select[] =
-            "SUM(CASE WHEN allocated_at>=? AND allocated_at<? THEN 1 ELSE 0 END) AS d" .
+            "SUM(CASE WHEN created_at>=? AND created_at<? THEN 1 ELSE 0 END) AS d" .
             (29 - $i);
         $params[] = $day->getTimestamp();
         $params[] = $next->getTimestamp();
@@ -1480,14 +1480,14 @@ function admin_global_sequence_series_30d(): array
     try {
         if (
             function_exists("db_table_exists") &&
-            !db_table_exists("pi_sequence")
+            !db_table_exists("pi_action_ledger")
         ) {
             return array_values($days);
         }
         $sql =
             "SELECT " .
             implode(",", $select) .
-            " FROM pi_sequence WHERE allocated_at>=? AND allocated_at<?";
+            " FROM pi_action_ledger WHERE created_at>=? AND created_at<?";
         $first = array_key_first($days);
         $last = array_key_last($days);
         $params[] = new DateTimeImmutable(

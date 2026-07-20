@@ -88,3 +88,15 @@ A verificação falha quando encontra:
 - cobertura classificatória inferior a 100%;
 - regressão abaixo do piso nativo ou acima do teto transitório;
 - falha nos autotestes de autorização, credenciais, prova, middleware ou invariantes de mutação.
+
+## Persistência limpa r7 — camada 2
+
+A versão 1.7.20.6 adota `app/Database/schema.sql` como contrato exclusivo de instalação em banco vazio. A coluna `Seq` é gerada nativamente por tabela; autorização e mutação convergem em `pi_action_ledger`; a auditoria grava dimensões inline. A equivalência das tabelas operacionais é certificada por `app/Database/operational-schema.contract.json`, e `tools/schema-check.php` valida o contrato estático e uma instalação real em MySQL 8.
+
+Metas de suporte:
+
+- nenhuma tabela global de sequência;
+- nenhuma atualização posterior apenas para preencher `Seq`;
+- uma evidência persistente por ação protegida;
+- ausência de dicionários auxiliares na auditoria;
+- migração estrutural in-place proibida para a revisão r7.

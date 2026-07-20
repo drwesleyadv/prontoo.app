@@ -268,6 +268,8 @@ final class ArchitectureVerifier
         foreach ([
             'app/Core/Invariant/ActionCapabilityCatalog.php',
             'app/Core/Invariant/CapabilityInvariant.php',
+            'app/Core/Integrity/PiSequence.php',
+            'app/Core/Integrity/ActionProof.php',
         ] as $legacyFile) {
             if (is_file($root . '/' . $legacyFile)) {
                 $errors[] = 'legacy_authorization_file_present:' . $legacyFile;

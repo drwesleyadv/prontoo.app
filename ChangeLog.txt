@@ -1,3 +1,17 @@
+Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
+
+- Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.
+- Preserva por contrato 60 definições de tabela da versão anterior, alterando somente a geração técnica da coluna `Seq`.
+- Mantém `Seq` em todas as 62 tabelas como `BIGINT UNSIGNED NOT NULL DEFAULT (UUID_SHORT())`, com índice único e sem tabela central `pi_sequence`.
+- Consolida autorização e prova de mutação em `pi_action_ledger`, uma única evidência persistente por ação protegida.
+- Substitui provas, eventos, lotes e estado de checksum por finalização do mesmo ledger após o commit.
+- Torna `pi_audit` autossuficiente e remove cinco tabelas de dicionário e seus upserts auxiliares.
+- Remove estruturas de apoio sem responsabilidade ativa: cabeças de cadeia, âncoras, integridade duplicada por registro e flags redundantes.
+- Reduz o schema de 75 para 62 tabelas sem alterar as tabelas operacionais preservadas.
+- Adiciona contrato de equivalência operacional por hash e teste real de instalação em MySQL 8.
+- Publica rotina protegida que apaga a instalação r6 somente quando o banco contém exclusivamente tabelas `pi_*`, remove configuração e locks e força o retorno ao instalador.
+- Bloqueia a limpeza automática diante de tabela externa ou revisão de schema desconhecida.
+
 Prontoo 1.7.20.3 — arquitetura PHP em camadas e verificabilidade contínua
 
 - Separa o fluxo de autorização em Domain, Application, Infrastructure, Presentation e Composition, mantendo o Core dedicado a decisões canônicas, mutações, isolamento, relações, workflows e integridade.

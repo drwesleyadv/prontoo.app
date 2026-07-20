@@ -307,58 +307,6 @@ function audit_context_array(array $row): array
     $data = json_decode($raw, true);
     return is_array($data) ? $data : [];
 }
-function unique_audit_event_id(string $event): int
-{
-    q(
-        "INSERT INTO pi_audit_event_types (event_key,label,icon) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), label=VALUES(label), icon=VALUES(icon)",
-        [$event, event_label($event), event_icon($event)],
-    );
-    return db_last_insert_id();
-}
-function unique_audit_entity_id(?string $entity): ?int
-{
-    if (!$entity) {
-        return null;
-    }
-    q(
-        "INSERT INTO pi_audit_entities (entity_key,label) VALUES (?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), label=VALUES(label)",
-        [$entity, entity_label($entity)],
-    );
-    return db_last_insert_id();
-}
-function unique_audit_message_id(string $friendly): int
-{
-    $hash = hash("sha256", $friendly);
-    q(
-        "INSERT INTO pi_audit_messages (text_hash,friendly_text) VALUES (?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)",
-        [$hash, mb_substr($friendly, 0, 255)],
-    );
-    return db_last_insert_id();
-}
-function unique_ip_id(string $ip): ?int
-{
-    $ip = trim($ip);
-    if ($ip === "") {
-        return null;
-    }
-    q(
-        "INSERT INTO pi_ip_addresses (ip_hash) VALUES (?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)",
-        [hash("sha256", $ip . "|ip")],
-    );
-    return db_last_insert_id();
-}
-function unique_user_agent_id(string $ua): ?int
-{
-    $ua = mb_substr(trim($ua), 0, 180);
-    if ($ua === "") {
-        return null;
-    }
-    q(
-        "INSERT INTO pi_user_agents (ua_hash,user_agent) VALUES (?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), user_agent=VALUES(user_agent)",
-        [hash("sha256", $ua . "|ua"), $ua],
-    );
-    return db_last_insert_id();
-}
 function audit_integrity_base(array $r): string
 {
     return implode("|", [
@@ -394,7 +342,7 @@ function verify_audit_row(array $r): bool
 }
 function audit_select_sql(): string
 {
-    return "SELECT a.id,a.clinic_id,a.user_id,et.event_key,et.event_key AS event,et.label AS event_label,et.icon AS event_icon,en.entity_key,en.entity_key AS entity,en.label AS entity_label,a.entity_id,m.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.policy_version,a.created_at FROM pi_audit a INNER JOIN pi_audit_event_types et ON et.id=a.event_type_id LEFT JOIN pi_audit_entities en ON en.id=a.entity_type_id LEFT JOIN pi_audit_messages m ON m.id=a.message_id";
+    return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.policy_version,a.created_at FROM pi_audit a";
 }
 function int_ids(array $rows, string $key): array
 {
@@ -2238,11 +2186,15 @@ function audit(
             if ($json === false) {
                 $json = "{}";
             }
-            $eventId = unique_audit_event_id($event);
-            $entityTypeId = unique_audit_entity_id($entity);
-            $messageId = unique_audit_message_id($friendly);
-            $ipId = unique_ip_id(substr($_SERVER["REMOTE_ADDR"] ?? "", 0, 45));
-            $uaId = unique_user_agent_id($_SERVER["HTTP_USER_AGENT"] ?? "");
+            $eventLabel = event_label($event);
+            $eventIcon = event_icon($event);
+            $entityLabel = $entity !== null && $entity !== "" ? entity_label($entity) : null;
+            $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
+            $ipHash = $ip !== "" ? hash("sha256", $ip . "|ip") : null;
+            $userAgent = mb_substr(trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")), 0, 180);
+            if ($userAgent === "") {
+                $userAgent = null;
+            }
             $row = [
                 "clinic_id" => $cid,
                 "user_id" => $uid,
@@ -2257,14 +2209,17 @@ function audit(
                 secret_key(),
             );
             q(
-                "INSERT INTO pi_audit (clinic_id,user_id,event_type_id,entity_type_id,entity_id,message_id,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_id,user_agent_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())",
+                "INSERT INTO pi_audit (clinic_id,user_id,event_key,event_label,event_icon,entity_key,entity_label,entity_id,friendly_text,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_hash,user_agent,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
                     $uid,
-                    $eventId,
-                    $entityTypeId,
+                    $event,
+                    $eventLabel,
+                    $eventIcon,
+                    $entity,
+                    $entityLabel,
                     (string) $entityId,
-                    $messageId,
+                    $friendly,
                     $json,
                     $proof["integrity_hash"],
                     $proof["previous_hash"],
@@ -2272,8 +2227,8 @@ function audit(
                     $proof["proof_hash"],
                     $proof["proof_json"],
                     $proof["policy_version"],
-                    $ipId,
-                    $uaId,
+                    $ipHash,
+                    $userAgent,
                 ],
             );
         });

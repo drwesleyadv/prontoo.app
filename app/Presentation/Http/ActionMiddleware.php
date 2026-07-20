@@ -48,6 +48,8 @@ final readonly class ActionMiddleware
             'clinic_id' => (int) ($decision->evidence['clinic_id'] ?? 0),
             'contract_hash' => (string) ($decision->evidence['contract_hash'] ?? ''),
             'decision_proof_hash' => $decision->proofHash,
+            'ledger_id' => (int) ($GLOBALS['PRONTOO_ACTION_LEDGER_ID'] ?? 0),
+            'request_id' => (string) ($GLOBALS['PRONTOO_ACTION_LEDGER_REQUEST_ID'] ?? ''),
         ];
     }
 

@@ -770,7 +770,7 @@ function prontoo_login_selftest_light(): array
     }
     try {
         $runtimeOk =
-            db_table_exists("pi_runtime_flags") || db_table_exists("pi_meta");
+            db_table_exists("pi_meta");
         $checks["pi_runtime"] = $runtimeOk;
     } catch (Throwable $e) {
         $checks["pi_runtime"] = false;

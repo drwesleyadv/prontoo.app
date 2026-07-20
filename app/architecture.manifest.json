@@ -1,11 +1,11 @@
 {
-  "version": "1.7.20.5",
+  "version": "1.7.20.6",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
   "classification_coverage_target_percent": 100,
-  "native_files_min": 11,
-  "transitional_files_max": 79,
+  "native_files_min": 13,
+  "transitional_files_max": 78,
   "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_file_count_must_not_increase",
   "layers": {
     "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
@@ -25,7 +25,9 @@
   "ci_workflow": ".github/workflows/architecture.yml",
   "removed_legacy_files": [
     "app/Core/Invariant/ActionCapabilityCatalog.php",
-    "app/Core/Invariant/CapabilityInvariant.php"
+    "app/Core/Invariant/CapabilityInvariant.php",
+    "app/Core/Integrity/PiSequence.php",
+    "app/Core/Integrity/ActionProof.php"
   ],
   "compatibility_boundaries": [
     {
@@ -39,8 +41,12 @@
       "rule": "thin delegation to LayeredKernel only"
     }
   ],
-  "database_changes": false,
-  "schema_changes": false,
+  "database_changes": true,
+  "schema_changes": true,
   "visual_changes": false,
-  "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot"
+  "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
+  "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
+  "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
+  "support_record_policy": "one_action_ledger_row_per_protected_action_and_inline_audit_dimensions",
+  "clean_install_policy": "existing_prontoo_r6_database_is_dropped_after_safety_checks_and_installer_requires_zero_tables"
 }

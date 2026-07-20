@@ -145,28 +145,10 @@ function seq_footer_max_seq(): int
         return 0;
     }
     try {
-        if (
-            function_exists("db_table_exists") &&
-            !db_table_exists("pi_sequence")
-        ) {
+        if (!class_exists("\Prontoo\Infrastructure\Database\SeqContract")) {
             return 0;
         }
-        $maxSeq =
-            (int) (pdo()
-                ->query("SELECT COALESCE(MAX(`Seq`),0) FROM `pi_sequence`")
-                ?->fetchColumn() ?:
-            0);
-        $autoNext = 0;
-        try {
-            $st = pdo()->prepare(
-                "SELECT COALESCE(AUTO_INCREMENT,0) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='pi_sequence' LIMIT 1",
-            );
-            $st->execute();
-            $autoNext = max(0, (int) $st->fetchColumn() - 1);
-        } catch (Throwable) {
-            $autoNext = 0;
-        }
-        return max(0, $maxSeq, $autoNext);
+        return \Prontoo\Infrastructure\Database\SeqContract::max(pdo());
     } catch (Throwable $e) {
         error_log("[Prontoo seq footer max] " . $e->getMessage());
         return 0;
