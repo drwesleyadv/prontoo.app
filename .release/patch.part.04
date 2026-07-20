@@ -405,7 +405,6 @@ diff -ruN '--exclude=source-export.yml' prontoo_original/app/Core/Integrity/PiSe
 -            self::ensureTableHasSeq($pdo, $table);
 -            self::backfillTable($pdo, $table, $batchSize);
 -        }
--
 -    }
 -
 -    public static function ensureCounterTable(\PDO $pdo): void
