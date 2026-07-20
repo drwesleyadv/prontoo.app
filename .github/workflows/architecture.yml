@@ -44,5 +44,33 @@ jobs:
             }
           '
 
+      - name: Release manifest
+        shell: bash
+        run: |
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
+              if (file_exists((string) $file)) {
+                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
+              }
+            }
+          '
+
       - name: Layered architecture
         run: php tools/architecture-check.php
