@@ -15,7 +15,7 @@
   "architecture_policy": "php-layered-invariants-v1",
   "architecture_coverage_target_percent": 100,
   "file_count": 25,
-  "total_uncompressed_bytes": 101118,
+  "total_uncompressed_bytes": 101522,
   "files": {
     ".github/workflows/architecture.yml": "1253be4a7fd3d84280ae006aea1406200ea9d9a7512ac0c259dbc1ea0f04f630",
     "ARCHITECTURE.md": "664838f13c009222d7ccc6a516b05a695265663d17a38c4a58f481c0016e7fb0",
@@ -24,7 +24,7 @@
     "app/Application/Authorization/ActionCatalog.php": "766d192ec2b3b5a50d2c6d2c82792c7ce070ee5434153ee08e4c3d59531e290e",
     "app/Application/Authorization/AuthorizationService.php": "be95c2f5ad19e87aa86444f351bd564659ac3c54ce788e0f559c708adc186029",
     "app/Application/Authorization/CapabilityProvider.php": "1af7a1d26af935bcc58397c9df372887c180cbaab1a359f1b828ce920afdacc1",
-    "app/Core/Architecture/ArchitectureVerifier.php": "e1b417fc1f9578dd51b6e452f4aa61712508ad40c15909b98f196951ef9212a9",
+    "app/Core/Architecture/ArchitectureVerifier.php": "d5deb1307e11d197cccc9ff7f276f863870a1ba88fedae5df5390c9205052e0c",
     "app/Core/Architecture/LayerMap.php": "51e7d658e918cfd0a1bcbd654839b17b9d7fcc346f83f0f1a7daa42e7da034cb",
     "app/Core/Install/RuntimeContract.php": "c48932510315fe31a6384b44c4355e8599f79404ff82e7f9c7912a6f8944ab90",
     "app/Core/Invariant/Canonical.php": "0299a05c81a9d6dae78fa34cceea8a1587da9ae3270ed126658cdccc5642c01d",
