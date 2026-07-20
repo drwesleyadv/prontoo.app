@@ -17,19 +17,20 @@ jobs:
         with:
           ref: agent/1.7.20.6-clean-schema-layer2
           fetch-depth: 0
-      - name: Apply release payload
+      - name: Apply release patch
         shell: bash
         run: |
           set -euo pipefail
-          payload='.release/prontoo-1.7.20.6.payload.b64'
-          if [ ! -f "$payload" ]; then
-            echo 'Payload ainda não publicado; nenhuma alteração aplicada.'
+          marker='.release/apply.ready'
+          if [ ! -f "$marker" ]; then
+            echo 'Partes recebidas; aguardando marcador final.'
             exit 0
           fi
-          base64 --decode "$payload" | tar -xzf -
-          rm -f app/Core/Integrity/PiSequence.php
-          rm -f app/Core/Integrity/ActionProof.php
-          rm -f "$payload"
+          cat .release/patch.part.* > /tmp/prontoo.patch.b64
+          echo '95ed51e967ae217b870fe7575ba8c9edd165fecc9dd18a264f25bc84e7db66d1  /tmp/prontoo.patch.b64' | sha256sum -c -
+          base64 --decode /tmp/prontoo.patch.b64 | gzip -dc > /tmp/prontoo.patch
+          patch --batch --forward -p1 < /tmp/prontoo.patch
+          rm -f .release/patch.part.* "$marker"
           rmdir .release 2>/dev/null || true
           rm -f .github/workflows/source-export.yml
           git config user.name 'github-actions[bot]'
