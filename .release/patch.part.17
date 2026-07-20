@@ -1,0 +1,8 @@
+empty_database": true,
++  "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
++  "production_ddl_source_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
+   "minimum_mysql": "8.0.30",
+-  "minimum_php": "8.4.0"
++  "minimum_php": "8.4.0",
++  "database_policy": "clean-schema-layer2-ledger-v1"
+ }
