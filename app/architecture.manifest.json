@@ -1,5 +1,5 @@
 {
-  "version": "1.7.20.4",
+  "version": "1.7.20.5",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
@@ -41,5 +41,6 @@
   ],
   "database_changes": false,
   "schema_changes": false,
-  "visual_changes": false
+  "visual_changes": false,
+  "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot"
 }
