@@ -7,5 +7,5 @@ use Prontoo\Core\Invariant\Decision;
 
 interface ActionProofPort
 {
-    public function write(string $route, array $context, Decision $decision): void;
+    public function write(string $route, array $context, Decision $decision): bool;
 }

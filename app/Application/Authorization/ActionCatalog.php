@@ -37,6 +37,7 @@ final class ActionCatalog
             (string) ($definition['policy'] ?? 'matrix'),
             (string) $definition['primary'],
             (string) $definition['source'],
+            self::tokens((array) ($definition['producers'] ?? [])),
         );
     }
 
@@ -76,6 +77,7 @@ final class ActionCatalog
             array $delegated = [],
             string $policy = 'matrix',
             ?string $primary = null,
+            array $producers = [],
         ) use (&$catalog): void {
             foreach ((array) $actions as $action) {
                 $action = $action !== '' ? $action : self::DEFAULT_ACTION;
@@ -91,6 +93,7 @@ final class ActionCatalog
                     'policy' => $policy,
                     'primary' => $primary ?? ($required[0] ?? ($scope === 'global' ? 'admin:*' : 'session:self')),
                     'source' => $source,
+                    'producers' => self::tokens($producers),
                 ];
             }
         };
@@ -115,12 +118,13 @@ final class ActionCatalog
         $add('login_autotest', self::DEFAULT_ACTION, 'public', $auth, [], ['session:autotest']);
         $add('mobile_web_access', self::DEFAULT_ACTION, 'public', $auth, [], ['session:mobile_probe']);
         $add('logout', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:logout']);
-        $add('switch', [self::DEFAULT_ACTION, 'choose_admin'], 'authenticated', $auth, ['session:self'], ['session:environment']);
+        $add('switch', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:environment']);
+        $add('switch', 'choose_admin', 'authenticated', $auth, ['session:self'], ['session:environment'], [], 'matrix', null, [$admin]);
         $add('profile', ['profile_update_user', 'profile_change_password', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:environment']);
 
         // Central request operation.
         foreach (['painel', 'operations', 'leads', 'patients', 'appointments', 'procedures', 'documents', 'tasks', 'maestro', 'audit', 'financial', 'notices', 'users', 'settings', 'permissions'] as $route) {
-            $add($route, 'onboarding_tip_dismiss', 'clinic', $runner, ['session:self'], ['onboarding_tip:edit']);
+            $add($route, 'onboarding_tip_dismiss', 'clinic', $auth, ['session:self'], ['onboarding_tip:edit']);
         }
 
         // Clinic onboarding and settings.
@@ -182,7 +186,6 @@ final class ActionCatalog
         $globalActions = [
             'admin_painel' => ['goal', 'confirm_subscription_payment', 'reject_subscription_payment'],
             'admin_clinics' => ['activate_subscription', 'billing', 'deactivate_subscription', 'default_billing', 'toggle'],
-            'admin_global_notices' => ['create', 'toggle'],
             'admin_alerts' => ['create', 'read'],
             'admin_maintenance' => ['save_settings', 'regenerate_footer_seq_alphabet', 'save_maintenance'],
             'admin_deleted' => ['restore_patient', 'restore_care'],
@@ -190,6 +193,8 @@ final class ActionCatalog
         foreach ($globalActions as $route => $actions) {
             $add($route, $actions, 'global', $admin, ['admin:*'], ['admin:write'], [], 'global_admin');
         }
+        $add('admin_global_notices', 'create', 'global', $admin, ['admin:*'], ['admin:write'], [], 'global_admin');
+        $add('admin_global_notices', 'toggle', 'global', $admin, ['admin:*'], ['admin:write'], [], 'global_admin', null, [$tasks]);
 
         return $catalog;
     }
@@ -236,6 +241,9 @@ final class ActionCatalog
         $cases['template_create_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 0])?->required === ['documents:add'];
         $cases['template_edit_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 5])?->required === ['documents:edit'];
         $cases['sources_declared'] = array_reduce(self::all(), static fn(bool $ok, ActionContract $contract): bool => $ok && $contract->source !== '', true);
+        $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Auth/AuthOnboarding.php';
+        $cases['choose_admin_producer_declared'] = self::resolve('switch', ['act' => 'choose_admin'])?->producers === ['Admin/AdminPages.php'];
+        $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Domain/Tasks/TasksNotices.php'];
         $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],

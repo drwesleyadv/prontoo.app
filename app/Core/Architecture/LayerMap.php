@@ -12,6 +12,14 @@ final class LayerMap
     public const PRESENTATION = 'presentation';
     public const COMPOSITION = 'composition';
 
+    private const NATIVE_PREFIXES = [
+        'app/Core/Architecture/',
+        'app/Domain/Authorization/',
+        'app/Application/',
+        'app/Infrastructure/',
+        'app/Presentation/',
+    ];
+
     private function __construct() {}
 
     public static function layerFor(string $relativePath): ?string
@@ -57,6 +65,20 @@ final class LayerMap
             str_starts_with($path, 'Ui/') => self::PRESENTATION,
             default => null,
         };
+    }
+
+    public static function isNativePath(string $relativePath): bool
+    {
+        $path = str_replace('\\', '/', ltrim($relativePath, '/'));
+        if ($path === 'app/Runtime/LayeredKernel.php') {
+            return true;
+        }
+        foreach (self::NATIVE_PREFIXES as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static function layerFromNamespace(string $namespace): ?string

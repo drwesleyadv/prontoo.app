@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-O Prontoo usa uma arquitetura PHP em camadas orientada por invariantes. Toda ação mutável deve ser identificada por um contrato exato, autorizada pela camada de aplicação e submetida aos guardiões de escopo, relações, estado e integridade antes da persistência.
+O Prontoo usa uma arquitetura PHP em camadas orientada por invariantes. Toda ação mutável precisa possuir contrato exato, credencial viva, prova de autorização persistida e escrita compatível com escopo, relações, contexto e workflow.
 
 ## Camadas
 
@@ -16,11 +16,11 @@ Contém contratos e conceitos de negócio independentes de HTTP, sessão, PDO e 
 
 ### Application
 
-Orquestra casos de uso e define portas. A autorização de ações é resolvida aqui por `rota + ação real`, sem acesso direto a PDO, sessão ou HTML.
+Orquestra casos de uso e define portas. A autorização é resolvida por `rota + ação real`, sem PDO, sessão ou HTML.
 
 ### Infrastructure
 
-Implementa portas da aplicação para banco, matriz de permissões, cache e outros mecanismos externos. Toda persistência de provas operacionais fica nesta camada.
+Implementa portas da aplicação para banco, credenciais vivas, matriz de permissões e persistência das provas de autorização.
 
 ### Presentation
 
@@ -28,7 +28,7 @@ Recebe a requisição e adapta decisões da aplicação para HTTP. Não decide c
 
 ### Composition
 
-Monta as dependências concretas, carrega o runtime e mantém apenas adaptadores temporários estritamente finos para chamadas globais anteriores.
+Monta as dependências concretas, carrega o runtime e mantém somente fronteiras transitórias finas para chamadas globais anteriores.
 
 ## Regra de dependência
 
@@ -41,15 +41,27 @@ As dependências apontam para dentro:
 - Presentation → Core, Domain, Application, Presentation;
 - Composition → todas as camadas, exclusivamente para montagem.
 
-## Segurança
+## Segurança e verificabilidade
 
 1. Ação POST não catalogada falha fechada.
 2. Todas as capacidades exigidas pelo contrato precisam ser satisfeitas.
-3. Escopo global, clínico, autenticado e público é verificado antes do handler.
-4. Efeitos delegados não ampliam permissões do usuário.
-5. A prova da decisão é persistida por uma porta de infraestrutura.
-6. Escritas continuam submetidas ao núcleo de invariantes de mutação.
-7. O CI verifica cobertura arquitetural de 100% dos arquivos PHP versionados.
+3. Antes de conceder capacidades, a infraestrutura revalida no banco o usuário ativo, o consultório ativo, os vínculos e todos os cargos ativos, ou a condição viva de administrador global.
+4. `admin:*` exige simultaneamente escopo global, usuário ativo, contexto global administrativo e `is_global_admin=1` no banco.
+5. Capacidades clínicas podem ser satisfeitas por qualquer cargo ativo do usuário no consultório atual.
+6. A decisão autorizadora é persistida antes do handler. Se a prova de uma ação permitida não puder ser gravada, a alteração é bloqueada com falha fechada.
+7. Efeitos delegados não ampliam permissões do usuário.
+8. Escritas permanecem submetidas ao núcleo de invariantes de mutação.
+9. O CI confronta cada ação literal com contratos declarados para o mesmo arquivo-fonte.
+
+## Métricas arquiteturais
+
+A cobertura de classificação e a migração nativa são métricas diferentes:
+
+- **Cobertura de classificação:** todos os arquivos PHP versionados precisam pertencer a uma camada; alvo obrigatório de 100%.
+- **Cobertura nativa:** arquivos namespaced que já obedecem diretamente às fronteiras das camadas.
+- **Arquivos transitórios:** módulos procedurais ainda classificados e protegidos pelo núcleo, mas não reescritos internamente como componentes nativos.
+
+A política `php-layered-invariants-v2` impede regressão: o número de arquivos nativos não pode ficar abaixo de 11 e o número de transitórios não pode ultrapassar 79. Esses valores são uma linha de base auditável, não uma alegação de migração integral do código.
 
 ## Compatibilidade
 
@@ -67,10 +79,12 @@ A verificação falha quando encontra:
 
 - arquivo PHP sem camada;
 - dependência em direção proibida;
-- arquivo nativo de camada sem namespace;
+- arquivo nativo sem namespace;
 - acesso PDO fora de Infrastructure ou Composition;
-- ação literal sem contrato;
+- ação literal sem contrato no mesmo arquivo-fonte;
 - contrato sem rota ou arquivo-fonte;
 - arquivo legado de autorização;
 - divergência do manifesto arquitetural;
-- cobertura inferior a 100%.
+- cobertura classificatória inferior a 100%;
+- regressão abaixo do piso nativo ou acima do teto transitório;
+- falha nos autotestes de autorização, credenciais, prova, middleware ou invariantes de mutação.
