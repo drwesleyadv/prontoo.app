@@ -7,7 +7,7 @@ use Prontoo\Application\Authorization\ActionCatalog;
 
 final class ArchitectureVerifier
 {
-    private const POLICY = 'php-layered-invariants-v1';
+    private const POLICY = 'php-layered-invariants-v2';
 
     /** @var array<string,array<string,mixed>> */
     private static array $cache = [];
@@ -27,6 +27,8 @@ final class ArchitectureVerifier
         $files = LayerMap::phpFiles($root);
         $classified = [];
         $layerCounts = [];
+        $nativeFiles = [];
+        $transitionalFiles = [];
 
         foreach ($files as $file) {
             $relative = ltrim(str_replace($root . '/', '', $file), '/');
@@ -37,6 +39,11 @@ final class ArchitectureVerifier
             }
             $classified[$relative] = $layer;
             $layerCounts[$layer] = ($layerCounts[$layer] ?? 0) + 1;
+            if (LayerMap::isNativePath($relative)) {
+                $nativeFiles[] = $relative;
+            } else {
+                $transitionalFiles[] = $relative;
+            }
             self::inspectDependencies($root, $relative, $layer, $errors);
             self::inspectLayerNativeFile($root, $relative, $layer, $errors);
         }
@@ -54,13 +61,15 @@ final class ArchitectureVerifier
         $routes = function_exists('prontoo_route_map')
             ? array_fill_keys(array_map('strval', \prontoo_route_map()), true)
             : [];
-        $knownActions = [];
         $sources = [];
+        $knownBySource = [];
         $contracts = ActionCatalog::all();
         foreach ($contracts as $contract) {
-            $knownActions[$contract->action] = true;
             $source = 'app/' . ltrim($contract->source, '/');
             $sources[$source] = true;
+            if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
+                $knownBySource[$source][$contract->action] = true;
+            }
             if (!is_file($root . '/' . $source)) {
                 $errors[] = 'action_source_missing:' . $contract->route . ':' . $contract->action . ':' . $source;
             }
@@ -84,6 +93,7 @@ final class ArchitectureVerifier
 
         $discovered = [];
         $discoveredSources = [];
+        $unregisteredPairs = [];
         foreach (array_keys($sources) as $source) {
             $path = $root . '/' . $source;
             if (!is_file($path)) {
@@ -92,13 +102,13 @@ final class ArchitectureVerifier
             foreach (self::discoverActionTokens((string) @file_get_contents($path)) as $token) {
                 $discovered[$token] = true;
                 $discoveredSources[$token][$source] = true;
+                if (!isset($knownBySource[$source][$token])) {
+                    $unregisteredPairs[$source . ':' . $token] = true;
+                }
             }
         }
-        $unregistered = array_values(array_diff(array_keys($discovered), array_keys($knownActions)));
-        sort($unregistered, SORT_STRING);
-        foreach ($unregistered as $token) {
-            $locations = implode('|', array_keys((array) ($discoveredSources[$token] ?? [])));
-            $message = 'action_literal_without_contract:' . $token . ($locations !== '' ? ':' . $locations : '');
+        foreach (array_keys($unregisteredPairs) as $pair) {
+            $message = 'action_literal_without_source_contract:' . $pair;
             if ($strictActions) {
                 $errors[] = $message;
             } else {
@@ -106,14 +116,25 @@ final class ArchitectureVerifier
             }
         }
 
-        self::inspectArchitectureManifest($root, $errors);
+        self::inspectArchitectureManifest(
+            $root,
+            count($nativeFiles),
+            count($transitionalFiles),
+            $errors,
+        );
         self::inspectRemovedLegacy($root, $errors, $warnings);
 
         $total = count($files);
         $covered = count($classified);
         $coverage = $total > 0 ? round(($covered / $total) * 100, 2) : 0.0;
+        $nativeCoverage = $total > 0
+            ? round((count($nativeFiles) / $total) * 100, 2)
+            : 0.0;
         if ($coverage !== 100.0) {
-            $errors[] = 'architecture_coverage_below_100:' . $coverage;
+            $errors[] = 'architecture_classification_coverage_below_100:' . $coverage;
+        }
+        if ($transitionalFiles !== []) {
+            $warnings[] = 'transitional_php_files_active:' . count($transitionalFiles);
         }
 
         $report = [
@@ -121,9 +142,14 @@ final class ArchitectureVerifier
             'policy' => self::POLICY,
             'files_total' => $total,
             'files_classified' => $covered,
-            'coverage_percent' => $coverage,
+            'classification_coverage_percent' => $coverage,
+            'native_files_total' => count($nativeFiles),
+            'transitional_files_total' => count($transitionalFiles),
+            'native_coverage_percent' => $nativeCoverage,
+            'native_files' => $nativeFiles,
             'runtime_modules_total' => count($runtimeModules),
             'action_contracts_total' => count($contracts),
+            'action_source_contracts_total' => array_sum(array_map('count', $knownBySource)),
             'action_literals_discovered' => count($discovered),
             'action_literal_sources' => array_map(
                 static fn(array $items): array => array_keys($items),
@@ -178,22 +204,7 @@ final class ArchitectureVerifier
         string $layer,
         array &$errors,
     ): void {
-        $nativePrefixes = [
-            'app/Core/Architecture/',
-            'app/Domain/Authorization/',
-            'app/Application/',
-            'app/Infrastructure/',
-            'app/Presentation/',
-            'app/Runtime/LayeredKernel.php',
-        ];
-        $native = false;
-        foreach ($nativePrefixes as $prefix) {
-            if (str_starts_with($relative, $prefix)) {
-                $native = true;
-                break;
-            }
-        }
-        if (!$native) {
+        if (!LayerMap::isNativePath($relative)) {
             return;
         }
         $content = (string) @file_get_contents($root . '/' . $relative);
@@ -209,8 +220,12 @@ final class ArchitectureVerifier
         }
     }
 
-    private static function inspectArchitectureManifest(string $root, array &$errors): void
-    {
+    private static function inspectArchitectureManifest(
+        string $root,
+        int $nativeFiles,
+        int $transitionalFiles,
+        array &$errors,
+    ): void {
         $file = $root . '/app/architecture.manifest.json';
         $raw = is_file($file) ? @file_get_contents($file) : false;
         $manifest = is_string($raw) ? json_decode($raw, true) : null;
@@ -221,8 +236,14 @@ final class ArchitectureVerifier
         if ((string) ($manifest['policy'] ?? '') !== self::POLICY) {
             $errors[] = 'architecture_manifest_policy';
         }
-        if ((float) ($manifest['coverage_target_percent'] ?? 0) !== 100.0) {
-            $errors[] = 'architecture_manifest_coverage_target';
+        if ((float) ($manifest['classification_coverage_target_percent'] ?? 0) !== 100.0) {
+            $errors[] = 'architecture_manifest_classification_target';
+        }
+        if ($nativeFiles < (int) ($manifest['native_files_min'] ?? PHP_INT_MAX)) {
+            $errors[] = 'architecture_native_files_below_baseline:' . $nativeFiles;
+        }
+        if ($transitionalFiles > (int) ($manifest['transitional_files_max'] ?? -1)) {
+            $errors[] = 'architecture_transitional_files_above_ceiling:' . $transitionalFiles;
         }
         if ((string) ($manifest['version'] ?? '') !== (defined('PRONTOO_VERSION') ? (string) PRONTOO_VERSION : (string) ($manifest['version'] ?? ''))) {
             $errors[] = 'architecture_manifest_version';
