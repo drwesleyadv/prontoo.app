@@ -1,3 +1,11 @@
+Prontoo 1.7.20.1 — hotfix do contrato de versão modular
+
+- Corrige o falso positivo `br/index.php` após a decomposição da landing em arquivos especializados.
+- O contrato passa a reconhecer `br/runtime-core.php` como origem do fallback da landing.
+- `version.json` permanece como única fonte canônica da versão lógica.
+- O contrato passa a exigir explicitamente os arquivos especializados da landing, produzindo diagnóstico preciso caso a sincronização fique incompleta.
+- Mantidas integralmente a refatoração da camada 2, o banco, o schema, a interface e os ativos.
+
 Prontoo 1.7.17.4 — camada 2 por invariantes especializadas
 
 - A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relações e estado válido.
