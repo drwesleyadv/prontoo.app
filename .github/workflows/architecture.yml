@@ -25,9 +25,16 @@ jobs:
           test -f .release/apply.ready
           find .release -maxdepth 1 -type f -name 'patch.part.*' -print0 | sort -z | xargs -0 cat > /tmp/prontoo.patch
           echo '3aee9505e14c6a218400d53f8753ebacc4d189c11c6194a0e9140aff3eff499e  /tmp/prontoo.patch' | sha256sum -c -
-          git show origin/main:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          patch --dry-run --batch --forward -p1 < /tmp/prontoo.patch
-          patch --batch --forward -p1 < /tmp/prontoo.patch
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          patch = Path('/tmp/prontoo.patch').read_text()
+          sections = re.split(r'(?=^diff -ruN )', patch, flags=re.M)
+          kept = [section for section in sections if 'prontoo_original/.github/workflows/architecture.yml' not in section.splitlines()[0] if section]
+          Path('/tmp/prontoo-no-workflow.patch').write_text(''.join(kept))
+          PY
+          patch --dry-run --batch --forward -p1 < /tmp/prontoo-no-workflow.patch
+          patch --batch --forward -p1 < /tmp/prontoo-no-workflow.patch
           rm -rf .release
           rm -f .github/workflows/source-export.yml
           git config user.name 'github-actions[bot]'
