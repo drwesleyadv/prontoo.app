@@ -1,0 +1,146 @@
+p": "f7f86773ad1ccf7a21be6bed51dd036e05aa3684423503c5f1315fc4e1b1ce20",
+-    "br/index.php": "c73d30392b8abb78a19991ab67b0ea5b08cd17cb95e2b1eaf2e38648258fd626",
+-    "version.json": "d80ffa9ee8ea8689d33fa61bdd89cdefd171077139740925fa3cea28939fa872"
++    ".github/workflows/architecture.yml": "5528e2de619b1cdb2a9a94bfdebbf6b4f4defa0fe98cac1e20f487f03a03b5ae",
++    "ARCHITECTURE.md": "2f0dade12d70ccd6b2c2a7f9d5a1365348b01ecb8ff753c29e89f4f5bfce1635",
++    "ChangeLog.txt": "7d182a340ee4ac8a9e58c2d9955c867d33ba77816e55e764cda699193c251fcc",
++    "DATABASE-ARCHITECTURE-1.7.20.6.md": "7230aff5511fb27853a0660a9b8be1752f5f3f544e2d95ccd26abb8e183b82f4",
++    "app/Admin/AdminPages.php": "d058c5251cf2dc3ebf5bf4cc2176da42b689132284ef8b219e0dfdb49e6e332a",
++    "app/Core/Architecture/ArchitectureVerifier.php": "a83256994d025b1655b5a4c6d889ca8e8f7664913e9040d1660a4aec46bd6bea",
++    "app/Core/Database/TenantIntegrity.php": "ce76c698536aa0dd8d848eb9687ad966cc0bb808106884920f05931e2cbd94bd",
++    "app/Core/Install/RuntimeContract.php": "ef4a7a0e8fb2f65ac02bbd30ed417869d3431d002c2e061300e452b8006c6c3e",
++    "app/Core/Integrity/PiIntegrity.php": "ec4c3f35dc70e8aa868ff7e9df3d3f37d66a0f7991416b331a76c1688a402edc",
++    "app/Database/DatabaseSchema.php": "dee92fb7f6366e620bae38f035e54dcee2251a95ea0e8eb1df58fcd9f9642c80",
++    "app/Database/operational-schema.contract.json": "1c6a79f4c41d53245fd4f205291eaa2a97ab95efe8403e04778a139b4dc20291",
++    "app/Database/schema.sql": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
++    "app/Domain/Audit/AuditActivity.php": "ff9bc1610c4386fb72bec03dcb3804ca749a1ea861291f0c6cd55f4a6b9ee915",
++    "app/Infrastructure/Audit/PdoActionProofStore.php": "d89f436a3b11f687a4d048be7fb9bfaaccdeee8256e8b822546fd2c67bf0e2fa",
++    "app/Infrastructure/Database/CleanInstallReset.php": "bf3f5d07fe0d5a0c44902811beef0ebb8dcd721446416ec1cec4990a854351c1",
++    "app/Infrastructure/Database/SeqContract.php": "b34237e82614cddaf9578c967aedfa1c4c74dea27603af2b9b12970b198e3689",
++    "app/Install/Installer.php": "d14cfe6efd6a25c0af61bb160dc706f246c4b8f9736e6aff89f39d98096232da",
++    "app/Presentation/Http/ActionMiddleware.php": "e61990c6af6245bb7d2a73a0cc798cb09505b25b462b9b16f957b8d732c0de52",
++    "app/Support/Foundation.php": "265d83eabf831153850736764a34388cf28aeab71a64514b6dd44c7ff24df9de",
++    "app/Support/SeqFooter.php": "4e5e5d5a9a7eafe7f81cf9fa8bc20156bafa86d35ca71e3da780474d5c192f5d",
++    "app/architecture.manifest.json": "c262f166ee6d2efa062503de1b50dd6b4a5846f476e89f98cb77687264f5183c",
++    "app/bootstrap_architecture.php": "24eecedf6c70dbfea25a9040078595bdbf2e8cf9eba74096fb1ec26449f65a76",
++    "app/prontoo.php": "28557218952cfce95bef97fdaffb95dc18b76f5b350c854c718084f739f5cd6f",
++    "br/index.php": "6add9064b749762ce15554fa3024ba71121ccefd2400f094b4ec61234b9036d8",
++    "tools/schema-check.php": "bf50451c59ea6f6d74175d28b091f092f55b382b70309ae9c9747e3493b5a7af",
++    "version.json": "bb68da18e7c1ef6bae1e519ef1dec0dc754958a22c5816e7b472382e79ce9385"
+   },
+   "removed_files": [
+     "app/Core/Invariant/ActionCapabilityCatalog.php",
+-    "app/Core/Invariant/CapabilityInvariant.php"
++    "app/Core/Invariant/CapabilityInvariant.php",
++    "app/Core/Integrity/PiSequence.php",
++    "app/Core/Integrity/ActionProof.php"
+   ]
+ }
+diff -ruN '--exclude=source-export.yml' prontoo_original/br/index.php prontoo_repo/br/index.php
+--- prontoo_original/br/index.php	2026-07-20 20:56:54.000000000 +0000
++++ prontoo_repo/br/index.php	2026-07-20 21:22:53.244234506 +0000
+@@ -1,6 +1,6 @@
+ <?php
+ declare(strict_types=1);
+-const BR_LANDING_VERSION_FALLBACK = "1.7.20.5";
++const BR_LANDING_VERSION_FALLBACK = "1.7.20.6";
+ require __DIR__ . "/runtime-core.php";
+ require __DIR__ . "/runtime-telemetry.php";
+ require __DIR__ . "/runtime-data.php";
+Binary files prontoo_original/source-export.tar.gz and prontoo_repo/source-export.tar.gz differ
+diff -ruN '--exclude=source-export.yml' prontoo_original/tools/schema-check.php prontoo_repo/tools/schema-check.php
+--- prontoo_original/tools/schema-check.php	1970-01-01 00:00:00.000000000 +0000
++++ prontoo_repo/tools/schema-check.php	2026-07-20 21:29:06.303909374 +0000
+@@ -0,0 +1,193 @@
++<?php
++declare(strict_types=1);
++
++$root = dirname(__DIR__);
++$schemaFile = $root . '/app/Database/schema.sql';
++$contractFile = $root . '/app/Database/operational-schema.contract.json';
++$schema = (string) file_get_contents($schemaFile);
++$contract = json_decode((string) file_get_contents($contractFile), true, 512, JSON_THROW_ON_ERROR);
++
++preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
++$blocks = [];
++foreach ($matches as $match) {
++    $blocks[(string) $match[1]] = (string) $match[0];
++}
++$errors = [];
++if (count($blocks) !== 62) {
++    $errors[] = 'schema_table_count:' . count($blocks);
++}
++if (isset($blocks['pi_sequence'])) {
++    $errors[] = 'legacy_sequence_table_present';
++}
++if (!isset($blocks['pi_action_ledger'])) {
++    $errors[] = 'action_ledger_missing';
++}
++$forbidden = array_merge(
++    (array) ($contract['removed_support_tables'] ?? []),
++    ['pi_action_proofs'],
++);
++foreach ($forbidden as $table) {
++    if (isset($blocks[(string) $table])) {
++        $errors[] = 'removed_support_table_present:' . $table;
++    }
++    foreach ([$root . '/app', $root . '/cron'] as $dir) {
++        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
++        foreach ($iterator as $file) {
++            if (!$file instanceof SplFileInfo || !$file->isFile()) {
++                continue;
++            }
++            if (!in_array(strtolower($file->getExtension()), ['php', 'sql', 'json'], true)) {
++                continue;
++            }
++            $path = $file->getPathname();
++            if ($path === $contractFile) {
++                continue;
++            }
++            if ($table === 'pi_sequence' && str_ends_with(str_replace('\\', '/', $path), '/app/Infrastructure/Database/SeqContract.php')) {
++                continue;
++            }
++            if (str_contains((string) file_get_contents($path), (string) $table)) {
++                $errors[] = 'removed_support_reference:' . $table . ':' . str_replace($root . '/', '', $path);
++            }
++        }
++    }
++}
++foreach ($blocks as $table => $block) {
++    if (!preg_match('/`Seq` bigint UNSIGNED NOT NULL DEFAULT \(UUID_SHORT\(\)\)/', $block)) {
++        $errors[] = 'native_seq_default_missing:' . $table;
++    }
++    if (!preg_match('/UNIQUE KEY `[^`]*seq[^`]*` \(`Seq`\)/i', $block)) {
++        $errors[] = 'unique_seq_index_missing:' . $table;
++    }
++}
++$normalize = static function (string $block): string {
++    $block = preg_replace(
++        '/`Seq` bigint UNSIGNED (?:DEFAULT NULL|NOT NULL DEFAULT \(UUID_SHORT\(\)\))/',
++        '`Seq` <native-seq>',
++        $block,
++    ) ?? $block;
++    return trim(preg_replace('/\s+/', ' ', $block) ?? $block);
++};
++$retained = (array) ($contract['tables'] ?? []);
++if (count($retained) !== (int) ($contract['retained_table_count'] ?? -1)) {
++    $errors[] = 'operational_contract_count';
++}
++foreach ($retained as $table => $expectedHash) {
++    if (!isset($blocks[$table])) {
++        $errors[] = 'retained_table_missing:' . $table;
++        continue;
++    }
++    $actual = hash('sha256', $normalize($blocks[$table]));
++    if (!hash_equals((string) $expectedHash, $actual)) {
++        $errors[] = 'retained_table_changed:' . $table;
++    }
++}
++$ledger = $blocks['pi_action_ledger'] ?? '';
++foreach (['authorization_hash', 'contract_hash', 'mutation_hash', 'mutation_count', 'affected_tables_json', 'mutation_json', 'status', 'finalized_at'] as $column) {
++    if (!str_contains($ledger, '`' . $column . '`')) {
++        $errors[] = 'action_ledger_column_missing:' . $column;
++    }
++}
++$audit = $blocks['pi_audit'] ?? '';
++foreach (['event_key', 'event_label', 'event_icon', 'entity_key',
