@@ -1,0 +1,203 @@
+_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `user_id` int UNSIGNED DEFAULT NULL,
+@@ -1005,7 +819,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_subscription_payments` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `created_by` int UNSIGNED DEFAULT NULL,
+@@ -1035,7 +849,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_tasks` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -1072,7 +886,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_user_devices` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `user_id` int UNSIGNED NOT NULL,
+   `device_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -1106,7 +920,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_user_roles` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `user_id` int UNSIGNED NOT NULL,
+   `clinic_id` int UNSIGNED NOT NULL,
+@@ -1126,7 +940,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_user_work_hours` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `user_id` int UNSIGNED NOT NULL,
+@@ -1149,7 +963,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_appointments` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `patient_link_id` bigint UNSIGNED DEFAULT NULL,
+@@ -1199,7 +1013,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_care` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `patient_link_id` bigint UNSIGNED NOT NULL,
+@@ -1232,7 +1046,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_financial_expenses` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `counterparty_id` bigint UNSIGNED DEFAULT NULL,
+@@ -1273,7 +1087,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_financial_locations` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `location_type` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -1313,7 +1127,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_financial_transfers` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `account_from_id` bigint UNSIGNED NOT NULL,
+@@ -1338,7 +1152,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_lead_events` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `lead_id` bigint UNSIGNED NOT NULL,
+@@ -1364,7 +1178,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_maestro_executions` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `rule_id` bigint UNSIGNED NOT NULL,
+@@ -1388,7 +1202,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_notice_reads` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `notice_id` bigint UNSIGNED NOT NULL,
+   `user_id` int UNSIGNED NOT NULL,
+   `read_at` bigint UNSIGNED DEFAULT NULL,
+@@ -1402,7 +1216,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_patient_guardians` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `patient_link_id` bigint UNSIGNED NOT NULL,
+@@ -1432,7 +1246,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_patient_tabs` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `patient_link_id` bigint UNSIGNED NOT NULL,
+@@ -1455,7 +1269,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_task_comments` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `task_id` bigint UNSIGNED NOT NULL,
+@@ -1482,7 +1296,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_task_events` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `task_id` bigint UNSIGNED NOT NULL,
+@@ -1504,7 +1318,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_care_content` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `care_id` bigint UNSIGNED NOT NULL,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `content` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -1516,7 +1330,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_care_versions` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `care_id` bigint UNSIGNED NOT NULL,
+   `clinic_id` int UNSIGNED NOT NULL,
+@@ -1537,7 +1351,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_cash_sessions` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `user_id` int UNSIGNED NOT NULL,
+@@ -1576,7 +1390,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_documents` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `template_id` bigint UNSIGNED DEFAULT NULL,
+@@ -1618,7 +1432,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_financial_location_users` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `location_id` bigint UNSIGNED NOT NULL,
+@@ -1642,7 +1456,7 @@
+ ) ENGINE=InnoDB
