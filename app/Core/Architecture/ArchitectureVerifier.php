@@ -84,12 +84,18 @@ final class ArchitectureVerifier
 
         $discovered = [];
         $discoveredSources = [];
+        $excludedLiterals = [];
+        $nonActionLiterals = self::nonActionLiteralMap($root, $errors);
         foreach (array_keys($sources) as $source) {
             $path = $root . '/' . $source;
             if (!is_file($path)) {
                 continue;
             }
             foreach (self::discoverActionTokens((string) @file_get_contents($path)) as $token) {
+                if (isset($nonActionLiterals[$token][$source])) {
+                    $excludedLiterals[$token][$source] = $nonActionLiterals[$token][$source];
+                    continue;
+                }
                 $discovered[$token] = true;
                 $discoveredSources[$token][$source] = true;
             }
@@ -129,6 +135,7 @@ final class ArchitectureVerifier
                 static fn(array $items): array => array_keys($items),
                 $discoveredSources,
             ),
+            'excluded_non_action_literals' => $excludedLiterals,
             'layers' => $layerCounts,
             'errors' => array_values(array_unique($errors)),
             'warnings' => array_values(array_unique($warnings)),
@@ -227,6 +234,37 @@ final class ArchitectureVerifier
         if ((string) ($manifest['version'] ?? '') !== (defined('PRONTOO_VERSION') ? (string) PRONTOO_VERSION : (string) ($manifest['version'] ?? ''))) {
             $errors[] = 'architecture_manifest_version';
         }
+    }
+
+    /** @return array<string,array<string,string>> */
+    private static function nonActionLiteralMap(string $root, array &$errors): array
+    {
+        $file = $root . '/app/architecture.manifest.json';
+        $raw = is_file($file) ? @file_get_contents($file) : false;
+        $manifest = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($manifest)) {
+            return [];
+        }
+        $map = [];
+        foreach ((array) ($manifest['non_action_literals'] ?? []) as $entry) {
+            if (!is_array($entry)) {
+                $errors[] = 'non_action_literal_invalid_entry';
+                continue;
+            }
+            $token = trim((string) ($entry['token'] ?? ''));
+            $source = ltrim(str_replace('\\', '/', trim((string) ($entry['source'] ?? ''))), '/');
+            $reason = trim((string) ($entry['reason'] ?? ''));
+            if ($token === '' || $source === '' || $reason === '') {
+                $errors[] = 'non_action_literal_incomplete:' . ($token ?: 'unknown');
+                continue;
+            }
+            if (!is_file($root . '/' . $source)) {
+                $errors[] = 'non_action_literal_source_missing:' . $token . ':' . $source;
+                continue;
+            }
+            $map[$token][$source] = $reason;
+        }
+        return $map;
     }
 
     private static function inspectRemovedLegacy(string $root, array &$errors, array &$warnings): void
