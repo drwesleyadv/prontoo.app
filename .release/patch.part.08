@@ -1,0 +1,143 @@
+ NOT NULL,
+   `tip_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -399,34 +242,46 @@
+   CONSTRAINT `fk_user_onboarding_tips_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE CASCADE
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-CREATE TABLE `pi_action_proofs` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++CREATE TABLE `pi_action_ledger` (
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
++  `request_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `clinic_id` int UNSIGNED DEFAULT NULL,
+   `user_id` int UNSIGNED DEFAULT NULL,
+   `route` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
++  `action_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `module_key` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `operation_key` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `scope` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `role_code` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `allowed` tinyint(1) NOT NULL DEFAULT '0',
++  `status` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'authorized',
+   `reason` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `proof_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `policy_version` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
++  `authorization_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
++  `contract_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
++  `mutation_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
++  `mutation_count` smallint UNSIGNED NOT NULL DEFAULT '0',
++  `affected_tables_json` json DEFAULT NULL,
++  `mutation_json` json DEFAULT NULL,
+   `context_json` json DEFAULT NULL,
++  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
++  `finalized_at` bigint UNSIGNED DEFAULT NULL,
+   PRIMARY KEY (`id`),
+-  UNIQUE KEY `uq_action_proofs_seq` (`Seq`),
+-  UNIQUE KEY `uq_action_proofs_clinic_id` (`clinic_id`,`id`),
+-  KEY `idx_action_proofs_scope` (`clinic_id`,`created_at`,`id`),
+-  KEY `idx_action_proofs_user` (`user_id`,`created_at`,`id`),
+-  KEY `idx_action_proofs_policy` (`policy_version`,`allowed`,`created_at`),
+-  CONSTRAINT `fk_action_proofs_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`),
+-  CONSTRAINT `fk_action_proofs_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`)
++  UNIQUE KEY `uq_action_ledger_seq` (`Seq`),
++  UNIQUE KEY `uq_action_ledger_authorization` (`authorization_hash`),
++  UNIQUE KEY `uq_action_ledger_clinic_id` (`clinic_id`,`id`),
++  KEY `idx_action_ledger_request` (`request_id`,`id`),
++  KEY `idx_action_ledger_scope` (`clinic_id`,`created_at`,`id`),
++  KEY `idx_action_ledger_user` (`user_id`,`created_at`,`id`),
++  KEY `idx_action_ledger_status` (`status`,`created_at`,`id`),
++  KEY `idx_action_ledger_policy` (`policy_version`,`created_at`,`id`),
++  CONSTRAINT `fk_action_ledger_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`) ON DELETE SET NULL,
++  CONSTRAINT `fk_action_ledger_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_admin_alerts` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `sender_user_id` int UNSIGNED NOT NULL,
+   `sender_clinic_id` int UNSIGNED DEFAULT NULL,
+@@ -453,7 +308,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_agenda_notes` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `note_date` bigint UNSIGNED NOT NULL DEFAULT '0',
+@@ -482,14 +337,17 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_audit` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED DEFAULT NULL,
+   `user_id` int UNSIGNED DEFAULT NULL,
+-  `event_type_id` smallint UNSIGNED NOT NULL,
+-  `entity_type_id` smallint UNSIGNED DEFAULT NULL,
++  `event_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
++  `event_label` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
++  `event_icon` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'radio_button_checked',
++  `entity_key` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
++  `entity_label` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `entity_id` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `message_id` bigint UNSIGNED DEFAULT NULL,
++  `friendly_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `context_json` json DEFAULT NULL,
+   `integrity_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `previous_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+@@ -498,36 +356,27 @@
+   `proof_json` json DEFAULT NULL,
+   `policy_version` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'audit-chain-v1',
+   `actor_signature` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `ip_id` bigint UNSIGNED DEFAULT NULL,
+-  `user_agent_id` bigint UNSIGNED DEFAULT NULL,
++  `ip_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
++  `user_agent` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+   `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+   PRIMARY KEY (`id`),
+   UNIQUE KEY `uq_audit_seq` (`Seq`),
+   UNIQUE KEY `uq_audit_clinic_id` (`clinic_id`,`id`),
+   KEY `idx_audit_user` (`clinic_id`,`user_id`,`created_at`,`id`),
+   KEY `idx_audit_global` (`created_at`,`id`),
+-  KEY `idx_audit_event` (`event_type_id`,`created_at`,`id`),
+-  KEY `idx_audit_message` (`message_id`),
++  KEY `idx_audit_event` (`event_key`,`created_at`,`id`),
++  KEY `idx_audit_entity` (`entity_key`,`entity_id`,`created_at`,`id`),
+   KEY `idx_audit_chain_hash` (`chain_hash`),
+   KEY `idx_audit_policy_created` (`policy_version`,`created_at`,`id`),
+   KEY `idx_audit_integrity_recent` (`created_at`,`integrity_hash`),
+-  KEY `idx_audit_contextual` (`clinic_id`,`event_type_id`,`created_at`,`id`),
+   KEY `idx_audit_clinic_created_id` (`clinic_id`,`created_at`,`id`),
+   KEY `idx_audit_user_created_id` (`user_id`,`created_at`,`id`),
+-  KEY `idx_fk_audit_entity_type_id` (`entity_type_id`),
+-  KEY `idx_fk_audit_ip_id` (`ip_id`),
+-  KEY `idx_fk_audit_user_agent_id` (`user_agent_id`),
+   CONSTRAINT `fk_audit_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`) ON DELETE SET NULL,
+-  CONSTRAINT `fk_audit_entity` FOREIGN KEY (`entity_type_id`) REFERENCES `pi_audit_entities` (`id`),
+-  CONSTRAINT `fk_audit_event` FOREIGN KEY (`event_type_id`) REFERENCES `pi_audit_event_types` (`id`),
+-  CONSTRAINT `fk_audit_ip` FOREIGN KEY (`ip_id`) REFERENCES `pi_ip_addresses` (`id`),
+-  CONSTRAINT `fk_audit_message` FOREIGN KEY (`message_id`) REFERENCES `pi_audit_messages` (`id`),
+-  CONSTRAINT `fk_audit_ua` FOREIGN KEY (`user_agent_id`) REFERENCES `pi_user_agents` (`id`),
+   CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_blocks` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `clinic_id` int UNSIGNED NOT NULL,
+   `doctor_user_id` int UNSIGNED DEFAULT NULL,
+@@ -554,43 +403,8 @@
+   CONSTRAINT `fk_blocks_doctor` FOREIGN KEY (`doctor_user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-CREATE TABLE `pi_checksum_events` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `request_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `clinic_id` i
