@@ -1,0 +1,442 @@
+d,
+-        ];
++        return ['table' => $table, 'kind' => $kind];
+     }
++
+     public static function afterQuery(
+         string $originalSql,
+         string $runtimeSql,
+@@ -171,348 +119,110 @@
+             return;
+         }
+         $kind = self::queryKind($originalSql);
+-        if (!in_array($kind, ["insert", "update", "delete", "replace"], true)) {
++        if (!in_array($kind, ['insert', 'update', 'delete', 'replace'], true)) {
+             return;
+         }
+         $table = self::targetTableFromSql($originalSql);
+-        $physical = $table !== "" ? self::physicalTableName($table) : "";
+-        if ($physical === "" || self::isInternalTable($physical)) {
++        if ($table === '' || self::isInternalTable($table)) {
+             return;
+         }
+-        try {
+-            if ($success && in_array($kind, ["insert", "replace"], true)) {
+-                $lastId = self::lastInsertIdSafe();
+-                $autoPk = self::autoIncrementPrimaryKeyColumn($physical);
+-                if ($autoPk !== null && $lastId !== "" && (int) $lastId > 0) {
+-                    if (class_exists("\\Prontoo\\Core\\Temporal\\PiTime")) {
+-                        \Prontoo\Core\Temporal\PiTime::normalizeInsertedTemporalDefaults(
+-                            self::pdo(),
+-                            $physical,
+-                            $lastId,
+-                        );
+-                    }
+-                    if (class_exists(PiSequence::class)) {
+-                        PiSequence::assignById(self::pdo(), $physical, $lastId);
+-                    }
+-                }
+-            }
+-        } catch (\Throwable $e) {
+-            self::logOnce("seq", $e);
+-        }
+         self::queueEvent(
+-            "sql_" . $kind,
++            'sql_' . $kind,
+             $kind,
+-            $physical,
+-            self::recordPkForEvent($kind, $physical),
++            $table,
++            self::recordPkForEvent($kind, $table),
+             $success,
+-            $rowCount,
+-            hash_hmac(
+-                "sha256",
+-                self::normalizeSql($originalSql),
+-                self::secret(),
+-            ),
+-            hash_hmac("sha256", self::canonicalJson($params), self::secret()),
+-            (int) round($elapsedMs),
+-            $error ? $error->getMessage() : null,
++            max(0, $rowCount),
++            hash('sha256', self::normalizeSql($runtimeSql)),
++            hash('sha256', self::canonicalJson($params)),
++            (int) round(max(0.0, $elapsedMs)),
++            $error ? mb_substr($error->getMessage(), 0, 220, 'UTF-8') : null,
+         );
+     }
++
+     public static function proveSchemaOperation(
+-        string $sql,
++        string $operation,
++        string $table,
+         bool $success,
+         ?string $error = null,
+     ): void {
+-        if (!self::canUseDatabase()) {
++        if (!empty($GLOBALS['PRONTOO_SCHEMA_INSTALLING'])) {
+             return;
+         }
+-        $physical = self::targetTableFromSql($sql);
+-        if ($physical !== "") {
+-            $physical = self::physicalTableName($physical);
+-        }
+         self::queueEvent(
+-            "schema_" . ($success ? "ok" : "fail"),
+-            "schema",
+-            $physical ?: null,
++            'schema_' . self::cleanToken($operation, 'operation'),
++            'schema',
++            self::physicalTableName($table),
+             null,
+             $success,
+-            0,
+-            hash_hmac("sha256", self::normalizeSql($sql), self::secret()),
++            1,
++            null,
+             null,
+             0,
+             $error,
+         );
+     }
++
+     public static function proveExternalFile(
+-        string $table,
+-        string $recordPk,
++        string $operation,
+         string $path,
+-        array $meta = [],
++        bool $success,
++        ?string $error = null,
+     ): void {
+-        if (!self::canUseDatabase()) {
+-            return;
+-        }
+-        $hash = is_file($path)
+-            ? hash_file("sha256", $path)
+-            : hash("sha256", "missing:" . $path);
+-        $meta["file_hash"] = $hash;
+-        $meta["file_size"] = is_file($path) ? (int) @filesize($path) : 0;
+         self::queueEvent(
+-            "external_file",
+-            "file",
+-            self::physicalTableName($table),
+-            $recordPk,
+-            is_file($path),
++            'file_' . self::cleanToken($operation, 'operation'),
++            'file',
++            null,
++            hash('sha256', $path),
++            $success,
+             1,
+-            $hash,
+-            hash_hmac("sha256", self::canonicalJson($meta), self::secret()),
++            null,
++            null,
+             0,
+-            is_file($path) ? null : "Arquivo ausente",
++            $error,
+         );
+     }
++
+     public static function prepareForWriteTransaction(): void
+     {
+         if (!self::canUseDatabase()) {
+             return;
+         }
+         self::ensureSystemTables();
+-        if (class_exists(PiSequence::class)) {
+-            PiSequence::ensureCounterTable(self::pdo());
+-        }
+     }
++
+     public static function markTransactionStart(): void
+     {
+         self::$transactionMarks[] = count(self::$events);
+     }
++
+     public static function markTransactionCommitted(): void
+     {
+-        if (self::$transactionMarks !== []) {
+-            array_pop(self::$transactionMarks);
+-        }
++        array_pop(self::$transactionMarks);
+     }
++
+     public static function discardTransactionEvents(): void
+     {
+-        $mark =
+-            self::$transactionMarks !== []
+-                ? array_pop(self::$transactionMarks)
+-                : null;
+-        if ($mark !== null) {
+-            self::$events = array_slice(self::$events, 0, max(0, $mark));
+-        }
+-    }
+-    public static function processDeferredEvents(
+-        int $budgetMs = 30000,
+-        int $batchSize = 500,
+-    ): array {
+-        $started = microtime(true);
+-        $out = [
+-            "ok" => true,
+-            "mode" => "checksum-pending-maestro",
+-            "requests_confirmed" => 0,
+-            "operation_events_confirmed" => 0,
+-            "batches" => 0,
+-            "remaining" => 0,
+-            "complete" => true,
+-            "errors" => [],
+-        ];
+-        if (!self::canUseDatabase() || self::$inside) {
+-            return $out;
++        $mark = array_pop(self::$transactionMarks);
++        if (is_int($mark) && $mark >= 0) {
++            self::$events = array_slice(self::$events, 0, $mark);
+         }
+-        try {
+-            self::$inside = true;
+-            self::ensureSystemTables();
+-            $pdo = self::pdo();
+-            $batchSize = max(1, min(250, $batchSize));
+-            while ((microtime(true) - $started) * 1000 < max(1000, $budgetMs)) {
+-                $pdo->beginTransaction();
+-                try {
+-                    self::ensureStateRow($pdo);
+-                    $state = self::stateRow($pdo, true);
+-                    $confirmedChecksum =
+-                        (string) ($state["confirmed_checksum"] ??
+-                            ($state["checksum"] ?? self::genesisChecksum()));
+-                    $confirmedEventId =
+-                        (int) ($state["confirmed_event_id"] ?? 0);
+-                    $previousBatchHash =
+-                        (string) ($state["last_batch_hash"] ??
+-                            $confirmedChecksum);
+-                    $st = $pdo->prepare(
+-                        "SELECT * FROM pi_checksum_events WHERE status='pending' AND id>? ORDER BY id ASC LIMIT $batchSize FOR UPDATE",
+-                    );
+-                    $st->execute([$confirmedEventId]);
+-                    $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+-                    if (!$rows) {
+-                        $pdo->commit();
+-                        break;
+-                    }
+-                    $cursor = $confirmedChecksum;
+-                    $rollup = [];
+-                    $opCount = 0;
+-                    $fromId = (int) $rows[0]["id"];
+-                    $toId = $fromId;
+-                    foreach ($rows as $row) {
+-                        $row = array_change_key_case($row, CASE_LOWER);
+-                        $id = (int) $row["id"];
+-                        $toId = $id;
+-                        $payloadJson = (string) ($row["payload_json"] ?? "");
+-                        $payloadHash = hash_hmac(
+-                            "sha256",
+-                            $payloadJson,
+-                            self::secret(),
+-                        );
+-                        $expectedEvent = self::pendingEventChecksum(
+-                            $cursor,
+-                            $payloadHash,
+-                            (string) $row["request_id"],
+-                            (int) $row["event_count"],
+-                            (int) $row["created_at"],
+-                        );
+-                        $expectedPending = self::pendingNextChecksum(
+-                            $cursor,
+-                            $expectedEvent,
+-                        );
+-                        if (
+-                            !hash_equals(
+-                                $cursor,
+-                                (string) $row["previous_pending_checksum"],
+-                            ) ||
+-                            !hash_equals(
+-                                $payloadHash,
+-                                (string) $row["payload_hash"],
+-                            ) ||
+-                            !hash_equals(
+-                                $expectedEvent,
+-                                (string) $row["event_checksum"],
+-                            ) ||
+-                            !hash_equals(
+-                                $expectedPending,
+-                                (string) $row["pending_checksum"],
+-                            )
+-                        ) {
+-                            self::recordIntegrityAlert(
+-                                $pdo,
+-                                "checksum_mismatch",
+-                                "critical",
+-                                "Divergência em evento pendente de checksum.",
+-                                [
+-                                    "id" => $id,
+-                                    "expected_previous" => $cursor,
+-                                    "stored_previous" =>
+-                                        (string) $row[
+-                                            "previous_pending_checksum"
+-                                        ],
+-                                    "expected_payload_hash" => $payloadHash,
+-                                    "stored_payload_hash" =>
+-                                        (string) $row["payload_hash"],
+-                                    "expected_event_checksum" => $expectedEvent,
+-                                    "stored_event_checksum" =>
+-                                        (string) $row["event_checksum"],
+-                                    "expected_pending_checksum" => $expectedPending,
+-                                    "stored_pending_checksum" =>
+-                                        (string) $row["pending_checksum"],
+-                                ],
+-                            );
+-                            $pdo->prepare(
+-                                "UPDATE pi_checksum_events SET status='failed', error_message='checksum_mismatch' WHERE id=?",
+-                            )->execute([$id]);
+-                            $pdo->commit();
+-                            $out["ok"] = false;
+-                            $out["complete"] = false;
+-                            $out["errors"][] = "checksum_mismatch:event#" . $id;
+-                            return $out;
+-                        }
+-                        $cursor = $expectedPending;
+-                        $opCount += (int) $row["event_count"];
+-                        $rollup[] = [
+-                            "id" => $id,
+-                            "request_id" => (string) $row["request_id"],
+-                            "payload_hash" => $payloadHash,
+-                            "event_checksum" => $expectedEvent,
+-                            "pending_checksum" => $expectedPending,
+-                            "event_count" => (int) $row["event_count"],
+-                        ];
+-                    }
+-                    $batchStarted = time();
+-                    $batchPayload = [
+-                        "from_event_id" => $fromId,
+-                        "to_event_id" => $toId,
+-                        "request_rows" => count($rows),
+-                        "operation_events" => $opCount,
+-                        "previous_batch_hash" => $previousBatchHash,
+-                        "previous_confirmed_checksum" => $confirmedChecksum,
+-                        "confirmed_checksum" => $cursor,
+-                        "events" => $rollup,
+-                        "policy_version" => self::POLICY_VERSION,
+-                    ];
+-                    $batchHash = hash_hmac(
+-                        "sha256",
+-                        self::canonicalJson($batchPayload),
+-                        self::secret(),
+-                    );
+-                    $duration = (int) round(
+-                        (microtime(true) - $started) * 1000,
+-                    );
+-                    $ins = $pdo->prepare(
+-                        "INSERT INTO pi_checksum_batches (from_event_id,to_event_id,request_rows,operation_events,previous_batch_hash,batch_hash,previous_confirmed_checksum,confirmed_checksum,status,started_at,finished_at,duration_ms,policy_version) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+-                    );
+-                    $ins->execute([
+-                        $fromId,
+-                        $toId,
+-                        count($rows),
+-                        $opCount,
+-                        $previousBatchHash,
+-                        $batchHash,
+-                        $confirmedChecksum,
+-                        $cursor,
+-                        "confirmed",
+-                        $batchStarted,
+-                        time(),
+-                        $duration,
+-                        self::POLICY_VERSION,
+-                    ]);
+-                    $batchId = (int) $pdo->lastInsertId();
+-                    if (class_exists(PiSequence::class)) {
+-                        PiSequence::assignById(
+-                            $pdo,
+-                            "pi_checksum_batches",
+-                            $batchId,
+-                        );
+-                    }
+-                    $pdo->prepare(
+-                        "UPDATE pi_checksum_events SET status='confirmed', batch_id=?, confirmed_at=? WHERE status='pending' AND id BETWEEN ? AND ?",
+-                    )->execute([$batchId, time(), $fromId, $toId]);
+-                    $pdo->prepare(
+-                        "UPDATE pi_checksum_state SET previous_confirmed_checksum=confirmed_checksum, confirmed_checksum=?, checksum=?, confirmed_event_id=?, confirmed_batch_id=?, last_batch_hash=?, pending_count=GREATEST(pending_count-?,0), batch_count=batch_count+1, updated_at=? WHERE scope_key='global'",
+-                    )->execute([
+-                        $cursor,
+-                        $cursor,
+-                        $toId,
+-                        $batchId,
+-                        $batchHash,
+-                        $opCount,
+-                        time(),
+-                    ]);
+-                    $pdo->commit();
+-                    $out["requests_confirmed"] += count($rows);
+-                    $out["operation_events_confirmed"] += $opCount;
+-                    $out["batches"]++;
+-                } catch (\Throwable $e) {
+-                    if ($pdo->inTransaction()) {
+-                        $pdo->rollBack();
+-                    }
+-                    throw $e;
+-                }
+-            }
+-            $out["remaining"] = self::pendingEventRows();
+-            $out["complete"] = (int) $out["remaining"] === 0;
+-        } catch (\Throwable $e) {
+-            $out["ok"] = false;
+-            $out["complete"] = false;
+-            $out["errors"][] = $e->getMessage();
+-            self::logOnce("deferred", $e);
+-        } finally {
+-            self::$inside = false;
+-        }
+-        return $out;
+     }
++
++    public static function processDeferredEvents(int $budgetMs = 120000, int $batchSize = 120): array
++    {
++        self::flushFastEvents();
++        return [
++            'ok' => true,
++            'complete' => true,
++            'requests_confirmed' => 0,
++            'operation_events_confirmed' => 0,
++            'batches' => 0,
++            'remaining' => 0,
++            'errors' => [],
++        ];
++    }
++
+     public static function flushFastEvents(): void
+     {
+         if (!self::canUseDatabase() || self::$inside || self::$events === []) {
+@@ -523,178 +233,118 @@
+             return;
+         }
+         try {
+-            $basePdo = self::pdo();
+-            if ($basePdo->inTransaction()) {
++            $pdo = self::pdo();
++            if ($pdo->inTransaction()) {
+                 return;
+             }
+         } catch (\Throwable) {
+             return;
+         }
+-        $events = self::$events;
++
++        $pendingEvents = self::$events;
++        $events = array_merge(self::$flushedEvents, $pendingEvents);
+         self::$events = [];
+         try {
+             self::$inside = true;
+             self::ensureSystemTables();
+-            $basePdo = self::pdo();
+-            $ownTx = !$basePdo->inTransaction();
+-            $pdo = $ownTx ? self::dedicatedPdo() : $basePdo;
+-            if ($ownTx) {
+-                $pdo->beginTransaction();
+-            }
+-            self::ensureStateRow($pdo);
+-            $state = self::stateRow($pdo, true);
+-            $previousPending =
+-                (string) ($state["pending_c
