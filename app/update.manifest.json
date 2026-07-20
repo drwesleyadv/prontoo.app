@@ -12,10 +12,10 @@
   "hash_algorithm": "sha256",
   "signature_policy": "hostoo_github_repository_sync",
   "file_count": 3,
-  "total_uncompressed_bytes": 10497,
+  "total_uncompressed_bytes": 10935,
   "files": {
     "ChangeLog.txt": "24c0a6c47feb22f637d5b11c9e04b15fd526e7143b09572776a2a451dd51b246",
-    "app/Core/Install/RuntimeContract.php": "9a14f7c5ec148e4eee2068379247784959839e3713eb0e01c779ddd85d776d71",
+    "app/Core/Install/RuntimeContract.php": "66282a3da70267c335231bf123034cad8caa00cad41e5e6086e734511d49b160",
     "version.json": "8c3256baa310b0b724f35c1a5e52b19cc691443e918c2b66638ff25963ce091e"
   }
 }
