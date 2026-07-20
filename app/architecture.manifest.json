@@ -1,0 +1,39 @@
+{
+  "version": "1.7.20.3",
+  "policy": "php-layered-invariants-v1",
+  "architecture": "layered_php_with_invariant_core",
+  "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
+  "coverage_target_percent": 100,
+  "layers": {
+    "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
+    "domain": "business contracts independent from HTTP and persistence",
+    "application": "use cases and ports",
+    "infrastructure": "PDO, runtime permission matrix and external adapters",
+    "presentation": "HTTP and UI adapters",
+    "composition": "dependency wiring, runtime bootstrap and transitional thin boundaries"
+  },
+  "dependency_rule": "dependencies_point_inward_and_composition_is_the_only_layer_that_may_wire_all_layers",
+  "authorization_entrypoint": "Prontoo\\Runtime\\LayeredKernel::enforceAction",
+  "mutation_entrypoint": "Prontoo\\Core\\Invariant\\InvariantKernel::guardMutation",
+  "architecture_check": "tools/architecture-check.php",
+  "ci_workflow": ".github/workflows/architecture.yml",
+  "removed_legacy_files": [
+    "app/Core/Invariant/ActionCapabilityCatalog.php",
+    "app/Core/Invariant/CapabilityInvariant.php"
+  ],
+  "compatibility_boundaries": [
+    {
+      "symbol": "enforce_action_integrity",
+      "file": "app/Support/SecurityAccess.php",
+      "rule": "thin delegation only; no authorization or persistence logic"
+    },
+    {
+      "symbol": "Prontoo\\Core\\Integrity\\ActionProof",
+      "file": "app/Core/Invariant/Request/ActionProof.php",
+      "rule": "thin delegation to LayeredKernel only"
+    }
+  ],
+  "database_changes": false,
+  "schema_changes": false,
+  "visual_changes": false
+}

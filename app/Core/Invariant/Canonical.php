@@ -4,7 +4,7 @@ namespace Prontoo\Core\Invariant;
 
 final class Canonical
 {
-    public const POLICY_VERSION = "layer2-action-capability-catalog-v2";
+    public const POLICY_VERSION = "layer3-php-layered-invariants-v1";
 
     private function __construct() {}
 

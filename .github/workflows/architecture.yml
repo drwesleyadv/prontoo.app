@@ -1,0 +1,90 @@
+name: Architecture Contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './storage' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+
+      - name: JSON contracts
+        shell: bash
+        run: |
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
+
+      - name: Release manifest
+        shell: bash
+        run: |
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
+              if (file_exists((string) $file)) {
+                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
+              }
+            }
+          '
+
+      - name: Layered architecture
+        shell: bash
+        run: |
+          set -o pipefail
+          php tools/architecture-check.php | tee architecture-report.json
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: architecture-report.json
+          if-no-files-found: error
+          retention-days: 7
