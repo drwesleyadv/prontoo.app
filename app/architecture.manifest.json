@@ -35,12 +35,5 @@
   ],
   "database_changes": false,
   "schema_changes": false,
-  "visual_changes": false,
-  "non_action_literals": [
-    {
-      "token": "preparo",
-      "source": "app/Domain/Financial/Financial.php",
-      "reason": "Estado de workflow financeiro usado em comparação local; não representa o campo HTTP act."
-    }
-  ]
+  "visual_changes": false
 }
