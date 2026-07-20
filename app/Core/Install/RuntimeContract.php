@@ -155,8 +155,23 @@ final class RuntimeContract
         return $issues;
     }
 
+    private static function assertVersionPattern(string $version): void
+    {
+        if (
+            !preg_match(
+                '/^1\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.\d+$/',
+                $version,
+            )
+        ) {
+            throw new \RuntimeException(
+                "Versão fora do padrão obrigatório 1.mês.dia.sequência.",
+            );
+        }
+    }
+
     private static function assertVersionContract(string $root, string $version): void
     {
+        self::assertVersionPattern($version);
         if (\function_exists("prontoo_version_contract_status")) {
             $status = \prontoo_version_contract_status();
             $issues = self::normalizedVersionIssues($root, $status);
