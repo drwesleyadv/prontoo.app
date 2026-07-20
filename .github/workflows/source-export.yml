@@ -26,9 +26,8 @@ jobs:
             echo 'Partes recebidas; aguardando marcador final.'
             exit 0
           fi
-          cat .release/patch.part.* > /tmp/prontoo.patch.b64
-          echo '95ed51e967ae217b870fe7575ba8c9edd165fecc9dd18a264f25bc84e7db66d1  /tmp/prontoo.patch.b64' | sha256sum -c -
-          base64 --decode /tmp/prontoo.patch.b64 | gzip -dc > /tmp/prontoo.patch
+          cat .release/patch.part.* > /tmp/prontoo.patch
+          echo '3aee9505e14c6a218400d53f8753ebacc4d189c11c6194a0e9140aff3eff499e  /tmp/prontoo.patch' | sha256sum -c -
           patch --batch --forward -p1 < /tmp/prontoo.patch
           rm -f .release/patch.part.* "$marker"
           rmdir .release 2>/dev/null || true
