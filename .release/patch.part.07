@@ -1,0 +1,180 @@
+LL DEFAULT '0',
+-  PRIMARY KEY (`scope_key`),
+-  UNIQUE KEY `uq_checksum_state_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+ CREATE TABLE `pi_integrity_alerts` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `alert_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `severity` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'warning',
+@@ -101,30 +13,8 @@
+   KEY `idx_pi_integrity_alerts_open` (`resolved_at`,`created_at`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-CREATE TABLE `pi_integrity_anchors` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `anchor_date` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `first_audit_id` bigint UNSIGNED DEFAULT NULL,
+-  `last_audit_id` bigint UNSIGNED DEFAULT NULL,
+-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  `root_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `generated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`anchor_date`),
+-  UNIQUE KEY `uq_integrity_anchors_seq` (`Seq`),
+-  KEY `idx_integrity_anchors_generated` (`generated_at`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_ip_addresses` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `ip_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `ip_hash` (`ip_hash`),
+-  UNIQUE KEY `uq_ip_addresses_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+ CREATE TABLE `pi_login_locks` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `subject_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `ip_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -139,7 +29,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_maestro_job_runs` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `started_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+   `finished_at` bigint UNSIGNED DEFAULT NULL,
+@@ -160,7 +50,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_maestro_job_stats` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `routine_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `ewma_duration_ms` decimal(10,3) NOT NULL DEFAULT '0.000',
+   `ewma_yield` decimal(10,3) NOT NULL DEFAULT '0.000',
+@@ -174,7 +64,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_meta` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `meta_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `meta_value` text COLLATE utf8mb4_unicode_ci,
+   `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+@@ -183,7 +73,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_persons` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `full_name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `cpf` char(11) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+@@ -217,7 +107,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_platform_counters` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `counter_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `counter_value` bigint NOT NULL DEFAULT '0',
+   `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+@@ -225,55 +115,8 @@
+   UNIQUE KEY `uq_platform_counters_seq` (`Seq`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-CREATE TABLE `pi_record_integrity` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `table_name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `record_id` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `actor_signature` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `record_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `previous_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+-  `snapshot_json` json DEFAULT NULL,
+-  `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `uq_record_integrity_seq` (`Seq`),
+-  KEY `idx_record_integrity_ref` (`table_name`,`record_id`,`id`),
+-  KEY `idx_record_integrity_created` (`created_at`,`id`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_runtime_flags` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `flag_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `flag_value` text COLLATE utf8mb4_unicode_ci,
+-  `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`flag_key`),
+-  UNIQUE KEY `uq_runtime_flags_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_sequence` (
+-  `Seq` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `table_name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `record_pk` varchar(220) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `target_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `allocated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`Seq`),
+-  UNIQUE KEY `uq_pi_sequence_target` (`target_hash`),
+-  KEY `idx_pi_sequence_table` (`table_name`,`record_pk`),
+-  KEY `idx_pi_sequence_allocated` (`allocated_at`,`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+-CREATE TABLE `pi_user_agents` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
+-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+-  `ua_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  `user_agent` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `ua_hash` (`ua_hash`),
+-  UNIQUE KEY `uq_user_agents_seq` (`Seq`)
+-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-
+ CREATE TABLE `pi_users` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+   `person_id` bigint UNSIGNED NOT NULL,
+   `name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -296,7 +139,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_clinics` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+   `legal_type` enum('cpf','cnpj') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'cpf',
+   `legal_name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -348,7 +191,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_global_notices` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+   `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
+@@ -367,7 +210,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_user_cmdbar_access` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `user_id` int UNSIGNED NOT NULL,
+   `scope` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'clinic',
+@@ -387,7 +230,7 @@
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+ CREATE TABLE `pi_user_onboarding_tips` (
+-  `Seq` bigint UNSIGNED DEFAULT NULL,
++  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
+   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+   `user_id` int UNSIGNED
