@@ -11,6 +11,7 @@ final readonly class ActionContract
      * @param list<string> $required
      * @param list<string> $effects
      * @param list<string> $delegated
+     * @param list<string> $producers
      */
     public function __construct(
         public string $route,
@@ -22,6 +23,7 @@ final readonly class ActionContract
         public string $policy,
         public string $primary,
         public string $source,
+        public array $producers = [],
     ) {
         if ($route === '' || $action === '') {
             throw new \InvalidArgumentException('Rota e ação são obrigatórias no contrato.');
@@ -34,6 +36,11 @@ final readonly class ActionContract
         }
         if ($source === '') {
             throw new \InvalidArgumentException('Arquivo-fonte ausente no contrato.');
+        }
+        foreach ($producers as $producer) {
+            if (trim((string) $producer) === '') {
+                throw new \InvalidArgumentException('Produtor de ação inválido no contrato.');
+            }
         }
     }
 
@@ -54,6 +61,7 @@ final readonly class ActionContract
             'policy' => $this->policy,
             'primary' => $this->primary,
             'source' => $this->source,
+            'producers' => $this->producers,
         ];
     }
 }
