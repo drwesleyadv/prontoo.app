@@ -1,93 +1,5 @@
-CREATE TABLE `pi_audit_chain_heads` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `chain_name` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `last_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`chain_name`),
-  UNIQUE KEY `uq_audit_chain_heads_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_audit_entities` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `entity_key` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `label` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `entity_key` (`entity_key`),
-  UNIQUE KEY `uq_audit_entities_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_audit_event_types` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `event_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `label` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `icon` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'radio_button_checked',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `event_key` (`event_key`),
-  UNIQUE KEY `uq_audit_event_types_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_audit_messages` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `text_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `friendly_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `text_hash` (`text_hash`),
-  UNIQUE KEY `uq_audit_messages_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_checksum_batches` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `from_event_id` bigint UNSIGNED NOT NULL,
-  `to_event_id` bigint UNSIGNED NOT NULL,
-  `request_rows` int UNSIGNED NOT NULL DEFAULT '0',
-  `operation_events` int UNSIGNED NOT NULL DEFAULT '0',
-  `previous_batch_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `batch_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `previous_confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'confirmed',
-  `error_message` varchar(240) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `started_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `finished_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `duration_ms` int UNSIGNED NOT NULL DEFAULT '0',
-  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_pi_checksum_batch` (`batch_hash`),
-  UNIQUE KEY `uq_checksum_batches_seq` (`Seq`),
-  KEY `idx_pi_checksum_batch_range` (`from_event_id`,`to_event_id`),
-  KEY `idx_pi_checksum_batch_status` (`status`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_checksum_state` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `scope_key` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `previous_confirmed_checksum` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `pending_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `previous_pending_checksum` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `pending_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `request_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `batch_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `last_request_id` char(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `pending_event_id` bigint UNSIGNED DEFAULT NULL,
-  `confirmed_event_id` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `confirmed_batch_id` bigint UNSIGNED DEFAULT NULL,
-  `last_batch_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`scope_key`),
-  UNIQUE KEY `uq_checksum_state_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `pi_integrity_alerts` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `alert_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `severity` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'warning',
@@ -101,30 +13,8 @@ CREATE TABLE `pi_integrity_alerts` (
   KEY `idx_pi_integrity_alerts_open` (`resolved_at`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `pi_integrity_anchors` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `anchor_date` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `first_audit_id` bigint UNSIGNED DEFAULT NULL,
-  `last_audit_id` bigint UNSIGNED DEFAULT NULL,
-  `event_count` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `root_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `generated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`anchor_date`),
-  UNIQUE KEY `uq_integrity_anchors_seq` (`Seq`),
-  KEY `idx_integrity_anchors_generated` (`generated_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_ip_addresses` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `ip_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ip_hash` (`ip_hash`),
-  UNIQUE KEY `uq_ip_addresses_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `pi_login_locks` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `subject_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ip_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -139,7 +29,7 @@ CREATE TABLE `pi_login_locks` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_maestro_job_runs` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `started_at` bigint UNSIGNED NOT NULL DEFAULT '0',
   `finished_at` bigint UNSIGNED DEFAULT NULL,
@@ -160,7 +50,7 @@ CREATE TABLE `pi_maestro_job_runs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_maestro_job_stats` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `routine_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ewma_duration_ms` decimal(10,3) NOT NULL DEFAULT '0.000',
   `ewma_yield` decimal(10,3) NOT NULL DEFAULT '0.000',
@@ -174,7 +64,7 @@ CREATE TABLE `pi_maestro_job_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_meta` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `meta_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `meta_value` text COLLATE utf8mb4_unicode_ci,
   `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
@@ -183,7 +73,7 @@ CREATE TABLE `pi_meta` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_persons` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `full_name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
   `cpf` char(11) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -217,7 +107,7 @@ CREATE TABLE `pi_persons` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_platform_counters` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `counter_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `counter_value` bigint NOT NULL DEFAULT '0',
   `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
@@ -225,55 +115,8 @@ CREATE TABLE `pi_platform_counters` (
   UNIQUE KEY `uq_platform_counters_seq` (`Seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `pi_record_integrity` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `table_name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `record_id` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `actor_signature` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `record_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `previous_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `snapshot_json` json DEFAULT NULL,
-  `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_record_integrity_seq` (`Seq`),
-  KEY `idx_record_integrity_ref` (`table_name`,`record_id`,`id`),
-  KEY `idx_record_integrity_created` (`created_at`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_runtime_flags` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `flag_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `flag_value` text COLLATE utf8mb4_unicode_ci,
-  `updated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`flag_key`),
-  UNIQUE KEY `uq_runtime_flags_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_sequence` (
-  `Seq` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `table_name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `record_pk` varchar(220) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `target_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `allocated_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`Seq`),
-  UNIQUE KEY `uq_pi_sequence_target` (`target_hash`),
-  KEY `idx_pi_sequence_table` (`table_name`,`record_pk`),
-  KEY `idx_pi_sequence_allocated` (`allocated_at`,`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `pi_user_agents` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `ua_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_agent` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ua_hash` (`ua_hash`),
-  UNIQUE KEY `uq_user_agents_seq` (`Seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `pi_users` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `person_id` bigint UNSIGNED NOT NULL,
   `name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -296,7 +139,7 @@ CREATE TABLE `pi_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_clinics` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `legal_type` enum('cpf','cnpj') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'cpf',
   `legal_name` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -348,7 +191,7 @@ CREATE TABLE `pi_clinics` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_global_notices` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
   `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -367,7 +210,7 @@ CREATE TABLE `pi_global_notices` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_user_cmdbar_access` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int UNSIGNED NOT NULL,
   `scope` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'clinic',
@@ -387,7 +230,7 @@ CREATE TABLE `pi_user_cmdbar_access` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_user_onboarding_tips` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int UNSIGNED NOT NULL,
   `tip_key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -399,34 +242,46 @@ CREATE TABLE `pi_user_onboarding_tips` (
   CONSTRAINT `fk_user_onboarding_tips_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `pi_action_proofs` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+CREATE TABLE `pi_action_ledger` (
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `request_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
   `clinic_id` int UNSIGNED DEFAULT NULL,
   `user_id` int UNSIGNED DEFAULT NULL,
   `route` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
   `module_key` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `operation_key` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `scope` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `role_code` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `allowed` tinyint(1) NOT NULL DEFAULT '0',
+  `status` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'authorized',
   `reason` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `proof_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `policy_version` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `authorization_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `contract_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mutation_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mutation_count` smallint UNSIGNED NOT NULL DEFAULT '0',
+  `affected_tables_json` json DEFAULT NULL,
+  `mutation_json` json DEFAULT NULL,
   `context_json` json DEFAULT NULL,
+  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
+  `finalized_at` bigint UNSIGNED DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_action_proofs_seq` (`Seq`),
-  UNIQUE KEY `uq_action_proofs_clinic_id` (`clinic_id`,`id`),
-  KEY `idx_action_proofs_scope` (`clinic_id`,`created_at`,`id`),
-  KEY `idx_action_proofs_user` (`user_id`,`created_at`,`id`),
-  KEY `idx_action_proofs_policy` (`policy_version`,`allowed`,`created_at`),
-  CONSTRAINT `fk_action_proofs_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`),
-  CONSTRAINT `fk_action_proofs_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`)
+  UNIQUE KEY `uq_action_ledger_seq` (`Seq`),
+  UNIQUE KEY `uq_action_ledger_authorization` (`authorization_hash`),
+  UNIQUE KEY `uq_action_ledger_clinic_id` (`clinic_id`,`id`),
+  KEY `idx_action_ledger_request` (`request_id`,`id`),
+  KEY `idx_action_ledger_scope` (`clinic_id`,`created_at`,`id`),
+  KEY `idx_action_ledger_user` (`user_id`,`created_at`,`id`),
+  KEY `idx_action_ledger_status` (`status`,`created_at`,`id`),
+  KEY `idx_action_ledger_policy` (`policy_version`,`created_at`,`id`),
+  CONSTRAINT `fk_action_ledger_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_action_ledger_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_admin_alerts` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `sender_user_id` int UNSIGNED NOT NULL,
   `sender_clinic_id` int UNSIGNED DEFAULT NULL,
@@ -453,7 +308,7 @@ CREATE TABLE `pi_admin_alerts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_agenda_notes` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `note_date` bigint UNSIGNED NOT NULL DEFAULT '0',
@@ -482,14 +337,17 @@ CREATE TABLE `pi_agenda_notes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_audit` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED DEFAULT NULL,
   `user_id` int UNSIGNED DEFAULT NULL,
-  `event_type_id` smallint UNSIGNED NOT NULL,
-  `entity_type_id` smallint UNSIGNED DEFAULT NULL,
+  `event_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `event_label` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `event_icon` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'radio_button_checked',
+  `entity_key` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `entity_label` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `entity_id` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `message_id` bigint UNSIGNED DEFAULT NULL,
+  `friendly_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `context_json` json DEFAULT NULL,
   `integrity_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `previous_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -498,36 +356,27 @@ CREATE TABLE `pi_audit` (
   `proof_json` json DEFAULT NULL,
   `policy_version` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'audit-chain-v1',
   `actor_signature` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `ip_id` bigint UNSIGNED DEFAULT NULL,
-  `user_agent_id` bigint UNSIGNED DEFAULT NULL,
+  `ip_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_audit_seq` (`Seq`),
   UNIQUE KEY `uq_audit_clinic_id` (`clinic_id`,`id`),
   KEY `idx_audit_user` (`clinic_id`,`user_id`,`created_at`,`id`),
   KEY `idx_audit_global` (`created_at`,`id`),
-  KEY `idx_audit_event` (`event_type_id`,`created_at`,`id`),
-  KEY `idx_audit_message` (`message_id`),
+  KEY `idx_audit_event` (`event_key`,`created_at`,`id`),
+  KEY `idx_audit_entity` (`entity_key`,`entity_id`,`created_at`,`id`),
   KEY `idx_audit_chain_hash` (`chain_hash`),
   KEY `idx_audit_policy_created` (`policy_version`,`created_at`,`id`),
   KEY `idx_audit_integrity_recent` (`created_at`,`integrity_hash`),
-  KEY `idx_audit_contextual` (`clinic_id`,`event_type_id`,`created_at`,`id`),
   KEY `idx_audit_clinic_created_id` (`clinic_id`,`created_at`,`id`),
   KEY `idx_audit_user_created_id` (`user_id`,`created_at`,`id`),
-  KEY `idx_fk_audit_entity_type_id` (`entity_type_id`),
-  KEY `idx_fk_audit_ip_id` (`ip_id`),
-  KEY `idx_fk_audit_user_agent_id` (`user_agent_id`),
   CONSTRAINT `fk_audit_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_audit_entity` FOREIGN KEY (`entity_type_id`) REFERENCES `pi_audit_entities` (`id`),
-  CONSTRAINT `fk_audit_event` FOREIGN KEY (`event_type_id`) REFERENCES `pi_audit_event_types` (`id`),
-  CONSTRAINT `fk_audit_ip` FOREIGN KEY (`ip_id`) REFERENCES `pi_ip_addresses` (`id`),
-  CONSTRAINT `fk_audit_message` FOREIGN KEY (`message_id`) REFERENCES `pi_audit_messages` (`id`),
-  CONSTRAINT `fk_audit_ua` FOREIGN KEY (`user_agent_id`) REFERENCES `pi_user_agents` (`id`),
   CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_blocks` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `doctor_user_id` int UNSIGNED DEFAULT NULL,
@@ -554,43 +403,8 @@ CREATE TABLE `pi_blocks` (
   CONSTRAINT `fk_blocks_doctor` FOREIGN KEY (`doctor_user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `pi_checksum_events` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `request_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `clinic_id` int UNSIGNED DEFAULT NULL,
-  `user_id` int UNSIGNED DEFAULT NULL,
-  `route` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `role_code` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `event_count` smallint UNSIGNED NOT NULL DEFAULT '1',
-  `first_table` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `payload_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload_json` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `previous_pending_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `event_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `pending_checksum` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
-  `batch_id` bigint UNSIGNED DEFAULT NULL,
-  `error_message` varchar(240) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `policy_version` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `created_at` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `confirmed_at` bigint UNSIGNED DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_pi_checksum_event` (`event_checksum`),
-  UNIQUE KEY `uq_checksum_events_seq` (`Seq`),
-  UNIQUE KEY `uq_checksum_events_clinic_id` (`clinic_id`,`id`),
-  KEY `idx_pi_checksum_status_id` (`status`,`id`),
-  KEY `idx_pi_checksum_request` (`request_id`),
-  KEY `idx_pi_checksum_clinic` (`clinic_id`,`created_at`,`id`),
-  KEY `idx_pi_checksum_table` (`first_table`,`id`),
-  KEY `idx_pi_checksum_created` (`created_at`,`id`),
-  KEY `idx_fk_checksum_events_user_id` (`user_id`),
-  CONSTRAINT `fk_checksum_events_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_checksum_events_user` FOREIGN KEY (`user_id`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `pi_clinic_daily_stats` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `clinic_id` int UNSIGNED NOT NULL,
   `day_date` bigint UNSIGNED NOT NULL DEFAULT '0',
   `metric_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -603,7 +417,7 @@ CREATE TABLE `pi_clinic_daily_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_clinic_roles` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `clinic_id` int UNSIGNED NOT NULL,
   `role_code` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
   `label` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -618,7 +432,7 @@ CREATE TABLE `pi_clinic_roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_document_templates` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `owner_user_id` int UNSIGNED NOT NULL,
@@ -650,7 +464,7 @@ CREATE TABLE `pi_document_templates` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_error_events` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `route` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `method` varchar(12) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -675,7 +489,7 @@ CREATE TABLE `pi_error_events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_accounts` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -701,7 +515,7 @@ CREATE TABLE `pi_financial_accounts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_counterparties` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `person_id` bigint UNSIGNED NOT NULL,
@@ -724,7 +538,7 @@ CREATE TABLE `pi_financial_counterparties` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_daily_closings` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `business_date` bigint UNSIGNED NOT NULL DEFAULT '0',
@@ -757,7 +571,7 @@ CREATE TABLE `pi_financial_daily_closings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_goals` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `clinic_id` int UNSIGNED NOT NULL,
   `month_key` char(7) COLLATE utf8mb4_unicode_ci NOT NULL,
   `target_cents` int UNSIGNED NOT NULL DEFAULT '0',
@@ -774,7 +588,7 @@ CREATE TABLE `pi_financial_goals` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_payment_methods` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `name` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -795,7 +609,7 @@ CREATE TABLE `pi_financial_payment_methods` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_leads` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `person_id` bigint UNSIGNED DEFAULT NULL,
@@ -823,7 +637,7 @@ CREATE TABLE `pi_leads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_maestro_rules` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `name` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -856,7 +670,7 @@ CREATE TABLE `pi_maestro_rules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_notices` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -880,7 +694,7 @@ CREATE TABLE `pi_notices` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_patients` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `person_id` bigint UNSIGNED NOT NULL,
@@ -925,7 +739,7 @@ CREATE TABLE `pi_patients` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_permission_rules` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `clinic_id` int UNSIGNED NOT NULL,
   `role_code` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
   `action_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -940,7 +754,7 @@ CREATE TABLE `pi_permission_rules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_permissions` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `clinic_id` int UNSIGNED NOT NULL,
   `role_code` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
   `action_key` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -954,7 +768,7 @@ CREATE TABLE `pi_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_procedures` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `title` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -983,7 +797,7 @@ CREATE TABLE `pi_procedures` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_scope_violations` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED DEFAULT NULL,
@@ -1005,7 +819,7 @@ CREATE TABLE `pi_scope_violations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_subscription_payments` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `created_by` int UNSIGNED DEFAULT NULL,
@@ -1035,7 +849,7 @@ CREATE TABLE `pi_subscription_payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_tasks` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1072,7 +886,7 @@ CREATE TABLE `pi_tasks` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_user_devices` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int UNSIGNED NOT NULL,
   `device_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1106,7 +920,7 @@ CREATE TABLE `pi_user_devices` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_user_roles` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int UNSIGNED NOT NULL,
   `clinic_id` int UNSIGNED NOT NULL,
@@ -1126,7 +940,7 @@ CREATE TABLE `pi_user_roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_user_work_hours` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
@@ -1149,7 +963,7 @@ CREATE TABLE `pi_user_work_hours` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_appointments` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `patient_link_id` bigint UNSIGNED DEFAULT NULL,
@@ -1199,7 +1013,7 @@ CREATE TABLE `pi_appointments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_care` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `patient_link_id` bigint UNSIGNED NOT NULL,
@@ -1232,7 +1046,7 @@ CREATE TABLE `pi_care` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_expenses` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `counterparty_id` bigint UNSIGNED DEFAULT NULL,
@@ -1273,7 +1087,7 @@ CREATE TABLE `pi_financial_expenses` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_locations` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `location_type` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1313,7 +1127,7 @@ CREATE TABLE `pi_financial_locations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_transfers` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `account_from_id` bigint UNSIGNED NOT NULL,
@@ -1338,7 +1152,7 @@ CREATE TABLE `pi_financial_transfers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_lead_events` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `lead_id` bigint UNSIGNED NOT NULL,
@@ -1364,7 +1178,7 @@ CREATE TABLE `pi_lead_events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_maestro_executions` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `rule_id` bigint UNSIGNED NOT NULL,
@@ -1388,7 +1202,7 @@ CREATE TABLE `pi_maestro_executions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_notice_reads` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `notice_id` bigint UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `read_at` bigint UNSIGNED DEFAULT NULL,
@@ -1402,7 +1216,7 @@ CREATE TABLE `pi_notice_reads` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_patient_guardians` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `patient_link_id` bigint UNSIGNED NOT NULL,
@@ -1432,7 +1246,7 @@ CREATE TABLE `pi_patient_guardians` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_patient_tabs` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `patient_link_id` bigint UNSIGNED NOT NULL,
@@ -1455,7 +1269,7 @@ CREATE TABLE `pi_patient_tabs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_task_comments` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `task_id` bigint UNSIGNED NOT NULL,
@@ -1482,7 +1296,7 @@ CREATE TABLE `pi_task_comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_task_events` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `task_id` bigint UNSIGNED NOT NULL,
@@ -1504,7 +1318,7 @@ CREATE TABLE `pi_task_events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_care_content` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `care_id` bigint UNSIGNED NOT NULL,
   `clinic_id` int UNSIGNED NOT NULL,
   `content` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1516,7 +1330,7 @@ CREATE TABLE `pi_care_content` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_care_versions` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `care_id` bigint UNSIGNED NOT NULL,
   `clinic_id` int UNSIGNED NOT NULL,
@@ -1537,7 +1351,7 @@ CREATE TABLE `pi_care_versions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_cash_sessions` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
@@ -1576,7 +1390,7 @@ CREATE TABLE `pi_cash_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_documents` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `template_id` bigint UNSIGNED DEFAULT NULL,
@@ -1618,7 +1432,7 @@ CREATE TABLE `pi_documents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_location_users` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `location_id` bigint UNSIGNED NOT NULL,
@@ -1642,7 +1456,7 @@ CREATE TABLE `pi_financial_location_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_revenues` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `appointment_id` bigint UNSIGNED DEFAULT NULL,
@@ -1685,7 +1499,7 @@ CREATE TABLE `pi_financial_revenues` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_task_details` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `task_id` bigint UNSIGNED NOT NULL,
   `clinic_id` int UNSIGNED NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
@@ -1708,7 +1522,7 @@ CREATE TABLE `pi_task_details` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_cash_closing_reviews` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `cash_session_id` bigint UNSIGNED NOT NULL,
@@ -1732,7 +1546,7 @@ CREATE TABLE `pi_cash_closing_reviews` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_document_pdfs` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `document_id` bigint UNSIGNED NOT NULL,
@@ -1757,7 +1571,7 @@ CREATE TABLE `pi_document_pdfs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_allocations` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `revenue_id` bigint UNSIGNED DEFAULT NULL,
@@ -1784,7 +1598,7 @@ CREATE TABLE `pi_financial_allocations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `pi_financial_movements` (
-  `Seq` bigint UNSIGNED DEFAULT NULL,
+  `Seq` bigint UNSIGNED NOT NULL DEFAULT (UUID_SHORT()),
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `clinic_id` int UNSIGNED NOT NULL,
   `movement_type` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,

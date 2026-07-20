@@ -11,7 +11,20 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,6 +35,7 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
+          extensions: pdo_mysql
 
       - name: PHP syntax
         shell: bash
@@ -74,6 +88,20 @@ jobs:
             }
           '
 
+      - name: Static schema contract
+        shell: bash
+        run: |
+          php tools/schema-check.php
+
+      - name: Clean install schema on MySQL 8
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          php tools/schema-check.php | tee schema-report.json
+
       - name: Layered architecture
         shell: bash
         run: |
@@ -85,6 +113,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: architecture-report
-          path: architecture-report.json
+          path: |
+            architecture-report.json
+            schema-report.json
           if-no-files-found: error
           retention-days: 7

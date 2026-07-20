@@ -12,6 +12,8 @@ use Prontoo\Core\Architecture\LayerMap;
 use Prontoo\Domain\Authorization\ActionContract;
 use Prontoo\Infrastructure\Audit\PdoActionProofStore;
 use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
+use Prontoo\Infrastructure\Database\SeqContract;
+use Prontoo\Infrastructure\Database\CleanInstallReset;
 use Prontoo\Presentation\Http\ActionMiddleware;
 use Prontoo\Runtime\LayeredKernel;
 
@@ -66,6 +68,8 @@ final class RuntimeContract
             ActionCatalog::class,
             AuthorizationService::class,
             RuntimeCapabilityProvider::class,
+            SeqContract::class,
+            CleanInstallReset::class,
             PdoActionProofStore::class,
             ActionMiddleware::class,
             LayeredKernel::class,
@@ -83,6 +87,7 @@ final class RuntimeContract
             'version.json',
             'app/update.manifest.json',
             'app/architecture.manifest.json',
+            'app/Database/operational-schema.contract.json',
             'br/index.php',
             'app/bootstrap_architecture.php',
             'app/bootstrap_specialized.php',
@@ -225,6 +230,7 @@ final class RuntimeContract
         if (!$updateValidation && \function_exists('has_cfg') && \has_cfg()) {
             $strict = is_file($root . '/storage/install.lock');
             \ensure_runtime_schema_minimum();
+            SeqContract::assert(\pdo());
             \Prontoo\Core\Database\TenantIntegrity::assertRegistryMatchesSchema($strict);
         }
     }

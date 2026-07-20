@@ -7,13 +7,11 @@ final class TenantIntegrity
     private const GOVERNANCE_TABLES_WITH_CLINIC_ID = [
         "pi_audit",
         "pi_scope_violations",
-        "pi_action_proofs",
+        "pi_action_ledger",
         "pi_clinics",
         "pi_persons",
         "pi_error_events",
         "pi_user_devices",
-        "pi_checksum_events",
-        "pi_checksum_state",
     ];
     private function __construct() {}
     public static function assertRegistryMatchesSchema(

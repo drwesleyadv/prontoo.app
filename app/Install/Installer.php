@@ -805,13 +805,8 @@ function prontoo_install(): void
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
                 \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest(5000);
             }
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiSequence")) {
-                \Prontoo\Core\Integrity\PiSequence::ensureCounterTable(pdo());
-            }
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::ensureGlobalSequence(
-                    15000,
-                );
+            if (class_exists("\\Prontoo\\Infrastructure\\Database\\SeqContract")) {
+                \Prontoo\Infrastructure\Database\SeqContract::assert(pdo());
             }
             db_begin_transaction();
             $pid = upsert_person($adminName, $adminCpf, $adminBirth);

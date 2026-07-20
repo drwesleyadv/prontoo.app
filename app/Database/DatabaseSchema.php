@@ -1183,7 +1183,7 @@ function schema_seed_meta(): void
 {
     $revision = defined("PRONTOO_SCHEMA_REV")
         ? PRONTOO_SCHEMA_REV
-        : "prontoo_1_7_13_1_clean_schema_r6_multirole";
+        : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
     $statement = pdo()->prepare(
         "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value),updated_at=VALUES(updated_at)",
     );
@@ -1258,138 +1258,9 @@ function install_fresh_schema(): void
 
 function schema_apply_pending_release_migrations(): void
 {
-    static $done = false;
-    if ($done || !has_cfg() || !db_table_exists("pi_meta")) {
-        return;
-    }
-
-    $expectedRevision = defined("PRONTOO_SCHEMA_REV")
-        ? PRONTOO_SCHEMA_REV
-        : "prontoo_1_7_13_1_clean_schema_r6_multirole";
-    $connection = pdo();
-    $readRevision = static function (PDO $pdo): string {
-        $statement = $pdo->prepare(
-            "SELECT meta_value FROM pi_meta WHERE meta_key='schema_revision' LIMIT 1",
-        );
-        $statement->execute();
-        return trim((string) ($statement->fetchColumn() ?: ""));
-    };
-
-    $currentRevision = $readRevision($connection);
-    if (hash_equals($expectedRevision, $currentRevision)) {
-        if (
-            is_file(prontoo_schema_release_contract_file()) &&
-            hash_equals(
-                prontoo_schema_release_contract_hash(),
-                prontoo_schema_contract_hash(),
-            )
-        ) {
-            prontoo_fs_unlink(prontoo_schema_release_contract_file(), false);
-        }
-        $done = true;
-        return;
-    }
-    if (
-        !in_array(
-            $currentRevision,
-            ["prontoo_1_7_13_1_clean_schema_r5"],
-            true,
-        )
-    ) {
-        return;
-    }
-
-    $lockName = "prontoo_schema_1_7_13_5_multirole";
-    $lock = $connection->prepare("SELECT GET_LOCK(?, 15)");
-    $lock->execute([$lockName]);
-    if ((int) $lock->fetchColumn() !== 1) {
-        throw new RuntimeException(
-            "Não foi possível obter o bloqueio da migração de cargos.",
-        );
-    }
-
-    try {
-        $currentRevision = $readRevision($connection);
-        if (hash_equals($expectedRevision, $currentRevision)) {
-            $done = true;
-            return;
-        }
-        if ($currentRevision !== "prontoo_1_7_13_1_clean_schema_r5") {
-            return;
-        }
-
-
-        if (db_index_exists("pi_user_roles", "uq_user_roles_one_active")) {
-            $connection->exec(
-                "ALTER TABLE `pi_user_roles` DROP INDEX `uq_user_roles_one_active`",
-            );
-        }
-        if (db_column_exists("pi_user_roles", "active_user_key")) {
-            $connection->exec(
-                "ALTER TABLE `pi_user_roles` DROP COLUMN `active_user_key`",
-            );
-        }
-        if (
-            db_index_exists("pi_user_roles", "uq_user_roles_one_active") ||
-            db_column_exists("pi_user_roles", "active_user_key")
-        ) {
-            throw new RuntimeException(
-                "A restrição antiga de cargo único não pôde ser removida.",
-            );
-        }
-
-        foreach (["gerente", "medico"] as $roleCode) {
-            $statement = $connection->prepare(
-                "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) " .
-                    "SELECT c.owner_user_id,c.id,?,1,1,COALESCE(NULLIF(c.created_at,0),UNIX_TIMESTAMP()) " .
-                    "FROM pi_clinics c JOIN pi_users u ON u.id=c.owner_user_id AND u.active=1 " .
-                    "WHERE c.owner_user_id IS NOT NULL " .
-                    "ON DUPLICATE KEY UPDATE is_owner=1,active=1",
-            );
-            $statement->execute([$roleCode]);
-        }
-        $missingOwnerRoles = $connection->query(
-            "SELECT c.id,c.owner_user_id FROM pi_clinics c " .
-                "JOIN pi_users u ON u.id=c.owner_user_id AND u.active=1 " .
-                "WHERE c.owner_user_id IS NOT NULL AND (" .
-                "NOT EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.clinic_id=c.id AND ur.user_id=c.owner_user_id AND ur.role_code='gerente' AND ur.active=1) OR " .
-                "NOT EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.clinic_id=c.id AND ur.user_id=c.owner_user_id AND ur.role_code='medico' AND ur.active=1)) " .
-                "LIMIT 1",
-        )->fetch(PDO::FETCH_NUM);
-        if ($missingOwnerRoles) {
-            throw new RuntimeException(
-                "Não foi possível reparar os ambientes do responsável pelo consultório " .
-                    (int) $missingOwnerRoles[0] .
-                    ".",
-            );
-        }
-
-        prontoo_schema_promote_release_contract();
-        schema_validate_complete();
-        schema_mark_ready();
-        $meta = $connection->prepare(
-            "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,?,?) " .
-                "ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value),updated_at=VALUES(updated_at)",
-        );
-        $now = time();
-        $meta->execute(["schema_revision", $expectedRevision, $now]);
-        $meta->execute([
-            "schema_contract_hash",
-            prontoo_schema_contract_hash(),
-            $now,
-        ]);
-        prontoo_fs_unlink(prontoo_schema_release_contract_file(), false);
-        $done = true;
-    } finally {
-        try {
-            $release = $connection->prepare("SELECT RELEASE_LOCK(?)");
-            $release->execute([$lockName]);
-        } catch (Throwable $error) {
-            error_log(
-                "[Prontoo schema migration unlock] " . $error->getMessage(),
-            );
-        }
-    }
+    // A revisão 1.7.20.6 é exclusivamente de instalação limpa.
+    // Nenhuma transformação in-place de dados operacionais é permitida.
+    return;
 }
 
 function ensure_runtime_schema_minimum(): void
@@ -1403,7 +1274,7 @@ function ensure_runtime_schema_minimum(): void
 
     $expectedRevision = defined("PRONTOO_SCHEMA_REV")
         ? PRONTOO_SCHEMA_REV
-        : "prontoo_1_7_13_1_clean_schema_r6_multirole";
+        : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
     $revision = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
         "schema_revision",
     ]);
