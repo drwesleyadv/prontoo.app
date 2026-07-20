@@ -4,6 +4,16 @@ declare(strict_types=1);
 use Prontoo\Core\Architecture\ArchitectureVerifier;
 use Prontoo\Runtime\LayeredKernel;
 
+if (!class_exists('ProntooHttpError')) {
+    class ProntooHttpError extends RuntimeException
+    {
+        public function __construct(public int $status, string $message)
+        {
+            parent::__construct($message);
+        }
+    }
+}
+
 $root = dirname(__DIR__);
 if (!defined('PRONTOO_ROOT')) {
     define('PRONTOO_ROOT', $root);
