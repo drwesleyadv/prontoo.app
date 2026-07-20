@@ -76,12 +76,25 @@ final class ArchitectureVerifier
             if ($routes !== [] && !isset($routes[$contract->route])) {
                 $errors[] = 'action_route_missing:' . $contract->route . ':' . $contract->action;
             }
-            if ($contract->action !== ActionCatalog::DEFAULT_ACTION &&
-                $contract->action !== 'onboarding_tip_dismiss' &&
-                is_file($root . '/' . $source)) {
+            if ($contract->action !== ActionCatalog::DEFAULT_ACTION && is_file($root . '/' . $source)) {
                 $content = (string) @file_get_contents($root . '/' . $source);
                 if (!str_contains($content, $contract->action)) {
-                    $errors[] = 'action_token_not_in_source:' . $contract->route . ':' . $contract->action . ':' . $source;
+                    $errors[] = 'action_token_not_in_handler:' . $contract->route . ':' . $contract->action . ':' . $source;
+                }
+            }
+            foreach ($contract->producers as $producerPath) {
+                $producer = 'app/' . ltrim((string) $producerPath, '/');
+                $sources[$producer] = true;
+                if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
+                    $knownBySource[$producer][$contract->action] = true;
+                }
+                if (!is_file($root . '/' . $producer)) {
+                    $errors[] = 'action_producer_missing:' . $contract->route . ':' . $contract->action . ':' . $producer;
+                    continue;
+                }
+                if ($contract->action !== ActionCatalog::DEFAULT_ACTION &&
+                    !str_contains((string) @file_get_contents($root . '/' . $producer), $contract->action)) {
+                    $errors[] = 'action_token_not_in_producer:' . $contract->route . ':' . $contract->action . ':' . $producer;
                 }
             }
         }
