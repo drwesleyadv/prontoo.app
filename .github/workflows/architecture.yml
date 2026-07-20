@@ -22,7 +22,9 @@ jobs:
         shell: bash
         run: |
           set -u
-          cat .release/patch.part.* > assembled.patch
+          find .release -maxdepth 1 -type f -printf '%f %s\n' | sort | tee release-files.txt
+          find .release -maxdepth 1 -type f -name 'patch.part.*' -print0 | sort -z | xargs -0 sha256sum | tee release-hashes.txt
+          find .release -maxdepth 1 -type f -name 'patch.part.*' -print0 | sort -z | xargs -0 cat > assembled.patch
           sha256sum assembled.patch | tee patch-diagnostic.txt
           echo 'expected 3aee9505e14c6a218400d53f8753ebacc4d189c11c6194a0e9140aff3eff499e' >> patch-diagnostic.txt
           git show origin/main:.github/workflows/architecture.yml > .github/workflows/architecture.yml
@@ -37,5 +39,7 @@ jobs:
             assembled.patch
             patch-diagnostic.txt
             patch-dry-run.txt
+            release-files.txt
+            release-hashes.txt
           if-no-files-found: error
           retention-days: 1
