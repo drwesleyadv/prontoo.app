@@ -1,3 +1,18 @@
+Prontoo 1.7.20.3 — arquitetura PHP em camadas e verificabilidade contínua
+
+- Separa o fluxo de autorização em Domain, Application, Infrastructure, Presentation e Composition, mantendo o Core dedicado a decisões canônicas, mutações, isolamento, relações, workflows e integridade.
+- Move o catálogo de ações e o serviço de autorização para Application; capacidades reais são resolvidas por uma porta implementada em Infrastructure.
+- Move a persistência das provas operacionais para Infrastructure e reduz `ActionProof` a uma ponte fina de compatibilidade sem PDO ou regra de negócio.
+- Remove integralmente `Core/Invariant/ActionCapabilityCatalog.php` e `Core/Invariant/CapabilityInvariant.php`.
+- Retira autorização do `InvariantKernel`, que passa a representar exclusivamente o núcleo de invariantes de mutação e sua cadeia de provas.
+- Introduz `LayeredKernel` como raiz de composição para autorização, capacidade, prova e middleware HTTP.
+- Classifica todos os arquivos PHP versionados em camadas e exige cobertura arquitetural de 100%, com direção de dependências verificada automaticamente.
+- Adiciona validação entre catálogo, rotas, arquivos-fonte e ações literais; ações novas sem contrato passam a bloquear o CI.
+- Adiciona bloqueio de PDO fora de Infrastructure ou Composition nos arquivos nativos da arquitetura.
+- Adiciona manifesto arquitetural, documentação técnica, ferramenta de verificação e workflow obrigatório do GitHub Actions.
+- Mantém `enforce_action_integrity()` apenas como adaptador fino para compatibilidade com o dispatcher atual, sem lógica de autorização ou persistência.
+- Mantidos banco de dados, schema, interface, ativos e comportamento funcional dos módulos clínicos.
+
 Prontoo 1.7.20.2 — catálogo exato de capacidades por ação
 
 - Remove integralmente a autorização inferida somente pela rota e pela semântica aproximada do nome da ação.
