@@ -27,12 +27,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find . \
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
             -path './.git' -prune -o \
             -path './storage' -prune -o \
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
-            -name '*.php' -print0 | xargs -0 -n1 php -l
+            -name '*.php' -print0)
 
       - name: JSON contracts
         shell: bash
