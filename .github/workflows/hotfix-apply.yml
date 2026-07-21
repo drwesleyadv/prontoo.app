@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - agent/hotfix-1.7.21.1-zero-table-installer
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: github.head_ref == 'agent/hotfix-1.7.21.1-zero-table-installer' || github.ref_name == 'agent/hotfix-1.7.21.1-zero-table-installer'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
