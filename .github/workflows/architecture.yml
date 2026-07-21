@@ -1,4 +1,4 @@
-name: Apply Hardening 1.7.21.3
+name: Apply Hardening 1.7.21.3 v3
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  apply-hardening:
+  apply:
     if: github.event.pull_request.number == 15
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -40,17 +40,137 @@ jobs:
           tools: none
           extensions: pdo_mysql
 
-      - name: Apply hardening
+      - name: Generate final hardening
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' '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' | base64 -d | gzip -d > /tmp/apply-hardening.py
-          git fetch origin main --depth=1
+          python3 - <<'PY'
+          import base64, gzip, re
+          from pathlib import Path
+          workflow = Path('.github/workflows/architecture.yml').read_text(encoding='utf-8')
+          source = Path('.github/workflows/apply-hardening-v3.yml').read_text(encoding='utf-8')
+          payload_source = Path('/tmp/original-architecture.yml')
+          import subprocess
+          subprocess.run(['git', 'fetch', 'origin', 'main', '--depth=1'], check=True)
+          payload_source.write_text(subprocess.check_output(['git', 'show', 'FETCH_HEAD:.github/workflows/architecture.yml'], text=True), encoding='utf-8')
+          original = payload_source.read_text(encoding='utf-8')
+          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", original)
+          if not match:
+              raise RuntimeError('Payload do aplicador não encontrado no histórico da branch.')
+          script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
+          pairs = [
+              ("    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',", "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',"),
+              ("    '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',", "    lambda _match: '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',"),
+              ("    '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {", "    lambda _match: '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {"),
+              ("    '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(", "    lambda _match: '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller("),
+          ]
+          for old, new in pairs:
+              if old not in script:
+                  raise RuntimeError('Marcador de escape ausente: ' + old[:60])
+              script = script.replace(old, new, 1)
+          Path('/tmp/apply-hardening.py').write_text(script, encoding='utf-8')
+          PY
+
           git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
           python3 /tmp/apply-hardening.py
-          rm -f .github/workflows/apply-hardening-1.7.21.3.yml
 
-      - name: Validate hardening
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+
+          access_path = Path('app/Core/Install/InstallAccess.php')
+          access = access_path.read_text(encoding='utf-8')
+          replacement = r'''    public static function requestHostFrom(array $server): string
+    {
+        $host = strtolower(trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
+        if ($host === '') {
+            return '';
+        }
+        if (str_starts_with($host, '[')) {
+            $end = strpos($host, ']');
+            return $end === false ? '' : substr($host, 1, $end - 1);
+        }
+        return preg_replace('/:\d+$/', '', $host) ?? '';
+    }
+
+    public static function requestHost(): string
+    {
+        return self::requestHostFrom($_SERVER);
+    }
+
+    public static function isLocalServer(array $server): bool
+    {
+        if (!self::isLoopbackAddress((string) ($server['REMOTE_ADDR'] ?? ''))) {
+            return false;
+        }
+        foreach (self::FORWARDED_HEADERS as $header) {
+            if (trim((string) ($server[$header] ?? '')) !== '') {
+                return false;
+            }
+        }
+        return in_array(self::requestHostFrom($server), self::LOCAL_HOSTS, true);
+    }
+
+    public static function isLocalHttpRequest(): bool
+    {
+        return PHP_SAPI !== 'cli' && self::isLocalServer($_SERVER);
+    }
+
+'''
+          access, count = re.subn(
+              r'    public static function requestHost\(\): string.*?(?=    public static function isLocalExecution\(\): bool)',
+              lambda _match: replacement,
+              access,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise RuntimeError('Bloco de avaliação local não encontrado.')
+          access_path.write_text(access, encoding='utf-8')
+
+          security_path = Path('tools/install-security-check.php')
+          security = security_path.read_text(encoding='utf-8')
+          old = '$actual = InstallAccess::isLocalHttpRequest();'
+          new = '$actual = InstallAccess::isLocalServer($_SERVER);'
+          if old not in security:
+              raise RuntimeError('Chamada de teste local não encontrada.')
+          security_path.write_text(security.replace(old, new, 1), encoding='utf-8')
+
+          layer_path = Path('app/Core/Architecture/LayerMap.php')
+          layer = layer_path.read_text(encoding='utf-8')
+          marker = "        'app/Core/Architecture/',\n"
+          additions = (
+              marker +
+              "        'app/Core/Install/InstallAccess.php',\n" +
+              "        'app/Core/Database/SchemaMutationLock.php',\n" +
+              "        'tools/install-security-check.php',\n"
+          )
+          if "'app/Core/Install/InstallAccess.php'" not in layer:
+              if marker not in layer:
+                  raise RuntimeError('Mapa de camadas sem marcador nativo.')
+              layer = layer.replace(marker, additions, 1)
+              layer_path.write_text(layer, encoding='utf-8')
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          files = dict(manifest.get('files', {}))
+          files['app/Core/Architecture/LayerMap.php'] = ''
+          total = 0
+          for file in list(files):
+              data = Path(file).read_bytes()
+              files[file] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = files
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          rm -f .github/workflows/apply-hardening-v3.yml
+
+      - name: Validate final hardening
         shell: bash
         env:
           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
@@ -58,19 +178,13 @@ jobs:
           PRONTOO_SCHEMA_PASS: root
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -name '*.php' -print0)
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
           php tools/install-security-check.php | tee install-security-report.json
           php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
           php tools/architecture-check.php | tee architecture-report.json
-          php -r '
-            $m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);
-            $bytes=0;
-            foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}
-            if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}
-            foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}
-          '
+          php -r '$m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}'
 
-      - name: Commit hardening
+      - name: Commit final hardening
         shell: bash
         run: |
           set -euo pipefail
