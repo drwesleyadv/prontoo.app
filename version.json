@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "ChangeLog.txt",
-  "notes": "Remove documentação Markdown, centraliza o conhecimento no ChangeLog.txt e comenta todas as unidades funcionais PHP para manutenção humana.",
+  "notes": "Libera temporariamente o instalador público por quatro horas a partir do merge certificado, com revogação automática por timestamp fixo.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -31,17 +31,17 @@
   "minimum_mysql": "8.0.30",
   "minimum_php": "8.4.0",
   "database_policy": "clean-schema-layer2-ledger-v1",
-  "previous_version": "1.7.21.6",
+  "previous_version": "1.7.21.7",
   "documentation_changes": true,
   "temporary_public_installer": {
     "host": "prontoo.app",
     "https_required": true,
-    "start_unix": 1784670941,
-    "end_unix": 1784685341,
-    "start_utc": "2026-07-21T21:55:41Z",
-    "end_utc": "2026-07-22T01:55:41Z",
-    "start_local": "21/07/2026 17:55:41 America/Cuiaba",
-    "end_local": "21/07/2026 21:55:41 America/Cuiaba",
+    "start_unix": 1784671890,
+    "end_unix": 1784686290,
+    "start_utc": "2026-07-21T22:11:30Z",
+    "end_utc": "2026-07-22T02:11:30Z",
+    "start_local": "21/07/2026 18:11:30 America/Cuiaba",
+    "end_local": "21/07/2026 22:11:30 America/Cuiaba",
     "automatic_revocation": true
   }
 }
