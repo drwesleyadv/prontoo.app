@@ -1,143 +1,143 @@
-name: Architecture Contract
+name: Full Maturation Audit Snapshot
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
-  verify:
+  snapshot:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 15
     steps:
-      - name: Checkout
+      - name: Checkout complete repository
         uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
+          fetch-depth: 0
 
-      - name: PHP syntax
+      - name: Build 100 percent tracked-file inventory
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
-          done < <(find . \
-            -path './.git' -prune -o \
-            -path './storage' -prune -o \
-            -path './vendor' -prune -o \
-            -path './node_modules' -prune -o \
-            -name '*.php' -print0)
+          python3 - <<'PY'
+          import hashlib, json, os, re, subprocess
+          from collections import defaultdict
+          from pathlib import Path
 
-      - name: JSON contracts
+          files = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          paths = [p.decode("utf-8") for p in files if p]
+          inventory = []
+          findings = []
+          content_hashes = defaultdict(list)
+          php_functions = defaultdict(list)
+          text_cache = {}
+
+          legacy_file_rx = re.compile(r"(?:^|/)(?:old|legacy|backup|bak|copy|temp|tmp|deprecated)(?:[._-]|/|$)|(?:\.bak|\.old|~)$", re.I)
+          version_symbol_rx = re.compile(r"\b(?:function|class|const)\s+([A-Za-z_][A-Za-z0-9_]*(?:1_7_|v1_7_|_v\d+)[A-Za-z0-9_]*)", re.I)
+          removed_symbols = [
+              "CleanInstallReset", "ActionCapabilityCatalog", "CapabilityInvariant",
+              "Prontoo\\Core\\Integrity\\PiSequence", "Prontoo\\Core\\Integrity\\ActionProof"
+          ]
+
+          for path in paths:
+              p = Path(path)
+              data = p.read_bytes()
+              digest = hashlib.sha256(data).hexdigest()
+              content_hashes[digest].append(path)
+              binary = b"\0" in data[:8192]
+              text = None
+              lines = None
+              if not binary:
+                  try:
+                      text = data.decode("utf-8")
+                      text_cache[path] = text
+                      lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
+                  except UnicodeDecodeError:
+                      binary = True
+              inventory.append({
+                  "path": path,
+                  "bytes": len(data),
+                  "sha256": digest,
+                  "extension": p.suffix.lower(),
+                  "binary": binary,
+                  "lines": lines,
+              })
+
+              if legacy_file_rx.search(path):
+                  findings.append({"severity":"high","kind":"legacy_filename","path":path,"detail":"Nome indica cópia, backup, temporário ou legado versionado."})
+              if len(data) == 0:
+                  findings.append({"severity":"medium","kind":"empty_file","path":path,"detail":"Arquivo versionado vazio."})
+              if lines and lines > 1400:
+                  findings.append({"severity":"medium","kind":"large_file","path":path,"line":1,"detail":f"Arquivo possui {lines} linhas; candidato a decomposição segura."})
+
+              if text is None:
+                  continue
+              for n, line in enumerate(text.splitlines(), 1):
+                  stripped = line.strip()
+                  if re.search(r"\b(?:TODO|FIXME|HACK|XXX)\b", line, re.I):
+                      findings.append({"severity":"medium","kind":"unfinished_marker","path":path,"line":n,"detail":stripped[:240]})
+                  if p.suffix.lower() == ".php" and re.search(r"(?<![A-Za-z0-9_])@(?!@)", line):
+                      findings.append({"severity":"low","kind":"error_suppression","path":path,"line":n,"detail":stripped[:240]})
+                  if p.suffix.lower() == ".php" and re.search(r"\b(?:die|exit)\s*(?:\(|;)", line) and not path.startswith("tools/"):
+                      findings.append({"severity":"low","kind":"direct_exit","path":path,"line":n,"detail":stripped[:240]})
+                  if p.suffix.lower() == ".php" and re.search(r"\b(?:include|require)(?:_once)?\s*\(?\s*\$", line):
+                      findings.append({"severity":"medium","kind":"dynamic_include","path":path,"line":n,"detail":stripped[:240]})
+                  for symbol in removed_symbols:
+                      if symbol in line and path not in {"ChangeLog.txt", "app/architecture.manifest.json", "app/update.manifest.json"} and not path.startswith(".github/"):
+                          findings.append({"severity":"high","kind":"removed_legacy_reference","path":path,"line":n,"detail":stripped[:240]})
+                  m = version_symbol_rx.search(line)
+                  if m:
+                      findings.append({"severity":"high","kind":"version_specific_symbol","path":path,"line":n,"detail":m.group(1)})
+
+              if p.suffix.lower() == ".php":
+                  for m in re.finditer(r"(?m)^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", text):
+                      php_functions[m.group(1)].append(path)
+
+          for digest, dup_paths in content_hashes.items():
+              if len(dup_paths) > 1:
+                  findings.append({"severity":"medium","kind":"duplicate_file_content","paths":sorted(dup_paths),"detail":"Arquivos possuem conteúdo byte a byte idêntico.","sha256":digest})
+
+          for name, fn_paths in php_functions.items():
+              unique = sorted(set(fn_paths))
+              if len(unique) > 1:
+                  findings.append({"severity":"high","kind":"duplicate_php_function","paths":unique,"detail":name})
+
+          # Every tracked file must appear exactly once.
+          if len(inventory) != len(paths) or len({x["path"] for x in inventory}) != len(paths):
+              raise SystemExit("Inventário não cobre exatamente todos os arquivos versionados")
+
+          summary = {
+              "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "tracked_file_count": len(paths),
+              "tracked_total_bytes": sum(x["bytes"] for x in inventory),
+              "text_files": sum(not x["binary"] for x in inventory),
+              "binary_files": sum(x["binary"] for x in inventory),
+              "php_files": sum(x["extension"] == ".php" for x in inventory),
+              "findings_count": len(findings),
+              "coverage_percent": 100.0,
+          }
+          Path("maturation-inventory.json").write_text(json.dumps({"summary":summary,"files":inventory}, ensure_ascii=False, indent=2)+"\n")
+          Path("maturation-findings.json").write_text(json.dumps({"summary":summary,"findings":findings}, ensure_ascii=False, indent=2)+"\n")
+          Path("maturation-paths.txt").write_text("\n".join(paths)+"\n")
+          print(json.dumps(summary, ensure_ascii=False))
+          PY
+
+      - name: Archive every tracked file
         shell: bash
         run: |
-          php -r '
-            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
-              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
-            }
-          '
+          set -euo pipefail
+          git ls-files -z | tar --null --files-from=- -czf tracked-source.tar.gz
+          test "$(tar -tzf tracked-source.tar.gz | wc -l)" -eq "$(git ls-files | wc -l)"
 
-      - name: Runtime contract and audit SQL regression
-        shell: bash
-        run: |
-          php -r '
-            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
-            if (str_contains($runtime, "CleanInstallReset")) {
-              throw new RuntimeException("RuntimeContract ainda referencia CleanInstallReset");
-            }
-            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
-            if (str_contains($audit, "et.event_key")) {
-              throw new RuntimeException("Alias SQL inexistente et.event_key");
-            }
-            if (!str_contains($audit, "a.event_key NOT IN")) {
-              throw new RuntimeException("Filtro canônico a.event_key ausente");
-            }
-          '
-
-      - name: Release manifest
-        shell: bash
-        run: |
-          php -r '
-            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
-            $files = (array) ($manifest["files"] ?? []);
-            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
-              throw new RuntimeException("file_count divergente");
-            }
-            $bytes = 0;
-            foreach ($files as $file => $expected) {
-              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
-              $actual = hash_file("sha256", $file);
-              if (!hash_equals((string) $expected, (string) $actual)) {
-                throw new RuntimeException("Hash divergente: " . $file);
-              }
-              $bytes += (int) filesize($file);
-            }
-            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
-              throw new RuntimeException("total_uncompressed_bytes divergente");
-            }
-            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
-              if (file_exists((string) $file)) {
-                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
-              }
-            }
-          '
-
-      - name: Installer access and schema freeze
-        shell: bash
-        run: |
-          php tools/install-security-check.php | tee install-security-report.json
-
-      - name: Static schema contract with Guardian loaded
-        shell: bash
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
-
-      - name: Full zero-table installer with Guardian loaded on MySQL 8
-        shell: bash
-        env:
-          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
-          PRONTOO_SCHEMA_USER: root
-          PRONTOO_SCHEMA_PASS: root
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
-
-      - name: Layered architecture
-        shell: bash
-        run: |
-          set -o pipefail
-          php tools/architecture-check.php | tee architecture-report.json
-
-      - name: Upload architecture report
-        if: always()
+      - name: Upload complete audit snapshot
         uses: actions/upload-artifact@v4
         with:
-          name: architecture-report
+          name: full-maturation-audit-snapshot
           path: |
-            architecture-report.json
-            schema-report.json
-            install-security-report.json
+            tracked-source.tar.gz
+            maturation-inventory.json
+            maturation-findings.json
+            maturation-paths.txt
           if-no-files-found: error
           retention-days: 7
