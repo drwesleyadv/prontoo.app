@@ -77,6 +77,58 @@ jobs:
             }
           '
 
+      - name: Authorization scope matrix
+        shell: bash
+        run: |
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+
+          require 'app/Core/Invariant/Canonical.php';
+          require 'app/Core/Invariant/Decision.php';
+          require 'app/Domain/Authorization/ActionContract.php';
+          require 'app/Application/Authorization/CapabilityProvider.php';
+          require 'app/Application/Authorization/ActionCatalog.php';
+          require 'app/Infrastructure/Authorization/RuntimeCapabilityProvider.php';
+
+          use Prontoo\Application\Authorization\ActionCatalog;
+          use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
+
+          $catalog = ActionCatalog::logicSelfTest();
+          $runtime = RuntimeCapabilityProvider::logicSelfTest();
+          if (empty($catalog['ok'])) {
+              throw new RuntimeException('Falha no catálogo de autorização: ' . implode(', ', (array) ($catalog['failed'] ?? [])));
+          }
+          if (empty($runtime['ok'])) {
+              throw new RuntimeException('Falha na matriz de cargos: ' . implode(', ', (array) ($runtime['failed'] ?? [])));
+          }
+
+          foreach ([
+              ['admin_errors', 'resolve_incident'],
+              ['admin_security', 'release_login_lock'],
+          ] as [$route, $action]) {
+              $contract = ActionCatalog::resolve($route, ['act' => $action]);
+              if ($contract === null ||
+                  $contract->scope !== 'global' ||
+                  $contract->policy !== 'global_admin' ||
+                  $contract->required !== ['admin:*']) {
+                  throw new RuntimeException("Contrato global inválido: {$route}:{$action}");
+              }
+          }
+
+          $source = (string) file_get_contents('app/Admin/AdminPages.php');
+          foreach ([
+              'name="act" value="resolve_incident"',
+              'name="act" value="release_login_lock"',
+              '$act !== "resolve_incident"',
+              '$act !== "release_login_lock"',
+          ] as $required) {
+              if (!str_contains($source, $required)) {
+                  throw new RuntimeException('Regressão de ação exata: ' . $required);
+              }
+          }
+          PHP
+
       - name: Maturity and runtime performance regressions
         shell: bash
         run: |
