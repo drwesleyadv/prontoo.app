@@ -44,6 +44,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/re.subn(pattern, replacement, content/re.subn(pattern, lambda _: replacement, content/' .automation/apply-temporary-installer.py
           python3 -m py_compile .automation/apply-temporary-installer.py
           python3 .automation/apply-temporary-installer.py > >(tee /tmp/temporary-installer-apply.json) 2> >(tee /tmp/temporary-installer-error.txt >&2)
 
