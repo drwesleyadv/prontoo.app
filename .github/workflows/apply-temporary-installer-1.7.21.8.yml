@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile .automation/apply-temporary-installer.py
-          python3 .automation/apply-temporary-installer.py | tee /tmp/temporary-installer-apply.json
+          python3 .automation/apply-temporary-installer.py > >(tee /tmp/temporary-installer-apply.json) 2> >(tee /tmp/temporary-installer-error.txt >&2)
 
       - name: PHP syntax and documentation coverage
         shell: bash
@@ -129,6 +129,7 @@ jobs:
           name: temporary-public-installer-1.7.21.8
           path: |
             /tmp/temporary-installer-apply.json
+            /tmp/temporary-installer-error.txt
             /tmp/install-security-report.json
             /tmp/schema-report.json
             /tmp/architecture-report.json
