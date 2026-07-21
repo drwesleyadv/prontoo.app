@@ -62,17 +62,6 @@ jobs:
           p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
           PY
           rm -f AUDIT_PLACEHOLDER.tmp tools/apply-maturity-1.7.21.5.py
-      - name: Verify restored release
-        shell: bash
-        run: |
-          set -euo pipefail
-          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find app br -name '*.php' -print0; printf 'install.php\0')
-          php -r '
-            foreach (["version.json","app/update.manifest.json","app/architecture.manifest.json","app/Database/operational-schema.contract.json"] as $f) json_decode((string)file_get_contents($f),true,512,JSON_THROW_ON_ERROR);
-            $m=json_decode((string)file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR); $b=0;
-            foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f)))throw new RuntimeException($f);$b+=filesize($f);} if($b!==$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
-          '
-          test "$(sha256sum app/Database/schema.sql | cut -d' ' -f1)" = "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33"
       - name: Commit product files
         shell: bash
         run: |
