@@ -41,6 +41,15 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/apply-maturity-1.7.21.5.py')
+          t=p.read_text()
+          old='out, count = re.subn(pattern, replacement.rstrip() + "\\n", text, count=1)'
+          new='out, count = re.subn(pattern, lambda _: replacement.rstrip() + "\\n", text, count=1)'
+          if old not in t: raise SystemExit('marcador de substituição ausente')
+          p.write_text(t.replace(old,new,1))
+          PY
           python3 tools/apply-maturity-1.7.21.5.py 2>&1 | tee maturity-apply.log
       - name: Validate all tracked files and runtime contracts
         shell: bash
