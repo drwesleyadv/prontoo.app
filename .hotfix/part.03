@@ -1,0 +1,66 @@
++    $personSeq = (int) $runtimePdo->query('SELECT Seq FROM pi_persons WHERE id=' . $personId)->fetchColumn();
++    $userSeq = (int) $runtimePdo->query('SELECT Seq FROM pi_users WHERE id=' . $userId)->fetchColumn();
++    if ($personId <= 0 || $userId <= 0 || $personSeq <= 0 || $userSeq <= 0) {
++        $errors[] = 'runtime_install_initial_admin_contract';
++    }
++    $dropAll($runtimePdo);
++    prontoo_fs_unlink(schema_lock_file(), false);
++    @rmdir($storage);
++
+     $dbResult = [
+         'executed' => true,
+         'mysql_version' => $mysqlVersion,
+@@ -176,6 +288,15 @@
+         'second_seq' => $second,
+         'clean_reset_tables_removed' => (int) ($reset['tables_removed'] ?? 0),
+         'foreign_table_guard' => $foreignBlocked,
++        'runtime_installer_zero_table_database' => [
++            'tables_created' => $installedCount,
++            'schema_revision' => $installedRevision,
++            'schema_lock' => true,
++            'person_id' => $personId,
++            'user_id' => $userId,
++            'person_seq' => $personSeq,
++            'user_seq' => $userSeq,
++        ],
+     ];
+ }
+ 
+diff -ruN '--exclude=.git' prontoo_main/version.json prontoo_current/version.json
+--- prontoo_main/version.json	2026-07-21 12:14:25.344154742 +0000
++++ prontoo_current/version.json	2026-07-21 12:14:41.729597749 +0000
+@@ -1,16 +1,16 @@
+ {
+-  "version": "1.7.20.6",
+-  "release": "1.7.20.6",
+-  "generated_at_unix": 1784582573,
+-  "generated_at": "2026-07-20T21:22:53Z",
+-  "updated_at": "2026-07-20T21:22:53Z",
+-  "build": "1.7.20.6-clean-schema-layer2-ledger",
++  "version": "1.7.21.1",
++  "release": "1.7.21.1",
++  "generated_at_unix": 1784635974,
++  "generated_at": "2026-07-21T12:12:54Z",
++  "updated_at": "2026-07-21T12:12:54Z",
++  "build": "1.7.21.1-zero-table-installer-contract-hotfix",
+   "asset_version": "1.7.15.10",
+-  "package_type": "clean_install_schema_layer2_ledger",
++  "package_type": "clean_install_schema_runtime_contract_hotfix",
+   "theme_policy": "light-only",
+   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
+-  "database_changes": true,
+-  "schema_changes": true,
++  "database_changes": false,
++  "schema_changes": false,
+   "logic_changes": true,
+   "visual_changes": false,
+   "functional_equivalence_policy": "operational_table_contracts_are_preserved_while_support_persistence_is_consolidated_for_clean_install_only",
+@@ -23,7 +23,7 @@
+   "version_format": "1.month.day.sequence",
+   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
+   "version_policy_file": "VERSIONING.md",
+-  "notes": "Nova instalação limpa com Seq nativo por tabela, ledger único da camada 2, auditoria inline e remoção de tabelas auxiliares redundantes.",
++  "notes": "Corrige o contrato runtime do instalador r7, elimina a contagem legada de 75 tabelas e certifica a instalação completa em banco MySQL com zero tabelas iniciais.",
+   "clean_install_schema": true,
+   "requires_empty_database": true,
+   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
