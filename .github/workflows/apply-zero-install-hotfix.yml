@@ -1,0 +1,74 @@
+name: Apply zero-table install hotfix
+
+on:
+  push:
+    branches: [agent/hotfix-1.7.21.1-zero-table-install]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, 'Aplica hotfix 1.7.21.1') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/hotfix-1.7.21.1-zero-table-install
+          fetch-depth: 0
+      - name: Apply deterministic hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, hashlib
+          root = Path('.')
+
+          p = root/'app/Database/DatabaseSchema.php'
+          s = p.read_text()
+          old = '''    if (count($statements) !== 75) {\n        throw new RuntimeException(\n            "Contrato SQL deve conter exatamente 75 tabelas.",\n        );\n    }'''
+          new = '''    $expectedTableCount = defined("PRONTOO_SCHEMA_TABLE_COUNT")\n        ? (int) PRONTOO_SCHEMA_TABLE_COUNT\n        : 62;\n    if (count($statements) !== $expectedTableCount) {\n        throw new RuntimeException(\n            "Contrato SQL deve conter exatamente {$expectedTableCount} tabelas; " .\n                count($statements) .\n                " encontradas.",\n        );\n    }'''
+          if old not in s: raise SystemExit('legacy table-count contract not found')
+          p.write_text(s.replace(old, new, 1))
+
+          p = root/'app/prontoo.php'; s=p.read_text()
+          s=s.replace('PRONTOO_VERSION_FALLBACK = "1.7.20.6"','PRONTOO_VERSION_FALLBACK = "1.7.21.1"')
+          s=s.replace('PRONTOO_PREVIOUS_VERSION = "1.7.20.5"','PRONTOO_PREVIOUS_VERSION = "1.7.20.6"')
+          marker='const PRONTOO_SCHEMA_REV = "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";'
+          s=s.replace(marker, marker+'\nconst PRONTOO_SCHEMA_TABLE_COUNT = 62;',1)
+          p.write_text(s)
+
+          p=root/'br/index.php'; p.write_text(p.read_text().replace('1.7.20.6','1.7.21.1',1))
+
+          p=root/'tools/schema-check.php'; s=p.read_text()
+          s=s.replace("$root = dirname(__DIR__);\n", """$root = dirname(__DIR__);\n\nif (!defined('PRONTOO_SCHEMA_REV')) { define('PRONTOO_SCHEMA_REV', 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger'); }\nif (!defined('PRONTOO_SCHEMA_TABLE_COUNT')) { define('PRONTOO_SCHEMA_TABLE_COUNT', 62); }\nif (!function_exists('cfg')) { function cfg(): array { return $GLOBALS['PRONTOO_SCHEMA_CHECK_CONFIG'] ?? []; } }\nif (!function_exists('storage_path')) { function storage_path(string $suffix = ''): string { $base = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid(); if (!is_dir($base)) { mkdir($base, 0750, true); } return $suffix === '' ? $base : $base . '/' . ltrim($suffix, '/'); } }\nif (!function_exists('prontoo_fs_chmod')) { function prontoo_fs_chmod(string $path, int $mode): bool { return @chmod($path, $mode); } }\nif (!function_exists('prontoo_fs_unlink')) { function prontoo_fs_unlink(string $path): bool { return !file_exists($path) || @unlink($path); } }\nrequire_once $root . '/app/Database/DatabaseSchema.php';\n""",1)
+          s=s.replace("$errors = [];\n", "$errors = [];\n$runtimeStatements = prontoo_schema_statements();\nif (count($runtimeStatements) !== 62) { $errors[] = 'runtime_schema_statement_count:' . count($runtimeStatements); }\n",1)
+          old_db = """    $pdo = new PDO($dsn, getenv('PRONTOO_SCHEMA_USER') ?: 'root', getenv('PRONTOO_SCHEMA_PASS') ?: '', [\n        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,\n        PDO::ATTR_EMULATE_PREPARES => false,\n    ]);\n    $existing = (int) $pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'\")->fetchColumn();\n    if ($existing !== 0) {\n        throw new RuntimeException('Banco de teste não está vazio.');\n    }\n    foreach ($blocks as $block) {\n        $pdo->exec($block);\n    }"""
+          new_db = """    preg_match('/host=([^;&]+)/', $dsn, $hostMatch);\n    preg_match('/dbname=([^;&]+)/', $dsn, $dbMatch);\n    $GLOBALS['PRONTOO_SCHEMA_CHECK_CONFIG'] = [\n        'db_host' => $hostMatch[1] ?? '127.0.0.1',\n        'db_name' => $dbMatch[1] ?? 'prontoo_schema',\n        'db_user' => getenv('PRONTOO_SCHEMA_USER') ?: 'root',\n        'db_pass' => getenv('PRONTOO_SCHEMA_PASS') ?: '',\n    ];\n    $pdo = pdo();\n    $existing = (int) $pdo->query(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'\")->fetchColumn();\n    if ($existing !== 0) { throw new RuntimeException('Banco de teste não está vazio.'); }\n    install_fresh_schema();"""
+          if old_db not in s: raise SystemExit('schema-check direct DDL block not found')
+          p.write_text(s.replace(old_db,new_db,1))
+
+          p=root/'version.json'; v=json.loads(p.read_text())
+          v.update({'version':'1.7.21.1','release':'1.7.21.1','generated_at_unix':1784636400,'generated_at':'2026-07-21T12:20:00Z','updated_at':'2026-07-21T12:20:00Z','build':'1.7.21.1-zero-table-installer-contract-hotfix','package_type':'clean_install_installer_contract_hotfix','notes':'Corrige o contrato do instalador para o schema r7 de 62 tabelas e certifica o caminho real de instalação em banco inicialmente vazio.'})
+          p.write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n')
+
+          entry='''Prontoo 1.7.21.1 — hotfix de instalação limpa em banco vazio\n\n- Remove a invariante legada que ainda exigia 75 tabelas no parser usado pelo instalador.\n- Centraliza o total canônico do schema r7 em PRONTOO_SCHEMA_TABLE_COUNT=62.\n- Torna o teste de schema executar install_fresh_schema(), o mesmo caminho usado pelo formulário de instalação.\n- Certifica banco inicialmente com zero tabelas, criação integral das 62 tabelas, validação estrutural, metadados e Seq nativo.\n- Não altera o desenho, as colunas operacionais ou a revisão do schema r7.\n\n'''
+          p=root/'ChangeLog.txt'; p.write_text(entry+p.read_text())
+          (root/'HOTFIX-1.7.21.1.md').write_text('''# Hotfix 1.7.21.1 — instalação em banco vazio\n\nO parser utilizado pelo instalador ainda exigia 75 tabelas. O schema r7 possui 62. O hotfix centraliza o total canônico e faz o CI executar `install_fresh_schema()` em MySQL 8 com banco inicialmente vazio. Não há alteração no schema r7, dados operacionais, interface ou ativos.\n''')
+
+          changed=['HOTFIX-1.7.21.1.md','ChangeLog.txt','app/Database/DatabaseSchema.php','app/prontoo.php','br/index.php','tools/schema-check.php','version.json']
+          files={f:hashlib.sha256((root/f).read_bytes()).hexdigest() for f in changed}
+          m={'version':'1.7.21.1','release':'1.7.21.1','schema_revision':'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger','build':'1.7.21.1-zero-table-installer-contract-hotfix','package_type':'clean_install_installer_contract_hotfix_incremental','generated_at':'2026-07-21T12:20:00Z','version_format':'1.month.day.sequence','minimum_php':'8.4.0','minimum_mysql':'8.0.30','database_changes':False,'schema_changes':False,'clean_install_schema':True,'requires_empty_database':True,'hash_algorithm':'sha256','signature_policy':'hostoo_github_repository_sync','architecture_policy':'php-layered-invariants-v2','database_policy':'clean-schema-layer2-ledger-v1','schema_table_count':62,'installer_path_certified':'install_fresh_schema','initial_table_count_required':0,'file_count':len(changed),'total_uncompressed_bytes':sum((root/f).stat().st_size for f in changed),'files':files,'removed_files':['app/Core/Invariant/ActionCapabilityCatalog.php','app/Core/Invariant/CapabilityInvariant.php','app/Core/Integrity/PiSequence.php','app/Core/Integrity/ActionProof.php']}
+          (root/'app/update.manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
+          PY
+          rm -rf .hotfix
+          rm -f .github/workflows/apply-zero-install-hotfix.yml
+          php -l app/Database/DatabaseSchema.php
+          php -l tools/schema-check.php
+          php tools/schema-check.php
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Aplica hotfix 1.7.21.1 para instalação em banco vazio'
+          git push origin HEAD:agent/hotfix-1.7.21.1-zero-table-install
