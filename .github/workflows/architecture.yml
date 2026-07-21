@@ -1,58 +1,122 @@
-name: Apply Certified Release 1.7.21.2
+name: Architecture Contract
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
-  actions: read
-  contents: write
-  pull-requests: read
+  contents: read
 
 jobs:
-  apply-certified-release:
-    if: github.event.pull_request.number == 14
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
 
-      - name: Download certified release artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-1.7.21.2-files
-          path: /tmp/prontoo-release
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: 29840074630
 
-      - name: Apply certified files
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: PHP syntax
         shell: bash
         run: |
           set -euo pipefail
-          cp /tmp/prontoo-release/ChangeLog.txt ChangeLog.txt
-          cp /tmp/prontoo-release/HOTFIX-1.7.21.2.md HOTFIX-1.7.21.2.md
-          cp /tmp/prontoo-release/app/Core/Integrity/PiIntegrity.php app/Core/Integrity/PiIntegrity.php
-          cp /tmp/prontoo-release/app/Database/operational-schema.contract.json app/Database/operational-schema.contract.json
-          cp /tmp/prontoo-release/app/architecture.manifest.json app/architecture.manifest.json
-          cp /tmp/prontoo-release/app/prontoo.php app/prontoo.php
-          cp /tmp/prontoo-release/app/update.manifest.json app/update.manifest.json
-          cp /tmp/prontoo-release/br/index.php br/index.php
-          cp /tmp/prontoo-release/version.json version.json
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './storage' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ChangeLog.txt HOTFIX-1.7.21.2.md \
-            app/Core/Integrity/PiIntegrity.php \
-            app/Database/operational-schema.contract.json \
-            app/architecture.manifest.json app/prontoo.php app/update.manifest.json \
-            br/index.php version.json
-          if git diff --cached --quiet; then
-            echo "Certified release files already match."
-          else
-            git commit -m "Restaura artefatos certificados da versão 1.7.21.2"
-            git push origin "HEAD:${{ github.head_ref }}"
-          fi
+      - name: JSON contracts
+        shell: bash
+        run: |
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
+
+      - name: Release manifest
+        shell: bash
+        run: |
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
+              if (file_exists((string) $file)) {
+                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
+              }
+            }
+          '
+
+      - name: Static schema contract with Guardian loaded
+        shell: bash
+        run: |
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
+
+      - name: Full zero-table installer with Guardian loaded on MySQL 8
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
+
+      - name: Layered architecture
+        shell: bash
+        run: |
+          set -o pipefail
+          php tools/architecture-check.php | tee architecture-report.json
+
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: |
+            architecture-report.json
+            schema-report.json
+          if-no-files-found: error
+          retention-days: 7
