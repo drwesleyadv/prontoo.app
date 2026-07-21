@@ -1,74 +1,177 @@
-name: Apply Certified Maturity 1.7.21.5
+name: Architecture Contract
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
-  contents: write
-  actions: read
+  contents: read
 
 jobs:
-  apply:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v4
-        with:
-          ref: agent/maturity-audit-1.7.21.5
-          fetch-depth: 0
-      - name: Restore certified product files
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
         env:
-          GH_TOKEN: ${{ github.token }}
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: PHP syntax
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL -L \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/drwesleyadv/prontoo.app/actions/artifacts/8507918108/zip" \
-            -o /tmp/certified.zip
-          rm -rf /tmp/certified && mkdir -p /tmp/certified
-          unzip -q /tmp/certified.zip -d /tmp/certified
-          for path in \
-            ChangeLog.txt \
-            MATURITY-AUDIT-1.7.21.5.md \
-            app/Database/operational-schema.contract.json \
-            app/Domain/Audit/AuditActivity.php \
-            app/Support/ModuleLoader.php \
-            app/Support/ServerJsonCache.php \
-            app/architecture.manifest.json \
-            app/prontoo.php \
-            app/update.manifest.json \
-            br/index.php \
-            install.php \
-            version.json; do
-            mkdir -p "$(dirname "$path")"
-            cp "/tmp/certified/$path" "$path"
-          done
-          python3 - <<'PY'
-          import hashlib,json
-          from pathlib import Path
-          v=Path('version.json')
-          data=json.loads(v.read_text())
-          data['previous_version']='1.7.21.4'
-          v.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
-          p=Path('app/update.manifest.json')
-          m=json.loads(p.read_text())
-          m['previous_version']='1.7.21.4'
-          m['files']['version.json']=hashlib.sha256(v.read_bytes()).hexdigest()
-          m['file_count']=len(m['files'])
-          m['total_uncompressed_bytes']=sum(Path(f).stat().st_size for f in m['files'])
-          p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
-          PY
-          rm -f AUDIT_PLACEHOLDER.tmp tools/apply-maturity-1.7.21.5.py
-      - name: Commit product files
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './storage' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+
+      - name: JSON contracts
         shell: bash
         run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ChangeLog.txt MATURITY-AUDIT-1.7.21.5.md app/Database/operational-schema.contract.json app/Domain/Audit/AuditActivity.php app/Support/ModuleLoader.php app/Support/ServerJsonCache.php app/architecture.manifest.json app/prontoo.php app/update.manifest.json br/index.php install.php version.json
-          git add -u AUDIT_PLACEHOLDER.tmp tools/apply-maturity-1.7.21.5.py || true
-          git commit -m "amadurece runtime e cache JSON na 1.7.21.5"
-          git push origin HEAD:agent/maturity-audit-1.7.21.5
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
+
+      - name: Runtime contract and audit SQL regression
+        shell: bash
+        run: |
+          php -r '
+            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
+            if (str_contains($runtime, "CleanInstallReset")) {
+              throw new RuntimeException("RuntimeContract ainda referencia CleanInstallReset");
+            }
+            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
+            if (str_contains($audit, "et.event_key")) {
+              throw new RuntimeException("Alias SQL inexistente et.event_key");
+            }
+            if (!str_contains($audit, "a.event_key NOT IN")) {
+              throw new RuntimeException("Filtro canônico a.event_key ausente");
+            }
+          '
+
+      - name: Maturity and runtime performance regressions
+        shell: bash
+        run: |
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $runtime = (string) file_get_contents("app/prontoo.php");
+          if (str_contains($runtime, "prontoo_release_cleanup_1_7_14_8")) {
+              throw new RuntimeException("Limpeza histórica voltou ao hot path");
+          }
+          $loader = (string) file_get_contents("app/Support/ModuleLoader.php");
+          $core = strstr($loader, "function prontoo_full_runtime_modules", true);
+          if (str_contains((string) $core, "Install/Installer.php")) {
+              throw new RuntimeException("Instalador voltou ao bootstrap comum");
+          }
+          $install = (string) file_get_contents("install.php");
+          if (!str_contains($install, 'prontoo_require_module("Install/Installer.php")')) {
+              throw new RuntimeException("Instalador local não é carregado explicitamente");
+          }
+          $cache = (string) file_get_contents("app/Support/ServerJsonCache.php");
+          if (!str_contains($cache, "static $resolved")) {
+              throw new RuntimeException("Memoização dos diretórios de cache ausente");
+          }
+          $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
+          foreach (["audit_user_name", "audit_clinic_name", "audit_team"] as $key) {
+              if (!str_contains($audit, $key)) {
+                  throw new RuntimeException("Cache de lookup ausente: " . $key);
+              }
+          }
+          if (hash_file("sha256", "app/Database/schema.sql") !== "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33") {
+              throw new RuntimeException("schema.sql alterado");
+          }
+          PHP
+
+      - name: Release manifest
+        shell: bash
+        run: |
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
+              if (file_exists((string) $file)) {
+                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
+              }
+            }
+          '
+
+      - name: Installer access and schema freeze
+        shell: bash
+        run: |
+          php tools/install-security-check.php | tee install-security-report.json
+
+      - name: Static schema contract with Guardian loaded
+        shell: bash
+        run: |
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
+
+      - name: Full zero-table installer with Guardian loaded on MySQL 8
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
+
+      - name: Layered architecture
+        shell: bash
+        run: |
+          set -o pipefail
+          php tools/architecture-check.php | tee architecture-report.json
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: |
+            architecture-report.json
+            schema-report.json
+            install-security-report.json
+          if-no-files-found: error
+          retention-days: 7
