@@ -1,0 +1,64 @@
+name: Diagnose Final Hardening Recovery
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.number == 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Extract recovery script
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '
+            /- name: Recover and run certified generator/ { found=1; next }
+            found && /run: \|/ { capture=1; next }
+            capture && /^      - name:/ { exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/architecture.yml > /tmp/recover-hardening.sh
+          chmod +x /tmp/recover-hardening.sh
+
+      - name: Execute recovery diagnostic
+        id: recovery
+        continue-on-error: true
+        shell: bash
+        run: |
+          /tmp/recover-hardening.sh > /tmp/recover-hardening.log 2>&1
+
+      - name: Capture workspace
+        if: always()
+        shell: bash
+        run: |
+          git diff --binary > /tmp/recover-hardening.diff || true
+          git status --short > /tmp/recover-hardening.status || true
+
+      - name: Upload recovery diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardening-final-recovery-diagnostic
+          path: |
+            /tmp/recover-hardening.sh
+            /tmp/recover-hardening.log
+            /tmp/recover-hardening.diff
+            /tmp/recover-hardening.status
+            /tmp/apply-hardening.py
+            /tmp/finalize-hardening.py
+          if-no-files-found: warn
+          retention-days: 2
+
+      - name: Fail when recovery failed
+        if: steps.recovery.outcome != 'success'
+        run: exit 1
