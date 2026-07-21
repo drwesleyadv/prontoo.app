@@ -6,9 +6,30 @@ use Prontoo\Core\Support\Check;
 use Prontoo\Core\Tenant\TenantRegistry;
 final class SqlScopeGuard
 {
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
+    }
     public static function guard(string $sql, array $params = []): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::guard
+         * Responsabilidade: Avalia ou impõe a regra “guard”, falhando de forma controlada quando a pré-condição não é satisfeita.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `sql_write_scope_guard`.
+         * Dependências chamadas: `max`, `self::globalOrSystemContext`, `TenantRegistry::sessionClinicId`, `Check::writeOperation`, `Check::normalizedSql`, `function_exists`, `self::clinicReadOnly`, `ReadonlyPolicy::sqlAllowed`, `array_keys`, `TenantRegistry::scopedTables`, `Check::tableHit`, `self::recordViolation` e mais 1.
+         * Classes ou serviços instanciados: `.ProntooHttpError`.
+         * Estado externo lido: `$GLOBALS`, `$_POST`.
+         * Efeitos colaterais: consome dados da requisição HTTP; pode interromper o fluxo por exceção.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"])) {
             return;
         }
@@ -78,6 +99,16 @@ final class SqlScopeGuard
         string $scopeColumn,
         int $clinicId,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::assertScopedWrite
+         * Responsabilidade: Implementa a responsabilidade “assert scoped write” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::guard`.
+         * Dependências chamadas: `strtolower`, `self::topLevelKeywordPosition`, `self::recordViolation`, `strlen`, `substr`, `preg_match`, `preg_quote`, `self::updateChangesScope`, `self::whereClinicProof`, `self::parseInsert`, `self::insertColumnListContains`, `self::insertClinicProof`.
+         * Classes ou serviços instanciados: `.ProntooHttpError`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $scopeColumn = strtolower($scopeColumn);
         if ($operation === "UPDATE" || $operation === "DELETE") {
             $wherePosition = self::topLevelKeywordPosition($rawSql, "where");
@@ -216,6 +247,15 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::whereClinicProof
+         * Responsabilidade: Implementa a responsabilidade “where clinic proof” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::logicSelfTest`, `closure@app/Core/Database/SqlScopeGuard.php:773`.
+         * Dependências chamadas: `self::booleanScopeProof`, `substr`, `array_values`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         return self::booleanScopeProof(
             $sql,
             substr($sql, $whereStart),
@@ -233,6 +273,15 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::booleanScopeProof
+         * Responsabilidade: Implementa a responsabilidade “boolean scope proof” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::whereClinicProof`.
+         * Dependências chamadas: `self::trimExpression`, `self::outerParenthesesWrap`, `substr`, `self::splitBooleanTopLevel`, `count`, `self::booleanScopeProof`, `array_filter`, `self::atomicScopeProof`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         [$expression, $baseOffset] = self::trimExpression(
             $expression,
             $baseOffset,
@@ -258,10 +307,10 @@ final class SqlScopeGuard
                     $params,
                 );
             }
-            if (count(array_filter($statuses, static fn($v) => $v === "active")) === count($statuses)) {
+            if (count(array_filter($statuses, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v === "active")) === count($statuses)) {
                 return "active";
             }
-            if (count(array_filter($statuses, static fn($v) => $v === "mismatch")) === count($statuses)) {
+            if (count(array_filter($statuses, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v === "mismatch")) === count($statuses)) {
                 return "mismatch";
             }
             return "unproved";
@@ -302,6 +351,15 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::atomicScopeProof
+         * Responsabilidade: Implementa a responsabilidade “atomic scope proof” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::booleanScopeProof`.
+         * Dependências chamadas: `preg_quote`, `preg_match_all`, `self::scopeValueProof`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $column = preg_quote($scopeColumn, "/");
         $columnExpr = "(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?" . $column . "`?";
         $patterns = [
@@ -338,6 +396,15 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::scopeValueProof
+         * Responsabilidade: Implementa a responsabilidade “scope value proof” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::atomicScopeProof`, `Core.Database.SqlScopeGuard::insertClinicProof`.
+         * Dependências chamadas: `self::placeholderIndexBefore`, `array_key_exists`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if ($token === "?") {
             $index = self::placeholderIndexBefore($sql, $tokenOffset);
             if (!array_key_exists($index, $params)) {
@@ -356,6 +423,15 @@ final class SqlScopeGuard
         string $sql,
         string $scopeColumn,
     ): ?array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::parseInsert
+         * Responsabilidade: Implementa a responsabilidade “parse insert” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::logicSelfTest`.
+         * Dependências chamadas: `preg_match`, `self::splitSqlList`, `strtolower`, `trim`, `str_replace`, `strlen`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (
             !preg_match(
                 "/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?[a-z0-9_]+`?\s*\(([^)]*)\)\s*values\b/is",
@@ -386,6 +462,15 @@ final class SqlScopeGuard
         string $sql,
         string $scopeColumn,
     ): bool {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::insertColumnListContains
+         * Responsabilidade: Implementa a responsabilidade “insert column list contains” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::logicSelfTest`.
+         * Dependências chamadas: `preg_match`, `self::splitSqlList`, `strtolower`, `trim`, `str_replace`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (
             !preg_match(
                 "/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?[a-z0-9_]+`?\s*\(([^)]*)\)/is",
@@ -409,6 +494,15 @@ final class SqlScopeGuard
         array $params,
         array $insert,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::insertClinicProof
+         * Responsabilidade: Implementa a responsabilidade “insert clinic proof” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::logicSelfTest`.
+         * Dependências chamadas: `is_int`, `self::insertValueGroups`, `array_values`, `self::splitSqlListWithOffsets`, `array_key_exists`, `trim`, `strlen`, `ltrim`, `self::scopeValueProof`, `substr`, `preg_match`, `self::splitSqlList` e mais 3.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $clinicIndex = $insert["clinic_index"] ?? null;
         if (!is_int($clinicIndex)) {
             return "unproved";
@@ -469,6 +563,15 @@ final class SqlScopeGuard
     }
     private static function splitSqlList(string $list): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::splitSqlList
+         * Responsabilidade: Implementa a responsabilidade “split sql list” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::parseInsert`, `Core.Database.SqlScopeGuard::insertColumnListContains`, `Core.Database.SqlScopeGuard::insertClinicProof`, `Core.Database.SqlScopeGuard::updateChangesScope`.
+         * Dependências chamadas: `strlen`, `max`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $items = [];
         $current = "";
         $depth = 0;
@@ -512,6 +615,15 @@ final class SqlScopeGuard
     }
     private static function splitSqlListWithOffsets(string $list): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::splitSqlListWithOffsets
+         * Responsabilidade: Implementa a responsabilidade “split sql list with offsets” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::insertClinicProof`.
+         * Dependências chamadas: `strlen`, `max`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $items = [];
         $current = "";
         $start = 0;
@@ -551,6 +663,15 @@ final class SqlScopeGuard
     }
     private static function insertValueGroups(string $sql, int $offset): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::insertValueGroups
+         * Responsabilidade: Implementa a responsabilidade “insert value groups” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::insertClinicProof`.
+         * Dependências chamadas: `strlen`, `max`, `preg_match`, `self::matchingParenthesis`, `substr`, `ctype_space`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $groups = [];
         $length = strlen($sql);
         $cursor = max(0, $offset);
@@ -589,6 +710,15 @@ final class SqlScopeGuard
     }
     private static function matchingParenthesis(string $sql, int $start): ?int
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::matchingParenthesis
+         * Responsabilidade: Implementa a responsabilidade “matching parenthesis” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::insertValueGroups`, `Core.Database.SqlScopeGuard::outerParenthesesWrap`.
+         * Dependências chamadas: `strlen`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $depth = 0;
         $quote = null;
         $length = strlen($sql);
@@ -619,6 +749,15 @@ final class SqlScopeGuard
         string $sql,
         string $keyword,
     ): ?int {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::topLevelKeywordPosition
+         * Responsabilidade: Implementa a responsabilidade “top level keyword position” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::updateChangesScope`, `Core.Database.SqlScopeGuard::logicSelfTest`, `closure@app/Core/Database/SqlScopeGuard.php:773`.
+         * Dependências chamadas: `strlen`, `max`, `strncasecmp`, `substr`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $depth = 0;
         $quote = null;
         $length = strlen($sql);
@@ -659,6 +798,15 @@ final class SqlScopeGuard
         string $scopeColumn,
         int $wherePosition,
     ): bool {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::updateChangesScope
+         * Responsabilidade: Implementa a responsabilidade “update changes scope” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Database.SqlScopeGuard::logicSelfTest`.
+         * Dependências chamadas: `self::topLevelKeywordPosition`, `substr`, `strlen`, `self::splitSqlList`, `preg_match`, `preg_quote`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $setPosition = self::topLevelKeywordPosition($sql, "set");
         if ($setPosition === null || $setPosition >= $wherePosition) {
             return true;
@@ -684,11 +832,29 @@ final class SqlScopeGuard
     }
     private static function trimExpression(string $expression, int $offset): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::trimExpression
+         * Responsabilidade: Implementa a responsabilidade “trim expression” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::booleanScopeProof`.
+         * Dependências chamadas: `strlen`, `ltrim`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $leading = strlen($expression) - strlen(ltrim($expression));
         return [trim($expression), $offset + $leading];
     }
     private static function outerParenthesesWrap(string $expression): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::outerParenthesesWrap
+         * Responsabilidade: Implementa a responsabilidade “outer parentheses wrap” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::booleanScopeProof`.
+         * Dependências chamadas: `trim`, `strlen`, `self::matchingParenthesis`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $expression = trim($expression);
         if (strlen($expression) < 2 || $expression[0] !== "(") {
             return false;
@@ -699,6 +865,15 @@ final class SqlScopeGuard
         string $expression,
         string $operator,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::splitBooleanTopLevel
+         * Responsabilidade: Implementa a responsabilidade “split boolean top level” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::booleanScopeProof`.
+         * Dependências chamadas: `strlen`, `max`, `strncasecmp`, `substr`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $parts = [];
         $start = 0;
         $depth = 0;
@@ -745,6 +920,15 @@ final class SqlScopeGuard
     }
     private static function placeholderIndexBefore(string $sql, int $offset): int
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::placeholderIndexBefore
+         * Responsabilidade: Implementa a responsabilidade “placeholder index before” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::scopeValueProof`.
+         * Dependências chamadas: `min`, `strlen`, `max`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $count = 0;
         $quote = null;
         $limit = min(strlen($sql), max(0, $offset));
@@ -768,9 +952,28 @@ final class SqlScopeGuard
     }
     public static function logicSelfTest(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::logicSelfTest
+         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `platform_backend_selftest`, `page_admin_security`.
+         * Dependências chamadas: `self::topLevelKeywordPosition`, `self::whereClinicProof`, `self::updateChangesScope`, `self::parseInsert`, `is_array`, `self::insertClinicProof`, `self::insertColumnListContains`, `array_keys`, `array_filter`, `count`.
+         * Efeitos colaterais: consulta dados persistidos; pode gravar ou remover dados.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $clinicId = 17;
         $cases = [];
         $where = static function (string $sql, array $params) use ($clinicId): string {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Core/Database/SqlScopeGuard.php:773
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+             * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `self::topLevelKeywordPosition`, `self::whereClinicProof`.
+             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+             * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+             */
             $position = self::topLevelKeywordPosition($sql, "where");
             return $position === null
                 ? "unproved"
@@ -854,7 +1057,7 @@ final class SqlScopeGuard
                 "INSERT INTO pi_tasks (clinic_id,title) SELECT id,name FROM pi_clinics",
                 "clinic_id",
             );
-        $failed = array_keys(array_filter($cases, static fn($ok) => !$ok));
+        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($ok) => !$ok));
         return [
             "ok" => $failed === [],
             "passed" => count($cases) - count($failed),
@@ -864,6 +1067,16 @@ final class SqlScopeGuard
     }
     private static function globalOrSystemContext(): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::globalOrSystemContext
+         * Responsabilidade: Implementa a responsabilidade “global or system context” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::guard`.
+         * Dependências chamadas: `session_status`, `function_exists`, `str_starts_with`, `self::sessionUserIsGlobalAdmin`.
+         * Estado externo lido: `$GLOBALS`, `$_SESSION`.
+         * Efeitos colaterais: lê ou altera a sessão.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_SYSTEM"])) {
             return true;
         }
@@ -885,6 +1098,16 @@ final class SqlScopeGuard
     }
     private static function sessionUserIsGlobalAdmin(): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::sessionUserIsGlobalAdmin
+         * Responsabilidade: Implementa a responsabilidade “session user is global admin” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::globalOrSystemContext`.
+         * Dependências chamadas: `function_exists`, `error_log`, `->getMessage`.
+         * Estado externo lido: `$_SESSION`.
+         * Efeitos colaterais: lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $uid = (int) ($_SESSION["uid"] ?? 0);
         if ($uid <= 0) {
             return false;
@@ -905,6 +1128,15 @@ final class SqlScopeGuard
     }
     private static function clinicReadOnly(int $clinicId): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::clinicReadOnly
+         * Responsabilidade: Implementa a responsabilidade “clinic read only” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::guard`.
+         * Dependências chamadas: `function_exists`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         return function_exists("clinic_read_only_db")
             ? \clinic_read_only_db($clinicId)
             : false;
@@ -914,6 +1146,15 @@ final class SqlScopeGuard
         string $sql,
         string $detail,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Database.SqlScopeGuard::recordViolation
+         * Responsabilidade: Implementa a responsabilidade “record violation” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Database/SqlScopeGuard.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Database.SqlScopeGuard::guard`, `Core.Database.SqlScopeGuard::assertScopedWrite`.
+         * Dependências chamadas: `function_exists`, `error_log`, `Check::sqlFingerprint`, `Check::clampText`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);
             return;

@@ -2,6 +2,15 @@
 declare(strict_types=1);
 function financial_cashier_requires_attention_light(array $c): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_requires_attention_light
+     * Responsabilidade: Implementa a responsabilidade “financial cashier requires attention light” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/FinancialGuard.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `clinic_read_only_db`, `val`, `app_today_in_timezone`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (($c["scope"] ?? "") !== "clinic") {
         return false;
     }

@@ -2,6 +2,15 @@
 declare(strict_types=1);
 function mask(mixed $v): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — mask
+     * Responsabilidade: Implementa a responsabilidade “mask” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_admin_deleted`, `page_admin_people`, `person_autosuggest_datalist`, `mask_document_value`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`, `counterparty_autosuggest_datalist`, `counterparty_lookup_field` e mais 14.
+     * Dependências chamadas: `is_array`, `strtolower`, `preg_match`, `mask_document_value`, `mask`, `substr`, `filter_var`, `preg_replace`, `mb_strlen`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (is_array($v)) {
         $o = [];
         foreach ($v as $k => $x) {
@@ -35,6 +44,15 @@ function mask(mixed $v): mixed
 }
 function mask_document_value(mixed $v): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — mask_document_value
+     * Responsabilidade: Implementa a responsabilidade “mask document value” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `mask`.
+     * Dependências chamadas: `only_digits`, `strlen`, `substr`, `mask`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $d = only_digits((string) $v);
     if (strlen($d) === 11) {
         return substr($d, 0, 3) . ".***.***-" . substr($d, -2);
@@ -46,10 +64,19 @@ function mask_document_value(mixed $v): string
 }
 function pt_list(array $items): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — pt_list
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “pt list” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_change_body`, `audit_registered_body`, `activity_direct_body`.
+     * Dependências chamadas: `array_values`, `array_filter`, `array_map`, `trim`, `count`, `implode`, `array_slice`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $items = array_values(
         array_filter(
-            array_map(static fn($v) => trim((string) $v), $items),
-            static fn($v) => $v !== "",
+            array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => trim((string) $v), $items),
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v !== "",
         ),
     );
     $n = count($items);
@@ -66,11 +93,20 @@ function pt_list(array $items): string
 }
 function audit_change_body(array $fields): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_change_body
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit change body”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_patient`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `trim`, `count`, `pt_list`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $fields = array_values(
         array_unique(
             array_filter(
-                array_map(static fn($v) => trim((string) $v), $fields),
-                static fn($v) => $v !== "",
+                array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => trim((string) $v), $fields),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v !== "",
             ),
         ),
     );
@@ -84,6 +120,15 @@ function audit_change_body(array $fields): string
 }
 function audit_value_present(mixed $v): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_value_present
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit value present”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_field_list`, `activity_changed_fields`.
+     * Dependências chamadas: `is_array`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (is_array($v)) {
         return !empty($v);
     }
@@ -91,6 +136,15 @@ function audit_value_present(mixed $v): bool
 }
 function audit_field_list(array $ctx, array $labels, array $forced = []): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_field_list
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “audit field list” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`, `array_key_exists`, `audit_value_present`, `array_values`, `array_unique`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $out = [];
     foreach ($forced as $label) {
         if (trim((string) $label) !== "") {
@@ -111,11 +165,20 @@ function audit_registered_body(
     array $fields,
     string $empty = "Nenhum dado adicional foi informado.",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_registered_body
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit registered body”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `trim`, `count`, `pt_list`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $fields = array_values(
         array_unique(
             array_filter(
-                array_map(static fn($v) => trim((string) $v), $fields),
-                static fn($v) => $v !== "",
+                array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => trim((string) $v), $fields),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v !== "",
             ),
         ),
     );
@@ -129,6 +192,15 @@ function audit_registered_body(
 }
 function audit_status_body(array $ctx, string $label = "status"): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_status_body
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit status body”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $status = (string) ($ctx["status"] ?? ($ctx["novo_status"] ?? ""));
     return $status !== ""
         ? "O " . $label . " foi alterado para " . $status . "."
@@ -136,6 +208,15 @@ function audit_status_body(array $ctx, string $label = "status"): string
 }
 function audit_patient_name(array $ctx, mixed $entityId = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_patient_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit patient name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_patient_record_target`, `audit_appointment_target`, `activity_patient_name`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $name = trim(
         (string) ($ctx["patient_name"] ??
             ($ctx["paciente"] ?? ($ctx["nome_paciente"] ?? ""))),
@@ -153,6 +234,15 @@ function audit_person_target(
     array $ctx,
     string $nameKey = "target_name",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_person_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit person target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_person_from_ctx`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $name = trim(
         (string) ($ctx[$nameKey] ?? ($ctx["nome"] ?? ($ctx["name"] ?? ""))),
     );
@@ -160,25 +250,70 @@ function audit_person_target(
 }
 function audit_patient_record_target(array $ctx, mixed $entityId = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_patient_record_target
+     * Responsabilidade: Valida e executa a mutação “audit patient record target”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_patient_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "o prontuário de " . audit_patient_name($ctx, $entityId);
 }
 function audit_clinic_target(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_clinic_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit clinic target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `audit_subscription_target`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $name = trim((string) ($ctx["clinic_name"] ?? ($ctx["consultorio"] ?? "")));
     return $name !== "" ? "Consultório " . $name : "Consultório";
 }
 function audit_task_target(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_task_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit task target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $title = trim((string) ($ctx["task_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Tarefa “" . $title . "”" : "Tarefa";
 }
 function audit_notice_target(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_notice_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit notice target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $title = trim((string) ($ctx["notice_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Aviso “" . $title . "”" : "Aviso";
 }
 function audit_appointment_target(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_appointment_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit appointment target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_patient_name`, `trim`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $patient = audit_patient_name($ctx, $ctx["patient_link_id"] ?? null);
     $start = trim((string) ($ctx["start_at"] ?? ""));
     $when = $start !== "" ? " em " . dt_br($start) : "";
@@ -186,6 +321,15 @@ function audit_appointment_target(array $ctx): string
 }
 function audit_ctx_pick(array $ctx, array $keys): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_ctx_pick
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit ctx pick”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_status_text`, `audit_due_text`, `audit_target_scope_label`, `audit_finance_base_label_from_ctx`, `audit_account_name`, `audit_counterparty_name`, `audit_financial_title`.
+     * Dependências chamadas: `array_key_exists`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($keys as $key) {
         if (array_key_exists((string) $key, $ctx)) {
             $v = trim((string) $ctx[(string) $key]);
@@ -200,6 +344,15 @@ function audit_money_text(
     array $ctx,
     array $keys = ["valor", "amount", "amount_cents", "target_cents"],
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_money_text
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit money text”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_key_exists`, `is_int`, `is_float`, `is_string`, `preg_match`, `money_br`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($keys as $key) {
         if (!array_key_exists((string) $key, $ctx)) {
             continue;
@@ -221,6 +374,15 @@ function audit_money_text(
 }
 function audit_status_text(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_status_text
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit status text”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`, `in_array`, `str_replace`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = audit_ctx_pick($ctx, ["status", "novo_status", "stage", "active"]);
     if ($s === "") {
         return "";
@@ -235,11 +397,29 @@ function audit_status_text(array $ctx): string
 }
 function audit_due_text(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_due_text
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit due text”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $v = audit_ctx_pick($ctx, ["due_at", "vencimento", "expected_at"]);
     return $v !== "" ? dt_br($v) : "";
 }
 function audit_target_scope_label(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_target_scope_label
+     * Responsabilidade: Monta a representação de interface associada a “audit target scope label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $dest = audit_ctx_pick($ctx, ["destino", "target_scope"]);
     if ($dest === "clinic") {
         return "toda a clínica";
@@ -263,11 +443,29 @@ function audit_target_scope_label(array $ctx): string
 }
 function audit_finance_base_label_from_ctx(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_finance_base_label_from_ctx
+     * Responsabilidade: Monta a representação de interface associada a “audit finance base label from ctx” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`, `financial_goal_base_label`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $base = audit_ctx_pick($ctx, ["base", "base_metric"]);
     return $base !== "" ? financial_goal_base_label($base) : "";
 }
 function audit_account_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_account_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit account name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return audit_ctx_pick($ctx, [
         "account_name",
         "conta",
@@ -278,6 +476,15 @@ function audit_account_name(array $ctx): string
 }
 function audit_counterparty_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_counterparty_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit counterparty name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_financial_label`, `activity_human_sentence`, `activity_context_details`.
+     * Dependências chamadas: `audit_ctx_pick`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return audit_ctx_pick($ctx, [
         "counterparty_name",
         "credor",
@@ -288,6 +495,15 @@ function audit_counterparty_name(array $ctx): string
 }
 function audit_financial_title(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_financial_title
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit financial title”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_ctx_pick`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return audit_ctx_pick($ctx, ["titulo", "title", "name", "descricao"]);
 }
 function audit_body_for_event(
@@ -296,10 +512,28 @@ function audit_body_for_event(
     mixed $entityId,
     array $ctx,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_body_for_event
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit body for event”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: `activity_direct_body`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_direct_body($event, $entity, $entityId, $ctx);
 }
 function audit_context_array(array $row): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_context_array
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit context array”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`.
+     * Dependências chamadas: `json_decode`, `is_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $raw = (string) ($row["context_json"] ?? "");
     if ($raw === "") {
         return [];
@@ -309,6 +543,15 @@ function audit_context_array(array $row): array
 }
 function audit_integrity_base(array $r): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_integrity_base
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit integrity base”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `verify_audit_row`.
+     * Dependências chamadas: `implode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return implode("|", [
         (string) ($r["clinic_id"] ?? ""),
         (string) ($r["user_id"] ?? ""),
@@ -321,6 +564,15 @@ function audit_integrity_base(array $r): string
 }
 function verify_audit_row(array $r): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — verify_audit_row
+     * Responsabilidade: Avalia ou impõe a regra “verify audit row”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `platform_backend_selftest`, `closure@app/Admin/AdminPages.php:403`, `page_admin_health`, `page_admin_integrity`.
+     * Dependências chamadas: `trim`, `class_exists`, `.Core.Integrity.AuditChain::verifyRow`, `secret_key`, `hash_equals`, `hash_hmac`, `audit_integrity_base`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hash = trim((string) ($r["integrity_hash"] ?? ""));
     if ($hash === "") {
         return true;
@@ -342,10 +594,28 @@ function verify_audit_row(array $r): bool
 }
 function audit_select_sql(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_select_sql
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “audit select sql” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_rows_light`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.policy_version,a.created_at FROM pi_audit a";
 }
 function int_ids(array $rows, string $key): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — int_ids
+     * Responsabilidade: Implementa a responsabilidade “int ids” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_admin_deleted`, `page_admin_clinics`, `page_admin_alerts`, `appointment_patient_names`, `doctors`, `page_appointments`, `page_leads`, `patient_options` e mais 10.
+     * Dependências chamadas: `array_values`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $ids = [];
     foreach ($rows as $r) {
         $v = (int) ($r[$key] ?? 0);
@@ -357,6 +627,15 @@ function int_ids(array $rows, string $key): array
 }
 function fetch_map(string $table, array $ids, string $cols = "id"): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — fetch_map
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “fetch map” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_admin_deleted`, `page_admin_alerts`, `appointment_patient_names`, `doctors`, `page_appointments`, `page_leads`, `patient_options`, `patient_reception_history_items` e mais 7.
+     * Dependências chamadas: `allowed_db_table`, `safe_db_columns`, `array_values`, `array_unique`, `array_map`, `array_slice`, `session_clinic_scope_id`, `implode`, `array_fill`, `count`, `tenant_table_is_scoped`, `q` e mais 8.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $table = allowed_db_table($table);
     $cols = safe_db_columns($cols);
     $ids = array_values(array_unique(array_map("intval", $ids)));
@@ -366,6 +645,15 @@ function fetch_map(string $table, array $ids, string $cols = "id"): array
     $ids = array_slice($ids, 0, 300);
     $scopeCid = session_clinic_scope_id();
     $loader = function () use ($table, $ids, $cols, $scopeCid): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:368
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `implode`, `array_fill`, `count`, `tenant_table_is_scoped`, `q`, `array_merge`, `->fetchAll`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $ph = implode(",", array_fill(0, count($ids), "?"));
         if ($scopeCid > 0 && tenant_table_is_scoped($table)) {
             $rows = q(
@@ -412,6 +700,15 @@ function scoped_patient_map(
     array $ids,
     string $cols = "id,person_id",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — scoped_patient_map
+     * Responsabilidade: Transforma e normaliza “scoped patient map” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_patient_names`, `page_appointments`.
+     * Dependências chamadas: `safe_db_columns`, `array_values`, `array_unique`, `array_map`, `array_slice`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cols = safe_db_columns($cols);
     $ids = array_values(array_unique(array_map("intval", $ids)));
     if ($cid <= 0 || !$ids) {
@@ -433,6 +730,15 @@ function scoped_patient_map(
 }
 function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scoped_user_map
+     * Responsabilidade: Transforma e normaliza “scoped user map” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_appointments`, `notice_recipient_people`, `page_notices`.
+     * Dependências chamadas: `safe_db_columns`, `array_values`, `array_unique`, `array_map`, `array_slice`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cols = safe_db_columns($cols);
     $ids = array_values(array_unique(array_map("intval", $ids)));
     if ($cid <= 0 || !$ids) {
@@ -454,6 +760,15 @@ function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
 }
 function audit_where_sql(string $where): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_where_sql
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit where sql”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_rows_light`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return trim($where) === "1=1" ? "1=1" : $where;
 }
 function audit_rows_light(
@@ -462,6 +777,15 @@ function audit_rows_light(
     int $limit = 80,
     int $offset = 0,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_rows_light
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit rows light”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `platform_backend_selftest`, `closure@app/Admin/AdminPages.php:403`, `page_admin_health`, `page_admin_integrity`, `page_admin_audit`, `recent_events`, `audit_preview_for_appointment`, `page_audit`.
+     * Dependências chamadas: `max`, `min`, `q`, `audit_select_sql`, `audit_where_sql`, `->fetchAll`, `db_schema_error_is_missing_table`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $limit = max(1, min(120, $limit));
     $offset = max(0, $offset);
     try {
@@ -481,6 +805,15 @@ function audit_rows_light(
 }
 function activity_axis_for_event(string $event): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_axis_for_event
+     * Responsabilidade: Implementa a responsabilidade “activity axis for event” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_action_verb`, `activity_direct_body`, `audit_items`.
+     * Dependências chamadas: `str_contains`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $map = [
         "janela_aberta" => ["Consultar", "read", "visibility"],
         "login_carregado" => ["Consultar", "read", "login"],
@@ -648,6 +981,15 @@ function activity_axis_for_event(string $event): array
 }
 function activity_module_label(?string $entity): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_module_label
+     * Responsabilidade: Monta a representação de interface associada a “activity module label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `ucfirst`, `entity_label`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "clinica" => "Consultório",
         "consultorio" => "Consultório",
@@ -681,6 +1023,15 @@ function activity_time_direct(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_time_direct
+     * Responsabilidade: Implementa a responsabilidade “activity time direct” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`.
+     * Dependências chamadas: `trim`, `function_exists`, `app_datetime_br`, `preg_match`, `date`, `strtotime`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $raw = trim((string) ($value ?? ""));
     if ($raw === "") {
         return "—";
@@ -711,6 +1062,15 @@ function activity_time_direct(
 }
 function activity_text_value(mixed $v): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_text_value
+     * Responsabilidade: Implementa a responsabilidade “activity text value” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_date_from_ctx`, `activity_status_from_ctx`, `activity_title_from_ctx`, `activity_person_from_ctx`, `activity_target_scope_human`, `activity_environment_label`, `activity_human_sentence`, `activity_direct_target` e mais 1.
+     * Dependências chamadas: `is_array`, `trim`, `implode`, `array_filter`, `array_map`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (is_array($v)) {
         return trim(implode(", ", array_filter(array_map("strval", $v))));
     }
@@ -718,11 +1078,29 @@ function activity_text_value(mixed $v): string
 }
 function activity_clean_name(string $value, string $fallback = ""): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_clean_name
+     * Responsabilidade: Implementa a responsabilidade “activity clean name” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_patient_name`, `activity_title_from_ctx`, `activity_person_from_ctx`, `activity_financial_label`, `activity_context_details`.
+     * Dependências chamadas: `trim`, `preg_replace`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = trim(preg_replace("/\s+/", " ", $value));
     return $value !== "" ? $value : $fallback;
 }
 function activity_money_from_ctx(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_money_from_ctx
+     * Responsabilidade: Implementa a responsabilidade “activity money from ctx” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_context_details`.
+     * Dependências chamadas: `array_key_exists`, `is_numeric`, `money_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach (
         ["valor", "amount_cents", "amount", "target_cents", "price_cents"]
         as $k
@@ -735,6 +1113,15 @@ function activity_money_from_ctx(array $ctx): string
 }
 function activity_date_from_ctx(array $ctx, array $keys): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_date_from_ctx
+     * Responsabilidade: Implementa a responsabilidade “activity date from ctx” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_context_details`.
+     * Dependências chamadas: `activity_text_value`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($keys as $k) {
         $v = activity_text_value($ctx[$k] ?? "");
         if ($v !== "") {
@@ -745,6 +1132,15 @@ function activity_date_from_ctx(array $ctx, array $keys): string
 }
 function activity_status_from_ctx(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_status_from_ctx
+     * Responsabilidade: Implementa a responsabilidade “activity status from ctx” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_context_details`.
+     * Dependências chamadas: `activity_text_value`, `mb_strtolower`, `str_replace`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = activity_text_value(
         $ctx["status"] ?? ($ctx["novo_status"] ?? ($ctx["active"] ?? "")),
     );
@@ -764,6 +1160,15 @@ function activity_status_from_ctx(array $ctx): string
 }
 function activity_display_label(string $label): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_display_label
+     * Responsabilidade: Monta a representação de interface associada a “activity display label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_changed_fields`.
+     * Dependências chamadas: `trim`, `mb_strtolower`, `mb_convert_case`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $label = trim($label);
     if ($label === "") {
         return "";
@@ -824,6 +1229,15 @@ function activity_changed_fields(
     ?string $entity,
     array $ctx,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_changed_fields
+     * Responsabilidade: Implementa a responsabilidade “activity changed fields” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_direct_body`.
+     * Dependências chamadas: `is_array`, `explode`, `activity_display_label`, `array_key_exists`, `audit_value_present`, `array_values`, `array_unique`, `array_filter`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $labels = [
         "nome" => "Nome",
         "name" => "Nome",
@@ -961,18 +1375,36 @@ function activity_changed_fields(
     }
     return array_values(
         array_unique(
-            array_filter($out, static fn($v) => trim((string) $v) !== ""),
+            array_filter($out, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => trim((string) $v) !== ""),
         ),
     );
 }
 function activity_patient_name(array $ctx, mixed $entityId = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_patient_name
+     * Responsabilidade: Implementa a responsabilidade “activity patient name” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `activity_direct_target`.
+     * Dependências chamadas: `activity_clean_name`, `audit_patient_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_clean_name(audit_patient_name($ctx, $entityId), "paciente");
 }
 function activity_title_from_ctx(
     array $ctx,
     string $fallback = "registro",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_title_from_ctx
+     * Responsabilidade: Implementa a responsabilidade “activity title from ctx” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_financial_label`, `activity_human_sentence`, `activity_direct_target`.
+     * Dependências chamadas: `activity_clean_name`, `activity_text_value`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_clean_name(
         activity_text_value(
             $ctx["titulo"] ??
@@ -985,6 +1417,15 @@ function activity_person_from_ctx(
     array $ctx,
     string $fallback = "colaborador",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_person_from_ctx
+     * Responsabilidade: Implementa a responsabilidade “activity person from ctx” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `activity_direct_target`.
+     * Dependências chamadas: `activity_text_value`, `trim`, `audit_person_target`, `activity_clean_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $n = activity_text_value(
         $ctx["target_name"] ?? ($ctx["nome"] ?? ($ctx["name"] ?? "")),
     );
@@ -995,6 +1436,15 @@ function activity_person_from_ctx(
 }
 function activity_target_scope_human(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_target_scope_human
+     * Responsabilidade: Implementa a responsabilidade “activity target scope human” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_context_details`.
+     * Dependências chamadas: `activity_text_value`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $scope = activity_text_value(
         $ctx["destino"] ?? ($ctx["target_scope"] ?? ""),
     );
@@ -1017,6 +1467,15 @@ function activity_target_scope_human(array $ctx): string
 }
 function activity_financial_label(array $ctx, string $fallback): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_financial_label
+     * Responsabilidade: Monta a representação de interface associada a “activity financial label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `activity_title_from_ctx`, `activity_clean_name`, `audit_counterparty_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $title = activity_title_from_ctx($ctx, "");
     if ($title !== "") {
         return $title;
@@ -1026,6 +1485,15 @@ function activity_financial_label(array $ctx, string $fallback): string
 }
 function activity_environment_label(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_environment_label
+     * Responsabilidade: Monta a representação de interface associada a “activity environment label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `activity_text_value`, `function_exists`, `role_label_for`, `trim`, `error_log`, `->getMessage`, `defined`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $label = activity_text_value(
         $ctx["environment_label"] ??
             ($ctx["role_label"] ?? ($ctx["ambiente"] ?? "")),
@@ -1069,6 +1537,15 @@ function activity_human_sentence(
     array $ctx,
     ?int $uid,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_human_sentence
+     * Responsabilidade: Implementa a responsabilidade “activity human sentence” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_direct_title`.
+     * Dependências chamadas: `audit_actor_name`, `activity_patient_name`, `activity_title_from_ctx`, `trim`, `str_replace`, `audit_clinic_target`, `activity_text_value`, `activity_environment_label`, `audit_lead_name`, `mb_strtolower`, `audit_document_article`, `audit_document_type_text` e mais 8.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $who = audit_actor_name($ctx, $uid);
     $patient = activity_patient_name($ctx, $entityId);
     $title = activity_title_from_ctx($ctx, "");
@@ -1308,6 +1785,15 @@ function activity_human_sentence(
 }
 function activity_action_verb(string $event): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_action_verb
+     * Responsabilidade: Implementa a responsabilidade “activity action verb” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `activity_axis_for_event`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     [$axis] = activity_axis_for_event($event);
     return [
         "Criar" => "cadastrou",
@@ -1322,6 +1808,15 @@ function activity_direct_target(
     mixed $entityId,
     array $ctx,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_direct_target
+     * Responsabilidade: Implementa a responsabilidade “activity direct target” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `activity_patient_name`, `activity_title_from_ctx`, `trim`, `activity_text_value`, `audit_document_type_text`, `audit_task_name`, `activity_person_from_ctx`, `entity_label`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $patient = activity_patient_name($ctx, $entityId);
     $title = activity_title_from_ctx($ctx, "");
     if ($event === "janela_aberta") {
@@ -1377,6 +1872,15 @@ function activity_direct_title(
     array $ctx,
     ?int $uid,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_direct_title
+     * Responsabilidade: Implementa a responsabilidade “activity direct title” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit_friendly`.
+     * Dependências chamadas: `activity_human_sentence`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_human_sentence($event, $entity, $entityId, $ctx, $uid);
 }
 function activity_context_details(
@@ -1384,6 +1888,15 @@ function activity_context_details(
     ?string $entity,
     array $ctx,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_context_details
+     * Responsabilidade: Implementa a responsabilidade “activity context details” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_direct_body`.
+     * Dependências chamadas: `activity_money_from_ctx`, `in_array`, `activity_date_from_ctx`, `activity_text_value`, `activity_target_scope_human`, `ucfirst`, `str_contains`, `activity_clean_name`, `audit_counterparty_name`, `activity_status_from_ctx`, `array_values`, `array_unique` e mais 1.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $details = [];
     $money = activity_money_from_ctx($ctx);
     if ($money !== "") {
@@ -1490,6 +2003,15 @@ function activity_direct_body(
     mixed $entityId,
     array $ctx,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_direct_body
+     * Responsabilidade: Implementa a responsabilidade “activity direct body” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_body_for_event`, `activity_fallback_body`, `audit_items`.
+     * Dependências chamadas: `activity_axis_for_event`, `in_array`, `activity_changed_fields`, `activity_context_details`, `count`, `pt_list`, `implode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     [$axis] = activity_axis_for_event($event);
     if ($axis === "Consultar") {
         return "Nenhuma informação foi alterada.";
@@ -1533,14 +2055,41 @@ function activity_meta_text(
     ?string $entity,
     string $currentMeta = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_meta_text
+     * Responsabilidade: Implementa a responsabilidade “activity meta text” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return trim($currentMeta);
 }
 function activity_fallback_body(string $event, ?string $entity): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — activity_fallback_body
+     * Responsabilidade: Implementa a responsabilidade “activity fallback body” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `activity_direct_body`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_direct_body($event, $entity, null, []);
 }
 function audit_items(array $rows, bool $global = false): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_items
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit items”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_admin_audit`, `recent_events`, `audit_preview_for_appointment`, `page_audit`.
+     * Dependências chamadas: `audit_context_array`, `audit_enrich_context`, `audit_user_name_lookup`, `activity_axis_for_event`, `activity_direct_title`, `trim`, `event_label`, `activity_direct_body`, `audit_clinic_name_lookup`, `event_icon`, `activity_time_direct`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $items = [];
     foreach ($rows as $r) {
         $event = (string) ($r["event_key"] ?? ($r["event"] ?? ""));
@@ -1589,6 +2138,16 @@ function count_for_clinics(
     array $clinicIds,
     string $where = "1=1",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — count_for_clinics
+     * Responsabilidade: Implementa a responsabilidade “count for clinics” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `allowed_db_table`, `preg_match`, `RuntimeException`, `array_values`, `array_unique`, `array_filter`, `array_map`, `sort`, `array_slice`, `array_fill_keys`, `implode`, `array_fill` e mais 9.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $table = allowed_db_table($table);
     if (!preg_match('/^[A-Za-z0-9_ =?<>()\.\-\']+$/', $where)) {
         throw new RuntimeException("Filtro inválido.");
@@ -1602,6 +2161,15 @@ function count_for_clinics(
     sort($clinicIds, SORT_NUMERIC);
     $clinicIds = array_slice($clinicIds, 0, 300);
     $loader = function () use ($table, $clinicIds, $where): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:1604
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `array_fill_keys`, `implode`, `array_fill`, `count`, `q`, `->fetchAll`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $out = array_fill_keys($clinicIds, 0);
         $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
         try {
@@ -1637,6 +2205,15 @@ function count_for_clinics(
 }
 function clinic_recent_metrics(array $clinicIds, int $days = 30): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_recent_metrics
+     * Responsabilidade: Implementa a responsabilidade “clinic recent metrics” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `sort`, `max`, `min`, `date`, `strtotime`, `implode`, `array_fill`, `count` e mais 9.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $clinicIds = array_values(
         array_unique(array_filter(array_map("intval", $clinicIds))),
     );
@@ -1647,6 +2224,15 @@ function clinic_recent_metrics(array $clinicIds, int $days = 30): array
     $days = max(1, min(366, $days));
     $from = date("Y-m-d", strtotime("-" . $days . " days"));
     $loader = function () use ($clinicIds, $from): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:1649
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
         try {
             $rows = q(
@@ -1682,6 +2268,15 @@ function clinic_recent_metrics(array $clinicIds, int $days = 30): array
 }
 function audit_patient_name_by_link(int $patientId, ?int $cid = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_patient_name_by_link
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit patient name by link”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_enrich_context`, `patient_display_name`, `page`.
+     * Dependências chamadas: `one`, `trim`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($patientId <= 0) {
         return "";
     }
@@ -1709,6 +2304,15 @@ function audit_patient_name_by_link(int $patientId, ?int $cid = null): string
 }
 function audit_user_name_lookup(int $uid, ?int $cid = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_user_name_lookup
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “audit user name lookup” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit_enrich_context`, `user_name_by_id`.
+     * Dependências chamadas: `array_key_exists`, `one`, `trim`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_read_allowed`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $cache = [];
     if ($uid <= 0) {
         return "";
@@ -1718,6 +2322,15 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
         return $cache[$memoryKey];
     }
     $loader = static function () use ($uid, $cid): string {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:1720
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `trim`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         try {
             $u = $cid
                 ? one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
@@ -1743,6 +2356,15 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
 }
 function audit_clinic_name_lookup(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_clinic_name_lookup
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “audit clinic name lookup” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit_enrich_context`, `maestro_fetch_candidates`.
+     * Dependências chamadas: `array_key_exists`, `one`, `trim`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_read_allowed`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $cache = [];
     if ($cid <= 0) {
         return "";
@@ -1751,6 +2373,15 @@ function audit_clinic_name_lookup(int $cid): string
         return $cache[$cid];
     }
     $loader = static function () use ($cid): string {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:1753
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `trim`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         try {
             $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
             return trim((string) ($cl["display_name"] ?? ""));
@@ -1779,6 +2410,15 @@ function audit_enrich_context(
     array $context,
     ?int $cid = null,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_enrich_context
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit enrich context”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: `audit_clinic_name_lookup`, `audit_patient_name_by_link`, `audit_user_name_lookup`, `one`, `error_log`, `->getMessage`, `in_array`, `function_exists`, `document_status_label`, `document_type_options`, `role_label_for`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $id = (int) $entityId;
     if (empty($context["clinic_name"]) && $cid) {
         $n = audit_clinic_name_lookup((int) $cid);
@@ -2143,6 +2783,15 @@ function audit_enrich_context(
 }
 function audit_should_write(string $event): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_should_write
+     * Responsabilidade: Valida e executa a mutação “audit should write”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($event === "janela_aberta" && !PRONTOO_AUDIT_PAGE_VIEWS) {
         return false;
     }
@@ -2154,11 +2803,31 @@ function audit(
     mixed $entityId = null,
     array $context = [],
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — audit
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `platform_login_loaded_audit`, `page_admin_deleted`, `page_admin_errors`, `page_admin_maintenance`, `page_admin_painel`, `page_admin_clinics`, `page_admin_security`, `page_admin_alerts` e mais 85.
+     * Dependências chamadas: `has_cfg`, `audit_should_write`, `db_tx`, `ctx`, `function_exists`, `role_label_for`, `audit_enrich_context`, `trim`, `audit_body_for_event`, `mb_substr`, `audit_friendly`, `json_encode` e mais 11.
+     * Estado externo lido: `$_SESSION`, `$_SERVER`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     if (!has_cfg() || !audit_should_write($event)) {
         return;
     }
     try {
         db_tx(function () use ($event, $entity, $entityId, $context): void {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:2161
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+             * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `ctx`, `function_exists`, `role_label_for`, `audit_enrich_context`, `trim`, `audit_body_for_event`, `mb_substr`, `audit_friendly`, `json_encode`, `mask`, `event_label`, `event_icon` e mais 6.
+             * Estado externo lido: `$_SESSION`, `$_SERVER`.
+             * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; produz conteúdo de saída.
+             * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+             */
             $c = ctx();
             $uid = (int) ($c["user"]["id"] ?? ($_SESSION["uid"] ?? 0)) ?: null;
             $cid = $context["clinic_id"] ?? ($c["clinic_id"] ?? null);
@@ -2261,11 +2930,29 @@ function audit(
 }
 function audit_actor_name(array $ctx, ?int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_actor_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit actor name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `trim`, `first_name`, `user_name_by_id`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $actor = trim((string) ($ctx["actor_name"] ?? ""));
     return $actor !== "" ? first_name($actor) : user_name_by_id($uid);
 }
 function audit_document_type_text(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_document_type_text
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit document type text”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `activity_direct_target`, `audit_document_activity_sentence`.
+     * Dependências chamadas: `trim`, `function_exists`, `document_type_options`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $label = trim((string) ($ctx["document_type_label"] ?? ""));
     if ($label === "") {
         $key = (string) ($ctx["document_type"] ?? ($ctx["type_key"] ?? ""));
@@ -2281,6 +2968,15 @@ function audit_document_type_text(array $ctx): string
 }
 function audit_document_article(string $label): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_document_article
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit document article”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `audit_document_activity_sentence`.
+     * Dependências chamadas: `mb_strtolower`, `trim`, `str_starts_with`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $l = mb_strtolower(trim($label));
     foreach (["receita", "declaração", "solicitação", "orientação"] as $fem) {
         if (str_starts_with($l, $fem)) {
@@ -2294,6 +2990,15 @@ function audit_document_activity_sentence(
     string $action,
     array $ctx,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_document_activity_sentence
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit document activity sentence”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_document_type_text`, `trim`, `audit_document_article`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $doc = audit_document_type_text($ctx);
     $patient = trim((string) ($ctx["patient_name"] ?? ""));
     $txt =
@@ -2305,6 +3010,15 @@ function audit_document_activity_sentence(
 }
 function audit_model_title(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_model_title
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit model title”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `audit_model_activity_sentence`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $t = trim(
         (string) ($ctx["template_title"] ??
             ($ctx["titulo"] ?? ($ctx["title"] ?? ($ctx["modelo"] ?? "")))),
@@ -2316,6 +3030,15 @@ function audit_model_activity_sentence(
     string $action,
     array $ctx,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_model_activity_sentence
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit model activity sentence”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_model_title`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $model = audit_model_title($ctx);
     return match ($action) {
         "criou" => "$who criou um modelo de $model.",
@@ -2327,6 +3050,15 @@ function audit_model_activity_sentence(
 }
 function audit_direct_events(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_direct_events
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit direct events”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "janela_aberta",
         "consulta_agendada",
@@ -2405,6 +3137,15 @@ function audit_direct_events(): array
 }
 function audit_task_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_task_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit task name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`, `activity_direct_target`, `audit_task_sentence`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $t = trim(
         (string) ($ctx["task_title"] ??
             ($ctx["titulo"] ?? ($ctx["title"] ?? ""))),
@@ -2417,6 +3158,15 @@ function audit_task_sentence(
     array $ctx,
     string $suffix = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_task_sentence
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit task sentence”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_task_name`, `trim`, `str_contains`, `mb_strtolower`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $task = audit_task_name($ctx);
     $txt = $who . " " . $verb . " tarefa " . $task;
     $patient = trim((string) ($ctx["patient_name"] ?? ""));
@@ -2433,6 +3183,15 @@ function audit_task_sentence(
 }
 function audit_notice_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_notice_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit notice name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $t = trim(
         (string) ($ctx["notice_title"] ??
             ($ctx["titulo"] ?? ($ctx["title"] ?? ""))),
@@ -2441,6 +3200,15 @@ function audit_notice_name(array $ctx): string
 }
 function audit_lead_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_lead_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit lead name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_human_sentence`.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $t = trim(
         (string) ($ctx["target_name"] ??
             ($ctx["name"] ?? ($ctx["nome"] ?? ""))),
@@ -2453,6 +3221,15 @@ function audit_status_verb(
     string $inactive = "desativou",
     string $changed = "alterou",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_status_verb
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit status verb”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `mb_strtolower`, `trim`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = mb_strtolower(
         trim((string) ($ctx["status"] ?? ($ctx["active"] ?? ""))),
     );
@@ -2487,6 +3264,15 @@ function audit_status_verb(
 }
 function audit_route_name(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_route_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit route name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $r = trim(
         (string) ($ctx["janela"] ?? ($ctx["rota"] ?? ($ctx["route"] ?? ""))),
     );
@@ -2494,6 +3280,15 @@ function audit_route_name(array $ctx): string
 }
 function audit_global_notice_title(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_global_notice_title
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit global notice title”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $t = trim(
         (string) ($ctx["notice_title"] ??
             ($ctx["title"] ?? ($ctx["titulo"] ?? ""))),
@@ -2502,6 +3297,15 @@ function audit_global_notice_title(array $ctx): string
 }
 function audit_subscription_target(array $ctx): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_subscription_target
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit subscription target”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `audit_clinic_target`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cl = audit_clinic_target($ctx);
     $status = trim(
         (string) ($ctx["subscription_status"] ?? ($ctx["status"] ?? "")),
@@ -2515,10 +3319,28 @@ function audit_friendly(
     array $ctx,
     ?int $uid,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_friendly
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit friendly”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: `activity_direct_title`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return activity_direct_title($event, $entity, $entityId, $ctx, $uid);
 }
 function event_label(string $e): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — event_label
+     * Responsabilidade: Monta a representação de interface associada a “event label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: `str_replace`, `ucfirst`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "janela_aberta" => "Tela consultada",
         "login_carregado" => "Login carregado",
@@ -2606,6 +3428,15 @@ function event_label(string $e): string
 }
 function event_icon(string $e): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — event_icon
+     * Responsabilidade: Implementa a responsabilidade “event icon” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_items`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "janela_aberta" => "visibility",
         "login_carregado" => "login",
@@ -2692,6 +3523,15 @@ function event_icon(string $e): string
 }
 function entity_label(?string $e): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — entity_label
+     * Responsabilidade: Monta a representação de interface associada a “entity label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `activity_module_label`, `activity_direct_target`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "clinica" => "consultório",
         "usuario" => "colaborador",
@@ -2721,6 +3561,15 @@ function entity_label(?string $e): string
 }
 function audit_visibility_filter(array $c, string &$where, array &$params): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_visibility_filter
+     * Responsabilidade: Transforma e normaliza “audit visibility filter” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_audit`.
+     * Dependências chamadas: `array_unique`, `array_merge`, `team_user_ids_for_roles`, `implode`, `array_fill`, `count`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cid = (int) $c["clinic_id"];
     $role = (string) $c["role"];
     $uid = (int) $c["user"]["id"];
@@ -2766,11 +3615,29 @@ function audit_visibility_filter(array $c, string &$where, array &$params): void
 }
 function recent_events(int $cid, int $uid, string $role): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — recent_events
+     * Responsabilidade: Implementa a responsabilidade “recent events” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_painel`.
+     * Dependências chamadas: `audit_rows_light`, `audit_items`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = audit_rows_light("clinic_id=?", [$cid], 12);
     return audit_items($rows);
 }
 function audit_preview_for_appointment(int $cid, int $appointmentId): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_preview_for_appointment
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit preview for appointment”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_medico_painel`.
+     * Dependências chamadas: `audit_rows_light`, `audit_items`, `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = audit_rows_light(
         "clinic_id=? AND entity_key=? AND entity_id=?",
         [$cid, "consulta", (string) $appointmentId],
@@ -2797,10 +3664,28 @@ function audit_preview_for_appointment(int $cid, int $appointmentId): string
 }
 function audit_team_filter_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_team_filter_options
+     * Responsabilidade: Transforma e normaliza “audit team filter options” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_audit`.
+     * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`, `trim`, `preg_split`, `function_exists`, `server_json_cache_read_allowed`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0) {
         return [];
     }
     $loader = static function () use ($cid): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:2803
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`, `trim`, `preg_split`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         try {
             $rows = q(
                 "SELECT DISTINCT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 ORDER BY u.name ASC",
@@ -2837,6 +3722,16 @@ function audit_activity_day_name(
     int $cid = 0,
     ?array $c = null,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_activity_day_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit activity day name”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_period_options`.
+     * Dependências chamadas: `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->format`, `strtotime`, `date`, `time`.
+     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $labels = [
         "Domingo",
         "Segunda",
@@ -2857,6 +3752,15 @@ function audit_activity_day_name(
 }
 function audit_period_options(int $cid = 0, ?array $c = null): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_period_options
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit period options”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_period_clause`, `page_audit`.
+     * Dependências chamadas: `app_today_in_timezone`, `date`, `strtotime`, `audit_activity_day_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $today = app_today_in_timezone($cid, $c);
     $before = date("Y-m-d", strtotime($today . " -2 days"));
     return [
@@ -2873,6 +3777,15 @@ function audit_period_clause(
     array $c,
     ?string $selectedDate = null,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_period_clause
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit period clause”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_audit`.
+     * Dependências chamadas: `audit_period_options`, `app_today_in_timezone`, `date`, `strtotime`, `is_string`, `preg_match`, `app_local_day_utc_range`, `gmdate`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $opts = audit_period_options($cid, $c);
     if (!isset($opts[$period])) {
         $period = "today";
@@ -2898,6 +3811,16 @@ function audit_period_clause(
 }
 function audit_activity_url(array $extra = []): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — audit_activity_url
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit activity url”.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`, `href`, `array_merge`.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $base = ["r" => "audit"];
     foreach (["member", "period", "date"] as $k) {
         if (isset($_GET[$k]) && trim((string) $_GET[$k]) !== "") {
@@ -2908,6 +3831,17 @@ function audit_activity_url(array $extra = []): string
 }
 function page_audit(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_audit
+     * Responsabilidade: Coordena a rota e renderiza a tela “page audit”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `preg_match`, `app_today_in_timezone`, `audit_period_options`, `max`, `audit_visibility_filter`, `audit_period_clause`, `audit_team_filter_options`, `audit_rows_light`, `headers_sent`, `header`, `json_encode` e mais 10.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("audit");
     $cid = (int) $c["clinic_id"];
     $member = (int) ($_GET["member"] ?? 0);
@@ -2957,6 +3891,15 @@ function page_audit(): void
         $period,
         $selectedDate,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:2955
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `array_merge`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $base = [];
         if ($member > 0) {
             $base["member"] = $member;

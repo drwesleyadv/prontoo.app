@@ -9,7 +9,17 @@ use Prontoo\Domain\Authorization\ActionContract;
 
 final readonly class AuthorizationService
 {
-    public function __construct(private CapabilityProvider $capabilities) {}
+    public function __construct(private CapabilityProvider $capabilities) {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Presentation.Http.ActionMiddleware::logicSelfTest`, `Runtime.LayeredKernel::actionMiddleware`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
+    }
 
     public function evaluate(
         string $route,
@@ -17,6 +27,15 @@ final readonly class AuthorizationService
         array $post,
         array $context,
     ): Decision {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::evaluate
+         * Responsabilidade: Implementa a responsabilidade “evaluate” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `Canonical::token`, `strtoupper`, `trim`, `Decision::skip`, `ActionCatalog::resolve`, `ActionCatalog::actionToken`, `Decision::deny`, `->assertScope`, `->evidence`, `->grants`, `array_values`, `array_diff` e mais 3.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $route = Canonical::token($route, 'login');
         $method = strtoupper(trim($method));
         if ($method !== 'POST') {
@@ -80,6 +99,15 @@ final readonly class AuthorizationService
 
     private function assertScope(ActionContract $contract, array $context): ?Decision
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::assertScope
+         * Responsabilidade: Implementa a responsabilidade “assert scope” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `Decision::deny`, `self::primaryModule`, `self::primaryOperation`, `->evidence`, `in_array`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         if ($contract->scope === 'public') {
             return null;
         }
@@ -134,6 +162,15 @@ final readonly class AuthorizationService
         array $granted,
         array $missing,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::evidence
+         * Responsabilidade: Implementa a responsabilidade “evidence” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `->hash`, `array_values`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         return [
             'policy' => Canonical::POLICY_VERSION,
             'contract_hash' => $contract->hash(),
@@ -154,18 +191,45 @@ final readonly class AuthorizationService
 
     private static function primaryModule(ActionContract $contract): ?string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::primaryModule
+         * Responsabilidade: Implementa a responsabilidade “primary module” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.AuthorizationService::evaluate`, `Application.Authorization.AuthorizationService::assertScope`.
+         * Dependências chamadas: `self::splitCapability`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         [$module] = self::splitCapability($contract->primary);
         return $module !== '' ? $module : null;
     }
 
     private static function primaryOperation(ActionContract $contract): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::primaryOperation
+         * Responsabilidade: Implementa a responsabilidade “primary operation” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.AuthorizationService::evaluate`, `Application.Authorization.AuthorizationService::assertScope`.
+         * Dependências chamadas: `self::splitCapability`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         [, $operation] = self::splitCapability($contract->primary);
         return $operation !== '' ? $operation : 'execute';
     }
 
     private static function splitCapability(string $capability): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::splitCapability
+         * Responsabilidade: Implementa a responsabilidade “split capability” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.AuthorizationService::primaryModule`, `Application.Authorization.AuthorizationService::primaryOperation`.
+         * Dependências chamadas: `explode`, `Canonical::token`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $parts = explode(':', $capability, 2);
         return [
             Canonical::token((string) ($parts[0] ?? ''), ''),
@@ -175,9 +239,28 @@ final readonly class AuthorizationService
 
     public static function logicSelfTest(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.AuthorizationService::logicSelfTest
+         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
+         * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Runtime.LayeredKernel::logicSelfTest`.
+         * Dependências chamadas: `grants`, `in_array`, `self`, `->evaluate`, `ActionCatalog::logicSelfTest`, `array_keys`, `array_filter`, `count`.
+         * Classes ou serviços instanciados: `self`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $provider = new class implements CapabilityProvider {
             public function grants(ActionContract $contract, string $capability, array $context): bool
             {
+                /*
+                 * GUIA DE MANUTENÇÃO — Application.Authorization.anonymous@178::grants
+                 * Responsabilidade: Implementa a responsabilidade “grants” dentro do módulo de casos de uso e contratos de aplicação.
+                 * Local arquitetural: app/Application/Authorization/AuthorizationService.php (casos de uso e contratos de aplicação).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `in_array`.
+                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                 * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+                 */
                 return in_array($capability, (array) ($context['grants'] ?? []), true) ||
                     ($capability === 'session:self' && (int) ($context['user']['id'] ?? 0) > 0) ||
                     ($capability === 'admin:*' && ($context['scope'] ?? '') === 'global');
@@ -203,7 +286,7 @@ final readonly class AuthorizationService
         $cases['clinic_action_rejects_global'] = !$service->evaluate('appointments', 'POST', ['act' => 'create'], $global)->allowed;
         $catalog = ActionCatalog::logicSelfTest();
         $cases['catalog'] = !empty($catalog['ok']);
-        $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de casos de uso e contratos de aplicação. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],
             'passed' => count($cases) - count($failed),

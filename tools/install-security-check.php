@@ -42,6 +42,15 @@ if (!$blocked) {
 putenv('CI=true');
 putenv('PRONTOO_SCHEMA_TEST_MODE=1');
 $opened = SchemaMutationLock::runForInstaller(static function (): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — closure@tools/install-security-check.php:44
+     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de ferramentas de certificação e manutenção.
+     * Local arquitetural: tools/install-security-check.php (ferramentas de certificação e manutenção).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `db_reject_runtime_ddl`, `SchemaMutationLock::isActive`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     db_reject_runtime_ddl('CREATE TABLE pi_test (id int)');
     return SchemaMutationLock::isActive();
 });

@@ -17,20 +17,57 @@ final class PiIntegrity
     private static ?string $requestId = null;
     private static int $flushErrors = 0;
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function activePrefix(): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::activePrefix
+         * Responsabilidade: Implementa a responsabilidade “active prefix” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return self::TABLE_PREFIX;
     }
 
     public static function physicalTableName(string $logicalTable): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::physicalTableName
+         * Responsabilidade: Implementa a responsabilidade “physical table name” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::proveSchemaOperation`, `Core.Integrity.PiIntegrity::targetTableFromSql`.
+         * Dependências chamadas: `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return trim($logicalTable, "` \t\n\r\0\x0B");
     }
 
     public static function rewriteSqlForRuntime(string $sql): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::rewriteSqlForRuntime
+         * Responsabilidade: Implementa a responsabilidade “rewrite sql for runtime” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Infrastructure.Audit.PdoActionProofStore::write`.
+         * Dependências chamadas: `class_exists`, `.Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteTemporalFunctions($sql)
             : $sql;
@@ -38,6 +75,15 @@ final class PiIntegrity
 
     public static function prepareRuntimeQuery(string $sql, array $params): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::prepareRuntimeQuery
+         * Responsabilidade: Implementa a responsabilidade “prepare runtime query” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `q`, `record_scope_violation`.
+         * Dependências chamadas: `class_exists`, `.Core.Temporal.PiTime::prepareRuntimeQuery`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::prepareRuntimeQuery($sql, $params)
             : [$sql, $params];
@@ -45,6 +91,15 @@ final class PiIntegrity
 
     public static function rewriteSchemaSql(string $sql): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::rewriteSchemaSql
+         * Responsabilidade: Implementa a responsabilidade “rewrite schema sql” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `class_exists`, `.Core.Temporal.PiTime::rewriteSchemaSql`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteSchemaSql($sql)
             : $sql;
@@ -52,6 +107,15 @@ final class PiIntegrity
 
     public static function bootIndexAutotest(int $budgetMs = 450): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::bootIndexAutotest
+         * Responsabilidade: Implementa a responsabilidade “boot index autotest” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `prontoo_install`, `prontoo_run_runtime_maintenance_cycle`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::ensureSystemTables`, `self::logOnce`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!self::canUseDatabase()) {
             return;
         }
@@ -64,17 +128,44 @@ final class PiIntegrity
 
     public static function bootIndexLightcheck(int $budgetMs = 80): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::bootIndexLightcheck
+         * Responsabilidade: Implementa a responsabilidade “boot index lightcheck” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `prontoo_boot_database_for_route`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return;
     }
 
     public static function ensureGlobalSequence(int $budgetMs = 1800): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::ensureGlobalSequence
+         * Responsabilidade: Implementa a responsabilidade “ensure global sequence” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         // Compatibilidade de assinatura: a geração de Seq é nativa no MySQL.
         return;
     }
 
     public static function runMaestroCycle(int $budgetMs = 120000): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::runMaestroCycle
+         * Responsabilidade: Implementa a responsabilidade “run maestro cycle” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `self::flushFastEvents`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         self::flushFastEvents();
         return [
             'ok' => true,
@@ -91,6 +182,15 @@ final class PiIntegrity
 
     public static function beforeQuery(string $sql, array $params): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::beforeQuery
+         * Responsabilidade: Implementa a responsabilidade “before query” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `q`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::queryKind`, `in_array`, `self::targetTableFromSql`, `self::isInternalTable`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (self::$inside || !self::canUseDatabase()) {
             return [];
         }
@@ -115,6 +215,15 @@ final class PiIntegrity
         ?\Throwable $error,
         array $before = [],
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::afterQuery
+         * Responsabilidade: Implementa a responsabilidade “after query” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `q`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::queryKind`, `in_array`, `self::targetTableFromSql`, `self::isInternalTable`, `self::queueEvent`, `self::recordPkForEvent`, `max`, `hash`, `self::normalizeSql`, `self::canonicalJson`, `round` e mais 2.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (self::$inside || !self::canUseDatabase()) {
             return;
         }
@@ -146,6 +255,17 @@ final class PiIntegrity
         bool|string|null $success = null,
         ?string $error = null,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::proveSchemaOperation
+         * Responsabilidade: Implementa a responsabilidade “prove schema operation” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `run_schema_sql`.
+         * Dependências chamadas: `is_bool`, `is_string`, `preg_match`, `self::physicalTableName`, `self::queueEvent`, `self::cleanToken`.
+         * Classes ou serviços instanciados: `.TypeError`.
+         * Estado externo lido: `$GLOBALS`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (is_bool($table)) {
             $legacySql = $operation;
             $legacySuccess = $table;
@@ -192,6 +312,15 @@ final class PiIntegrity
         bool $success,
         ?string $error = null,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::proveExternalFile
+         * Responsabilidade: Implementa a responsabilidade “prove external file” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `self::queueEvent`, `self::cleanToken`, `hash`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         self::queueEvent(
             'file_' . self::cleanToken($operation, 'operation'),
             'file',
@@ -208,6 +337,15 @@ final class PiIntegrity
 
     public static function prepareForWriteTransaction(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::prepareForWriteTransaction
+         * Responsabilidade: Implementa a responsabilidade “prepare for write transaction” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `db_prepare_write_transaction`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::ensureSystemTables`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!self::canUseDatabase()) {
             return;
         }
@@ -216,16 +354,43 @@ final class PiIntegrity
 
     public static function markTransactionStart(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::markTransactionStart
+         * Responsabilidade: Implementa a responsabilidade “mark transaction start” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `db_begin_transaction`.
+         * Dependências chamadas: `count`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         self::$transactionMarks[] = count(self::$events);
     }
 
     public static function markTransactionCommitted(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::markTransactionCommitted
+         * Responsabilidade: Implementa a responsabilidade “mark transaction committed” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `db_commit`.
+         * Dependências chamadas: `array_pop`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         array_pop(self::$transactionMarks);
     }
 
     public static function discardTransactionEvents(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::discardTransactionEvents
+         * Responsabilidade: Implementa a responsabilidade “discard transaction events” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `db_commit`, `db_rollback`.
+         * Dependências chamadas: `array_pop`, `is_int`, `array_slice`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $mark = array_pop(self::$transactionMarks);
         if (is_int($mark) && $mark >= 0) {
             self::$events = array_slice(self::$events, 0, $mark);
@@ -234,6 +399,15 @@ final class PiIntegrity
 
     public static function processDeferredEvents(int $budgetMs = 120000, int $batchSize = 120): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::processDeferredEvents
+         * Responsabilidade: Implementa a responsabilidade “process deferred events” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `self::flushFastEvents`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         self::flushFastEvents();
         return [
             'ok' => true,
@@ -248,6 +422,17 @@ final class PiIntegrity
 
     public static function flushFastEvents(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::flushFastEvents
+         * Responsabilidade: Implementa a responsabilidade “flush fast events” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::runMaestroCycle`, `Core.Integrity.PiIntegrity::processDeferredEvents`, `db_commit`, `prontoo_flush_integrity_before_render`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::pdo`, `->inTransaction`, `array_merge`, `self::ensureSystemTables`, `self::requestId`, `time`, `trim`, `function_exists`, `self::sessionInt`, `array_values`, `count` e mais 10.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Estado externo lido: `$GLOBALS`, `$_GET`.
+         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         */
         if (!self::canUseDatabase() || self::$inside || self::$events === []) {
             return;
         }
@@ -356,12 +541,30 @@ final class PiIntegrity
 
     public static function rowHash(array $row): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::rowHash
+         * Responsabilidade: Implementa a responsabilidade “row hash” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `ksort`, `hash_hmac`, `self::canonicalJson`, `self::secret`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         ksort($row);
         return hash_hmac('sha256', self::canonicalJson($row), self::secret());
     }
 
     public static function canonicalJson(mixed $value): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::canonicalJson
+         * Responsabilidade: Implementa a responsabilidade “canonical json” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::afterQuery`, `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::rowHash`.
+         * Dependências chamadas: `json_encode`, `self::canonicalize`.
+         * Efeitos colaterais: produz conteúdo de saída.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return json_encode(
             self::canonicalize($value),
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION,
@@ -380,6 +583,15 @@ final class PiIntegrity
         int $elapsedMs,
         ?string $error,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::queueEvent
+         * Responsabilidade: Implementa a responsabilidade “queue event” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::afterQuery`, `Core.Integrity.PiIntegrity::proveSchemaOperation`, `Core.Integrity.PiIntegrity::proveExternalFile`.
+         * Dependências chamadas: `self::canUseDatabase`, `self::registerShutdown`, `mb_substr`, `max`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!self::canUseDatabase()) {
             return;
         }
@@ -400,6 +612,15 @@ final class PiIntegrity
 
     private static function registerShutdown(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::registerShutdown
+         * Responsabilidade: Implementa a responsabilidade “register shutdown” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::queueEvent`.
+         * Dependências chamadas: `register_shutdown_function`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (self::$shutdownRegistered) {
             return;
         }
@@ -409,6 +630,16 @@ final class PiIntegrity
 
     private static function ensureSystemTables(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::ensureSystemTables
+         * Responsabilidade: Implementa a responsabilidade “ensure system tables” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::bootIndexAutotest`, `Core.Integrity.PiIntegrity::prepareForWriteTransaction`, `Core.Integrity.PiIntegrity::flushFastEvents`.
+         * Dependências chamadas: `self::tableExists`.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         foreach (['pi_action_ledger', 'pi_integrity_alerts'] as $table) {
             if (!self::tableExists($table)) {
                 throw new \RuntimeException("Tabela de integridade ausente: {$table}.");
@@ -418,6 +649,15 @@ final class PiIntegrity
 
     private static function tableExists(string $table): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::tableExists
+         * Responsabilidade: Implementa a responsabilidade “table exists” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::ensureSystemTables`.
+         * Dependências chamadas: `self::pdo`, `->prepare`, `->execute`, `->fetchColumn`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $stmt = self::pdo()->prepare(
             'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
         );
@@ -427,22 +667,59 @@ final class PiIntegrity
 
     private static function canUseDatabase(): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::canUseDatabase
+         * Responsabilidade: Implementa a responsabilidade “can use database” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::bootIndexAutotest`, `Core.Integrity.PiIntegrity::beforeQuery`, `Core.Integrity.PiIntegrity::afterQuery`, `Core.Integrity.PiIntegrity::prepareForWriteTransaction`, `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::queueEvent`.
+         * Dependências chamadas: `function_exists`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return function_exists('has_cfg') && \has_cfg() && function_exists('pdo');
     }
 
     private static function pdo(): \PDO
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::pdo
+         * Responsabilidade: Implementa a responsabilidade “pdo” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::tableExists`, `Core.Integrity.PiIntegrity::recordPkForEvent`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return \pdo();
     }
 
     private static function sessionInt(string $key): ?int
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::sessionInt
+         * Responsabilidade: Implementa a responsabilidade “session int” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::flushFastEvents`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Estado externo lido: `$_SESSION`.
+         * Efeitos colaterais: lê ou altera a sessão.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $value = (int) ($_SESSION[$key] ?? 0);
         return $value > 0 ? $value : null;
     }
 
     private static function isInternalTable(string $table): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::isInternalTable
+         * Responsabilidade: Implementa a responsabilidade “is internal table” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::beforeQuery`, `Core.Integrity.PiIntegrity::afterQuery`.
+         * Dependências chamadas: `in_array`, `strtolower`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return in_array(strtolower($table), [
             'pi_action_ledger',
             'pi_integrity_alerts',
@@ -459,6 +736,15 @@ final class PiIntegrity
 
     private static function targetTableFromSql(string $sql): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::targetTableFromSql
+         * Responsabilidade: Implementa a responsabilidade “target table from sql” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::beforeQuery`, `Core.Integrity.PiIntegrity::afterQuery`.
+         * Dependências chamadas: `preg_match`, `self::physicalTableName`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $patterns = [
             '/^\s*INSERT\s+(?:IGNORE\s+)?INTO\s+`?([a-z0-9_]+)`?/i',
             '/^\s*REPLACE\s+INTO\s+`?([a-z0-9_]+)`?/i',
@@ -475,6 +761,15 @@ final class PiIntegrity
 
     private static function queryKind(string $sql): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::queryKind
+         * Responsabilidade: Implementa a responsabilidade “query kind” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::beforeQuery`, `Core.Integrity.PiIntegrity::afterQuery`.
+         * Dependências chamadas: `preg_match`, `strtolower`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return preg_match('/^\s*([a-z]+)/i', $sql, $match)
             ? strtolower((string) $match[1])
             : '';
@@ -482,11 +777,29 @@ final class PiIntegrity
 
     private static function normalizeSql(string $sql): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::normalizeSql
+         * Responsabilidade: Implementa a responsabilidade “normalize sql” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::afterQuery`.
+         * Dependências chamadas: `strtolower`, `trim`, `preg_replace`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return strtolower(trim(preg_replace('/\s+/', ' ', $sql) ?? $sql));
     }
 
     private static function recordPkForEvent(string $kind, string $table): ?string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::recordPkForEvent
+         * Responsabilidade: Implementa a responsabilidade “record pk for event” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::afterQuery`.
+         * Dependências chamadas: `in_array`, `self::pdo`, `->lastInsertId`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!in_array($kind, ['insert', 'replace'], true)) {
             return null;
         }
@@ -500,6 +813,15 @@ final class PiIntegrity
 
     private static function canonicalize(mixed $value): mixed
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::canonicalize
+         * Responsabilidade: Implementa a responsabilidade “canonicalize” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::canonicalJson`.
+         * Dependências chamadas: `is_array`, `array_is_list`, `ksort`, `self::canonicalize`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!is_array($value)) {
             return $value;
         }
@@ -514,6 +836,15 @@ final class PiIntegrity
 
     private static function secret(): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::secret
+         * Responsabilidade: Implementa a responsabilidade “secret” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::rowHash`.
+         * Dependências chamadas: `function_exists`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         try {
             return function_exists('secret_key')
                 ? (string) \secret_key()
@@ -525,6 +856,15 @@ final class PiIntegrity
 
     private static function logOnce(string $stage, \Throwable $error): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::logOnce
+         * Responsabilidade: Implementa a responsabilidade “log once” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::bootIndexAutotest`, `Core.Integrity.PiIntegrity::flushFastEvents`.
+         * Dependências chamadas: `->getMessage`, `error_log`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         static $logged = [];
         $key = $stage . '|' . $error->getMessage();
         if (isset($logged[$key])) {
@@ -536,6 +876,15 @@ final class PiIntegrity
 
     private static function requestId(): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::requestId
+         * Responsabilidade: Implementa a responsabilidade “request id” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::flushFastEvents`.
+         * Dependências chamadas: `bin2hex`, `random_bytes`, `md5`, `uniqid`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (self::$requestId !== null) {
             return self::$requestId;
         }
@@ -548,6 +897,15 @@ final class PiIntegrity
 
     private static function cleanToken(string $value, string $fallback): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::cleanToken
+         * Responsabilidade: Implementa a responsabilidade “clean token” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::proveSchemaOperation`, `Core.Integrity.PiIntegrity::proveExternalFile`.
+         * Dependências chamadas: `preg_replace`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return preg_replace('/[^a-z0-9_-]+/i', '_', trim($value)) ?: $fallback;
     }
 }

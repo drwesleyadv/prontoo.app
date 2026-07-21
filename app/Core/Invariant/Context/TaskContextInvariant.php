@@ -14,10 +14,29 @@ final class TaskContextInvariant
         "pi_notices",
     ];
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Context.TaskContextInvariant::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Invariant/Context/TaskContextInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function supports(string $table): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Context.TaskContextInvariant::supports
+         * Responsabilidade: Implementa a responsabilidade “supports” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Context/TaskContextInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Context.ContextInvariantRegistry::assertWrite`, `Core.Invariant.Context.ContextInvariantRegistry::logicSelfTest`.
+         * Dependências chamadas: `in_array`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return in_array($table, self::TABLES, true);
     }
 
@@ -28,6 +47,15 @@ final class TaskContextInvariant
         array $params,
         ?array $insert,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Context.TaskContextInvariant::assertWrite
+         * Responsabilidade: Implementa a responsabilidade “assert write” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Context/TaskContextInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Context.ContextInvariantRegistry::assertWrite`.
+         * Dependências chamadas: `self::assertEnumColumn`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $checks = [];
         if ($table === "pi_tasks") {
             $checks["target_scope"] = self::assertEnumColumn(
@@ -63,6 +91,15 @@ final class TaskContextInvariant
         string $column,
         array $allowed,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Context.TaskContextInvariant::assertEnumColumn
+         * Responsabilidade: Implementa a responsabilidade “assert enum column” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Context/TaskContextInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Context.TaskContextInvariant::assertWrite`.
+         * Dependências chamadas: `in_array`, `is_array`, `SqlExpression::insertColumnValues`, `SqlExpression::assignments`, `self::deny`, `SqlExpression::tokenValue`, `array_values`, `array_unique`, `array_map`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $values = [];
         $complete = true;
         if (in_array($operation, ["INSERT", "REPLACE"], true)) {
@@ -116,6 +153,16 @@ final class TaskContextInvariant
 
     private static function deny(string $key, string $sql): never
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Context.TaskContextInvariant::deny
+         * Responsabilidade: Implementa a responsabilidade “deny” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Context/TaskContextInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Context.TaskContextInvariant::assertEnumColumn`.
+         * Dependências chamadas: `function_exists`.
+         * Classes ou serviços instanciados: `.ProntooHttpError`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (function_exists("record_scope_violation")) {
             \record_scope_violation(
                 "task_context_" . $key,

@@ -10,7 +10,17 @@ final class ForeignKeyGraph
 {
     private static array $relations = [];
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function assertWrite(
         string $table,
@@ -20,6 +30,15 @@ final class ForeignKeyGraph
         ?array $insert,
         int $clinicId,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::assertWrite
+         * Responsabilidade: Implementa a responsabilidade “assert write” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
+         * Dependências chamadas: `TenantRegistry::isScoped`, `self::relationsFor`, `SqlExpression::assignments`, `in_array`, `is_array`, `SqlExpression::insertColumnValues`, `self::deny`, `SqlExpression::tokenValue`, `array_values`, `array_unique`, `is_numeric`, `self::targetClinicId` e mais 3.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if ($clinicId <= 0 || !TenantRegistry::isScoped($table)) {
             return ["checked" => false, "edges" => 0, "proofs" => []];
         }
@@ -126,6 +145,15 @@ final class ForeignKeyGraph
 
     private static function relationsFor(string $table): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::relationsFor
+         * Responsabilidade: Implementa a responsabilidade “relations for” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`.
+         * Dependências chamadas: `self::identifier`, `array_key_exists`, `function_exists`, `self::loadRelations`, `defined`, `hash`, `is_array`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $table = self::identifier($table);
         if ($table === "") {
             return [];
@@ -136,7 +164,7 @@ final class ForeignKeyGraph
         if (!function_exists("pdo")) {
             return self::$relations[$table] = [];
         }
-        $loader = static fn(): array => self::loadRelations($table);
+        $loader = static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `self::loadRelations`. Efeitos: transformação local sem efeito externo detectado. */ fn(): array => self::loadRelations($table);
         $revision = defined("PRONTOO_SCHEMA_REV")
             ? (string) PRONTOO_SCHEMA_REV
             : "schema";
@@ -161,6 +189,15 @@ final class ForeignKeyGraph
 
     private static function loadRelations(string $table): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::loadRelations
+         * Responsabilidade: Implementa a responsabilidade “load relations” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Relation.ForeignKeyGraph::relationsFor`, `arrow@app/Core/Invariant/Relation/ForeignKeyGraph.php:139`.
+         * Dependências chamadas: `->prepare`, `->execute`, `->fetchAll`, `self::identifier`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         try {
             $statement = \pdo()->prepare(
                 "SELECT CONSTRAINT_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME " .
@@ -202,6 +239,15 @@ final class ForeignKeyGraph
         mixed $value,
         int $clinicId,
     ): ?int {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::targetClinicId
+         * Responsabilidade: Implementa a responsabilidade “target clinic id” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`.
+         * Dependências chamadas: `self::identifier`, `TenantRegistry::scopeColumn`, `is_string`, `->prepare`, `->execute`, `->fetchColumn`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $table = self::identifier($table);
         $column = self::identifier($column);
         $scopeColumn = TenantRegistry::scopeColumn($table);
@@ -227,12 +273,31 @@ final class ForeignKeyGraph
 
     private static function identifier(string $value): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::identifier
+         * Responsabilidade: Implementa a responsabilidade “identifier” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Relation.ForeignKeyGraph::relationsFor`, `Core.Invariant.Relation.ForeignKeyGraph::loadRelations`, `Core.Invariant.Relation.ForeignKeyGraph::targetClinicId`.
+         * Dependências chamadas: `strtolower`, `trim`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $value = strtolower(trim($value));
         return preg_match('/^[a-z0-9_]+$/', $value) ? $value : "";
     }
 
     private static function deny(string $key, string $sql, string $detail): never
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Relation.ForeignKeyGraph::deny
+         * Responsabilidade: Implementa a responsabilidade “deny” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Relation/ForeignKeyGraph.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`.
+         * Dependências chamadas: `function_exists`, `error_log`, `hash`, `preg_replace`, `trim`.
+         * Classes ou serviços instanciados: `.ProntooHttpError`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);
         } else {

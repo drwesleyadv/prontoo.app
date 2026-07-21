@@ -2,6 +2,15 @@
 declare(strict_types=1);
 function prontoo_route_map(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_route_map
+     * Responsabilidade: Transforma e normaliza “prontoo route map” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     return [
         "home",
         "login",
@@ -66,6 +75,15 @@ function prontoo_route_map(): array
 }
 function prontoo_public_runtime_routes(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_public_runtime_routes
+     * Responsabilidade: Implementa a responsabilidade “prontoo public runtime routes” dentro do módulo de composição geral do runtime.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "login",
         "login_autotest",
@@ -76,6 +94,15 @@ function prontoo_public_runtime_routes(): array
 }
 function prontoo_json_runtime_routes(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_json_runtime_routes
+     * Responsabilidade: Gerencia o cache ou a memoização de “prontoo json runtime routes”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_route_wants_json`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "patient_lookup",
         "patient_suggest",
@@ -89,12 +116,31 @@ function prontoo_json_runtime_routes(): array
 }
 function prontoo_route_wants_json(string $route): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_route_wants_json
+     * Responsabilidade: Gerencia o cache ou a memoização de “prontoo route wants json”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `strtolower`, `in_array`, `prontoo_json_runtime_routes`, `str_contains`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $accept = strtolower((string) ($_SERVER["HTTP_ACCEPT"] ?? ""));
     return in_array($route, prontoo_json_runtime_routes(), true) ||
         str_contains($accept, "application/json");
 }
 function prontoo_json_response(array $payload, int $status = 200): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_json_response
+     * Responsabilidade: Gerencia o cache ou a memoização de “prontoo json response”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `headers_sent`, `http_response_code`, `header`, `json_encode`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     if (!headers_sent()) {
         http_response_code($status);
         header("Content-Type: application/json; charset=utf-8");
@@ -108,6 +154,15 @@ function prontoo_json_failure_message(
     int $status,
     Throwable $e,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_json_failure_message
+     * Responsabilidade: Gerencia o cache ou a memoização de “prontoo json failure message”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `->getMessage`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($status < 500) {
         return $e->getMessage();
     }
@@ -132,6 +187,16 @@ function prontoo_json_failure_message(
 }
 function prontoo_route_is_public_light(string $route): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_route_is_public_light
+     * Responsabilidade: Avalia ou impõe a regra “prontoo route is public light”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_boot_database_for_route`.
+     * Dependências chamadas: `in_array`, `strtoupper`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (in_array($route, ["login", "login_autotest"], true)) {
         return true;
     }
@@ -143,6 +208,15 @@ function prontoo_route_is_public_light(string $route): bool
 }
 function prontoo_schema_boot_marker_path(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_schema_boot_marker_path
+     * Responsabilidade: Opera a etapa “prontoo schema boot marker path” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_schema_boot_marker_valid`, `prontoo_schema_boot_mark_ok`.
+     * Dependências chamadas: `storage_path`, `is_dir`, `prontoo_fs_mkdir`, `hash`, `defined`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $dir = storage_path("cache");
     if (!is_dir($dir)) {
         prontoo_fs_mkdir($dir);
@@ -159,6 +233,15 @@ function prontoo_schema_boot_marker_path(): string
 }
 function prontoo_schema_boot_marker_valid(int $ttlSeconds = 0): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_schema_boot_marker_valid
+     * Responsabilidade: Opera a etapa “prontoo schema boot marker valid” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_boot_database_for_route`.
+     * Dependências chamadas: `defined`, `prontoo_schema_boot_marker_path`, `is_file`, `time`, `filemtime`, `prontoo_fs_read`, `is_string`, `json_decode`, `is_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if ($ttlSeconds <= 0) {
         $ttlSeconds = defined("PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS")
             ? (int) PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS
@@ -177,6 +260,15 @@ function prontoo_schema_boot_marker_valid(int $ttlSeconds = 0): bool
 }
 function prontoo_schema_boot_mark_ok(string $mode): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_schema_boot_mark_ok
+     * Responsabilidade: Opera a etapa “prontoo schema boot mark ok” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run_runtime_maintenance_cycle`.
+     * Dependências chamadas: `json_encode`, `date`, `is_string`, `prontoo_fs_write`, `prontoo_schema_boot_marker_path`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $payload = json_encode(
         [
             "ok" => true,
@@ -193,6 +285,16 @@ function prontoo_schema_boot_mark_ok(string $mode): void
 }
 function prontoo_boot_database_for_route(string $route): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_boot_database_for_route
+     * Responsabilidade: Opera a etapa “prontoo boot database for route” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `has_cfg`, `prontoo_route_is_public_light`, `getenv`, `class_exists`, `.Core.Integrity.PiIntegrity::bootIndexLightcheck`, `prontoo_schema_boot_marker_valid`, `defined`, `prontoo_run_runtime_maintenance_cycle`.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg()) {
         return;
     }
@@ -225,6 +327,15 @@ function prontoo_run_runtime_maintenance_cycle(
     string $mode = "route_deep",
     int $uid = 0,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_run_runtime_maintenance_cycle
+     * Responsabilidade: Orquestra a execução de “prontoo run runtime maintenance cycle” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_boot_database_for_route`, `prontoo_login_post_password_maintenance`.
+     * Dependências chamadas: `microtime`, `prontoo_load_full_runtime_modules`, `ensure_runtime_schema_minimum`, `function_exists`, `maestro_ensure_schema`, `class_exists`, `.Core.Integrity.PiIntegrity::bootIndexAutotest`, `runtime_self_check`, `document_pdf_cleanup_due`, `prontoo_schema_boot_mark_ok`, `round`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $startedAt = microtime(true);
     $result = ["ok" => false, "mode" => $mode, "uid" => $uid, "steps" => []];
 
@@ -257,6 +368,15 @@ function prontoo_run_runtime_maintenance_cycle(
 
 function prontoo_login_post_password_maintenance(int $uid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_login_post_password_maintenance
+     * Responsabilidade: Implementa a responsabilidade “prontoo login post password maintenance” dentro do módulo de composição geral do runtime.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `page_login`.
+     * Dependências chamadas: `prontoo_run_runtime_maintenance_cycle`, `function_exists`, `audit`, `error_log`, `->getMessage`, `hash`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     static $done = false;
     if ($done) {
         return [
@@ -308,6 +428,15 @@ function prontoo_login_post_password_maintenance(int $uid): array
 }
 function prontoo_flush_integrity_before_render(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_flush_integrity_before_render
+     * Responsabilidade: Monta a representação de interface associada a “prontoo flush integrity before render” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `function_exists`, `has_cfg`, `pdo`, `->inTransaction`, `class_exists`, `method_exists`, `.Core.Integrity.PiIntegrity::flushFastEvents`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         if (function_exists("pdo") && has_cfg()) {
             $pdo = pdo();
@@ -329,6 +458,18 @@ function prontoo_flush_integrity_before_render(): void
 }
 function prontoo_run(bool $installMode = false): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_run
+     * Responsabilidade: Orquestra a execução de “prontoo run” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `.Core.Install.InstallAccess::isLocalHttpRequest`, `headers_sent`, `header`, `prontoo_boot_database_for_route` e mais 29.
+     * Classes ou serviços instanciados: `ProntooHttpError`, `RuntimeException`.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     try {
         boot_security();
         guard_request();

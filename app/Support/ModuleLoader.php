@@ -5,11 +5,30 @@ use Prontoo\Core\Architecture\LayerMap;
 
 function prontoo_module_file(string $relative): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_module_file
+     * Responsabilidade: Implementa a responsabilidade “prontoo module file” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_require_module`.
+     * Dependências chamadas: `ltrim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return __DIR__ . '/../' . ltrim($relative, '/');
 }
 
 function prontoo_module_layer(string $relative): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_module_layer
+     * Responsabilidade: Implementa a responsabilidade “prontoo module layer” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_require_module`, `prontoo_runtime_layer_coverage`.
+     * Dependências chamadas: `LayerMap::layerFor`, `ltrim`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $layer = LayerMap::layerFor('app/' . ltrim($relative, '/'));
     if ($layer === null) {
         throw new RuntimeException('Módulo sem camada arquitetural: app/' . ltrim($relative, '/'));
@@ -19,6 +38,17 @@ function prontoo_module_layer(string $relative): string
 
 function prontoo_require_module(string $relative): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_require_module
+     * Responsabilidade: Avalia ou impõe a regra “prontoo require module”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_require_modules`, `prontoo_load_financial_guard_module`.
+     * Dependências chamadas: `prontoo_module_file`, `is_file`, `defined`, `dirname`, `RuntimeException`, `str_replace`, `prontoo_module_layer`, `realpath`, `is_array`, `count`, `max`, `filesize`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $file = prontoo_module_file($relative);
     if (!is_file($file)) {
         $root = defined('PRONTOO_ROOT') ? PRONTOO_ROOT : dirname(__DIR__, 2);
@@ -49,6 +79,15 @@ function prontoo_require_module(string $relative): void
 
 function prontoo_require_modules(array $files): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_require_modules
+     * Responsabilidade: Avalia ou impõe a regra “prontoo require modules”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_load_runtime_core_modules`, `prontoo_load_full_runtime_modules`, `prontoo_load_route_modules`.
+     * Dependências chamadas: `prontoo_require_module`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($files as $file) {
         prontoo_require_module((string) $file);
     }
@@ -56,27 +95,74 @@ function prontoo_require_modules(array $files): void
 
 function prontoo_runtime_specialization_policy(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_runtime_specialization_policy
+     * Responsabilidade: Implementa a responsabilidade “prontoo runtime specialization policy” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return 'pi-v3-php-layered-runtime-route-loaded';
 }
 
 function prontoo_boot_requested_route(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_boot_requested_route
+     * Responsabilidade: Implementa a responsabilidade “prontoo boot requested route” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `preg_replace`.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $route = $_GET['r'] ?? 'login';
     return preg_replace('/[^a-z0-9_\-]/i', '', (string) $route) ?: 'login';
 }
 
 function prontoo_public_light_routes(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_public_light_routes
+     * Responsabilidade: Implementa a responsabilidade “prontoo public light routes” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return ['login', 'login_autotest', 'mobile_web_access', 'signup'];
 }
 
 function prontoo_use_light_boot(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_use_light_boot
+     * Responsabilidade: Implementa a responsabilidade “prontoo use light boot” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_load_runtime_core_modules`.
+     * Dependências chamadas: `getenv`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return (string) getenv('PRONTOO_DISABLE_LIGHT_BOOT') !== '1';
 }
 
 function prontoo_runtime_core_modules(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_runtime_core_modules
+     * Responsabilidade: Implementa a responsabilidade “prontoo runtime core modules” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_full_runtime_modules`, `prontoo_load_runtime_core_modules`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     return [
         'Support/Runtime.php',
         'Support/SecurityPrivacy.php',
@@ -100,6 +186,15 @@ function prontoo_runtime_core_modules(): array
 
 function prontoo_full_runtime_modules(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_full_runtime_modules
+     * Responsabilidade: Implementa a responsabilidade “prontoo full runtime modules” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_load_runtime_core_modules`, `prontoo_load_full_runtime_modules`, `prontoo_runtime_layer_coverage`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_merge`, `prontoo_runtime_core_modules`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return array_values(array_unique(array_merge(prontoo_runtime_core_modules(), [
         'Domain/Patients/Patients.php',
         'Domain/Appointments/Appointments.php',
@@ -116,6 +211,15 @@ function prontoo_full_runtime_modules(): array
 
 function prontoo_load_runtime_core_modules(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_load_runtime_core_modules
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “prontoo load runtime core modules” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `prontoo_require_modules`, `prontoo_use_light_boot`, `prontoo_runtime_core_modules`, `prontoo_full_runtime_modules`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $done = false;
     if ($done) {
         return;
@@ -126,6 +230,15 @@ function prontoo_load_runtime_core_modules(): void
 
 function prontoo_load_full_runtime_modules(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_load_full_runtime_modules
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “prontoo load full runtime modules” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run_runtime_maintenance_cycle`.
+     * Dependências chamadas: `prontoo_require_modules`, `prontoo_full_runtime_modules`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $done = false;
     if ($done) {
         return;
@@ -136,6 +249,15 @@ function prontoo_load_full_runtime_modules(): void
 
 function prontoo_load_route_modules(string $route): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_load_route_modules
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “prontoo load route modules” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `prontoo_route_module_groups`, `prontoo_require_modules`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $loaded = [];
     foreach (prontoo_route_module_groups($route) as $group => $files) {
         if (isset($loaded[$group])) {
@@ -148,6 +270,15 @@ function prontoo_load_route_modules(string $route): void
 
 function prontoo_route_module_groups(string $route): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_route_module_groups
+     * Responsabilidade: Implementa a responsabilidade “prontoo route module groups” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_load_route_modules`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $commonClinic = ['dashboards' => ['Pages/Dashboards.php']];
     $patients = ['patients' => ['Domain/Patients/Patients.php']];
     $leads = ['leads' => ['Domain/Leads/Leads.php']];
@@ -199,6 +330,15 @@ function prontoo_route_module_groups(string $route): array
 
 function prontoo_runtime_layer_coverage(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_runtime_layer_coverage
+     * Responsabilidade: Implementa a responsabilidade “prontoo runtime layer coverage” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `prontoo_full_runtime_modules`, `prontoo_module_layer`, `array_sum`, `count`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $modules = prontoo_full_runtime_modules();
     $layers = [];
     foreach ($modules as $module) {
@@ -216,6 +356,15 @@ function prontoo_runtime_layer_coverage(): array
 
 function prontoo_load_financial_guard_module(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_load_financial_guard_module
+     * Responsabilidade: Avalia ou impõe a regra “prontoo load financial guard module”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/ModuleLoader.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `prontoo_require_module`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $done = false;
     if ($done) {
         return;

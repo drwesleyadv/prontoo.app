@@ -13,10 +13,29 @@ use Prontoo\Core\Tenant\TenantRegistry;
 
 final class MutationInvariant
 {
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationInvariant::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function guard(string $sql, array $params = []): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationInvariant::guard
+         * Responsabilidade: Avalia ou impõe a regra “guard”, falhando de forma controlada quando a pré-condição não é satisfeita.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.InvariantKernel::guardMutation`.
+         * Dependências chamadas: `SqlExpression::operation`, `SqlExpression::targetTable`, `self::deny`, `TenantContext::resolve`, `TenantRegistry::scopeColumn`, `in_array`, `SqlExpression::parseInsert`, `is_string`, `self::assertReadonly`, `SqlExpression::whereExpression`, `ScopeProof::updateChangesScope`, `ScopeProof::whereStatus` e mais 11.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $operation = SqlExpression::operation($sql);
         if ($operation === null) {
             return;
@@ -166,6 +185,16 @@ final class MutationInvariant
         string $sql,
         int $clinicId,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationInvariant::assertReadonly
+         * Responsabilidade: Implementa a responsabilidade “assert readonly” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
+         * Dependências chamadas: `function_exists`, `ReadonlyPolicy::sqlAllowed`, `self::deny`.
+         * Estado externo lido: `$GLOBALS`, `$_POST`.
+         * Efeitos colaterais: consome dados da requisição HTTP.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
             return;
         }
@@ -196,6 +225,16 @@ final class MutationInvariant
         int $status = 500,
         string $publicMessage = "Proteção de isolamento: operação bloqueada por não preservar as invariantes do consultório ativo.",
     ): never {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationInvariant::deny
+         * Responsabilidade: Implementa a responsabilidade “deny” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Mutation.MutationInvariant::assertReadonly`.
+         * Dependências chamadas: `function_exists`, `error_log`, `hash`, `preg_replace`, `trim`.
+         * Classes ou serviços instanciados: `.ProntooHttpError`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);
         } else {
@@ -209,6 +248,15 @@ final class MutationInvariant
 
     public static function logicSelfTest(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationInvariant::logicSelfTest
+         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.InvariantKernel::logicSelfTest`.
+         * Dependências chamadas: `ScopeProof::logicSelfTest`, `ContextInvariantRegistry::logicSelfTest`, `.Core.Invariant.Workflow.AppointmentWorkflow::logicSelfTest`, `SqlExpression::targetTable`, `is_array`, `SqlExpression::parseInsert`, `SqlExpression::whereEqualityValues`, `ScopeProof::whereStatus`, `array_keys`, `array_filter`, `count`.
+         * Efeitos colaterais: pode gravar ou remover dados.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         */
         $scope = ScopeProof::logicSelfTest();
         $contexts = ContextInvariantRegistry::logicSelfTest();
         $workflow = \Prontoo\Core\Invariant\Workflow\AppointmentWorkflow::logicSelfTest();
@@ -223,6 +271,15 @@ final class MutationInvariant
                 "INSERT IGNORE INTO pi_tasks (clinic_id,title) VALUES (?,?)",
             )),
             "id_boundary" => (function (): bool {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Core/Invariant/Mutation/MutationInvariant.php:225
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                 * Local arquitetural: app/Core/Invariant/Mutation/MutationInvariant.php (núcleo de invariantes e decisões canônicas).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `SqlExpression::whereEqualityValues`.
+                 * Efeitos colaterais: pode gravar ou remover dados.
+                 * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+                 */
                 $complete = true;
                 $values = SqlExpression::whereEqualityValues(
                     "UPDATE pi_appointments SET status=? WHERE patient_link_id=? AND id=? AND clinic_id=?",
@@ -239,7 +296,7 @@ final class MutationInvariant
                 ["concluida", 17, 4],
             ) === ScopeProof::ACTIVE,
         ];
-        $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
         return [
             "ok" => $failed === [],
             "passed" => count($cases) - count($failed),

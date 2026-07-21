@@ -12,6 +12,16 @@ final class PdoActionProofStore implements ActionProofPort
 {
     public function write(string $route, array $context, Decision $decision): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Audit.PdoActionProofStore::write
+         * Responsabilidade: Valida e executa a mutação “write”, preservando as invariantes do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Audit/PdoActionProofStore.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `function_exists`, `error_log`, `bin2hex`, `random_bytes`, `Canonical::token`, `Canonical::hash`, `PiIntegrity::rewriteSqlForRuntime`, `->prepare`, `->execute`, `mb_substr`, `Canonical::json`, `->lastInsertId` e mais 1.
+         * Estado externo lido: `$_SESSION`, `$GLOBALS`.
+         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         */
         if (!function_exists('pdo')) {
             error_log('[Prontoo layered action ledger] PDO indisponível.');
             return false;

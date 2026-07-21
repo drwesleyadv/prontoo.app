@@ -25,6 +25,16 @@ final readonly class ActionContract
         public string $source,
         public array $producers = [],
     ) {
+        /*
+         * GUIA DE MANUTENÇÃO — Domain.Authorization.ActionContract::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Domain/Authorization/ActionContract.php (domínio e regras de negócio).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::resolve`, `Infrastructure.Authorization.RuntimeCapabilityProvider::logicSelfTest`.
+         * Dependências chamadas: `in_array`, `trim`.
+         * Classes ou serviços instanciados: `.InvalidArgumentException`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         if ($route === '' || $action === '') {
             throw new \InvalidArgumentException('Rota e ação são obrigatórias no contrato.');
         }
@@ -46,11 +56,29 @@ final readonly class ActionContract
 
     public function hash(): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Domain.Authorization.ActionContract::hash
+         * Responsabilidade: Implementa a responsabilidade “hash” dentro do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Authorization/ActionContract.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `Canonical::hash`, `->evidence`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         return Canonical::hash('action_contract', $this->evidence());
     }
 
     public function evidence(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Domain.Authorization.ActionContract::evidence
+         * Responsabilidade: Implementa a responsabilidade “evidence” dentro do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Authorization/ActionContract.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         return [
             'route' => $this->route,
             'action' => $this->action,

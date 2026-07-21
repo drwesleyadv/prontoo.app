@@ -5,10 +5,30 @@ namespace Prontoo\Infrastructure\Database;
 
 final class SeqContract
 {
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
+    }
 
     public static function assert(\PDO $pdo): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::assert
+         * Responsabilidade: Avalia ou impõe a regra “assert”, falhando de forma controlada quando a pré-condição não é satisfeita.
+         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `Core.Install.RuntimeContract::assert`, `prontoo_install`.
+         * Dependências chamadas: `self::tableExists`, `->query`, `->fetchAll`, `strtoupper`, `strtolower`, `preg_replace`, `str_contains`, `self::hasUniqueSeq`.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         if (self::tableExists($pdo, 'pi_sequence')) {
             throw new \RuntimeException('A tabela legada pi_sequence não pode existir no schema limpo.');
         }
@@ -40,6 +60,15 @@ final class SeqContract
 
     public static function max(\PDO $pdo): int
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::max
+         * Responsabilidade: Implementa a responsabilidade “max” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `seq_footer_max_seq`.
+         * Dependências chamadas: `->query`, `->fetchAll`, `preg_match`, `implode`, `->fetchColumn`, `max`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $tables = $pdo->query(
             "SELECT TABLE_NAME FROM information_schema.columns " .
             "WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='Seq' AND TABLE_NAME LIKE 'pi\\_%' ESCAPE '\\\\' " .
@@ -64,6 +93,15 @@ final class SeqContract
 
     private static function tableExists(\PDO $pdo, string $table): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::tableExists
+         * Responsabilidade: Implementa a responsabilidade “table exists” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `Infrastructure.Database.SeqContract::assert`.
+         * Dependências chamadas: `->prepare`, `->execute`, `->fetchColumn`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $stmt = $pdo->prepare(
             'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
         );
@@ -73,6 +111,15 @@ final class SeqContract
 
     private static function hasUniqueSeq(\PDO $pdo, string $table): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::hasUniqueSeq
+         * Responsabilidade: Implementa a responsabilidade “has unique seq” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `Infrastructure.Database.SeqContract::assert`.
+         * Dependências chamadas: `->prepare`, `->execute`, `->fetchColumn`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         $stmt = $pdo->prepare(
             "SELECT 1 FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name=? AND column_name='Seq' AND non_unique=0 LIMIT 1",
         );
