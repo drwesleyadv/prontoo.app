@@ -469,7 +469,7 @@ function audit_rows_light(
             audit_select_sql() .
                 " WHERE " .
                 audit_where_sql($where) .
-                " AND et.event_key NOT IN ('login_clinica_pendente','login_credencial_pendente') ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
+                " AND a.event_key NOT IN ('login_clinica_pendente','login_credencial_pendente') ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
             $p,
         )->fetchAll();
     } catch (Throwable $e) {

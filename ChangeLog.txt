@@ -1,3 +1,10 @@
+Prontoo 1.7.21.4 — contrato runtime e leitura de auditoria
+
+- Remove do `RuntimeContract` a dependência residual de `CleanInstallReset`, já eliminada no hardening anterior.
+- Corrige o filtro da auditoria compacta para usar o alias real `a.event_key`, eliminando os erros SQL 1054.
+- Adiciona verificação regressiva no workflow para impedir o retorno das duas referências inválidas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
 Prontoo 1.7.21.3 — instalador local e congelamento estrutural
 
 - Restringe `install.php` ao loopback e a host local explícito, com bloqueio no servidor web e antes do bootstrap PHP.
