@@ -110,11 +110,11 @@ jobs:
           if old_marker not in body:
               raise RuntimeError('Marcador antigo do teste de localhost não encontrado no finalizador.')
           body = body.replace(old_marker, new_marker, 1)
-          old_native_path = "'tools/install-security-check.php'"
-          new_native_path = "'app/Core/Database/SchemaHardening.php'"
-          if old_native_path not in body:
-              raise RuntimeError('Classificação nativa temporária não encontrada no finalizador.')
-          body = body.replace(old_native_path, new_native_path, 1)
+          old_native_entry = '"        \'tools/install-security-check.php\',\\n"'
+          new_native_entry = '"        \'app/Core/Database/SchemaHardening.php\',\\n"'
+          if old_native_entry not in body:
+              raise RuntimeError('Entrada nativa temporária não encontrada no mapa arquitetural.')
+          body = body.replace(old_native_entry, new_native_entry, 1)
           Path('/tmp/finalize-hardening.py').write_text(body, encoding='utf-8')
           PY
 
