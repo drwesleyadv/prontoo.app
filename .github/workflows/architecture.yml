@@ -105,6 +105,11 @@ jobs:
               raise RuntimeError('Fim do finalizador v3 não encontrado.')
           lines = source[body_start:body_end].splitlines()
           body = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n'
+          old_marker = "old = '$actual = InstallAccess::isLocalHttpRequest();'\nnew = '$actual = InstallAccess::isLocalServer($_SERVER);'"
+          new_marker = "old = 'if (InstallAccess::isLocalHttpRequest() !== $expected) {'\nnew = 'if (InstallAccess::isLocalServer($_SERVER) !== $expected) {'"
+          if old_marker not in body:
+              raise RuntimeError('Marcador antigo do teste de localhost não encontrado no finalizador.')
+          body = body.replace(old_marker, new_marker, 1)
           Path('/tmp/finalize-hardening.py').write_text(body, encoding='utf-8')
           PY
 
