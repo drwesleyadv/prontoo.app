@@ -18,7 +18,7 @@ final class SchemaMutationLock
          * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
          * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
          */
     }
 
@@ -33,10 +33,10 @@ final class SchemaMutationLock
          * Classes ou serviços instanciados: `.RuntimeException`.
          * Estado externo lido: `$GLOBALS`.
          * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
          */
         if (!self::mayOpenInstallerWindow()) {
-            throw new \RuntimeException('A janela estrutural só pode ser aberta pelo instalador local ou pela certificação controlada.');
+            throw new \RuntimeException('A janela estrutural só pode ser aberta pelo instalador autorizado ou pela certificação controlada.');
         }
         if (self::$depth !== 0 || self::$nonce !== null) {
             throw new \RuntimeException('Janela estrutural já está ativa.');
@@ -65,7 +65,7 @@ final class SchemaMutationLock
          * Dependências chamadas: `hash_equals`.
          * Estado externo lido: `$GLOBALS`.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
          */
         $provided = (string) ($GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE'] ?? '');
         return self::$depth === 1 &&
@@ -84,7 +84,7 @@ final class SchemaMutationLock
          * Dependências chamadas: `self::isActive`.
          * Classes ou serviços instanciados: `.RuntimeException`.
          * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
          */
         if (!self::isActive()) {
             throw new \RuntimeException('A estrutura do banco está congelada fora da janela privada do instalador.');
@@ -98,14 +98,14 @@ final class SchemaMutationLock
          * Responsabilidade: Implementa a responsabilidade “may open installer window” dentro do módulo de núcleo de invariantes e decisões canônicas.
          * Local arquitetural: app/Core/Database/SchemaMutationLock.php (núcleo de invariantes e decisões canônicas).
          * Chamadores detectados: `Core.Database.SchemaMutationLock::runForInstaller`.
-         * Dependências chamadas: `getenv`, `InstallAccess::isLocalHttpRequest`.
+         * Dependências chamadas: `getenv`, `InstallAccess::isInstallerExecutionAllowed`.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
          */
         if (PHP_SAPI === 'cli') {
             return (string) getenv('PRONTOO_SCHEMA_TEST_MODE') === '1' ||
                 (string) getenv('PRONTOO_ALLOW_LOCAL_INSTALL') === '1';
         }
-        return InstallAccess::isLocalHttpRequest();
+        return InstallAccess::isInstallerExecutionAllowed($_SERVER);
     }
 }

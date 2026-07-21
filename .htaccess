@@ -10,8 +10,11 @@ FileETag None
     Require all denied
 </Files>
 
+# Janela pública temporária do instalador.
+# O controle efetivo permanece em app/Core/Install/InstallAccess.php e expira
+# automaticamente em 2026-07-22T01:55:41Z (21/07/2026 21:55:41 em Cuiabá).
 <Files "install.php">
-    Require local
+    Require all granted
 </Files>
 
 <IfModule mod_rewrite.c>
