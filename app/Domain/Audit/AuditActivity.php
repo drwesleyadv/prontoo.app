@@ -1713,24 +1713,33 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
     if ($uid <= 0) {
         return "";
     }
-    $key = ($cid ? "c" . $cid . ":" : "g:") . $uid;
-    if (array_key_exists($key, $cache)) {
-        return $cache[$key];
+    $memoryKey = ($cid ? "c" . $cid . ":" : "g:") . $uid;
+    if (array_key_exists($memoryKey, $cache)) {
+        return $cache[$memoryKey];
     }
-    try {
-        if ($cid) {
-            $u = one(
-                "SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1",
-                [$uid, $cid],
-            );
-        } else {
-            $u = one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
+    $loader = static function () use ($uid, $cid): string {
+        try {
+            $u = $cid
+                ? one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
+                : one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
+            return trim((string) ($u["name"] ?? ""));
+        } catch (Throwable $e) {
+            error_log("[Prontoo audit user lookup] " . $e->getMessage());
+            return "";
         }
-        $cache[$key] = trim((string) ($u["name"] ?? ""));
-    } catch (Throwable $e) {
-        $cache[$key] = "";
+    };
+    if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
+        $cache[$memoryKey] = (string) server_json_cache_remember(
+            "lookup",
+            server_json_cache_safe_key("audit_user_name", [$cid ?: 0, $uid]),
+            server_json_cache_ttl("lookup"),
+            $loader,
+            ["table:pi_users", "table:pi_user_roles", "scope:" . ($cid ?: 0)],
+        );
+    } else {
+        $cache[$memoryKey] = $loader();
     }
-    return $cache[$key];
+    return $cache[$memoryKey];
 }
 function audit_clinic_name_lookup(int $cid): string
 {
@@ -1741,11 +1750,25 @@ function audit_clinic_name_lookup(int $cid): string
     if (array_key_exists($cid, $cache)) {
         return $cache[$cid];
     }
-    try {
-        $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
-        $cache[$cid] = trim((string) ($cl["display_name"] ?? ""));
-    } catch (Throwable $e) {
-        $cache[$cid] = "";
+    $loader = static function () use ($cid): string {
+        try {
+            $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
+            return trim((string) ($cl["display_name"] ?? ""));
+        } catch (Throwable $e) {
+            error_log("[Prontoo audit clinic lookup] " . $e->getMessage());
+            return "";
+        }
+    };
+    if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
+        $cache[$cid] = (string) server_json_cache_remember(
+            "clinic",
+            server_json_cache_safe_key("audit_clinic_name", $cid),
+            server_json_cache_ttl("clinic"),
+            $loader,
+            ["table:pi_clinics", "scope:" . $cid],
+        );
+    } else {
+        $cache[$cid] = $loader();
     }
     return $cache[$cid];
 }
@@ -2774,25 +2797,40 @@ function audit_preview_for_appointment(int $cid, int $appointmentId): string
 }
 function audit_team_filter_options(int $cid): array
 {
-    try {
-        $rows = q(
-            "SELECT DISTINCT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 ORDER BY u.name ASC",
-            [$cid],
-        )->fetchAll();
-    } catch (Throwable $e) {
-        $rows = [];
+    if ($cid <= 0) {
+        return [];
     }
-    $out = [];
-    foreach ($rows as $r) {
-        $id = (int) ($r["id"] ?? 0);
-        $name = trim((string) ($r["name"] ?? ""));
-        if ($id <= 0 || $name === "") {
-            continue;
+    $loader = static function () use ($cid): array {
+        try {
+            $rows = q(
+                "SELECT DISTINCT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 ORDER BY u.name ASC",
+                [$cid],
+            )->fetchAll();
+        } catch (Throwable $e) {
+            error_log("[Prontoo audit team lookup] " . $e->getMessage());
+            return [];
         }
-        $first = preg_split("/\s+/u", $name)[0] ?? $name;
-        $out[$id] = $first;
+        $out = [];
+        foreach ($rows as $r) {
+            $id = (int) ($r["id"] ?? 0);
+            $name = trim((string) ($r["name"] ?? ""));
+            if ($id <= 0 || $name === "") {
+                continue;
+            }
+            $out[$id] = preg_split("/\s+/u", $name)[0] ?? $name;
+        }
+        return $out;
+    };
+    if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
+        return (array) server_json_cache_remember(
+            "lookup",
+            server_json_cache_safe_key("audit_team", $cid),
+            server_json_cache_ttl("lookup"),
+            $loader,
+            ["table:pi_users", "table:pi_user_roles", "scope:" . $cid],
+        );
     }
-    return $out;
+    return $loader();
 }
 function audit_activity_day_name(
     string $day,

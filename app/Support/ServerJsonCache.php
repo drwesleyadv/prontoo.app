@@ -61,32 +61,40 @@ function server_json_cache_metrics_snapshot(): array
 
 function server_json_cache_root(): string
 {
-    $dir = storage_path("cache/server-json");
-    if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
-        return $dir;
+    static $resolved = null;
+    if (is_string($resolved)) {
+        return $resolved;
+    }
+    $resolved = storage_path("cache/server-json");
+    if (!is_dir($resolved) && !@mkdir($resolved, 0750, true) && !is_dir($resolved)) {
+        return $resolved;
     }
     if (function_exists("security_storage_deny_file")) {
-        security_storage_deny_file($dir);
+        security_storage_deny_file($resolved);
     } else {
-        $deny = $dir . "/.htaccess";
+        $deny = $resolved . "/.htaccess";
         if (!is_file($deny)) {
             @file_put_contents($deny, "Require all denied\n", LOCK_EX);
         }
     }
-    return $dir;
+    return $resolved;
 }
 
 function server_json_cache_category_dir(string $category): string
 {
+    static $resolved = [];
     $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
+    if (isset($resolved[$category])) {
+        return $resolved[$category];
+    }
     $dir = server_json_cache_root() . "/" . $category;
     if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
-        return $dir;
+        return $resolved[$category] = $dir;
     }
     if (function_exists("security_storage_deny_file")) {
         security_storage_deny_file($dir);
     }
-    return $dir;
+    return $resolved[$category] = $dir;
 }
 
 function server_json_cache_ttl(string $category): int

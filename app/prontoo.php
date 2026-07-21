@@ -42,7 +42,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.21.4";
+const PRONTOO_VERSION_FALLBACK = "1.7.21.5";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -153,7 +153,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.21.3";
+const PRONTOO_PREVIOUS_VERSION = "1.7.21.4";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
@@ -255,112 +255,6 @@ class ProntooHttpError extends RuntimeException
 }
 require_once __DIR__ . "/bootstrap_architecture.php";
 require_once __DIR__ . "/bootstrap_specialized.php";
-function prontoo_release_cleanup_1_7_14_8(): void
-{
-    static $done = false;
-    if ($done || (string) getenv("PRONTOO_UPDATE_VALIDATION") === "1") {
-        return;
-    }
-    $done = true;
-    $cacheDir = storage_path("cache");
-    if (!is_dir($cacheDir)) {
-        prontoo_fs_mkdir($cacheDir, 0750);
-    }
-    $releaseManifestPayload = PRONTOO_ROOT . "/app/release.manifest.json";
-    if (is_file($releaseManifestPayload)) {
-        $raw = @file_get_contents($releaseManifestPayload);
-        $json = is_string($raw) ? json_decode($raw, true) : null;
-        if (is_array($json) &&
-            trim((string) ($json["version"] ?? "")) === PRONTOO_VERSION &&
-            trim((string) ($json["release"] ?? "")) === PRONTOO_VERSION) {
-            prontoo_fs_write(
-                PRONTOO_ROOT . "/app/update.manifest.json",
-                rtrim((string) $raw) . PHP_EOL,
-            );
-        }
-        prontoo_fs_unlink($releaseManifestPayload, false);
-    }
-    $marker = $cacheDir . "/release_cleanup_1_7_14_8.json";
-    if (is_file($marker)) {
-        return;
-    }
-    $removed = [];
-    $removeFile = static function (string $path) use (&$removed): void {
-        if (!is_file($path)) {
-            return;
-        }
-        if (prontoo_fs_unlink($path, false)) {
-            $removed[] = str_replace(PRONTOO_ROOT . "/", "", $path);
-        }
-    };
-    $obsoleteRevisions = [
-        "1.7.13.1",
-        "1.7.13.2",
-        "1.7.13.3",
-        "1.7.13.4",
-        "1.7.13.5",
-        "1.7.13.9",
-        "1.7.14.6",
-    ];
-    foreach ($obsoleteRevisions as $revision) {
-        foreach (["app-icon", "favicon", "prontoo-mark"] as $name) {
-            $removeFile(
-                PRONTOO_ROOT .
-                    "/public/assets/" .
-                    $name .
-                    "-" .
-                    $revision .
-                    ".png",
-            );
-        }
-        $removeFile(
-            PRONTOO_ROOT .
-                "/public/assets/favicon-" .
-                $revision .
-                ".ico",
-        );
-        $removeFile(
-            PRONTOO_ROOT . "/public/assets/pix-" . $revision . ".svg",
-        );
-    }
-    $removeFile($cacheDir . "/br_landing_devices.json");
-    $removeFile($cacheDir . "/br_landing_devices.json.lock");
-    foreach (
-        [
-            $cacheDir . "/public_platform_stats_*.json",
-            $cacheDir . "/public_platform_stats_*.json.lock",
-            $cacheDir . "/public_database_record_total_*.json",
-            $cacheDir . "/public_database_record_total_*.json.lock",
-        ]
-        as $pattern
-    ) {
-        foreach (glob($pattern) ?: [] as $file) {
-            $removeFile((string) $file);
-        }
-    }
-    $currentSchemaMarker = function_exists("prontoo_schema_boot_marker_path")
-        ? prontoo_schema_boot_marker_path()
-        : "";
-    foreach ($cacheDir !== "" ? glob($cacheDir . "/prontoo_schema_boot_*.json") ?: [] : [] as $file) {
-        if ($currentSchemaMarker !== "" && $file === $currentSchemaMarker) {
-            continue;
-        }
-        $removeFile((string) $file);
-    }
-    $payload = json_encode(
-        [
-            "ok" => true,
-            "version" => PRONTOO_VERSION,
-            "removed" => count($removed),
-            "at" => date("c"),
-        ],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-    );
-    if (is_string($payload)) {
-        prontoo_fs_write($marker, $payload);
-    }
-}
-prontoo_release_cleanup_1_7_14_8();
 if (function_exists("server_json_cache_register_deferred_invalidation")) {
     server_json_cache_register_deferred_invalidation();
 }

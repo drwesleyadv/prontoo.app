@@ -77,6 +77,40 @@ jobs:
             }
           '
 
+      - name: Maturity and runtime performance regressions
+        shell: bash
+        run: |
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $runtime = (string) file_get_contents("app/prontoo.php");
+          if (str_contains($runtime, "prontoo_release_cleanup_1_7_14_8")) {
+              throw new RuntimeException("Limpeza histórica voltou ao hot path");
+          }
+          $loader = (string) file_get_contents("app/Support/ModuleLoader.php");
+          $core = strstr($loader, "function prontoo_full_runtime_modules", true);
+          if (str_contains((string) $core, "Install/Installer.php")) {
+              throw new RuntimeException("Instalador voltou ao bootstrap comum");
+          }
+          $install = (string) file_get_contents("install.php");
+          if (!str_contains($install, 'prontoo_require_module("Install/Installer.php")')) {
+              throw new RuntimeException("Instalador local não é carregado explicitamente");
+          }
+          $cache = (string) file_get_contents("app/Support/ServerJsonCache.php");
+          if (!str_contains($cache, "static $resolved")) {
+              throw new RuntimeException("Memoização dos diretórios de cache ausente");
+          }
+          $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
+          foreach (["audit_user_name", "audit_clinic_name", "audit_team"] as $key) {
+              if (!str_contains($audit, $key)) {
+                  throw new RuntimeException("Cache de lookup ausente: " . $key);
+              }
+          }
+          if (hash_file("sha256", "app/Database/schema.sql") !== "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33") {
+              throw new RuntimeException("schema.sql alterado");
+          }
+          PHP
+
       - name: Release manifest
         shell: bash
         run: |

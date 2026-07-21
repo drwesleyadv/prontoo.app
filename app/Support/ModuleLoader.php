@@ -95,15 +95,12 @@ function prontoo_runtime_core_modules(): array
         'Ui/PublicWeb.php',
         'Auth/AuthOnboarding.php',
         'Runtime/Runner.php',
-        'Install/Installer.php',
     ];
 }
 
 function prontoo_full_runtime_modules(): array
 {
     return array_values(array_unique(array_merge(prontoo_runtime_core_modules(), [
-        'Domain/Clinic/ClinicConfig.php',
-        'Domain/Clinic/SubscriptionSettings.php',
         'Domain/Patients/Patients.php',
         'Domain/Appointments/Appointments.php',
         'Domain/Leads/Leads.php',
@@ -111,8 +108,6 @@ function prontoo_full_runtime_modules(): array
         'Domain/Documents/DocumentPdf.php',
         'Domain/Tasks/TasksNotices.php',
         'Domain/Financial/Financial.php',
-        'Domain/Permissions/UsersPermissions.php',
-        'Domain/Audit/AuditActivity.php',
         'Domain/Maestro/Maestro.php',
         'Admin/AdminPages.php',
         'Pages/Dashboards.php',
