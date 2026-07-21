@@ -2,6 +2,15 @@
 declare(strict_types=1);
 function platform_storage_status(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — platform_storage_status
+     * Responsabilidade: Implementa a responsabilidade “platform storage status” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `platform_backend_selftest`.
+     * Dependências chamadas: `storage_path`, `is_dir`, `is_writable`, `function_exists`, `disk_free_space`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $dir = storage_path();
     $ok = is_dir($dir) && is_writable($dir);
     $free = function_exists("disk_free_space") ? @disk_free_space($dir) : false;
@@ -12,6 +21,15 @@ function platform_storage_status(): array
 }
 function admin_scope_guard_definition(string $key): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_scope_guard_definition
+     * Responsabilidade: Avalia ou impõe a regra “admin scope guard definition”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_scope_evidence_html`, `admin_scope_guard_timeline_item`, `page_admin_painel`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $definitions = [
         "write_in_read_only" => [
             "tier" => "policy",
@@ -184,6 +202,15 @@ function admin_scope_guard_definition(string $key): array
 }
 function admin_scope_guard_stats(int $hours = 24): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_scope_guard_stats
+     * Responsabilidade: Avalia ou impõe a regra “admin scope guard stats”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`, `page_admin_security`.
+     * Dependências chamadas: `max`, `min`, `implode`, `array_map`, `admin_model_clinic_exclude_sql`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hours = max(1, min(24 * 30, $hours));
     $objectiveKeys = [
         "write_without_clinic_scope",
@@ -198,7 +225,7 @@ function admin_scope_guard_stats(int $hours = 24): array
     ];
     $quoted = implode(
         ",",
-        array_map(static fn($key) => "'" . $key . "'", $objectiveKeys),
+        array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($key) => "'" . $key . "'", $objectiveKeys),
     );
     $modelWhere = admin_model_clinic_exclude_sql("sv.clinic_id");
     try {
@@ -236,6 +263,15 @@ function admin_scope_guard_groups(
     int $limit = 30,
     bool $includePolicy = false,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_scope_guard_groups
+     * Responsabilidade: Avalia ou impõe a regra “admin scope guard groups”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`, `page_admin_security`.
+     * Dependências chamadas: `max`, `min`, `admin_model_clinic_exclude_sql`, `q`, `->fetchAll`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hours = max(1, min(24 * 30, $hours));
     $limit = max(1, min(80, $limit));
     $modelWhere = admin_model_clinic_exclude_sql("sv.clinic_id");
@@ -259,6 +295,15 @@ function admin_scope_guard_groups(
 }
 function admin_scope_evidence_html(array $row, bool $compact = false): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_scope_evidence_html
+     * Responsabilidade: Monta a representação de interface associada a “admin scope evidence html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_scope_guard_timeline_item`, `page_admin_painel`.
+     * Dependências chamadas: `admin_scope_guard_definition`, `function_exists`, `scope_violation_detail_decode`, `trim`, `first_name`, `array_values`, `array_filter`, `substr`, `e`, `implode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $key = (string) ($row["violation_key"] ?? "");
     $definition = admin_scope_guard_definition($key);
     $payload = function_exists("scope_violation_detail_decode")
@@ -319,6 +364,15 @@ function admin_scope_evidence_html(array $row, bool $compact = false): string
 }
 function admin_scope_guard_timeline_item(array $row): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_scope_guard_timeline_item
+     * Responsabilidade: Avalia ou impõe a regra “admin scope guard timeline item”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_security`.
+     * Dependências chamadas: `admin_scope_guard_definition`, `trim`, `max`, `dt_br`, `admin_scope_evidence_html`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $definition = admin_scope_guard_definition(
         (string) ($row["violation_key"] ?? ""),
     );
@@ -351,6 +405,15 @@ function admin_scope_guard_timeline_item(array $row): array
 }
 function platform_backend_selftest(array $preloaded = []): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — platform_backend_selftest
+     * Responsabilidade: Implementa a responsabilidade “platform backend selftest” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`.
+     * Dependências chamadas: `val`, `platform_storage_status`, `admin_model_clinic_exclude_sql`, `admin_model_clinic_exclude_where`, `array_key_exists`, `cached_val`, `admin_model_clinic_id`, `class_exists`, `.Core.Database.SqlScopeGuard::logicSelfTest`, `function_exists`, `scope_guard_context_selftest`, `cache_remember` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $checks = [];
     $ok = true;
     try {
@@ -401,6 +464,15 @@ function platform_backend_selftest(array $preloaded = []): array
         "platform_selftest_integrity_alerts_" . admin_model_clinic_id(),
         60,
         static function () use ($auditModelWhere): int {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:403
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+             * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `audit_rows_light`, `verify_audit_row`.
+             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+             */
             $alerts = 0;
             try {
                 foreach (audit_rows_light($auditModelWhere, [], 50) as $row) {
@@ -425,6 +497,15 @@ function platform_backend_selftest(array $preloaded = []): array
 }
 function platform_autotest_actions(array $checks): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — platform_autotest_actions
+     * Responsabilidade: Implementa a responsabilidade “platform autotest actions” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `platform_login_loaded_audit`.
+     * Dependências chamadas: `is_array`, `implode`, `array_map`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $actions = [];
     if (empty($checks["database"])) {
         $actions[] = "Banco de dados indisponível no autoteste do login.";
@@ -477,6 +558,15 @@ function platform_login_loaded_audit(
     array $checks,
     bool $autoLogin = false,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — platform_login_loaded_audit
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “platform login loaded audit”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_login_autotest`.
+     * Dependências chamadas: `security_client_bucket`, `security_rate_limit`, `audit`, `platform_autotest_actions`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     try {
         $bucket = security_client_bucket("login_loaded_audit");
         if (!security_rate_limit($bucket, 1, 300)) {
@@ -508,6 +598,15 @@ function platform_login_loaded_audit(
 }
 function admin_nav_parent(string $route): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_nav_parent
+     * Responsabilidade: Implementa a responsabilidade “admin nav parent” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `cmdbar_parent_key`, `page`, `context_parent_for_route`, `page_head_icon_name`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match ($route) {
         "admin_stats", "admin_operations" => "admin_painel",
         "admin_onboarding",
@@ -535,6 +634,15 @@ function stat_link_card(
     string $note = "",
     string $route = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — stat_link_card
+     * Responsabilidade: Monta a representação de interface associada a “stat link card” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_health`, `page_admin_painel`.
+     * Dependências chamadas: `icon`, `n`, `e`, `href`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $inner =
         icon($iconName) .
         "<div><b>" .
@@ -555,6 +663,15 @@ function stat_link_card(
 if (!function_exists("admin_choice_card")) {
     function admin_choice_card(): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — admin_choice_card
+         * Responsabilidade: Monta a representação de interface associada a “admin choice card” sem alterar o contrato visual externo.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `e`, `icon`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return '<button class="clinic-choice credential-choice admin-choice" type="submit" name="act" value="choose_admin"><span class="credential-icon app-brandmark-inline" data-app-brandmark><img class="auth-brandmark-favicon app-brandmark-img" src="/public/assets/app-icon-' .
             e(PRONTOO_ASSET_REV) .
             '.png" alt="" aria-hidden="true"></span><span class="credential-main"><span class="credential-role">Desenvolvedor</span><span class="credential-context"><span>Desenvolvedor Prontoo</span><small>Gerenciamento técnico da plataforma</small></span></span><span class="credential-enter">' .
@@ -564,6 +681,15 @@ if (!function_exists("admin_choice_card")) {
 }
 function admin_global_timezone_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_timezone_options
+     * Responsabilidade: Implementa a responsabilidade “admin global timezone options” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_maintenance`.
+     * Dependências chamadas: `in_array`, `timezone_identifiers_list`, `str_starts_with`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $priority = [
         "America/Cuiaba" => "Cuiabá / Mato Grosso",
         "America/Sao_Paulo" => "Brasília / São Paulo",
@@ -590,6 +716,15 @@ function admin_global_timezone_options(): array
 }
 function admin_quick_links(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_quick_links
+     * Responsabilidade: Implementa a responsabilidade “admin quick links” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `href`, `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $links = [
         [
             "admin_painel",
@@ -645,6 +780,15 @@ function admin_quick_links(): string
 }
 function human_bytes(float $bytes): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — human_bytes
+     * Responsabilidade: Implementa a responsabilidade “human bytes” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_diagnostics`.
+     * Dependências chamadas: `count`, `number_format`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $u = ["B", "KB", "MB", "GB", "TB"];
     $i = 0;
     while ($bytes >= 1024 && $i < count($u) - 1) {
@@ -658,6 +802,15 @@ function bool_status(
     string $okTxt = "OK",
     string $badTxt = "Atenção",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — bool_status
+     * Responsabilidade: Implementa a responsabilidade “bool status” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_diagnostics`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $ok ? $okTxt : $badTxt;
 }
 function admin_global_compact_pill(
@@ -667,6 +820,15 @@ function admin_global_compact_pill(
     string $note = "",
     string $route = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_compact_pill
+     * Responsabilidade: Implementa a responsabilidade “admin global compact pill” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_global_ops_finance_html`.
+     * Dependências chamadas: `icon`, `e`, `href`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $inner =
         icon($iconName) .
         "<b>" .
@@ -685,10 +847,37 @@ function admin_global_compact_pill(
 }
 function admin_global_ops_finance_html(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_ops_finance_html
+     * Responsabilidade: Monta a representação de interface associada a “admin global ops finance html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_operations`.
+     * Dependências chamadas: `safe_val`, `admin_model_clinic_exclude_sql`, `lead_active_stage_sql`, `icon`, `admin_global_compact_pill`, `money_br`.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $qInt = function (string $sql, array $p = []): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:688
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `safe_val`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return (int) safe_val($sql, $p, 0);
     };
     $qCents = function (string $sql, array $p = []): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:691
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `safe_val`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return (int) safe_val($sql, $p, 0);
     };
     $since = "DATE_SUB(NOW(), INTERVAL 30 DAY)";
@@ -875,6 +1064,16 @@ function admin_global_ops_finance_html(): string
 }
 function admin_global_metric_series_24h(string $metric): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_metric_series_24h
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin global metric series 24h”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_global_perf_charts_html`.
+     * Dependências chamadas: `is_array`, `telemetry_cuiaba_tz`, `DateTimeImmutable`, `->getTimestamp`, `->setTimezone`, `->format`, `telemetry_read_events`, `floor`, `max`, `round`, `array_values`.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $requestSeries = null;
     $metric = $metric === "response" ? "query_ms" : $metric;
     if (!is_array($requestSeries)) {
@@ -951,6 +1150,15 @@ function admin_metric_duration_label(
     float $milliseconds,
     bool $compact = false,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_duration_label
+     * Responsabilidade: Monta a representação de interface associada a “admin metric duration label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_metric_value_label`, `admin_metric_value_compact`.
+     * Dependências chamadas: `max`, `number_format`, `preg_replace`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $milliseconds = max(0.0, $milliseconds);
     if ($milliseconds >= 1000.0) {
         $seconds = $milliseconds / 1000.0;
@@ -964,6 +1172,15 @@ function admin_metric_duration_label(
 }
 function admin_metric_value_label(float $value, string $mode): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_value_label
+     * Responsabilidade: Monta a representação de interface associada a “admin metric value label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_metric_line_chart`, `admin_metric_dual_area_chart`.
+     * Dependências chamadas: `admin_metric_duration_label`, `number_format`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($mode === "ms") {
         return admin_metric_duration_label($value, false);
     }
@@ -971,10 +1188,28 @@ function admin_metric_value_label(float $value, string $mode): string
 }
 function admin_metric_value_compact(float $value, string $mode): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_value_compact
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin metric value compact”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_metric_line_chart`, `admin_metric_dual_area_chart`.
+     * Dependências chamadas: `admin_metric_duration_label`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return admin_metric_duration_label($value, true);
 }
 function admin_metric_recent_average(array $series, int $minutes = 5): float
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_recent_average
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin metric recent average”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_metric_line_chart`, `admin_metric_dual_area_chart`.
+     * Dependências chamadas: `array_slice`, `max`, `is_array`, `round`, `array_sum`, `count`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $recent = array_slice($series, -max(1, $minutes));
     $weightedSum = 0.0;
     $weightedCount = 0;
@@ -1004,7 +1239,16 @@ function admin_metric_line_chart(
     string $iconName,
     string $mode = "count",
 ): string {
-    $values = array_map(fn($r) => (float) ($r["value"] ?? 0), $series);
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_line_chart
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin metric line chart”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_map`, `max`, `count`, `round`, `trim`, `admin_metric_recent_average`, `array_values`, `array_filter`, `array_sum`, `array_slice`, `e`, `number_format` e mais 5.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
+    $values = array_map(/* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (float) ($r["value"] ?? 0), $series);
     if (!$values) {
         $values = [0.0];
     }
@@ -1058,12 +1302,12 @@ function admin_metric_line_chart(
     $last = $points ? $points[count($points) - 1][2] : 0.0;
     $nowAvg5 = admin_metric_recent_average($series, 5);
     $nonZero = array_values(
-        array_filter($values, static fn($v) => (float) $v > 0),
+        array_filter($values, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => (float) $v > 0),
     );
     $avg24 = count($nonZero) ? array_sum($nonZero) / count($nonZero) : 0.0;
     $recentValues = array_slice($values, -31);
     $recentNonZero = array_values(
-        array_filter($recentValues, static fn($v) => (float) $v > 0),
+        array_filter($recentValues, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => (float) $v > 0),
     );
     $avg30 = count($recentNonZero)
         ? array_sum($recentNonZero) / count($recentNonZero)
@@ -1194,9 +1438,18 @@ function admin_metric_dual_area_chart(
     array $responseSeries,
     string $iconName = "speed",
 ): string {
-    $loadValues = array_map(fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_dual_area_chart
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin metric dual area chart”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_global_perf_charts_html`.
+     * Dependências chamadas: `array_map`, `max`, `count`, `round`, `trim`, `e`, `number_format`, `ceil`, `admin_metric_value_label`, `admin_metric_recent_average`, `array_values`, `array_filter` e mais 5.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
+    $loadValues = array_map(/* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
     $responseValues = array_map(
-        fn($r) => (float) ($r["value"] ?? 0),
+        /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (float) ($r["value"] ?? 0),
         $responseSeries,
     );
     if (!$loadValues) {
@@ -1225,6 +1478,15 @@ function admin_metric_dual_area_chart(
         $plotH,
         $max,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:1221
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `count`, `max`, `round`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $n = count($series);
         $points = [];
         foreach ($series as $idx => $row) {
@@ -1242,6 +1504,15 @@ function admin_metric_dual_area_chart(
         return $points;
     };
     $path = static function (array $points): string {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:1244
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $d = "";
         foreach ($points as $i => $pt) {
             $d .= ($i === 0 ? "M" : "L") . $pt[0] . " " . $pt[1] . " ";
@@ -1253,6 +1524,15 @@ function admin_metric_dual_area_chart(
         array $points,
         float $baseline,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:1251
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `count`, `round`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!$points || $d === "") {
             return "";
         }
@@ -1340,14 +1620,14 @@ function admin_metric_dual_area_chart(
     }
     $nowAvg5 = admin_metric_recent_average($loadSeries, 5);
     $loadNonZero = array_values(
-        array_filter($loadValues, static fn($v) => (float) $v > 0),
+        array_filter($loadValues, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => (float) $v > 0),
     );
     $avg24 = count($loadNonZero)
         ? array_sum($loadNonZero) / count($loadNonZero)
         : 0.0;
     $recentValues = array_slice($loadValues, -31);
     $recentNonZero = array_values(
-        array_filter($recentValues, static fn($v) => (float) $v > 0),
+        array_filter($recentValues, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => (float) $v > 0),
     );
     $avg30 = count($recentNonZero)
         ? array_sum($recentNonZero) / count($recentNonZero)
@@ -1456,6 +1736,16 @@ function admin_metric_dual_area_chart(
 }
 function admin_global_sequence_series_30d(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_sequence_series_30d
+     * Responsabilidade: Implementa a responsabilidade “admin global sequence series 30d” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_global_perf_charts_html`.
+     * Dependências chamadas: `telemetry_cuiaba_tz`, `DateTimeImmutable`, `->modify`, `->format`, `->getTimestamp`, `function_exists`, `db_table_exists`, `array_values`, `implode`, `array_key_first`, `array_key_last`, `q` e mais 3.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $tz = telemetry_cuiaba_tz();
     $today = new DateTimeImmutable("today", $tz);
     $days = [];
@@ -1511,6 +1801,15 @@ function admin_global_sequence_series_30d(): array
 }
 function admin_sequence_average(array $series, int $days): float
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_sequence_average
+     * Responsabilidade: Implementa a responsabilidade “admin sequence average” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_metric_bar_chart`.
+     * Dependências chamadas: `array_slice`, `max`, `round`, `count`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $recent = array_slice($series, -max(1, $days));
     if (!$recent) {
         return 0.0;
@@ -1527,7 +1826,16 @@ function admin_metric_bar_chart(
     string $iconName,
     string $unitLabel = "registros",
 ): string {
-    $values = array_map(fn($r) => (float) ($r["value"] ?? 0), $series);
+    /*
+     * GUIA DE MANUTENÇÃO — admin_metric_bar_chart
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “admin metric bar chart”.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_global_perf_charts_html`.
+     * Dependências chamadas: `array_map`, `max`, `count`, `min`, `round`, `e`, `number_format`, `admin_sequence_average`, `floor`, `icon`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
+    $values = array_map(/* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (float) ($r["value"] ?? 0), $series);
     if (!$values) {
         $values = [0.0];
     }
@@ -1606,7 +1914,7 @@ function admin_metric_bar_chart(
     $avg5 = admin_sequence_average($series, 5);
     $avg15 = admin_sequence_average($series, 15);
     $avg30 = admin_sequence_average($series, 30);
-    $fmt = static fn(float $v): string => number_format(
+    $fmt = static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: `number_format`, `floor`. Efeitos: transformação local sem efeito externo detectado. */ fn(float $v): string => number_format(
         $v,
         $v === floor($v) ? 0 : 1,
         ",",
@@ -1667,6 +1975,15 @@ function admin_metric_bar_chart(
 }
 function admin_maestro_health_time_label(?string $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_maestro_health_time_label
+     * Responsabilidade: Monta a representação de interface associada a “admin maestro health time label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_maestro_health_pill_html`.
+     * Dependências chamadas: `trim`, `function_exists`, `ctx`, `is_array`, `app_db_utc_to_local`, `->format`, `strtotime`, `gmdate`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return "--h--";
@@ -1698,6 +2015,15 @@ function admin_maestro_health_time_label(?string $value): string
 }
 function admin_maestro_health_pill_html(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_maestro_health_pill_html
+     * Responsabilidade: Monta a representação de interface associada a “admin maestro health pill html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`.
+     * Dependências chamadas: `has_cfg`, `maestro_ensure_schema`, `db_column_exists`, `q`, `->fetch`, `trim`, `mb_strtolower`, `str_contains`, `admin_maestro_health_time_label`, `error_log`, `->getMessage`, `icon` e mais 1.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $ok = false;
     $label = "Rotinas sem execução registrada";
     try {
@@ -1755,6 +2081,15 @@ function admin_maestro_health_pill_html(): string
 }
 function admin_global_perf_charts_html(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_global_perf_charts_html
+     * Responsabilidade: Monta a representação de interface associada a “admin global perf charts html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`.
+     * Dependências chamadas: `admin_global_metric_series_24h`, `admin_global_sequence_series_30d`, `function_exists`, `telemetry_route_requests_series_30d`, `array_sum`, `array_map`, `n`, `admin_metric_dual_area_chart`, `admin_metric_bar_chart`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $response = admin_global_metric_series_24h("query_ms");
     $load = admin_global_metric_series_24h("load");
     $seq = admin_global_sequence_series_30d();
@@ -1762,10 +2097,10 @@ function admin_global_perf_charts_html(): string
         ? telemetry_route_requests_series_30d()
         : [];
     $seqTotal = (int) array_sum(
-        array_map(static fn($row) => (int) ($row["value"] ?? 0), $seq),
+        array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($row) => (int) ($row["value"] ?? 0), $seq),
     );
     $requestTotal = (int) array_sum(
-        array_map(static fn($row) => (int) ($row["value"] ?? 0), $requests),
+        array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de painel global do Desenvolvedor. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($row) => (int) ($row["value"] ?? 0), $requests),
     );
     $seqTitle = n($seqTotal);
     $requestTitle = n($requestTotal);
@@ -1782,6 +2117,15 @@ function admin_global_perf_charts_html(): string
 }
 function page_admin_operations(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_operations
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin operations”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `page_head`, `card`, `admin_global_ops_finance_html`, `page`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_operations");
     $body =
         page_head("Painel operacional", "") .
@@ -1794,6 +2138,18 @@ function page_admin_operations(): void
 }
 function page_admin_deleted(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_deleted
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin deleted”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `flash`, `redirect`, `one`, `q`, `audit`, `->fetchAll`, `fetch_map`, `int_ids`, `csrf_field`, `dt_br`, `mask` e mais 7.
+     * Estado externo lido: `$_SERVER`, `$_POST`, `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     require_can("admin_health");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "");
@@ -1962,6 +2318,15 @@ function page_admin_deleted(): void
 }
 function page_admin_health(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_health
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin health”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `val`, `admin_model_clinic_exclude_sql`, `admin_model_clinic_exclude_where`, `cached_val`, `admin_model_clinic_id`, `audit_rows_light`, `verify_audit_row`, `stat_card`, `stat_link_card`, `href`, `action_summary_label` e mais 5.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_health");
     $dbOk = false;
     try {
@@ -2126,6 +2491,16 @@ function page_admin_health(): void
 }
 function page_admin_diagnostics(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_diagnostics
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin diagnostics”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `val`, `->getMessage`, `bool_status`, `is_writable`, `app_root`, `function_exists`, `human_bytes`, `disk_free_space`, `is_file`, `app_debug`, `page` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     require_can("admin_diagnostics");
     $dbOk = false;
     $dbMsg = "indisponível";
@@ -2222,6 +2597,19 @@ function page_admin_diagnostics(): void
 }
 function page_admin_errors(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_errors
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin errors”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `ProntooHttpError`, `flash`, `redirect`, `trim`, `q`, `->rowCount`, `audit`, `val`, `->fetchAll`, `count`, `array_merge` e mais 10.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     require_can("admin_errors");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "");
@@ -2311,6 +2699,15 @@ function page_admin_errors(): void
 }
 function onboarding_score(array $r): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — onboarding_score
+     * Responsabilidade: Implementa a responsabilidade “onboarding score” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `count`, `array_filter`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $checks = [
         (int) $r["onboarding_done"] === 1,
         (int) $r["team"] > 0,
@@ -2324,10 +2721,28 @@ function onboarding_score(array $r): array
 }
 function page_admin_onboarding(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_onboarding
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin onboarding”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `redirect`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     redirect("admin_clinics");
 }
 function page_admin_integrity(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_integrity
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin integrity”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `admin_model_clinic_exclude_where`, `admin_model_clinic_exclude_sql`, `audit_rows_light`, `verify_audit_row`, `cached_val`, `admin_model_clinic_id`, `admin_model_clinic_count_note`, `page`, `page_head`, `card`, `timeline`.
+     * Efeitos colaterais: consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_integrity");
     $modelAuditWhere = admin_model_clinic_exclude_where("a.clinic_id");
     $modelScoped = admin_model_clinic_exclude_sql("clinic_id");
@@ -2454,6 +2869,18 @@ function page_admin_integrity(): void
 }
 function page_admin_maintenance(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_maintenance
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin maintenance”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `preg_replace`, `in_array`, `meta_set`, `trim`, `audit`, `flash`, `redirect`, `function_exists`, `seq_footer_regenerate_alphabet`, `app_timezone_safe`, `app_global_admin_timezone` e mais 34.
+     * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $c = require_can("admin_maintenance");
     $uid = (int) ($c["user"]["id"] ?? 0);
     $tab = preg_replace(
@@ -2731,10 +3158,31 @@ function page_admin_maintenance(): void
 }
 function page_admin_settings(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_settings
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin settings”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `redirect`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     redirect("admin_maintenance", ["tab" => "configuracoes"]);
 }
 function page_admin_painel(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_painel
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin painel”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `parse_money_cents`, `in_array`, `date`, `q`, `audit`, `flash`, `redirect`, `one`, `ctx`, `trim`, `subscription_payment_delete_proof` e mais 32.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     require_can("admin_painel");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "");
@@ -2869,6 +3317,15 @@ function page_admin_painel(): void
         }
     }
     $qInt = function (string $sql, array $p = []): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:2871
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `safe_val`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return (int) safe_val($sql, $p, 0);
     };
     $modelClinicWhere = admin_model_clinic_exclude_sql("id");
@@ -3162,6 +3619,15 @@ function page_admin_painel(): void
 }
 function page_admin_people(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_people
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin people”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `q`, `->fetchAll`, `mask`, `trim`, `page`, `page_head`, `card`, `timeline`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_users");
     $rows = q(
         "SELECT u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date,COUNT(ur.id) AS vinculos FROM pi_users u JOIN pi_persons p ON p.id=u.person_id LEFT JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.active=1 GROUP BY u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date ORDER BY u.name ASC LIMIT 200",
@@ -3195,14 +3661,41 @@ function page_admin_people(): void
 }
 function page_admin_users(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_users
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin users”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `redirect`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     redirect("admin_people");
 }
 function page_admin_stats(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_stats
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin stats”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `redirect`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     redirect("admin_painel");
 }
 function onboarding_use_icon(bool $ok, string $label): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — onboarding_use_icon
+     * Responsabilidade: Implementa a responsabilidade “onboarding use icon” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `e`, `icon`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<span class="onboard-cell ' .
         ($ok ? "ok" : "bad") .
         '" title="' .
@@ -3215,6 +3708,15 @@ function onboarding_use_icon(bool $ok, string $label): string
 }
 function onboarding_progress_bar(array $used): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — onboarding_progress_bar
+     * Responsabilidade: Implementa a responsabilidade “onboarding progress bar” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $total = 6;
     $labels = [
         "Cadastro",
@@ -3264,6 +3766,15 @@ function admin_clinic_detail_item(
     string $value,
     string $note = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_clinic_detail_item
+     * Responsabilidade: Implementa a responsabilidade “admin clinic detail item” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `admin_clinic_detail_page`.
+     * Dependências chamadas: `trim`, `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = trim($value) !== "" ? $value : "Não informado";
     return '<div class="admin-clinic-detail-item"><span class="admin-clinic-detail-item-icon">' .
         icon($iconName) .
@@ -3277,6 +3788,15 @@ function admin_clinic_detail_item(
 }
 function admin_clinic_detail_page(int $id): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_clinic_detail_page
+     * Responsabilidade: Implementa a responsabilidade “admin clinic detail page” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_clinics`.
+     * Dependências chamadas: `one`, `flash`, `redirect`, `billing_state`, `in_array`, `ucfirst`, `val`, `q`, `->fetchAll`, `implode`, `array_unique`, `trim` e mais 20.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $clinic = one(
         "SELECT c.*,ou.name AS owner_name,ou.email AS owner_email,ou.active AS owner_active,ou.last_login_at AS owner_last_login_at,ou.created_at AS owner_created_at,op.full_name AS owner_person_name,op.cpf AS owner_cpf,op.birth_date AS owner_birth_date,op.phone AS owner_phone,op.email AS owner_person_email,op.address AS owner_address,op.address_number AS owner_address_number,op.address_neighborhood AS owner_address_neighborhood,op.address_complement AS owner_address_complement,op.address_city AS owner_address_city,op.address_state AS owner_address_state,mu.name AS manager_name,mu.email AS manager_email FROM pi_clinics c JOIN pi_users ou ON ou.id=c.owner_user_id JOIN pi_persons op ON op.id=ou.person_id LEFT JOIN pi_users mu ON mu.id=c.manager_user_id WHERE c.id=?",
         [$id],
@@ -3531,6 +4051,15 @@ function admin_clinic_detail_page(int $id): void
 }
 function admin_clinic_people_counts_by_cpf(array $clinicIds): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_clinic_people_counts_by_cpf
+     * Responsabilidade: Implementa a responsabilidade “admin clinic people counts by cpf” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_clinics`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `sort`, `array_slice`, `implode`, `array_fill`, `count`, `q`, `->fetchAll`, `error_log` e mais 5.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $clinicIds = array_values(
         array_unique(array_filter(array_map("intval", $clinicIds))),
     );
@@ -3540,6 +4069,15 @@ function admin_clinic_people_counts_by_cpf(array $clinicIds): array
     sort($clinicIds, SORT_NUMERIC);
     $clinicIds = array_slice($clinicIds, 0, 300);
     $loader = static function () use ($clinicIds): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:3542
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `implode`, `array_fill`, `count`, `q`, `->fetchAll`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $out = [];
         foreach ($clinicIds as $clinicId) {
             $out[$clinicId] = ["professionals" => 0, "collaborators" => 0];
@@ -3588,10 +4126,31 @@ function admin_clinic_people_counts_by_cpf(array $clinicIds): array
 }
 function page_admin_clinics(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_clinics
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin clinics”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `max`, `redirect`, `round`, `str_replace`, `number_format`, `default_monthly_price_cents`, `min`, `default_trial_days`, `meta_set`, `audit`, `flash` e mais 27.
+     * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     require_can("admin_clinics");
     $detailId = max(0, (int) ($_GET["clinic_id"] ?? 0));
     $returnClinicId = max(0, (int) ($_POST["return_clinic_id"] ?? 0));
     $redirectAfterClinicAction = static function (int $clinicId = 0): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Admin/AdminPages.php:3594
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de painel global do Desenvolvedor.
+         * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `redirect`.
+         * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+         * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+         */
         redirect(
             "admin_clinics",
             $clinicId > 0 ? ["clinic_id" => $clinicId] : [],
@@ -3926,6 +4485,19 @@ function page_admin_clinics(): void
 }
 function page_admin_security(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_security
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin security”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `ProntooHttpError`, `flash`, `redirect`, `q`, `->rowCount`, `audit`, `is_file`, `app_root`, `val`, `->fetchAll`, `csrf_field` e mais 15.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     require_can("admin_security");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "");
@@ -4071,6 +4643,15 @@ function page_admin_security(): void
 }
 function page_admin_audit(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_audit
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin audit”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `audit_rows_light`, `page`, `page_head`, `card`, `timeline`, `audit_items`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_health");
     $rows = audit_rows_light("1=1", [], 120);
     page(
@@ -4091,6 +4672,16 @@ function page_admin_audit(): void
 }
 function admin_alerts_ensure_schema(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_alerts_ensure_schema
+     * Responsabilidade: Opera a etapa “admin alerts ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_alerts`.
+     * Dependências chamadas: `has_cfg`, `db_table_exists`, `RuntimeException`, `db_column_exists`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     static $validated = false;
     if ($validated || !has_cfg()) {
         return;
@@ -4112,6 +4703,15 @@ function admin_alerts_ensure_schema(): void
 
 function admin_alerts_admin_users(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_alerts_admin_users
+     * Responsabilidade: Implementa a responsabilidade “admin alerts admin users” dentro do módulo de painel global do Desenvolvedor.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_alerts`.
+     * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         $rows = q(
             "SELECT id,name,email FROM pi_users WHERE is_global_admin=1 AND active=1 ORDER BY name ASC,id ASC LIMIT 300",
@@ -4131,6 +4731,15 @@ function admin_alert_contact_label(
     int $currentUserId = 0,
     bool $asSupport = false,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_alert_contact_label
+     * Responsabilidade: Monta a representação de interface associada a “admin alert contact label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_alerts`.
+     * Dependências chamadas: `trim`, `first_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($asSupport) {
         return "Suporte";
     }
@@ -4142,6 +4751,18 @@ function admin_alert_contact_label(
 }
 function page_admin_alerts(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_alerts
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin alerts”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `admin_alerts_ensure_schema`, `admin_alerts_admin_users`, `preg_replace`, `in_array`, `q`, `redirect`, `trim`, `flash`, `mb_substr`, `db_last_insert_id`, `audit` e mais 21.
+     * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("admin_alerts");
     admin_alerts_ensure_schema();
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -4562,10 +5183,28 @@ function page_admin_alerts(): void
 
 function admin_performance_format_ms(float $ms): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_performance_format_ms
+     * Responsabilidade: Transforma e normaliza “admin performance format ms” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_painel`, `admin_performance_rows_html`, `page_admin_performance`.
+     * Dependências chamadas: `number_format`, `max`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return number_format(max(0.0, $ms), 1, ",", ".") . " ms";
 }
 function admin_performance_rows_html(array $rows): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — admin_performance_rows_html
+     * Responsabilidade: Monta a representação de interface associada a “admin performance rows html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: `page_admin_performance`.
+     * Dependências chamadas: `e`, `n`, `admin_performance_format_ms`, `number_format`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!$rows) {
         return '<div class="empty">Ainda não há dados de performance nas últimas 24 horas. Use o sistema por alguns minutos e retorne a esta tela.</div>';
     }
@@ -4614,6 +5253,15 @@ function admin_performance_rows_html(array $rows): string
 }
 function page_admin_performance(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_admin_performance
+     * Responsabilidade: Coordena a rota e renderiza a tela “page admin performance”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `function_exists`, `telemetry_route_performance_summary`, `telemetry_cache_performance_summary`, `is_array`, `stat_card`, `admin_performance_format_ms`, `number_format`, `n`, `card`, `icon`, `e` e mais 3.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     require_can("admin_performance");
     $summary = function_exists("telemetry_route_performance_summary")
         ? telemetry_route_performance_summary(24)

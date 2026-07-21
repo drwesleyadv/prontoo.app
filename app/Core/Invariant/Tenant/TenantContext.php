@@ -6,10 +6,30 @@ use Prontoo\Core\Tenant\TenantRegistry;
 
 final class TenantContext
 {
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.TenantContext::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Invariant/Tenant/TenantContext.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function resolve(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.TenantContext::resolve
+         * Responsabilidade: Localiza, carrega ou resolve os dados de “resolve” para consumo pelas camadas superiores.
+         * Local arquitetural: app/Core/Invariant/Tenant/TenantContext.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
+         * Dependências chamadas: `max`, `self::globalOrAdminContext`, `TenantRegistry::sessionClinicId`.
+         * Estado externo lido: `$GLOBALS`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"])) {
             return ["bypass" => true, "reason" => "guard_disabled", "clinic_id" => 0];
         }
@@ -40,6 +60,16 @@ final class TenantContext
 
     private static function globalOrAdminContext(): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.TenantContext::globalOrAdminContext
+         * Responsabilidade: Implementa a responsabilidade “global or admin context” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Tenant/TenantContext.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Tenant.TenantContext::resolve`.
+         * Dependências chamadas: `session_status`, `function_exists`, `str_starts_with`, `self::sessionUserIsGlobalAdmin`.
+         * Estado externo lido: `$_SESSION`.
+         * Efeitos colaterais: lê ou altera a sessão.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return false;
         }
@@ -52,6 +82,16 @@ final class TenantContext
 
     private static function sessionUserIsGlobalAdmin(): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.TenantContext::sessionUserIsGlobalAdmin
+         * Responsabilidade: Implementa a responsabilidade “session user is global admin” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Tenant/TenantContext.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Tenant.TenantContext::globalOrAdminContext`.
+         * Dependências chamadas: `function_exists`, `error_log`, `->getMessage`.
+         * Estado externo lido: `$_SESSION`.
+         * Efeitos colaterais: lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $uid = (int) ($_SESSION["uid"] ?? 0);
         if ($uid <= 0 || !function_exists("user_is_global_admin")) {
             return false;

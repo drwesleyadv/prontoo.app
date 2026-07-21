@@ -9,6 +9,15 @@ if (!class_exists('ProntooHttpError')) {
     {
         public function __construct(public int $status, string $message)
         {
+            /*
+             * GUIA DE MANUTENÇÃO — ProntooHttpError::__construct
+             * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+             * Local arquitetural: tools/architecture-check.php (ferramentas de certificação e manutenção).
+             * Chamadores detectados: `page_admin_errors`, `page_admin_security`, `Core.Database.SqlScopeGuard::guard`, `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Invariant.Context.MaestroContextInvariant::assertWrite`, `Core.Invariant.Context.TaskContextInvariant::deny`, `Core.Invariant.Mutation.MutationInvariant::deny`, `Core.Invariant.Relation.ForeignKeyGraph::deny` e mais 17.
+             * Dependências chamadas: `parent::__construct`.
+             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+             */
             parent::__construct($message);
         }
     }

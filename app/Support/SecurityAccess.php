@@ -2,10 +2,31 @@
 declare(strict_types=1);
 function has_session_user(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — has_session_user
+     * Responsabilidade: Avalia ou impõe a regra “has session user”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_person_lookup`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return !empty($_SESSION["uid"]);
 }
 function boot_security(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — boot_security
+     * Responsabilidade: Implementa a responsabilidade “boot security” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_install`, `prontoo_run`.
+     * Dependências chamadas: `function_exists`, `security_disable_runtime_error_display`, `security_storage_deny_file`, `storage_path`, `ini_set`, `security_https_active`, `session_name`, `session_set_cookie_params`, `session_status`, `session_start`, `time`, `hash` e mais 9.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if (function_exists("security_disable_runtime_error_display")) {
         security_disable_runtime_error_display();
     }
@@ -89,6 +110,17 @@ function boot_security(): void
 }
 function headers_secure(bool $public = false): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — headers_secure
+     * Responsabilidade: Implementa a responsabilidade “headers secure” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_install`, `prontoo_run`.
+     * Dependências chamadas: `bin2hex`, `random_bytes`, `header`, `function_exists`, `security_https_active`.
+     * Estado externo lido: `$GLOBALS`, `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $img = "'self' data:";
     $style = "'self' 'unsafe-inline' https://fonts.googleapis.com";
     $GLOBALS["csp_nonce"] = bin2hex(random_bytes(16));
@@ -130,6 +162,15 @@ function posted_identity_document_error(
     array $data,
     string $prefix = "",
 ): ?string {
+    /*
+     * GUIA DE MANUTENÇÃO — posted_identity_document_error
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “posted identity document error”.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `enforce_posted_identity_documents`.
+     * Dependências chamadas: `is_array`, `posted_identity_document_error`, `strtolower`, `str_ends_with`, `str_contains`, `only_digits`, `preg_match`, `in_array`, `valid_cpf`, `strlen`, `valid_cnpj`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($data as $key => $value) {
         $name = $prefix === "" ? (string) $key : $prefix . "." . (string) $key;
         if (is_array($value)) {
@@ -190,6 +231,16 @@ function posted_identity_document_error(
 }
 function enforce_posted_identity_documents(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — enforce_posted_identity_documents
+     * Responsabilidade: Implementa a responsabilidade “enforce posted identity documents” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `guard_request`.
+     * Dependências chamadas: `posted_identity_document_error`, `http_response_code`, `header`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return;
     }
@@ -202,6 +253,16 @@ function enforce_posted_identity_documents(): void
 }
 function guard_request(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — guard_request
+     * Responsabilidade: Avalia ou impõe a regra “guard request”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_install`, `prontoo_run`.
+     * Dependências chamadas: `function_exists`, `app_enforce_canonical_host`, `in_array`, `http_response_code`, `preg_replace`, `count`, `strtolower`, `parse_url`, `enforce_posted_identity_documents`.
+     * Estado externo lido: `$_SERVER`, `$_GET`, `$_POST`, `$_FILES`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     if (function_exists("app_enforce_canonical_host")) {
         app_enforce_canonical_host();
     }
@@ -260,6 +321,15 @@ function security_rate_limit(
     int $limit,
     int $windowSeconds,
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — security_rate_limit
+     * Responsabilidade: Implementa a responsabilidade “security rate limit” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `platform_login_loaded_audit`, `page_signup`, `page_person_lookup`, `subscription_payment_proof_guard`, `page_counterparty_lookup`, `page_lead_lookup`, `page_lead_patient_lookup`, `page_login_autotest`.
+     * Dependências chamadas: `preg_replace`, `time`, `cache_get`, `is_array`, `array_values`, `array_filter`, `array_map`, `count`, `cache_set`.
+     * Efeitos colaterais: lê, grava ou invalida cache.
+     * Cuidado 1: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
+     */
     $bucket = preg_replace("/[^a-zA-Z0-9_\-]/", "_", $bucket) ?: "rate";
     $key = "security_rate_" . $bucket;
     $now = time();
@@ -270,7 +340,7 @@ function security_rate_limit(
     $hits = array_values(
         array_filter(
             array_map("intval", $state),
-            static fn($t) => $t > $now - $windowSeconds,
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($t) => $t > $now - $windowSeconds,
         ),
     );
     if (count($hits) >= $limit) {
@@ -282,6 +352,16 @@ function security_rate_limit(
 }
 function security_client_bucket(string $prefix): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_client_bucket
+     * Responsabilidade: Implementa a responsabilidade “security client bucket” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `platform_login_loaded_audit`, `page_signup`, `page_person_lookup`, `subscription_payment_proof_guard`, `page_counterparty_lookup`, `page_lead_lookup`, `page_lead_patient_lookup`, `page_login_autotest`.
+     * Dependências chamadas: `hash`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $prefix .
         "_" .
         hash(
@@ -293,16 +373,44 @@ function security_client_bucket(string $prefix): string
 }
 function security_ip_bucket(string $prefix): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_ip_bucket
+     * Responsabilidade: Implementa a responsabilidade “security ip bucket” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_signup`, `page_person_lookup`, `subscription_payment_proof_guard`.
+     * Dependências chamadas: `hash`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $prefix .
         "_ip_" .
         hash("sha256", (string) ($_SERVER["REMOTE_ADDR"] ?? ""));
 }
 function security_value_bucket(string $prefix, string $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_value_bucket
+     * Responsabilidade: Implementa a responsabilidade “security value bucket” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_signup`, `page_person_lookup`, `subscription_payment_proof_guard`.
+     * Dependências chamadas: `hash`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $prefix . "_" . hash("sha256", $value);
 }
 function safe_val(string $sql, array $p = [], mixed $fallback = 0): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — safe_val
+     * Responsabilidade: Implementa a responsabilidade “safe val” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_global_ops_finance_html`, `closure@app/Admin/AdminPages.php:688`, `closure@app/Admin/AdminPages.php:691`, `page_admin_painel`, `closure@app/Admin/AdminPages.php:2871`, `clinic_is_global_admin_owned`, `closure@app/Domain/Clinic/ClinicConfig.php:1206`, `document_context_ids_from_post` e mais 10.
+     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         return val($sql, $p) ?? $fallback;
     } catch (Throwable $e) {
@@ -312,6 +420,16 @@ function safe_val(string $sql, array $p = [], mixed $fallback = 0): mixed
 }
 function csrf(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — csrf
+     * Responsabilidade: Implementa a responsabilidade “csrf” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `install_head`, `prontoo_run`, `app_fail`, `csrf_field`, `page`.
+     * Dependências chamadas: `bin2hex`, `random_bytes`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (empty($_SESSION["csrf"])) {
         $_SESSION["csrf"] = bin2hex(random_bytes(32));
     }
@@ -319,10 +437,30 @@ function csrf(): string
 }
 function csrf_field(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — csrf_field
+     * Responsabilidade: Monta a representação de interface associada a “csrf field” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_deleted`, `page_admin_errors`, `page_admin_maintenance`, `page_admin_painel`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_security`, `page_admin_alerts` e mais 45.
+     * Dependências chamadas: `e`, `csrf`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<input type="hidden" name="csrf" value="' . e(csrf()) . '">';
 }
 function check_csrf(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — check_csrf
+     * Responsabilidade: Avalia ou impõe a regra “check csrf”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `hash_equals`, `audit`, `route`, `ProntooHttpError`.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if (
         ($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST" &&
         !hash_equals($_SESSION["csrf"] ?? "", $_POST["csrf"] ?? "")
@@ -336,6 +474,16 @@ function check_csrf(): void
 }
 function flash(?string $m = null, string $type = "ok"): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — flash
+     * Responsabilidade: Implementa a responsabilidade “flash” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_deleted`, `page_admin_errors`, `page_admin_maintenance`, `page_admin_painel`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_security`, `page_admin_alerts` e mais 25.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($m !== null) {
         $_SESSION["flash"] = [$type, $m];
         return null;
@@ -346,6 +494,15 @@ function flash(?string $m = null, string $type = "ok"): ?array
 }
 function password_common_rejected(string $s): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — password_common_rejected
+     * Responsabilidade: Implementa a responsabilidade “password common rejected” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `password_ok`.
+     * Dependências chamadas: `strtolower`, `trim`, `in_array`, `preg_match`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $v = strtolower(trim($s));
     $common = [
         "123456",
@@ -375,6 +532,15 @@ function password_common_rejected(string $s): bool
 }
 function password_ok(string $s): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — password_ok
+     * Responsabilidade: Implementa a responsabilidade “password ok” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_signup`, `page_profile`, `save_team_member`, `prontoo_install`.
+     * Dependências chamadas: `preg_match`, `strlen`, `password_common_rejected`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $types =
         (int) (preg_match("/[a-z]/", $s) > 0) +
         (int) (preg_match("/[A-Z]/", $s) > 0) +
@@ -384,6 +550,15 @@ function password_ok(string $s): bool
 }
 function password_hash_secure(string $password): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — password_hash_secure
+     * Responsabilidade: Implementa a responsabilidade “password hash secure” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_signup`, `page_profile`, `save_team_member`, `prontoo_install`.
+     * Dependências chamadas: `defined`, `password_hash`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (defined("PASSWORD_ARGON2ID")) {
         return password_hash($password, PASSWORD_ARGON2ID, [
             "memory_cost" => 65536,
@@ -395,6 +570,15 @@ function password_hash_secure(string $password): string
 }
 function auth_generation_current(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — auth_generation_current
+     * Responsabilidade: Implementa a responsabilidade “auth generation current” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `session_harden_after_login`, `security_session_generation_enforce`.
+     * Dependências chamadas: `has_cfg`, `meta_get`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!has_cfg()) {
         return "bootstrap";
     }
@@ -407,6 +591,16 @@ function auth_generation_current(): string
 }
 function session_harden_after_login(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — session_harden_after_login
+     * Responsabilidade: Implementa a responsabilidade “session harden after login” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `login_apply_resolved_credential`, `device_session_auto_login`.
+     * Dependências chamadas: `session_regenerate_id`, `bin2hex`, `random_bytes`, `time`, `auth_generation_current`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     session_regenerate_id(true);
     $_SESSION["csrf"] = bin2hex(random_bytes(32));
     $_SESSION["rot"] = time();
@@ -414,6 +608,17 @@ function session_harden_after_login(): void
 }
 function security_session_generation_enforce(int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_session_generation_enforce
+     * Responsabilidade: Implementa a responsabilidade “security session generation enforce” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `ctx`.
+     * Dependências chamadas: `has_cfg`, `auth_generation_current`, `audit`, `error_log`, `->getMessage`, `device_session_revoke_current`, `device_cookie_clear`, `secure_session_destroy`, `headers_sent`, `header`, `href`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($uid <= 0 || !has_cfg()) {
         return;
     }
@@ -445,27 +650,82 @@ function security_session_generation_enforce(int $uid): void
 }
 function device_cookie_name(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_cookie_name
+     * Responsabilidade: Implementa a responsabilidade “device cookie name” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_cookie_set`, `device_cookie_clear`, `device_cookie_unpack`, `device_session_remember_after_login`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "PRONTOO_DEVICE";
 }
 function device_session_lifetime_seconds(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_lifetime_seconds
+     * Responsabilidade: Implementa a responsabilidade “device session lifetime seconds” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_remember_after_login`, `device_session_enforce_current`, `device_session_auto_login`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return 86400;
 }
 function device_session_cookie_ttl_seconds(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_cookie_ttl_seconds
+     * Responsabilidade: Implementa a responsabilidade “device session cookie ttl seconds” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_remember_after_login`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return 2592000;
 }
 function device_hash_is_valid(string $hash): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_hash_is_valid
+     * Responsabilidade: Avalia ou impõe a regra “device hash is valid”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_client_hash_from_post`, `device_cookie_unpack`, `device_session_remember_after_login`.
+     * Dependências chamadas: `preg_match`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return (bool) preg_match('/^[a-f0-9]{64}$/', $hash);
 }
 function device_secure_cookie(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_secure_cookie
+     * Responsabilidade: Implementa a responsabilidade “device secure cookie” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_cookie_set`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
         ($_SERVER["HTTP_X_FORWARDED_PROTO"] ?? "") === "https";
 }
 function device_cookie_set(string $value, int $expires): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_cookie_set
+     * Responsabilidade: Implementa a responsabilidade “device cookie set” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_cookie_clear`, `device_session_remember_after_login`.
+     * Dependências chamadas: `headers_sent`, `setcookie`, `device_cookie_name`, `device_secure_cookie`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (headers_sent()) {
         return;
     }
@@ -479,15 +739,44 @@ function device_cookie_set(string $value, int $expires): void
 }
 function device_cookie_clear(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_cookie_clear
+     * Responsabilidade: Implementa a responsabilidade “device cookie clear” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `security_session_generation_enforce`, `device_session_enforce_current`, `device_session_auto_login`, `device_session_revoke_current`, `secure_relogin_after_forbidden_action`.
+     * Dependências chamadas: `device_cookie_set`, `time`, `device_cookie_name`.
+     * Estado externo lido: `$_COOKIE`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     device_cookie_set("", time() - 42000);
     unset($_COOKIE[device_cookie_name()]);
 }
 function device_token_hash(string $token): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_token_hash
+     * Responsabilidade: Implementa a responsabilidade “device token hash” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_remember_after_login`, `device_session_auto_login`.
+     * Dependências chamadas: `hash_hmac`, `secret_key`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return hash_hmac("sha256", $token, secret_key());
 }
 function device_fallback_hash(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_fallback_hash
+     * Responsabilidade: Implementa a responsabilidade “device fallback hash” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_client_hash_from_post`, `device_session_remember_after_login`.
+     * Dependências chamadas: `hash_hmac`, `secret_key`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return hash_hmac(
         "sha256",
         ($_SERVER["HTTP_USER_AGENT"] ?? "") .
@@ -501,11 +790,31 @@ function device_fallback_hash(): string
 }
 function device_client_hash_from_post(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_client_hash_from_post
+     * Responsabilidade: Implementa a responsabilidade “device client hash from post” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_login_payload_from_post`.
+     * Dependências chamadas: `strtolower`, `trim`, `device_hash_is_valid`, `device_fallback_hash`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hash = strtolower(trim((string) ($_POST["device_hash"] ?? "")));
     return device_hash_is_valid($hash) ? $hash : device_fallback_hash();
 }
 function device_login_payload_from_post(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_login_payload_from_post
+     * Responsabilidade: Implementa a responsabilidade “device login payload from post” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_login`, `device_session_remember_after_login`.
+     * Dependências chamadas: `trim`, `json_decode`, `device_client_hash_from_post`, `mb_substr`.
+     * Estado externo lido: `$_POST`, `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $meta = trim((string) ($_POST["device_meta"] ?? ""));
     if ($meta !== "" && json_decode($meta, true) === null) {
         $meta = "";
@@ -529,14 +838,42 @@ function device_login_payload_from_post(): array
 }
 function device_login_fields(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_login_fields
+     * Responsabilidade: Implementa a responsabilidade “device login fields” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_login`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<input type="hidden" name="device_hash" value="" data-device-hash><input type="hidden" name="device_label" value="" data-device-label><input type="hidden" name="device_platform" value="" data-device-platform><input type="hidden" name="device_meta" value="" data-device-meta>';
 }
 function device_cookie_pack(int $uid, string $deviceHash, string $token): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_cookie_pack
+     * Responsabilidade: Implementa a responsabilidade “device cookie pack” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_remember_after_login`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $uid . "." . $deviceHash . "." . $token;
 }
 function device_cookie_unpack(): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_cookie_unpack
+     * Responsabilidade: Implementa a responsabilidade “device cookie unpack” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_auto_login`.
+     * Dependências chamadas: `device_cookie_name`, `explode`, `count`, `strtolower`, `device_hash_is_valid`, `preg_match`.
+     * Estado externo lido: `$_COOKIE`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $raw = (string) ($_COOKIE[device_cookie_name()] ?? "");
     if ($raw === "") {
         return null;
@@ -561,6 +898,15 @@ function device_session_context_payload(
     string $scope,
     ?int $clinicRoleId = null,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_context_payload
+     * Responsabilidade: Implementa a responsabilidade “device session context payload” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `device_session_remember_after_login`, `device_session_update_current_context`.
+     * Dependências chamadas: `one`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $scope = $scope === "global" ? "global" : "clinic";
     $clinicId = null;
     $roleCode = null;
@@ -586,6 +932,16 @@ function device_session_remember_after_login(
     ?int $clinicRoleId = null,
     ?array $payload = null,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_remember_after_login
+     * Responsabilidade: Implementa a responsabilidade “device session remember after login” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `login_apply_resolved_credential`.
+     * Dependências chamadas: `device_login_payload_from_post`, `device_hash_is_valid`, `device_fallback_hash`, `bin2hex`, `random_bytes`, `device_session_context_payload`, `trim`, `hash`, `q`, `device_token_hash`, `route`, `function_exists` e mais 8.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_COOKIE`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     if ($uid <= 0) {
         return;
     }
@@ -643,6 +999,16 @@ function device_session_update_current_context(
     string $scope,
     ?int $clinicRoleId = null,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_update_current_context
+     * Responsabilidade: Valida e executa a mutação “device session update current context”, preservando as invariantes do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_profile`, `propagate_user_role_permissions`.
+     * Dependências chamadas: `device_session_context_payload`, `q`, `route`, `function_exists`, `login_last_credential_remember`, `error_log`, `->getMessage`.
+     * Estado externo lido: `$_SESSION`, `$_SERVER`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $id = (int) ($_SESSION["device_session_id"] ?? 0);
     $uid = (int) ($_SESSION["uid"] ?? 0);
     if ($id <= 0 || $uid <= 0) {
@@ -677,6 +1043,17 @@ function device_session_update_current_context(
 }
 function device_session_enforce_current(int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_enforce_current
+     * Responsabilidade: Implementa a responsabilidade “device session enforce current” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `ctx`.
+     * Dependências chamadas: `time`, `device_session_lifetime_seconds`, `secure_session_destroy`, `device_cookie_clear`, `header`, `href`, `one`, `app_storage_timestamp`, `q`, `route`, `error_log`, `->getMessage`.
+     * Estado externo lido: `$_SESSION`, `$_SERVER`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     static $done = false;
     if ($done || $uid <= 0) {
         return;
@@ -742,6 +1119,17 @@ function device_session_enforce_current(int $uid): void
 }
 function device_session_auto_login(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_auto_login
+     * Responsabilidade: Implementa a responsabilidade “device session auto login” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_login_autotest`.
+     * Dependências chamadas: `device_cookie_unpack`, `one`, `app_storage_timestamp`, `time`, `hash_equals`, `device_token_hash`, `device_cookie_clear`, `session_harden_after_login`, `function_exists`, `login_last_credential_remember`, `single_active_role_cleanup_for_user`, `device_session_lifetime_seconds` e mais 5.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
         return false;
     }
@@ -852,6 +1240,16 @@ function device_session_auto_login(): bool
 }
 function device_session_revoke_current(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — device_session_revoke_current
+     * Responsabilidade: Implementa a responsabilidade “device session revoke current” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_logout`, `propagate_user_role_permissions`, `security_session_generation_enforce`, `secure_relogin_after_forbidden_action`.
+     * Dependências chamadas: `q`, `error_log`, `->getMessage`, `device_cookie_clear`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $id = (int) ($_SESSION["device_session_id"] ?? 0);
     $uid = (int) ($_SESSION["uid"] ?? 0);
     if ($id > 0 && $uid > 0) {
@@ -868,6 +1266,16 @@ function device_session_revoke_current(): void
 }
 function secure_session_destroy(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — secure_session_destroy
+     * Responsabilidade: Implementa a responsabilidade “secure session destroy” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_logout`, `boot_security`, `security_session_generation_enforce`, `device_session_enforce_current`, `secure_relogin_after_forbidden_action`.
+     * Dependências chamadas: `ini_get`, `session_get_cookie_params`, `setcookie`, `session_name`, `time`, `session_destroy`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $_SESSION = [];
     if (ini_get("session.use_cookies")) {
         $p = session_get_cookie_params();
@@ -885,26 +1293,80 @@ function secure_session_destroy(): void
 }
 function session_clinic_scope_id(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — session_clinic_scope_id
+     * Responsabilidade: Implementa a responsabilidade “session clinic scope id” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `save_person_flexible`, `fetch_map`, `log_runtime_error`, `scope_guard_active_clinic_id`.
+     * Dependências chamadas: `.Core.Tenant.TenantRegistry::sessionClinicId`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return \Prontoo\Core\Tenant\TenantRegistry::sessionClinicId();
 }
 function session_clinic_role_code(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — session_clinic_role_code
+     * Responsabilidade: Implementa a responsabilidade “session clinic role code” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `record_scope_violation`.
+     * Dependências chamadas: `.Core.Tenant.TenantRegistry::sessionRoleCode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return \Prontoo\Core\Tenant\TenantRegistry::sessionRoleCode();
 }
 function tenant_scoped_tables(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — tenant_scoped_tables
+     * Responsabilidade: Implementa a responsabilidade “tenant scoped tables” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `.Core.Tenant.TenantRegistry::scopedTables`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return \Prontoo\Core\Tenant\TenantRegistry::scopedTables();
 }
 function tenant_table_is_scoped(string $table): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — tenant_table_is_scoped
+     * Responsabilidade: Avalia ou impõe a regra “tenant table is scoped”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `fetch_map`, `closure@app/Domain/Audit/AuditActivity.php:368`, `require_same_clinic_entity`.
+     * Dependências chamadas: `.Core.Tenant.TenantRegistry::isScoped`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return \Prontoo\Core\Tenant\TenantRegistry::isScoped($table);
 }
 function sql_fingerprint(string $sql): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — sql_fingerprint
+     * Responsabilidade: Implementa a responsabilidade “sql fingerprint” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `record_scope_violation`.
+     * Dependências chamadas: `hash`, `preg_replace`, `trim`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return hash("sha256", preg_replace("/\s+/", " ", trim($sql)));
 }
 function scope_violation_detail_decode(mixed $details): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_violation_detail_decode
+     * Responsabilidade: Transforma e normaliza “scope violation detail decode” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_scope_evidence_html`, `scope_violation_detail_summary`.
+     * Dependências chamadas: `trim`, `json_decode`, `is_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $raw = trim((string) $details);
     if ($raw === "") {
         return ["v" => 1, "reason" => "Motivo não registrado."];
@@ -925,6 +1387,15 @@ function scope_violation_detail_decode(mixed $details): array
 }
 function scope_violation_detail_summary(mixed $details): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_violation_detail_summary
+     * Responsabilidade: Implementa a responsabilidade “scope violation detail summary” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_fetch_candidates`.
+     * Dependências chamadas: `scope_violation_detail_decode`, `trim`, `array_values`, `array_filter`, `implode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $payload = scope_violation_detail_decode($details);
     $summary = trim((string) ($payload["reason"] ?? ""));
     $context = array_values(
@@ -941,6 +1412,15 @@ function scope_violation_detail_summary(mixed $details): string
 }
 function scope_violation_safe_reason(string $detail): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_violation_safe_reason
+     * Responsabilidade: Implementa a responsabilidade “scope violation safe reason” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `scope_violation_evidence_payload`.
+     * Dependências chamadas: `preg_replace`, `trim`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $detail = preg_replace('/#\d+\b/', "#?", $detail) ?? $detail;
     $detail = preg_replace('/\b(?:usuário|registro)\s+\d+\b/iu', '$1 ?', $detail) ?? $detail;
     $detail = preg_replace("/\s+/", " ", trim($detail)) ?? trim($detail);
@@ -948,6 +1428,15 @@ function scope_violation_safe_reason(string $detail): string
 }
 function scope_violation_sql_shape(string $sql): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_violation_sql_shape
+     * Responsabilidade: Implementa a responsabilidade “scope violation sql shape” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `scope_violation_evidence_payload`.
+     * Dependências chamadas: `preg_replace`, `trim`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $shape = preg_replace('/\/\*.*?\*\//s', " ", $sql) ?? $sql;
     $shape = preg_replace('/--[^\r\n]*/', " ", $shape) ?? $shape;
     $shape = preg_replace(
@@ -961,6 +1450,16 @@ function scope_violation_sql_shape(string $sql): string
 }
 function scope_violation_evidence_payload(string $sql, string $detail): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_violation_evidence_payload
+     * Responsabilidade: Implementa a responsabilidade “scope violation evidence payload” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `record_scope_violation`.
+     * Dependências chamadas: `preg_match`, `strtoupper`, `preg_replace`, `trim`, `scope_violation_safe_reason`, `mb_substr`, `scope_violation_sql_shape`, `json_encode`, `is_string`, `strlen`.
+     * Estado externo lido: `$_POST`, `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $operation = preg_match('/^\s*(UPDATE|DELETE|INSERT|REPLACE)\b/i', $sql, $m)
         ? strtoupper((string) $m[1])
         : "ACCESS";
@@ -1011,6 +1510,16 @@ function record_scope_violation(
     string $sql,
     string $detail = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — record_scope_violation
+     * Responsabilidade: Valida e executa a mutação “record scope violation”, preservando as invariantes do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `require_user_in_clinic`, `require_same_clinic_entity`.
+     * Dependências chamadas: `scope_guard_active_clinic_id`, `sql_fingerprint`, `route`, `hash`, `session_clinic_role_code`, `scope_violation_evidence_payload`, `class_exists`, `.Core.Integrity.PiIntegrity::prepareRuntimeQuery`, `pdo`, `->prepare`, `->execute`, `error_log` e mais 1.
+     * Estado externo lido: `$_POST`, `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $cid = scope_guard_active_clinic_id();
     if ($cid <= 0) {
         return;
@@ -1062,6 +1571,16 @@ function record_scope_violation(
 }
 function read_only_post_allowed(string $route): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — read_only_post_allowed
+     * Responsabilidade: Avalia ou impõe a regra “read only post allowed”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `read_only_write_allowed`, `enforce_read_only`.
+     * Dependências chamadas: `.Core.Readonly.ReadonlyPolicy::postAllowed`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return \Prontoo\Core\Readonly\ReadonlyPolicy::postAllowed(
         $route,
         (string) ($_POST["act"] ?? ""),
@@ -1069,6 +1588,16 @@ function read_only_post_allowed(string $route): bool
 }
 function read_only_write_allowed(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — read_only_write_allowed
+     * Responsabilidade: Avalia ou impõe a regra “read only write allowed”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `read_only_post_allowed`, `route`.
+     * Estado externo lido: `$GLOBALS`, `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return true;
     }
@@ -1079,6 +1608,16 @@ function read_only_write_allowed(): bool
 }
 function read_only_allowed_write_tables_for_request(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — read_only_allowed_write_tables_for_request
+     * Responsabilidade: Avalia ou impõe a regra “read only allowed write tables for request”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `.Core.Readonly.ReadonlyPolicy::allowedWriteTables`, `route`.
+     * Estado externo lido: `$GLOBALS`, `$_POST`, `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return ["*"];
     }
@@ -1090,6 +1629,16 @@ function read_only_allowed_write_tables_for_request(): array
 }
 function read_only_write_allowed_for_sql(string $sql): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — read_only_write_allowed_for_sql
+     * Responsabilidade: Avalia ou impõe a regra “read only write allowed for sql”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `.Core.Readonly.ReadonlyPolicy::sqlAllowed`, `route`.
+     * Estado externo lido: `$GLOBALS`, `$_POST`, `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return true;
     }
@@ -1102,6 +1651,16 @@ function read_only_write_allowed_for_sql(string $sql): bool
 }
 function with_read_only_guard_disabled(callable $fn): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — with_read_only_guard_disabled
+     * Responsabilidade: Avalia ou impõe a regra “with read only guard disabled”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `seed_clinic_roles`, `ensure_clinic_trial_active`, `maestro_with_guarded_clinic`, `arrow@app/Domain/Maestro/Maestro.php:2273`, `seed_permissions`.
+     * Dependências chamadas: `array_key_exists`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $had = array_key_exists("PRONTOO_READONLY_GUARD_DISABLED", $GLOBALS);
     $prev = $GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"] ?? null;
     $GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"] = true;
@@ -1117,6 +1676,17 @@ function with_read_only_guard_disabled(callable $fn): mixed
 }
 function with_scope_guard_disabled(callable $fn): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — with_scope_guard_disabled
+     * Responsabilidade: Avalia ou impõe a regra “with scope guard disabled”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_grant_runtime_access`, `scope_guard_context_selftest`, `arrow@app/Support/SecurityAccess.php:1226`.
+     * Dependências chamadas: `LogicException`, `array_key_exists`.
+     * Classes ou serviços instanciados: `LogicException`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (
         (int) ($GLOBALS["PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID"] ?? 0) > 0
     ) {
@@ -1139,6 +1709,16 @@ function with_scope_guard_disabled(callable $fn): mixed
 }
 function scope_guard_expected_clinic_id(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_guard_expected_clinic_id
+     * Responsabilidade: Avalia ou impõe a regra “scope guard expected clinic id”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `scope_guard_active_clinic_id`, `with_scope_guard_clinic`, `scope_guard_context_selftest`, `arrow@app/Support/SecurityAccess.php:1203`, `arrow@app/Support/SecurityAccess.php:1207`, `arrow@app/Support/SecurityAccess.php:1209`, `sql_write_scope_guard`.
+     * Dependências chamadas: `max`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return max(
         0,
         (int) ($GLOBALS["PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID"] ?? 0),
@@ -1146,11 +1726,31 @@ function scope_guard_expected_clinic_id(): int
 }
 function scope_guard_active_clinic_id(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_guard_active_clinic_id
+     * Responsabilidade: Avalia ou impõe a regra “scope guard active clinic id”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `record_scope_violation`.
+     * Dependências chamadas: `scope_guard_expected_clinic_id`, `session_clinic_scope_id`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $expected = scope_guard_expected_clinic_id();
     return $expected > 0 ? $expected : session_clinic_scope_id();
 }
 function with_scope_guard_clinic(int $clinicId, callable $fn): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — with_scope_guard_clinic
+     * Responsabilidade: Avalia ou impõe a regra “with scope guard clinic”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_with_guarded_clinic`, `scope_guard_context_selftest`, `arrow@app/Support/SecurityAccess.php:1207`, `arrow@app/Support/SecurityAccess.php:1216`, `arrow@app/Support/SecurityAccess.php:1236`.
+     * Dependências chamadas: `InvalidArgumentException`, `LogicException`, `array_key_exists`, `scope_guard_expected_clinic_id`.
+     * Classes ou serviços instanciados: `InvalidArgumentException`, `LogicException`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($clinicId <= 0) {
         throw new InvalidArgumentException(
             "O contexto determinístico do guardião exige um consultório válido.",
@@ -1184,6 +1784,16 @@ function with_scope_guard_clinic(int $clinicId, callable $fn): mixed
 }
 function scope_guard_context_selftest(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — scope_guard_context_selftest
+     * Responsabilidade: Avalia ou impõe a regra “scope guard context selftest”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `platform_backend_selftest`, `page_admin_security`.
+     * Dependências chamadas: `array_key_exists`, `with_scope_guard_clinic`, `scope_guard_expected_clinic_id`, `with_scope_guard_disabled`, `array_keys`, `array_filter`, `count`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hadExpected = array_key_exists(
         "PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID",
         $GLOBALS,
@@ -1200,20 +1810,20 @@ function scope_guard_context_selftest(): array
     try {
         $cases["explicit_clinic_is_active"] = with_scope_guard_clinic(
             17,
-            static fn(): bool => scope_guard_expected_clinic_id() === 17,
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `scope_guard_expected_clinic_id`. Efeitos: transformação local sem efeito externo detectado. */ fn(): bool => scope_guard_expected_clinic_id() === 17,
         );
         $cases["same_clinic_can_nest"] = with_scope_guard_clinic(
             17,
-            static fn(): bool => with_scope_guard_clinic(
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `with_scope_guard_clinic`, `scope_guard_expected_clinic_id`. Efeitos: transformação local sem efeito externo detectado. */ fn(): bool => with_scope_guard_clinic(
                 17,
-                static fn(): bool => scope_guard_expected_clinic_id() === 17,
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `scope_guard_expected_clinic_id`. Efeitos: transformação local sem efeito externo detectado. */ fn(): bool => scope_guard_expected_clinic_id() === 17,
             ),
         );
         $clinicSwitchBlocked = false;
         try {
             with_scope_guard_clinic(
                 17,
-                static fn() => with_scope_guard_clinic(18, static fn() => true),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `with_scope_guard_clinic`. Efeitos: transformação local sem efeito externo detectado. */ fn() => with_scope_guard_clinic(18, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn() => true),
             );
         } catch (LogicException $expected) {
             $clinicSwitchBlocked = true;
@@ -1223,7 +1833,7 @@ function scope_guard_context_selftest(): array
         try {
             with_scope_guard_clinic(
                 17,
-                static fn() => with_scope_guard_disabled(static fn() => true),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `with_scope_guard_disabled`. Efeitos: transformação local sem efeito externo detectado. */ fn() => with_scope_guard_disabled(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn() => true),
             );
         } catch (LogicException $expected) {
             $systemInsideClinicBlocked = true;
@@ -1233,7 +1843,7 @@ function scope_guard_context_selftest(): array
         $clinicInsideSystemBlocked = false;
         try {
             with_scope_guard_disabled(
-                static fn() => with_scope_guard_clinic(17, static fn() => true),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `with_scope_guard_clinic`. Efeitos: transformação local sem efeito externo detectado. */ fn() => with_scope_guard_clinic(17, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn() => true),
             );
         } catch (LogicException $expected) {
             $clinicInsideSystemBlocked = true;
@@ -1258,7 +1868,7 @@ function scope_guard_context_selftest(): array
             unset($GLOBALS["PRONTOO_SCOPE_GUARD_SYSTEM"]);
         }
     }
-    $failed = array_keys(array_filter($cases, static fn($ok) => !$ok));
+    $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($ok) => !$ok));
     return [
         "ok" => $failed === [],
         "passed" => count($cases) - count($failed),
@@ -1268,12 +1878,31 @@ function scope_guard_context_selftest(): array
 }
 function sql_table_hit(string $norm, string $table): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — sql_table_hit
+     * Responsabilidade: Monta a representação de interface associada a “sql table hit” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `strtolower`, `preg_match`, `preg_quote`, `strpos`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $tl = strtolower($table);
     return (bool) preg_match("/\b" . preg_quote($tl, "/") . "\b/", $norm) ||
         strpos($norm, "`" . $tl . "`") !== false;
 }
 function sql_write_scope_guard(string $sql, array $params = []): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — sql_write_scope_guard
+     * Responsabilidade: Avalia ou impõe a regra “sql write scope guard”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `q`.
+     * Dependências chamadas: `preg_match`, `strtoupper`, `hash`, `preg_replace`, `trim`, `scope_guard_expected_clinic_id`, `route`, `.Core.Database.SqlScopeGuard::guard`, `count`.
+     * Estado externo lido: `$GLOBALS`, `$_SESSION`, `$_POST`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_SYSTEM"])) {
         return;
     }
@@ -1317,6 +1946,16 @@ function require_same_clinic_entity(
     int $id,
     string $cols = "id",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — require_same_clinic_entity
+     * Responsabilidade: Avalia ou impõe a regra “require same clinic entity”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `require_patient_in_clinic`.
+     * Dependências chamadas: `allowed_db_table`, `tenant_table_is_scoped`, `RuntimeException`, `safe_db_columns`, `ProntooHttpError`, `one`, `record_scope_violation`.
+     * Classes ou serviços instanciados: `RuntimeException`, `ProntooHttpError`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $table = allowed_db_table($table);
     if (!tenant_table_is_scoped($table)) {
         throw new RuntimeException("Tabela sem escopo de consultório.");
@@ -1351,6 +1990,15 @@ function require_same_clinic_entity(
 }
 function prontoo_icon_matrix(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_icon_matrix
+     * Responsabilidade: Implementa a responsabilidade “prontoo icon matrix” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_icon_for`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     return [
         "context" => [
             "painel" => "space_dashboard",
@@ -1459,6 +2107,15 @@ function prontoo_icon_matrix(): array
 }
 function prontoo_icon_for(string $key, string $fallback = "monitoring"): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_icon_for
+     * Responsabilidade: Implementa a responsabilidade “prontoo icon for” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_icon_for_route_label`, `actions`, `role_actions`, `role_actions_effective`.
+     * Dependências chamadas: `mb_strtolower`, `trim`, `prontoo_icon_matrix`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $key = mb_strtolower(trim($key));
     if ($key === "") {
         return $fallback;
@@ -1477,6 +2134,15 @@ function prontoo_icon_for_route_label(
     array $params = [],
     string $fallback = "monitoring",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_icon_for_route_label
+     * Responsabilidade: Monta a representação de interface associada a “prontoo icon for route label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page`, `operation_link_html`, `page_head_icon_name`, `action_icon_for`, `form_submit_icon`.
+     * Dependências chamadas: `trim`, `mb_strtolower`, `prontoo_icon_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $route = trim($route);
     $labelKey = mb_strtolower(trim($label));
     if ($route === "financial" && $labelKey === "caixa") {
@@ -1537,6 +2203,15 @@ function prontoo_icon_for_route_label(
 }
 function actions(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — actions
+     * Responsabilidade: Implementa a responsabilidade “actions” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_onboarding`, `clinic_restore_default_permissions_for_role`, `permission_module_defs`, `permission_module_available_for_role`, `collaborator_permission_matrix_base`, `role_actions`, `effective_allowed_modules_for_roles`, `default_permissions` e mais 3.
+     * Dependências chamadas: `prontoo_icon_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     return [
         "painel" => [
             "label" => "Painel",
@@ -1622,6 +2297,15 @@ function actions(): array
 }
 function role_actions(string $role): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — role_actions
+     * Responsabilidade: Implementa a responsabilidade “role actions” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `role_actions_effective`.
+     * Dependências chamadas: `actions`, `prontoo_icon_for`, `function_exists`, `reception_cash_state_icon`, `array_keys`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $all = actions();
     if (isset($all["patients"])) {
         $all["patients"]["label"] = "Pessoas";
@@ -1679,6 +2363,15 @@ function role_actions(string $role): array
 }
 function role_rank(string $role): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — role_rank
+     * Responsabilidade: Implementa a responsabilidade “role rank” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `primary_role_from_codes`, `arrow@app/Support/SecurityAccess.php:1693`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rank = [
         "recepcionista" => 10,
         "assistente" => 20,
@@ -1689,12 +2382,30 @@ function role_rank(string $role): int
 }
 function primary_role_from_codes(array $roles): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — primary_role_from_codes
+     * Responsabilidade: Implementa a responsabilidade “primary role from codes” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_map`, `usort`, `role_rank`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $roles = array_values(array_unique(array_map("strval", $roles)));
-    usort($roles, static fn($a, $b) => role_rank($b) <=> role_rank($a));
+    usort($roles, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `role_rank`. Efeitos: transformação local sem efeito externo detectado. */ fn($a, $b) => role_rank($b) <=> role_rank($a));
     return $roles[0] ?? "";
 }
 function has_effective_role(array $c, string $role): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — has_effective_role
+     * Responsabilidade: Avalia ou impõe a regra “has effective role”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_appointments`, `save_document_draft`, `discard_document_draft`, `confirm_document_issue`, `page_procedures`, `page_creditors`, `page_maestro`, `page_painel` e mais 5.
+     * Dependências chamadas: `in_array`, `array_map`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return in_array(
         $role,
         array_map(
@@ -1706,6 +2417,15 @@ function has_effective_role(array $c, string $role): bool
 }
 function role_actions_effective(array $roles): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — role_actions_effective
+     * Responsabilidade: Implementa a responsabilidade “role actions effective” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `role_actions`, `function_exists`, `reception_cash_state_icon`, `prontoo_icon_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
     );
@@ -1758,6 +2478,15 @@ function role_actions_effective(array $roles): array
 }
 function effective_allowed_modules_for_roles(int $cid, array $roles): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — effective_allowed_modules_for_roles
+     * Responsabilidade: Avalia ou impõe a regra “effective allowed modules for roles”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `ctx`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `in_array`, `array_keys`, `actions`, `implode`, `array_fill`, `count`, `q`, `array_merge` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
     );
@@ -1781,6 +2510,15 @@ function effective_allowed_modules_for_roles(int $cid, array $roles): array
 }
 function default_permissions(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — default_permissions
+     * Responsabilidade: Implementa a responsabilidade “default permissions” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_onboarding`, `clinic_restore_default_permissions_for_role`, `seed_permissions`, `closure@app/Support/SecurityAccess.php:1819`.
+     * Dependências chamadas: `array_keys`, `actions`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "recepcionista" => [
             "painel",
@@ -1816,7 +2554,27 @@ function default_permissions(): array
 }
 function seed_permissions(int $clinicId): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — seed_permissions
+     * Responsabilidade: Implementa a responsabilidade “seed permissions” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_signup`, `propagate_user_role_permissions`.
+     * Dependências chamadas: `with_read_only_guard_disabled`, `default_permissions`, `actions`, `q`, `in_array`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     with_read_only_guard_disabled(function () use ($clinicId): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Support/SecurityAccess.php:1819
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+         * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `default_permissions`, `actions`, `q`, `in_array`.
+         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         foreach (default_permissions() as $role => $keys) {
             foreach (actions() as $key => $a) {
                 q(
@@ -1834,6 +2592,15 @@ function seed_permissions(int $clinicId): void
 }
 function secret_key(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — secret_key
+     * Responsabilidade: Implementa a responsabilidade “secret key” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `login_key`, `verify_audit_row`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`, `person_signature_value`, `device_token_hash`, `device_fallback_hash`.
+     * Dependências chamadas: `val`, `cfg`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return (string) (val(
         "SELECT meta_value FROM pi_meta WHERE meta_key='app_secret'",
     ) ??
@@ -1841,6 +2608,15 @@ function secret_key(): string
 }
 function billing_state(array $clinic): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — billing_state
+     * Responsabilidade: Implementa a responsabilidade “billing state” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_clinic_detail_page`, `page_admin_clinics`, `ctx`.
+     * Dependências chamadas: `now`, `app_storage_timestamp`, `time`, `default_trial_days`, `default_monthly_price_cents`, `app_date_only_end_timestamp`, `trim`, `max`, `ceil`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $started = $clinic["trial_started_at"] ?: $clinic["created_at"] ?? now();
     $startedTs = app_storage_timestamp($started);
     if ($startedTs <= 0) {
@@ -1897,6 +2673,15 @@ function billing_state(array $clinic): array
 }
 function billing_notice(array $c): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — billing_notice
+     * Responsabilidade: Implementa a responsabilidade “billing notice” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page`.
+     * Dependências chamadas: `function_exists`, `has_effective_role`, `role_label_for`, `trim`, `icon`, `e`, `money_br`, `href`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -1949,6 +2734,17 @@ function billing_notice(array $c): string
 }
 function enforce_read_only(array $c, string $route): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — enforce_read_only
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “enforce read only” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `read_only_post_allowed`, `audit`, `flash`, `redirect`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return;
     }
@@ -1973,6 +2769,16 @@ function enforce_read_only(array $c, string $route): void
 }
 function enforce_action_integrity(array $c, string $route): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — enforce_action_integrity
+     * Responsabilidade: Implementa a responsabilidade “enforce action integrity” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `.Core.Integrity.ActionProof::enforce`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     \Prontoo\Core\Integrity\ActionProof::enforce(
         $route,
         (string) ($_SERVER["REQUEST_METHOD"] ?? "GET"),
@@ -1982,6 +2788,16 @@ function enforce_action_integrity(array $c, string $route): void
 }
 function ctx(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — ctx
+     * Responsabilidade: Implementa a responsabilidade “ctx” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_maestro_health_time_label`, `page_admin_painel`, `page_login`, `page_signup`, `normalize_db_datetime`, `datetime_local_value`, `agenda_note_card_html`, `audit` e mais 19.
+     * Dependências chamadas: `device_session_enforce_current`, `security_session_generation_enforce`, `function_exists`, `server_json_cache_context_key`, `server_json_cache_get`, `server_json_cache_ttl`, `is_array`, `server_json_cache_apply_context_session`, `one`, `server_json_cache_sanitize_context`, `server_json_cache_set`, `app_global_admin_timezone` e mais 16.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; lê ou altera a sessão; lê, grava ou invalida cache.
+     * Cuidado 1: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
+     */
     static $c = null;
     if ($c !== null) {
         return $c;
@@ -2049,6 +2865,15 @@ function ctx(): array
         $ucHint,
         $roleHint,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Support/SecurityAccess.php:2045
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+         * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `function_exists`, `server_json_cache_sanitize_context`, `server_json_cache_context_key`, `server_json_cache_set`, `server_json_cache_ttl`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $ctx = function_exists("server_json_cache_sanitize_context")
             ? server_json_cache_sanitize_context($ctx)
             : $ctx;
@@ -2181,7 +3006,7 @@ function ctx(): array
     $clinicRoles = array_values(
         array_filter(
             $roles,
-            static fn($r) => (int) $r["clinic_id"] === $wantClinic,
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (int) $r["clinic_id"] === $wantClinic,
         ),
     );
     if (!$clinicRoles) {
@@ -2189,7 +3014,7 @@ function ctx(): array
         $clinicRoles = array_values(
             array_filter(
                 $roles,
-                static fn($r) => (int) $r["clinic_id"] === $wantClinic,
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($r) => (int) $r["clinic_id"] === $wantClinic,
             ),
         );
     }
@@ -2261,6 +3086,15 @@ function ctx(): array
 }
 function need_login(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — need_login
+     * Responsabilidade: Implementa a responsabilidade “need login” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `onboarding_tip_dismiss`, `page_profile`, `page_switch`, `page_onboarding`, `page_document_pdf_file`, `page_document_pdf`, `page_document_view`, `page_document_print` e mais 3.
+     * Dependências chamadas: `ctx`, `redirect`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = ctx();
     if (!$c) {
         redirect("login");
@@ -2269,6 +3103,15 @@ function need_login(): array
 }
 function can(string $action): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — can
+     * Responsabilidade: Avalia ou impõe a regra “can”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_person_lookup`, `document_can_access`, `page_operations`, `page_patient_lookup`, `page_patient_suggest`, `page_patient`, `require_can`, `page` e mais 2.
+     * Dependências chamadas: `ctx`, `str_starts_with`, `function_exists`, `has_effective_role`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $c = ctx();
     if (!$c) {
         return false;
@@ -2294,6 +3137,17 @@ function can(string $action): bool
 }
 function secure_relogin_after_forbidden_action(string $action): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — secure_relogin_after_forbidden_action
+     * Responsabilidade: Implementa a responsabilidade “secure relogin after forbidden action” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `require_can`.
+     * Dependências chamadas: `audit`, `error_log`, `->getMessage`, `device_session_revoke_current`, `device_cookie_clear`, `secure_session_destroy`, `headers_sent`, `header`, `href`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $uid = $_SESSION["uid"] ?? null;
     try {
         audit("acesso_negado_sessao_encerrada", "rota", $action, [
@@ -2319,6 +3173,15 @@ function secure_relogin_after_forbidden_action(string $action): void
 }
 function require_can(string $action): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — require_can
+     * Responsabilidade: Avalia ou impõe a regra “require can”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_operations`, `page_admin_deleted`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `page_admin_integrity`, `page_admin_maintenance`, `page_admin_painel` e mais 30.
+     * Dependências chamadas: `need_login`, `can`, `secure_relogin_after_forbidden_action`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $c = need_login();
     if (!can($action)) {
         secure_relogin_after_forbidden_action($action);

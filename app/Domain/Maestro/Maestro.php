@@ -2,6 +2,16 @@
 declare(strict_types=1);
 function maestro_global_physical_rollback(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_global_physical_rollback
+     * Responsabilidade: Orquestra a execução de “maestro global physical rollback” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_ensure_schema`.
+     * Dependências chamadas: `has_cfg`, `db_table_exists`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg()) {
         return;
     }
@@ -21,6 +31,16 @@ function maestro_global_physical_rollback(): void
 }
 function maestro_runtime_access_marker_ready(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_runtime_access_marker_ready
+     * Responsabilidade: Orquestra a execução de “maestro runtime access marker ready” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_ensure_schema`, `maestro_grant_runtime_access`.
+     * Dependências chamadas: `array_key_exists`, `has_cfg`, `val`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (array_key_exists("PRONTOO_MAESTRO_RUNTIME_ACCESS_READY", $GLOBALS)) {
         return (bool) $GLOBALS["PRONTOO_MAESTRO_RUNTIME_ACCESS_READY"];
     }
@@ -40,6 +60,16 @@ function maestro_runtime_access_marker_ready(): bool
 }
 function maestro_ensure_schema(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_ensure_schema
+     * Responsabilidade: Opera a etapa “maestro ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `admin_maestro_health_pill_html`, `maestro_runtime_upgrade`, `page_maestro`, `maestro_cron_run`, `maestro_record_cron_failure`, `prontoo_run_runtime_maintenance_cycle`.
+     * Dependências chamadas: `has_cfg`, `maestro_global_physical_rollback`, `db_column_exists`, `RuntimeException`, `maestro_runtime_access_marker_ready`, `maestro_grant_runtime_access`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     static $validated = false;
     if (!has_cfg()) {
         return;
@@ -62,12 +92,46 @@ function maestro_ensure_schema(): void
 
 function maestro_grant_runtime_access(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_grant_runtime_access
+     * Responsabilidade: Orquestra a execução de “maestro grant runtime access” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_ensure_schema`.
+     * Dependências chamadas: `has_cfg`, `maestro_runtime_access_marker_ready`, `with_scope_guard_disabled`, `db_tx`, `q`, `error_log`, `->getMessage`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg() || maestro_runtime_access_marker_ready()) {
         return;
     }
     try {
         with_scope_guard_disabled(static function (): void {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Domain/Maestro/Maestro.php:69
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+             * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `db_tx`, `q`.
+             * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+             * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+             * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+             * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+             */
             db_tx(static function (): void {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Domain/Maestro/Maestro.php:70
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+                 * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `q`.
+                 * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+                 * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+                 * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+                 * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+                 */
                 q(
                     "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','maestro',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
                 );
@@ -93,6 +157,15 @@ function maestro_grant_runtime_access(): void
 }
 function maestro_runtime_upgrade(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_runtime_upgrade
+     * Responsabilidade: Orquestra a execução de “maestro runtime upgrade” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `ctx`, `prontoo_cron_preflight_once`.
+     * Dependências chamadas: `has_cfg`, `maestro_ensure_schema`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg()) {
         return;
     }
@@ -104,6 +177,15 @@ function maestro_runtime_upgrade(): void
 }
 function maestro_trigger_catalog(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_trigger_catalog
+     * Responsabilidade: Orquestra a execução de “maestro trigger catalog” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`, `page_maestro`, `maestro_fetch_candidates`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "appointment_before_start" => [
             "module" => "appointments",
@@ -611,6 +693,15 @@ function maestro_trigger_catalog(): array
 }
 function maestro_action_types(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_action_types
+     * Responsabilidade: Orquestra a execução de “maestro action types” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`, `page_maestro`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "create_task" => "Distribuir tarefa",
         "create_notice" => "Emitir aviso",
@@ -618,6 +709,15 @@ function maestro_action_types(): array
 }
 function maestro_module_label(string $module): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_module_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro module label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_module_options`, `page_maestro`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "appointments" => "Agenda",
         "leads" => "Interessados",
@@ -631,11 +731,29 @@ function maestro_module_label(string $module): string
 }
 function maestro_json(array $data): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_json
+     * Responsabilidade: Gerencia o cache ou a memoização de “maestro json”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`.
+     * Dependências chamadas: `json_encode`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return $json !== false ? $json : "{}";
 }
 function maestro_decode_json(mixed $raw): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_decode_json
+     * Responsabilidade: Transforma e normaliza “maestro decode json” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`, `maestro_fetch_candidates`, `maestro_create_action`.
+     * Dependências chamadas: `is_array`, `trim`, `json_decode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (is_array($raw)) {
         return $raw;
     }
@@ -648,22 +766,58 @@ function maestro_decode_json(mixed $raw): array
 }
 function maestro_text(string $s, int $max = 180): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_text
+     * Responsabilidade: Orquestra a execução de “maestro text” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`, `maestro_create_action`.
+     * Dependências chamadas: `trim`, `strip_tags`, `preg_replace`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = trim(strip_tags($s));
     $s = preg_replace("/\s+/u", " ", $s) ?: "";
     return mb_substr($s, 0, $max);
 }
 function maestro_template(string $s, int $max = 900): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_template
+     * Responsabilidade: Orquestra a execução de “maestro template” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`, `maestro_create_action`.
+     * Dependências chamadas: `trim`, `strip_tags`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = trim(strip_tags($s));
     return mb_substr($s, 0, $max);
 }
 function maestro_days(mixed $v, int $default = 1): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_days
+     * Responsabilidade: Orquestra a execução de “maestro days” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`.
+     * Dependências chamadas: `max`, `min`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $n = (int) $v;
     return max(0, min(365, $n > 0 || $v === "0" ? $n : $default));
 }
 function maestro_amount(mixed $v, int $default = 1, string $unit = "days"): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_amount
+     * Responsabilidade: Orquestra a execução de “maestro amount” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`, `maestro_fetch_candidates`.
+     * Dependências chamadas: `max`, `min`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $n = (int) $v;
     if (!($n > 0 || $v === "0")) {
         $n = $default;
@@ -677,18 +831,54 @@ function maestro_amount(mixed $v, int $default = 1, string $unit = "days"): int
 }
 function maestro_priority(mixed $v): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_priority
+     * Responsabilidade: Orquestra a execução de “maestro priority” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_save_rule`.
+     * Dependências chamadas: `max`, `min`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return max(1, min(100, (int) $v));
 }
 function maestro_due_dt(int $offsetDays = 0): ?string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_due_dt
+     * Responsabilidade: Orquestra a execução de “maestro due dt” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_create_action`.
+     * Dependências chamadas: `max`, `min`, `date`, `strtotime`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $offsetDays = max(0, min(365, $offsetDays));
     return date("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days"));
 }
 function maestro_apply_placeholders(string $template, array $vars): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_apply_placeholders
+     * Responsabilidade: Orquestra a execução de “maestro apply placeholders” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_create_action`.
+     * Dependências chamadas: `preg_replace_callback`, `mb_strtolower`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return preg_replace_callback(
         "/\{\{\s*([a-z0-9_]+)\s*\}\}/iu",
         function ($m) use ($vars) {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Domain/Maestro/Maestro.php:691
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+             * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `mb_strtolower`.
+             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+             */
             $k = mb_strtolower((string) $m[1]);
             return (string) ($vars[$k] ?? "");
         },
@@ -697,10 +887,32 @@ function maestro_apply_placeholders(string $template, array $vars): string
 }
 function maestro_actor_id(): ?int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_actor_id
+     * Responsabilidade: Orquestra a execução de “maestro actor id” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_create_action`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return isset($_SESSION["uid"]) ? (int) $_SESSION["uid"] : null;
 }
 function maestro_save_rule(array $c): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_save_rule
+     * Responsabilidade: Valida e executa a mutação “maestro save rule”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `maestro_trigger_catalog`, `maestro_action_types`, `max`, `RuntimeException`, `maestro_text`, `maestro_amount`, `maestro_priority`, `min`, `in_array`, `clinic_role_options`, `array_key_first`, `clinic_user_exists` e mais 6.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     $catalog = maestro_trigger_catalog();
@@ -843,6 +1055,15 @@ function maestro_save_rule(array $c): void
 }
 function maestro_module_options(array $catalog): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_module_options
+     * Responsabilidade: Orquestra a execução de “maestro module options” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `maestro_module_label`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $out = [];
     foreach ($catalog as $it) {
         $module = (string) ($it["module"] ?? "");
@@ -856,6 +1077,15 @@ function maestro_trigger_option_html(
     array $catalog,
     string $selected = "appointment_before_start",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_trigger_option_html
+     * Responsabilidade: Monta a representação de interface associada a “maestro trigger option html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $h = '<select name="trigger_event" required data-maestro-trigger>';
     foreach ($catalog as $key => $it) {
         $sel = $key === $selected ? " selected" : "";
@@ -892,6 +1122,15 @@ function maestro_trigger_option_html(
 }
 function maestro_duration_label(int $ms): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_duration_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro duration label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `number_format`, `floor`, `round`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($ms <= 0) {
         return "0 ms";
     }
@@ -911,6 +1150,15 @@ function maestro_unit_label(
     int $amount,
     bool $short = false,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_unit_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro unit label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($short) {
         return $unit === "minutes" ? "min" : ($unit === "hours" ? "h" : "d");
     }
@@ -924,6 +1172,15 @@ function maestro_unit_label(
 }
 function maestro_module_icon(string $module): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_module_icon
+     * Responsabilidade: Orquestra a execução de “maestro module icon” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "appointments" => "calendar_month",
         "leads" => "person_search",
@@ -937,10 +1194,28 @@ function maestro_module_icon(string $module): string
 }
 function maestro_action_icon(string $action): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_action_icon
+     * Responsabilidade: Orquestra a execução de “maestro action icon” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $action === "create_notice" ? "campaign" : "assignment_turned_in";
 }
 function maestro_target_label(array $act, int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_target_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro target label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `role_label_for`, `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $dest = (string) ($act["target_scope"] ?? "clinic");
     if ($dest === "role") {
         return "Naipe: " .
@@ -962,11 +1237,29 @@ function maestro_target_label(array $act, int $cid): string
 }
 function maestro_last_label(?string $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_last_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro last label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `trim`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = trim((string) $value);
     return $value !== "" ? dt_br($value) : "Ainda não afinada";
 }
 function maestro_next_label(?string $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_next_label
+     * Responsabilidade: Monta a representação de interface associada a “maestro next label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_maestro`.
+     * Dependências chamadas: `trim`, `strtotime`, `time`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = trim((string) $value);
     if ($value === "") {
         return "No próximo ciclo";
@@ -979,6 +1272,19 @@ function maestro_next_label(?string $value): string
 }
 function page_maestro(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_maestro
+     * Responsabilidade: Coordena a rota e renderiza a tela “page maestro”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `has_effective_role`, `ProntooHttpError`, `maestro_ensure_schema`, `maestro_save_rule`, `flash`, `redirect`, `max`, `q`, `audit`, `maestro_trigger_catalog`, `maestro_module_options` e mais 35.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("maestro");
     if (
         ($c["scope"] ?? "") !== "clinic" ||
@@ -1139,7 +1445,7 @@ function page_maestro(): void
         "<span>Salvar rotina</span></button></div></form>";
     $execStats = [];
     if ($rules) {
-        $ruleIds = array_map(fn($rr) => (int) $rr["id"], $rules);
+        $ruleIds = array_map(/* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($rr) => (int) $rr["id"], $rules);
         $ph = implode(",", array_fill(0, count($ruleIds), "?"));
         foreach (
             q(
@@ -1282,10 +1588,28 @@ function page_maestro(): void
 }
 function maestro_match_base(array $vars, array $extra = []): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_match_base
+     * Responsabilidade: Orquestra a execução de “maestro match base” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_fetch_candidates`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $extra + ["variables" => $vars];
 }
 function maestro_fetch_candidates(array $rule, int $limit = 120): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_fetch_candidates
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “maestro fetch candidates” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_run_rule_scoped`.
+     * Dependências chamadas: `maestro_trigger_catalog`, `maestro_decode_json`, `maestro_amount`, `max`, `min`, `audit_clinic_name_lookup`, `date`, `strtotime`, `q`, `->fetchAll`, `app_storage_timestamp`, `maestro_match_base` e mais 11.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cid = (int) $rule["clinic_id"];
     $trigger = (string) $rule["trigger_event"];
     $catalog = maestro_trigger_catalog();
@@ -2117,6 +2441,17 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
 }
 function maestro_create_action(array $rule, array $match): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_create_action
+     * Responsabilidade: Valida e executa a mutação “maestro create action”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_run_rule_scoped`.
+     * Dependências chamadas: `maestro_decode_json`, `maestro_text`, `maestro_apply_placeholders`, `maestro_template`, `array_key_exists`, `clinic_role_options`, `clinic_user_exists`, `q`, `maestro_actor_id`, `db_last_insert_id`, `counter_inc`, `clinic_metric_inc` e mais 4.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $cid = (int) $rule["clinic_id"];
     $act = maestro_decode_json($rule["action_json"] ?? "");
     $vars = $match["variables"] ?? [];
@@ -2211,6 +2546,15 @@ function maestro_create_action(array $rule, array $match): array
 }
 function maestro_routine_key(array $rule): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_routine_key
+     * Responsabilidade: Orquestra a execução de “maestro routine key” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_cron_run`, `closure@app/Domain/Maestro/Maestro.php:2426`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "rule:" .
         (int) $rule["id"] .
         ":" .
@@ -2220,6 +2564,15 @@ function maestro_routine_key(array $rule): string
 }
 function maestro_rule_score(array $rule, ?array $stat = null): float
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_rule_score
+     * Responsabilidade: Orquestra a execução de “maestro rule score” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_cron_run`, `closure@app/Domain/Maestro/Maestro.php:2426`.
+     * Dependências chamadas: `app_storage_timestamp`, `max`, `min`, `time`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $priority = (int) ($rule["priority"] ?? 50);
     $next = $rule["next_run_at"]
         ? app_storage_timestamp($rule["next_run_at"])
@@ -2238,6 +2591,15 @@ function maestro_stats_update(
     float $score,
     bool $skipped = false,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_stats_update
+     * Responsabilidade: Valida e executa a mutação “maestro stats update”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_cron_run`.
+     * Dependências chamadas: `one`, `q`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $old = one("SELECT * FROM pi_maestro_job_stats WHERE routine_key=?", [
         $key,
     ]);
@@ -2268,21 +2630,48 @@ function maestro_stats_update(
 }
 function maestro_with_guarded_clinic(int $cid, callable $fn): mixed
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_with_guarded_clinic
+     * Responsabilidade: Orquestra a execução de “maestro with guarded clinic” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_run_rule`, `maestro_cron_run`.
+     * Dependências chamadas: `with_scope_guard_clinic`, `with_read_only_guard_disabled`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return with_scope_guard_clinic(
         $cid,
-        static fn() => with_read_only_guard_disabled($fn),
+        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `with_read_only_guard_disabled`. Efeitos: transformação local sem efeito externo detectado. */ fn() => with_read_only_guard_disabled($fn),
     );
 }
 function maestro_run_rule(array $rule, float $deadline): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_run_rule
+     * Responsabilidade: Orquestra a execução de “maestro run rule” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_cron_run`.
+     * Dependências chamadas: `maestro_with_guarded_clinic`, `maestro_run_rule_scoped`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cid = (int) ($rule["clinic_id"] ?? 0);
     return maestro_with_guarded_clinic(
         $cid,
-        static fn() => maestro_run_rule_scoped($rule, $deadline),
+        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `maestro_run_rule_scoped`. Efeitos: transformação local sem efeito externo detectado. */ fn() => maestro_run_rule_scoped($rule, $deadline),
     );
 }
 function maestro_run_rule_scoped(array $rule, float $deadline): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_run_rule_scoped
+     * Responsabilidade: Orquestra a execução de “maestro run rule scoped” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_run_rule`, `arrow@app/Domain/Maestro/Maestro.php:2281`.
+     * Dependências chamadas: `clinic_read_only_db`, `microtime`, `maestro_fetch_candidates`, `q`, `->rowCount`, `db_begin_transaction`, `maestro_create_action`, `db_commit`, `pdo`, `->inTransaction`, `db_rollback`, `mb_substr` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $cid = (int) $rule["clinic_id"];
     if (clinic_read_only_db($cid)) {
         return ["created" => 0, "seen" => 0, "errors" => 0];
@@ -2370,6 +2759,16 @@ function maestro_run_rule_scoped(array $rule, float $deadline): array
 }
 function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_cron_run
+     * Responsabilidade: Orquestra a execução de “maestro cron run” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `has_cfg`, `maestro_ensure_schema`, `microtime`, `max`, `min`, `storage_path`, `fopen`, `flock`, `q`, `->fetchAll`, `count`, `array_map` e mais 13.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg()) {
         return [
             "success" => true,
@@ -2424,6 +2823,15 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
                 $stats[(string) $s["routine_key"]] = $s;
             }
             usort($rules, function ($a, $b) use ($stats) {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Domain/Maestro/Maestro.php:2426
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+                 * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `maestro_rule_score`, `maestro_routine_key`.
+                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                 */
                 return maestro_rule_score(
                     $b,
                     $stats[maestro_routine_key($b)] ?? null,
@@ -2447,7 +2855,7 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
                 $deferred++;
                 maestro_with_guarded_clinic(
                     (int) $rule["clinic_id"],
-                    static fn() => q(
+                    static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `q`. Efeitos: acessa a camada de persistência, pode gravar ou remover dados. */ fn() => q(
                         "UPDATE pi_maestro_rules SET next_run_at=DATE_ADD(NOW(), INTERVAL " .
                             (int) PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES .
                             " MINUTE) WHERE id=? AND clinic_id=?",
@@ -2513,6 +2921,16 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 }
 function maestro_record_cron_failure(float $startedAt, string $note): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_record_cron_failure
+     * Responsabilidade: Valida e executa a mutação “maestro record cron failure”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `has_cfg`, `maestro_ensure_schema`, `ltrim`, `mb_substr`, `preg_replace`, `trim`, `max`, `round`, `microtime`, `q`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!has_cfg()) {
         return;
     }

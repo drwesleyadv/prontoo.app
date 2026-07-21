@@ -2,6 +2,16 @@
 declare(strict_types=1);
 function install_value(string $v, int $max = 255): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_value
+     * Responsabilidade: Opera a etapa “install value” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `trim`, `strlen`, `preg_match`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $v = trim($v);
     if ($v === "" || strlen($v) > $max || preg_match('/[\x00-\x1F\x7F]/', $v)) {
         throw new RuntimeException("Valor de instalação inválido.");
@@ -10,6 +20,15 @@ function install_value(string $v, int $max = 255): string
 }
 function install_pdf_dir(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_pdf_dir
+     * Responsabilidade: Opera a etapa “install pdf dir” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_environment_checks`, `install_technical_report`.
+     * Dependências chamadas: `function_exists`, `document_pdf_dir`, `app_root`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (function_exists("document_pdf_dir")) {
         return document_pdf_dir();
     }
@@ -17,6 +36,15 @@ function install_pdf_dir(): string
 }
 function install_state(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_state
+     * Responsabilidade: Opera a etapa “install state” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_technical_report`, `prontoo_install`.
+     * Dependências chamadas: `has_cfg`, `is_file`, `storage_path`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cfg = has_cfg();
     $lock = is_file(storage_path("install.lock"));
     if ($cfg && $lock) {
@@ -32,6 +60,15 @@ function install_state(): string
 }
 function install_environment_checks(bool $touchPaths = false): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_environment_checks
+     * Responsabilidade: Opera a etapa “install environment checks” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_prepare_writable_paths`, `prontoo_install`.
+     * Dependências chamadas: `prontoo_php_runtime_ok`, `prontoo_php_runtime_message`, `extension_loaded`, `prontoo_memory_limit_label`, `prontoo_memory_limit_meets`, `dirname`, `cfg_file`, `storage_path`, `install_pdf_dir`, `is_dir`, `prontoo_fs_mkdir`, `is_writable` e mais 6.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $checks = [];
     $add = static function (
         string $key,
@@ -40,6 +77,15 @@ function install_environment_checks(bool $touchPaths = false): array
         string $message,
         string $level = "error",
     ) use (&$checks): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Install/Installer.php:36
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de instalação local controlada.
+         * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $checks[] = [
             "key" => $key,
             "ok" => $ok,
@@ -116,6 +162,15 @@ function install_environment_checks(bool $touchPaths = false): array
 }
 function install_environment_has_blocker(array $checks): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_environment_has_blocker
+     * Responsabilidade: Avalia ou impõe a regra “install environment has blocker”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_prepare_writable_paths`, `install_form`, `prontoo_install`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($checks as $check) {
         if (($check["level"] ?? "error") === "error" && empty($check["ok"])) {
             return true;
@@ -125,10 +180,28 @@ function install_environment_has_blocker(array $checks): bool
 }
 function install_yesno(bool $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_yesno
+     * Responsabilidade: Opera a etapa “install yesno” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_technical_report`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $value ? "sim" : "não";
 }
 function install_compact_text(string $value, int $limit = 1800): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_compact_text
+     * Responsabilidade: Opera a etapa “install compact text” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_technical_report`.
+     * Dependências chamadas: `preg_replace`, `trim`, `strlen`, `substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $value = preg_replace("/\s+/", " ", trim($value)) ?? trim($value);
     if (strlen($value) <= $limit) {
         return $value;
@@ -137,11 +210,29 @@ function install_compact_text(string $value, int $limit = 1800): string
 }
 function install_path_mode(string $path): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_path_mode
+     * Responsabilidade: Opera a etapa “install path mode” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_path_report`.
+     * Dependências chamadas: `prontoo_fs_fileperms`, `substr`, `sprintf`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $perms = prontoo_fs_fileperms($path);
     return $perms === false ? "n/d" : substr(sprintf("%o", $perms), -4);
 }
 function install_path_report(string $label, string $path): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_path_report
+     * Responsabilidade: Opera a etapa “install path report” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_technical_report`.
+     * Dependências chamadas: `dirname`, `realpath`, `file_exists`, `is_dir`, `is_file`, `is_writable`, `install_path_mode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $parent = dirname($path);
     return [
         "label" => $label,
@@ -160,6 +251,15 @@ function install_path_report(string $label, string $path): array
 }
 function install_throwable_lines(Throwable $e): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_throwable_lines
+     * Responsabilidade: Opera a etapa “install throwable lines” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_database_probe_lines`, `install_technical_report`.
+     * Dependências chamadas: `get_class`, `->getCode`, `->getMessage`, `->getFile`, `->getLine`, `is_array`, `json_encode`, `array_slice`, `->getTrace`, `->getPrevious`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $lines = [];
     $i = 0;
     do {
@@ -194,10 +294,28 @@ function install_throwable_lines(Throwable $e): array
 }
 function install_mysql_dsn(string $host, string $db): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_mysql_dsn
+     * Responsabilidade: Opera a etapa “install mysql dsn” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_open_database`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "mysql:host=" . $host . ";dbname=" . $db . ";charset=utf8mb4";
 }
 function install_pdo_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_pdo_options
+     * Responsabilidade: Opera a etapa “install pdo options” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_open_database`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -206,6 +324,16 @@ function install_pdo_options(): array
 }
 function install_open_database(array $context, bool $strictMode = false): PDO
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_open_database
+     * Responsabilidade: Valida e executa a mutação “install open database”, preservando as invariantes do módulo de instalação local controlada.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_database_probe_lines`, `prontoo_install`.
+     * Dependências chamadas: `PDO`, `install_mysql_dsn`, `install_pdo_options`, `db_assert_mysql_runtime`, `db_apply_mysql_session_contract`.
+     * Classes ou serviços instanciados: `PDO`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $pdo = new PDO(
         install_mysql_dsn(
             (string) ($context["db_host"] ?? ""),
@@ -221,6 +349,15 @@ function install_open_database(array $context, bool $strictMode = false): PDO
 }
 function install_database_error_code(Throwable $e): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_database_error_code
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “install database error code”.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_database_error_message`, `install_database_hint_lines`.
+     * Dependências chamadas: `is_array`, `is_numeric`, `->getCode`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (
         $e instanceof PDOException &&
         is_array($e->errorInfo ?? null) &&
@@ -232,6 +369,15 @@ function install_database_error_code(Throwable $e): int
 }
 function install_database_error_message(Throwable $e): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_database_error_message
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “install database error message”.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `install_database_error_code`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match (install_database_error_code($e)) {
         1045
             => "O MySQL recusou o usuário ou a senha informados. Confira o usuário completo do banco, a senha e se esse usuário está vinculado ao banco.",
@@ -248,6 +394,15 @@ function install_database_error_message(Throwable $e): string
 }
 function install_database_hint_lines(Throwable $e, array $context = []): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_database_hint_lines
+     * Responsabilidade: Opera a etapa “install database hint lines” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_database_probe_lines`.
+     * Dependências chamadas: `install_database_error_code`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $code = install_database_error_code($e);
     $lines = [];
     if ($code === 1045) {
@@ -271,6 +426,15 @@ function install_database_hint_lines(Throwable $e, array $context = []): array
 }
 function install_database_probe_lines(array $context): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_database_probe_lines
+     * Responsabilidade: Opera a etapa “install database probe lines” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_technical_report`.
+     * Dependências chamadas: `extension_loaded`, `install_open_database`, `->query`, `->fetchColumn`, `->fetchAll`, `is_string`, `strtolower`, `trim`, `implode`, `install_database_hint_lines`, `install_throwable_lines`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $lines = [];
     $host = (string) ($context["db_host"] ?? "");
     $db = (string) ($context["db_name"] ?? "");
@@ -345,6 +509,16 @@ function install_technical_report(
     array $context = [],
     array $checks = [],
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — install_technical_report
+     * Responsabilidade: Opera a etapa “install technical report” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_error`.
+     * Dependências chamadas: `defined`, `gmdate`, `ini_get`, `install_yesno`, `extension_loaded`, `app_root`, `cfg_file`, `install_state`, `has_cfg`, `is_file`, `storage_path`, `dirname` e mais 8.
+     * Estado externo lido: `$_SERVER`, `$GLOBALS`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $lines = [];
     $lines[] = "PRONTOO INSTALL DIAGNOSTIC";
     $lines[] =
@@ -477,12 +651,30 @@ function install_technical_report(
 }
 function install_write_failure_log(string $report): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_write_failure_log
+     * Responsabilidade: Valida e executa a mutação “install write failure log”, preservando as invariantes do módulo de instalação local controlada.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_error`.
+     * Dependências chamadas: `storage_path`, `gmdate`, `prontoo_fs_write`, `prontoo_fs_chmod`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $file = storage_path("install-error-" . gmdate("Ymd-His") . ".log");
     prontoo_fs_write($file, $report . "\n");
     prontoo_fs_chmod($file, 0640);
 }
 function install_checks_html(array $checks): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_checks_html
+     * Responsabilidade: Monta a representação de interface associada a “install checks html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_error`, `install_form`.
+     * Dependências chamadas: `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!$checks) {
         return "";
     }
@@ -513,6 +705,16 @@ function install_checks_html(array $checks): string
 }
 function install_prepare_writable_paths(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_prepare_writable_paths
+     * Responsabilidade: Opera a etapa “install prepare writable paths” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `install_environment_checks`, `install_environment_has_blocker`, `RuntimeException`, `is_file`, `storage_path`, `prontoo_fs_write`, `function_exists`, `security_storage_deny_file`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $checks = install_environment_checks(true);
     if (install_environment_has_blocker($checks)) {
         throw new RuntimeException(
@@ -532,6 +734,15 @@ function install_prepare_writable_paths(): void
 }
 function install_safe_failure_message(Throwable $e): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_safe_failure_message
+     * Responsabilidade: Opera a etapa “install safe failure message” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `trim`, `->getMessage`, `str_contains`, `str_starts_with`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $msg = trim($e->getMessage());
     if ($msg === "") {
         return "A instalação não foi concluída. Revise os dados informados e tente novamente.";
@@ -571,6 +782,15 @@ function install_safe_failure_message(Throwable $e): string
 }
 function install_head(string $title): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_head
+     * Responsabilidade: Opera a etapa “install head” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_error`, `install_state_page`, `install_form`.
+     * Dependências chamadas: `e`, `csrf`, `rawurlencode`, `defined`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>' .
         e($title) .
         '</title><meta name="theme-color" content="#334155"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
@@ -591,6 +811,15 @@ function install_head(string $title): string
 }
 function install_tail(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_tail
+     * Responsabilidade: Opera a etapa “install tail” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `install_error`, `install_state_page`, `install_form`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "</main></body></html>";
 }
 function install_error(
@@ -599,6 +828,15 @@ function install_error(
     ?Throwable $e = null,
     array $context = [],
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — install_error
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “install error”.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `install_technical_report`, `install_write_failure_log`, `install_head`, `e`, `install_checks_html`, `install_tail`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $report =
         $e instanceof Throwable || $context || $checks
             ? install_technical_report($e, $context, $checks)
@@ -621,6 +859,15 @@ function install_error(
 }
 function install_state_page(string $state): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_state_page
+     * Responsabilidade: Opera a etapa “install state page” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `install_head`, `install_tail`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     echo install_head("Instalar Prontoo");
     if ($state === "installed") {
         echo '<section class="auth widebox"><h1>Prontoo já configurado</h1><p>Esta instalação já possui configuração e trava de instalação concluída.</p><p><a class="primary" href="/">Abrir</a></p></section>';
@@ -633,6 +880,15 @@ function install_state_page(string $state): void
 }
 function install_form(array $checks): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — install_form
+     * Responsabilidade: Monta a representação de interface associada a “install form” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: `prontoo_install`.
+     * Dependências chamadas: `install_environment_has_blocker`, `install_head`, `install_checks_html`, `csrf_field`, `form_row`, `input`, `install_tail`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $disabled = install_environment_has_blocker($checks)
         ? ' disabled aria-disabled="true"'
         : "";
@@ -679,6 +935,19 @@ function install_form(array $checks): void
 }
 function prontoo_install(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_install
+     * Responsabilidade: Opera a etapa “prontoo install” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `.Core.Install.InstallAccess::assertLocalEntry`, `boot_security`, `guard_request`, `headers_secure`, `header`, `install_state`, `.Core.Install.InstallAccess::denyPublicAccess`, `install_form`, `install_environment_checks`, `install_environment_has_blocker`, `install_error`, `RuntimeException` e mais 50.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`, `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     try {
         \Prontoo\Core\Install\InstallAccess::assertLocalEntry();
         boot_security();
@@ -801,6 +1070,15 @@ function prontoo_install(): void
             prontoo_fs_chmod(cfg_file(), 0640);
             \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
                 static function (): void {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Install/Installer.php:803
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de instalação local controlada.
+                     * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `install_fresh_schema`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+                     */
                     install_fresh_schema();
                 },
             );
@@ -870,6 +1148,16 @@ function prontoo_install(): void
                     try {
                         \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
                             static function (): void {
+                                /*
+                                 * GUIA DE MANUTENÇÃO — closure@app/Install/Installer.php:872
+                                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de instalação local controlada.
+                                 * Local arquitetural: app/Install/Installer.php (instalação local controlada).
+                                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                                 * Dependências chamadas: `schema_cleanup_failed_install`, `prontoo_schema_table_names`, `prontoo_fs_unlink`, `schema_lock_file`.
+                                 * Estado externo lido: `$GLOBALS`.
+                                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                                 * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+                                 */
                                 $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
                                 try {
                                     schema_cleanup_failed_install(prontoo_schema_table_names());

@@ -12,10 +12,29 @@ final class ArchitectureVerifier
     /** @var array<string,array<string,mixed>> */
     private static array $cache = [];
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function report(string $root, bool $strictActions = false): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::report
+         * Responsabilidade: Implementa a responsabilidade “report” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::assert`, `Core.Install.RuntimeContract::assertRuntimeArchitecture`, `Runtime.LayeredKernel::logicSelfTest`.
+         * Dependências chamadas: `rtrim`, `str_replace`, `LayerMap::phpFiles`, `ltrim`, `LayerMap::layerFor`, `LayerMap::isNativePath`, `self::inspectDependencies`, `self::inspectLayerNativeFile`, `function_exists`, `array_values`, `array_unique`, `array_map` e mais 14.
+         * Efeitos colaterais: acessa o sistema de arquivos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $root = rtrim(str_replace('\\', '/', $root), '/');
         $cacheKey = $root . '|' . ($strictActions ? 'strict' : 'runtime');
         if (isset(self::$cache[$cacheKey])) {
@@ -165,7 +184,7 @@ final class ArchitectureVerifier
             'action_source_contracts_total' => array_sum(array_map('count', $knownBySource)),
             'action_literals_discovered' => count($discovered),
             'action_literal_sources' => array_map(
-                static fn(array $items): array => array_keys($items),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `array_keys`. Efeitos: transformação local sem efeito externo detectado. */ fn(array $items): array => array_keys($items),
                 $discoveredSources,
             ),
             'layers' => $layerCounts,
@@ -178,6 +197,16 @@ final class ArchitectureVerifier
 
     public static function assert(string $root, bool $strictActions = false): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::assert
+         * Responsabilidade: Avalia ou impõe a regra “assert”, falhando de forma controlada quando a pré-condição não é satisfeita.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `self::report`, `implode`, `array_slice`.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $report = self::report($root, $strictActions);
         if (empty($report['ok'])) {
             throw new \RuntimeException(
@@ -193,6 +222,15 @@ final class ArchitectureVerifier
         string $fromLayer,
         array &$errors,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::inspectDependencies
+         * Responsabilidade: Implementa a responsabilidade “inspect dependencies” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `file_get_contents`, `preg_match_all`, `array_unique`, `LayerMap::layerFromNamespace`, `LayerMap::dependencyAllowed`.
+         * Efeitos colaterais: acessa o sistema de arquivos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $content = (string) @file_get_contents($root . '/' . $relative);
         if ($content === '') {
             return;
@@ -217,6 +255,15 @@ final class ArchitectureVerifier
         string $layer,
         array &$errors,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::inspectLayerNativeFile
+         * Responsabilidade: Implementa a responsabilidade “inspect layer native file” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `LayerMap::isNativePath`, `file_get_contents`, `preg_match`, `in_array`.
+         * Efeitos colaterais: acessa o sistema de arquivos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (!LayerMap::isNativePath($relative)) {
             return;
         }
@@ -239,6 +286,15 @@ final class ArchitectureVerifier
         int $transitionalFiles,
         array &$errors,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::inspectArchitectureManifest
+         * Responsabilidade: Implementa a responsabilidade “inspect architecture manifest” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `is_file`, `file_get_contents`, `is_string`, `json_decode`, `is_array`, `defined`.
+         * Efeitos colaterais: acessa o sistema de arquivos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $file = $root . '/app/architecture.manifest.json';
         $raw = is_file($file) ? @file_get_contents($file) : false;
         $manifest = is_string($raw) ? json_decode($raw, true) : null;
@@ -265,6 +321,15 @@ final class ArchitectureVerifier
 
     private static function inspectRemovedLegacy(string $root, array &$errors, array &$warnings): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::inspectRemovedLegacy
+         * Responsabilidade: Implementa a responsabilidade “inspect removed legacy” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `is_file`, `file_get_contents`, `str_contains`, `preg_match`.
+         * Efeitos colaterais: acessa o sistema de arquivos.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         foreach ([
             'app/Core/Invariant/ActionCapabilityCatalog.php',
             'app/Core/Invariant/CapabilityInvariant.php',
@@ -295,6 +360,15 @@ final class ArchitectureVerifier
     /** @return list<string> */
     private static function discoverActionTokens(string $content): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Architecture.ArchitectureVerifier::discoverActionTokens
+         * Responsabilidade: Implementa a responsabilidade “discover action tokens” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Architecture/ArchitectureVerifier.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `preg_match_all`, `trim`, `ksort`, `array_keys`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $tokens = [];
         $patterns = [
             '/name=["\']act["\'][^>]{0,180}value=["\']([a-z0-9_-]+)["\']/i',

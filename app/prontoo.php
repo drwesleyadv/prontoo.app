@@ -17,24 +17,69 @@ if (!function_exists("mb_substr")) {
         ?int $l = null,
         ?string $e = null,
     ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — mb_substr
+         * Responsabilidade: Implementa a responsabilidade “mb substr” dentro do módulo de composição geral do runtime.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: `page_admin_alerts`, `onboarding_tip_key`, `onboarding_tip_dismiss`, `Core.Integrity.PiIntegrity::afterQuery`, `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::queueEvent`, `Core.Support.Check::clampText`, `db_log_query_failure` e mais 34.
+         * Dependências chamadas: `substr`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return $l === null ? substr($s, $a) : substr($s, $a, $l);
     }
     function mb_strlen(string $s, ?string $e = null): int
     {
+        /*
+         * GUIA DE MANUTENÇÃO — mb_strlen
+         * Responsabilidade: Implementa a responsabilidade “mb strlen” dentro do módulo de composição geral do runtime.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: `page_profile`, `mask`, `normalize_subscription_pix_key`, `document_pdf_text_width`, `patient_summary_excerpt`, `page_counterparty_suggest`, `financial_create_drawer`, `financial_rename_drawer` e mais 2.
+         * Dependências chamadas: `strlen`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return strlen($s);
     }
     function mb_strtolower(string $s, ?string $e = null): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — mb_strtolower
+         * Responsabilidade: Implementa a responsabilidade “mb strtolower” dentro do módulo de composição geral do runtime.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: `admin_maestro_health_pill_html`, `appointment_status_code`, `appointment_journey_hard_guard_message`, `appointment_journey_role_matches`, `arrow@app/Domain/Appointments/Appointments.php:812`, `page_appointments`, `activity_status_from_ctx`, `activity_display_label` e mais 25.
+         * Dependências chamadas: `strtolower`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return strtolower($s);
     }
     function mb_convert_case(string $s, int $mode, ?string $e = null): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — mb_convert_case
+         * Responsabilidade: Transforma e normaliza “mb convert case” para um formato canônico utilizado pelo restante da aplicação.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: `activity_display_label`, `patient_record_type_label`, `patient_document_type_human_label`.
+         * Dependências chamadas: `ucwords`, `strtolower`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return $mode === MB_CASE_TITLE ? ucwords(strtolower($s)) : $s;
     }
 }
 if (!function_exists("h")) {
     function h($v): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — h
+         * Responsabilidade: Implementa a responsabilidade “h” dentro do módulo de composição geral do runtime.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `htmlspecialchars`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return htmlspecialchars(
             (string) $v,
             ENT_QUOTES | ENT_SUBSTITUTE,
@@ -42,10 +87,19 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.21.6";
+const PRONTOO_VERSION_FALLBACK = "1.7.21.7";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_release_metadata
+     * Responsabilidade: Implementa a responsabilidade “prontoo release metadata” dentro do módulo de composição geral do runtime.
+     * Local arquitetural: app/prontoo.php (composição geral do runtime).
+     * Chamadores detectados: `prontoo_version_contract_status`.
+     * Dependências chamadas: `is_array`, `is_file`, `file_get_contents`, `is_string`, `json_decode`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $metadata = null;
     if (is_array($metadata)) {
         return $metadata;
@@ -79,6 +133,15 @@ define("PRONTOO_RELEASE", $prontooRelease);
 define("PRONTOO_ASSET_REV", $prontooAssetRevision);
 function prontoo_version_contract_status(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_version_contract_status
+     * Responsabilidade: Implementa a responsabilidade “prontoo version contract status” dentro do módulo de composição geral do runtime.
+     * Local arquitetural: app/prontoo.php (composição geral do runtime).
+     * Chamadores detectados: `platform_backend_selftest`.
+     * Dependências chamadas: `is_array`, `prontoo_release_metadata`, `trim`, `is_file`, `file_get_contents`, `is_string`, `json_decode`, `preg_match`, `str_contains`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $status = null;
     if (is_array($status)) {
         return $status;
@@ -185,6 +248,15 @@ if (PHP_SAPI !== "cli") {
 }
 function prontoo_configure_runtime_error_log(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_configure_runtime_error_log
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “prontoo configure runtime error log”.
+     * Local arquitetural: app/prontoo.php (composição geral do runtime).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `is_dir`, `mkdir`, `is_writable`, `ini_set`, `is_file`, `unlink`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (PHP_SAPI === "cli") {
         return;
     }
@@ -250,6 +322,15 @@ class ProntooHttpError extends RuntimeException
 {
     public function __construct(public int $status, string $message)
     {
+        /*
+         * GUIA DE MANUTENÇÃO — ProntooHttpError::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/prontoo.php (composição geral do runtime).
+         * Chamadores detectados: `page_admin_errors`, `page_admin_security`, `Core.Database.SqlScopeGuard::guard`, `Core.Database.SqlScopeGuard::assertScopedWrite`, `Core.Invariant.Context.MaestroContextInvariant::assertWrite`, `Core.Invariant.Context.TaskContextInvariant::deny`, `Core.Invariant.Mutation.MutationInvariant::deny`, `Core.Invariant.Relation.ForeignKeyGraph::deny` e mais 17.
+         * Dependências chamadas: `parent::__construct`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         parent::__construct($message);
     }
 }

@@ -2,6 +2,16 @@
 declare(strict_types=1);
 function pdo_metric(): PDO
 {
+    /*
+     * GUIA DE MANUTENÇÃO — pdo_metric
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “pdo metric”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `cfg`, `array_key_exists`, `RuntimeException`, `PDO`, `db_assert_mysql_runtime`, `db_apply_mysql_session_contract`.
+     * Classes ou serviços instanciados: `RuntimeException`, `PDO`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $pdo = null;
     if ($pdo instanceof PDO) {
         return $pdo;
@@ -29,19 +39,56 @@ function pdo_metric(): PDO
 }
 function telemetry_storage_dir(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_storage_dir
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry storage dir”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_page_file`, `telemetry_prepare_storage`, `telemetry_route_perf_file`.
+     * Dependências chamadas: `storage_path`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return storage_path("telemetry");
 }
 function telemetry_page_file(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_page_file
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry page file”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_read_events`, `telemetry_append_page_metric`.
+     * Dependências chamadas: `telemetry_storage_dir`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return telemetry_storage_dir() . "/page-load.json";
 }
 function telemetry_cuiaba_tz(): DateTimeZone
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_cuiaba_tz
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry cuiaba tz”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_global_metric_series_24h`, `admin_global_sequence_series_30d`, `telemetry_append_page_metric`, `telemetry_append_route_performance_metric`, `telemetry_route_count_last_days`, `telemetry_route_requests_series_30d`.
+     * Dependências chamadas: `DateTimeZone`.
+     * Classes ou serviços instanciados: `DateTimeZone`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $tz = null;
     return $tz ?: ($tz = new DateTimeZone("America/Cuiaba"));
 }
 function telemetry_prepare_storage(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_prepare_storage
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry prepare storage”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_page_metric`, `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: `telemetry_storage_dir`, `is_dir`, `mkdir`, `is_writable`, `function_exists`, `security_storage_deny_file`, `is_file`, `file_put_contents`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         $dir = telemetry_storage_dir();
         if (!is_dir($dir)) {
@@ -65,6 +112,15 @@ function telemetry_prepare_storage(): bool
 }
 function telemetry_read_events(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_read_events
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “telemetry read events” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_global_metric_series_24h`, `telemetry_route_performance_summary`.
+     * Dependências chamadas: `is_array`, `telemetry_page_file`, `is_file`, `file_get_contents`, `trim`, `json_decode`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $requestCache = null;
     if (is_array($requestCache)) {
         return $requestCache;
@@ -90,6 +146,15 @@ function telemetry_read_events(): array
 }
 function telemetry_sanitize_events(array $events, int $nowTs): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_sanitize_events
+     * Responsabilidade: Transforma e normaliza “telemetry sanitize events” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_page_metric`.
+     * Dependências chamadas: `is_array`, `mb_substr`, `max`, `round`, `count`, `array_slice`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cut = $nowTs - 25 * 3600;
     $out = [];
     foreach ($events as $ev) {
@@ -122,6 +187,16 @@ function telemetry_sanitize_events(array $events, int $nowTs): array
 }
 function telemetry_append_page_metric(array $event): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_append_page_metric
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry append page metric”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_request_metric_shutdown`.
+     * Dependências chamadas: `function_exists`, `telemetry_prepare_storage`, `telemetry_page_file`, `time`, `fopen`, `flock`, `rewind`, `stream_get_contents`, `is_string`, `trim`, `json_decode`, `is_array` e mais 15.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
         return;
     }
@@ -195,29 +270,83 @@ function telemetry_append_page_metric(array $event): void
 }
 function telemetry_route_perf_file(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_file
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf file”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`, `telemetry_route_perf_snapshot`, `telemetry_route_count_last_days`, `telemetry_route_requests_series_30d`.
+     * Dependências chamadas: `telemetry_storage_dir`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return telemetry_storage_dir() . "/route-performance.json";
 }
 function telemetry_route_perf_bucket_seconds(): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_bucket_seconds
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf bucket seconds”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_route_perf_bucket_start`, `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return 300;
 }
 function telemetry_route_perf_bucket_start(int $ts): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_bucket_start
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf bucket start”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: `telemetry_route_perf_bucket_seconds`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $size = telemetry_route_perf_bucket_seconds();
     return $ts - ($ts % $size);
 }
 function telemetry_route_perf_safe_route(string $route): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_safe_route
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf safe route”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`, `telemetry_release_performance_summary`, `telemetry_route_performance_summary`, `telemetry_route_count_last_days`.
+     * Dependências chamadas: `preg_replace`, `trim`, `substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $route = preg_replace("/[^a-z0-9_\-]/i", "", trim($route)) ?: "unknown";
     return substr($route, 0, 80);
 }
 function telemetry_release_safe(string $release): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_release_safe
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry release safe”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_previous_release`, `telemetry_append_route_performance_metric`, `telemetry_release_performance_summary`.
+     * Dependências chamadas: `preg_replace`, `trim`, `substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $release = preg_replace("/[^a-z0-9._\-]/i", "", trim($release)) ?: "unknown";
     return substr($release, 0, 48);
 }
 function telemetry_previous_release(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_previous_release
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry previous release”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`, `telemetry_release_performance_summary`.
+     * Dependências chamadas: `telemetry_release_safe`, `defined`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return telemetry_release_safe(
         defined("PRONTOO_PREVIOUS_VERSION")
             ? (string) PRONTOO_PREVIOUS_VERSION
@@ -226,6 +355,15 @@ function telemetry_previous_release(): string
 }
 function telemetry_route_perf_empty_row(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_empty_row
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf empty row”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_route_perf_add_event`, `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "count" => 0,
         "total_ms" => 0.0,
@@ -256,6 +394,15 @@ function telemetry_route_perf_add_event(
     int $moduleBytes = 0,
     int $moduleFiles = 0,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_add_event
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf add event”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: `array_replace`, `telemetry_route_perf_empty_row`, `round`, `max`, `min`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $row = array_replace(telemetry_route_perf_empty_row(), $row);
     $row["count"] = (int) $row["count"] + 1;
     $row["total_ms"] = round((float) $row["total_ms"] + $elapsed, 3);
@@ -288,6 +435,15 @@ function telemetry_route_perf_add_event(
 }
 function telemetry_cache_empty_row(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_cache_empty_row
+     * Responsabilidade: Gerencia o cache ou a memoização de “telemetry cache empty row”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_cache_add_metrics`, `telemetry_cache_performance_summary`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "requests" => 0,
         "lookups" => 0,
@@ -308,6 +464,15 @@ function telemetry_cache_empty_row(): array
 }
 function telemetry_cache_add_metrics(array $row, array $metrics): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_cache_add_metrics
+     * Responsabilidade: Gerencia o cache ou a memoização de “telemetry cache add metrics”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_append_route_performance_metric`.
+     * Dependências chamadas: `array_replace`, `telemetry_cache_empty_row`, `round`, `max`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $row = array_replace(telemetry_cache_empty_row(), $row);
     $row["requests"] = (int) $row["requests"] + 1;
     foreach (telemetry_cache_empty_row() as $key => $default) {
@@ -325,6 +490,16 @@ function telemetry_cache_add_metrics(array $row, array $metrics): array
 }
 function telemetry_append_route_performance_metric(array $event): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_append_route_performance_metric
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry append route performance metric”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_request_metric_shutdown`, `br_landing_register_route_telemetry`, `closure@br/runtime-telemetry.php:14`.
+     * Dependências chamadas: `function_exists`, `telemetry_prepare_storage`, `telemetry_route_perf_file`, `time`, `telemetry_route_perf_bucket_start`, `telemetry_route_perf_safe_route`, `telemetry_release_safe`, `defined`, `max`, `is_array`, `DateTimeImmutable`, `->setTimezone` e mais 25.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
         return;
     }
@@ -559,6 +734,15 @@ function telemetry_append_route_performance_metric(array $event): void
 }
 function telemetry_route_perf_snapshot(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_perf_snapshot
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route perf snapshot”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `telemetry_cache_performance_summary`, `telemetry_release_performance_summary`, `telemetry_route_performance_summary`.
+     * Dependências chamadas: `is_array`, `telemetry_route_perf_file`, `is_file`, `file_get_contents`, `is_string`, `trim`, `json_decode`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $snapshot = null;
     if (is_array($snapshot)) {
         return $snapshot;
@@ -575,6 +759,15 @@ function telemetry_route_perf_snapshot(): array
 }
 function telemetry_cache_performance_summary(int $hours = 24): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_cache_performance_summary
+     * Responsabilidade: Gerencia o cache ou a memoização de “telemetry cache performance summary”, reduzindo I/O sem substituir a fonte canônica.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_performance`.
+     * Dependências chamadas: `max`, `min`, `time`, `telemetry_route_perf_snapshot`, `is_array`, `telemetry_cache_empty_row`, `preg_replace`, `round`, `array_merge`, `usort`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hours = max(1, min(168, $hours));
     $cut = time() - $hours * 3600;
     $json = telemetry_route_perf_snapshot();
@@ -612,6 +805,15 @@ function telemetry_cache_performance_summary(int $hours = 24): array
         }
     }
     $format = static function (array $row, string $category = "total"): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Support/Telemetry.php:614
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+         * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `max`, `array_merge`, `round`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $lookups = max(0, (int) ($row["lookups"] ?? 0));
         $memoryHits = max(0, (int) ($row["memory_hits"] ?? 0));
         $fileHits = max(0, (int) ($row["file_hits"] ?? 0));
@@ -632,7 +834,7 @@ function telemetry_cache_performance_summary(int $hours = 24): array
     foreach ($categories as $category => $row) {
         $categoryRows[] = $format($row, $category);
     }
-    usort($categoryRows, static fn(array $a, array $b): int =>
+    usort($categoryRows, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $a, array $b): int =>
         ((int) ($b["lookups"] ?? 0)) <=> ((int) ($a["lookups"] ?? 0))
     );
     return [
@@ -644,6 +846,15 @@ function telemetry_cache_performance_summary(int $hours = 24): array
 }
 function telemetry_release_performance_summary(int $hours = 24): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_release_performance_summary
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry release performance summary”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `max`, `min`, `time`, `telemetry_route_perf_snapshot`, `is_array`, `telemetry_previous_release`, `telemetry_release_safe`, `telemetry_route_perf_safe_route`, `array_merge`, `round`, `defined`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hours = max(1, min(168, $hours));
     $cut = time() - $hours * 3600;
     $json = telemetry_route_perf_snapshot();
@@ -752,6 +963,15 @@ function telemetry_release_performance_summary(int $hours = 24): array
 }
 function telemetry_route_performance_summary(int $hours = 24): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_performance_summary
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route performance summary”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_painel`, `page_admin_performance`.
+     * Dependências chamadas: `max`, `min`, `telemetry_route_perf_snapshot`, `time`, `is_array`, `telemetry_route_perf_safe_route`, `telemetry_read_events`, `error_log`, `->getMessage`, `round`, `usort`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $hours = max(1, min(168, $hours));
     $jsonSnapshot = telemetry_route_perf_snapshot();
     $nowTs = time();
@@ -955,6 +1175,15 @@ function telemetry_route_performance_summary(int $hours = 24): array
         $totalMs += (float) $r["total_ms"];
     }
     usort($rows, static function ($a, $b) {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Support/Telemetry.php:957
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+         * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $cmp = $b["avg_ms"] <=> $a["avg_ms"];
         if ($cmp !== 0) {
             return $cmp;
@@ -972,6 +1201,16 @@ function telemetry_route_performance_summary(int $hours = 24): array
 
 function telemetry_route_count_last_days(string $route, int $days = 7): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_count_last_days
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route count last days”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_admin_painel`.
+     * Dependências chamadas: `telemetry_route_perf_safe_route`, `max`, `min`, `telemetry_cuiaba_tz`, `DateTimeImmutable`, `->modify`, `->format`, `telemetry_route_perf_file`, `is_file`, `file_get_contents`, `is_string`, `trim` e mais 5.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $route = telemetry_route_perf_safe_route($route);
     $days = max(1, min(35, $days));
     $tz = telemetry_cuiaba_tz();
@@ -1044,6 +1283,16 @@ function telemetry_route_count_last_days(string $route, int $days = 7): int
 
 function telemetry_route_requests_series_30d(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — telemetry_route_requests_series_30d
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry route requests series 30d”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `admin_global_perf_charts_html`.
+     * Dependências chamadas: `telemetry_cuiaba_tz`, `DateTimeImmutable`, `->modify`, `->format`, `telemetry_route_perf_file`, `is_file`, `file_get_contents`, `is_string`, `trim`, `json_decode`, `is_array`, `->setTimezone` e mais 4.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $tz = telemetry_cuiaba_tz();
     $today = new DateTimeImmutable("today", $tz);
     $days = [];
@@ -1116,6 +1365,15 @@ function telemetry_route_requests_series_30d(): array
 }
 function request_metric_fatal_error(?array $err): ?string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — request_metric_fatal_error
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “request metric fatal error”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_request_metric_shutdown`.
+     * Dependências chamadas: `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!$err) {
         return null;
     }
@@ -1132,6 +1390,16 @@ function request_metric_fatal_error(?array $err): ?string
 }
 function request_metric_route_name(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — request_metric_route_name
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “request metric route name”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_request_metric_shutdown`.
+     * Dependências chamadas: `function_exists`, `mb_substr`, `route`.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         return function_exists("route")
             ? mb_substr(route(), 0, 80)
@@ -1142,6 +1410,16 @@ function request_metric_route_name(): string
 }
 function prontoo_request_metric_shutdown(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — prontoo_request_metric_shutdown
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “prontoo request metric shutdown”.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `has_cfg`, `round`, `max`, `microtime`, `http_response_code`, `request_metric_fatal_error`, `error_get_last`, `time`, `request_metric_route_name`, `defined`, `function_exists`, `server_json_cache_metrics_snapshot` e mais 5.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     static $busy = false;
     if (PHP_SAPI === "cli") {
         return;

@@ -9,10 +9,30 @@ final class MutationLedger
     private static ?string $chain = null;
     private static array $proofs = [];
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationLedger::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationLedger.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
 
     public static function record(array $evidence): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationLedger::record
+         * Responsabilidade: Valida e executa a mutação “record”, preservando as invariantes do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationLedger.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
+         * Dependências chamadas: `Canonical::hash`, `function_exists`, `hash`, `count`.
+         * Estado externo lido: `$_SESSION`, `$GLOBALS`.
+         * Efeitos colaterais: lê ou altera a sessão.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         if (self::$chain === null) {
             self::$chain = Canonical::hash("mutation_genesis", [
                 "route" => function_exists("route") ? \route() : "runtime",
@@ -34,6 +54,15 @@ final class MutationLedger
 
     public static function snapshot(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationLedger::snapshot
+         * Responsabilidade: Implementa a responsabilidade “snapshot” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationLedger.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Invariant.InvariantKernel::proofSnapshot`.
+         * Dependências chamadas: `count`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         return [
             "policy" => Canonical::POLICY_VERSION,
             "chain" => self::$chain,
@@ -44,6 +73,16 @@ final class MutationLedger
 
     public static function reset(): void
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Invariant.Mutation.MutationLedger::reset
+         * Responsabilidade: Implementa a responsabilidade “reset” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Invariant/Mutation/MutationLedger.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Estado externo lido: `$GLOBALS`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         self::$chain = null;
         self::$proofs = [];
         unset(

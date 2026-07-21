@@ -17,13 +17,32 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     public function __construct(
         private ?\Closure $credentialResolver = null,
         private ?\Closure $permissionResolver = null,
-    ) {}
+    ) {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `Runtime.LayeredKernel::actionMiddleware`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
+    }
 
     public function grants(
         ActionContract $contract,
         string $capability,
         array $context,
     ): bool {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::grants
+         * Responsabilidade: Implementa a responsabilidade “grants” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `->credentialState`, `->splitCapability`, `in_array`, `->cashierActionAllowed`, `->permissionMatrix`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $state = $this->credentialState($context);
         if (!$state['active']) {
             return false;
@@ -78,6 +97,16 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     /** @return array{active:bool,global_admin:bool,roles:list<string>} */
     private function credentialState(array $context): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::credentialState
+         * Responsabilidade: Implementa a responsabilidade “credential state” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `in_array`, `->normalizeCredentialState`, `function_exists`, `is_array`, `->fetchAll`, `trim`, `array_keys`, `error_log`, `->getMessage`.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $userId = (int) ($context['user']['id'] ?? ($context['user_id'] ?? 0));
         $scope = (string) ($context['scope'] ?? '');
         $clinicId = (int) ($context['clinic_id'] ?? 0);
@@ -149,6 +178,15 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     /** @return array{active:bool,global_admin:bool,roles:list<string>} */
     private function normalizeCredentialState(mixed $resolved): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::normalizeCredentialState
+         * Responsabilidade: Implementa a responsabilidade “normalize credential state” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `is_array`, `trim`, `array_keys`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $resolved = is_array($resolved) ? $resolved : [];
         $roles = [];
         foreach ((array) ($resolved['roles'] ?? []) as $role) {
@@ -167,6 +205,15 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     /** @return array<string,array<string,bool>> */
     private function permissionMatrix(string $role, int $clinicId): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::permissionMatrix
+         * Responsabilidade: Implementa a responsabilidade “permission matrix” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `is_array`, `function_exists`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $key = $clinicId . '|' . $role;
         if (isset($this->permissionCache[$key])) {
             return $this->permissionCache[$key];
@@ -189,6 +236,15 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
     private function cashierActionAllowed(ActionContract $contract): bool
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::cashierActionAllowed
+         * Responsabilidade: Implementa a responsabilidade “cashier action allowed” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `in_array`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         if ($contract->route === 'patient') {
             return $contract->action === 'patient_revenue_receive';
         }
@@ -201,19 +257,38 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
     private function splitCapability(string $capability): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::splitCapability
+         * Responsabilidade: Implementa a responsabilidade “split capability” dentro do módulo de infraestrutura, persistência e integração com o runtime.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `explode`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $parts = explode(':', $capability, 2);
         return [trim((string) ($parts[0] ?? '')), trim((string) ($parts[1] ?? ''))];
     }
 
     public static function logicSelfTest(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Infrastructure.Authorization.RuntimeCapabilityProvider::logicSelfTest
+         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
+         * Local arquitetural: app/Infrastructure/Authorization/RuntimeCapabilityProvider.php (infraestrutura, persistência e integração com o runtime).
+         * Chamadores detectados: `Runtime.LayeredKernel::logicSelfTest`.
+         * Dependências chamadas: `self`, `ActionContract`, `->grants`, `array_keys`, `array_filter`, `count`.
+         * Classes ou serviços instanciados: `self`, `ActionContract`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $provider = new self(
-            static fn(array $context): array => [
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de infraestrutura, persistência e integração com o runtime. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $context): array => [
                 'active' => !empty($context['live_active']),
                 'global_admin' => !empty($context['live_global_admin']),
                 'roles' => (array) ($context['live_roles'] ?? []),
             ],
-            static fn(string $role, int $clinicId): array => match ($role) {
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de infraestrutura, persistência e integração com o runtime. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(string $role, int $clinicId): array => match ($role) {
                 'medico' => ['patients' => ['edit' => true]],
                 'assistente' => ['tasks' => ['edit' => true]],
                 default => [],
@@ -358,7 +433,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             'live_active' => true,
             'live_roles' => ['medico'],
         ]);
-        $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de infraestrutura, persistência e integração com o runtime. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],
             'passed' => count($cases) - count($failed),

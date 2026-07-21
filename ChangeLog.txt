@@ -1,3 +1,96 @@
+Prontoo 1.7.21.7 — documentação interna integral e baseline de manutenção humana
+
+- Remove todos os arquivos Markdown do repositório e elimina o `ChangeLog.history.txt`, mantendo o `ChangeLog.txt` como registro documental único.
+- Documenta diretamente no código 1.642 funções e métodos nomeados, 125 closures e 98 arrow functions, totalizando 1.865 unidades funcionais comentadas.
+- Cada guia de manutenção informa responsabilidade, posição arquitetural, chamadores detectados, dependências chamadas, classes instanciadas, estado externo lido, efeitos colaterais e cuidados de alteração.
+- Preserva docblocks existentes, tipos, assinaturas, retornos, consultas, regras de autorização, interface, banco e schema.
+- Adiciona ao CI uma política permanente que recusa arquivos `.md`, recusa um changelog paralelo e exige cobertura documental para todas as funções PHP.
+- Mantém `schema.sql`, revisão r7, 62 tabelas e contratos operacionais byte a byte inalterados.
+
+POLÍTICA DOCUMENTAL PERMANENTE
+
+1. Fonte única de documentação geral
+   - O arquivo `ChangeLog.txt` é a única documentação geral versionada do projeto.
+   - Toda publicação deve registrar aqui a versão, o objetivo, o escopo, os riscos, as validações e as decisões arquiteturais relevantes.
+   - Não criar README, relatórios de auditoria, guias de versão ou memorandos em Markdown. Quando uma explicação geral for necessária, acrescentá-la a este arquivo.
+
+2. Documentação junto ao código
+   - Toda função nomeada, método, closure e arrow function deve permanecer acompanhada por um comentário “GUIA DE MANUTENÇÃO”.
+   - O comentário deve ser atualizado quando a responsabilidade, as dependências, os efeitos colaterais ou os chamadores mudarem.
+   - Docblocks de tipos e contratos de API não substituem o guia de manutenção; ambos têm finalidades diferentes.
+   - Comentários não devem prometer comportamento que o corpo da função não execute. Em caso de divergência, corrigir o comentário na mesma alteração do código.
+
+3. Fluxo de inicialização
+   - `index.php` é a entrada privada principal e carrega `app/prontoo.php`, que consolida metadados da versão, bootstrap arquitetural e carregamento do runtime.
+   - `app/bootstrap_architecture.php` carrega o núcleo em ordem explícita: contratos puros, autorização, invariantes, infraestrutura, Guardião e kernel.
+   - `app/Support/ModuleLoader.php` seleciona módulos comuns e módulos específicos da rota. O instalador não participa do caminho comum e continua restrito ao `install.php` local.
+   - `app/Runtime/Runner.php` coordena banco, sessão, rota, autorização, despacho e telemetria final da requisição.
+
+4. Direção das dependências
+   - `Core`: decisões canônicas, invariantes, escopo de consultório, estado, integridade e políticas que não dependem da interface.
+   - `Domain`: contratos e regras de negócio dos pacientes, agenda, documentos, tarefas, financeiro, auditoria, consultório e Maestro.
+   - `Application`: casos de uso e portas que coordenam domínio sem conhecer detalhes de HTTP ou PDO.
+   - `Infrastructure`: implementações de banco, credenciais, persistência de provas e adaptadores externos.
+   - `Presentation`, `Ui`, `Pages` e `Admin`: adaptação HTTP, componentes e composição das telas.
+   - `Support` e arquivos de bootstrap: composição transitória; não devem absorver regras de negócio novas quando houver camada nativa adequada.
+   - Dependências devem apontar para dentro. A composição pode conhecer todas as camadas; regras internas não devem depender de páginas ou HTML.
+
+5. Ciclo de uma ação protegida
+   - O formulário envia uma ação explícita em `act`.
+   - `ActionCatalog` resolve um contrato exato por rota e ação; contrato ausente falha fechado.
+   - `RuntimeCapabilityProvider` recarrega credencial, vínculo, cargo e permissões do banco.
+   - `AuthorizationService` produz a decisão e `ActionMiddleware` aplica a resposta HTTP.
+   - Antes de uma mutação, `InvariantKernel` e o Guardião verificam escopo, relações, contexto, assinatura e regras de estado.
+   - A prova da ação é persistida no ledger e a auditoria funcional só deve ser registrada depois da confirmação da operação.
+
+6. Isolamento entre consultórios
+   - O `clinic_id` da sessão é a fronteira canônica dos dados clínicos.
+   - UPDATE e DELETE de tabelas isoladas devem conter WHERE demonstrável com `clinic_id` ativo.
+   - INSERT e REPLACE devem gravar `clinic_id` explicitamente em todas as linhas.
+   - Nenhuma rotina clínica pode alterar `clinic_id` para “mover” um registro.
+   - Identificadores recebidos por formulário devem ser buscados novamente dentro do consultório ativo antes da gravação.
+   - Alertas do Guardião são evidências técnicas; não devem ser silenciados com exceções genéricas.
+
+7. Banco e schema
+   - `app/Database/schema.sql` é o contrato congelado da instalação limpa.
+   - Requisições comuns não criam, alteram ou removem tabelas, colunas, índices ou constraints.
+   - A janela de DDL permanece limitada ao instalador local e ao CI.
+   - A instalação limpa exige banco vazio e cria exatamente 62 tabelas no MySQL 8.
+   - Mudanças pequenas devem preferir código e configuração; qualquer necessidade real de schema exige uma rodada própria, explícita e certificada.
+
+8. Cache JSON
+   - O cache JSON é derivado e nunca substitui MySQL como fonte de verdade.
+   - Usar somente quando a leitura for estável, escopada e tiver invalidação determinística.
+   - Chaves devem carregar o consultório e os identificadores relevantes; categorias devem usar TTL adequado.
+   - Toda gravação que altera a fonte deve invalidar as tags correspondentes.
+   - Permissões, saldos, agenda em tempo real e decisões críticas não devem depender de cache potencialmente obsoleto.
+
+9. Interface e rotas
+   - Funções `page_*` coordenam a rota: validam capacidade, tratam POST, carregam somente os dados necessários e compõem a resposta.
+   - Componentes HTML comuns pertencem a `app/Ui/Components.php`; evitar duplicar marcação e comportamento em páginas específicas.
+   - POSTs exigem CSRF, ação exata, identificadores válidos e comportamento idempotente quando tecnicamente possível.
+   - Redirecionamentos e cabeçalhos devem ocorrer antes de qualquer saída.
+   - Mudanças de interface devem preservar o Design System e não misturar regra de negócio com montagem visual.
+
+10. Erros, auditoria e telemetria
+    - Erros de execução devem ser registrados em `pi_error_events` sem expor detalhes sensíveis ao usuário final.
+    - A tela Incidentes usa ação global exata para resolver registros e permanece exclusiva do Desenvolvedor.
+    - Auditoria funcional registra quem fez, em qual consultório, qual entidade e qual ação foi concluída.
+    - Telemetria de desempenho usa JSON para métricas agregadas e não deve armazenar conteúdo clínico.
+    - Catch genérico deve registrar contexto suficiente; não deve transformar corrupção ou violação de escopo em sucesso silencioso.
+
+11. Maestro e tarefas agendadas
+    - `cron/maestro.php` é a entrada agendada e delega a execução ao núcleo de integridade.
+    - Cada ciclo deve respeitar orçamento de tempo, idempotência, escopo do consultório e estado das regras.
+    - O Maestro não recebe privilégios implícitos para atravessar consultórios ou ignorar o catálogo de ações.
+
+12. Procedimento para pequenas correções
+    - Partir sempre do `main` estável mais recente.
+    - Alterar o menor conjunto de arquivos possível, mas atualizar os comentários das funções afetadas.
+    - Incrementar `1.mês.dia.sequência`, sincronizar `version.json`, fallbacks, manifestos e `ChangeLog.txt`.
+    - Executar lint de todos os PHP, contratos JSON, matriz de autorização, manifesto, segurança do instalador, schema MySQL 8 e arquitetura.
+    - Publicar somente com workflow canônico aprovado no SHA exato da alteração.
+
 Prontoo 1.7.21.6 — autorização por escopo e contratos exatos
 - Corrige a ação de marcar Incidentes como resolvidos no Painel do Desenvolvedor.
 - Corrige preventivamente a liberação de bloqueios de login na tela Segurança.
@@ -96,7 +189,7 @@ Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
 - Corrige a divergência introduzida pela decomposição da landing: `BR_LANDING_VERSION_FALLBACK` volta a ser declarado em `br/index.php`, arquivo efetivamente inspecionado pelo contrato canônico.
 - `br/runtime-core.php` passa a consumir o fallback já declarado, sem redefinição e sem mudança no HTML renderizado.
 - Elimina o fatal “Contrato de versão divergente: br/index.php” durante o carregamento do runtime.
-- Formaliza em `VERSIONING.md` a regra permanente `1.mês.dia.sequência`, com sequência reiniciada em `1` a cada novo dia de publicação.
+- Formaliza no próprio `ChangeLog.txt` a regra permanente `1.mês.dia.sequência`, com sequência reiniciada em `1` a cada novo dia de publicação.
 - Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e contratos da camada 2.
 
 Prontoo 1.7.17.4 — camada 2 por invariantes especializadas

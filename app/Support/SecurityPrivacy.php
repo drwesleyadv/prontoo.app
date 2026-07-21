@@ -3,6 +3,15 @@ declare(strict_types=1);
 
 function security_ip_in_cidr(string $ip, string $cidr): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_ip_in_cidr
+     * Responsabilidade: Implementa a responsabilidade “security ip in cidr” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `security_trusted_proxy_request`.
+     * Dependências chamadas: `trim`, `str_contains`, `hash_equals`, `array_pad`, `explode`, `filter_var`, `max`, `min`, `ip2long`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cidr = trim($cidr);
     if ($ip === "" || $cidr === "") {
         return false;
@@ -23,6 +32,16 @@ function security_ip_in_cidr(string $ip, string $cidr): bool
 }
 function security_trusted_proxy_request(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_trusted_proxy_request
+     * Responsabilidade: Implementa a responsabilidade “security trusted proxy request” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `security_https_active`.
+     * Dependências chamadas: `trim`, `getenv`, `defined`, `in_array`, `preg_split`, `security_ip_in_cidr`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $remote = trim((string) ($_SERVER["REMOTE_ADDR"] ?? ""));
     if ($remote === "") {
         return false;
@@ -48,6 +67,16 @@ function security_trusted_proxy_request(): bool
 }
 function security_https_active(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_https_active
+     * Responsabilidade: Implementa a responsabilidade “security https active” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `is_https`, `boot_security`, `headers_secure`.
+     * Dependências chamadas: `strtolower`, `security_trusted_proxy_request`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $https = strtolower((string) ($_SERVER["HTTPS"] ?? ""));
     if ($https !== "" && $https !== "off") {
         return true;
@@ -70,6 +99,15 @@ function security_https_active(): bool
 
 function security_disable_runtime_error_display(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_disable_runtime_error_display
+     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “security disable runtime error display”.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `boot_security`.
+     * Dependências chamadas: `ini_set`, `has_cfg`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     ini_set("log_errors", "1");
     if (PHP_SAPI !== "cli" && has_cfg()) {
         ini_set("display_errors", "0");
@@ -80,6 +118,15 @@ function security_disable_runtime_error_display(): void
 
 function privacy_sanitize_text(string $text, int $limit = 900): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — privacy_sanitize_text
+     * Responsabilidade: Transforma e normaliza “privacy sanitize text” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `privacy_sanitize_error_message`.
+     * Dependências chamadas: `str_replace`, `preg_replace`, `preg_replace_callback`, `strlen`, `substr`, `trim`, `mb_strlen`, `mb_substr`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $text = str_replace("\0", "", $text);
     $text =
         preg_replace("/[A-Z]:\\[^\s]+|\/[^\s]+/u", "[caminho]", $text) ?? $text;
@@ -93,6 +140,15 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
         preg_replace_callback(
             "/\b\d{3}\.?\d{3}\.?\d{3}\-?\d{2}\b/u",
             static function (array $m): string {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Support/SecurityPrivacy.php:95
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+                 * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `preg_replace`, `strlen`, `substr`.
+                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                 */
                 $d = preg_replace("/\D+/", "", $m[0]) ?? "";
                 return strlen($d) === 11
                     ? substr($d, 0, 3) . ".***.***-" . substr($d, -2)
@@ -104,6 +160,15 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
         preg_replace_callback(
             "/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}\-?\d{2}\b/u",
             static function (array $m): string {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Support/SecurityPrivacy.php:106
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
+                 * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `preg_replace`, `strlen`, `substr`.
+                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                 */
                 $d = preg_replace("/\D+/", "", $m[0]) ?? "";
                 return strlen($d) === 14
                     ? substr($d, 0, 2) . ".***.***/****-" . substr($d, -2)
@@ -125,11 +190,29 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
 
 function privacy_sanitize_error_message(Throwable $e, int $limit = 900): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — privacy_sanitize_error_message
+     * Responsabilidade: Transforma e normaliza “privacy sanitize error message” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `db_log_query_failure`, `app_fail`, `log_runtime_error`.
+     * Dependências chamadas: `privacy_sanitize_text`, `->getMessage`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return privacy_sanitize_text($e->getMessage(), $limit);
 }
 
 function privacy_log_file_label(string $file): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — privacy_log_file_label
+     * Responsabilidade: Monta a representação de interface associada a “privacy log file label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `app_fail`, `log_runtime_error`.
+     * Dependências chamadas: `str_replace`, `defined`, `str_starts_with`, `rtrim`, `ltrim`, `substr`, `strlen`, `basename`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $file = str_replace("\\", "/", $file);
     $root = defined("PRONTOO_ROOT") ? str_replace("\\", "/", PRONTOO_ROOT) : "";
     if ($root !== "" && str_starts_with($file, rtrim($root, "/") . "/")) {
@@ -140,6 +223,15 @@ function privacy_log_file_label(string $file): string
 
 function security_storage_deny_file(string $dir): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — security_storage_deny_file
+     * Responsabilidade: Implementa a responsabilidade “security storage deny file” dentro do módulo de serviços transversais de suporte.
+     * Local arquitetural: app/Support/SecurityPrivacy.php (serviços transversais de suporte).
+     * Chamadores detectados: `document_pdf_storage_dir`, `install_prepare_writable_paths`, `log_runtime_error`, `boot_security`, `server_json_cache_root`, `server_json_cache_category_dir`, `telemetry_prepare_storage`.
+     * Dependências chamadas: `is_dir`, `mkdir`, `rtrim`, `is_file`, `file_get_contents`, `file_put_contents`, `chmod`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }

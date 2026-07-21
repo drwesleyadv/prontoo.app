@@ -2,6 +2,16 @@
 declare(strict_types=1);
 function require_user_in_clinic(int $cid, int $uid, array $roles = []): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — require_user_in_clinic
+     * Responsabilidade: Avalia ou impõe a regra “require user in clinic”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `save_user_work_hours`.
+     * Dependências chamadas: `ProntooHttpError`, `clinic_user_exists`, `record_scope_violation`.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($uid <= 0) {
         throw new ProntooHttpError(
             403,
@@ -22,6 +32,16 @@ function require_user_in_clinic(int $cid, int $uid, array $roles = []): void
 }
 function save_team_member(int $cid, array $data): ?int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — save_team_member
+     * Responsabilidade: Valida e executa a mutação “save team member”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_onboarding`, `page_users`.
+     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `selected_team_roles`, `upsert_person`, `lock_person_user_identity`, `function_exists`, `person_common_profile_update`, `array_merge`, `person_common_profile_from_array` e mais 9.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $name = trim((string) ($data["team_name"] ?? ""));
     $cpf = only_digits((string) ($data["team_cpf"] ?? ""));
     $birth = trim((string) ($data["team_birth"] ?? ""));
@@ -104,6 +124,15 @@ function save_team_member(int $cid, array $data): ?int
 }
 function clinic_user_exists(int $cid, int $uid, array $roles = []): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_user_exists
+     * Responsabilidade: Implementa a responsabilidade “clinic user exists” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `document_context_ids_from_post`, `document_issue_context`, `financial_link_drawer_user`, `maestro_save_rule`, `maestro_create_action`, `require_user_in_clinic`, `notify_task_personal_assignment`, `workflow_care_notice` e mais 2.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `implode`, `array_fill`, `count`, `array_merge`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $uid <= 0) {
         return false;
     }
@@ -121,6 +150,15 @@ function clinic_user_exists(int $cid, int $uid, array $roles = []): bool
 }
 function person_has_other_clinic_links(int $personId, int $cid): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — person_has_other_clinic_links
+     * Responsabilidade: Avalia ou impõe a regra “person has other clinic links”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_patient`.
+     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($personId <= 0 || $cid <= 0) {
         return false;
     }
@@ -137,6 +175,15 @@ function person_has_other_clinic_links(int $personId, int $cid): bool
 }
 function user_name_by_id(?int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — user_name_by_id
+     * Responsabilidade: Implementa a responsabilidade “user name by id” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_actor_name`.
+     * Dependências chamadas: `ctx`, `first_name`, `audit_user_name_lookup`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!$uid) {
         return "O sistema";
     }
@@ -150,10 +197,28 @@ function user_name_by_id(?int $uid): string
 }
 function single_active_role_cleanup_for_user(int $uid, ?int $cid = null): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — single_active_role_cleanup_for_user
+     * Responsabilidade: Implementa a responsabilidade “single active role cleanup for user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `active_clinic_roles_for_user`, `closure@app/Domain/Permissions/UsersPermissions.php:298`, `device_session_auto_login`, `ctx`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return;
 }
 function clinic_minimum_roles_violation_message(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_minimum_roles_violation_message
+     * Responsabilidade: Implementa a responsabilidade “clinic minimum roles violation message” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_assert_minimum_roles_after_change`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return "Esta alteração não é possível: todo consultório precisa manter pelo menos um Profissional e um Administrativo ativos.";
 }
 function clinic_active_role_count(
@@ -161,6 +226,15 @@ function clinic_active_role_count(
     string $role,
     ?int $excludingUserId = null,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_active_role_count
+     * Responsabilidade: Implementa a responsabilidade “clinic active role count” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_assert_minimum_roles_after_change`.
+     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $role === "") {
         return 0;
     }
@@ -183,6 +257,16 @@ function clinic_assert_minimum_roles_after_change(
     int $targetUserId,
     array $targetRoles,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_assert_minimum_roles_after_change
+     * Responsabilidade: Avalia ou impõe a regra “clinic assert minimum roles after change”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_assert_can_deactivate_user_roles`, `sync_user_roles_for_clinic`.
+     * Dependências chamadas: `RuntimeException`, `clinic_minimum_roles_violation_message`, `array_values`, `array_unique`, `array_map`, `clinic_active_role_count`, `in_array`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0) {
         throw new RuntimeException(clinic_minimum_roles_violation_message());
     }
@@ -201,10 +285,30 @@ function clinic_assert_minimum_roles_after_change(
 }
 function clinic_assert_can_deactivate_user_roles(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_assert_can_deactivate_user_roles
+     * Responsabilidade: Avalia ou impõe a regra “clinic assert can deactivate user roles”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_users`, `page_user`.
+     * Dependências chamadas: `clinic_assert_minimum_roles_after_change`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     clinic_assert_minimum_roles_after_change($cid, $uid, []);
 }
 function clinic_auto_assign_missing_managers(int $limit = 200): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_auto_assign_missing_managers
+     * Responsabilidade: Valida e executa a mutação “clinic auto assign missing managers”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `prontoo_cron_preflight_once`.
+     * Dependências chamadas: `function_exists`, `has_cfg`, `max`, `min`, `array_key_exists`, `q`, `->fetchAll`, `one`, `val`, `propagate_user_role_permissions`, `error_log`, `->getMessage`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     if (!function_exists("has_cfg") || !has_cfg()) {
         return 0;
     }
@@ -292,10 +396,28 @@ function clinic_auto_assign_missing_managers(int $limit = 200): int
 }
 function active_clinic_roles_for_user(int $uid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — active_clinic_roles_for_user
+     * Responsabilidade: Implementa a responsabilidade “active clinic roles for user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_login`.
+     * Dependências chamadas: `single_active_role_cleanup_for_user`, `function_exists`, `clinic_enable_roles_from_active_user_links`, `q`, `->fetchAll`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     if ($uid <= 0) {
         return [];
     }
     $loader = function () use ($uid): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Permissions/UsersPermissions.php:298
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `single_active_role_cleanup_for_user`, `function_exists`, `clinic_enable_roles_from_active_user_links`, `q`, `->fetchAll`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         single_active_role_cleanup_for_user($uid, null);
         if (function_exists("clinic_enable_roles_from_active_user_links")) {
             clinic_enable_roles_from_active_user_links($uid);
@@ -318,6 +440,15 @@ function active_clinic_roles_for_user(int $uid): array
 }
 function user_is_global_admin(int $uid): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — user_is_global_admin
+     * Responsabilidade: Avalia ou impõe a regra “user is global admin”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     try {
         return (int) val(
             "SELECT is_global_admin FROM pi_users WHERE id=? AND active=1",
@@ -330,6 +461,15 @@ function user_is_global_admin(int $uid): bool
 }
 function manageable_team_roles(?int $clinicId = null): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — manageable_team_roles
+     * Responsabilidade: Implementa a responsabilidade “manageable team roles” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_onboarding`, `can_manage_team_role`, `selected_team_roles`, `sync_user_roles_for_clinic`, `page_users`, `page_user`, `page_permissions`.
+     * Dependências chamadas: `role_label_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "recepcionista" => role_label_for("recepcionista", $clinicId),
         "assistente" => role_label_for("assistente", $clinicId),
@@ -339,10 +479,29 @@ function manageable_team_roles(?int $clinicId = null): array
 }
 function can_manage_team_role(string $role): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — can_manage_team_role
+     * Responsabilidade: Avalia ou impõe a regra “can manage team role”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `manageable_team_roles`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return isset(manageable_team_roles()[$role]);
 }
 function selected_team_roles(array $data, ?int $cid = null): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — selected_team_roles
+     * Responsabilidade: Implementa a responsabilidade “selected team roles” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `save_team_member`, `page_users`, `page_user`.
+     * Dependências chamadas: `is_array`, `manageable_team_roles`, `in_array`, `array_keys`, `usort`, `array_search`, `count`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $raw =
         $data["team_roles"] ??
         ($data["role_codes"] ?? ($data["team_role"] ?? []));
@@ -360,7 +519,7 @@ function selected_team_roles(array $data, ?int $cid = null): array
     $order = array_keys($manageable);
     usort(
         $roles,
-        fn($a, $b) => array_search($a, $order, true) <=>
+        /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `array_search`. Efeitos: transformação local sem efeito externo detectado. */ fn($a, $b) => array_search($a, $order, true) <=>
             array_search($b, $order, true),
     );
     if (count($roles) < 1 || count($roles) > count($manageable)) {
@@ -376,6 +535,16 @@ function clinic_restore_default_permissions_for_role(
     int $cid,
     string $role,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_restore_default_permissions_for_role
+     * Responsabilidade: Valida e executa a mutação “clinic restore default permissions for role”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_enable_roles_for_assignment`.
+     * Dependências chamadas: `default_permissions`, `actions`, `in_array`, `q`, `function_exists`, `permission_module_defs`, `permission_operations`, `permission_operation_configurable`, `permission_default_ops_for_role`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     if ($cid <= 0 || $role === "" || !isset(PRONTOO_ROLES[$role])) {
         return;
     }
@@ -430,6 +599,17 @@ function clinic_enable_roles_for_assignment(
     array $roles,
     string $reason = "assignment",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_enable_roles_for_assignment
+     * Responsabilidade: Implementa a responsabilidade “clinic enable roles for assignment” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_enable_roles_from_active_user_links`, `sync_user_roles_for_clinic`.
+     * Dependências chamadas: `array_keys`, `array_values`, `array_intersect`, `array_unique`, `array_map`, `seed_clinic_roles`, `error_log`, `->getMessage`, `val`, `role_label_for`, `function_exists`, `default_role_icon` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0) {
         return;
     }
@@ -491,6 +671,15 @@ function clinic_enable_roles_for_assignment(
 }
 function clinic_enable_roles_from_active_user_links(int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_enable_roles_from_active_user_links
+     * Responsabilidade: Implementa a responsabilidade “clinic enable roles from active user links” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `active_clinic_roles_for_user`, `closure@app/Domain/Permissions/UsersPermissions.php:298`, `ctx`.
+     * Dependências chamadas: `q`, `->fetchAll`, `clinic_enable_roles_for_assignment`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($uid <= 0) {
         return;
     }
@@ -524,6 +713,17 @@ function sync_user_roles_for_clinic(
     array $roles,
     bool $propagate = true,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — sync_user_roles_for_clinic
+     * Responsabilidade: Implementa a responsabilidade “sync user roles for clinic” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `save_team_member`, `page_user`.
+     * Dependências chamadas: `RuntimeException`, `manageable_team_roles`, `array_values`, `array_intersect`, `array_keys`, `array_unique`, `array_map`, `count`, `clinic_assert_minimum_roles_after_change`, `pdo`, `->inTransaction`, `db_begin_transaction` e mais 11.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     if ($cid <= 0 || $uid <= 0) {
         throw new RuntimeException("Colaborador ou consultório não informado.");
     }
@@ -589,6 +789,15 @@ function sync_user_roles_for_clinic(
 }
 function active_role_codes_for_user_in_clinic(int $cid, int $uid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — active_role_codes_for_user_in_clinic
+     * Responsabilidade: Implementa a responsabilidade “active role codes for user in clinic” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `sync_user_roles_for_clinic`.
+     * Dependências chamadas: `q`, `->fetchAll`, `array_values`, `array_unique`, `array_map`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $uid <= 0) {
         return [];
     }
@@ -603,6 +812,15 @@ function preferred_active_role_link_for_user(
     int $uid,
     ?int $preferRoleId = null,
 ): ?array {
+    /*
+     * GUIA DE MANUTENÇÃO — preferred_active_role_link_for_user
+     * Responsabilidade: Implementa a responsabilidade “preferred active role link for user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `propagate_user_role_permissions`.
+     * Dependências chamadas: `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $uid <= 0) {
         return null;
     }
@@ -626,6 +844,18 @@ function propagate_user_role_permissions(
     int $uid,
     string $reason = "roles_updated",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — propagate_user_role_permissions
+     * Responsabilidade: Implementa a responsabilidade “propagate user role permissions” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_auto_assign_missing_managers`, `sync_user_roles_for_clinic`, `page_users`, `page_user`, `page_permissions`.
+     * Dependências chamadas: `seed_permissions`, `error_log`, `->getMessage`, `preferred_active_role_link_for_user`, `q`, `function_exists`, `device_session_update_current_context`, `device_session_revoke_current`, `server_json_cache_clear_categories`, `audit`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $uid <= 0) {
         return;
     }
@@ -717,6 +947,15 @@ function propagate_user_role_permissions(
 }
 function role_labels_from_codes(array $codes, ?int $cid = null): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — role_labels_from_codes
+     * Responsabilidade: Implementa a responsabilidade “role labels from codes” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `collaborator_permission_summary`.
+     * Dependências chamadas: `role_label_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $labels = [];
     foreach ($codes as $code) {
         $labels[] = role_label_for((string) $code, $cid);
@@ -725,6 +964,15 @@ function role_labels_from_codes(array $codes, ?int $cid = null): array
 }
 function role_badges_html(array $codes, ?int $cid = null): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — role_badges_html
+     * Responsabilidade: Monta a representação de interface associada a “role badges html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_users`.
+     * Dependências chamadas: `e`, `role_label_for`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (!$codes) {
         return '<span class="muted">Sem cargo ativo</span>';
     }
@@ -742,6 +990,15 @@ function role_checkbox_group(
     array $options,
     array $selected,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — role_checkbox_group
+     * Responsabilidade: Implementa a responsabilidade “role checkbox group” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_onboarding`, `page_users`, `page_user`.
+     * Dependências chamadas: `str_ends_with`, `in_array`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $field = str_ends_with($name, "[]") ? $name : $name . "[]";
     $h =
         '<div class="role-check-grid" role="group" aria-label="Cargos do colaborador">';
@@ -763,6 +1020,15 @@ function role_checkbox_group(
 }
 function team_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — team_options
+     * Responsabilidade: Implementa a responsabilidade “team options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_tasks`, `page_notices`.
+     * Dependências chamadas: `q`, `->fetchAll`, `fetch_map`, `int_ids`, `asort`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $links = q(
         "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND active=1 ORDER BY id ASC LIMIT 200",
         [$cid],
@@ -784,6 +1050,15 @@ function team_options(int $cid): array
 }
 function clinic_role_user_ids(int $cid, array $roles): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — clinic_role_user_ids
+     * Responsabilidade: Implementa a responsabilidade “clinic role user ids” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `array_values`, `array_filter`, `array_unique`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $roles = array_values(array_filter(array_unique($roles)));
     if (!$roles) {
         return [];
@@ -801,6 +1076,15 @@ function clinic_role_user_ids(int $cid, array $roles): array
 }
 function permission_operations(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_operations
+     * Responsabilidade: Implementa a responsabilidade “permission operations” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_restore_default_permissions_for_role`, `permission_rules_for_role`, `closure@app/Domain/Permissions/UsersPermissions.php:988`, `persist_permission_rules`, `collaborator_permission_matrix_base`, `collaborator_permission_matrix`, `collaborator_permission_summary`, `page_permissions`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "view" => "Visualizar",
         "add" => "Adicionar",
@@ -810,6 +1094,15 @@ function permission_operations(): array
 }
 function permission_module_defs(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_module_defs
+     * Responsabilidade: Implementa a responsabilidade “permission module defs” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_restore_default_permissions_for_role`, `permission_operation_supported`, `permission_rules_for_role`, `closure@app/Domain/Permissions/UsersPermissions.php:988`, `persist_permission_rules`, `collaborator_permission_matrix_base`, `collaborator_permission_matrix`, `collaborator_permission_summary` e mais 1.
+     * Dependências chamadas: `actions`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $acts = actions();
     $spec = [
         "painel" => ["ops" => ["view"], "note" => "Painel é somente leitura."],
@@ -894,6 +1187,15 @@ function permission_module_defs(): array
 }
 function permission_operation_supported(string $module, string $op): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_operation_supported
+     * Responsabilidade: Implementa a responsabilidade “permission operation supported” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `permission_operation_configurable`, `collaborator_permission_matrix_base`, `collaborator_permission_matrix`, `collaborator_permission_summary`, `page_permissions`.
+     * Dependências chamadas: `permission_module_defs`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $defs = permission_module_defs();
     return isset($defs[$module]) &&
         in_array($op, $defs[$module]["ops"] ?? [], true);
@@ -902,6 +1204,15 @@ function permission_module_available_for_role(
     string $role,
     string $module,
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_module_available_for_role
+     * Responsabilidade: Implementa a responsabilidade “permission module available for role” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `permission_operation_configurable`, `page_permissions`.
+     * Dependências chamadas: `actions`, `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $acts = actions();
     return isset($acts[$module]) &&
         in_array($role, $acts[$module]["roles"] ?? [], true);
@@ -911,11 +1222,29 @@ function permission_operation_configurable(
     string $module,
     string $op,
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_operation_configurable
+     * Responsabilidade: Implementa a responsabilidade “permission operation configurable” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_restore_default_permissions_for_role`, `permission_rules_for_role`, `closure@app/Domain/Permissions/UsersPermissions.php:988`, `persist_permission_rules`.
+     * Dependências chamadas: `permission_module_available_for_role`, `permission_operation_supported`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     return permission_module_available_for_role($role, $module) &&
         permission_operation_supported($module, $op);
 }
 function permission_default_ops_for_role(string $role, string $module): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_default_ops_for_role
+     * Responsabilidade: Implementa a responsabilidade “permission default ops for role” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `clinic_restore_default_permissions_for_role`, `collaborator_permission_matrix_base`.
+     * Dependências chamadas: `in_array`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $isManager = $role === "gerente";
     return match ($module) {
         "painel" => ["view" => true],
@@ -971,6 +1300,15 @@ function permission_default_for(
     string $op,
     int $cid,
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_default_for
+     * Responsabilidade: Implementa a responsabilidade “permission default for” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `collaborator_permission_matrix_base`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     foreach (collaborator_permission_matrix_base($role, $cid) as $row) {
         if (($row["key"] ?? "") === $module) {
             return !empty($row[$op]);
@@ -980,12 +1318,30 @@ function permission_default_for(
 }
 function permission_rules_for_role(string $role, int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — permission_rules_for_role
+     * Responsabilidade: Implementa a responsabilidade “permission rules for role” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `collaborator_permission_matrix`, `page_permissions`.
+     * Dependências chamadas: `array_key_exists`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `collaborator_permission_matrix_base`, `permission_module_defs`, `permission_operations`, `permission_operation_configurable`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key` e mais 2.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     static $requestCache = [];
     $requestKey = $cid . "|" . $role;
     if (array_key_exists($requestKey, $requestCache)) {
         return $requestCache[$requestKey];
     }
     $loader = function () use ($role, $cid): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Permissions/UsersPermissions.php:988
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`, `collaborator_permission_matrix_base`, `permission_module_defs`, `permission_operations`, `permission_operation_configurable`, `array_key_exists`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $stored = [];
         try {
             foreach (
@@ -1049,6 +1405,17 @@ function permission_rules_for_role(string $role, int $cid): array
 }
 function persist_permission_rules(int $cid, string $role, array $posted): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — persist_permission_rules
+     * Responsabilidade: Valida e executa a mutação “persist permission rules”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_permissions`.
+     * Dependências chamadas: `permission_module_defs`, `permission_operations`, `permission_operation_configurable`, `q`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $mods = permission_module_defs();
     $ops = permission_operations();
     foreach ($mods as $module => $m) {
@@ -1090,6 +1457,16 @@ function persist_permission_rules(int $cid, string $role, array $posted): void
 }
 function collaborator_permission_matrix_base(string $role, int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — collaborator_permission_matrix_base
+     * Responsabilidade: Implementa a responsabilidade “collaborator permission matrix base” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `permission_default_for`, `permission_rules_for_role`, `closure@app/Domain/Permissions/UsersPermissions.php:988`.
+     * Dependências chamadas: `is_array`, `array_key_exists`, `q`, `->fetchAll`, `permission_module_defs`, `actions`, `in_array`, `permission_default_ops_for_role`, `permission_operations`, `permission_operation_supported`.
+     * Estado externo lido: `$GLOBALS`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $requestKey = $cid . "|" . $role;
     if (
         !isset($GLOBALS["PRONTOO_PERMISSION_BASE_MATRIX_CACHE"]) ||
@@ -1138,6 +1515,15 @@ function collaborator_permission_matrix_base(string $role, int $cid): array
 }
 function collaborator_permission_matrix(string $role, int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — collaborator_permission_matrix
+     * Responsabilidade: Implementa a responsabilidade “collaborator permission matrix” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `collaborator_permission_summary`.
+     * Dependências chamadas: `permission_rules_for_role`, `permission_module_defs`, `permission_operations`, `permission_operation_supported`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $rules = permission_rules_for_role($role, $cid);
     $defs = permission_module_defs();
     $out = [];
@@ -1154,10 +1540,28 @@ function collaborator_permission_matrix(string $role, int $cid): array
 }
 function collaborator_permission_table(string $role, int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — collaborator_permission_table
+     * Responsabilidade: Monta a representação de interface associada a “collaborator permission table” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `collaborator_permission_summary`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     return collaborator_permission_summary([$role], $cid);
 }
 function collaborator_permission_summary(array $roles, int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — collaborator_permission_summary
+     * Responsabilidade: Implementa a responsabilidade “collaborator permission summary” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: `collaborator_permission_table`, `page_user`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `permission_operations`, `permission_module_defs`, `collaborator_permission_matrix`, `e`, `implode`, `role_labels_from_codes`, `permission_operation_supported`, `icon`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
     );
@@ -1213,6 +1617,18 @@ function collaborator_permission_summary(array $roles, int $cid): string
 }
 function page_users(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_users
+     * Responsabilidade: Coordena a rota e renderiza a tela “page users”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `manageable_team_roles`, `pdo`, `->inTransaction`, `db_begin_transaction`, `selected_team_roles`, `save_team_member`, `in_array`, `save_user_work_hours`, `audit`, `implode`, `db_commit` e mais 42.
+     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("users");
     $cid = (int) $c["clinic_id"];
     $manageable = manageable_team_roles($cid);
@@ -1664,6 +2080,19 @@ function page_users(): void
 }
 function page_user(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_user
+     * Responsabilidade: Coordena a rota e renderiza a tela “page user”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `one`, `http_response_code`, `page`, `manageable_team_roles`, `q`, `->fetchAll`, `trim`, `selected_team_roles`, `RuntimeException`, `db_begin_transaction`, `function_exists` e mais 36.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_GET`, `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("users");
     $cid = (int) $c["clinic_id"];
     $uid = (int) ($_GET["id"] ?? 0);
@@ -1880,6 +2309,18 @@ function page_user(): void
 }
 function page_permissions(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_permissions
+     * Responsabilidade: Coordena a rota e renderiza a tela “page permissions”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Permissions/UsersPermissions.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `manageable_team_roles`, `permission_module_defs`, `permission_operations`, `persist_permission_rules`, `q`, `->fetchAll`, `propagate_user_role_permissions`, `audit`, `role_label_for`, `flash`, `redirect` e mais 14.
+     * Estado externo lido: `$_GET`, `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $c = require_can("permissions");
     $cid = (int) $c["clinic_id"];
     $roles = manageable_team_roles($cid);

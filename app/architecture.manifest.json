@@ -1,5 +1,5 @@
 {
-  "version": "1.7.21.6",
+  "version": "1.7.21.7",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
@@ -56,5 +56,11 @@
   "runtime_loading_policy": "route_loaded_installer_local_only_no_historical_cleanup_on_hot_path",
   "json_cache_policy": "get_only_scoped_tag_invalidated_stable_lookup_cache",
   "authorization_scope_check": "ActionCatalog::logicSelfTest + RuntimeCapabilityProvider::logicSelfTest + .github/workflows/architecture.yml",
-  "authorization_action_policy": "every_protected_post_uses_an_explicit_exact_action_contract_and_unknown_actions_fail_closed"
+  "authorization_action_policy": "every_protected_post_uses_an_explicit_exact_action_contract_and_unknown_actions_fail_closed",
+  "documentation_policy": "ChangeLog.txt_and_in_source_function_guides_only_no_markdown_files",
+  "function_documentation_units": 1865,
+  "function_documentation_named": 1642,
+  "function_documentation_closures": 125,
+  "function_documentation_arrows": 98,
+  "function_documentation_ci": ".github/workflows/architecture.yml"
 }

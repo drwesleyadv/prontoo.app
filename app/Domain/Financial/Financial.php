@@ -2,6 +2,15 @@
 declare(strict_types=1);
 function parse_money_cents(string $v): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — parse_money_cents
+     * Responsabilidade: Transforma e normaliza “parse money cents” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_admin_painel`, `page_procedures`, `financial_cashier_page`, `financial_admin_save_receipt`, `financial_admin_save_payment`, `financial_admin_save_transfer`, `financial_admin_page`.
+     * Dependências chamadas: `trim`, `str_replace`, `str_contains`, `max`, `round`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $v = trim($v);
     if ($v === "") {
         return 0;
@@ -15,6 +24,15 @@ function parse_money_cents(string $v): int
 }
 function payment_methods_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — payment_methods_options
+     * Responsabilidade: Implementa a responsabilidade “payment methods options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `normalize_payment_method`, `financial_payment_method_options`, `appointment_payment_form_html`, `financial_appointment_operational_chip_html`, `financial_admin_operations_panel`, `page_patient`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "pix" => "PIX",
         "dinheiro" => "Dinheiro",
@@ -28,6 +46,15 @@ function payment_methods_options(): array
 }
 function payment_method_type_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — payment_method_type_options
+     * Responsabilidade: Implementa a responsabilidade “payment method type options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "pix" => "PIX",
         "dinheiro" => "Dinheiro",
@@ -41,11 +68,29 @@ function payment_method_type_options(): array
 }
 function normalize_payment_method(string $v): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — normalize_payment_method
+     * Responsabilidade: Transforma e normaliza “normalize payment method” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_post_context`, `financial_sync_appointment`, `financial_admin_receive_expected_revenue`, `financial_register_appointment_payment_movement`, `financial_appointment_payment_state`, `financial_receive_expected_appointment_revenue`, `financial_cashier_page`, `financial_admin_save_receipt` e mais 1.
+     * Dependências chamadas: `strtolower`, `trim`, `array_key_exists`, `payment_methods_options`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $v = strtolower(trim($v));
     return array_key_exists($v, payment_methods_options()) ? $v : "";
 }
 function financial_goal_base_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_goal_base_options
+     * Responsabilidade: Implementa a responsabilidade “financial goal base options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_goal_base_label`, `financial_admin_page`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "efetivada" => "Receita Efetivada",
         "prevista" => "Receita Prevista",
@@ -53,11 +98,29 @@ function financial_goal_base_options(): array
 }
 function financial_goal_base_label(string $base): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_goal_base_label
+     * Responsabilidade: Monta a representação de interface associada a “financial goal base label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `audit_finance_base_label_from_ctx`, `monthly_goal_status`, `closure@app/Domain/Financial/Financial.php:384`.
+     * Dependências chamadas: `financial_goal_base_options`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $opts = financial_goal_base_options();
     return $opts[$base] ?? $opts["efetivada"];
 }
 function financial_expense_category_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_expense_category_options
+     * Responsabilidade: Implementa a responsabilidade “financial expense category options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_save_payment`, `financial_admin_operations_panel`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "administrativa" => "Despesas administrativas",
         "pessoal" => "Pessoal e encargos",
@@ -73,6 +136,15 @@ function financial_expense_category_options(): array
 }
 function financial_account_type_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_type_options
+     * Responsabilidade: Implementa a responsabilidade “financial account type options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "conta_corrente" => "Conta corrente",
         "conta_poupanca" => "Conta poupança",
@@ -83,6 +155,15 @@ function financial_account_type_options(): array
 }
 function financial_seed_payment_methods(int $cid, int $uid = 0): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_seed_payment_methods
+     * Responsabilidade: Implementa a responsabilidade “financial seed payment methods” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_payment_method_options`, `financial_admin_page`.
+     * Dependências chamadas: `val`, `q`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     if ($cid <= 0) {
         return;
     }
@@ -120,6 +201,15 @@ function financial_payment_method_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_payment_method_options
+     * Responsabilidade: Implementa a responsabilidade “financial payment method options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_seed_payment_methods`, `q`, `->fetchAll`, `payment_methods_options`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     financial_seed_payment_methods($cid);
     $out = $withEmpty ? ["" => "Não informada"] : [];
     try {
@@ -139,6 +229,16 @@ function financial_payment_method_options(
 }
 function financial_payment_method_from_post(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_payment_method_from_post
+     * Responsabilidade: Implementa a responsabilidade “financial payment method from post” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `one`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $id = (int) ($_POST["payment_method_id"] ?? 0);
     if ($id > 0) {
         $r = one(
@@ -159,6 +259,16 @@ function appointment_payment_destination_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — appointment_payment_destination_options
+     * Responsabilidade: Implementa a responsabilidade “appointment payment destination options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_form_html`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_ensure_admin_safe`, `q`, `->fetchAll`, `financial_ensure_bank_location`, `error_log`, `->getMessage`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $out = $withEmpty ? ["" => "Selecione o destino"] : [];
     if ($cid <= 0) {
         return $out;
@@ -199,6 +309,15 @@ function appointment_payment_destination_options(
 }
 function appointment_payment_existing_destination(int $cid, array $appt): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — appointment_payment_existing_destination
+     * Responsabilidade: Implementa a responsabilidade “appointment payment existing destination” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_form_html`.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $appointmentId = (int) ($appt["id"] ?? 0);
     if ($cid <= 0 || $appointmentId <= 0) {
         return 0;
@@ -215,6 +334,15 @@ function appointment_payment_existing_destination(int $cid, array $appt): int
 }
 function appointment_payment_form_html(int $cid, array $appt = []): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — appointment_payment_form_html
+     * Responsabilidade: Monta a representação de interface associada a “appointment payment form html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`.
+     * Dependências chamadas: `val`, `appointment_payment_existing_destination`, `money_br`, `icon`, `form_row`, `e`, `select_label`, `payment_methods_options`, `appointment_payment_destination_options`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $amount = (int) ($appt["payment_amount_cents"] ?? 0);
     if ($amount <= 0 && !empty($appt["procedure_id"])) {
         try {
@@ -278,6 +406,15 @@ function financial_sync_appointment(
     int $userId,
     int $paymentDestinationLocationId = 0,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_sync_appointment
+     * Responsabilidade: Implementa a responsabilidade “financial sync appointment” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_appointments`, `financial_revenue_id_for_appointment`.
+     * Dependências chamadas: `one`, `q`, `trim`, `now`, `normalize_payment_method`, `db_last_insert_id`, `financial_register_appointment_payment_movement`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $a = one(
         "SELECT id,patient_link_id,procedure_id,start_at,reason,payment_amount_cents,payment_method,payment_status,payment_confirmed_at,revenue_id FROM pi_appointments WHERE id=? AND clinic_id=?",
         [$appointmentId, $cid],
@@ -380,8 +517,26 @@ function financial_sync_appointment(
 }
 function monthly_goal_status(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — monthly_goal_status
+     * Responsabilidade: Implementa a responsabilidade “monthly goal status” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `monthly_goal_card`, `page_goal_status`, `financial_admin_page`, `page_gerente_painel`.
+     * Dependências chamadas: `date`, `strtotime`, `one`, `in_array`, `val`, `min`, `round`, `financial_goal_base_label`, `money_br`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $month = date("Y-m");
     $loader = static function () use ($cid, $month): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:384
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `date`, `strtotime`, `one`, `in_array`, `val`, `min`, `round`, `financial_goal_base_label`, `money_br`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $start = $month . "-01 00:00:00";
         $next = date("Y-m-d H:i:s", strtotime($month . "-01 +1 month"));
         $goal = one(
@@ -437,6 +592,15 @@ function monthly_goal_status(int $cid): array
 }
 function monthly_goal_card(array $c, string $variant = "compact"): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — monthly_goal_card
+     * Responsabilidade: Monta a representação de interface associada a “monthly goal card” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `monthly_goal_status`, `max`, `min`, `number_format`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -464,6 +628,15 @@ function monthly_goal_card(array $c, string $variant = "compact"): string
 }
 function page_goal_status(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_goal_status
+     * Responsabilidade: Coordena a rota e renderiza a tela “page goal status”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `need_login`, `http_response_code`, `header`, `monthly_goal_status`, `json_encode`, `max`, `min`.
+     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         http_response_code(403);
@@ -487,6 +660,15 @@ function page_goal_status(): void
 }
 function page_operations(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_operations
+     * Responsabilidade: Coordena a rota e renderiza a tela “page operations”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `can`, `href`, `icon`, `e`, `page`, `page_head`, `card`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     */
     $c = require_can("operations");
     $items = [
         [
@@ -543,6 +725,15 @@ function counterparty_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_counterparty_suggestions",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — counterparty_autosuggest_datalist
+     * Responsabilidade: Implementa a responsabilidade “counterparty autosuggest datalist” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `q`, `->fetchAll`, `e`, `mask`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = q(
         "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name ASC LIMIT 800",
         [$cid],
@@ -578,6 +769,15 @@ function counterparty_lookup_field(
     string $hiddenValue = "",
     string $inputName = "counterparty_search",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — counterparty_lookup_field
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “counterparty lookup field” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `one`, `mask`, `e`, `href`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $display = "";
     $id = (int) $hiddenValue;
     if ($id > 0) {
@@ -606,6 +806,16 @@ function counterparty_lookup_field(
 }
 function posted_counterparty_search_value(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — posted_counterparty_search_value
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “posted counterparty search value” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_counterparty_from_post`.
+     * Dependências chamadas: `is_string`, `str_starts_with`, `trim`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "counterparty_search")) {
             return trim((string) $v);
@@ -618,6 +828,15 @@ function resolve_counterparty_lookup_id(
     int $postedId,
     string $search = "",
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — resolve_counterparty_lookup_id
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “resolve counterparty lookup id” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_counterparty_from_post`.
+     * Dependências chamadas: `val`, `trim`, `mb_strtolower`, `only_digits`, `q`, `->fetchAll`, `mask`, `str_starts_with`, `count`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($postedId > 0) {
         $ok = (int) val(
             "SELECT id FROM pi_financial_counterparties WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
@@ -675,6 +894,17 @@ function resolve_counterparty_lookup_id(
 }
 function page_counterparty_lookup(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_counterparty_lookup
+     * Responsabilidade: Coordena a rota e renderiza a tela “page counterparty lookup”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `only_digits`, `headers_sent`, `header`, `security_rate_limit`, `security_client_bucket`, `http_response_code`, `json_encode`, `strlen`, `valid_cpf`, `valid_cnpj`, `one` e mais 2.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("financial");
     $cid = (int) $c["clinic_id"];
     $doc = only_digits((string) ($_GET["doc"] ?? ($_GET["cpf"] ?? "")));
@@ -771,6 +1001,17 @@ function page_counterparty_lookup(): void
 }
 function page_counterparty_suggest(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_counterparty_suggest
+     * Responsabilidade: Coordena a rota e renderiza a tela “page counterparty suggest”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `trim`, `headers_sent`, `header`, `json_encode`, `max`, `min`, `only_digits`, `mb_strlen`, `q`, `->fetchAll`, `mask`.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("financial");
     $cid = (int) $c["clinic_id"];
     $q = trim((string) ($_GET["q"] ?? ""));
@@ -819,6 +1060,15 @@ function page_counterparty_suggest(): void
 }
 function counterparty_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — counterparty_options
+     * Responsabilidade: Implementa a responsabilidade “counterparty options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_operations_panel`.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = q(
         "SELECT fc.id,p.full_name FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name LIMIT 300",
         [$cid],
@@ -831,6 +1081,15 @@ function counterparty_options(int $cid): array
 }
 function financial_account_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_options
+     * Responsabilidade: Implementa a responsabilidade “financial account options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = q(
         "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY name LIMIT 200",
         [$cid],
@@ -843,6 +1102,15 @@ function financial_account_options(int $cid): array
 }
 function financial_date_or_null(string $date, bool $end = false): ?string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_date_or_null
+     * Responsabilidade: Implementa a responsabilidade “financial date or null” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`, `preg_match`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $date = trim($date);
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
         return null;
@@ -853,6 +1121,15 @@ function financial_account_label_options(
     int $cid,
     string $empty = "Escolha a conta",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_label_options
+     * Responsabilidade: Monta a representação de interface associada a “financial account label options” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_patient`.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = q(
         "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
         [$cid],
@@ -865,6 +1142,16 @@ function financial_account_label_options(
 }
 function financial_ensure_default_accounts(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_ensure_default_accounts
+     * Responsabilidade: Implementa a responsabilidade “financial ensure default accounts” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_patient`.
+     * Dependências chamadas: `clinic_read_only_db`, `financial_operational_schema_ready`, `financial_ensure_admin_safe`, `val`, `q`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if ($cid <= 0 || clinic_read_only_db($cid)) {
         return;
     }
@@ -896,12 +1183,30 @@ function financial_ensure_default_accounts(int $cid, int $uid): void
 }
 function financial_account_icon(array $account): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_icon
+     * Responsabilidade: Implementa a responsabilidade “financial account icon” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return ($account["account_type"] ?? "") === "caixa_interno"
         ? "payments"
         : "account_balance";
 }
 function financial_account_belongs(int $cid, int $accountId): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_belongs
+     * Responsabilidade: Implementa a responsabilidade “financial account belongs” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $accountId > 0 &&
         (int) (val(
             "SELECT id FROM pi_financial_accounts WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
@@ -916,6 +1221,15 @@ function financial_counterparty_light(
     string $doc = "",
     string $notes = "",
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_counterparty_light
+     * Responsabilidade: Implementa a responsabilidade “financial counterparty light” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_counterparty_from_post`.
+     * Dependências chamadas: `trim`, `preg_split`, `only_digits`, `in_array`, `strlen`, `save_person_by_document`, `val`, `q`, `db_last_insert_id`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     $name = trim(preg_split("/\s+·\s+/", trim($name), 2)[0] ?? $name);
     $doc = only_digits($doc);
     if ($name === "") {
@@ -964,6 +1278,16 @@ function financial_counterparty_light(
 }
 function financial_counterparty_from_post(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_counterparty_from_post
+     * Responsabilidade: Implementa a responsabilidade “financial counterparty from post” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `resolve_counterparty_lookup_id`, `posted_counterparty_search_value`, `financial_counterparty_light`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $id = resolve_counterparty_lookup_id(
         $cid,
         (int) ($_POST["counterparty_id"] ?? 0),
@@ -982,6 +1306,15 @@ function financial_counterparty_from_post(int $cid, int $uid): int
 }
 function financial_account_balances(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_account_balances
+     * Responsabilidade: Implementa a responsabilidade “financial account balances” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_dashboard_numbers`.
+     * Dependências chamadas: `ensure_financial_operational_schema`, `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     ensure_financial_operational_schema();
     $rows = q(
         "SELECT id,name,account_type,bank_name,opening_balance_cents,active FROM pi_financial_accounts WHERE clinic_id=? ORDER BY active DESC, FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
@@ -992,6 +1325,15 @@ function financial_account_balances(int $cid): array
         $ids[] = (int) $r["id"];
     }
     $map = function (string $sql) use ($cid): array {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:994
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`, `->fetchAll`.
+         * Efeitos colaterais: acessa a camada de persistência.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
         $out = [];
         foreach (q($sql, [$cid])->fetchAll() as $r) {
             $out[(int) $r["account_id"]] = (int) $r["total"];
@@ -1034,6 +1376,16 @@ function financial_account_balances(int $cid): array
 }
 function financial_dashboard_numbers(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_dashboard_numbers
+     * Responsabilidade: Implementa a responsabilidade “financial dashboard numbers” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `app_today_in_timezone`, `app_local_day_utc_range`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->modify`, `->setTimezone`, `->getTimestamp`, `financial_account_balances`, `one`, `compact`.
+     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $today = app_today_in_timezone($cid);
     [$todayStart, $todayEnd] = app_local_day_utc_range($today, $cid);
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
@@ -1101,6 +1453,15 @@ function financial_dashboard_numbers(int $cid): array
 }
 function financial_recent_operations_timeline(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_recent_operations_timeline
+     * Responsabilidade: Monta a representação de interface associada a “financial recent operations timeline” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `date`, `strtotime`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `money_br`, `dt_br`, `timeline`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $from = date("Y-m-d H:i:s", strtotime("-7 days"));
     try {
         $rows = q(
@@ -1165,6 +1526,15 @@ function financial_status_pill(
     ?string $date = null,
     string $type = "revenue",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_status_pill
+     * Responsabilidade: Implementa a responsabilidade “financial status pill” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_patient`.
+     * Dependências chamadas: `in_array`, `strtotime`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $label = match ($status) {
         "efetivada" => "Recebida",
         "paga" => "Paga",
@@ -1184,6 +1554,15 @@ function financial_status_pill(
 }
 function financial_report_line(string $label, int $value): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_report_line
+     * Responsabilidade: Implementa a responsabilidade “financial report line” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `e`, `money_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<article class="finance-row mini"><span>' .
         e($label) .
         "</span><b>" .
@@ -1192,6 +1571,15 @@ function financial_report_line(string $label, int $value): string
 }
 function financial_location_type_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_type_options
+     * Responsabilidade: Implementa a responsabilidade “financial location type options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_location_type_label`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "pos" => "Gaveta",
         "admin_safe" => "Cofre do Consultório",
@@ -1200,6 +1588,15 @@ function financial_location_type_options(): array
 }
 function financial_location_type_label(string $type): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_type_label
+     * Responsabilidade: Monta a representação de interface associada a “financial location type label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_location_select_options`.
+     * Dependências chamadas: `financial_location_type_options`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $o = financial_location_type_options();
     return $o[$type] ?? "Local financeiro";
 }
@@ -1208,23 +1605,68 @@ function financial_money_input(
     string $value = "",
     string $extra = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_money_input
+     * Responsabilidade: Implementa a responsabilidade “financial money input” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`, `financial_admin_locations_panel`, `financial_admin_operations_panel`.
+     * Dependências chamadas: `input`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return input($name, "text", $value, 'inputmode="decimal" ' . $extra);
 }
 function financial_cashier_roles(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_roles
+     * Responsabilidade: Implementa a responsabilidade “financial cashier roles” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_is_cashier`, `financial_link_drawer_user`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return ["recepcionista"];
 }
 function financial_is_cashier(array $c): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_is_cashier
+     * Responsabilidade: Avalia ou impõe a regra “financial is cashier”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_requires_attention`, `page_financial`.
+     * Dependências chamadas: `in_array`, `financial_cashier_roles`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return ($c["scope"] ?? "") === "clinic" &&
         in_array((string) ($c["role"] ?? ""), financial_cashier_roles(), true);
 }
 function financial_today(int $cid = 0): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_today
+     * Responsabilidade: Implementa a responsabilidade “financial today” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_auto_unlock_row_if_due`, `financial_default_drawer_unlock_local`, `financial_drawer_previous_balance`, `financial_drawer_pending_previous_review`, `financial_day_is_consolidated`, `financial_daily_consolidation_state`, `financial_create_movement`, `closure@app/Domain/Financial/Financial.php:2479` e mais 19.
+     * Dependências chamadas: `app_today_in_timezone`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return app_today_in_timezone($cid);
 }
 function financial_human_session_status(string $status): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_human_session_status
+     * Responsabilidade: Implementa a responsabilidade “financial human session status” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_daily_drawer_closure_blocking_html`, `financial_admin_reviews_panel`, `financial_daily_drawer_partials_html`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match ($status) {
         "open" => "Aberta",
         "kept_closed" => "Mantido fechado",
@@ -1238,6 +1680,15 @@ function financial_human_session_status(string $status): string
 }
 function financial_human_movement_type(string $type): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_human_movement_type
+     * Responsabilidade: Implementa a responsabilidade “financial human movement type” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_create_movement`, `closure@app/Domain/Financial/Financial.php:2479`, `financial_cashier_page`, `financial_admin_daily_ledger_timeline`, `financial_admin_movements_panel`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match ($type) {
         "receipt" => "Recebi",
         "payment" => "Paguei",
@@ -1252,6 +1703,15 @@ function financial_human_movement_type(string $type): string
 }
 function financial_human_movement_status(string $status): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_human_movement_status
+     * Responsabilidade: Implementa a responsabilidade “financial human movement status” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`, `financial_admin_daily_ledger_timeline`, `financial_admin_movements_panel`.
+     * Dependências chamadas: `ucfirst`, `str_replace`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match ($status) {
         "confirmed" => "Confirmado",
         "pending_review" => "Aguardando conferência",
@@ -1264,6 +1724,15 @@ function financial_human_movement_status(string $status): string
 }
 function financial_movement_icon(string $type): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_movement_icon
+     * Responsabilidade: Implementa a responsabilidade “financial movement icon” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`, `financial_admin_daily_ledger_timeline`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return match ($type) {
         "receipt" => "add_card",
         "payment" => "payments",
@@ -1277,10 +1746,29 @@ function financial_movement_icon(string $type): string
 }
 function financial_operational_schema_ready(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_operational_schema_ready
+     * Responsabilidade: Opera a etapa “financial operational schema ready” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_destination_options`, `financial_ensure_default_accounts`, `financial_ensure_admin_safe`, `financial_ensure_bank_location`, `financial_admin_location_select_options`, `financial_daily_consolidation_state`, `financial_cancel_appointment_revenue`, `financial_admin_receive_expected_revenue` e mais 30.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return;
 }
 function financial_ensure_admin_safe(int $cid, int $uid = 0): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_ensure_admin_safe
+     * Responsabilidade: Implementa a responsabilidade “financial ensure admin safe” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_destination_options`, `financial_ensure_default_accounts`, `financial_close_session`, `closure@app/Domain/Financial/Financial.php:3082`, `financial_global_position`, `financial_office_destination_options`, `financial_cashier_page`, `financial_admin_page` e mais 1.
+     * Dependências chamadas: `financial_operational_schema_ready`, `val`, `clinic_read_only_db`, `q`, `db_last_insert_id`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if ($cid <= 0) {
         return 0;
     }
@@ -1305,6 +1793,15 @@ function financial_ensure_admin_safe(int $cid, int $uid = 0): int
 }
 function financial_ensure_cashier_location(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_ensure_cashier_location
+     * Responsabilidade: Implementa a responsabilidade “financial ensure cashier location” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_cashier_location_for_user`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return financial_cashier_location_for_user($cid, $uid);
 }
 function financial_ensure_bank_location(
@@ -1312,6 +1809,16 @@ function financial_ensure_bank_location(
     int $accountId,
     int $uid = 0,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_ensure_bank_location
+     * Responsabilidade: Implementa a responsabilidade “financial ensure bank location” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_destination_options`, `financial_office_destination_options`, `financial_admin_locations_panel`, `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `val`, `one`, `q`, `db_last_insert_id`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if ($cid <= 0 || $accountId <= 0) {
         return 0;
     }
@@ -1347,6 +1854,15 @@ function financial_ensure_bank_location(
 }
 function financial_cashier_user_options(int $cid, bool $withEmpty = true): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_user_options
+     * Responsabilidade: Implementa a responsabilidade “financial cashier user options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_drawers_panel`.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $out = $withEmpty ? ["" => "Escolha o colaborador"] : [];
     if ($cid <= 0) {
         return $out;
@@ -1364,6 +1880,15 @@ function financial_drawer_location_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_location_options
+     * Responsabilidade: Implementa a responsabilidade “financial drawer location options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_drawers_panel`.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $out = $withEmpty ? ["" => "Escolha a gaveta"] : [];
     if ($cid <= 0) {
         return $out;
@@ -1379,6 +1904,15 @@ function financial_drawer_location_options(
 }
 function financial_cashier_assigned_locations(int $cid, int $uid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_assigned_locations
+     * Responsabilidade: Implementa a responsabilidade “financial cashier assigned locations” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_location_for_user`, `financial_cashier_drawer_name`.
+     * Dependências chamadas: `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $uid <= 0) {
         return [];
     }
@@ -1396,16 +1930,45 @@ function financial_cashier_assigned_locations(int $cid, int $uid): array
 }
 function financial_cashier_location_for_user(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_location_for_user
+     * Responsabilidade: Implementa a responsabilidade “financial cashier location for user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_ensure_cashier_location`, `financial_previous_drawer_balance`, `financial_expected_opening_balance`, `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`, `financial_pos_balance_for_user` e mais 2.
+     * Dependências chamadas: `financial_cashier_assigned_locations`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = financial_cashier_assigned_locations($cid, $uid);
     return $rows ? (int) $rows[0]["id"] : 0;
 }
 function financial_cashier_drawer_name(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_drawer_name
+     * Responsabilidade: Implementa a responsabilidade “financial cashier drawer name” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_cashier_assigned_locations`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = financial_cashier_assigned_locations($cid, $uid);
     return $rows ? (string) $rows[0]["name"] : "";
 }
 function financial_create_drawer(int $cid, int $uid, string $name): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_create_drawer
+     * Responsabilidade: Valida e executa a mutação “financial create drawer”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `trim`, `RuntimeException`, `mb_strlen`, `mb_substr`, `val`, `q`, `db_last_insert_id`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $name = trim($name);
     if ($cid <= 0) {
         throw new RuntimeException("Consultório inválido.");
@@ -1443,6 +2006,17 @@ function financial_rename_drawer(
     int $adminUid,
     string $name,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_rename_drawer
+     * Responsabilidade: Implementa a responsabilidade “financial rename drawer” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `trim`, `RuntimeException`, `mb_strlen`, `mb_substr`, `one`, `val`, `q`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $name = trim($name);
     if ($cid <= 0 || $drawerId <= 0) {
         throw new RuntimeException("Gaveta inválida.");
@@ -1489,6 +2063,17 @@ function financial_link_drawer_user(
     int $cashierUid,
     int $adminUid,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_link_drawer_user
+     * Responsabilidade: Implementa a responsabilidade “financial link drawer user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `RuntimeException`, `financial_location_belongs`, `one`, `clinic_user_exists`, `financial_cashier_roles`, `db_tx`, `q`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $drawerId <= 0 || $cashierUid <= 0) {
         throw new RuntimeException(
             "Escolha a Gaveta e o colaborador do Atendimento.",
@@ -1510,6 +2095,15 @@ function financial_link_drawer_user(
         );
     }
     db_tx(function () use ($cid, $drawerId, $cashierUid, $adminUid): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:1512
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`.
+         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         */
         q(
             "UPDATE pi_financial_location_users SET active=0, updated_at=NOW() WHERE clinic_id=? AND user_id=? AND active=1",
             [$cid, $cashierUid],
@@ -1530,6 +2124,17 @@ function financial_unlink_drawer_user(
     int $linkId,
     int $adminUid,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_unlink_drawer_user
+     * Responsabilidade: Implementa a responsabilidade “financial unlink drawer user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `RuntimeException`, `one`, `q`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $linkId <= 0) {
         throw new RuntimeException("Vínculo inválido.");
     }
@@ -1555,6 +2160,17 @@ function financial_deactivate_drawer(
     int $drawerId,
     int $adminUid,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_deactivate_drawer
+     * Responsabilidade: Valida e executa a mutação “financial deactivate drawer”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `RuntimeException`, `one`, `first_name`, `q`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $drawerId <= 0) {
         throw new RuntimeException("Gaveta inválida.");
     }
@@ -1583,6 +2199,15 @@ function financial_deactivate_drawer(
 }
 function financial_drawer_row(int $cid, int $drawerId): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_row
+     * Responsabilidade: Implementa a responsabilidade “financial drawer row” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_auto_unlock_if_due`, `financial_notify_drawer_locked`, `financial_drawer_lock_after_close`, `financial_default_drawer_unlock_local`, `financial_schedule_drawer_unlock`, `financial_review_session`, `closure@app/Domain/Financial/Financial.php:3287`.
+     * Dependências chamadas: `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $drawerId <= 0) {
         return null;
     }
@@ -1593,6 +2218,15 @@ function financial_drawer_row(int $cid, int $drawerId): ?array
 }
 function financial_drawer_auto_unlock_if_due(int $cid, int $drawerId): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_auto_unlock_if_due
+     * Responsabilidade: Implementa a responsabilidade “financial drawer auto unlock if due” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_guard_can_use`, `financial_cashier_page`.
+     * Dependências chamadas: `financial_drawer_row`, `financial_drawer_auto_unlock_row_if_due`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $d = financial_drawer_row($cid, $drawerId);
     if (!$d) {
         return null;
@@ -1601,6 +2235,16 @@ function financial_drawer_auto_unlock_if_due(int $cid, int $drawerId): ?array
 }
 function financial_drawer_auto_unlock_row_if_due(int $cid, array $d): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_auto_unlock_row_if_due
+     * Responsabilidade: Implementa a responsabilidade “financial drawer auto unlock row if due” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_auto_unlock_if_due`, `financial_admin_drawers_panel`.
+     * Dependências chamadas: `trim`, `app_parse_db_utc`, `app_now_utc`, `financial_today`, `q`, `audit`, `->format`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $drawerId = (int) ($d["id"] ?? 0);
     if ($cid <= 0 || $drawerId <= 0) {
         return $d;
@@ -1642,6 +2286,15 @@ function financial_drawer_auto_unlock_row_if_due(int $cid, array $d): array
 }
 function financial_drawer_lock_label(array $drawer, int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_lock_label
+     * Responsabilidade: Monta a representação de interface associada a “financial drawer lock label” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `trim`, `dt_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $status = (string) ($drawer["drawer_lock_status"] ?? "unlocked");
     if ($status !== "locked") {
         return "Destrancada";
@@ -1654,6 +2307,16 @@ function financial_drawer_lock_label(array $drawer, int $cid): string
 }
 function financial_drawer_guard_can_use(int $cid, int $drawerId): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_guard_can_use
+     * Responsabilidade: Avalia ou impõe a regra “financial drawer guard can use”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`.
+     * Dependências chamadas: `financial_drawer_auto_unlock_if_due`, `RuntimeException`, `trim`, `dt_br`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $d = financial_drawer_auto_unlock_if_due($cid, $drawerId);
     if (!$d) {
         throw new RuntimeException("Gaveta inválida.");
@@ -1679,6 +2342,15 @@ function financial_notify_drawer_locked(
     int $sessionId,
     int $uid,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_notify_drawer_locked
+     * Responsabilidade: Implementa a responsabilidade “financial notify drawer locked” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_lock_after_close`.
+     * Dependências chamadas: `financial_drawer_row`, `q`, `function_exists`, `counter_inc`, `clinic_metric_inc`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     */
     try {
         $drawer = financial_drawer_row($cid, $drawerId);
         $name = $drawer ? (string) $drawer["name"] : "Gaveta";
@@ -1714,6 +2386,16 @@ function financial_drawer_lock_after_close(
     int $sessionId,
     int $uid,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_lock_after_close
+     * Responsabilidade: Valida e executa a mutação “financial drawer lock after close”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_close_session`, `closure@app/Domain/Financial/Financial.php:3082`.
+     * Dependências chamadas: `financial_drawer_open_session`, `financial_drawer_row`, `val`, `audit`, `q`, `financial_notify_drawer_locked`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $drawerId <= 0) {
         return;
     }
@@ -1781,6 +2463,16 @@ function financial_default_drawer_unlock_local(
     ?array $drawer = null,
 ): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_default_drawer_unlock_local
+     * Responsabilidade: Implementa a responsabilidade “financial default drawer unlock local” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_drawers_panel`, `financial_admin_reviews_panel`, `financial_daily_drawer_partials_html`.
+     * Dependências chamadas: `financial_drawer_row`, `financial_today`, `DateTimeImmutable`, `DateTimeZone`, `app_context_timezone`, `->modify`, `app_now_in_timezone`, `->setTime`, `->format`.
+     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $d = $drawer ?: financial_drawer_row($cid, $drawerId);
     $locked =
         (string) ($d["drawer_locked_business_date"] ?? financial_today($cid));
@@ -1801,6 +2493,17 @@ function financial_schedule_drawer_unlock(
     string $unlockLocal,
     string $notes = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_schedule_drawer_unlock
+     * Responsabilidade: Orquestra a execução de “financial schedule drawer unlock” e delega etapas específicas às dependências do módulo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_review_session`, `closure@app/Domain/Financial/Financial.php:3287`, `financial_admin_page`.
+     * Dependências chamadas: `financial_drawer_row`, `RuntimeException`, `trim`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->format`, `->setTimezone`, `q`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`, `DateTimeZone`, `DateTimeImmutable`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $d = financial_drawer_row($cid, $drawerId);
     if (!$d) {
         throw new RuntimeException("Gaveta inválida.");
@@ -1851,6 +2554,15 @@ function financial_drawer_open_session(
     int $locationId,
     int $excludeUid = 0,
 ): ?array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_open_session
+     * Responsabilidade: Valida e executa a mutação “financial drawer open session”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_lock_after_close`, `financial_drawer_balance`, `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`.
+     * Dependências chamadas: `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $locationId <= 0) {
         return null;
     }
@@ -1870,6 +2582,15 @@ function financial_latest_drawer_session(
     string $maxDate = "",
     int $ignoreSessionId = 0,
 ): ?array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_latest_drawer_session
+     * Responsabilidade: Implementa a responsabilidade “financial latest drawer session” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_previous_balance`, `financial_drawer_balance`.
+     * Dependências chamadas: `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $locationId <= 0) {
         return null;
     }
@@ -1894,6 +2615,15 @@ function financial_drawer_previous_balance(
     string $businessDate = "",
     int $ignoreSessionId = 0,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_previous_balance
+     * Responsabilidade: Implementa a responsabilidade “financial drawer previous balance” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_previous_drawer_balance`, `financial_expected_opening_balance`, `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`.
+     * Dependências chamadas: `financial_today`, `financial_latest_drawer_session`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $businessDate = $businessDate ?: financial_today($cid);
     $last = financial_latest_drawer_session(
         $cid,
@@ -1911,6 +2641,15 @@ function financial_drawer_pending_previous_review(
     int $locationId,
     string $today = "",
 ): ?array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_pending_previous_review
+     * Responsabilidade: Implementa a responsabilidade “financial drawer pending previous review” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`.
+     * Dependências chamadas: `financial_today`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $today = $today ?: financial_today($cid);
     if ($cid <= 0 || $locationId <= 0) {
         return null;
@@ -1922,6 +2661,15 @@ function financial_drawer_pending_previous_review(
 }
 function financial_drawer_balance(int $cid, int $locationId): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_balance
+     * Responsabilidade: Implementa a responsabilidade “financial drawer balance” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_pos_balance_for_user`.
+     * Dependências chamadas: `financial_drawer_open_session`, `financial_session_expected`, `financial_latest_drawer_session`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $open = financial_drawer_open_session($cid, $locationId, 0);
     if ($open) {
         return financial_session_expected($open);
@@ -1933,12 +2681,21 @@ function financial_drawer_balance_snapshot(
     int $cid,
     array $locationIds,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_balance_snapshot
+     * Responsabilidade: Implementa a responsabilidade “financial drawer balance snapshot” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_global_position`, `financial_admin_drawers_panel`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `array_fill_keys`, `sort`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll` e mais 3.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $requestCache = [];
     $locationIds = array_values(
         array_unique(
             array_filter(
                 array_map("intval", $locationIds),
-                static fn(int $id): bool => $id > 0,
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(int $id): bool => $id > 0,
             ),
         ),
     );
@@ -2022,12 +2779,30 @@ function financial_drawer_daily_totals(
     int $locationId,
     string $date,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_daily_totals
+     * Responsabilidade: Implementa a responsabilidade “financial drawer daily totals” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_drawer_daily_totals_map`, `financial_drawer_daily_totals_empty`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $map = financial_drawer_daily_totals_map($cid, [$locationId], [$date]);
     return $map[$locationId . "|" . $date] ??
         financial_drawer_daily_totals_empty();
 }
 function financial_drawer_daily_totals_empty(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_daily_totals_empty
+     * Responsabilidade: Implementa a responsabilidade “financial drawer daily totals empty” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_daily_totals`, `financial_drawer_daily_totals_map`, `financial_admin_drawers_panel`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "sessions" => 0,
         "opening" => 0,
@@ -2046,11 +2821,20 @@ function financial_drawer_daily_totals_map(
     array $locationIds,
     array $dates,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_drawer_daily_totals_map
+     * Responsabilidade: Transforma e normaliza “financial drawer daily totals map” para um formato canônico utilizado pelo restante da aplicação.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_daily_totals`, `financial_admin_drawers_panel`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `preg_match`, `financial_drawer_daily_totals_empty`, `implode`, `array_fill`, `count`, `.Core.Temporal.PiTime::dateOnlyToTimestamp`, `array_merge`, `q` e mais 2.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $locationIds = array_values(
         array_unique(
             array_filter(
                 array_map("intval", $locationIds),
-                static fn(int $id): bool => $id > 0,
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(int $id): bool => $id > 0,
             ),
         ),
     );
@@ -2058,7 +2842,7 @@ function financial_drawer_daily_totals_map(
         array_unique(
             array_filter(
                 array_map("strval", $dates),
-                static fn(string $date): bool =>
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `preg_match`. Efeitos: transformação local sem efeito externo detectado. */ fn(string $date): bool =>
                     preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1,
             ),
         ),
@@ -2076,7 +2860,7 @@ function financial_drawer_daily_totals_map(
     $locationPh = implode(",", array_fill(0, count($locationIds), "?"));
     $datePh = implode(",", array_fill(0, count($dates), "?"));
     $storageDates = array_map(
-        static fn(string $date): int =>
+        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `.Core.Temporal.PiTime::dateOnlyToTimestamp`. Efeitos: transformação local sem efeito externo detectado. */ fn(string $date): int =>
             \Prontoo\Core\Temporal\PiTime::dateOnlyToTimestamp($date),
         $dates,
     );
@@ -2133,6 +2917,15 @@ function financial_drawer_daily_totals_map(
 }
 function financial_location_belongs(int $cid, int $locationId): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_belongs
+     * Responsabilidade: Implementa a responsabilidade “financial location belongs” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_post_context`, `financial_link_drawer_user`, `financial_create_movement`, `closure@app/Domain/Financial/Financial.php:2479`, `financial_register_appointment_payment_movement`.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return $locationId > 0 &&
         (int) (val(
             "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
@@ -2142,6 +2935,15 @@ function financial_location_belongs(int $cid, int $locationId): bool
 }
 function financial_admin_location_belongs(int $cid, int $locationId): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_location_belongs
+     * Responsabilidade: Implementa a responsabilidade “financial admin location belongs” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_receive_expected_revenue`, `financial_admin_save_receipt`, `financial_admin_save_payment`, `financial_admin_save_transfer`.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($locationId <= 0) {
         return false;
     }
@@ -2153,6 +2955,15 @@ function financial_admin_location_belongs(int $cid, int $locationId): bool
 }
 function financial_admin_location_select_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_location_select_options
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “financial admin location select options” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_operations_panel`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $rows = q(
         "SELECT id,name,location_type FROM pi_financial_locations WHERE clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') ORDER BY FIELD(location_type,'admin_safe','bank_account'), name,id",
@@ -2170,6 +2981,16 @@ function financial_admin_location_select_options(int $cid): array
 }
 function financial_daily_closing_ensure_schema(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_closing_ensure_schema
+     * Responsabilidade: Opera a etapa “financial daily closing ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_day_is_consolidated`, `financial_daily_consolidation_state`, `financial_admin_daily_consolidate`.
+     * Dependências chamadas: `db_table_exists`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     static $validated = false;
     if ($validated) {
         return;
@@ -2186,6 +3007,15 @@ function financial_day_is_consolidated(
     int $cid,
     string $businessDate = "",
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_day_is_consolidated
+     * Responsabilidade: Avalia ou impõe a regra “financial day is consolidated”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_daily_consolidation_state`, `financial_create_movement`, `closure@app/Domain/Financial/Financial.php:2479`.
+     * Dependências chamadas: `financial_daily_closing_ensure_schema`, `financial_today`, `val`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     try {
         financial_daily_closing_ensure_schema();
         $businessDate = $businessDate ?: financial_today($cid);
@@ -2203,6 +3033,15 @@ function financial_daily_consolidation_state(
     int $cid,
     string $businessDate = "",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_consolidation_state
+     * Responsabilidade: Implementa a responsabilidade “financial daily consolidation state” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_consolidation_html`, `financial_admin_daily_conference_panel`, `financial_admin_daily_consolidate`, `closure@app/Domain/Financial/Financial.php:6097`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_daily_closing_ensure_schema`, `financial_today`, `app_local_day_utc_range`, `financial_daily_drawer_closure_state`, `safe_val`, `financial_day_is_consolidated`.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     financial_daily_closing_ensure_schema();
     $businessDate = $businessDate ?: financial_today($cid);
@@ -2255,6 +3094,15 @@ function financial_daily_consolidation_state(
 }
 function financial_daily_consolidation_blockers_html(array $state): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_consolidation_blockers_html
+     * Responsabilidade: Monta a representação de interface associada a “financial daily consolidation blockers html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_conference_panel`.
+     * Dependências chamadas: `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $blockers = $state["blockers"] ?? [];
     if (!$blockers) {
         return "";
@@ -2272,6 +3120,15 @@ function financial_daily_consolidation_blockers_html(array $state): string
 }
 function financial_patient_pending_revenue_count(int $cid, int $patientId): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_patient_pending_revenue_count
+     * Responsabilidade: Implementa a responsabilidade “financial patient pending revenue count” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_save_receipt`.
+     * Dependências chamadas: `safe_val`.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($patientId <= 0) {
         return 0;
     }
@@ -2286,6 +3143,15 @@ function financial_pending_revenue_belongs_to_patient(
     int $revenueId,
     int $patientId,
 ): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_pending_revenue_belongs_to_patient
+     * Responsabilidade: Implementa a responsabilidade “financial pending revenue belongs to patient” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_save_receipt`.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($revenueId <= 0 || $patientId <= 0) {
         return false;
     }
@@ -2301,6 +3167,17 @@ function financial_cancel_appointment_revenue(
     int $uid,
     string $reason = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cancel_appointment_revenue
+     * Responsabilidade: Implementa a responsabilidade “financial cancel appointment revenue” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_appointments`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `trim`, `db_tx`, `one`, `q`, `audit`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     if ($cid <= 0 || $appointmentId <= 0) {
         return;
     }
@@ -2310,6 +3187,16 @@ function financial_cancel_appointment_revenue(
         "Atendimento cancelado ou ausência registrada; cobrança prevista cancelada pela regra operacional.";
     try {
         db_tx(function () use ($cid, $appointmentId, $uid, $reason): void {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:2312
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+             * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `one`, `q`, `audit`.
+             * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+             * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+             * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+             */
             $rev = one(
                 "SELECT id,status FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=? FOR UPDATE",
                 [$cid, $appointmentId],
@@ -2349,6 +3236,18 @@ function financial_admin_receive_expected_revenue(
     int $destinationLocationId,
     string $notes = "",
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_receive_expected_revenue
+     * Responsabilidade: Implementa a responsabilidade “financial admin receive expected revenue” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_save_receipt`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `normalize_payment_method`, `RuntimeException`, `financial_admin_location_belongs`, `db_tx`, `one`, `trim`, `q`, `financial_create_movement`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     $method = normalize_payment_method($method);
     if ($method === "") {
@@ -2367,6 +3266,17 @@ function financial_admin_receive_expected_revenue(
         $destinationLocationId,
         $notes,
     ): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:2362
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `RuntimeException`, `trim`, `q`, `financial_create_movement`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $rev = one(
             "SELECT r.*,a.status appointment_status,a.start_at,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.id=? AND r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu','reagendado') FOR UPDATE",
             [$revenueId, $cid],
@@ -2476,6 +3386,17 @@ function financial_create_movement(
     string $sourceEntity = "",
     int $sourceId = 0,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_create_movement
+     * Responsabilidade: Valida e executa a mutação “financial create movement”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_receive_expected_revenue`, `closure@app/Domain/Financial/Financial.php:2362`, `financial_close_session`, `closure@app/Domain/Financial/Financial.php:3082`, `financial_register_appointment_payment_movement`, `financial_receive_expected_appointment_revenue`, `closure@app/Domain/Financial/Financial.php:4095`, `financial_cashier_page` e mais 5.
+     * Dependências chamadas: `db_tx`, `financial_operational_schema_ready`, `max`, `RuntimeException`, `financial_today`, `financial_day_is_consolidated`, `financial_location_belongs`, `in_array`, `one`, `trim`, `financial_human_movement_type`, `mb_substr` e mais 2.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     return (int) db_tx(function () use (
         $cid,
         $type,
@@ -2491,6 +3412,17 @@ function financial_create_movement(
         $sourceEntity,
         $sourceId,
     ): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:2479
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `financial_operational_schema_ready`, `max`, `RuntimeException`, `financial_today`, `financial_day_is_consolidated`, `financial_location_belongs`, `in_array`, `one`, `trim`, `financial_human_movement_type`, `mb_substr`, `q` e mais 1.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
         financial_operational_schema_ready();
         $amount = max(0, $amount);
         if ($cid <= 0 || $amount <= 0) {
@@ -2580,6 +3512,15 @@ function financial_create_movement(
 }
 function financial_session_for_date(int $cid, int $uid, string $date): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_session_for_date
+     * Responsabilidade: Implementa a responsabilidade “financial session for date” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`, `financial_require_open_session`, `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     return one(
         "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date=? LIMIT 1",
@@ -2588,6 +3529,15 @@ function financial_session_for_date(int $cid, int $uid, string $date): ?array
 }
 function financial_latest_session(int $cid, int $uid): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_latest_session
+     * Responsabilidade: Implementa a responsabilidade “financial latest session” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_operational_schema_ready`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     return one(
         "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? ORDER BY business_date DESC,id DESC LIMIT 1",
@@ -2599,6 +3549,15 @@ function financial_previous_drawer_balance(
     int $uid,
     string $beforeDate = "",
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_previous_drawer_balance
+     * Responsabilidade: Implementa a responsabilidade “financial previous drawer balance” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_cashier_location_for_user`, `financial_drawer_previous_balance`, `financial_today`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $loc = financial_cashier_location_for_user($cid, $uid);
     if ($loc <= 0) {
@@ -2617,6 +3576,15 @@ function financial_expected_opening_balance(
     int $locationId = 0,
     int $ignoreSessionId = 0,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_expected_opening_balance
+     * Responsabilidade: Implementa a responsabilidade “financial expected opening balance” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`.
+     * Dependências chamadas: `financial_today`, `financial_cashier_location_for_user`, `financial_drawer_previous_balance`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $businessDate = $businessDate ?: financial_today($cid);
     $locationId =
         $locationId > 0
@@ -2634,6 +3602,15 @@ function financial_expected_opening_balance(
 }
 function financial_cashier_name(int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_name
+     * Responsabilidade: Implementa a responsabilidade “financial cashier name” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_notify_opening_authorization_request`.
+     * Dependências chamadas: `trim`, `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $name = trim(
         (string) (val("SELECT name FROM pi_users WHERE id=? LIMIT 1", [$uid]) ?:
         "Atendimento"),
@@ -2648,6 +3625,16 @@ function financial_notify_opening_authorization_request(
     int $informed,
     int $createdBy,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_notify_opening_authorization_request
+     * Responsabilidade: Implementa a responsabilidade “financial notify opening authorization request” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_request_opening_authorization`.
+     * Dependências chamadas: `financial_cashier_name`, `money_br`, `q`, `db_last_insert_id`, `function_exists`, `counter_inc`, `clinic_metric_inc`, `audit`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     try {
         $cashier = financial_cashier_name($cashierUid);
         $diff = $informed - $expected;
@@ -2710,6 +3697,16 @@ function financial_request_opening_authorization(
     int $informed,
     ?array $existing = null,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_request_opening_authorization
+     * Responsabilidade: Implementa a responsabilidade “financial request opening authorization” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`.
+     * Dependências chamadas: `q`, `audit`, `financial_notify_opening_authorization_request`, `db_last_insert_id`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $diff = $informed - $expected;
     $notes =
         "Abertura bloqueada: Saldo Inicial informado diverge do saldo não retirado do último fechamento.";
@@ -2789,6 +3786,15 @@ function financial_unclosed_previous_session(
     int $uid,
     string $today = "",
 ): ?array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_unclosed_previous_session
+     * Responsabilidade: Implementa a responsabilidade “financial unclosed previous session” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_keep_closed`, `closure@app/Domain/Financial/Financial.php:2806`, `financial_open_session`, `closure@app/Domain/Financial/Financial.php:2882`, `financial_cashier_requires_attention`, `financial_cashier_page`.
+     * Dependências chamadas: `financial_today`, `financial_operational_schema_ready`, `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $today = $today ?: financial_today($cid);
     financial_operational_schema_ready();
     return one(
@@ -2798,12 +3804,35 @@ function financial_unclosed_previous_session(
 }
 function financial_keep_closed(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_keep_closed
+     * Responsabilidade: Implementa a responsabilidade “financial keep closed” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `RuntimeException`, `financial_today`, `db_tx`, `q`, `financial_cashier_location_for_user`, `financial_drawer_guard_can_use`, `financial_drawer_open_session`, `first_name`, `financial_drawer_pending_previous_review`, `financial_unclosed_previous_session`, `financial_session_for_date` e mais 3.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     if ($cid <= 0 || $uid <= 0) {
         throw new RuntimeException("Usuário ou consultório inválido.");
     }
     $today = financial_today($cid);
     return (int) db_tx(function () use ($cid, $uid, $today) {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:2806
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`, `financial_cashier_location_for_user`, `RuntimeException`, `financial_drawer_guard_can_use`, `financial_drawer_open_session`, `first_name`, `financial_drawer_pending_previous_review`, `financial_unclosed_previous_session`, `financial_session_for_date`, `financial_drawer_previous_balance`, `db_last_insert_id`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
         $loc = financial_cashier_location_for_user($cid, $uid);
         if ($loc <= 0) {
@@ -2872,6 +3901,18 @@ function financial_keep_closed(int $cid, int $uid): int
 }
 function financial_open_session(int $cid, int $uid, int $openingBalance): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_open_session
+     * Responsabilidade: Valida e executa a mutação “financial open session”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `RuntimeException`, `financial_today`, `db_tx`, `q`, `financial_cashier_location_for_user`, `financial_drawer_guard_can_use`, `financial_drawer_open_session`, `first_name`, `financial_drawer_pending_previous_review`, `financial_unclosed_previous_session`, `financial_session_for_date` e mais 6.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     if ($cid <= 0 || $uid <= 0) {
         throw new RuntimeException("Usuário ou consultório inválido.");
@@ -2887,6 +3928,17 @@ function financial_open_session(int $cid, int $uid, int $openingBalance): int
         &$authorizationRequested,
         &$authorizationMessage,
     ) {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:2882
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `q`, `financial_cashier_location_for_user`, `RuntimeException`, `financial_drawer_guard_can_use`, `financial_drawer_open_session`, `first_name`, `financial_drawer_pending_previous_review`, `financial_unclosed_previous_session`, `financial_session_for_date`, `in_array`, `max`, `financial_expected_opening_balance` e mais 3.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
         $loc = financial_cashier_location_for_user($cid, $uid);
         if ($loc <= 0) {
@@ -3014,6 +4066,15 @@ function financial_open_session(int $cid, int $uid, int $openingBalance): int
 }
 function financial_session_movement_totals(int $cid, int $sessionId): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_session_movement_totals
+     * Responsabilidade: Implementa a responsabilidade “financial session movement totals” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_session_expected`, `financial_cashier_drawer_summary`, `financial_daily_drawer_partials_html`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `q`, `->fetchAll`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $rows = q(
         "SELECT movement_type,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND status IN ('confirmed','pending_review') GROUP BY movement_type",
@@ -3034,6 +4095,15 @@ function financial_session_movement_totals(int $cid, int $sessionId): array
 }
 function financial_session_expected(array $session): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_session_expected
+     * Responsabilidade: Implementa a responsabilidade “financial session expected” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_drawer_balance`, `financial_close_session`, `closure@app/Domain/Financial/Financial.php:3082`, `financial_cashier_drawer_summary`, `financial_cashier_page`.
+     * Dependências chamadas: `financial_session_movement_totals`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cid = (int) $session["clinic_id"];
     $sid = (int) $session["id"];
     $t = financial_session_movement_totals($cid, $sid);
@@ -3047,6 +4117,15 @@ function financial_session_expected(array $session): int
 }
 function financial_current_open_session(int $cid, int $uid): ?array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_current_open_session
+     * Responsabilidade: Valida e executa a mutação “financial current open session”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_require_open_session`, `reception_cash_state_icon`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `one`, `financial_today`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     return one(
         "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date=? AND status='open' LIMIT 1",
@@ -3055,6 +4134,16 @@ function financial_current_open_session(int $cid, int $uid): ?array
 }
 function financial_require_open_session(int $cid, int $uid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_require_open_session
+     * Responsabilidade: Avalia ou impõe a regra “financial require open session”, falhando de forma controlada quando a pré-condição não é satisfeita.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_register_appointment_payment_movement`, `financial_receive_expected_appointment_revenue`, `financial_cashier_page`, `page_patient`.
+     * Dependências chamadas: `financial_current_open_session`, `financial_session_for_date`, `financial_today`, `RuntimeException`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $s = financial_current_open_session($cid, $uid);
     if (!$s) {
         $today = financial_session_for_date($cid, $uid, financial_today($cid));
@@ -3078,6 +4167,18 @@ function financial_close_session(
     int $withdrawalDestinationId = 0,
     string $notes = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_close_session
+     * Responsabilidade: Valida e executa a mutação “financial close session”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `db_tx`, `one`, `RuntimeException`, `financial_session_expected`, `max`, `min`, `financial_office_destination_belongs`, `financial_ensure_admin_safe`, `q`, `trim`, `financial_create_movement` e mais 2.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     db_tx(function () use (
         $cid,
@@ -3088,6 +4189,17 @@ function financial_close_session(
         $withdrawalDestinationId,
         $notes,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:3082
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `RuntimeException`, `financial_session_expected`, `max`, `min`, `financial_office_destination_belongs`, `financial_ensure_admin_safe`, `q`, `trim`, `financial_create_movement`, `financial_drawer_lock_after_close`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $s = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
             [$sessionId, $cid, $uid],
@@ -3178,6 +4290,18 @@ function financial_review_opening_request(
     string $decision,
     string $notes = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_review_opening_request
+     * Responsabilidade: Implementa a responsabilidade “financial review opening request” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `db_tx`, `one`, `RuntimeException`, `trim`, `q`, `money_br`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     db_tx(function () use (
         $cid,
@@ -3186,6 +4310,17 @@ function financial_review_opening_request(
         $decision,
         $notes,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:3182
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `RuntimeException`, `trim`, `q`, `money_br`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $s = one(
             "SELECT s.*,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.id=? AND s.clinic_id=? AND s.status='opening_pending_review' FOR UPDATE",
             [$sessionId, $cid],
@@ -3283,6 +4418,18 @@ function financial_review_session(
     string $notes = "",
     string $drawerUnlockLocal = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_review_session
+     * Responsabilidade: Implementa a responsabilidade “financial review session” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `db_tx`, `one`, `RuntimeException`, `q`, `trim`, `audit`, `val`, `financial_drawer_row`, `financial_schedule_drawer_unlock`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     db_tx(function () use (
         $cid,
@@ -3292,6 +4439,17 @@ function financial_review_session(
         $notes,
         $drawerUnlockLocal,
     ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:3287
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `RuntimeException`, `q`, `trim`, `audit`, `val`, `financial_drawer_row`, `financial_schedule_drawer_unlock`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $s = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND status='closed_pending_review' FOR UPDATE",
             [$sessionId, $cid],
@@ -3393,6 +4551,15 @@ function financial_review_session(
 }
 function financial_location_movement_balance(int $cid, int $locationId): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_movement_balance
+     * Responsabilidade: Implementa a responsabilidade “financial location movement balance” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_global_position`.
+     * Dependências chamadas: `financial_location_movement_balances`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $balances = financial_location_movement_balances($cid, [$locationId]);
     return (int) ($balances[$locationId] ?? 0);
 }
@@ -3400,12 +4567,21 @@ function financial_location_movement_balances(
     int $cid,
     array $locationIds,
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_movement_balances
+     * Responsabilidade: Implementa a responsabilidade “financial location movement balances” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_location_movement_balance`, `financial_global_position`, `financial_admin_locations_panel`.
+     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `array_key_exists`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`, `array_intersect_key` e mais 1.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     static $requestCache = [];
     $locationIds = array_values(
         array_unique(
             array_filter(
                 array_map("intval", $locationIds),
-                static fn(int $id): bool => $id > 0,
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(int $id): bool => $id > 0,
             ),
         ),
     );
@@ -3416,7 +4592,7 @@ function financial_location_movement_balances(
     $missing = array_values(
         array_filter(
             $locationIds,
-            static fn(int $id): bool => !array_key_exists($id, $known),
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `array_key_exists`. Efeitos: transformação local sem efeito externo detectado. */ fn(int $id): bool => !array_key_exists($id, $known),
         ),
     );
     if ($missing) {
@@ -3438,11 +4614,30 @@ function financial_location_movement_balances(
 }
 function financial_pos_balance_for_user(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_pos_balance_for_user
+     * Responsabilidade: Implementa a responsabilidade “financial pos balance for user” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_cashier_location_for_user`, `financial_drawer_balance`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $loc = financial_cashier_location_for_user($cid, $uid);
     return $loc > 0 ? financial_drawer_balance($cid, $loc) : 0;
 }
 function financial_global_position(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_global_position
+     * Responsabilidade: Implementa a responsabilidade “financial global position” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_consolidation_html`, `financial_admin_daily_conference_panel`, `financial_admin_daily_consolidate`, `closure@app/Domain/Financial/Financial.php:6097`, `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_ensure_admin_safe`, `financial_location_movement_balance`, `val`, `q`, `->fetchAll`, `array_map`, `financial_drawer_balance_snapshot`, `implode`, `array_fill`, `count`, `array_merge` e mais 1.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; lê ou altera a sessão.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $safe = financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
     $safeBalance = financial_location_movement_balance($cid, $safe);
@@ -3457,7 +4652,7 @@ function financial_global_position(int $cid): array
         [$cid],
     )->fetchAll();
     $posIds = array_map(
-        static fn(array $row): int => (int) $row["id"],
+        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $row): int => (int) $row["id"],
         $posRows,
     );
     $posSnapshot = financial_drawer_balance_snapshot($cid, $posIds);
@@ -3496,7 +4691,7 @@ function financial_global_position(int $cid): array
     )->fetchAll();
     $bankBalances = financial_location_movement_balances(
         $cid,
-        array_map(static fn(array $row): int => (int) $row["id"], $bankRows),
+        array_map(static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $row): int => (int) $row["id"], $bankRows),
     );
     $banks = [];
     $bankTotal = 0;
@@ -3519,6 +4714,15 @@ function financial_global_position(int $cid): array
 }
 function financial_cashier_requires_attention(array $c): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_requires_attention
+     * Responsabilidade: Implementa a responsabilidade “financial cashier requires attention” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_is_cashier`, `clinic_read_only_db`, `financial_operational_schema_ready`, `financial_today`, `financial_cashier_location_for_user`, `financial_unclosed_previous_session`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if (!financial_is_cashier($c)) {
         return false;
     }
@@ -3549,6 +4753,17 @@ function financial_register_appointment_payment_movement(
     bool $paid,
     int $paymentDestinationLocationId = 0,
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_register_appointment_payment_movement
+     * Responsabilidade: Valida e executa a mutação “financial register appointment payment movement”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_sync_appointment`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `one`, `q`, `normalize_payment_method`, `RuntimeException`, `financial_require_open_session`, `function_exists`, `financial_office_destination_belongs`, `financial_location_belongs`, `financial_create_movement`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $existing = one(
         "SELECT id,status FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' ORDER BY id DESC LIMIT 1",
@@ -3645,6 +4860,15 @@ function financial_revenue_id_for_appointment(
     int $appointmentId,
     int $uid = 0,
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_revenue_id_for_appointment
+     * Responsabilidade: Implementa a responsabilidade “financial revenue id for appointment” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `val`, `financial_sync_appointment`, `error_log`, `->getMessage`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     if ($cid <= 0 || $appointmentId <= 0) {
         return 0;
     }
@@ -3671,6 +4895,15 @@ function financial_revenue_id_for_appointment(
 }
 function financial_appointment_payment_state(array $a): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_appointment_payment_state
+     * Responsabilidade: Implementa a responsabilidade “financial appointment payment state” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_appointment_operational_chip_html`.
+     * Dependências chamadas: `mb_strtolower`, `trim`, `normalize_payment_method`, `in_array`, `function_exists`, `appointment_status_code`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $amount = (int) ($a["payment_amount_cents"] ?? 0);
     $status = mb_strtolower(trim((string) ($a["payment_status"] ?? "")));
     $method = normalize_payment_method((string) ($a["payment_method"] ?? ""));
@@ -3725,6 +4958,15 @@ function financial_appointment_operational_chip_html(
     array $a,
     string $role = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_appointment_operational_chip_html
+     * Responsabilidade: Monta a representação de interface associada a “financial appointment operational chip html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3790`.
+     * Dependências chamadas: `financial_appointment_payment_state`, `money_br`, `payment_methods_options`, `e`, `icon`, `function_exists`, `appointment_journey_role_matches`, `href`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $st = financial_appointment_payment_state($a);
     $amount = (int) ($st["amount"] ?? 0);
     $title = $amount > 0 ? money_br($amount) : "Sem valor financeiro";
@@ -3770,6 +5012,15 @@ function financial_daily_drawer_closure_state(
     int $cid,
     string $businessDate = "",
 ): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_drawer_closure_state
+     * Responsabilidade: Implementa a responsabilidade “financial daily drawer closure state” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_daily_consolidation_state`, `financial_admin_attention_panel`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_today`, `q`, `->fetchAll`, `array_merge`, `in_array`, `count`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $businessDate = $businessDate ?: financial_today($cid);
     $expected = [];
@@ -3831,6 +5082,15 @@ function financial_daily_drawer_closure_state(
 }
 function financial_daily_drawer_closure_blocking_html(array $state): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_drawer_closure_blocking_html
+     * Responsabilidade: Monta a representação de interface associada a “financial daily drawer closure blocking html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_conference_panel`.
+     * Dependências chamadas: `financial_human_session_status`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = $state["blocking_rows"] ?? [];
     if (!$rows) {
         return "";
@@ -3855,6 +5115,15 @@ function financial_daily_drawer_closure_blocking_html(array $state): string
 }
 function financial_admin_daily_consolidation_html(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_daily_consolidation_html
+     * Responsabilidade: Monta a representação de interface associada a “financial admin daily consolidation html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_today`, `app_local_day_utc_range`, `safe_val`, `financial_daily_consolidation_state`, `financial_global_position`, `icon`, `money_br`, `href`.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $today = financial_today($cid);
     [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
@@ -3921,6 +5190,15 @@ function financial_admin_daily_consolidation_html(int $cid): string
 }
 function financial_cashier_pending_receipts_html(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_pending_receipts_html
+     * Responsabilidade: Monta a representação de interface associada a “financial cashier pending receipts html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`, `financial_admin_conferences_panel`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_today`, `app_local_day_utc_range`, `q`, `->fetchAll`, `trim`, `href`, `icon`, `e`, `app_time_br`, `money_br`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $today = financial_today($cid);
     [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
@@ -3961,6 +5239,15 @@ function financial_cashier_pending_receipts_html(int $cid): string
 }
 function financial_location_select_options(int $cid, string $type = ""): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_select_options
+     * Responsabilidade: Localiza, carrega ou resolve os dados de “financial location select options” para consumo pelas camadas superiores.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_operational_schema_ready`, `q`, `->fetchAll`, `financial_location_type_label`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $params = [$cid];
     $where = "clinic_id=? AND active=1";
@@ -3983,6 +5270,15 @@ function financial_location_select_options(int $cid, string $type = ""): array
 }
 function financial_cashier_receipt_method_options(): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_receipt_method_options
+     * Responsabilidade: Implementa a responsabilidade “financial cashier receipt method options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return [
         "dinheiro" => "Dinheiro",
         "pix" => "PIX",
@@ -3996,6 +5292,15 @@ function financial_cashier_receipt_method_options(): array
 }
 function financial_office_destination_options(int $cid, int $uid = 0): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_office_destination_options
+     * Responsabilidade: Implementa a responsabilidade “financial office destination options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_ensure_admin_safe`, `q`, `->fetchAll`, `financial_ensure_bank_location`, `error_log`, `->getMessage`, `trim`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     financial_ensure_admin_safe($cid, $uid);
     try {
@@ -4030,6 +5335,15 @@ function financial_office_destination_options(int $cid, int $uid = 0): array
 }
 function financial_office_destination_belongs(int $cid, int $locationId): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_office_destination_belongs
+     * Responsabilidade: Implementa a responsabilidade “financial office destination belongs” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `appointment_payment_post_context`, `financial_close_session`, `closure@app/Domain/Financial/Financial.php:3082`, `financial_register_appointment_payment_movement`, `financial_receive_expected_appointment_revenue`, `closure@app/Domain/Financial/Financial.php:4095`.
+     * Dependências chamadas: `val`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $locationId <= 0) {
         return false;
     }
@@ -4041,6 +5355,15 @@ function financial_office_destination_belongs(int $cid, int $locationId): bool
 }
 function financial_expected_appointment_revenue_options(int $cid): array
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_expected_appointment_revenue_options
+     * Responsabilidade: Implementa a responsabilidade “financial expected appointment revenue options” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`, `financial_admin_operations_panel`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `q`, `->fetchAll`, `trim`, `dt_br`, `in_array`, `money_br`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $rows = q(
         "SELECT r.id,r.amount_cents,r.title,r.expected_at,a.start_at,a.status,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.procedure_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu') ORDER BY CASE WHEN a.status IN ('atendimento_concluido','finalizado') THEN 0 ELSE 1 END, COALESCE(a.start_at,r.expected_at,NOW()) ASC,r.id ASC LIMIT 200",
@@ -4086,6 +5409,18 @@ function financial_receive_expected_appointment_revenue(
     int $destinationLocationId = 0,
     string $notes = "",
 ): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_receive_expected_appointment_revenue
+     * Responsabilidade: Implementa a responsabilidade “financial receive expected appointment revenue” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `normalize_payment_method`, `RuntimeException`, `financial_require_open_session`, `db_tx`, `one`, `financial_office_destination_belongs`, `trim`, `q`, `financial_create_movement`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     $method = normalize_payment_method($method);
     if ($method === "") {
@@ -4101,6 +5436,17 @@ function financial_receive_expected_appointment_revenue(
         $notes,
         $s,
     ): int {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:4095
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `one`, `RuntimeException`, `financial_office_destination_belongs`, `trim`, `q`, `financial_create_movement`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $session = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
             [(int) $s["id"], $cid, $uid],
@@ -4225,6 +5571,15 @@ function financial_receive_expected_appointment_revenue(
 }
 function financial_tabs_html(array $tabs, string $active): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_tabs_html
+     * Responsabilidade: Monta a representação de interface associada a “financial tabs html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `href`, `icon`, `e`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $h =
         '<nav class="finance-admin-primary-nav" aria-label="Financeiro do Consultório">';
     foreach ($tabs as $key => $meta) {
@@ -4246,6 +5601,16 @@ function financial_cash_exception_debug(
     array $c,
     string $act = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_exception_debug
+     * Responsabilidade: Implementa a responsabilidade “financial cash exception debug” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cash_store_debug`, `financial_cash_debug_failure_page`.
+     * Dependências chamadas: `gmdate`, `function_exists`, `route`, `get_class`, `->getCode`, `->getMessage`, `->getFile`, `->getLine`, `->getPrevious`, `in_array`, `is_scalar`, `gettype` e mais 6.
+     * Estado externo lido: `$_SERVER`, `$_POST`, `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $lines = [];
     $lines[] = "PRONTOO_CAIXA_DEBUG";
     $lines[] = "timestamp_utc=" . gmdate("c");
@@ -4289,6 +5654,15 @@ function financial_cash_exception_debug(
 }
 function financial_cash_debug_details_enabled(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_debug_details_enabled
+     * Responsabilidade: Implementa a responsabilidade “financial cash debug details enabled” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cash_debug_error_html`, `financial_cash_debug_failure_page`.
+     * Dependências chamadas: `function_exists`, `app_debug`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return function_exists("app_debug") && app_debug();
 }
 function financial_cash_store_debug(
@@ -4296,6 +5670,16 @@ function financial_cash_store_debug(
     array $c,
     string $act = "",
 ): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_store_debug
+     * Responsabilidade: Implementa a responsabilidade “financial cash store debug” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_cash_exception_debug`, `gmdate`, `error_log`, `str_replace`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $debug = financial_cash_exception_debug($e, $c, $act);
     $_SESSION["financial_cash_debug_error"] = $debug;
     $_SESSION["financial_cash_error_at"] = gmdate("d/m/Y H:i:s") . " UTC";
@@ -4305,6 +5689,16 @@ function financial_cash_store_debug(
 }
 function financial_cash_debug_error_html(): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_debug_error_html
+     * Responsabilidade: Monta a representação de interface associada a “financial cash debug error html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_cash_debug_details_enabled`, `e`, `card`.
+     * Estado externo lido: `$_SESSION`.
+     * Efeitos colaterais: lê ou altera a sessão; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $debug = (string) ($_SESSION["financial_cash_debug_error"] ?? "");
     $when = (string) ($_SESSION["financial_cash_error_at"] ?? "");
     if ($debug === "") {
@@ -4335,6 +5729,16 @@ function financial_cash_debug_error_html(): string
 }
 function financial_cash_debug_request_active(): bool
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_debug_request_active
+     * Responsabilidade: Implementa a responsabilidade “financial cash debug request active” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `function_exists`, `route`, `in_array`.
+     * Estado externo lido: `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ((string) ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return false;
     }
@@ -4361,6 +5765,15 @@ function financial_cashier_pagehead_link(
     bool $enabled,
     string $active,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_pagehead_link
+     * Responsabilidade: Monta a representação de interface associada a “financial cashier pagehead link” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_pagehead_actions`.
+     * Dependências chamadas: `icon`, `e`, `href`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $cls =
         "ghost small finance-cash-action cash-action-" .
         $op .
@@ -4387,6 +5800,15 @@ function financial_cashier_pagehead_actions(
     bool $canClose,
     string $active = "",
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_pagehead_actions
+     * Responsabilidade: Monta a representação de interface associada a “financial cashier pagehead actions” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `financial_cashier_pagehead_link`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<nav class="finance-pagehead-nav finance-cash-pagehead-actions" aria-label="Ações da Gaveta do Atendimento">' .
         financial_cashier_pagehead_link(
             "abrir",
@@ -4424,6 +5846,15 @@ function financial_cashier_drawer_summary(
     int $fallbackOpening = 0,
     ?array $drawer = null,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_drawer_summary
+     * Responsabilidade: Implementa a responsabilidade “financial cashier drawer summary” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_cashier_page`.
+     * Dependências chamadas: `max`, `financial_session_movement_totals`, `financial_session_expected`, `trim`, `e`, `card`, `icon`, `money_br`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $source = $prev ?: $session;
     $isOpen = $source && (string) ($source["status"] ?? "") === "open";
     $opening = $source
@@ -4502,6 +5933,16 @@ function financial_cashier_drawer_summary(
 }
 function financial_cash_debug_failure_page(Throwable $e): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cash_debug_failure_page
+     * Responsabilidade: Implementa a responsabilidade “financial cash debug failure page” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `prontoo_run`.
+     * Dependências chamadas: `function_exists`, `ctx`, `financial_cash_exception_debug`, `is_array`, `->getMessage`, `->getFile`, `->getLine`, `get_class`, `error_log`, `str_replace`, `headers_sent`, `http_response_code` e mais 7.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $ctx = [];
     $ctxErr = null;
     try {
@@ -4556,6 +5997,17 @@ function financial_cash_debug_failure_page(Throwable $e): void
 }
 function financial_cashier_page(array $c): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_cashier_page
+     * Responsabilidade: Implementa a responsabilidade “financial cashier page” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_financial`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_cashier_location_for_user`, `financial_ensure_admin_safe`, `financial_cash_store_debug`, `flash`, `redirect`, `page`, `page_head`, `financial_cash_debug_error_html`, `card`, `e`, `financial_open_session` e mais 39.
+     * Estado externo lido: `$_POST`, `$_SERVER`, `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
+     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     $drawerId = 0;
@@ -5151,6 +6603,16 @@ function financial_cashier_page(array $c): void
 }
 function financial_admin_drawers_panel(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_drawers_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin drawers panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_locations_panel`.
+     * Dependências chamadas: `financial_drawer_location_options`, `financial_cashier_user_options`, `csrf_field`, `form_row`, `input`, `form_actions`, `select_label`, `financial_today`, `DateTimeImmutable`, `->modify`, `->format`, `date` e mais 24.
+     * Classes ou serviços instanciados: `DateTimeImmutable`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $drawerOptions = financial_drawer_location_options($cid, true);
     $cashierOptions = financial_cashier_user_options($cid, true);
     $create =
@@ -5203,7 +6665,7 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
     $drawerIds = array_values(
         array_filter(
             array_map(
-                static fn(array $drawer): int => (int) ($drawer["id"] ?? 0),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $drawer): int => (int) ($drawer["id"] ?? 0),
                 $drawers,
             ),
         ),
@@ -5443,6 +6905,15 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
 }
 function financial_admin_daily_ledger_timeline(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_daily_ledger_timeline
+     * Responsabilidade: Monta a representação de interface associada a “financial admin daily ledger timeline” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_conference_panel`, `financial_admin_page`.
+     * Dependências chamadas: `financial_today`, `app_local_day_utc_range`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `trim`, `in_array`, `first_name`, `icon`, `e`, `financial_human_movement_status` e mais 7.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $day = financial_today($cid);
     [$startUtc, $endUtc] = app_local_day_utc_range($day, $cid);
     try {
@@ -5515,6 +6986,15 @@ function financial_admin_daily_ledger_timeline(int $cid): string
 }
 function financial_admin_reviews_panel(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_reviews_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin reviews panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_locations_panel`, `financial_admin_conferences_panel`.
+     * Dependências chamadas: `q`, `->fetchAll`, `csrf_field`, `input`, `icon`, `e`, `first_name`, `date_br`, `money_br`, `financial_human_session_status`, `financial_default_drawer_unlock_local`, `card`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $openRows = q(
         "SELECT s.id,s.status,s.business_date,s.opening_balance_cents,s.expected_closing_cents,u.name user_name,l.name location_name FROM pi_cash_sessions s JOIN pi_users u ON u.id=s.user_id LEFT JOIN pi_financial_locations l ON l.id=s.location_id AND l.clinic_id=s.clinic_id WHERE s.clinic_id=? AND s.status IN ('opening_pending_review','opening_rejected') ORDER BY FIELD(s.status,'opening_pending_review','opening_rejected'), s.business_date DESC,s.id DESC LIMIT 80",
         [$cid],
@@ -5672,6 +7152,15 @@ function financial_admin_reviews_panel(int $cid, int $uid): string
 }
 function financial_location_account_id(int $cid, int $locationId): ?int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_account_id
+     * Responsabilidade: Implementa a responsabilidade “financial location account id” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_save_receipt`, `financial_admin_save_payment`.
+     * Dependências chamadas: `one`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     if ($cid <= 0 || $locationId <= 0) {
         return null;
     }
@@ -5688,6 +7177,15 @@ function financial_location_account_id(int $cid, int $locationId): ?int
 }
 function financial_admin_balance_kpis_html(array $pos): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_balance_kpis_html
+     * Responsabilidade: Monta a representação de interface associada a “financial admin balance kpis html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `icon`, `money_br`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     return '<div class="kpis finance-kpis finance-balance-kpis" aria-label="Saldos financeiros do consultório"><article class="finance-balance-card finance-balance-total">' .
         icon("savings") .
         "<p><b>" .
@@ -5708,6 +7206,15 @@ function financial_admin_balance_kpis_html(array $pos): string
 }
 function financial_admin_locations_panel(int $cid, int $uid, array $pos): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_locations_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin locations panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `card`, `icon`, `money_br`, `q`, `->fetchAll`, `financial_ensure_bank_location`, `financial_location_movement_balances`, `array_map`, `e`, `csrf_field`, `form_row`, `input` e mais 5.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $safe = (int) $pos["safe_id"];
     $safeCard = card(
         "<h2>" .
@@ -5734,7 +7241,7 @@ function financial_admin_locations_panel(int $cid, int $uid, array $pos): string
     $bankBalances = financial_location_movement_balances(
         $cid,
         array_map(
-            static fn(array $bank): int =>
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(array $bank): int =>
                 (int) ($bank["resolved_location_id"] ?? 0),
             $resolvedBanks,
         ),
@@ -5824,6 +7331,15 @@ function financial_admin_locations_panel(int $cid, int $uid, array $pos): string
 }
 function financial_admin_movements_panel(int $cid, int $limit = 180): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_movements_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin movements panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `q`, `max`, `min`, `->fetchAll`, `trim`, `e`, `financial_human_movement_type`, `dt_br`, `first_name`, `money_br`, `financial_human_movement_status`, `card`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = q(
         "SELECT m.movement_type,m.title,m.created_at,m.amount_cents,m.status,lf.name from_name,lt.name to_name,u.name user_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lf ON lf.id=m.from_location_id AND lf.clinic_id=m.clinic_id LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id LEFT JOIN pi_users u ON u.id=m.created_by WHERE m.clinic_id=? ORDER BY m.created_at DESC,m.id DESC LIMIT " .
             max(10, min(300, $limit)),
@@ -5869,6 +7385,15 @@ function financial_daily_drawer_partials_html(
     int $uid,
     array $state,
 ): string {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_drawer_partials_html
+     * Responsabilidade: Monta a representação de interface associada a “financial daily drawer partials html” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_daily_conference_panel`.
+     * Dependências chamadas: `financial_human_session_status`, `financial_session_movement_totals`, `in_array`, `money_br`, `financial_default_drawer_unlock_local`, `csrf_field`, `input`, `icon`, `e`, `first_name`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $rows = $state["rows"] ?? [];
     if (!$rows) {
         return '<div class="empty">Nenhuma gaveta vinculada a colaborador para esta data.</div>';
@@ -5975,6 +7500,15 @@ function financial_daily_drawer_partials_html(
 }
 function financial_admin_daily_conference_panel(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_daily_conference_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin daily conference panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_today`, `app_local_day_utc_range`, `financial_daily_consolidation_state`, `safe_val`, `financial_global_position`, `money_br`, `n`, `card`, `icon`, `financial_daily_drawer_partials_html`, `href` e mais 4.
+     * Efeitos colaterais: consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $today = financial_today($cid);
     [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
@@ -6092,9 +7626,32 @@ function financial_admin_daily_conference_panel(int $cid, int $uid): string
 }
 function financial_admin_daily_consolidate(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_daily_consolidate
+     * Responsabilidade: Implementa a responsabilidade “financial admin daily consolidate” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_daily_closing_ensure_schema`, `db_tx`, `financial_today`, `q`, `financial_daily_consolidation_state`, `RuntimeException`, `app_local_day_utc_range`, `safe_val`, `financial_global_position`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     financial_operational_schema_ready();
     financial_daily_closing_ensure_schema();
     db_tx(function () use ($cid, $uid): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:6097
+         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `financial_today`, `q`, `financial_daily_consolidation_state`, `RuntimeException`, `app_local_day_utc_range`, `safe_val`, `financial_global_position`, `audit`.
+         * Classes ou serviços instanciados: `RuntimeException`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+         * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+         */
         $today = financial_today($cid);
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
         q(
@@ -6168,6 +7725,18 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
 }
 function financial_admin_save_receipt(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_save_receipt
+     * Responsabilidade: Valida e executa a mutação “financial admin save receipt”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `function_exists`, `resolve_patient_lookup_id`, `posted_patient_search_value`, `RuntimeException`, `normalize_payment_method`, `financial_admin_location_belongs`, `financial_pending_revenue_belongs_to_patient`, `financial_admin_receive_expected_revenue`, `trim`, `financial_patient_pending_revenue_count`, `parse_money_cents`, `financial_location_account_id` e mais 5.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $patientId = function_exists("resolve_patient_lookup_id")
         ? resolve_patient_lookup_id(
             $cid,
@@ -6284,6 +7853,18 @@ function financial_admin_save_receipt(int $cid, int $uid): void
 }
 function financial_admin_save_payment(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_save_payment
+     * Responsabilidade: Valida e executa a mutação “financial admin save payment”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `one`, `RuntimeException`, `financial_admin_location_belongs`, `parse_money_cents`, `normalize_payment_method`, `array_key_exists`, `financial_expense_category_options`, `trim`, `financial_location_account_id`, `q`, `db_last_insert_id`, `financial_create_movement` e mais 1.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $creditorId = (int) ($_POST["counterparty_id"] ?? 0);
     $cred =
         $creditorId > 0
@@ -6359,6 +7940,17 @@ function financial_admin_save_payment(int $cid, int $uid): void
 }
 function financial_admin_save_transfer(int $cid, int $uid): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_save_transfer
+     * Responsabilidade: Valida e executa a mutação “financial admin save transfer”, preservando as invariantes do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_admin_location_belongs`, `RuntimeException`, `parse_money_cents`, `trim`, `financial_create_movement`, `audit`.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     $from = (int) ($_POST["from_location_id"] ?? 0);
     $to = (int) ($_POST["to_location_id"] ?? 0);
     if ($from <= 0 || !financial_admin_location_belongs($cid, $from)) {
@@ -6408,6 +8000,16 @@ function financial_admin_save_transfer(int $cid, int $uid): void
 }
 function financial_admin_operations_panel(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_operations_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin operations panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `financial_admin_location_select_options`, `financial_expected_appointment_revenue_options`, `in_array`, `csrf_field`, `form_row`, `patient_lookup_field`, `select_label`, `financial_money_input`, `payment_methods_options`, `input`, `function_exists`, `patient_autosuggest_datalist` e mais 7.
+     * Estado externo lido: `$_GET`.
+     * Efeitos colaterais: consome dados da requisição HTTP; produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $locations = financial_admin_location_select_options($cid);
     $pendingOptions = financial_expected_appointment_revenue_options($cid);
     $op = (string) ($_GET["op"] ?? "");
@@ -6664,6 +8266,19 @@ function financial_admin_operations_panel(int $cid, int $uid): string
 }
 function financial_creditor_upsert_from_post(int $cid, int $uid): int
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_creditor_upsert_from_post
+     * Responsabilidade: Implementa a responsabilidade “financial creditor upsert from post” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_creditors`.
+     * Dependências chamadas: `person_common_profile_schema_ready`, `trim`, `only_digits`, `RuntimeException`, `valid_cnpj`, `save_person_by_document`, `valid_cpf`, `save_person_flexible`, `person_common_profile_from_array`, `person_common_profile_update`, `q`, `val` e mais 1.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     */
     person_common_profile_schema_ready();
     $name = trim((string) ($_POST["creditor_name"] ?? ""));
     $type = (string) ($_POST["creditor_legal_type"] ?? "cpf");
@@ -6707,6 +8322,15 @@ function financial_creditor_upsert_from_post(int $cid, int $uid): int
 }
 function financial_creditor_directory_card(array $r, int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_creditor_directory_card
+     * Responsabilidade: Monta a representação de interface associada a “financial creditor directory card” sem alterar o contrato visual externo.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_creditors`.
+     * Dependências chamadas: `only_digits`, `mask`, `phone_br`, `trim`, `function_exists`, `app_date_br`, `date_br`, `money_br`, `e`, `icon`, `csrf_field`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $name = (string) ($r["full_name"] ?? "Credor #" . ($r["id"] ?? ""));
     $doc = only_digits(
         (string) ($r["legal_document"] ?? "" ?: $r["cpf"] ?? ""),
@@ -6814,6 +8438,19 @@ function financial_creditor_directory_card(array $r, int $cid): string
 }
 function page_creditors(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_creditors
+     * Responsabilidade: Coordena a rota e renderiza a tela “page creditors”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `has_effective_role`, `ProntooHttpError`, `financial_operational_schema_ready`, `person_common_profile_schema_ready`, `financial_creditor_upsert_from_post`, `flash`, `redirect`, `q`, `audit`, `error_log`, `->getMessage` e mais 24.
+     * Classes ou serviços instanciados: `ProntooHttpError`.
+     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
+     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     */
     $c = require_can("patients");
     if (!has_effective_role($c, "gerente")) {
         throw new ProntooHttpError(
@@ -7068,6 +8705,15 @@ function page_creditors(): void
 }
 function financial_admin_attention_panel(int $cid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_attention_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin attention panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_today`, `app_local_day_utc_range`, `safe_val`, `financial_daily_drawer_closure_state`, `href`, `icon`, `n`, `money_br`, `card`.
+     * Efeitos colaterais: consulta dados persistidos; produz conteúdo de saída.
+     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     financial_operational_schema_ready();
     $today = financial_today($cid);
     [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
@@ -7144,6 +8790,15 @@ function financial_admin_attention_panel(int $cid): string
 }
 function financial_admin_conferences_panel(int $cid, int $uid): string
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_conferences_panel
+     * Responsabilidade: Implementa a responsabilidade “financial admin conferences panel” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_admin_page`.
+     * Dependências chamadas: `card`, `icon`, `financial_cashier_pending_receipts_html`, `financial_admin_reviews_panel`.
+     * Efeitos colaterais: produz conteúdo de saída.
+     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     */
     $pending = card(
         "<h2>" .
             icon("pending_actions") .
@@ -7158,6 +8813,19 @@ function financial_admin_conferences_panel(int $cid, int $uid): string
 }
 function financial_admin_page(array $c): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_admin_page
+     * Responsabilidade: Implementa a responsabilidade “financial admin page” dentro do módulo de domínio e regras de negócio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `page_financial`.
+     * Dependências chamadas: `financial_operational_schema_ready`, `financial_ensure_admin_safe`, `financial_seed_payment_methods`, `in_array`, `financial_create_drawer`, `flash`, `redirect`, `financial_rename_drawer`, `financial_link_drawer_user`, `financial_unlink_drawer_user`, `financial_deactivate_drawer`, `financial_schedule_drawer_unlock` e mais 43.
+     * Classes ou serviços instanciados: `RuntimeException`.
+     * Estado externo lido: `$_GET`, `$_SERVER`, `$_POST`.
+     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
+     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
+     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
+     * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     financial_operational_schema_ready();
@@ -7472,6 +9140,16 @@ function financial_admin_page(array $c): void
 }
 function page_financial(): void
 {
+    /*
+     * GUIA DE MANUTENÇÃO — page_financial
+     * Responsabilidade: Coordena a rota e renderiza a tela “page financial”, reunindo validação, leitura de dados e resposta HTTP.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+     * Dependências chamadas: `require_can`, `ensure_financial_operational_schema`, `financial_is_cashier`, `financial_cashier_page`, `financial_admin_page`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+     */
     $c = require_can("financial");
     ensure_financial_operational_schema();
     if (financial_is_cashier($c)) {

@@ -10,16 +10,45 @@ final class ActionCatalog
 {
     public const DEFAULT_ACTION = '__default__';
 
-    private function __construct() {}
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
+    }
 
     public static function actionToken(array $post): string
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::actionToken
+         * Responsabilidade: Normaliza a ação recebida no POST e aplica o identificador padrão quando nenhuma ação explícita foi informada.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::resolve`, `Application.Authorization.AuthorizationService::evaluate`.
+         * Dependências chamadas: `Canonical::token`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $action = Canonical::token((string) ($post['act'] ?? ''), '');
         return $action !== '' ? $action : self::DEFAULT_ACTION;
     }
 
     public static function resolve(string $route, array $post): ?ActionContract
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::resolve
+         * Responsabilidade: Localiza, carrega ou resolve os dados de “resolve” para consumo pelas camadas superiores.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::all`, `Application.Authorization.ActionCatalog::logicSelfTest`, `Application.Authorization.AuthorizationService::evaluate`.
+         * Dependências chamadas: `Canonical::token`, `self::actionToken`, `self::definitions`, `is_array`, `self::conditionalRequired`, `ActionContract`, `self::tokens`.
+         * Classes ou serviços instanciados: `ActionContract`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $route = Canonical::token($route, 'login');
         $action = self::actionToken($post);
         $definition = self::definitions()[$route][$action] ?? null;
@@ -44,6 +73,15 @@ final class ActionCatalog
     /** @return list<ActionContract> */
     public static function all(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::all
+         * Responsabilidade: Materializa a coleção completa de contratos declarados por este componente para inspeção, testes e validação arquitetural.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::logicSelfTest`, `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `self::definitions`, `self::resolve`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $contracts = [];
         foreach (self::definitions() as $route => $actions) {
             foreach ($actions as $action => $definition) {
@@ -61,6 +99,16 @@ final class ActionCatalog
     /** @return array<string,array<string,array<string,mixed>>> */
     public static function definitions(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::definitions
+         * Responsabilidade: Declara e devolve o catálogo canônico de definições usado pelas demais rotinas deste componente.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::resolve`, `Application.Authorization.ActionCatalog::all`, `Application.Authorization.ActionCatalog::logicSelfTest`.
+         * Dependências chamadas: `is_array`, `self::tokens`.
+         * Classes ou serviços instanciados: `.LogicException`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         static $catalog = null;
         if (is_array($catalog)) {
             return $catalog;
@@ -79,6 +127,16 @@ final class ActionCatalog
             ?string $primary = null,
             array $producers = [],
         ) use (&$catalog): void {
+            /*
+             * GUIA DE MANUTENÇÃO — closure@app/Application/Authorization/ActionCatalog.php:70
+             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de casos de uso e contratos de aplicação.
+             * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+             * Dependências chamadas: `self::tokens`.
+             * Classes ou serviços instanciados: `.LogicException`.
+             * Efeitos colaterais: pode interromper o fluxo por exceção.
+             * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+             */
             foreach ((array) $actions as $action) {
                 $action = $action !== '' ? $action : self::DEFAULT_ACTION;
                 if (isset($catalog[$route][$action])) {
@@ -208,6 +266,15 @@ final class ActionCatalog
         array $definition,
         array $post,
     ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::conditionalRequired
+         * Responsabilidade: Implementa a responsabilidade “conditional required” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::resolve`.
+         * Dependências chamadas: `self::tokens`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $required = self::tokens((array) ($definition['required'] ?? []));
         if ($route === 'documents' && $action === 'save_template') {
             $required[] = (int) ($post['id'] ?? 0) > 0 ? 'documents:edit' : 'documents:add';
@@ -221,6 +288,15 @@ final class ActionCatalog
     /** @return list<string> */
     private static function tokens(array $values): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::tokens
+         * Responsabilidade: Implementa a responsabilidade “tokens” dentro do módulo de casos de uso e contratos de aplicação.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.ActionCatalog::resolve`, `Application.Authorization.ActionCatalog::definitions`, `closure@app/Application/Authorization/ActionCatalog.php:70`, `Application.Authorization.ActionCatalog::conditionalRequired`.
+         * Dependências chamadas: `trim`, `array_keys`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $tokens = [];
         foreach ($values as $value) {
             $token = trim((string) $value);
@@ -233,6 +309,15 @@ final class ActionCatalog
 
     public static function logicSelfTest(): array
     {
+        /*
+         * GUIA DE MANUTENÇÃO — Application.Authorization.ActionCatalog::logicSelfTest
+         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
+         * Local arquitetural: app/Application/Authorization/ActionCatalog.php (casos de uso e contratos de aplicação).
+         * Chamadores detectados: `Application.Authorization.AuthorizationService::logicSelfTest`, `Core.Architecture.ArchitectureVerifier::report`.
+         * Dependências chamadas: `self::definitions`, `self::resolve`, `array_reduce`, `self::all`, `in_array`, `array_keys`, `array_filter`, `count`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
+         */
         $cases = [];
         $cases['catalog_nonempty'] = self::definitions() !== [];
         $cases['public_login'] = self::resolve('login', [])?->scope === 'public';
@@ -242,7 +327,7 @@ final class ActionCatalog
         $cases['lead_conversion_composed'] = self::resolve('leads', ['act' => 'convert'])?->required === ['leads:edit', 'patients:add'];
         $cases['template_create_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 0])?->required === ['documents:add'];
         $cases['template_edit_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 5])?->required === ['documents:edit'];
-        $cases['sources_declared'] = array_reduce(self::all(), static fn(bool $ok, ActionContract $contract): bool => $ok && $contract->source !== '', true);
+        $cases['sources_declared'] = array_reduce(self::all(), static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de casos de uso e contratos de aplicação. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok, ActionContract $contract): bool => $ok && $contract->source !== '', true);
         $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Auth/AuthOnboarding.php';
         $cases['choose_admin_producer_declared'] = self::resolve('switch', ['act' => 'choose_admin'])?->producers === ['Admin/AdminPages.php'];
         $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Domain/Tasks/TasksNotices.php'];
@@ -256,18 +341,18 @@ final class ActionCatalog
             $security?->required === ['admin:*'];
         $cases['all_global_contracts_are_developer_only'] = array_reduce(
             self::all(),
-            static fn(bool $ok, ActionContract $contract): bool => $ok &&
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de casos de uso e contratos de aplicação. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok, ActionContract $contract): bool => $ok &&
                 ($contract->scope !== 'global' ||
                     ($contract->policy === 'global_admin' && $contract->required === ['admin:*'])),
             true,
         );
         $cases['clinic_contracts_never_request_global_admin'] = array_reduce(
             self::all(),
-            static fn(bool $ok, ActionContract $contract): bool => $ok &&
+            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de casos de uso e contratos de aplicação. Dependências diretas: `in_array`. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok, ActionContract $contract): bool => $ok &&
                 ($contract->scope !== 'clinic' || !in_array('admin:*', $contract->required, true)),
             true,
         );
-        $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de casos de uso e contratos de aplicação. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],
             'passed' => count($cases) - count($failed),
