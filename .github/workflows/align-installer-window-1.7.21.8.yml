@@ -1,0 +1,93 @@
+name: Align Installer Window 1.7.21.8
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  align:
+    if: github.head_ref == 'agent/align-installer-window-1.7.21.8'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout alignment branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/align-installer-window-1.7.21.8
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: Align window with certified merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .automation/align-installer-window.py | tee /tmp/alignment-report.json
+
+      - name: Validate release and installer
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -name '*.php' -print0)
+          php tools/install-security-check.php | tee /tmp/install-security-report.json
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee /tmp/schema-report.json
+          php tools/architecture-check.php | tee /tmp/architecture-report.json
+          php -r '
+            $m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);
+            $bytes=0;
+            foreach($m["files"] as $f=>$h){if(!hash_equals($h,hash_file("sha256",$f)))throw new RuntimeException($f);$bytes+=filesize($f);} 
+            if($bytes!==(int)$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
+            $v=json_decode(file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR);
+            if(($v["previous_version"]??"")!=="1.7.21.7")throw new RuntimeException("previous_version");
+            $w=$v["temporary_public_installer"]??[];
+            if(((int)$w["end_unix"]-(int)$w["start_unix"])!==14400)throw new RuntimeException("window");
+          '
+
+      - name: Commit aligned product files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "alinha janela pública ao merge da 1.7.21.8"
+          git push origin HEAD:agent/align-installer-window-1.7.21.8
+
+      - name: Upload alignment reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-window-alignment-1.7.21.8
+          path: |
+            /tmp/alignment-report.json
+            /tmp/install-security-report.json
+            /tmp/schema-report.json
+            /tmp/architecture-report.json
+          if-no-files-found: warn
+          retention-days: 7
