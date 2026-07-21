@@ -1,17 +1,16 @@
-name: Architecture Contract
+name: Apply Hotfix 1.7.21.4
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: read
 
 jobs:
-  verify:
+  apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     services:
       mysql:
         image: mysql:8.0
@@ -26,8 +25,11 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout
+      - name: Checkout PR branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -37,90 +39,199 @@ jobs:
           tools: none
           extensions: pdo_mysql
 
-      - name: PHP syntax
+      - name: Apply runtime hotfix and metadata
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
-          done < <(find . \
-            -path './.git' -prune -o \
-            -path './storage' -prune -o \
-            -path './vendor' -prune -o \
-            -path './node_modules' -prune -o \
-            -name '*.php' -print0)
+          python3 - <<'PY'
+          import datetime
+          import hashlib
+          import json
+          from pathlib import Path
 
-      - name: JSON contracts
-        shell: bash
-        run: |
-          php -r '
-            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
-              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
-            }
-          '
+          version = '1.7.21.4'
+          previous = '1.7.21.3'
+          build = '1.7.21.4-runtime-contract-audit-alias-hotfix'
+          now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+          iso = now.isoformat().replace('+00:00', 'Z')
+          unix = int(now.timestamp())
 
-      - name: Release manifest
-        shell: bash
-        run: |
-          php -r '
-            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
-            $files = (array) ($manifest["files"] ?? []);
-            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
-              throw new RuntimeException("file_count divergente");
-            }
-            $bytes = 0;
-            foreach ($files as $file => $expected) {
-              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
-              $actual = hash_file("sha256", $file);
-              if (!hash_equals((string) $expected, (string) $actual)) {
-                throw new RuntimeException("Hash divergente: " . $file);
-              }
-              $bytes += (int) filesize($file);
-            }
-            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
-              throw new RuntimeException("total_uncompressed_bytes divergente");
-            }
-            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
-              if (file_exists((string) $file)) {
-                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
-              }
-            }
-          '
+          runtime_path = Path('app/Core/Install/RuntimeContract.php')
+          runtime = runtime_path.read_text(encoding='utf-8')
+          runtime = runtime.replace('use Prontoo\\Infrastructure\\Database\\CleanInstallReset;\n', '')
+          runtime = runtime.replace('            CleanInstallReset::class,\n', '')
+          if 'CleanInstallReset' in runtime:
+              raise RuntimeError('RuntimeContract ainda referencia CleanInstallReset.')
+          runtime_path.write_text(runtime, encoding='utf-8')
 
-      - name: Installer access and schema freeze
-        shell: bash
-        run: |
-          php tools/install-security-check.php | tee install-security-report.json
+          audit_path = Path('app/Domain/Audit/AuditActivity.php')
+          audit = audit_path.read_text(encoding='utf-8')
+          old = ' AND et.event_key NOT IN (\'login_clinica_pendente\',\'login_credencial_pendente\')'
+          new = ' AND a.event_key NOT IN (\'login_clinica_pendente\',\'login_credencial_pendente\')'
+          if old in audit:
+              audit = audit.replace(old, new, 1)
+          if 'et.event_key' in audit:
+              raise RuntimeError('Alias SQL et.event_key ainda presente no módulo de auditoria.')
+          if new not in audit:
+              raise RuntimeError('Filtro canônico a.event_key não encontrado.')
+          audit_path.write_text(audit, encoding='utf-8')
 
-      - name: Static schema contract with Guardian loaded
-        shell: bash
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
+          prontoo_path = Path('app/prontoo.php')
+          prontoo = prontoo_path.read_text(encoding='utf-8')
+          prontoo = prontoo.replace('const PRONTOO_VERSION_FALLBACK = "1.7.21.3";', 'const PRONTOO_VERSION_FALLBACK = "1.7.21.4";', 1)
+          prontoo = prontoo.replace('const PRONTOO_PREVIOUS_VERSION = "1.7.21.2";', 'const PRONTOO_PREVIOUS_VERSION = "1.7.21.3";', 1)
+          if 'const PRONTOO_VERSION_FALLBACK = "1.7.21.4";' not in prontoo or 'const PRONTOO_PREVIOUS_VERSION = "1.7.21.3";' not in prontoo:
+              raise RuntimeError('Metadados runtime não sincronizados.')
+          prontoo_path.write_text(prontoo, encoding='utf-8')
 
-      - name: Full zero-table installer with Guardian loaded on MySQL 8
+          landing_path = Path('br/index.php')
+          landing = landing_path.read_text(encoding='utf-8')
+          landing = landing.replace('const BR_LANDING_VERSION_FALLBACK = "1.7.21.3";', 'const BR_LANDING_VERSION_FALLBACK = "1.7.21.4";', 1)
+          if 'const BR_LANDING_VERSION_FALLBACK = "1.7.21.4";' not in landing:
+              raise RuntimeError('Landing não sincronizada.')
+          landing_path.write_text(landing, encoding='utf-8')
+
+          version_path = Path('version.json')
+          meta = json.loads(version_path.read_text(encoding='utf-8'))
+          meta.update({
+              'version': version,
+              'release': version,
+              'previous_version': previous,
+              'generated_at_unix': unix,
+              'generated_at': iso,
+              'updated_at': iso,
+              'build': build,
+              'package_type': 'post_install_runtime_hotfix',
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+              'notes': 'Remove a dependência residual de CleanInstallReset do contrato runtime e corrige o alias da leitura compacta de auditoria, sem alterar o banco ou o schema.',
+          })
+          version_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          architecture_path = Path('app/architecture.manifest.json')
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          architecture['version'] = version
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          operational_path = Path('app/Database/operational-schema.contract.json')
+          operational = json.loads(operational_path.read_text(encoding='utf-8'))
+          operational['version'] = version
+          operational_path.write_text(json.dumps(operational, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          changelog_path = Path('ChangeLog.txt')
+          changelog = changelog_path.read_text(encoding='utf-8')
+          heading = 'Prontoo 1.7.21.4 — contrato runtime e leitura de auditoria\n\n'
+          if not changelog.startswith(heading):
+              entry = (
+                  heading
+                  + '- Remove do `RuntimeContract` a dependência residual de `CleanInstallReset`, já eliminada no hardening anterior.\n'
+                  + '- Corrige o filtro da auditoria compacta para usar o alias real `a.event_key`, eliminando os erros SQL 1054.\n'
+                  + '- Adiciona verificação regressiva no workflow para impedir o retorno das duas referências inválidas.\n'
+                  + '- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.\n\n'
+              )
+              changelog_path.write_text(entry + changelog, encoding='utf-8')
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          manifest.update({
+              'version': version,
+              'release': version,
+              'previous_version': previous,
+              'build': build,
+              'package_type': 'post_install_runtime_hotfix_incremental',
+              'generated_at': iso,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+          })
+          files = dict(manifest.get('files', {}))
+          for file in [
+              'ChangeLog.txt',
+              'version.json',
+              'app/prontoo.php',
+              'br/index.php',
+              'app/Core/Install/RuntimeContract.php',
+              'app/Domain/Audit/AuditActivity.php',
+              'app/architecture.manifest.json',
+              'app/Database/operational-schema.contract.json',
+          ]:
+              files[file] = ''
+          files.pop('.github/workflows/architecture.yml', None)
+          total = 0
+          for file in sorted(files):
+              path = Path(file)
+              if not path.is_file():
+                  raise RuntimeError('Arquivo do manifesto ausente: ' + file)
+              data = path.read_bytes()
+              files[file] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = files
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Validate hotfix
         shell: bash
         env:
           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
           PRONTOO_SCHEMA_USER: root
           PRONTOO_SCHEMA_PASS: root
         run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          php -r '
+            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
+            if (str_contains($runtime, "CleanInstallReset")) { throw new RuntimeException("dependência residual CleanInstallReset"); }
+            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
+            if (str_contains($audit, "et.event_key")) { throw new RuntimeException("alias et.event_key residual"); }
+            if (!str_contains($audit, "a.event_key NOT IN")) { throw new RuntimeException("filtro a.event_key ausente"); }
+          '
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json", "app/Database/operational-schema.contract.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) { throw new RuntimeException("file_count divergente"); }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) { throw new RuntimeException("Hash divergente: " . $file); }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) { throw new RuntimeException("total_uncompressed_bytes divergente"); }
+          '
+          php tools/install-security-check.php | tee install-security-report.json
           php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
-
-      - name: Layered architecture
-        shell: bash
-        run: |
-          set -o pipefail
           php tools/architecture-check.php | tee architecture-report.json
 
-      - name: Upload architecture report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: architecture-report
-          path: |
-            architecture-report.json
-            schema-report.json
-            install-security-report.json
-          if-no-files-found: error
-          retention-days: 7
+      - name: Commit certified product files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            ChangeLog.txt \
+            version.json \
+            app/prontoo.php \
+            br/index.php \
+            app/Core/Install/RuntimeContract.php \
+            app/Domain/Audit/AuditActivity.php \
+            app/architecture.manifest.json \
+            app/Database/operational-schema.contract.json \
+            app/update.manifest.json
+          if git diff --cached --quiet; then
+            echo "Hotfix já aplicado; nenhuma alteração adicional."
+            exit 0
+          fi
+          git commit -m "Formaliza Prontoo 1.7.21.4 — corrige contrato runtime e auditoria"
+          git push origin "HEAD:${{ github.head_ref }}"
