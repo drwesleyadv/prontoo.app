@@ -1,14 +1,14 @@
-name: Apply Maturity 1.7.21.5
+name: Certify Maturity 1.7.21.5
 
 on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
 
 jobs:
-  apply:
+  certify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -51,6 +51,21 @@ jobs:
           p.write_text(t.replace(old,new,1))
           PY
           python3 tools/apply-maturity-1.7.21.5.py 2>&1 | tee maturity-apply.log
+          git checkout origin/main -- public/assets/design-system.css
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          report=Path('MATURITY-AUDIT-1.7.21.5.md')
+          text=report.read_text()
+          text=text.replace('6. **Comentários CSS de versões antigas:** comentários sem efeito funcional foram removidos do ativo distribuído.\n','6. **Ativo CSS monolítico:** foi identificado como oportunidade futura, mas permaneceu byte a byte inalterado por não haver benefício mensurável de runtime nesta rodada.\n')
+          report.write_text(text)
+          p=Path('app/update.manifest.json')
+          m=json.loads(p.read_text())
+          m['files'].pop('public/assets/design-system.css',None)
+          m['file_count']=len(m['files'])
+          m['total_uncompressed_bytes']=sum(Path(f).stat().st_size for f in m['files'])
+          p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
+          PY
       - name: Validate all tracked files and runtime contracts
         shell: bash
         env:
@@ -75,20 +90,25 @@ jobs:
             foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f)))throw new RuntimeException("hash: ".$f);$b+=filesize($f);} if($b!==$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
           '
           test "$(sha256sum app/Database/schema.sql | cut -d' ' -f1)" = "$(git show origin/main:app/Database/schema.sql | sha256sum | cut -d' ' -f1)"
-      - name: Commit certified release
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "amadurece runtime e cache JSON na 1.7.21.5"
-          git push origin HEAD:agent/maturity-audit-1.7.21.5
-      - name: Upload diagnostics
-        if: always()
+          test "$(sha256sum public/assets/design-system.css | cut -d' ' -f1)" = "$(git show origin/main:public/assets/design-system.css | sha256sum | cut -d' ' -f1)"
+      - name: Upload certified release
         uses: actions/upload-artifact@v4
         with:
-          name: maturity-apply-diagnostics
-          path: maturity-apply.log
-          if-no-files-found: warn
+          name: certified-maturity-1.7.21.5
+          path: |
+            .github/workflows/architecture.yml
+            ChangeLog.txt
+            MATURITY-AUDIT-1.7.21.5.md
+            app/Database/operational-schema.contract.json
+            app/Domain/Audit/AuditActivity.php
+            app/Support/ModuleLoader.php
+            app/Support/ServerJsonCache.php
+            app/architecture.manifest.json
+            app/prontoo.php
+            app/update.manifest.json
+            br/index.php
+            install.php
+            version.json
+            maturity-apply.log
+          if-no-files-found: error
           retention-days: 7
