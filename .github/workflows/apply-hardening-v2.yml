@@ -1,0 +1,119 @@
+name: Apply Hardening 1.7.21.3 v2
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  apply:
+    if: github.event.pull_request.number == 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: Extract and correct generator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import gzip
+          import re
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/architecture.yml').read_text(encoding='utf-8')
+          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", workflow)
+          if not match:
+              raise RuntimeError('Payload do aplicador não encontrado.')
+          script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
+          replacements = [
+              (
+                  "    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',",
+                  "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',",
+              ),
+              (
+                  "    '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',",
+                  "    lambda _match: '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',",
+              ),
+              (
+                  "    '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {",
+                  "    lambda _match: '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {",
+              ),
+              (
+                  "    '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(",
+                  "    lambda _match: '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(",
+              ),
+          ]
+          for old, new in replacements:
+              if old not in script:
+                  raise RuntimeError('Marcador de escape ausente: ' + old[:80])
+              script = script.replace(old, new, 1)
+          Path('/tmp/apply-hardening.py').write_text(script, encoding='utf-8')
+          PY
+          python3 -m py_compile /tmp/apply-hardening.py
+          git fetch origin main --depth=1
+          git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
+          python3 /tmp/apply-hardening.py
+          rm -f \
+            .github/workflows/apply-hardening-1.7.21.3.yml \
+            .github/workflows/apply-hardening-v2.yml \
+            .github/workflows/hardening-diagnostic.yml
+
+      - name: Validate hardening
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          php tools/install-security-check.php | tee install-security-report.json
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
+          php tools/architecture-check.php | tee architecture-report.json
+          php -r '
+            $m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);
+            $bytes=0;
+            foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}
+            if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}
+            foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}
+          '
+
+      - name: Commit hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Formaliza Prontoo 1.7.21.3 — instalador local e schema congelado"
+          git push origin "HEAD:${{ github.head_ref }}"
