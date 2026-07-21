@@ -1,14 +1,20 @@
 # Hardening Prontoo 1.7.21.3
 
-## Objetivo
+## Estado
 
-Encerrar a fase de instalação e congelar a estrutura do banco de dados após a instalação bem-sucedida da versão 1.7.21.2.
+A instalação 1.7.21.2 foi concluída com sucesso. A partir desta versão, a estrutura do banco é considerada congelada.
 
-## Política
+## Defesas
 
-- o instalador HTTP será acessível somente por uma requisição originada do loopback e destinada explicitamente a `localhost`, `127.0.0.1` ou `::1`;
-- cabeçalhos de proxy não serão aceitos para autorizar o instalador;
-- requisições públicas não receberão formulário, diagnóstico ou redirecionamento para o instalador;
-- comandos DDL permanecerão bloqueados no runtime e somente poderão ser executados dentro de uma janela privada do instalador local ou do teste de certificação;
-- a rotina histórica de limpeza integral do banco será removida;
-- `schema.sql`, revisão r7 e as 62 tabelas permanecerão inalterados.
+- `install.php` recebe `Require local` no servidor web;
+- o ponto de entrada valida loopback e host local antes de carregar o bootstrap;
+- solicitações com cabeçalhos de proxy são recusadas;
+- o runtime público não redireciona para o instalador;
+- DDL exige uma janela privada autenticada por nonce em memória;
+- a janela só abre para HTTP local real ou CI/CLI explicitamente autorizado;
+- a rotina histórica de limpeza integral do banco foi removida;
+- testes verificam exposição, congelamento e ausência de referências destrutivas.
+
+## Invariantes preservadas
+
+Não há alteração no `schema.sql`, na revisão `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`, nas 62 tabelas, nos dados operacionais, na interface ou nos ativos.

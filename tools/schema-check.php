@@ -40,6 +40,10 @@ if (!function_exists('prontoo_fs_unlink')) {
         return !file_exists($path) || @unlink($path);
     }
 }
+putenv('CI=true');
+putenv('PRONTOO_SCHEMA_TEST_MODE=1');
+require_once $root . '/app/Core/Install/InstallAccess.php';
+require_once $root . '/app/Core/Database/SchemaMutationLock.php';
 require_once $root . '/app/Database/DatabaseSchema.php';
 
 preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
@@ -161,7 +165,6 @@ if ($dsn !== '') {
         $pdo->exec($block);
     }
     require_once $root . '/app/Infrastructure/Database/SeqContract.php';
-    require_once $root . '/app/Infrastructure/Database/CleanInstallReset.php';
     Prontoo\Infrastructure\Database\SeqContract::assert($pdo);
     $pdo->exec("INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES ('schema_check_a','1',UNIX_TIMESTAMP())");
     $first = (int) $pdo->query("SELECT Seq FROM pi_meta WHERE meta_key='schema_check_a'")->fetchColumn();
@@ -189,35 +192,15 @@ if ($dsn !== '') {
         }
     };
     $dropAll($pdo);
-    $pdo->exec("CREATE TABLE pi_meta (meta_key varchar(80) PRIMARY KEY, meta_value text, updated_at bigint unsigned NOT NULL DEFAULT 0) ENGINE=InnoDB");
-    $pdo->exec("CREATE TABLE pi_dummy (id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDB");
-    $pdo->exec("INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES ('schema_revision','prontoo_1_7_13_1_clean_schema_r6_multirole',UNIX_TIMESTAMP())");
-    $reset = Prontoo\Infrastructure\Database\CleanInstallReset::reset(
-        $pdo,
-        'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger',
-    );
-    $afterReset = (int) $pdo->query(
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
-    )->fetchColumn();
-    if (empty($reset['reset']) || $afterReset !== 0) {
-        $errors[] = 'clean_reset_did_not_empty_database';
-    }
-    $pdo->exec("CREATE TABLE pi_meta (meta_key varchar(80) PRIMARY KEY, meta_value text, updated_at bigint unsigned NOT NULL DEFAULT 0) ENGINE=InnoDB");
-    $pdo->exec("CREATE TABLE external_table (id int unsigned NOT NULL PRIMARY KEY) ENGINE=InnoDB");
-    $pdo->exec("INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES ('schema_revision','prontoo_1_7_13_1_clean_schema_r6_multirole',UNIX_TIMESTAMP())");
-    $foreignBlocked = false;
+    $ddlBlocked = false;
     try {
-        Prontoo\Infrastructure\Database\CleanInstallReset::reset(
-            $pdo,
-            'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger',
-        );
+        db_reject_runtime_ddl('ALTER TABLE pi_meta ADD COLUMN forbidden int');
     } catch (RuntimeException $error) {
-        $foreignBlocked = str_contains($error->getMessage(), 'tabelas externas');
+        $ddlBlocked = str_contains($error->getMessage(), 'estrutura do banco está congelada');
     }
-    if (!$foreignBlocked) {
-        $errors[] = 'clean_reset_foreign_table_guard';
+    if (!$ddlBlocked) {
+        $errors[] = 'schema_mutation_lock_not_closed';
     }
-    $dropAll($pdo);
 
     $dsnParts = [];
     foreach (explode(';', preg_replace('/^mysql:/', '', $dsn) ?? '') as $part) {
@@ -237,7 +220,11 @@ if ($dsn !== '') {
         throw new RuntimeException('Não foi possível criar storage temporário do instalador.');
     }
     prontoo_schema_clear_caches();
-    install_fresh_schema();
+    Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
+        static function (): void {
+            install_fresh_schema();
+        },
+    );
     $runtimePdo = pdo();
     $installedCount = (int) $runtimePdo->query(
         "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
@@ -286,8 +273,7 @@ if ($dsn !== '') {
         'tables' => $tableCount,
         'first_seq' => $first,
         'second_seq' => $second,
-        'clean_reset_tables_removed' => (int) ($reset['tables_removed'] ?? 0),
-        'foreign_table_guard' => $foreignBlocked,
+        'schema_mutation_lock_closed' => $ddlBlocked,
         'runtime_installer_zero_table_database' => [
             'tables_created' => $installedCount,
             'schema_revision' => $installedRevision,

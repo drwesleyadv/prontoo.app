@@ -342,10 +342,16 @@ function prontoo_run(bool $installMode = false): void
                     "Instalação existente detectada, mas app/config.php não foi encontrado. Não execute o instalador: restaure o arquivo de configuração da instalação atual.",
                 );
             }
-            if (!headers_sent()) {
-                header("Location: install.php");
+            if (\Prontoo\Core\Install\InstallAccess::isLocalHttpRequest()) {
+                if (!headers_sent()) {
+                    header("Location: /install.php", true, 302);
+                }
+                exit();
             }
-            exit();
+            throw new ProntooHttpError(
+                503,
+                "Configuração ausente. O instalador não é exposto publicamente; restaure app/config.php ou acesse o servidor diretamente pelo localhost.",
+            );
         }
         prontoo_boot_database_for_route($r);
         $isPost = ($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST";

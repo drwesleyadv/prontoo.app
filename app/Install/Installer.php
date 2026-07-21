@@ -680,14 +680,14 @@ function install_form(array $checks): void
 function prontoo_install(): void
 {
     try {
+        \Prontoo\Core\Install\InstallAccess::assertLocalEntry();
         boot_security();
         guard_request();
         headers_secure(true);
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         $state = install_state();
         if ($state !== "fresh") {
-            install_state_page($state);
-            return;
+            \Prontoo\Core\Install\InstallAccess::denyPublicAccess();
         }
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
             install_form(install_environment_checks(false));
@@ -799,7 +799,11 @@ function prontoo_install(): void
             }
             $cfgWritten = true;
             prontoo_fs_chmod(cfg_file(), 0640);
-            install_fresh_schema();
+            \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
+                static function (): void {
+                    install_fresh_schema();
+                },
+            );
             $schemaInstalled = true;
             runtime_self_check();
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
@@ -864,21 +868,21 @@ function prontoo_install(): void
             if ($cfgWritten && !is_file(storage_path("install.lock"))) {
                 if ($schemaInstalled && has_cfg()) {
                     try {
-                        $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
-                        $GLOBALS["PRONTOO_SCHEMA_INSTALLING"] = true;
-                        schema_cleanup_failed_install(
-                            prontoo_schema_table_names(),
+                        \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
+                            static function (): void {
+                                $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
+                                try {
+                                    schema_cleanup_failed_install(prontoo_schema_table_names());
+                                    prontoo_fs_unlink(schema_lock_file());
+                                } finally {
+                                    unset($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"]);
+                                }
+                            },
                         );
-                        prontoo_fs_unlink(schema_lock_file());
                     } catch (Throwable $cleanupError) {
                         error_log(
                             "[Prontoo install cleanup] " .
                                 $cleanupError->getMessage(),
-                        );
-                    } finally {
-                        unset(
-                            $GLOBALS["PRONTOO_SCHEMA_INSTALLING"],
-                            $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"],
                         );
                     }
                 }
