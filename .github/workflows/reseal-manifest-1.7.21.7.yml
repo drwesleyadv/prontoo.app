@@ -1,0 +1,62 @@
+name: Reseal Manifest 1.7.21.7
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  reseal:
+    if: github.head_ref == 'agent/source-maintenance-guide-1.7.21.7'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout final branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/source-maintenance-guide-1.7.21.7
+          fetch-depth: 0
+
+      - name: Recalculate release hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $path = 'app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+          $files = (array) ($manifest['files'] ?? []);
+          ksort($files);
+          $bytes = 0;
+          foreach (array_keys($files) as $file) {
+              if (!is_file($file)) {
+                  throw new RuntimeException('Arquivo ausente: ' . $file);
+              }
+              $files[$file] = hash_file('sha256', $file);
+              $bytes += (int) filesize($file);
+          }
+          $manifest['files'] = $files;
+          $manifest['file_count'] = count($files);
+          $manifest['total_uncompressed_bytes'] = $bytes;
+          $manifest['updated_at'] = gmdate('c');
+          file_put_contents(
+              $path,
+              json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL,
+          );
+          PHP
+          php -r '
+            $m=json_decode((string)file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;
+            foreach($m["files"] as $file=>$hash){if(!is_file($file)||!hash_equals((string)$hash,hash_file("sha256",$file)))throw new RuntimeException("hash: ".$file);$bytes+=filesize($file);}if($bytes!==(int)$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
+          '
+
+      - name: Commit resealed manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/update.manifest.json
+          git commit -m "ressela manifesto da 1.7.21.7"
+          git push origin HEAD:agent/source-maintenance-guide-1.7.21.7
