@@ -142,10 +142,33 @@ final class PiIntegrity
 
     public static function proveSchemaOperation(
         string $operation,
-        string $table,
-        bool $success,
+        string|bool $table,
+        bool|string|null $success = null,
         ?string $error = null,
     ): void {
+        if (is_bool($table)) {
+            $legacySql = $operation;
+            $legacySuccess = $table;
+            $legacyError = is_string($success) ? $success : null;
+            if (
+                !preg_match(
+                    '/^\s*CREATE\s+TABLE\s+`?([a-z0-9_]+)`?/i',
+                    $legacySql,
+                    $match,
+                )
+            ) {
+                return;
+            }
+            $operation = 'create_table';
+            $table = self::physicalTableName((string) ($match[1] ?? ''));
+            $success = $legacySuccess;
+            $error = $legacyError;
+        }
+        if (!is_bool($success) || $table === '') {
+            throw new \TypeError(
+                'Prova estrutural exige operação, tabela, sucesso e erro opcional.',
+            );
+        }
         if (!empty($GLOBALS['PRONTOO_SCHEMA_INSTALLING'])) {
             return;
         }

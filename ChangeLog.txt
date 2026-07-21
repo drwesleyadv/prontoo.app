@@ -1,3 +1,11 @@
+Prontoo 1.7.21.2 — integração do instalador com o Guardião
+
+- Corrige a incompatibilidade de assinatura entre `run_schema_sql()` e `PiIntegrity::proveSchemaOperation()`.
+- Normaliza exclusivamente a chamada estrutural legada e extrai a tabela de `CREATE TABLE` canônico.
+- Faz o CI carregar o Guardião no mesmo caminho executado pela instalação real.
+- Certifica a criação integral das 62 tabelas em MySQL 8 partindo de banco vazio.
+- Não altera o schema SQL, a revisão r7, dados, interface ou ativos.
+
 Prontoo 1.7.21.1 — hotfix do instalador em banco com zero tabelas
 
 - Remove a invariante legada que exigia 75 tabelas no parser runtime do schema r7.
