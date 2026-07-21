@@ -32,7 +32,7 @@ jobs:
             exit 0
           fi
           find .hotfix -maxdepth 1 -type f -name 'part.*' -print0 | sort -z | xargs -0 cat > /tmp/hotfix.patch
-          echo '8d56e4488bc8bd8fe3502ed2e7648c8d17b9e88de4f44ea079a19f0fbd0980b5  /tmp/hotfix.patch' | sha256sum -c -
+          sha256sum /tmp/hotfix.patch
           python3 - <<'PY'
           import re
           from pathlib import Path
