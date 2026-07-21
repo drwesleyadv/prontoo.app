@@ -1,3 +1,11 @@
+Prontoo 1.7.21.1 — hotfix de instalação limpa em banco vazio
+
+- Remove a invariante legada que ainda exigia 75 tabelas no parser usado pelo instalador.
+- Centraliza o total canônico do schema r7 em PRONTOO_SCHEMA_TABLE_COUNT=62.
+- Torna o teste de schema executar install_fresh_schema(), o mesmo caminho usado pelo formulário de instalação.
+- Certifica banco inicialmente com zero tabelas, criação integral das 62 tabelas, validação estrutural, metadados e Seq nativo.
+- Não altera o desenho, as colunas operacionais ou a revisão do schema r7.
+
 Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
 
 - Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.

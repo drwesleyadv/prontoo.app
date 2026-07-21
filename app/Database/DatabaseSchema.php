@@ -639,9 +639,14 @@ function prontoo_schema_statements(): array
         return $statements;
     }
     $statements = schema_split_sql(prontoo_schema_sql());
-    if (count($statements) !== 75) {
+    $expectedTableCount = defined("PRONTOO_SCHEMA_TABLE_COUNT")
+        ? (int) PRONTOO_SCHEMA_TABLE_COUNT
+        : 62;
+    if (count($statements) !== $expectedTableCount) {
         throw new RuntimeException(
-            "Contrato SQL deve conter exatamente 75 tabelas.",
+            "Contrato SQL deve conter exatamente {$expectedTableCount} tabelas; " .
+                count($statements) .
+                " encontradas.",
         );
     }
     foreach ($statements as $statement) {

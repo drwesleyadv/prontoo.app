@@ -42,7 +42,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.20.6";
+const PRONTOO_VERSION_FALLBACK = "1.7.21.1";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -153,12 +153,13 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.20.5";
+const PRONTOO_PREVIOUS_VERSION = "1.7.20.6";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
 const PRONTOO_MIN_MYSQL_VERSION = "8.0.30";
 const PRONTOO_SCHEMA_REV = "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
+const PRONTOO_SCHEMA_TABLE_COUNT = 62;
 const PRONTOO_ARCH_REV = "mysql_php_design_system_contract_1_7_13_1";
 const PRONTOO_TENANT_INTEGRITY_STRICT = true;
 const PRONTOO_AUDIT_PAGE_VIEWS = false;

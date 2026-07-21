@@ -2,6 +2,14 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+
+if (!defined('PRONTOO_SCHEMA_REV')) { define('PRONTOO_SCHEMA_REV', 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger'); }
+if (!defined('PRONTOO_SCHEMA_TABLE_COUNT')) { define('PRONTOO_SCHEMA_TABLE_COUNT', 62); }
+if (!function_exists('cfg')) { function cfg(): array { return $GLOBALS['PRONTOO_SCHEMA_CHECK_CONFIG'] ?? []; } }
+if (!function_exists('storage_path')) { function storage_path(string $suffix = ''): string { $base = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid(); if (!is_dir($base)) { mkdir($base, 0750, true); } return $suffix === '' ? $base : $base . '/' . ltrim($suffix, '/'); } }
+if (!function_exists('prontoo_fs_chmod')) { function prontoo_fs_chmod(string $path, int $mode): bool { return @chmod($path, $mode); } }
+if (!function_exists('prontoo_fs_unlink')) { function prontoo_fs_unlink(string $path): bool { return !file_exists($path) || @unlink($path); } }
+require_once $root . '/app/Database/DatabaseSchema.php';
 $schemaFile = $root . '/app/Database/schema.sql';
 $contractFile = $root . '/app/Database/operational-schema.contract.json';
 $schema = (string) file_get_contents($schemaFile);
@@ -13,6 +21,8 @@ foreach ($matches as $match) {
     $blocks[(string) $match[1]] = (string) $match[0];
 }
 $errors = [];
+$runtimeStatements = prontoo_schema_statements();
+if (count($runtimeStatements) !== 62) { $errors[] = 'runtime_schema_statement_count:' . count($runtimeStatements); }
 if (count($blocks) !== 62) {
     $errors[] = 'schema_table_count:' . count($blocks);
 }
@@ -98,18 +108,18 @@ foreach (['event_key', 'event_label', 'event_icon', 'entity_key', 'entity_label'
 $dbResult = ['executed' => false];
 $dsn = getenv('PRONTOO_SCHEMA_DSN') ?: '';
 if ($dsn !== '') {
-    $pdo = new PDO($dsn, getenv('PRONTOO_SCHEMA_USER') ?: 'root', getenv('PRONTOO_SCHEMA_PASS') ?: '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    preg_match('/host=([^;&]+)/', $dsn, $hostMatch);
+    preg_match('/dbname=([^;&]+)/', $dsn, $dbMatch);
+    $GLOBALS['PRONTOO_SCHEMA_CHECK_CONFIG'] = [
+        'db_host' => $hostMatch[1] ?? '127.0.0.1',
+        'db_name' => $dbMatch[1] ?? 'prontoo_schema',
+        'db_user' => getenv('PRONTOO_SCHEMA_USER') ?: 'root',
+        'db_pass' => getenv('PRONTOO_SCHEMA_PASS') ?: '',
+    ];
+    $pdo = pdo();
     $existing = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'")->fetchColumn();
-    if ($existing !== 0) {
-        throw new RuntimeException('Banco de teste não está vazio.');
-    }
-    foreach ($blocks as $block) {
-        $pdo->exec($block);
-    }
+    if ($existing !== 0) { throw new RuntimeException('Banco de teste não está vazio.'); }
+    install_fresh_schema();
     require_once $root . '/app/Infrastructure/Database/SeqContract.php';
     require_once $root . '/app/Infrastructure/Database/CleanInstallReset.php';
     Prontoo\Infrastructure\Database\SeqContract::assert($pdo);
