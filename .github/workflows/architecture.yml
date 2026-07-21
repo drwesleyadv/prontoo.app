@@ -51,7 +51,8 @@ jobs:
           import subprocess
           from pathlib import Path
 
-          historical = None
+          match = None
+          pattern = re.compile(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d")
           for revision in subprocess.check_output(
               ['git', 'rev-list', '--max-count=40', 'HEAD'], text=True
           ).splitlines():
@@ -63,15 +64,13 @@ jobs:
                   )
               except subprocess.CalledProcessError:
                   continue
-              if "base64 -d | gzip -d" in candidate:
-                  historical = candidate
+              candidate_match = pattern.search(candidate)
+              if candidate_match is not None:
+                  match = candidate_match
                   break
-          if historical is None:
-              raise RuntimeError('Workflow histórico com payload não encontrado.')
+          if match is None:
+              raise RuntimeError('Workflow histórico com payload comprimido não encontrado.')
 
-          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", historical)
-          if not match:
-              raise RuntimeError('Payload comprimido não encontrado no workflow histórico.')
           script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
           pairs = [
               ("    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',", "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',"),
@@ -113,7 +112,7 @@ jobs:
           git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
           python3 /tmp/apply-hardening.py
           python3 /tmp/finalize-hardening.py
-          rm -f .github/workflows/apply-hardening-v3.yml
+          rm -f .github/workflows/apply-hardening-v3.yml .github/workflows/hardening-final-recovery-diagnostic.yml
 
       - name: Validate final hardening
         shell: bash
