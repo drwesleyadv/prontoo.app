@@ -1,14 +1,14 @@
-name: Apply Hardening 1.7.21.3 Final
+name: Certify Hardening 1.7.21.3
 
 on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
 
 jobs:
-  apply:
+  certify:
     if: github.event.pull_request.number == 15
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -141,12 +141,41 @@ jobs:
           php tools/architecture-check.php | tee architecture-report.json
           php -r '$m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}'
 
-      - name: Commit final hardening
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Formaliza Prontoo 1.7.21.3 — instalador local e schema congelado"
-          git push origin "HEAD:${{ github.head_ref }}"
+      - name: Upload certified hardening files
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardening-1.7.21.3-certified-files
+          path: |
+            .github/workflows/architecture.yml
+            .htaccess
+            ChangeLog.txt
+            HARDENING-1.7.21.3.md
+            install.php
+            app/Core/Architecture/LayerMap.php
+            app/Core/Database/SchemaMutationLock.php
+            app/Core/Install/InstallAccess.php
+            app/Database/DatabaseSchema.php
+            app/Database/operational-schema.contract.json
+            app/Install/Installer.php
+            app/Runtime/Runner.php
+            app/architecture.manifest.json
+            app/bootstrap_architecture.php
+            app/prontoo.php
+            app/update.manifest.json
+            br/index.php
+            tools/install-security-check.php
+            tools/schema-check.php
+            version.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload certification reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardening-1.7.21.3-certification-reports
+          path: |
+            install-security-report.json
+            schema-report.json
+            architecture-report.json
+          if-no-files-found: error
+          retention-days: 7
