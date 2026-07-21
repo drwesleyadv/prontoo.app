@@ -1,12 +1,12 @@
 {
-  "version": "1.7.21.5",
-  "release": "1.7.21.5",
-  "generated_at_unix": 1784662944,
-  "generated_at": "2026-07-21T19:42:24Z",
-  "updated_at": "2026-07-21T19:42:24Z",
-  "build": "1.7.21.5-maturity-runtime-json-cache",
+  "version": "1.7.21.6",
+  "release": "1.7.21.6",
+  "generated_at_unix": 1784665204,
+  "generated_at": "2026-07-21T20:20:04Z",
+  "updated_at": "2026-07-21T20:20:04Z",
+  "build": "1.7.21.6-authorization-scope-hotfix",
   "asset_version": "1.7.15.10",
-  "package_type": "maturity_runtime_performance",
+  "package_type": "authorization_scope_hotfix",
   "theme_policy": "light-only",
   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
   "database_changes": false,
@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "VERSIONING.md",
-  "notes": "Audita todos os arquivos, remove runtime legado, reduz bootstrap e amplia cache JSON seguro sem alterar banco ou schema.",
+  "notes": "Corrige contratos exatos de Incidentes e Segurança e amplia a matriz regressiva de autorização por cargo.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -31,5 +31,5 @@
   "minimum_mysql": "8.0.30",
   "minimum_php": "8.4.0",
   "database_policy": "clean-schema-layer2-ledger-v1",
-  "previous_version": "1.7.21.4"
+  "previous_version": "1.7.21.5"
 }

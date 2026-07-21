@@ -187,6 +187,8 @@ final class ActionCatalog
             'admin_painel' => ['goal', 'confirm_subscription_payment', 'reject_subscription_payment'],
             'admin_clinics' => ['activate_subscription', 'billing', 'deactivate_subscription', 'default_billing', 'toggle'],
             'admin_alerts' => ['create', 'read'],
+            'admin_errors' => ['resolve_incident'],
+            'admin_security' => ['release_login_lock'],
             'admin_maintenance' => ['save_settings', 'regenerate_footer_seq_alphabet', 'save_maintenance'],
             'admin_deleted' => ['restore_patient', 'restore_care'],
         ];
@@ -244,6 +246,27 @@ final class ActionCatalog
         $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Auth/AuthOnboarding.php';
         $cases['choose_admin_producer_declared'] = self::resolve('switch', ['act' => 'choose_admin'])?->producers === ['Admin/AdminPages.php'];
         $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Domain/Tasks/TasksNotices.php'];
+        $incident = self::resolve('admin_errors', ['act' => 'resolve_incident']);
+        $security = self::resolve('admin_security', ['act' => 'release_login_lock']);
+        $cases['incident_resolution_exact_global_contract'] = $incident?->scope === 'global' &&
+            $incident?->policy === 'global_admin' &&
+            $incident?->required === ['admin:*'];
+        $cases['login_lock_release_exact_global_contract'] = $security?->scope === 'global' &&
+            $security?->policy === 'global_admin' &&
+            $security?->required === ['admin:*'];
+        $cases['all_global_contracts_are_developer_only'] = array_reduce(
+            self::all(),
+            static fn(bool $ok, ActionContract $contract): bool => $ok &&
+                ($contract->scope !== 'global' ||
+                    ($contract->policy === 'global_admin' && $contract->required === ['admin:*'])),
+            true,
+        );
+        $cases['clinic_contracts_never_request_global_admin'] = array_reduce(
+            self::all(),
+            static fn(bool $ok, ActionContract $contract): bool => $ok &&
+                ($contract->scope !== 'clinic' || !in_array('admin:*', $contract->required, true)),
+            true,
+        );
         $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],

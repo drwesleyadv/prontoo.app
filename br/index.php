@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-const BR_LANDING_VERSION_FALLBACK = "1.7.21.5";
+const BR_LANDING_VERSION_FALLBACK = "1.7.21.6";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-telemetry.php";
 require __DIR__ . "/runtime-data.php";

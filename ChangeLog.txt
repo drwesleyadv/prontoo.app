@@ -1,3 +1,9 @@
+Prontoo 1.7.21.6 — autorização por escopo e contratos exatos
+- Corrige a ação de marcar Incidentes como resolvidos no Painel do Desenvolvedor.
+- Corrige preventivamente a liberação de bloqueios de login na tela Segurança.
+- Amplia testes de autorização para Desenvolvedor, Administrativo, Profissional, Assistente e Recepção.
+- Preserva integralmente banco, schema r7 e 62 tabelas.
+
 Prontoo 1.7.21.5 — maturação integral, runtime enxuto e cache JSON
 
 - Audita 100% dos 147 arquivos versionados e publica relatório verificável.
