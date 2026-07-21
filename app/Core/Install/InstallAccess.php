@@ -7,8 +7,8 @@ final class InstallAccess
 {
     private const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1'];
     public const TEMPORARY_PUBLIC_HOST = 'prontoo.app';
-    public const TEMPORARY_PUBLIC_WINDOW_START_UNIX = 1784670941;
-    public const TEMPORARY_PUBLIC_WINDOW_END_UNIX = 1784685341;
+    public const TEMPORARY_PUBLIC_WINDOW_START_UNIX = 1784671890;
+    public const TEMPORARY_PUBLIC_WINDOW_END_UNIX = 1784686290;
     private const FORWARDED_HEADERS = [
         'HTTP_FORWARDED',
         'HTTP_X_FORWARDED_FOR',
@@ -134,7 +134,7 @@ final class InstallAccess
          * Dependências chamadas: `self::isLocalServer`, `time`, `self::requestHostFrom`, `strtolower`, `trim`, `explode`, `in_array`.
          * Estado externo lido: `$_SERVER`, relógio Unix do servidor e `PHP_SAPI`.
          * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed para o ponto de entrada e para a janela estrutural.
-         * Cuidado 1: Não prolongue a janela alterando apenas a interface. Os dois timestamps formam o contrato real e o limite final é exclusivo: no segundo 1784685341 o acesso público já deve falhar.
+         * Cuidado 1: Não prolongue a janela alterando apenas a interface. Os dois timestamps formam o contrato real e o limite final é exclusivo: no segundo 1784686290 o acesso público já deve falhar.
          * Cuidado 2: A exceção pública exige simultaneamente host `prontoo.app` e HTTPS. Acesso local mantém as validações contra cabeçalhos encaminhados.
          */
         if (PHP_SAPI === 'cli' && $server === null) {

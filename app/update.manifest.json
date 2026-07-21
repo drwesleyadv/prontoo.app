@@ -19,16 +19,16 @@
     "signature_policy": "hostoo_github_repository_sync",
     "architecture_policy": "php-layered-invariants-v2",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "installer_policy": "localhost_or_https_prontoo_app_until_2026-07-22T01:55:41Z_then_local_only",
+    "installer_policy": "localhost_or_https_prontoo_app_until_2026-07-22T02:11:30Z_then_local_only",
     "documentation_policy": "ChangeLog.txt_and_in_source_function_guides_only_no_markdown_files",
     "documented_function_units": 1865,
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 98,
-    "total_uncompressed_bytes": 3898240,
+    "total_uncompressed_bytes": 3898237,
     "files": {
         ".github/workflows/architecture.yml": "c47cad21223ff9143214bc0c0b8e3dab90d372aa05b3e18478df3e61ce2b1bbd",
-        "ChangeLog.txt": "c9944673496c829c81d3ee4d48eaba149a40d3c15b1be22db7844bd7858726d5",
+        "ChangeLog.txt": "252602eb8c428c328efd9ae0cbe9e5d12b9e1af6c4dc8b54962bcc82e9a795e1",
         "app/Admin/AdminPages.php": "c4ef9ac8b6c17d1b5a3d4577ba29d03133b002e709927b93e610dd9ee6a46a50",
         "app/Application/Audit/ActionProofPort.php": "d31c551cf6ff872cd08673f9f4f822f87d7d69ebbc5229ae90ecbafd3c2a8a99",
         "app/Application/Authorization/ActionCatalog.php": "d5b0ec253861acd112be115ad7d9812ca06a98c26746a2507c3ad3fec96dc56f",
@@ -41,7 +41,7 @@
         "app/Core/Database/SchemaMutationLock.php": "528ce7c5bafec766787be9917fd0ce30cb892f38ce2d8908e1b70943c5c29bdd",
         "app/Core/Database/SqlScopeGuard.php": "741b42328c377a3eaf3949aefbeac441a61fbfc42b72d2ce0ed84e92c99edacd",
         "app/Core/Database/TenantIntegrity.php": "40b8636d732ce0466c41398168ea5e10bff2761e6a59f85a36cd18cef39c1d61",
-        "app/Core/Install/InstallAccess.php": "688e242d1279c74fbe36084311c084b3fdfb023b7ce3fa1826c1af9df8810668",
+        "app/Core/Install/InstallAccess.php": "07dfb7b44dd5040cf97989c2d2c2a35ec8f3550d85d963bcd20ba1ae0d1aac57",
         "app/Core/Install/RuntimeContract.php": "ae0f94b0afccb554d3e14db4b2cea5ed4b661b387ee70a3d2b27665ff33a7320",
         "app/Core/Integrity/AuditChain.php": "f3393e0acf47b5e184b1a609b30996f7c55d3d8aa4389629ffd29aef9680398f",
         "app/Core/Integrity/PiIntegrity.php": "18d5b3e704083989b4053be243b3011ceb869c36d6cc25ee27f8c99b98989802",
@@ -105,7 +105,7 @@
         "app/Support/Telemetry.php": "20fde82031cd7667e3dc3d36d9edd47ed3b04c1dc54c19de9db564836e2498dd",
         "app/Ui/Components.php": "f56293497197572bc1db7a7399c121343ba090947137e70b2fd4ef975c092701",
         "app/Ui/PublicWeb.php": "5f2dcb19828273e9e221e7cad2285985aa9654e431a912cc61b2891289dc2b12",
-        "app/architecture.manifest.json": "c06d798c387b043931e0bf54a532d1721829a702b5e6ec9be7f7caf5743f0c55",
+        "app/architecture.manifest.json": "c48a091ab6dea393cd8920163dc0db281bccc4946b85b2b701b29deb6a5e66c0",
         "app/bootstrap_architecture.php": "09c737653312414a5723179548788d431af8f25eb1e40355116a2f7786d36587",
         "app/bootstrap_specialized.php": "495cd5fff7338034067bb8e2a87f97adec1a798e7b0c2560cd7f4ab8dc91e110",
         "app/prontoo.php": "e66e041fb84e95dede56c1a67d134343ec42d691d572c1e4b7b0cfd8bbd55964",
@@ -122,9 +122,9 @@
         "index.php": "bafd8276ca45fd95d23a100812e1a2e9eb541a4f51fdbeb1384c7cd9a262a99e",
         "install.php": "c0fcc1a9b3b7407c8bf3d11dae0751ac231aca6a940499e089a86470e7a11738",
         "tools/architecture-check.php": "0e20c7b83d0cabd3902d16e3ddb88117a0637e20e9ee14055983a2ada2d73427",
-        "tools/install-security-check.php": "316fb1fd55289a47aec902386d9505af20ba8c936ea9921e78eb9daaf9dc58d8",
+        "tools/install-security-check.php": "775f5a629782d989416b9a95942d5196a2ade0f20ca5281770e51fd7095d7358",
         "tools/schema-check.php": "990e2054dc6e394678a981bd8a70d4a4d008d9c4e9d583fd865083690c864fd0",
-        "version.json": "deb677a8f57b24e7b7978240dd21457beaffd7103430ca1e4cec82d5b85ee1b1"
+        "version.json": "07cc6a1604acc35e9122013e43e7a09e7f1a5a4b5873f663e1a5308516cf9510"
     },
     "removed_files": [
         "ARCHITECTURE.md",
@@ -147,12 +147,12 @@
     "schema_mutation_policy": "frozen_except_authorized_installer_window_or_ci",
     "previous_version": "1.7.21.7",
     "updated_at": "2026-07-21T21:55:41Z",
-    "notes": "Libera temporariamente o instalador público por quatro horas no host HTTPS prontoo.app e revoga automaticamente por timestamp fixo.",
+    "notes": "Libera temporariamente o instalador público por quatro horas contadas do merge certificado e revoga automaticamente por timestamp fixo.",
     "temporary_public_installer": {
         "host": "prontoo.app",
-        "start_unix": 1784670941,
-        "end_unix": 1784685341,
-        "end_utc": "2026-07-22T01:55:41Z",
+        "start_unix": 1784671890,
+        "end_unix": 1784686290,
+        "end_utc": "2026-07-22T02:11:30Z",
         "automatic_revocation": true
     }
 }

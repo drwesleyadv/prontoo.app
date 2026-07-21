@@ -131,9 +131,9 @@ $result = [
     'policy' => 'temporary-public-installer-window-v1',
     'public_installer' => true,
     'public_host' => 'prontoo.app',
-    'public_window_start_unix' => 1784670941,
-    'public_window_end_unix' => 1784685341,
-    'public_window_end_utc' => '2026-07-22T01:55:41Z',
+    'public_window_start_unix' => 1784671890,
+    'public_window_end_unix' => 1784686290,
+    'public_window_end_utc' => '2026-07-22T02:11:30Z',
     'schema_frozen' => true,
     'errors' => array_values(array_unique($errors)),
 ];

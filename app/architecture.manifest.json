@@ -66,9 +66,9 @@
   "temporary_public_installer_window": {
     "host": "prontoo.app",
     "https_required": true,
-    "start_unix": 1784670941,
-    "end_unix": 1784685341,
-    "end_utc": "2026-07-22T01:55:41Z",
+    "start_unix": 1784671890,
+    "end_unix": 1784686290,
+    "end_utc": "2026-07-22T02:11:30Z",
     "automatic_revocation": true
   }
 }
