@@ -1,3 +1,14 @@
+Prontoo 1.7.21.5 — maturação integral, runtime enxuto e cache JSON
+
+- Audita 100% dos 147 arquivos versionados e publica relatório verificável.
+- Remove a rotina histórica 1.7.14.8 do caminho de todas as requisições.
+- Carrega o instalador somente em install.php, preservando a restrição a localhost.
+- Suprime duplicações na composição dos módulos do runtime completo.
+- Memoiza diretórios do cache JSON e reduz operações repetidas de filesystem.
+- Adiciona cache JSON com escopo e invalidação para lookups da linha do tempo.
+- Remove comentários CSS de versões antigas sem alterar regras visuais.
+- Mantém schema r7, 62 tabelas, dados, interface e ativos funcionais.
+
 Prontoo 1.7.21.4 — contrato runtime e leitura de auditoria
 
 - Remove do `RuntimeContract` a dependência residual de `CleanInstallReset`, já eliminada no hardening anterior.
