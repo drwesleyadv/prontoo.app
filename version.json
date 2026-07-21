@@ -1,17 +1,17 @@
 {
-  "version": "1.7.21.7",
-  "release": "1.7.21.7",
-  "generated_at_unix": 1784667189,
-  "generated_at": "2026-07-21T20:53:09Z",
-  "updated_at": "2026-07-21T20:53:09Z",
-  "build": "1.7.21.7-source-maintenance-guide",
+  "version": "1.7.21.8",
+  "release": "1.7.21.8",
+  "generated_at_unix": 1784670941,
+  "generated_at": "2026-07-21T21:55:41Z",
+  "updated_at": "2026-07-21T21:55:41Z",
+  "build": "1.7.21.8-temporary-public-installer",
   "asset_version": "1.7.15.10",
-  "package_type": "source_documentation_baseline",
+  "package_type": "temporary_public_installer_window",
   "theme_policy": "light-only",
   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
   "database_changes": false,
   "schema_changes": false,
-  "logic_changes": false,
+  "logic_changes": true,
   "visual_changes": false,
   "functional_equivalence_policy": "operational_table_contracts_are_preserved_while_support_persistence_is_consolidated_for_clean_install_only",
   "architecture_policy": "php-layered-invariants-v2",
@@ -32,5 +32,16 @@
   "minimum_php": "8.4.0",
   "database_policy": "clean-schema-layer2-ledger-v1",
   "previous_version": "1.7.21.6",
-  "documentation_changes": true
+  "documentation_changes": true,
+  "temporary_public_installer": {
+    "host": "prontoo.app",
+    "https_required": true,
+    "start_unix": 1784670941,
+    "end_unix": 1784685341,
+    "start_utc": "2026-07-21T21:55:41Z",
+    "end_utc": "2026-07-22T01:55:41Z",
+    "start_local": "21/07/2026 17:55:41 America/Cuiaba",
+    "end_local": "21/07/2026 21:55:41 America/Cuiaba",
+    "automatic_revocation": true
+  }
 }

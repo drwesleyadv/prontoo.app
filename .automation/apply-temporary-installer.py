@@ -36,7 +36,7 @@ def replace_once(content: str, old: str, new: str, label: str) -> str:
 
 
 def replace_regex(content: str, pattern: str, replacement: str, label: str) -> str:
-    updated, count = re.subn(pattern, replacement, content, count=1, flags=re.S)
+    updated, count = re.subn(pattern, lambda _: replacement, content, count=1, flags=re.S)
     if count != 1:
         raise RuntimeError(f"{label}: padrão não encontrado uma única vez")
     return updated

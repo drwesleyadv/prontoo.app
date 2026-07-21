@@ -27,6 +27,39 @@ foreach ($cases as [$remote, $host, $extra, $expected, $label]) {
 }
 $_SERVER = $originalServer;
 
+$publicServer = [
+    'REMOTE_ADDR' => '203.0.113.10',
+    'HTTP_HOST' => 'prontoo.app',
+    'HTTPS' => 'on',
+    'SERVER_PORT' => '443',
+];
+if (InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX - InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX !== 14400) {
+    $errors[] = 'public_window_not_exactly_four_hours';
+}
+if (!InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
+    $errors[] = 'public_window_start_not_allowed';
+}
+if (!InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX - 1)) {
+    $errors[] = 'public_window_last_second_not_allowed';
+}
+if (InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX)) {
+    $errors[] = 'public_window_expiry_not_closed';
+}
+if (InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX - 1)) {
+    $errors[] = 'public_window_before_start_allowed';
+}
+$insecurePublicServer = $publicServer;
+unset($insecurePublicServer['HTTPS']);
+$insecurePublicServer['SERVER_PORT'] = '80';
+if (InstallAccess::isInstallerExecutionAllowed($insecurePublicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
+    $errors[] = 'public_window_insecure_http_allowed';
+}
+$wrongHostServer = $publicServer;
+$wrongHostServer['HTTP_HOST'] = 'example.test';
+if (InstallAccess::isInstallerExecutionAllowed($wrongHostServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
+    $errors[] = 'public_window_wrong_host_allowed';
+}
+
 if (SchemaMutationLock::isActive()) {
     $errors[] = 'schema_lock_active_by_default';
 }
@@ -59,14 +92,15 @@ if (!$opened || SchemaMutationLock::isActive()) {
 }
 
 $installEntry = (string) file_get_contents($root . '/install.php');
-$guardPos = strpos($installEntry, 'InstallAccess::assertLocalEntry');
+$guardPos = strpos($installEntry, 'InstallAccess::assertInstallerEntry');
 $bootstrapPos = strpos($installEntry, 'app/prontoo.php');
 if ($guardPos === false || $bootstrapPos === false || $guardPos > $bootstrapPos) {
     $errors[] = 'install_entry_guard_order';
 }
 $htaccess = (string) file_get_contents($root . '/.htaccess');
-if (!preg_match('/<Files\s+"install\.php">\s*Require\s+local\s*<\/Files>/s', $htaccess)) {
-    $errors[] = 'webserver_local_only_rule';
+if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+granted\s*<\/Files>/s', $htaccess) ||
+    preg_match('/<Files\s+"install\.php">\s*Require\s+local\s*<\/Files>/s', $htaccess)) {
+    $errors[] = 'webserver_temporary_public_rule';
 }
 if (is_file($root . '/app/Infrastructure/Database/CleanInstallReset.php')) {
     $errors[] = 'clean_install_reset_still_present';
@@ -94,8 +128,12 @@ if ($forbiddenAssignments !== []) {
 
 $result = [
     'ok' => $errors === [],
-    'policy' => 'localhost-installer-private-schema-window-v1',
-    'public_installer' => false,
+    'policy' => 'temporary-public-installer-window-v1',
+    'public_installer' => true,
+    'public_host' => 'prontoo.app',
+    'public_window_start_unix' => 1784670941,
+    'public_window_end_unix' => 1784685341,
+    'public_window_end_utc' => '2026-07-22T01:55:41Z',
     'schema_frozen' => true,
     'errors' => array_values(array_unique($errors)),
 ];

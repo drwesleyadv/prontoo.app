@@ -6,6 +6,9 @@ namespace Prontoo\Core\Install;
 final class InstallAccess
 {
     private const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1'];
+    public const TEMPORARY_PUBLIC_HOST = 'prontoo.app';
+    public const TEMPORARY_PUBLIC_WINDOW_START_UNIX = 1784670941;
+    public const TEMPORARY_PUBLIC_WINDOW_END_UNIX = 1784685341;
     private const FORWARDED_HEADERS = [
         'HTTP_FORWARDED',
         'HTTP_X_FORWARDED_FOR',
@@ -112,7 +115,7 @@ final class InstallAccess
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isLocalHttpRequest
          * Responsabilidade: Implementa a responsabilidade “is local http request” dentro do módulo de núcleo de invariantes e decisões canônicas.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Database.SchemaMutationLock::mayOpenInstallerWindow`, `Core.Install.InstallAccess::isLocalExecution`, `prontoo_run`.
+         * Chamadores detectados: `prontoo_run`.
          * Dependências chamadas: `self::isLocalServer`.
          * Estado externo lido: `$_SERVER`.
          * Efeitos colaterais: consome dados da requisição HTTP.
@@ -121,32 +124,56 @@ final class InstallAccess
         return PHP_SAPI !== 'cli' && self::isLocalServer($_SERVER);
     }
 
-    public static function isLocalExecution(): bool
+    public static function isInstallerExecutionAllowed(?array $server = null, ?int $now = null): bool
     {
         /*
-         * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isLocalExecution
-         * Responsabilidade: Implementa a responsabilidade “is local execution” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isInstallerExecutionAllowed
+         * Responsabilidade: Decide se o instalador pode executar no contexto atual. CLI continua autorizado para certificação; HTTP local continua autorizado; HTTP público só é aceito no host HTTPS exato prontoo.app durante a janela UTC fixa de quatro horas.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Install.InstallAccess::assertLocalEntry`.
-         * Dependências chamadas: `self::isLocalHttpRequest`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         * Chamadores detectados: `Core.Database.SchemaMutationLock::mayOpenInstallerWindow`, `Core.Install.InstallAccess::assertInstallerEntry`.
+         * Dependências chamadas: `self::isLocalServer`, `time`, `self::requestHostFrom`, `strtolower`, `trim`, `explode`, `in_array`.
+         * Estado externo lido: `$_SERVER`, relógio Unix do servidor e `PHP_SAPI`.
+         * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed para o ponto de entrada e para a janela estrutural.
+         * Cuidado 1: Não prolongue a janela alterando apenas a interface. Os dois timestamps formam o contrato real e o limite final é exclusivo: no segundo 1784685341 o acesso público já deve falhar.
+         * Cuidado 2: A exceção pública exige simultaneamente host `prontoo.app` e HTTPS. Acesso local mantém as validações contra cabeçalhos encaminhados.
          */
-        return PHP_SAPI === 'cli' || self::isLocalHttpRequest();
+        if (PHP_SAPI === 'cli' && $server === null) {
+            return true;
+        }
+        $server ??= $_SERVER;
+        if (self::isLocalServer($server)) {
+            return true;
+        }
+        $now ??= time();
+        if ($now < self::TEMPORARY_PUBLIC_WINDOW_START_UNIX ||
+            $now >= self::TEMPORARY_PUBLIC_WINDOW_END_UNIX) {
+            return false;
+        }
+        if (self::requestHostFrom($server) !== self::TEMPORARY_PUBLIC_HOST) {
+            return false;
+        }
+        $https = strtolower(trim((string) ($server['HTTPS'] ?? '')));
+        $forwardedProtoParts = explode(',', strtolower((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? '')));
+        $forwardedProto = trim((string) ($forwardedProtoParts[0] ?? ''));
+        $serverPort = (int) ($server['SERVER_PORT'] ?? 0);
+        return in_array($https, ['on', '1'], true) ||
+            $serverPort === 443 ||
+            $forwardedProto === 'https';
     }
 
-    public static function assertLocalEntry(): void
+    public static function assertInstallerEntry(): void
     {
         /*
-         * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::assertLocalEntry
-         * Responsabilidade: Implementa a responsabilidade “assert local entry” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::assertInstallerEntry
+         * Responsabilidade: Protege o primeiro ponto executável de install.php e encerra com 404 qualquer acesso que não seja CLI, local legítimo ou a exceção pública temporária ainda vigente.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `prontoo_install`.
-         * Dependências chamadas: `self::isLocalExecution`, `self::denyPublicAccess`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         * Chamadores detectados: `install.php`.
+         * Dependências chamadas: `self::isInstallerExecutionAllowed`, `self::denyPublicAccess`.
+         * Estado externo lido: contexto HTTP ou CLI por meio de `isInstallerExecutionAllowed`.
+         * Efeitos colaterais: pode encerrar a requisição antes do bootstrap da aplicação.
+         * Cuidado 1: Esta guarda deve continuar antes de `app/prontoo.php`; movê-la para depois do bootstrap expõe trabalho e diagnóstico desnecessários a requisições recusadas.
          */
-        if (!self::isLocalExecution()) {
+        if (!self::isInstallerExecutionAllowed()) {
             self::denyPublicAccess();
         }
     }
@@ -157,7 +184,7 @@ final class InstallAccess
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::denyPublicAccess
          * Responsabilidade: Implementa a responsabilidade “deny public access” dentro do módulo de núcleo de invariantes e decisões canônicas.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Install.InstallAccess::assertLocalEntry`, `prontoo_install`.
+         * Chamadores detectados: `Core.Install.InstallAccess::assertInstallerEntry`, `prontoo_install`.
          * Dependências chamadas: `headers_sent`, `http_response_code`, `header`.
          * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
          * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.

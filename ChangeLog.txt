@@ -1,3 +1,13 @@
+Prontoo 1.7.21.8 — liberação pública temporária e autoexpirável do instalador
+
+- Libera `install.php` publicamente apenas no host HTTPS exato `prontoo.app`.
+- Janela fixa: 21/07/2026 17:55:41 America/Cuiaba até 21/07/2026 21:55:41 America/Cuiaba; duração exata de 14.400 segundos.
+- A revogação é automática e fail-closed no núcleo `InstallAccess`: a partir de 2026-07-22T01:55:41Z, requisições públicas recebem 404 sem depender de cron ou nova publicação.
+- Mantém acesso local e execução CLI para instalação e certificação.
+- Faz `SchemaMutationLock` reutilizar a mesma decisão autorizadora, impedindo DDL fora do instalador local, da janela pública ainda vigente ou do CI controlado.
+- Acrescenta testes determinísticos para início, último segundo, expiração, tentativa anterior ao início, HTTP sem TLS e host incorreto.
+- Não altera tabelas, colunas, índices, constraints, dados, interface ou `schema.sql`.
+
 Prontoo 1.7.21.7 — documentação interna integral e baseline de manutenção humana
 
 - Remove todos os arquivos Markdown do repositório e elimina o `ChangeLog.history.txt`, mantendo o `ChangeLog.txt` como registro documental único.
