@@ -21,10 +21,9 @@
   "installer_policy": "localhost_loopback_host_no_forwarded_headers_only",
   "schema_table_count": 62,
   "operational_tables_verified": 60,
-  "file_count": 19,
-  "total_uncompressed_bytes": 168984,
+  "file_count": 18,
+  "total_uncompressed_bytes": 164795,
   "files": {
-    ".github/workflows/architecture.yml": "00ab864532baa916df00d9c5e4c9f3cb8de4181d3198bf3f8a8742a0b770e728",
     ".htaccess": "d1eda75e1f244e6fec6aae45fccd79d65712b02bf3a331f3453c70478d85c06e",
     "ChangeLog.txt": "deba760ace0f0961ad4639bd1223bbc641c6f5daf416b696fbb9ef3e83b0d1c6",
     "HARDENING-1.7.21.3.md": "6cab3be070cbb97afee383ab7021f98c9f134f0ba348a46f162c2a61da9f8867",
