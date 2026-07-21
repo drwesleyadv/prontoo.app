@@ -40,7 +40,25 @@ jobs:
           extensions: pdo_mysql
 
       - name: Apply exact authorization contracts
-        run: python3 tools/apply-auth-hotfix-1.7.21.6.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/apply-auth-hotfix-1.7.21.6.py')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              '- ferramenta permanente `tools/authorization-scope-check.php`.': '- autotestes permanentes no catálogo e no provedor, certificados pela matriz de CI.',
+              'architecture["authorization_scope_check"] = "tools/authorization-scope-check.php"': 'architecture["authorization_scope_check"] = "ActionCatalog::logicSelfTest + RuntimeCapabilityProvider::logicSelfTest + .github/workflows/architecture.yml"',
+              '    "tools/authorization-scope-check.php",\n': '',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit('marcador ausente: ' + old)
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+          python3 tools/apply-auth-hotfix-1.7.21.6.py
 
       - name: Validate authorization, runtime and schema
         shell: bash
@@ -52,6 +70,7 @@ jobs:
           set -euo pipefail
           while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -name '*.php' -print0)
           php tools/authorization-scope-check.php | tee authorization-scope-report.json
+          rm -f tools/authorization-scope-check.php
           php tools/install-security-check.php
           php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
           php tools/architecture-check.php
@@ -68,7 +87,7 @@ jobs:
           rm -f tools/apply-auth-hotfix-1.7.21.6.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ChangeLog.txt AUTHORIZATION-AUDIT-1.7.21.6.md app/Admin/AdminPages.php app/Application/Authorization/ActionCatalog.php app/Database/operational-schema.contract.json app/Infrastructure/Authorization/RuntimeCapabilityProvider.php app/architecture.manifest.json app/prontoo.php app/update.manifest.json br/index.php tools/authorization-scope-check.php version.json
+          git add ChangeLog.txt AUTHORIZATION-AUDIT-1.7.21.6.md app/Admin/AdminPages.php app/Application/Authorization/ActionCatalog.php app/Database/operational-schema.contract.json app/Infrastructure/Authorization/RuntimeCapabilityProvider.php app/architecture.manifest.json app/prontoo.php app/update.manifest.json br/index.php version.json
           git add -u tools/apply-auth-hotfix-1.7.21.6.py
           git commit -m "corrige autorização por escopo na 1.7.21.6"
           git push origin HEAD:agent/hotfix-1.7.21.6-authorization-scopes
