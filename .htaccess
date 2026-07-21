@@ -1,0 +1,110 @@
+Options -Indexes
+DirectoryIndex index.php
+FileETag None
+
+<FilesMatch "\.(?:md|sql|log|bak|tmp|zip|tar|gz|jsonl|lock|ini|sig|pem)$">
+    Require all denied
+</FilesMatch>
+
+<Files "error_log">
+    Require all denied
+</Files>
+
+<Files "install.php">
+    Require local
+</Files>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP_HOST} !^prontoo\.app$ [NC]
+    RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=301,L]
+
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=301,L]
+
+    RewriteRule ^app/ - [F,L]
+    RewriteRule ^storage/ - [F,L]
+    RewriteRule ^error_log$ - [F,L,NC]
+    RewriteRule ^robots\.txt$ br/index.php?asset=robots [QSA,L,NC]
+    RewriteRule ^sitemap\.xml$ br/index.php?asset=sitemap [QSA,L,NC]
+    RewriteRule ^llms\.txt$ br/index.php?asset=llms [QSA,L,NC]
+    RewriteRule ^pdfs/([A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf)$ index.php?r=document_pdf_file&file=$1 [QSA,L,NC]
+    RewriteRule ^pdfs/ - [F,L]
+    RewriteRule (^|/)\.[^/]+ - [F,L]
+    RewriteRule ^version\.json$ - [L]
+    RewriteRule \.(?:md|sql|log|bak|tmp|zip|tar|gz|json|jsonl|lock|ini|sig|pem)$ - [F,L,NC]
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header unset ETag
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    <Files "version.json">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+        Header set Content-Type "application/json; charset=utf-8"
+    </Files>
+
+    <FilesMatch "\.(?:css|js|png|svg|ico|webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresDefault "access plus 1 hour"
+</IfModule>
+
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php84” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php84___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
+
+# BEGIN cPanel-generated php ini directives, do not edit
+# Manual editing of this file may result in unexpected behavior.
+# To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+# For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+<IfModule php8_module>
+   php_flag display_errors Off
+   php_value max_execution_time 30
+   php_value max_input_time 60
+   php_value max_input_vars 1000
+   php_value memory_limit 128M
+   php_value post_max_size 20M
+   php_value upload_max_filesize 20M
+   php_flag zlib.output_compression Off
+</IfModule>
+<IfModule lsapi_module>
+   php_flag display_errors Off
+   php_value max_execution_time 30
+   php_value max_input_time 60
+   php_value max_input_vars 1000
+   php_value memory_limit 128M
+   php_value post_max_size 20M
+   php_value upload_max_filesize 20M
+   php_flag zlib.output_compression Off
+</IfModule>
+# END cPanel-generated php ini directives, do not edit

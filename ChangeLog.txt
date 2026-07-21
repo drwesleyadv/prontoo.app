@@ -1,0 +1,113 @@
+Prontoo 1.7.21.6 — autorização por escopo e contratos exatos
+- Corrige a ação de marcar Incidentes como resolvidos no Painel do Desenvolvedor.
+- Corrige preventivamente a liberação de bloqueios de login na tela Segurança.
+- Amplia testes de autorização para Desenvolvedor, Administrativo, Profissional, Assistente e Recepção.
+- Preserva integralmente banco, schema r7 e 62 tabelas.
+
+Prontoo 1.7.21.5 — maturação integral, runtime enxuto e cache JSON
+
+- Audita 100% dos 147 arquivos versionados e publica relatório verificável.
+- Remove a rotina histórica 1.7.14.8 do caminho de todas as requisições.
+- Carrega o instalador somente em install.php, preservando a restrição a localhost.
+- Suprime duplicações na composição dos módulos do runtime completo.
+- Memoiza diretórios do cache JSON e reduz operações repetidas de filesystem.
+- Adiciona cache JSON com escopo e invalidação para lookups da linha do tempo.
+- Remove comentários CSS de versões antigas sem alterar regras visuais.
+- Mantém schema r7, 62 tabelas, dados, interface e ativos funcionais.
+
+Prontoo 1.7.21.4 — contrato runtime e leitura de auditoria
+
+- Remove do `RuntimeContract` a dependência residual de `CleanInstallReset`, já eliminada no hardening anterior.
+- Corrige o filtro da auditoria compacta para usar o alias real `a.event_key`, eliminando os erros SQL 1054.
+- Adiciona verificação regressiva no workflow para impedir o retorno das duas referências inválidas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
+Prontoo 1.7.21.3 — instalador local e congelamento estrutural
+
+- Restringe `install.php` ao loopback e a host local explícito, com bloqueio no servidor web e antes do bootstrap PHP.
+- Rejeita cabeçalhos de proxy como prova de origem local.
+- Remove o redirecionamento público para o instalador quando a configuração estiver ausente.
+- Substitui a flag global de instalação por uma janela privada de mutação estrutural.
+- Remove a rotina histórica `CleanInstallReset`, capaz de apagar tabelas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
+Prontoo 1.7.21.2 — integração do instalador com o Guardião
+
+- Corrige a incompatibilidade de assinatura entre `run_schema_sql()` e `PiIntegrity::proveSchemaOperation()`.
+- Normaliza exclusivamente a chamada estrutural legada e extrai a tabela de `CREATE TABLE` canônico.
+- Faz o CI carregar o Guardião no mesmo caminho executado pela instalação real.
+- Certifica a criação integral das 62 tabelas em MySQL 8 partindo de banco vazio.
+- Não altera o schema SQL, a revisão r7, dados, interface ou ativos.
+
+Prontoo 1.7.21.1 — hotfix do instalador em banco com zero tabelas
+
+- Remove a invariante legada que exigia 75 tabelas no parser runtime do schema r7.
+- Faz o runtime comparar a coleção real de tabelas com o contrato operacional canônico: 60 tabelas preservadas, `pi_audit` redesenhada e `pi_action_ledger` nova.
+- Rejeita tabelas ausentes, inesperadas ou duplicadas antes de qualquer DDL.
+- Faz o CI chamar o mesmo `prontoo_schema_statements()` utilizado pelo instalador, evitando que validações paralelas ocultem divergências.
+- Certifica o fluxo completo `install_fresh_schema()` em MySQL 8 partindo de banco com zero tabelas.
+- Após criar as 62 tabelas, valida revisão, `schema.ready`, FKs, criação do primeiro usuário e `Seq` nativo de Pessoa e Usuário.
+- Mantém a revisão do banco `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`; não há nova mudança estrutural.
+
+Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
+
+- Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.
+- Preserva por contrato 60 definições de tabela da versão anterior, alterando somente a geração técnica da coluna `Seq`.
+- Mantém `Seq` em todas as 62 tabelas como `BIGINT UNSIGNED NOT NULL DEFAULT (UUID_SHORT())`, com índice único e sem tabela central `pi_sequence`.
+- Consolida autorização e prova de mutação em `pi_action_ledger`, uma única evidência persistente por ação protegida.
+- Substitui provas, eventos, lotes e estado de checksum por finalização do mesmo ledger após o commit.
+- Torna `pi_audit` autossuficiente e remove cinco tabelas de dicionário e seus upserts auxiliares.
+- Remove estruturas de apoio sem responsabilidade ativa: cabeças de cadeia, âncoras, integridade duplicada por registro e flags redundantes.
+- Reduz o schema de 75 para 62 tabelas sem alterar as tabelas operacionais preservadas.
+- Adiciona contrato de equivalência operacional por hash e teste real de instalação em MySQL 8.
+- Publica rotina protegida que apaga a instalação r6 somente quando o banco contém exclusivamente tabelas `pi_*`, remove configuração e locks e força o retorno ao instalador.
+- Bloqueia a limpeza automática diante de tabela externa ou revisão de schema desconhecida.
+
+Prontoo 1.7.20.3 — arquitetura PHP em camadas e verificabilidade contínua
+
+- Separa o fluxo de autorização em Domain, Application, Infrastructure, Presentation e Composition, mantendo o Core dedicado a decisões canônicas, mutações, isolamento, relações, workflows e integridade.
+- Move o catálogo de ações e o serviço de autorização para Application; capacidades reais são resolvidas por uma porta implementada em Infrastructure.
+- Move a persistência das provas operacionais para Infrastructure e reduz `ActionProof` a uma ponte fina de compatibilidade sem PDO ou regra de negócio.
+- Remove integralmente `Core/Invariant/ActionCapabilityCatalog.php` e `Core/Invariant/CapabilityInvariant.php`.
+- Retira autorização do `InvariantKernel`, que passa a representar exclusivamente o núcleo de invariantes de mutação e sua cadeia de provas.
+- Introduz `LayeredKernel` como raiz de composição para autorização, capacidade, prova e middleware HTTP.
+- Classifica todos os arquivos PHP versionados em camadas e exige cobertura arquitetural de 100%, com direção de dependências verificada automaticamente.
+- Adiciona validação entre catálogo, rotas, arquivos-fonte e ações literais; ações novas sem contrato passam a bloquear o CI.
+- Adiciona bloqueio de PDO fora de Infrastructure ou Composition nos arquivos nativos da arquitetura.
+- Adiciona manifesto arquitetural, documentação técnica, ferramenta de verificação e workflow obrigatório do GitHub Actions.
+- Mantém `enforce_action_integrity()` apenas como adaptador fino para compatibilidade com o dispatcher atual, sem lógica de autorização ou persistência.
+- Mantidos banco de dados, schema, interface, ativos e comportamento funcional dos módulos clínicos.
+
+Prontoo 1.7.20.2 — catálogo exato de capacidades por ação
+
+- Remove integralmente a autorização inferida somente pela rota e pela semântica aproximada do nome da ação.
+- Introduz catálogo canônico `rota + ação real → capacidades exigidas`, carregado como módulo arquitetural obrigatório.
+- Toda ação POST autenticada sem contrato explícito passa a ser recusada antes do handler e antes da invalidação de cache ou de qualquer efeito operacional.
+- Ações transversais declaram todas as capacidades diretamente exigidas, como emissão documental pela ficha, recebimento financeiro do paciente e conversão de Interessado em Paciente.
+- Efeitos automáticos de workflow, como sincronização financeira e atualização de tarefas após mudanças da Jornada, permanecem delegados e não ampliam a permissão geral do usuário.
+- Operações de caixa da Recepção continuam restritas ao conjunto exato de ações operacionais, sem conceder administração financeira ampla.
+- Ações públicas, de perfil, onboarding, consultório, equipe, permissões, Agenda, Pacientes, Documentos, Tarefas, Avisos, Financeiro, Maestro e administração global passam a possuir contratos explícitos.
+- O dispatcher passa a autorizar a ação antes da invalidação de cache e antes do descarte da dica de onboarding.
+- Adiciona autotestes determinísticos para ações desconhecidas, compostas, públicas, clínicas e globais.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e verificações legadas como defesa em profundidade.
+
+Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
+
+- Corrige a divergência introduzida pela decomposição da landing: `BR_LANDING_VERSION_FALLBACK` volta a ser declarado em `br/index.php`, arquivo efetivamente inspecionado pelo contrato canônico.
+- `br/runtime-core.php` passa a consumir o fallback já declarado, sem redefinição e sem mudança no HTML renderizado.
+- Elimina o fatal “Contrato de versão divergente: br/index.php” durante o carregamento do runtime.
+- Formaliza em `VERSIONING.md` a regra permanente `1.mês.dia.sequência`, com sequência reiniciada em `1` a cada novo dia de publicação.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e contratos da camada 2.
+
+Prontoo 1.7.17.4 — camada 2 por invariantes especializadas
+
+- A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relações e estado válido.
+- Capacidades são tratadas como conjuntos; a operação exigida deve pertencer integralmente ao conjunto efetivo do usuário no consultório ativo.
+- A prova de isolamento usa álgebra booleana conservadora no WHERE, valida todas as linhas de INSERT e impede alteração direta do clinic_id.
+- Relações entre tabelas com escopo são verificadas como arestas de um grafo de chaves estrangeiras, recusando vínculos inexistentes ou pertencentes a outro consultório.
+- A Jornada do Paciente passa a possuir autômato formal próprio, com aliases legados, estados iniciais e transições autorizadas verificadas antes da escrita.
+- As regras foram especializadas em arquivos distintos para Agenda, Pessoas, Tarefas e Avisos, Documentos, Financeiro, Maestro e Acessos.
+- O checksum transacional PiIntegrity permanece como prova persistente; o novo núcleo adiciona decisões e cadeia de provas canônicas por requisição.
+- Mantidos schema, banco de dados, interface, ativos, permissões configuradas e compatibilidade com a instalação atual.
+
+Histórico anterior preservado integralmente em ChangeLog.history.txt.
