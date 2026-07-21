@@ -1,4 +1,4 @@
-name: Apply Hardening 1.7.21.3 v3
+name: Apply Hardening 1.7.21.3 Final
 
 on:
   pull_request:
@@ -40,23 +40,38 @@ jobs:
           tools: none
           extensions: pdo_mysql
 
-      - name: Generate final hardening
+      - name: Recover and run certified generator
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import base64, gzip, re
-          from pathlib import Path
-          workflow = Path('.github/workflows/architecture.yml').read_text(encoding='utf-8')
-          source = Path('.github/workflows/apply-hardening-v3.yml').read_text(encoding='utf-8')
-          payload_source = Path('/tmp/original-architecture.yml')
+          import base64
+          import gzip
+          import re
           import subprocess
-          subprocess.run(['git', 'fetch', 'origin', 'main', '--depth=1'], check=True)
-          payload_source.write_text(subprocess.check_output(['git', 'show', 'FETCH_HEAD:.github/workflows/architecture.yml'], text=True), encoding='utf-8')
-          original = payload_source.read_text(encoding='utf-8')
-          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", original)
+          from pathlib import Path
+
+          historical = None
+          for revision in subprocess.check_output(
+              ['git', 'rev-list', '--max-count=40', 'HEAD'], text=True
+          ).splitlines():
+              try:
+                  candidate = subprocess.check_output(
+                      ['git', 'show', f'{revision}:.github/workflows/architecture.yml'],
+                      text=True,
+                      stderr=subprocess.DEVNULL,
+                  )
+              except subprocess.CalledProcessError:
+                  continue
+              if "base64 -d | gzip -d" in candidate:
+                  historical = candidate
+                  break
+          if historical is None:
+              raise RuntimeError('Workflow histórico com payload não encontrado.')
+
+          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", historical)
           if not match:
-              raise RuntimeError('Payload do aplicador não encontrado no histórico da branch.')
+              raise RuntimeError('Payload comprimido não encontrado no workflow histórico.')
           script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
           pairs = [
               ("    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',", "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',"),
@@ -66,108 +81,38 @@ jobs:
           ]
           for old, new in pairs:
               if old not in script:
-                  raise RuntimeError('Marcador de escape ausente: ' + old[:60])
+                  raise RuntimeError('Marcador de compatibilidade ausente: ' + old[:60])
               script = script.replace(old, new, 1)
           Path('/tmp/apply-hardening.py').write_text(script, encoding='utf-8')
           PY
 
-          git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          python3 /tmp/apply-hardening.py
-
           python3 - <<'PY'
-          import hashlib
-          import json
-          import re
           from pathlib import Path
-
-          access_path = Path('app/Core/Install/InstallAccess.php')
-          access = access_path.read_text(encoding='utf-8')
-          replacement = r'''    public static function requestHostFrom(array $server): string
-    {
-        $host = strtolower(trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
-        if ($host === '') {
-            return '';
-        }
-        if (str_starts_with($host, '[')) {
-            $end = strpos($host, ']');
-            return $end === false ? '' : substr($host, 1, $end - 1);
-        }
-        return preg_replace('/:\d+$/', '', $host) ?? '';
-    }
-
-    public static function requestHost(): string
-    {
-        return self::requestHostFrom($_SERVER);
-    }
-
-    public static function isLocalServer(array $server): bool
-    {
-        if (!self::isLoopbackAddress((string) ($server['REMOTE_ADDR'] ?? ''))) {
-            return false;
-        }
-        foreach (self::FORWARDED_HEADERS as $header) {
-            if (trim((string) ($server[$header] ?? '')) !== '') {
-                return false;
-            }
-        }
-        return in_array(self::requestHostFrom($server), self::LOCAL_HOSTS, true);
-    }
-
-    public static function isLocalHttpRequest(): bool
-    {
-        return PHP_SAPI !== 'cli' && self::isLocalServer($_SERVER);
-    }
-
-'''
-          access, count = re.subn(
-              r'    public static function requestHost\(\): string.*?(?=    public static function isLocalExecution\(\): bool)',
-              lambda _match: replacement,
-              access,
-              count=1,
-              flags=re.S,
-          )
-          if count != 1:
-              raise RuntimeError('Bloco de avaliação local não encontrado.')
-          access_path.write_text(access, encoding='utf-8')
-
-          security_path = Path('tools/install-security-check.php')
-          security = security_path.read_text(encoding='utf-8')
-          old = '$actual = InstallAccess::isLocalHttpRequest();'
-          new = '$actual = InstallAccess::isLocalServer($_SERVER);'
-          if old not in security:
-              raise RuntimeError('Chamada de teste local não encontrada.')
-          security_path.write_text(security.replace(old, new, 1), encoding='utf-8')
-
-          layer_path = Path('app/Core/Architecture/LayerMap.php')
-          layer = layer_path.read_text(encoding='utf-8')
-          marker = "        'app/Core/Architecture/',\n"
-          additions = (
-              marker +
-              "        'app/Core/Install/InstallAccess.php',\n" +
-              "        'app/Core/Database/SchemaMutationLock.php',\n" +
-              "        'tools/install-security-check.php',\n"
-          )
-          if "'app/Core/Install/InstallAccess.php'" not in layer:
-              if marker not in layer:
-                  raise RuntimeError('Mapa de camadas sem marcador nativo.')
-              layer = layer.replace(marker, additions, 1)
-              layer_path.write_text(layer, encoding='utf-8')
-
-          manifest_path = Path('app/update.manifest.json')
-          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          files = dict(manifest.get('files', {}))
-          files['app/Core/Architecture/LayerMap.php'] = ''
-          total = 0
-          for file in list(files):
-              data = Path(file).read_bytes()
-              files[file] = hashlib.sha256(data).hexdigest()
-              total += len(data)
-          manifest['files'] = files
-          manifest['file_count'] = len(files)
-          manifest['total_uncompressed_bytes'] = total
-          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          source = Path('.github/workflows/apply-hardening-v3.yml').read_text(encoding='utf-8')
+          marker = "          python3 - <<'PY'\n"
+          positions = []
+          start = 0
+          while True:
+              pos = source.find(marker, start)
+              if pos < 0:
+                  break
+              positions.append(pos)
+              start = pos + len(marker)
+          if len(positions) < 2:
+              raise RuntimeError('Finalizador v3 não encontrado.')
+          body_start = positions[1] + len(marker)
+          body_end = source.find('          PY\n', body_start)
+          if body_end < 0:
+              raise RuntimeError('Fim do finalizador v3 não encontrado.')
+          lines = source[body_start:body_end].splitlines()
+          body = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n'
+          Path('/tmp/finalize-hardening.py').write_text(body, encoding='utf-8')
           PY
 
+          git fetch origin main --depth=1
+          git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
+          python3 /tmp/apply-hardening.py
+          python3 /tmp/finalize-hardening.py
           rm -f .github/workflows/apply-hardening-v3.yml
 
       - name: Validate final hardening
