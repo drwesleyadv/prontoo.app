@@ -29,7 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -89,6 +88,11 @@ jobs:
             }
           '
 
+      - name: Installer access and schema freeze
+        shell: bash
+        run: |
+          php tools/install-security-check.php | tee install-security-report.json
+
       - name: Static schema contract with Guardian loaded
         shell: bash
         run: |
@@ -109,7 +113,6 @@ jobs:
           set -o pipefail
           php tools/architecture-check.php | tee architecture-report.json
 
-
       - name: Upload architecture report
         if: always()
         uses: actions/upload-artifact@v4
@@ -118,5 +121,6 @@ jobs:
           path: |
             architecture-report.json
             schema-report.json
+            install-security-report.json
           if-no-files-found: error
           retention-days: 7

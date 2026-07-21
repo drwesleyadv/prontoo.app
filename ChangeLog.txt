@@ -1,3 +1,12 @@
+Prontoo 1.7.21.3 — instalador local e congelamento estrutural
+
+- Restringe `install.php` ao loopback e a host local explícito, com bloqueio no servidor web e antes do bootstrap PHP.
+- Rejeita cabeçalhos de proxy como prova de origem local.
+- Remove o redirecionamento público para o instalador quando a configuração estiver ausente.
+- Substitui a flag global de instalação por uma janela privada de mutação estrutural.
+- Remove a rotina histórica `CleanInstallReset`, capaz de apagar tabelas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
 Prontoo 1.7.21.2 — integração do instalador com o Guardião
 
 - Corrige a incompatibilidade de assinatura entre `run_schema_sql()` e `PiIntegrity::proveSchemaOperation()`.

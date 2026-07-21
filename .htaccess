@@ -10,6 +10,10 @@ FileETag None
     Require all denied
 </Files>
 
+<Files "install.php">
+    Require local
+</Files>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

@@ -265,12 +265,15 @@ function db_log_query_failure(Throwable $error, string $sql): void
 
 function db_reject_runtime_ddl(string $sql): void
 {
+    if (!preg_match("/^\s*(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i", $sql)) {
+        return;
+    }
     if (
-        preg_match("/^\s*(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i", $sql) &&
-        empty($GLOBALS["PRONTOO_SCHEMA_INSTALLING"])
+        !class_exists("\\Prontoo\\Core\\Database\\SchemaMutationLock") ||
+        !\Prontoo\Core\Database\SchemaMutationLock::isActive()
     ) {
         throw new RuntimeException(
-            "Alteração estrutural do banco fora da instalação limpa foi bloqueada.",
+            "A estrutura do banco está congelada fora da janela privada do instalador.",
         );
     }
 }
@@ -1062,10 +1065,13 @@ function db_schema_error_is_missing_table(Throwable $error): bool
 
 function run_schema_sql(string $sql): void
 {
-    if (empty($GLOBALS["PRONTOO_SCHEMA_INSTALLING"])) {
-        throw new RuntimeException("Comando estrutural fora da instalação.");
+    if (
+        !class_exists("\\Prontoo\\Core\\Database\\SchemaMutationLock") ||
+        !\Prontoo\Core\Database\SchemaMutationLock::isActive()
+    ) {
+        throw new RuntimeException("Comando estrutural fora da janela privada do instalador.");
     }
-    if (!preg_match("/^\s*CREATE\s+TABLE\b/i", $sql)) {
+if (!preg_match("/^\s*CREATE\s+TABLE\b/i", $sql)) {
         throw new RuntimeException(
             "Somente CREATE TABLE canônico é permitido.",
         );
@@ -1291,7 +1297,8 @@ function schema_seed_meta(): void
 
 function schema_cleanup_failed_install(array $tables): void
 {
-    $connection = pdo();
+        \Prontoo\Core\Database\SchemaMutationLock::assertActive();
+$connection = pdo();
     $connection->exec("SET FOREIGN_KEY_CHECKS=0");
     try {
         foreach (array_reverse($tables) as $table) {
@@ -1304,7 +1311,8 @@ function schema_cleanup_failed_install(array $tables): void
 
 function install_fresh_schema(): void
 {
-    $connection = pdo();
+        \Prontoo\Core\Database\SchemaMutationLock::assertActive();
+$connection = pdo();
     $tableCount = (int) $connection
         ->query(
             "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()",
@@ -1315,7 +1323,6 @@ function install_fresh_schema(): void
     }
 
     $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
-    $GLOBALS["PRONTOO_SCHEMA_INSTALLING"] = true;
     $created = [];
     try {
         foreach (prontoo_schema_statements() as $statement) {
@@ -1339,10 +1346,7 @@ function install_fresh_schema(): void
         prontoo_fs_unlink(schema_lock_file());
         throw $error;
     } finally {
-        unset(
-            $GLOBALS["PRONTOO_SCHEMA_INSTALLING"],
-            $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"],
-        );
+        unset($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"]);
     }
 }
 

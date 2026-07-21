@@ -14,6 +14,9 @@ final class LayerMap
 
     private const NATIVE_PREFIXES = [
         'app/Core/Architecture/',
+        'app/Core/Install/InstallAccess.php',
+        'app/Core/Database/SchemaMutationLock.php',
+        'app/Core/Database/SchemaHardening.php',
         'app/Domain/Authorization/',
         'app/Application/',
         'app/Infrastructure/',
