@@ -1,0 +1,168 @@
+-    "app/Support/Foundation.php": "265d83eabf831153850736764a34388cf28aeab71a64514b6dd44c7ff24df9de",
+-    "app/Support/SeqFooter.php": "4e5e5d5a9a7eafe7f81cf9fa8bc20156bafa86d35ca71e3da780474d5c192f5d",
+-    "app/architecture.manifest.json": "c262f166ee6d2efa062503de1b50dd6b4a5846f476e89f98cb77687264f5183c",
+-    "app/bootstrap_architecture.php": "24eecedf6c70dbfea25a9040078595bdbf2e8cf9eba74096fb1ec26449f65a76",
+-    "app/prontoo.php": "28557218952cfce95bef97fdaffb95dc18b76f5b350c854c718084f739f5cd6f",
+-    "br/index.php": "6add9064b749762ce15554fa3024ba71121ccefd2400f094b4ec61234b9036d8",
+-    "tools/schema-check.php": "bf50451c59ea6f6d74175d28b091f092f55b382b70309ae9c9747e3493b5a7af",
+-    "version.json": "bb68da18e7c1ef6bae1e519ef1dec0dc754958a22c5816e7b472382e79ce9385"
++    ".github/workflows/architecture.yml": "49dcfd1c60191398d9f6000be1e37356661d184d13aa6125e78574948ed116e7",
++    "ChangeLog.txt": "03efb7037b62da3fe3b671b002ba42fca89e31fad1d6c97f78c0865366c6e781",
++    "HOTFIX-1.7.21.1.md": "065c98b56054b158ce6a3e502489471c58613d089909ac6df4b7a08ded029afe",
++    "app/Database/DatabaseSchema.php": "af988a03f32325cdc3583bfcc5ced421a3660340da7e5907c90cf542a157184e",
++    "app/Database/operational-schema.contract.json": "7ea380a85cf2eac59e83fbfac4e6c29dd0bb443360e4a144f153f04520c58d07",
++    "app/architecture.manifest.json": "be4c57fe1f46b455f619fd9d6ba848ef9cef2d75925a3a3ad79834146c633673",
++    "app/prontoo.php": "b4a0e921ba6e2c15e7420463d2248313ef091977d808037f5a6942304a7d4237",
++    "br/index.php": "a85de5751c26c0a3ea679cf086e9c56a769f0c98dbef4233278540c54426eaf8",
++    "tools/schema-check.php": "15aa739793e46d09152319d7208c6272eb71cfcb011b924e0d4827ef7cacbd80",
++    "version.json": "6afb7f90068225714ca4a99f0d92de1bc93ca4e3bb79cd142f9cbedfe30c8a19"
+   },
+   "removed_files": [
+     "app/Core/Invariant/ActionCapabilityCatalog.php",
+diff -ruN '--exclude=.git' prontoo_main/br/index.php prontoo_current/br/index.php
+--- prontoo_main/br/index.php	2026-07-21 12:14:25.343637934 +0000
++++ prontoo_current/br/index.php	2026-07-21 12:13:29.652207204 +0000
+@@ -1,6 +1,6 @@
+ <?php
+ declare(strict_types=1);
+-const BR_LANDING_VERSION_FALLBACK = "1.7.20.6";
++const BR_LANDING_VERSION_FALLBACK = "1.7.21.1";
+ require __DIR__ . "/runtime-core.php";
+ require __DIR__ . "/runtime-telemetry.php";
+ require __DIR__ . "/runtime-data.php";
+diff -ruN '--exclude=.git' prontoo_main/tools/schema-check.php prontoo_current/tools/schema-check.php
+--- prontoo_main/tools/schema-check.php	2026-07-21 12:14:25.343929990 +0000
++++ prontoo_current/tools/schema-check.php	2026-07-21 12:12:20.215999758 +0000
+@@ -7,15 +7,65 @@
+ $schema = (string) file_get_contents($schemaFile);
+ $contract = json_decode((string) file_get_contents($contractFile), true, 512, JSON_THROW_ON_ERROR);
+ 
++if (!defined('PRONTOO_SCHEMA_REV')) {
++    define('PRONTOO_SCHEMA_REV', 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger');
++}
++if (!defined('PRONTOO_MIN_MYSQL_VERSION')) {
++    define('PRONTOO_MIN_MYSQL_VERSION', '8.0.30');
++}
++$GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [];
++$GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid();
++if (!function_exists('cfg')) {
++    function cfg(): array
++    {
++        return (array) ($GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] ?? []);
++    }
++}
++if (!function_exists('storage_path')) {
++    function storage_path(string $path = ''): string
++    {
++        $base = rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
++        return $path === '' ? $base : $base . '/' . ltrim($path, '/');
++    }
++}
++if (!function_exists('prontoo_fs_chmod')) {
++    function prontoo_fs_chmod(string $path, int $mode, bool $required = true): bool
++    {
++        return !file_exists($path) || @chmod($path, $mode);
++    }
++}
++if (!function_exists('prontoo_fs_unlink')) {
++    function prontoo_fs_unlink(string $path, bool $required = true): bool
++    {
++        return !file_exists($path) || @unlink($path);
++    }
++}
++require_once $root . '/app/Database/DatabaseSchema.php';
++
+ preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
+ $blocks = [];
+ foreach ($matches as $match) {
+     $blocks[(string) $match[1]] = (string) $match[0];
+ }
+ $errors = [];
+-if (count($blocks) !== 62) {
++$expectedTables = prontoo_schema_expected_table_names();
++$expectedTableCount = count($expectedTables);
++if (count($blocks) !== $expectedTableCount) {
+     $errors[] = 'schema_table_count:' . count($blocks);
+ }
++$blockNames = array_keys($blocks);
++sort($blockNames, SORT_STRING);
++if ($blockNames !== $expectedTables) {
++    $errors[] = 'schema_table_set_divergent';
++}
++try {
++    $runtimeStatements = prontoo_schema_statements();
++    if (count($runtimeStatements) !== $expectedTableCount) {
++        $errors[] = 'runtime_schema_statement_count:' . count($runtimeStatements);
++    }
++} catch (Throwable $error) {
++    $errors[] = 'runtime_schema_contract:' . $error->getMessage();
++}
+ if (isset($blocks['pi_sequence'])) {
+     $errors[] = 'legacy_sequence_table_present';
+ }
+@@ -121,7 +171,7 @@
+         $errors[] = 'native_seq_runtime_order';
+     }
+     $tableCount = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'")->fetchColumn();
+-    if ($tableCount !== 62) {
++    if ($tableCount !== $expectedTableCount) {
+         $errors[] = 'mysql_table_count:' . $tableCount;
+     }
+     $mysqlVersion = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
+@@ -168,6 +218,68 @@
+         $errors[] = 'clean_reset_foreign_table_guard';
+     }
+     $dropAll($pdo);
++
++    $dsnParts = [];
++    foreach (explode(';', preg_replace('/^mysql:/', '', $dsn) ?? '') as $part) {
++        [$key, $value] = array_pad(explode('=', $part, 2), 2, '');
++        if ($key !== '') {
++            $dsnParts[$key] = $value;
++        }
++    }
++    $GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [
++        'db_host' => (string) ($dsnParts['host'] ?? '127.0.0.1'),
++        'db_name' => (string) ($dsnParts['dbname'] ?? 'prontoo_schema'),
++        'db_user' => getenv('PRONTOO_SCHEMA_USER') ?: 'root',
++        'db_pass' => getenv('PRONTOO_SCHEMA_PASS') ?: '',
++    ];
++    $storage = storage_path();
++    if (!is_dir($storage) && !mkdir($storage, 0750, true) && !is_dir($storage)) {
++        throw new RuntimeException('Não foi possível criar storage temporário do instalador.');
++    }
++    prontoo_schema_clear_caches();
++    install_fresh_schema();
++    $runtimePdo = pdo();
++    $installedCount = (int) $runtimePdo->query(
++        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
++    )->fetchColumn();
++    if ($installedCount !== $expectedTableCount) {
++        $errors[] = 'runtime_install_table_count:' . $installedCount;
++    }
++    $installedRevision = (string) ($runtimePdo->query(
++        "SELECT meta_value FROM pi_meta WHERE meta_key='schema_revision' LIMIT 1",
++    )?->fetchColumn() ?: '');
++    if (!hash_equals(PRONTOO_SCHEMA_REV, $installedRevision)) {
++        $errors[] = 'runtime_install_schema_revision';
++    }
++    if (!is_file(schema_lock_file())) {
++        $errors[] = 'runtime_install_schema_lock_missing';
++    }
++    $now = time();
++    $person = $runtimePdo->prepare(
++        'INSERT INTO pi_persons (full_name,cpf,created_at) VALUES (?,?,?)',
++    );
++    $person->execute(['Instalador CI', '52998224725', $now]);
++    $personId = (int) $runtimePdo->lastInsertId();
++    $user = $runtimePdo->prepare(
++        'INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,1,1,?)',
++    );
++    $user->execute([
++        $personId,
++        'Instalador CI',
++        'installer-ci@example.invalid',
++        password_hash('Prontoo-CI-2026', PASSWORD_DEFAULT),
++        $now,
++    ]);
++    $userId = (int) $runtimePdo->lastInsertId();
