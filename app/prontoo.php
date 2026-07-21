@@ -164,7 +164,7 @@ const PRONTOO_TENANT_INTEGRITY_STRICT = true;
 const PRONTOO_AUDIT_PAGE_VIEWS = false;
 const PRONTOO_AUDIT_COMPACT = true;
 const PRONTOO_ADMIN_CACHE_TTL = 60;
-const PRONTO_HOT_LIST_LIMIT = 50;
+const PRONTOO_HOT_LIST_LIMIT = 50;
 const PRONTOO_ADMIN_LIST_LIMIT = 100;
 const PRONTOO_DASHBOARD_COUNTER_TTL = 45;
 const PRONTOO_TELEMETRY_SAMPLE_RATE = 10;
@@ -172,7 +172,7 @@ const PRONTOO_SERVER_JSON_CACHE = true;
 const PRONTOO_SERVER_JSON_CACHE_POLICY = "server-storage-only-domain-invalidated-short-ttl";
 const PRONTOO_PERFORMANCE_CHARTS_POLICY = "dual-area-speed-label-no-dual-legend-one-row";
 const PRONTOO_CMD_BAR_SHAPE_POLICY = "square-container-rounded-actions";
-if (PHP_SAPI === "cli") {
+if (PHP_SAPI !== "cli") {
     ini_set("log_errors", "1");
     if (
         is_file(PRONTOO_ROOT . "/app/config.php") ||
@@ -202,7 +202,7 @@ function prontoo_configure_runtime_error_log(): void
 }
 prontoo_configure_runtime_error_log();
 if (version_compare(PHP_VERSION, PRONTOO_MIN_PHP_VERSION, "<")) {
-    if (PHP_SAPI === "cli" && !headers_sent()) {
+    if (PHP_SAPI !== "cli" && !headers_sent()) {
         http_response_code(500);
         header("Content-Type: text/plain; charset=utf-8");
     }
@@ -408,7 +408,7 @@ function prontoo_force_clean_install_1_7_21_1(): void
     }
     prontoo_fs_chmod($marker, 0640);
 
-    if (PHP_SAPI === "cli") {
+    if (PHP_SAPI !== "cli") {
         if (!headers_sent()) {
             header("Location: /install.php", true, 302);
         }

@@ -68,10 +68,10 @@ Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
 
 Prontoo 1.7.17.4 — camada 2 por invariantes especializadas
 
-- A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relqções e estado válido.
+- A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relações e estado válido.
 - Capacidades são tratadas como conjuntos; a operação exigida deve pertencer integralmente ao conjunto efetivo do usuário no consultório ativo.
 - A prova de isolamento usa álgebra booleana conservadora no WHERE, valida todas as linhas de INSERT e impede alteração direta do clinic_id.
-- Relqções entre tabelas com escopo são verificadas como arestas de um grafo de chaves estrangeiras, recusando vínculos inexistentes ou pertencentes a outro consultório.
+- Relações entre tabelas com escopo são verificadas como arestas de um grafo de chaves estrangeiras, recusando vínculos inexistentes ou pertencentes a outro consultório.
 - A Jornada do Paciente passa a possuir autômato formal próprio, com aliases legados, estados iniciais e transições autorizadas verificadas antes da escrita.
 - As regras foram especializadas em arquivos distintos para Agenda, Pessoas, Tarefas e Avisos, Documentos, Financeiro, Maestro e Acessos.
 - O checksum transacional PiIntegrity permanece como prova persistente; o novo núcleo adiciona decisões e cadeia de provas canônicas por requisição.

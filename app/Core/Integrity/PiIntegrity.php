@@ -298,7 +298,7 @@ final class PiIntegrity
 
             if ($ledgerId > 0) {
                 $statement = $pdo->prepare(
-                    "UPDATE pi_action_ledger SET status='committed',mutation_hash=?,mutation_count=?,affected_tables_json=? ,mutation_json=?,finalized_at=? WHERE id=? AND allowed=1",
+                    "UPDATE pi_action_ledger SET status='committed',mutation_hash=?,mutation_count=?,affected_tables_json=?,mutation_json=?,finalized_at=? WHERE id=? AND allowed=1",
                 );
                 $statement->execute([
                     $mutationHash,
@@ -318,7 +318,7 @@ final class PiIntegrity
                     self::secret(),
                 );
                 $statement = $pdo->prepare(
-                    "INSERT INTO pi_action_ledger (request_id,clinic_id,user_id,route,action_key,module_key,operation_key,scope,role_code,allowed,status,reason,authorization_hash,mutation_hash,mutation_count,affected_tables_json,mutation_json,context_json,policy_version,created_at,finalized_at) VALUES (?,?,?,?,?,?,?,?,?,1,'committed',?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO pi_action_ledger (request_id,clinic_id,user_id,route,action_key,module_key,operation_key,scope,role_code,allowed,status,reason,authorization_hash,mutation_hash,mutation_count,affected_tables_json,mutation_json,context_json,policy_version,created_at,finalized_at) VALUES (?,?,?,?,?,?,?,?,?,1,'committed',?,?,?,?,?,?,?,?,?,?)",
                 );
                 $statement->execute([
                     $requestId,
