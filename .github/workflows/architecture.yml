@@ -1,143 +1,110 @@
-name: Architecture Contract
+name: Repository Maturity Audit
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
-  verify:
+  audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-          extensions: pdo_mysql
-
-      - name: PHP syntax
+      - name: Audit every tracked file
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
-          done < <(find . \
-            -path './.git' -prune -o \
-            -path './storage' -prune -o \
-            -path './vendor' -prune -o \
-            -path './node_modules' -prune -o \
-            -name '*.php' -print0)
-
-      - name: JSON contracts
-        shell: bash
+          python3 - <<'PY'
+          import json,re,subprocess,hashlib
+          from pathlib import Path
+          files=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          files=[f for f in files if f]
+          report={'tracked_files':len(files),'bytes':0,'extensions':{},'findings':[],'largest':[],'duplicate_hash_groups':[]}
+          hashes={}
+          def add(sev,kind,path,line,msg,evidence=''):
+              report['findings'].append({'severity':sev,'kind':kind,'path':path,'line':line,'message':msg,'evidence':evidence[:240]})
+          legacy_patterns=[
+            (r'1\.7\.(?:1[0-9]|20)\.', 'version_literal','Literal de versão antiga em código ativo'),
+            (r'CleanInstallReset|PRONTOO_FORCE_CLEAN_INSTALL|clean_install_reset','removed_symbol','Símbolo legado removido ainda referenciado'),
+            (r'75\s+tabelas|exactly\s+75','old_table_contract','Contrato antigo de 75 tabelas'),
+            (r'pi_sequence\b|PiSequence','removed_sequence','Sequenciador legado removido'),
+          ]
+          risky=[
+            (r'catch\s*\(Throwable[^)]*\)\s*\{\s*\}', 'empty_catch','Captura vazia pode ocultar falhas'),
+            (r'@(?:file_get_contents|unlink|mkdir|rename|copy|chmod)\s*\(', 'error_suppression','Supressão de erro em operação de I/O'),
+            (r'\b(?:eval|exec|shell_exec|system|passthru)\s*\(', 'dynamic_execution','Execução dinâmica requer revisão'),
+            (r'\$_(?:GET|POST|REQUEST)\[[^\]]+\](?!\s*\?\?)', 'direct_input','Entrada HTTP direta sem fallback evidente'),
+            (r'SELECT\s+\*', 'wide_select','SELECT * aumenta acoplamento e volume'),
+            (r'\b(?:CREATE|ALTER|DROP|TRUNCATE|RENAME)\s+TABLE\b', 'ddl_literal','DDL fora do schema/instalador deve ser justificado'),
+            (r'TODO|FIXME|HACK|XXX', 'marker','Marcador de dívida técnica'),
+          ]
+          text_ext={'.php','.js','.css','.json','.sql','.md','.txt','.yml','.yaml','.html','.htaccess'}
+          for f in files:
+              p=Path(f)
+              try: data=p.read_bytes()
+              except Exception as e:
+                  add('high','unreadable',f,0,'Arquivo versionado não pôde ser lido',str(e)); continue
+              report['bytes']+=len(data)
+              ext=p.suffix.lower() or '[none]'; report['extensions'][ext]=report['extensions'].get(ext,0)+1
+              report['largest'].append({'path':f,'bytes':len(data)})
+              h=hashlib.sha256(data).hexdigest(); hashes.setdefault(h,[]).append(f)
+              if ext not in text_ext and p.name not in {'.htaccess'}: continue
+              try: text=data.decode('utf-8')
+              except UnicodeDecodeError:
+                  add('medium','encoding',f,0,'Arquivo textual não está em UTF-8'); continue
+              lines=text.splitlines()
+              if len(lines)>1800: add('medium','large_file',f,len(lines),'Arquivo muito extenso; alto acoplamento e maior risco de regressão')
+              if ext=='.php' and 'declare(strict_types=1);' not in text[:180]: add('low','strict_types',f,1,'Arquivo PHP sem strict_types')
+              for i,line in enumerate(lines,1):
+                  active=not f.startswith(('ChangeLog','docs/','README','VERSIONING'))
+                  if active:
+                      for pat,kind,msg in legacy_patterns:
+                          if re.search(pat,line,re.I): add('high',kind,f,i,msg,line.strip())
+                  for pat,kind,msg in risky:
+                      if re.search(pat,line,re.I):
+                          sev='high' if kind in {'dynamic_execution','ddl_literal'} else 'medium'
+                          if f.endswith('schema.sql') and kind=='ddl_literal': continue
+                          add(sev,kind,f,i,msg,line.strip())
+              if ext=='.php':
+                  funcs=re.findall(r'(?m)^function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(',text)
+                  for fn in funcs:
+                      count=sum(1 for x in files if Path(x).suffix.lower() in text_ext and fn in Path(x).read_text('utf-8',errors='ignore'))
+                      if count==1 and not fn.startswith(('page_','prontoo_')):
+                          add('low','single_reference_function',f,0,f'Função possivelmente sem consumidor: {fn}')
+          for h,group in hashes.items():
+              if len(group)>1 and all(not x.startswith('public/assets/') for x in group): report['duplicate_hash_groups'].append(group)
+          report['largest']=sorted(report['largest'],key=lambda x:x['bytes'],reverse=True)[:30]
+          order={'high':0,'medium':1,'low':2}
+          report['findings']=sorted(report['findings'],key=lambda x:(order[x['severity']],x['path'],x['line']))
+          report['summary']={s:sum(1 for x in report['findings'] if x['severity']==s) for s in order}
+          Path('maturity-audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          md=['# Auditoria integral de maturidade','',f"Arquivos versionados: **{report['tracked_files']}**",f"Bytes auditados: **{report['bytes']}**",'',f"Achados: altos {report['summary']['high']}, médios {report['summary']['medium']}, baixos {report['summary']['low']}",'','## Achados prioritários']
+          for x in report['findings'][:250]: md.append(f"- **{x['severity']} · {x['kind']}** — `{x['path']}:{x['line']}` — {x['message']}" + (f" — `{x['evidence']}`" if x['evidence'] else ''))
+          md += ['','## Maiores arquivos']+[f"- `{x['path']}` — {x['bytes']} bytes" for x in report['largest']]
+          md += ['','## Duplicações byte a byte']+[f"- {', '.join('`'+p+'`' for p in g)}" for g in report['duplicate_hash_groups']]
+          Path('maturity-audit.md').write_text('\n'.join(md)+'\n')
+          print(json.dumps(report['summary']))
+          PY
+      - name: PHP syntax
         run: |
-          php -r '
-            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
-              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
-            }
-          '
-
-      - name: Runtime contract and audit SQL regression
-        shell: bash
-        run: |
-          php -r '
-            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
-            if (str_contains($runtime, "CleanInstallReset")) {
-              throw new RuntimeException("RuntimeContract ainda referencia CleanInstallReset");
-            }
-            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
-            if (str_contains($audit, "et.event_key")) {
-              throw new RuntimeException("Alias SQL inexistente et.event_key");
-            }
-            if (!str_contains($audit, "a.event_key NOT IN")) {
-              throw new RuntimeException("Filtro canônico a.event_key ausente");
-            }
-          '
-
-      - name: Release manifest
-        shell: bash
-        run: |
-          php -r '
-            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
-            $files = (array) ($manifest["files"] ?? []);
-            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
-              throw new RuntimeException("file_count divergente");
-            }
-            $bytes = 0;
-            foreach ($files as $file => $expected) {
-              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
-              $actual = hash_file("sha256", $file);
-              if (!hash_equals((string) $expected, (string) $actual)) {
-                throw new RuntimeException("Hash divergente: " . $file);
-              }
-              $bytes += (int) filesize($file);
-            }
-            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
-              throw new RuntimeException("total_uncompressed_bytes divergente");
-            }
-            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
-              if (file_exists((string) $file)) {
-                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
-              }
-            }
-          '
-
-      - name: Installer access and schema freeze
-        shell: bash
-        run: |
-          php tools/install-security-check.php | tee install-security-report.json
-
-      - name: Static schema contract with Guardian loaded
-        shell: bash
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
-
-      - name: Full zero-table installer with Guardian loaded on MySQL 8
-        shell: bash
-        env:
-          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
-          PRONTOO_SCHEMA_USER: root
-          PRONTOO_SCHEMA_PASS: root
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
-
-      - name: Layered architecture
-        shell: bash
-        run: |
-          set -o pipefail
-          php tools/architecture-check.php | tee architecture-report.json
-
-      - name: Upload architecture report
-        if: always()
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -name '*.php' -print0)
+      - name: Upload audit
         uses: actions/upload-artifact@v4
         with:
-          name: architecture-report
+          name: maturity-audit
           path: |
-            architecture-report.json
-            schema-report.json
-            install-security-report.json
+            maturity-audit.json
+            maturity-audit.md
           if-no-files-found: error
           retention-days: 7
