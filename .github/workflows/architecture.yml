@@ -88,19 +88,19 @@ jobs:
             }
           '
 
-      - name: Static schema contract
+      - name: Static schema contract with Guardian loaded
         shell: bash
         run: |
-          php tools/schema-check.php
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
 
-      - name: Full zero-table installer on MySQL 8
+      - name: Full zero-table installer with Guardian loaded on MySQL 8
         shell: bash
         env:
           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
           PRONTOO_SCHEMA_USER: root
           PRONTOO_SCHEMA_PASS: root
         run: |
-          php tools/schema-check.php | tee schema-report.json
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
 
       - name: Layered architecture
         shell: bash
