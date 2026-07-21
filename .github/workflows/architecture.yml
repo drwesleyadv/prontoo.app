@@ -38,7 +38,10 @@ jobs:
           tools: none
           extensions: pdo_mysql
       - name: Apply maturity changes
-        run: python3 tools/apply-maturity-1.7.21.5.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 tools/apply-maturity-1.7.21.5.py 2>&1 | tee maturity-apply.log
       - name: Validate all tracked files and runtime contracts
         shell: bash
         env:
@@ -72,3 +75,11 @@ jobs:
           git add -A
           git commit -m "amadurece runtime e cache JSON na 1.7.21.5"
           git push origin HEAD:agent/maturity-audit-1.7.21.5
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maturity-apply-diagnostics
+          path: maturity-apply.log
+          if-no-files-found: warn
+          retention-days: 7
