@@ -61,6 +61,7 @@ jobs:
           '
 
       - name: Release manifest
+        if: github.event_name == 'push'
         shell: bash
         run: |
           php -r '
