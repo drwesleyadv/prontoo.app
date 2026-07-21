@@ -24,7 +24,8 @@ jobs:
         shell: bash
         run: |
           set -u
-          find .hotfix -maxdepth 1 -type f -name 'part.*' -print0 | sort -z | xargs -0 cat > hotfix.patch
+          head -n -3 .hotfix/part.00 > hotfix.patch
+          cat .hotfix/part.01 .hotfix/part.02 .hotfix/part.03 >> hotfix.patch
           sha256sum hotfix.patch | tee hotfix-hash.txt
           find .hotfix -maxdepth 1 -type f -printf '%f %s\n' | sort > hotfix-files.txt
           find .hotfix -maxdepth 1 -type f -name 'part.*' -print0 | sort -z | xargs -0 sha256sum > hotfix-parts.txt
