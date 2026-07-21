@@ -60,6 +60,23 @@ jobs:
             }
           '
 
+      - name: Runtime contract and audit SQL regression
+        shell: bash
+        run: |
+          php -r '
+            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
+            if (str_contains($runtime, "CleanInstallReset")) {
+              throw new RuntimeException("RuntimeContract ainda referencia CleanInstallReset");
+            }
+            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
+            if (str_contains($audit, "et.event_key")) {
+              throw new RuntimeException("Alias SQL inexistente et.event_key");
+            }
+            if (!str_contains($audit, "a.event_key NOT IN")) {
+              throw new RuntimeException("Filtro canônico a.event_key ausente");
+            }
+          '
+
       - name: Release manifest
         shell: bash
         run: |

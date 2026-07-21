@@ -13,7 +13,6 @@ use Prontoo\Domain\Authorization\ActionContract;
 use Prontoo\Infrastructure\Audit\PdoActionProofStore;
 use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
 use Prontoo\Infrastructure\Database\SeqContract;
-use Prontoo\Infrastructure\Database\CleanInstallReset;
 use Prontoo\Presentation\Http\ActionMiddleware;
 use Prontoo\Runtime\LayeredKernel;
 
@@ -69,7 +68,6 @@ final class RuntimeContract
             AuthorizationService::class,
             RuntimeCapabilityProvider::class,
             SeqContract::class,
-            CleanInstallReset::class,
             PdoActionProofStore::class,
             ActionMiddleware::class,
             LayeredKernel::class,
