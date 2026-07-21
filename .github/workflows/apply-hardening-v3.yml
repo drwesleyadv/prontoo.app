@@ -1,0 +1,194 @@
+name: Apply Hardening 1.7.21.3 v3
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  apply:
+    if: github.event.pull_request.number == 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: Generate final hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, gzip, re
+          from pathlib import Path
+          workflow = Path('.github/workflows/architecture.yml').read_text(encoding='utf-8')
+          match = re.search(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d", workflow)
+          if not match:
+              raise RuntimeError('Payload do aplicador não encontrado.')
+          script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
+          pairs = [
+              ("    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',", "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',"),
+              ("    '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',", "    lambda _match: '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',"),
+              ("    '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {", "    lambda _match: '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {"),
+              ("    '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(", "    lambda _match: '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller("),
+          ]
+          for old, new in pairs:
+              if old not in script:
+                  raise RuntimeError('Marcador de escape ausente: ' + old[:60])
+              script = script.replace(old, new, 1)
+          Path('/tmp/apply-hardening.py').write_text(script, encoding='utf-8')
+          PY
+          git fetch origin main --depth=1
+          git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
+          python3 /tmp/apply-hardening.py
+
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+
+          access_path = Path('app/Core/Install/InstallAccess.php')
+          access = access_path.read_text(encoding='utf-8')
+          replacement = r'''    public static function requestHostFrom(array $server): string
+    {
+        $host = strtolower(trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
+        if ($host === '') {
+            return '';
+        }
+        if (str_starts_with($host, '[')) {
+            $end = strpos($host, ']');
+            return $end === false ? '' : substr($host, 1, $end - 1);
+        }
+        return preg_replace('/:\d+$/', '', $host) ?? '';
+    }
+
+    public static function requestHost(): string
+    {
+        return self::requestHostFrom($_SERVER);
+    }
+
+    public static function isLocalServer(array $server): bool
+    {
+        if (!self::isLoopbackAddress((string) ($server['REMOTE_ADDR'] ?? ''))) {
+            return false;
+        }
+        foreach (self::FORWARDED_HEADERS as $header) {
+            if (trim((string) ($server[$header] ?? '')) !== '') {
+                return false;
+            }
+        }
+        return in_array(self::requestHostFrom($server), self::LOCAL_HOSTS, true);
+    }
+
+    public static function isLocalHttpRequest(): bool
+    {
+        return PHP_SAPI !== 'cli' && self::isLocalServer($_SERVER);
+    }
+
+'''
+          access, count = re.subn(
+              r'    public static function requestHost\(\): string.*?(?=    public static function isLocalExecution\(\): bool)',
+              lambda _match: replacement,
+              access,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise RuntimeError('Bloco de avaliação local não encontrado.')
+          access_path.write_text(access, encoding='utf-8')
+
+          security_path = Path('tools/install-security-check.php')
+          security = security_path.read_text(encoding='utf-8')
+          old = '$actual = InstallAccess::isLocalHttpRequest();'
+          new = '$actual = InstallAccess::isLocalServer($_SERVER);'
+          if old not in security:
+              raise RuntimeError('Chamada de teste local não encontrada.')
+          security_path.write_text(security.replace(old, new, 1), encoding='utf-8')
+
+          layer_path = Path('app/Core/Architecture/LayerMap.php')
+          layer = layer_path.read_text(encoding='utf-8')
+          marker = "        'app/Core/Architecture/',\n"
+          additions = (
+              marker +
+              "        'app/Core/Install/InstallAccess.php',\n" +
+              "        'app/Core/Database/SchemaMutationLock.php',\n" +
+              "        'tools/install-security-check.php',\n"
+          )
+          if "'app/Core/Install/InstallAccess.php'" not in layer:
+              if marker not in layer:
+                  raise RuntimeError('Mapa de camadas sem marcador nativo.')
+              layer = layer.replace(marker, additions, 1)
+              layer_path.write_text(layer, encoding='utf-8')
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          files = dict(manifest.get('files', {}))
+          files['app/Core/Architecture/LayerMap.php'] = ''
+          total = 0
+          for file in list(files):
+              data = Path(file).read_bytes()
+              files[file] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = files
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          rm -f \
+            .github/workflows/apply-hardening-1.7.21.3.yml \
+            .github/workflows/apply-hardening-v2.yml \
+            .github/workflows/apply-hardening-v3.yml \
+            .github/workflows/hardening-diagnostic.yml \
+            .github/workflows/hardening-validation-diagnostic.yml
+
+      - name: Validate final hardening
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          php tools/install-security-check.php | tee install-security-report.json
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
+          php tools/architecture-check.php | tee architecture-report.json
+          php -r '$m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}'
+
+      - name: Commit final hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Formaliza Prontoo 1.7.21.3 — instalador local e schema congelado"
+          git push origin "HEAD:${{ github.head_ref }}"
