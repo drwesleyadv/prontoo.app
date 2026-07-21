@@ -47,8 +47,19 @@ jobs:
           awk '/python3 <<'"'"'PY'"'"'/{capture=1;next} capture && /^          PY$/{exit} capture{sub(/^          /,"");print}' .github/workflows/apply-hardening-1.7.21.3.yml > /tmp/apply-hardening.py
           git fetch origin main --depth=1
           git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          python3 /tmp/apply-hardening.py
+          python3 /tmp/apply-hardening.py > /tmp/apply-hardening.log 2>&1 || { cat /tmp/apply-hardening.log; exit 1; }
           rm -f .github/workflows/apply-hardening-1.7.21.3.yml HARDENING-ERROR.log
+
+      - name: Upload apply diagnostic
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardening-1.7.21.3-diagnostic
+          path: |
+            /tmp/apply-hardening.py
+            /tmp/apply-hardening.log
+          if-no-files-found: warn
+          retention-days: 2
 
       - name: Validate hardening
         shell: bash
