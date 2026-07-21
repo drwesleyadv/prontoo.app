@@ -480,6 +480,74 @@ function prontoo_schema_file(): string
     return __DIR__ . "/schema.sql";
 }
 
+function prontoo_operational_schema_contract_file(): string
+{
+    return __DIR__ . "/operational-schema.contract.json";
+}
+
+function prontoo_operational_schema_contract(): array
+{
+    $cached = $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] ?? null;
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $file = prontoo_operational_schema_contract_file();
+    $raw = is_file($file) ? file_get_contents($file) : false;
+    if (!is_string($raw) || trim($raw) === "") {
+        throw new RuntimeException(
+            "Contrato operacional do schema não encontrado.",
+        );
+    }
+    try {
+        $contract = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    } catch (JsonException $error) {
+        throw new RuntimeException(
+            "Contrato operacional do schema inválido.",
+            0,
+            $error,
+        );
+    }
+    if (!is_array($contract)) {
+        throw new RuntimeException(
+            "Contrato operacional do schema inválido.",
+        );
+    }
+    $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] = $contract;
+    return $contract;
+}
+
+function prontoo_schema_expected_table_names(): array
+{
+    $contract = prontoo_operational_schema_contract();
+    $tables = array_keys((array) ($contract["tables"] ?? []));
+    foreach (["redesigned_tables", "new_support_tables"] as $key) {
+        foreach ((array) ($contract[$key] ?? []) as $table) {
+            $table = trim((string) $table);
+            if ($table !== "") {
+                $tables[] = $table;
+            }
+        }
+    }
+    $tables = array_values(array_unique($tables));
+    sort($tables, SORT_STRING);
+
+    $expectedCount = (int) ($contract["schema_table_count"] ?? 0);
+    if ($expectedCount <= 0 || count($tables) !== $expectedCount) {
+        throw new RuntimeException(
+            "Contrato operacional não define a coleção completa de tabelas do schema.",
+        );
+    }
+    foreach ($tables as $table) {
+        if (!preg_match('/^pi_[a-z0-9_]+$/', $table)) {
+            throw new RuntimeException(
+                "Contrato operacional contém nome de tabela inválido.",
+            );
+        }
+    }
+    return $tables;
+}
+
 function prontoo_schema_release_contract_file(): string
 {
     return __DIR__ . "/schema.r6.contract";
@@ -502,6 +570,7 @@ function prontoo_schema_clear_caches(): void
         $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"],
         $GLOBALS["PRONTOO_SCHEMA_DEFINITION_MAP_CACHE"],
         $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"],
+        $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"],
     );
 }
 
@@ -639,22 +708,43 @@ function prontoo_schema_statements(): array
         return $statements;
     }
     $statements = schema_split_sql(prontoo_schema_sql());
-    if (count($statements) !== 75) {
-        throw new RuntimeException(
-            "Contrato SQL deve conter exatamente 75 tabelas.",
-        );
-    }
+    $actualTables = [];
     foreach ($statements as $statement) {
         if (
             !preg_match(
-                "/^CREATE\s+TABLE\s+`?pi_[A-Za-z0-9_]+`?\s*\(/i",
+                "/^CREATE\s+TABLE\s+`?(pi_[A-Za-z0-9_]+)`?\s*\(/i",
                 $statement,
+                $match,
             )
         ) {
             throw new RuntimeException(
                 "Contrato SQL contém comando não permitido.",
             );
         }
+        $table = strtolower((string) ($match[1] ?? ""));
+        if ($table === "" || isset($actualTables[$table])) {
+            throw new RuntimeException(
+                "Contrato SQL contém tabela inválida ou duplicada.",
+            );
+        }
+        $actualTables[$table] = true;
+    }
+    $actualNames = array_keys($actualTables);
+    sort($actualNames, SORT_STRING);
+    $expectedNames = prontoo_schema_expected_table_names();
+    if ($actualNames !== $expectedNames) {
+        $missing = array_values(array_diff($expectedNames, $actualNames));
+        $unexpected = array_values(array_diff($actualNames, $expectedNames));
+        throw new RuntimeException(
+            "Contrato SQL diverge da coleção canônica de tabelas: esperadas=" .
+                count($expectedNames) .
+                ", encontradas=" .
+                count($actualNames) .
+                ", ausentes=" .
+                implode(",", array_slice($missing, 0, 8)) .
+                ", inesperadas=" .
+                implode(",", array_slice($unexpected, 0, 8)),
+        );
     }
     foreach ($statements as $statement) {
         if (preg_match("/\b(?:DATE|DATETIME|TIMESTAMP)\b/i", $statement)) {

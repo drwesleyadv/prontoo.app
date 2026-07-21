@@ -1,3 +1,13 @@
+Prontoo 1.7.21.1 — hotfix do instalador em banco com zero tabelas
+
+- Remove a invariante legada que exigia 75 tabelas no parser runtime do schema r7.
+- Faz o runtime comparar a coleção real de tabelas com o contrato operacional canônico: 60 tabelas preservadas, `pi_audit` redesenhada e `pi_action_ledger` nova.
+- Rejeita tabelas ausentes, inesperadas ou duplicadas antes de qualquer DDL.
+- Faz o CI chamar o mesmo `prontoo_schema_statements()` utilizado pelo instalador, evitando que validações paralelas ocultem divergências.
+- Certifica o fluxo completo `install_fresh_schema()` em MySQL 8 partindo de banco com zero tabelas.
+- Após criar as 62 tabelas, valida revisão, `schema.ready`, FKs, criação do primeiro usuário e `Seq` nativo de Pessoa e Usuário.
+- Mantém a revisão do banco `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`; não há nova mudança estrutural.
+
 Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
 
 - Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.

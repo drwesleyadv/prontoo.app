@@ -42,7 +42,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.20.6";
+const PRONTOO_VERSION_FALLBACK = "1.7.21.1";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -153,7 +153,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.20.5";
+const PRONTOO_PREVIOUS_VERSION = "1.7.20.6";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
@@ -361,12 +361,12 @@ function prontoo_release_cleanup_1_7_14_8(): void
     }
 }
 prontoo_release_cleanup_1_7_14_8();
-function prontoo_force_clean_install_1_7_20_6(): void
+function prontoo_force_clean_install_1_7_21_1(): void
 {
     static $done = false;
     if (
         $done ||
-        PRONTOO_VERSION !== "1.7.20.6" ||
+        PRONTOO_VERSION !== "1.7.21.1" ||
         (string) getenv("PRONTOO_UPDATE_VALIDATION") === "1" ||
         !function_exists("has_cfg") ||
         !has_cfg()
@@ -374,7 +374,7 @@ function prontoo_force_clean_install_1_7_20_6(): void
         return;
     }
     $done = true;
-    $marker = storage_path("clean-reset-1.7.20.6.done.json");
+    $marker = storage_path("clean-reset-1.7.21.1.done.json");
     if (is_file($marker)) {
         return;
     }
@@ -415,7 +415,7 @@ function prontoo_force_clean_install_1_7_20_6(): void
         exit();
     }
 }
-prontoo_force_clean_install_1_7_20_6();
+prontoo_force_clean_install_1_7_21_1();
 if (function_exists("server_json_cache_register_deferred_invalidation")) {
     server_json_cache_register_deferred_invalidation();
 }
