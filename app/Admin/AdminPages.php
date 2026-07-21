@@ -2224,12 +2224,24 @@ function page_admin_errors(): void
 {
     require_can("admin_errors");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        $act = (string) ($_POST["act"] ?? "");
+        if ($act !== "resolve_incident") {
+            throw new ProntooHttpError(400, "Ação de incidente inválida.");
+        }
         $id = (int) ($_POST["id"] ?? 0);
+        if ($id <= 0) {
+            flash("Incidente não informado.", "bad");
+            redirect("admin_errors");
+        }
         $note = trim((string) ($_POST["notes"] ?? ""));
-        q("UPDATE pi_error_events SET resolved_at=NOW(), notes=? WHERE id=?", [
-            $note,
-            $id,
-        ]);
+        $updated = q(
+            "UPDATE pi_error_events SET resolved_at=NOW(), notes=? WHERE id=? AND resolved_at IS NULL",
+            [$note, $id],
+        )->rowCount();
+        if ($updated < 1) {
+            flash("Incidente não encontrado ou já resolvido.", "bad");
+            redirect("admin_errors");
+        }
         audit("erro_marcado_resolvido", "erro", $id);
         flash("Erro marcado como resolvido.");
         redirect("admin_errors");
@@ -2257,6 +2269,7 @@ function page_admin_errors(): void
                 action_summary_label("Resolver", "task_alt") .
                 '</summary><form method="post" class="compact">' .
                 csrf_field() .
+                '<input type="hidden" name="act" value="resolve_incident">' .
                 '<input type="hidden" name="id" value="' .
                 (int) $r["id"] .
                 '">' .
@@ -3915,8 +3928,21 @@ function page_admin_security(): void
 {
     require_can("admin_security");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
-        q("DELETE FROM pi_login_locks WHERE id=?", [(int) $_POST["id"]]);
-        audit("bloqueio_login_removido", "seguranca", (int) $_POST["id"]);
+        $act = (string) ($_POST["act"] ?? "");
+        if ($act !== "release_login_lock") {
+            throw new ProntooHttpError(400, "Ação de segurança inválida.");
+        }
+        $id = (int) ($_POST["id"] ?? 0);
+        if ($id <= 0) {
+            flash("Bloqueio não informado.", "bad");
+            redirect("admin_security");
+        }
+        $removed = q("DELETE FROM pi_login_locks WHERE id=?", [$id])->rowCount();
+        if ($removed < 1) {
+            flash("Bloqueio não encontrado ou já liberado.", "bad");
+            redirect("admin_security");
+        }
+        audit("bloqueio_login_removido", "seguranca", $id);
         flash("Bloqueio removido.");
         redirect("admin_security");
     }
@@ -3952,6 +3978,7 @@ function page_admin_security(): void
         $btn =
             '<form method="post" class="inline">' .
             csrf_field() .
+            '<input type="hidden" name="act" value="release_login_lock">' .
             '<input type="hidden" name="id" value="' .
             (int) $l["id"] .
             '"><button type="submit" class="danger small">Liberar</button></form>';

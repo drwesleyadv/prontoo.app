@@ -252,6 +252,39 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             'tasks:edit',
             'Domain/Tasks/TasksNotices.php',
         );
+        $cashOpen = new ActionContract(
+            'financial',
+            'cash_open',
+            'clinic',
+            ['financial:edit'],
+            ['financial:cashier'],
+            [],
+            'financial_operational',
+            'financial:edit',
+            'Domain/Financial/Financial.php',
+        );
+        $adminReceive = new ActionContract(
+            'financial',
+            'admin_receive',
+            'clinic',
+            ['financial:edit'],
+            ['financial:edit'],
+            [],
+            'matrix',
+            'financial:edit',
+            'Domain/Financial/Financial.php',
+        );
+        $maestro = new ActionContract(
+            'maestro',
+            'save_rule',
+            'clinic',
+            ['maestro:add'],
+            ['maestro:add'],
+            [],
+            'manager_only',
+            'maestro:add',
+            'Domain/Maestro/Maestro.php',
+        );
         $cases = [];
         $cases['global_requires_live_admin'] = !$provider->grants($global, 'admin:*', [
             'scope' => 'global',
@@ -281,6 +314,49 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             'effective_roles' => ['medico', 'assistente'],
             'live_active' => true,
             'live_roles' => ['medico', 'assistente'],
+        ]);
+        $cases['clinic_manager_never_grants_global_admin'] = !$provider->grants($global, 'admin:*', [
+            'scope' => 'clinic',
+            'clinic_id' => 19,
+            'user' => ['id' => 5, 'is_global_admin' => 0],
+            'live_active' => true,
+            'live_global_admin' => false,
+            'live_roles' => ['gerente'],
+        ]);
+        $cases['global_admin_never_inherits_clinic_capability'] = !$provider->grants($patient, 'patients:edit', [
+            'scope' => 'global',
+            'user' => ['id' => 6, 'is_global_admin' => 1],
+            'live_active' => true,
+            'live_global_admin' => true,
+            'live_roles' => [],
+        ]);
+        $cases['reception_cashier_exact_action_allowed'] = $provider->grants($cashOpen, 'financial:edit', [
+            'scope' => 'clinic',
+            'clinic_id' => 20,
+            'user' => ['id' => 7],
+            'live_active' => true,
+            'live_roles' => ['recepcionista'],
+        ]);
+        $cases['reception_admin_financial_action_denied'] = !$provider->grants($adminReceive, 'financial:edit', [
+            'scope' => 'clinic',
+            'clinic_id' => 20,
+            'user' => ['id' => 7],
+            'live_active' => true,
+            'live_roles' => ['recepcionista'],
+        ]);
+        $cases['manager_only_policy_allows_manager'] = $provider->grants($maestro, 'maestro:add', [
+            'scope' => 'clinic',
+            'clinic_id' => 21,
+            'user' => ['id' => 8],
+            'live_active' => true,
+            'live_roles' => ['gerente'],
+        ]);
+        $cases['manager_only_policy_denies_professional'] = !$provider->grants($maestro, 'maestro:add', [
+            'scope' => 'clinic',
+            'clinic_id' => 21,
+            'user' => ['id' => 9],
+            'live_active' => true,
+            'live_roles' => ['medico'],
         ]);
         $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));
         return [

@@ -1,5 +1,5 @@
 {
-  "version": "1.7.21.5",
+  "version": "1.7.21.6",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
@@ -54,5 +54,7 @@
   "schema_mutation_policy": "frozen_except_private_local_installer_or_ci_window",
   "destructive_reset_policy": "removed_from_runtime",
   "runtime_loading_policy": "route_loaded_installer_local_only_no_historical_cleanup_on_hot_path",
-  "json_cache_policy": "get_only_scoped_tag_invalidated_stable_lookup_cache"
+  "json_cache_policy": "get_only_scoped_tag_invalidated_stable_lookup_cache",
+  "authorization_scope_check": "ActionCatalog::logicSelfTest + RuntimeCapabilityProvider::logicSelfTest + .github/workflows/architecture.yml",
+  "authorization_action_policy": "every_protected_post_uses_an_explicit_exact_action_contract_and_unknown_actions_fail_closed"
 }
