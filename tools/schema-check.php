@@ -7,14 +7,64 @@ $contractFile = $root . '/app/Database/operational-schema.contract.json';
 $schema = (string) file_get_contents($schemaFile);
 $contract = json_decode((string) file_get_contents($contractFile), true, 512, JSON_THROW_ON_ERROR);
 
+if (!defined('PRONTOO_SCHEMA_REV')) {
+    define('PRONTOO_SCHEMA_REV', 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger');
+}
+if (!defined('PRONTOO_MIN_MYSQL_VERSION')) {
+    define('PRONTOO_MIN_MYSQL_VERSION', '8.0.30');
+}
+$GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [];
+$GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid();
+if (!function_exists('cfg')) {
+    function cfg(): array
+    {
+        return (array) ($GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] ?? []);
+    }
+}
+if (!function_exists('storage_path')) {
+    function storage_path(string $path = ''): string
+    {
+        $base = rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
+        return $path === '' ? $base : $base . '/' . ltrim($path, '/');
+    }
+}
+if (!function_exists('prontoo_fs_chmod')) {
+    function prontoo_fs_chmod(string $path, int $mode, bool $required = true): bool
+    {
+        return !file_exists($path) || @chmod($path, $mode);
+    }
+}
+if (!function_exists('prontoo_fs_unlink')) {
+    function prontoo_fs_unlink(string $path, bool $required = true): bool
+    {
+        return !file_exists($path) || @unlink($path);
+    }
+}
+require_once $root . '/app/Database/DatabaseSchema.php';
+
 preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
 $blocks = [];
 foreach ($matches as $match) {
     $blocks[(string) $match[1]] = (string) $match[0];
 }
 $errors = [];
-if (count($blocks) !== 62) {
+$expectedTables = prontoo_schema_expected_table_names();
+$expectedTableCount = count($expectedTables);
+if (count($blocks) !== $expectedTableCount) {
     $errors[] = 'schema_table_count:' . count($blocks);
+}
+$blockNames = array_keys($blocks);
+sort($blockNames, SORT_STRING);
+if ($blockNames !== $expectedTables) {
+    $errors[] = 'schema_table_set_divergent';
+}
+try {
+    $runtimeStatements = prontoo_schema_statements();
+    if (count($runtimeStatements) !== $expectedTableCount) {
+        $errors[] = 'runtime_schema_statement_count:' . count($runtimeStatements);
+    }
+} catch (Throwable $error) {
+    $errors[] = 'runtime_schema_contract:' . $error->getMessage();
 }
 if (isset($blocks['pi_sequence'])) {
     $errors[] = 'legacy_sequence_table_present';
@@ -121,7 +171,7 @@ if ($dsn !== '') {
         $errors[] = 'native_seq_runtime_order';
     }
     $tableCount = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'")->fetchColumn();
-    if ($tableCount !== 62) {
+    if ($tableCount !== $expectedTableCount) {
         $errors[] = 'mysql_table_count:' . $tableCount;
     }
     $mysqlVersion = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
@@ -168,6 +218,68 @@ if ($dsn !== '') {
         $errors[] = 'clean_reset_foreign_table_guard';
     }
     $dropAll($pdo);
+
+    $dsnParts = [];
+    foreach (explode(';', preg_replace('/^mysql:/', '', $dsn) ?? '') as $part) {
+        [$key, $value] = array_pad(explode('=', $part, 2), 2, '');
+        if ($key !== '') {
+            $dsnParts[$key] = $value;
+        }
+    }
+    $GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [
+        'db_host' => (string) ($dsnParts['host'] ?? '127.0.0.1'),
+        'db_name' => (string) ($dsnParts['dbname'] ?? 'prontoo_schema'),
+        'db_user' => getenv('PRONTOO_SCHEMA_USER') ?: 'root',
+        'db_pass' => getenv('PRONTOO_SCHEMA_PASS') ?: '',
+    ];
+    $storage = storage_path();
+    if (!is_dir($storage) && !mkdir($storage, 0750, true) && !is_dir($storage)) {
+        throw new RuntimeException('Não foi possível criar storage temporário do instalador.');
+    }
+    prontoo_schema_clear_caches();
+    install_fresh_schema();
+    $runtimePdo = pdo();
+    $installedCount = (int) $runtimePdo->query(
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+    )->fetchColumn();
+    if ($installedCount !== $expectedTableCount) {
+        $errors[] = 'runtime_install_table_count:' . $installedCount;
+    }
+    $installedRevision = (string) ($runtimePdo->query(
+        "SELECT meta_value FROM pi_meta WHERE meta_key='schema_revision' LIMIT 1",
+    )?->fetchColumn() ?: '');
+    if (!hash_equals(PRONTOO_SCHEMA_REV, $installedRevision)) {
+        $errors[] = 'runtime_install_schema_revision';
+    }
+    if (!is_file(schema_lock_file())) {
+        $errors[] = 'runtime_install_schema_lock_missing';
+    }
+    $now = time();
+    $person = $runtimePdo->prepare(
+        'INSERT INTO pi_persons (full_name,cpf,created_at) VALUES (?,?,?)',
+    );
+    $person->execute(['Instalador CI', '52998224725', $now]);
+    $personId = (int) $runtimePdo->lastInsertId();
+    $user = $runtimePdo->prepare(
+        'INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,1,1,?)',
+    );
+    $user->execute([
+        $personId,
+        'Instalador CI',
+        'installer-ci@example.invalid',
+        password_hash('Prontoo-CI-2026', PASSWORD_DEFAULT),
+        $now,
+    ]);
+    $userId = (int) $runtimePdo->lastInsertId();
+    $personSeq = (int) $runtimePdo->query('SELECT Seq FROM pi_persons WHERE id=' . $personId)->fetchColumn();
+    $userSeq = (int) $runtimePdo->query('SELECT Seq FROM pi_users WHERE id=' . $userId)->fetchColumn();
+    if ($personId <= 0 || $userId <= 0 || $personSeq <= 0 || $userSeq <= 0) {
+        $errors[] = 'runtime_install_initial_admin_contract';
+    }
+    $dropAll($runtimePdo);
+    prontoo_fs_unlink(schema_lock_file(), false);
+    @rmdir($storage);
+
     $dbResult = [
         'executed' => true,
         'mysql_version' => $mysqlVersion,
@@ -176,6 +288,15 @@ if ($dsn !== '') {
         'second_seq' => $second,
         'clean_reset_tables_removed' => (int) ($reset['tables_removed'] ?? 0),
         'foreign_table_guard' => $foreignBlocked,
+        'runtime_installer_zero_table_database' => [
+            'tables_created' => $installedCount,
+            'schema_revision' => $installedRevision,
+            'schema_lock' => true,
+            'person_id' => $personId,
+            'user_id' => $userId,
+            'person_seq' => $personSeq,
+            'user_seq' => $userSeq,
+        ],
     ];
 }
 

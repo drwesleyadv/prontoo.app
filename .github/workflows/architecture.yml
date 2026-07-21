@@ -93,7 +93,7 @@ jobs:
         run: |
           php tools/schema-check.php
 
-      - name: Clean install schema on MySQL 8
+      - name: Full zero-table installer on MySQL 8
         shell: bash
         env:
           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4

@@ -1,7 +1,8 @@
 {
-  "version": "1.7.20.6",
+  "version": "1.7.21.1",
   "policy": "clean_schema_operational_equivalence_v1",
   "description": "Retained table definitions must remain operationally identical to 1.7.20.5 except for native Seq generation.",
+  "schema_table_count": 62,
   "retained_table_count": 60,
   "tables": {
     "pi_admin_alerts": "171d1618f70a348d7183ddc0c197962cb2620b02f19927fa8001c36aca76e466",
@@ -65,6 +66,9 @@
     "pi_user_work_hours": "335c7e54fb0b1d608a9d46073e3bd27ff5df82b82b75780ee9a7968c24bef36b",
     "pi_users": "65deabc27c78791c39aee67677367383450598fbbf149c0156ace7fceeef4e7a"
   },
+  "redesigned_tables": [
+    "pi_audit"
+  ],
   "intentionally_replaced_tables": [
     "pi_audit",
     "pi_action_proofs"
