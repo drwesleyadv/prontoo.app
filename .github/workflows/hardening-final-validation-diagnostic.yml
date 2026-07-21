@@ -1,0 +1,110 @@
+name: Diagnose Final Hardening Validation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.number == 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: Generate final workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '
+            /- name: Recover and run certified generator/ { found=1; next }
+            found && /run: \|/ { capture=1; next }
+            capture && /^      - name:/ { exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/architecture.yml > /tmp/recover-hardening.sh
+          chmod +x /tmp/recover-hardening.sh
+          /tmp/recover-hardening.sh
+
+      - name: Run separated validations
+        id: validate
+        continue-on-error: true
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          set +e
+          : > /tmp/final-validation-summary.txt
+          : > /tmp/php-lint.log
+          lint=0
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null 2>>/tmp/php-lint.log || { echo "$file" >> /tmp/php-lint.log; lint=1; }
+          done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          echo "php_lint=$lint" >> /tmp/final-validation-summary.txt
+          php tools/install-security-check.php > /tmp/install-security.log 2>&1
+          echo "install_security=$?" >> /tmp/final-validation-summary.txt
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php > /tmp/schema-check.log 2>&1
+          echo "schema_check=$?" >> /tmp/final-validation-summary.txt
+          php tools/architecture-check.php > /tmp/architecture-check.log 2>&1
+          echo "architecture_check=$?" >> /tmp/final-validation-summary.txt
+          php -r '$m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}' > /tmp/manifest.log 2>&1
+          echo "manifest=$?" >> /tmp/final-validation-summary.txt
+          cat /tmp/final-validation-summary.txt
+          grep -qE '=([1-9][0-9]*)$' /tmp/final-validation-summary.txt && exit 1
+          exit 0
+
+      - name: Capture workspace diff
+        if: always()
+        shell: bash
+        run: |
+          git diff --binary > /tmp/final-hardening.diff || true
+          git status --short > /tmp/final-hardening.status || true
+
+      - name: Upload final validation diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardening-final-validation-diagnostic
+          path: |
+            /tmp/final-validation-summary.txt
+            /tmp/php-lint.log
+            /tmp/install-security.log
+            /tmp/schema-check.log
+            /tmp/architecture-check.log
+            /tmp/manifest.log
+            /tmp/final-hardening.diff
+            /tmp/final-hardening.status
+          if-no-files-found: warn
+          retention-days: 2
+
+      - name: Fail on validation error
+        if: steps.validate.outcome != 'success'
+        run: exit 1
