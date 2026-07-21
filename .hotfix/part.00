@@ -1,0 +1,184 @@
+diff -ruN '--exclude=.git' prontoo_main/.github/workflows/architecture.yml prontoo_current/.github/workflows/architecture.yml
+--- prontoo_main/.github/workflows/architecture.yml	2026-07-21 12:14:25.331059065 +0000
++++ prontoo_current/.github/workflows/architecture.yml	2026-07-21 12:13:29.652649337 +0000
+@@ -93,7 +93,7 @@
+         run: |
+           php tools/schema-check.php
+ 
+-      - name: Clean install schema on MySQL 8
++      - name: Full zero-table installer on MySQL 8
+         shell: bash
+         env:
+           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+diff -ruN '--exclude=.git' prontoo_main/ChangeLog.txt prontoo_current/ChangeLog.txt
+--- prontoo_main/ChangeLog.txt	2026-07-21 12:14:25.332137372 +0000
++++ prontoo_current/ChangeLog.txt	2026-07-21 12:13:29.652816854 +0000
+@@ -1,3 +1,13 @@
++Prontoo 1.7.21.1 — hotfix do instalador em banco com zero tabelas
++
++- Remove a invariante legada que exigia 75 tabelas no parser runtime do schema r7.
++- Faz o runtime comparar a coleção real de tabelas com o contrato operacional canônico: 60 tabelas preservadas, `pi_audit` redesenhada e `pi_action_ledger` nova.
++- Rejeita tabelas ausentes, inesperadas ou duplicadas antes de qualquer DDL.
++- Faz o CI chamar o mesmo `prontoo_schema_statements()` utilizado pelo instalador, evitando que validações paralelas ocultem divergências.
++- Certifica o fluxo completo `install_fresh_schema()` em MySQL 8 partindo de banco com zero tabelas.
++- Após criar as 62 tabelas, valida revisão, `schema.ready`, FKs, criação do primeiro usuário e `Seq` nativo de Pessoa e Usuário.
++- Mantém a revisão do banco `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`; não há nova mudança estrutural.
++
+ Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
+ 
+ - Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.
+diff -ruN '--exclude=.git' prontoo_main/HOTFIX-1.7.21.1.md prontoo_current/HOTFIX-1.7.21.1.md
+--- prontoo_main/HOTFIX-1.7.21.1.md	1970-01-01 00:00:00.000000000 +0000
++++ prontoo_current/HOTFIX-1.7.21.1.md	2026-07-21 12:13:29.652884954 +0000
+@@ -0,0 +1,17 @@
++# Hotfix Prontoo 1.7.21.1
++
++## Incidente
++
++A instalação limpa da versão 1.7.20.6 parava antes do primeiro `CREATE TABLE` porque `app/Database/DatabaseSchema.php` ainda exigia exatamente 75 instruções, embora o schema r7 contenha 62 tabelas. O CI anterior validava `schema.sql` diretamente e não exercitava o parser runtime chamado por `install_fresh_schema()`.
++
++## Correção
++
++- a coleção esperada passa a ser derivada do contrato operacional versionado;
++- o parser runtime compara o conjunto completo de nomes, não somente uma quantidade;
++- tabelas duplicadas, ausentes ou inesperadas falham antes do DDL;
++- o teste MySQL chama o mesmo caminho `prontoo_schema_statements()` e executa `install_fresh_schema()` sobre banco com zero tabelas;
++- o teste conclui a criação da Pessoa e do primeiro Usuário, validando FKs e `Seq` nativo.
++
++## Escopo
++
++O schema SQL e a revisão r7 permanecem inalterados. Não há migração, mudança operacional, visual ou de banco além da correção do contrato de instalação.
+diff -ruN '--exclude=.git' prontoo_main/app/Database/DatabaseSchema.php prontoo_current/app/Database/DatabaseSchema.php
+--- prontoo_main/app/Database/DatabaseSchema.php	2026-07-21 12:14:25.337661243 +0000
++++ prontoo_current/app/Database/DatabaseSchema.php	2026-07-21 12:10:40.042635086 +0000
+@@ -480,6 +480,74 @@
+     return __DIR__ . "/schema.sql";
+ }
+ 
++function prontoo_operational_schema_contract_file(): string
++{
++    return __DIR__ . "/operational-schema.contract.json";
++}
++
++function prontoo_operational_schema_contract(): array
++{
++    $cached = $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] ?? null;
++    if (is_array($cached)) {
++        return $cached;
++    }
++
++    $file = prontoo_operational_schema_contract_file();
++    $raw = is_file($file) ? file_get_contents($file) : false;
++    if (!is_string($raw) || trim($raw) === "") {
++        throw new RuntimeException(
++            "Contrato operacional do schema não encontrado.",
++        );
++    }
++    try {
++        $contract = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
++    } catch (JsonException $error) {
++        throw new RuntimeException(
++            "Contrato operacional do schema inválido.",
++            0,
++            $error,
++        );
++    }
++    if (!is_array($contract)) {
++        throw new RuntimeException(
++            "Contrato operacional do schema inválido.",
++        );
++    }
++    $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] = $contract;
++    return $contract;
++}
++
++function prontoo_schema_expected_table_names(): array
++{
++    $contract = prontoo_operational_schema_contract();
++    $tables = array_keys((array) ($contract["tables"] ?? []));
++    foreach (["redesigned_tables", "new_support_tables"] as $key) {
++        foreach ((array) ($contract[$key] ?? []) as $table) {
++            $table = trim((string) $table);
++            if ($table !== "") {
++                $tables[] = $table;
++            }
++        }
++    }
++    $tables = array_values(array_unique($tables));
++    sort($tables, SORT_STRING);
++
++    $expectedCount = (int) ($contract["schema_table_count"] ?? 0);
++    if ($expectedCount <= 0 || count($tables) !== $expectedCount) {
++        throw new RuntimeException(
++            "Contrato operacional não define a coleção completa de tabelas do schema.",
++        );
++    }
++    foreach ($tables as $table) {
++        if (!preg_match('/^pi_[a-z0-9_]+$/', $table)) {
++            throw new RuntimeException(
++                "Contrato operacional contém nome de tabela inválido.",
++            );
++        }
++    }
++    return $tables;
++}
++
+ function prontoo_schema_release_contract_file(): string
+ {
+     return __DIR__ . "/schema.r6.contract";
+@@ -502,6 +570,7 @@
+         $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"],
+         $GLOBALS["PRONTOO_SCHEMA_DEFINITION_MAP_CACHE"],
+         $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"],
++        $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"],
+     );
+ }
+ 
+@@ -639,22 +708,43 @@
+         return $statements;
+     }
+     $statements = schema_split_sql(prontoo_schema_sql());
+-    if (count($statements) !== 75) {
+-        throw new RuntimeException(
+-            "Contrato SQL deve conter exatamente 75 tabelas.",
+-        );
+-    }
++    $actualTables = [];
+     foreach ($statements as $statement) {
+         if (
+             !preg_match(
+-                "/^CREATE\s+TABLE\s+`?pi_[A-Za-z0-9_]+`?\s*\(/i",
++                "/^CREATE\s+TABLE\s+`?(pi_[A-Za-z0-9_]+)`?\s*\(/i",
+                 $statement,
++                $match,
+             )
+         ) {
+             throw new RuntimeException(
+                 "Contrato SQL contém comando não permitido.",
+             );
+         }
++        $table = strtolower((string) ($match[1] ?? ""));
++        if ($table === "" || isset($actualTables[$table])) {
++            throw new RuntimeException(
++                "Contrato SQL contém tabela inválida ou duplicada.",
++            );
++        }
++        $actualTables[$table] = true;
++    }
++    $actualNames = array_keys($actualTables);
++    sort($actualNames, SORT_STRING);
++    $expectedNames = prontoo_schema_expected_table_names();
++    if ($actualNames !== $expectedNames) {
++        $missing = array_values(array_diff($expectedNames, $actualNames));
++        $unexpected = array_values(array_diff($actualNames, $expectedNames));
++        throw new RuntimeException(
++            "Contrato SQL diverge da coleção canônica de tabelas: esperadas=" .
++                count($expectedNames) .
++                ", encontradas=" .
++                count($actualNames) .
++                ", ausentes=" .
++                implode(",", array_slice($missing, 0, 8)) .
++                ", inesperadas=" .
++                implode(",", array_slice($unexpected, 0, 8)),
++        );
++    }
