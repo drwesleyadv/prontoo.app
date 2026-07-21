@@ -1,0 +1,105 @@
+name: Consolidate Stable 1.7.21.6
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  consolidate:
+    if: github.event.pull_request.head.ref == 'agent/consolidate-stable-1.7.21.6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout certified main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify stable snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "9f637ad71dfded32e2aad3ef1f42fd42882b2218"
+          php -r '
+            $v=json_decode((string)file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR);
+            if (($v["version"] ?? "") !== "1.7.21.6" || ($v["release"] ?? "") !== "1.7.21.6") {
+              throw new RuntimeException("Snapshot não corresponde à versão estável 1.7.21.6");
+            }
+          '
+          git diff --quiet
+          git diff --cached --quiet
+
+      - name: Preserve certified snapshot artifact
+        shell: bash
+        run: git archive --format=tar.gz --output=/tmp/prontoo-1.7.21.6-stable-before-history-reset.tar.gz HEAD
+
+      - name: Upload certified snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: prontoo-1.7.21.6-stable-before-history-reset
+          path: /tmp/prontoo-1.7.21.6-stable-before-history-reset.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Rewrite main as one root commit
+        id: rewrite
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan stable-root
+          git reset --mixed
+          git add -A
+          git commit -m "Prontoo 1.7.21.6 — baseline estável"
+          new_sha="$(git rev-parse HEAD)"
+          git push --force origin HEAD:main
+          echo "sha=$new_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Remove active historical references
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+          auth=(-H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28")
+
+          pulls="$(curl -fsSL "${auth[@]}" "${api}/pulls?state=open&per_page=100")"
+          echo "$pulls" | jq -r '.[].number' | while read -r number; do
+            [ -n "$number" ] || continue
+            curl -fsSL -X PATCH "${auth[@]}" "${api}/pulls/${number}" -d '{"state":"closed"}' >/dev/null
+          done
+
+          releases="$(curl -fsSL "${auth[@]}" "${api}/releases?per_page=100")"
+          echo "$releases" | jq -r '.[].id' | while read -r release_id; do
+            [ -n "$release_id" ] || continue
+            curl -fsSL -X DELETE "${auth[@]}" "${api}/releases/${release_id}" >/dev/null
+          done
+
+          git ls-remote --heads origin | awk '{sub("refs/heads/", "", $2); print $2}' | while read -r branch; do
+            [ "$branch" = "main" ] && continue
+            git push origin --delete "$branch" || true
+          done
+
+          git ls-remote --tags origin | awk '{sub("refs/tags/", "", $2); print $2}' | sed 's/\^{}$//' | sort -u | while read -r tag; do
+            [ -n "$tag" ] || continue
+            git push origin --delete "refs/tags/$tag" || true
+          done
+
+      - name: Verify one active branch and root history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --prune origin main
+          git checkout --detach origin/main
+          test "$(git rev-list --count HEAD)" = "1"
+          test "$(git show -s --format=%P HEAD)" = ""
+          test "$(php -r '$v=json_decode((string)file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR); echo $v["version"] ?? "";')" = "1.7.21.6"
+          test "$(git ls-remote --heads origin | wc -l | tr -d ' ')" = "1"
