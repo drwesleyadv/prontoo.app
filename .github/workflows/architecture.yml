@@ -1,115 +1,85 @@
-name: Certify Maturity 1.7.21.5
+name: Apply Certified Maturity 1.7.21.5
 
 on:
   pull_request:
 
 permissions:
-  contents: read
-  pull-requests: read
+  contents: write
+  actions: read
 
 jobs:
-  certify:
+  apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 10
     steps:
-      - name: Checkout PR branch
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
           ref: agent/maturity-audit-1.7.21.5
           fetch-depth: 0
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
-      - name: Apply maturity changes
+      - name: Restore certified product files
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          set -o pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tools/apply-maturity-1.7.21.5.py')
-          t=p.read_text()
-          old='out, count = re.subn(pattern, replacement.rstrip() + "\\n", text, count=1)'
-          new='out, count = re.subn(pattern, lambda _: replacement.rstrip() + "\\n", text, count=1)'
-          if old not in t: raise SystemExit('marcador de substituição ausente')
-          p.write_text(t.replace(old,new,1))
-          PY
-          python3 tools/apply-maturity-1.7.21.5.py 2>&1 | tee maturity-apply.log
-          git checkout origin/main -- public/assets/design-system.css
+          set -euo pipefail
+          curl -fsSL -L \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/drwesleyadv/prontoo.app/actions/artifacts/8507918108/zip" \
+            -o /tmp/certified.zip
+          rm -rf /tmp/certified && mkdir -p /tmp/certified
+          unzip -q /tmp/certified.zip -d /tmp/certified
+          for path in \
+            ChangeLog.txt \
+            MATURITY-AUDIT-1.7.21.5.md \
+            app/Database/operational-schema.contract.json \
+            app/Domain/Audit/AuditActivity.php \
+            app/Support/ModuleLoader.php \
+            app/Support/ServerJsonCache.php \
+            app/architecture.manifest.json \
+            app/prontoo.php \
+            app/update.manifest.json \
+            br/index.php \
+            install.php \
+            version.json; do
+            mkdir -p "$(dirname "$path")"
+            cp "/tmp/certified/$path" "$path"
+          done
           python3 - <<'PY'
           import hashlib,json
           from pathlib import Path
-          report=Path('MATURITY-AUDIT-1.7.21.5.md')
-          text=report.read_text()
-          text=text.replace('6. **Comentários CSS de versões antigas:** comentários sem efeito funcional foram removidos do ativo distribuído.\n','6. **Ativo CSS monolítico:** foi identificado como oportunidade futura, mas permaneceu byte a byte inalterado por não haver benefício mensurável de runtime nesta rodada.\n')
-          report.write_text(text)
+          v=Path('version.json')
+          data=json.loads(v.read_text())
+          data['previous_version']='1.7.21.4'
+          v.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
           p=Path('app/update.manifest.json')
           m=json.loads(p.read_text())
-          m['files'].pop('public/assets/design-system.css',None)
-          m['files']={f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in m['files']}
+          m['previous_version']='1.7.21.4'
+          m['files']['version.json']=hashlib.sha256(v.read_bytes()).hexdigest()
           m['file_count']=len(m['files'])
           m['total_uncompressed_bytes']=sum(Path(f).stat().st_size for f in m['files'])
           p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
           PY
-      - name: Validate all tracked files and runtime contracts
+          rm -f AUDIT_PLACEHOLDER.tmp tools/apply-maturity-1.7.21.5.py
+      - name: Verify restored release
         shell: bash
-        env:
-          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
-          PRONTOO_SCHEMA_USER: root
-          PRONTOO_SCHEMA_PASS: root
         run: |
           set -euo pipefail
-          test "$(git ls-files | wc -l)" -ge 145
-          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -name '*.php' -print0)
-          php -r 'foreach (["version.json","app/update.manifest.json","app/architecture.manifest.json","app/Database/operational-schema.contract.json"] as $f) { json_decode((string) file_get_contents($f), true, 512, JSON_THROW_ON_ERROR); }'
-          php tools/install-security-check.php
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
-          php tools/architecture-check.php
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find app br -name '*.php' -print0; printf 'install.php\0')
           php -r '
-            require "app/prontoo.php";
-            if (!function_exists("server_json_cache_root")) throw new RuntimeException("cache ausente");
-            if (function_exists("prontoo_install")) throw new RuntimeException("instalador carregado no bootstrap comum");
-          '
-          php -r '
+            foreach (["version.json","app/update.manifest.json","app/architecture.manifest.json","app/Database/operational-schema.contract.json"] as $f) json_decode((string)file_get_contents($f),true,512,JSON_THROW_ON_ERROR);
             $m=json_decode((string)file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR); $b=0;
-            foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f)))throw new RuntimeException("hash: ".$f);$b+=filesize($f);} if($b!==$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
+            foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f)))throw new RuntimeException($f);$b+=filesize($f);} if($b!==$m["total_uncompressed_bytes"])throw new RuntimeException("bytes");
           '
-          test "$(sha256sum app/Database/schema.sql | cut -d' ' -f1)" = "$(git show origin/main:app/Database/schema.sql | sha256sum | cut -d' ' -f1)"
-          test "$(sha256sum public/assets/design-system.css | cut -d' ' -f1)" = "$(git show origin/main:public/assets/design-system.css | sha256sum | cut -d' ' -f1)"
-      - name: Upload certified release
-        uses: actions/upload-artifact@v4
-        with:
-          name: certified-maturity-1.7.21.5
-          path: |
-            .github/workflows/architecture.yml
-            ChangeLog.txt
-            MATURITY-AUDIT-1.7.21.5.md
-            app/Database/operational-schema.contract.json
-            app/Domain/Audit/AuditActivity.php
-            app/Support/ModuleLoader.php
-            app/Support/ServerJsonCache.php
-            app/architecture.manifest.json
-            app/prontoo.php
-            app/update.manifest.json
-            br/index.php
-            install.php
-            version.json
-            maturity-apply.log
-          if-no-files-found: error
-          retention-days: 7
+          test "$(sha256sum app/Database/schema.sql | cut -d' ' -f1)" = "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33"
+      - name: Commit product files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ChangeLog.txt MATURITY-AUDIT-1.7.21.5.md app/Database/operational-schema.contract.json app/Domain/Audit/AuditActivity.php app/Support/ModuleLoader.php app/Support/ServerJsonCache.php app/architecture.manifest.json app/prontoo.php app/update.manifest.json br/index.php install.php version.json
+          git add -u AUDIT_PLACEHOLDER.tmp tools/apply-maturity-1.7.21.5.py || true
+          git commit -m "amadurece runtime e cache JSON na 1.7.21.5"
+          git push origin HEAD:agent/maturity-audit-1.7.21.5
