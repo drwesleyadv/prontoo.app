@@ -62,6 +62,7 @@ jobs:
           p=Path('app/update.manifest.json')
           m=json.loads(p.read_text())
           m['files'].pop('public/assets/design-system.css',None)
+          m['files']={f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in m['files']}
           m['file_count']=len(m['files'])
           m['total_uncompressed_bytes']=sum(Path(f).stat().st_size for f in m['files'])
           p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n')
