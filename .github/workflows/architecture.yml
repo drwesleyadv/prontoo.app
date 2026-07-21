@@ -1,17 +1,17 @@
-name: Certify Hardening 1.7.21.3
+name: Architecture Contract
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: read
+  contents: read
 
 jobs:
-  certify:
-    if: github.event.pull_request.number == 15
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     services:
       mysql:
         image: mysql:8.0
@@ -26,11 +26,8 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -40,172 +37,90 @@ jobs:
           tools: none
           extensions: pdo_mysql
 
-      - name: Recover and run certified generator
+      - name: PHP syntax
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import base64
-          import gzip
-          import re
-          import subprocess
-          from pathlib import Path
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './storage' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
 
-          match = None
-          pattern = re.compile(r"printf '%s' '([^']+)' \| base64 -d \| gzip -d")
-          for revision in subprocess.check_output(
-              ['git', 'rev-list', '--max-count=40', 'HEAD'], text=True
-          ).splitlines():
-              try:
-                  candidate = subprocess.check_output(
-                      ['git', 'show', f'{revision}:.github/workflows/architecture.yml'],
-                      text=True,
-                      stderr=subprocess.DEVNULL,
-                  )
-              except subprocess.CalledProcessError:
-                  continue
-              candidate_match = pattern.search(candidate)
-              if candidate_match is not None:
-                  match = candidate_match
-                  break
-          if match is None:
-              raise RuntimeError('Workflow histórico com payload comprimido não encontrado.')
+      - name: JSON contracts
+        shell: bash
+        run: |
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
 
-          script = gzip.decompress(base64.b64decode(match.group(1))).decode('utf-8')
-          pairs = [
-              ("    'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',", "    lambda _match: 'if ($state !== \"fresh\") {\\n            \\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::denyPublicAccess();\\n        }',"),
-              ("    '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',", "    lambda _match: '            \\\\Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(\\n                static function (): void {\\n                    install_fresh_schema();\\n                },\\n            );\\n            $schemaInstalled = true;',"),
-              ("    '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {", "    lambda _match: '''if (\\\\Prontoo\\\\Core\\\\Install\\\\InstallAccess::isLocalHttpRequest()) {"),
-              ("    '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller(", "    lambda _match: '''    Prontoo\\\\Core\\\\Database\\\\SchemaMutationLock::runForInstaller("),
-          ]
-          for old, new in pairs:
-              if old not in script:
-                  raise RuntimeError('Marcador de compatibilidade ausente: ' + old[:60])
-              script = script.replace(old, new, 1)
-          Path('/tmp/apply-hardening.py').write_text(script, encoding='utf-8')
-          PY
+      - name: Release manifest
+        shell: bash
+        run: |
+          php -r '
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
+              if (file_exists((string) $file)) {
+                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
+              }
+            }
+          '
 
-          python3 - <<'PY'
-          from pathlib import Path
-          source = Path('.github/workflows/apply-hardening-v3.yml').read_text(encoding='utf-8')
-          marker = "          python3 - <<'PY'\n"
-          positions = []
-          start = 0
-          while True:
-              pos = source.find(marker, start)
-              if pos < 0:
-                  break
-              positions.append(pos)
-              start = pos + len(marker)
-          if len(positions) < 2:
-              raise RuntimeError('Finalizador v3 não encontrado.')
-          body_start = positions[1] + len(marker)
-          body_end = source.find('          PY\n', body_start)
-          if body_end < 0:
-              raise RuntimeError('Fim do finalizador v3 não encontrado.')
-          lines = source[body_start:body_end].splitlines()
-          body = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n'
-          old_marker = "old = '$actual = InstallAccess::isLocalHttpRequest();'\nnew = '$actual = InstallAccess::isLocalServer($_SERVER);'"
-          new_marker = "old = 'if (InstallAccess::isLocalHttpRequest() !== $expected) {'\nnew = 'if (InstallAccess::isLocalServer($_SERVER) !== $expected) {'"
-          if old_marker not in body:
-              raise RuntimeError('Marcador antigo do teste de localhost não encontrado no finalizador.')
-          body = body.replace(old_marker, new_marker, 1)
-          old_native_entry = '"        \'tools/install-security-check.php\',\\n"'
-          new_native_entry = '"        \'app/Core/Database/SchemaHardening.php\',\\n"'
-          if old_native_entry not in body:
-              raise RuntimeError('Entrada nativa temporária não encontrada no mapa arquitetural.')
-          body = body.replace(old_native_entry, new_native_entry, 1)
-          Path('/tmp/finalize-hardening.py').write_text(body, encoding='utf-8')
-          PY
+      - name: Installer access and schema freeze
+        shell: bash
+        run: |
+          php tools/install-security-check.php | tee install-security-report.json
 
-          git fetch origin main --depth=1
-          git show FETCH_HEAD:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          python3 /tmp/apply-hardening.py
-          python3 /tmp/finalize-hardening.py
-          rm -f \
-            .github/workflows/apply-hardening-v3.yml \
-            .github/workflows/hardening-final-recovery-diagnostic.yml \
-            .github/workflows/hardening-final-validation-diagnostic.yml
+      - name: Static schema contract with Guardian loaded
+        shell: bash
+        run: |
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
 
-      - name: Validate final hardening
+      - name: Full zero-table installer with Guardian loaded on MySQL 8
         shell: bash
         env:
           PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
           PRONTOO_SCHEMA_USER: root
           PRONTOO_SCHEMA_PASS: root
         run: |
-          set -euo pipefail
-          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './storage' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
-          php tools/install-security-check.php | tee install-security-report.json
           php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
-          php tools/architecture-check.php | tee architecture-report.json
-          php -r '$m=json_decode(file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);$bytes=0;foreach($m["files"] as $f=>$h){if(!is_file($f)||!hash_equals($h,hash_file("sha256",$f))){throw new RuntimeException("manifest:".$f);} $bytes+=filesize($f);}if($bytes!==(int)$m["total_uncompressed_bytes"]){throw new RuntimeException("manifest:bytes");}foreach($m["removed_files"] as $f){if(file_exists($f)){throw new RuntimeException("removed:".$f);}}'
 
-      - name: Upload certified hardening files
-        uses: actions/upload-artifact@v4
-        with:
-          name: hardening-1.7.21.3-certified-files
-          path: |
-            .github/workflows/architecture.yml
-            .htaccess
-            ChangeLog.txt
-            HARDENING-1.7.21.3.md
-            install.php
-            app/Core/Architecture/LayerMap.php
-            app/Core/Database/SchemaMutationLock.php
-            app/Core/Install/InstallAccess.php
-            app/Database/DatabaseSchema.php
-            app/Database/operational-schema.contract.json
-            app/Install/Installer.php
-            app/Runtime/Runner.php
-            app/architecture.manifest.json
-            app/bootstrap_architecture.php
-            app/prontoo.php
-            app/update.manifest.json
-            br/index.php
-            tools/install-security-check.php
-            tools/schema-check.php
-            version.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Upload certification reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: hardening-1.7.21.3-certification-reports
-          path: |
-            install-security-report.json
-            schema-report.json
-            architecture-report.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Commit certified product files
+      - name: Layered architecture
         shell: bash
         run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- \
-            .htaccess \
-            ChangeLog.txt \
-            HARDENING-1.7.21.3.md \
-            install.php \
-            app/Core/Architecture/LayerMap.php \
-            app/Core/Database/SchemaMutationLock.php \
-            app/Core/Install/InstallAccess.php \
-            app/Database/DatabaseSchema.php \
-            app/Database/operational-schema.contract.json \
-            app/Install/Installer.php \
-            app/Runtime/Runner.php \
-            app/architecture.manifest.json \
-            app/bootstrap_architecture.php \
-            app/prontoo.php \
-            app/update.manifest.json \
-            br/index.php \
-            tools/install-security-check.php \
-            tools/schema-check.php \
-            version.json
-          git add -A -- app/Infrastructure/Database/CleanInstallReset.php
-          git commit -m "Formaliza Prontoo 1.7.21.3 — instalador local e schema congelado"
-          git push origin "HEAD:${{ github.head_ref }}"
+          set -o pipefail
+          php tools/architecture-check.php | tee architecture-report.json
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: |
+            architecture-report.json
+            schema-report.json
+            install-security-report.json
+          if-no-files-found: error
+          retention-days: 7
