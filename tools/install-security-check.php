@@ -173,6 +173,38 @@ foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     }
 }
 
+$gitignore = (string) file_get_contents($root . '/.gitignore');
+if (!str_contains($gitignore, "/ssd/") || !str_contains($gitignore, "/storage/") || !str_contains($gitignore, "/pdfs/")) {
+    $errors[] = 'ssd_gitignore_policy';
+}
+$foundationSource = (string) file_get_contents($root . '/app/Support/Foundation.php');
+if (!str_contains($foundationSource, 'app_root() . "/ssd"') || str_contains($foundationSource, 'app_root() . "/storage"')) {
+    $errors[] = 'ssd_storage_path_policy';
+}
+$prontooSource = (string) file_get_contents($root . '/app/prontoo.php');
+foreach (['PRONTOO_SSD_PERSISTENCE_POLICY', 'PRONTOO_SSD_ROOT', 'PRONTOO_PDF_ROOT', 'PRONTOO_IMAGE_UPLOAD_ROOT'] as $requiredPersistenceMarker) {
+    if (!str_contains($prontooSource, $requiredPersistenceMarker)) {
+        $errors[] = 'ssd_migration_marker:' . $requiredPersistenceMarker;
+    }
+}
+$documentPdfSource = (string) file_get_contents($root . '/app/Domain/Documents/DocumentPdf.php');
+if (!str_contains($documentPdfSource, 'storage_path("pdfs")') || str_contains($documentPdfSource, 'app_root() . "/pdfs"')) {
+    $errors[] = 'ssd_pdf_policy';
+}
+$subscriptionSource = (string) file_get_contents($root . '/app/Domain/Clinic/SubscriptionSettings.php');
+foreach (['storage_path("img/payment-proofs")', '"ssd/img/payment-proofs"', '"ssd/payment-proofs"', '"storage/payment-proofs/"', '$mime !== "application/pdf"'] as $requiredUploadPolicy) {
+    if (!str_contains($subscriptionSource, $requiredUploadPolicy)) {
+        $errors[] = 'ssd_upload_policy:' . $requiredUploadPolicy;
+    }
+}
+$htaccessPolicy = (string) file_get_contents($root . '/.htaccess');
+if (!str_contains($htaccessPolicy, 'RewriteRule ^ssd/ - [F,L,NC]') || !str_contains($htaccessPolicy, 'RewriteRule ^storage/ - [F,L,NC]')) {
+    $errors[] = 'ssd_webserver_policy';
+}
+if (is_file($root . '/pdfs/.htaccess') || is_file($root . '/pdfs/index.html')) {
+    $errors[] = 'legacy_root_pdfs_router_present';
+}
+
 $components = (string) file_get_contents($root . '/app/Ui/Components.php');
 if (!preg_match('/\$current\s*===\s*"admin_painel"\)\s*\{\s*return\s+"network_ping";/s', $components)) {
     $errors[] = 'developer_panel_network_ping_icon';
@@ -224,6 +256,9 @@ $result = [
     'developer_panel_icon' => 'network_ping',
     'schema_frozen' => true,
     'https_enforced' => true,
+    'persistent_root' => 'ssd',
+    'pdf_storage' => 'ssd/pdfs',
+    'image_upload_storage' => 'ssd/img',
     'errors' => $errors,
 ];
 echo json_encode(

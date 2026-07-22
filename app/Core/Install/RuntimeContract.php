@@ -358,7 +358,7 @@ final class RuntimeContract
         }
         $updateValidation = (string) getenv('PRONTOO_UPDATE_VALIDATION') === '1';
         if (!$updateValidation && \function_exists('has_cfg') && \has_cfg()) {
-            $strict = is_file($root . '/storage/install.lock');
+            $strict = is_file($root . '/ssd/install.lock');
             \ensure_runtime_schema_minimum();
             SeqContract::assert(\pdo());
             \Prontoo\Core\Database\TenantIntegrity::assertRegistryMatchesSchema($strict);

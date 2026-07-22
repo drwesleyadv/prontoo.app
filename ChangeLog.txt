@@ -1,3 +1,12 @@
+Prontoo 1.7.22.6 — persistência canônica em SSD
+
+- Renomeia o diretório persistente raiz de `storage/` para `ssd/` sem alterar banco ou schema.
+- Move a persistência física de PDFs para `ssd/pdfs/`, mantendo a URL autenticada `/pdfs/` por compatibilidade.
+- Define `ssd/img/` como destino obrigatório para imagens enviadas; comprovantes em imagem ficam em `ssd/img/payment-proofs/`.
+- Mantém PDFs de comprovantes em `ssd/payment-proofs/` e preserva leitura de caminhos legados já gravados.
+- Migra automaticamente conteúdos existentes de `storage/` e do diretório físico raiz `pdfs/`, sem sobrescrever arquivos canônicos existentes.
+- Bloqueia acesso HTTP direto a `ssd/` e mantém bloqueio da entrada legada `storage/`.
+
 Prontoo 1.7.22.5 — hardening pós-reinstalação e HTTPS obrigatório
 
 - Restaura integralmente o hardening pós-comissionamento da árvore certificada 1.7.22.3.

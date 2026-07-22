@@ -1077,7 +1077,7 @@ function storage_path(string $path = ""): string
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    return app_root() . "/storage" . ($path ? "/" . ltrim($path, "/") : "");
+    return app_root() . "/ssd" . ($path ? "/" . ltrim($path, "/") : "");
 }
 function cache_path(string $key): string
 {

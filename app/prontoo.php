@@ -37,6 +37,87 @@ if (PHP_SAPI !== "cli") {
         $prontooRequestUri,
     );
 }
+// PRONTOO_SSD_PERSISTENCE_POLICY
+if (!defined("PRONTOO_SSD_ROOT")) {
+    define("PRONTOO_SSD_ROOT", PRONTOO_ROOT . "/ssd");
+    define("PRONTOO_PDF_ROOT", PRONTOO_SSD_ROOT . "/pdfs");
+    define("PRONTOO_IMAGE_UPLOAD_ROOT", PRONTOO_SSD_ROOT . "/img");
+}
+$prontooPersistencePairs = [
+    [PRONTOO_ROOT . "/storage", PRONTOO_SSD_ROOT],
+    [PRONTOO_ROOT . "/pdfs", PRONTOO_PDF_ROOT],
+];
+foreach ($prontooPersistencePairs as [$prontooLegacyRoot, $prontooCanonicalRoot]) {
+    if (!is_dir($prontooLegacyRoot) || is_link($prontooLegacyRoot)) {
+        continue;
+    }
+    if (!is_dir($prontooCanonicalRoot)) {
+        $prontooCanonicalParent = dirname($prontooCanonicalRoot);
+        if (!is_dir($prontooCanonicalParent)) {
+            @mkdir($prontooCanonicalParent, 0750, true);
+        }
+        if (@rename($prontooLegacyRoot, $prontooCanonicalRoot)) {
+            @chmod($prontooCanonicalRoot, 0750);
+            continue;
+        }
+        @mkdir($prontooCanonicalRoot, 0750, true);
+    }
+    try {
+        $prontooLegacyIterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($prontooLegacyRoot, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+        foreach ($prontooLegacyIterator as $prontooLegacyEntry) {
+            if ($prontooLegacyEntry->isLink()) {
+                continue;
+            }
+            $prontooLegacyPath = $prontooLegacyEntry->getPathname();
+            $prontooRelativePath = substr($prontooLegacyPath, strlen($prontooLegacyRoot) + 1);
+            if ($prontooRelativePath === false || $prontooRelativePath === "") {
+                continue;
+            }
+            $prontooCanonicalPath = $prontooCanonicalRoot . DIRECTORY_SEPARATOR . $prontooRelativePath;
+            if ($prontooLegacyEntry->isDir()) {
+                if (!is_dir($prontooCanonicalPath)) {
+                    @mkdir($prontooCanonicalPath, 0750, true);
+                }
+                @rmdir($prontooLegacyPath);
+                continue;
+            }
+            $prontooCanonicalParent = dirname($prontooCanonicalPath);
+            if (!is_dir($prontooCanonicalParent)) {
+                @mkdir($prontooCanonicalParent, 0750, true);
+            }
+            if (!file_exists($prontooCanonicalPath)) {
+                @rename($prontooLegacyPath, $prontooCanonicalPath);
+            }
+        }
+        @rmdir($prontooLegacyRoot);
+    } catch (Throwable $prontooPersistenceError) {
+        error_log("[Prontoo SSD migration] " . $prontooPersistenceError->getMessage());
+    }
+}
+foreach ([PRONTOO_SSD_ROOT, PRONTOO_PDF_ROOT, PRONTOO_IMAGE_UPLOAD_ROOT] as $prontooPersistentDir) {
+    if (!is_dir($prontooPersistentDir)) {
+        @mkdir($prontooPersistentDir, 0750, true);
+    }
+    if (is_dir($prontooPersistentDir)) {
+        @chmod($prontooPersistentDir, 0750);
+    }
+}
+unset(
+    $prontooPersistencePairs,
+    $prontooLegacyRoot,
+    $prontooCanonicalRoot,
+    $prontooCanonicalParent,
+    $prontooLegacyIterator,
+    $prontooLegacyEntry,
+    $prontooLegacyPath,
+    $prontooRelativePath,
+    $prontooCanonicalPath,
+    $prontooPersistenceError,
+    $prontooPersistentDir,
+);
 if (!function_exists("mb_substr")) {
     if (!defined("MB_CASE_TITLE")) {
         define("MB_CASE_TITLE", 2);
@@ -117,7 +198,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.22.5";
+const PRONTOO_VERSION_FALLBACK = "1.7.22.6";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -246,7 +327,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.22.4";
+const PRONTOO_PREVIOUS_VERSION = "1.7.22.5";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
@@ -290,7 +371,7 @@ function prontoo_configure_runtime_error_log(): void
     if (PHP_SAPI === "cli") {
         return;
     }
-    $logDir = PRONTOO_ROOT . "/storage/logs";
+    $logDir = PRONTOO_ROOT . "/ssd/logs";
     if (!is_dir($logDir)) {
         @mkdir($logDir, 0750, true);
     }

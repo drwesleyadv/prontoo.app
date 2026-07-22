@@ -28,7 +28,8 @@ FileETag None
     RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=308,L]
 
     RewriteRule ^app/ - [F,L]
-    RewriteRule ^storage/ - [F,L]
+    RewriteRule ^ssd/ - [F,L,NC]
+    RewriteRule ^storage/ - [F,L,NC]
     RewriteRule ^error_log$ - [F,L,NC]
     RewriteRule ^robots\.txt$ br/index.php?asset=robots [QSA,L,NC]
     RewriteRule ^sitemap\.xml$ br/index.php?asset=sitemap [QSA,L,NC]

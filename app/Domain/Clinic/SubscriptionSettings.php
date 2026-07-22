@@ -513,48 +513,39 @@ function subscription_payment_proof_validate_pdf(string $tmp): void
         throw new RuntimeException("PDF inválido.");
     }
 }
-function subscription_payment_proof_storage(int $cid): array
+function subscription_payment_proof_storage(int $cid, bool $image = false): array
 {
     /*
      * GUIA DE MANUTENÇÃO — subscription_payment_proof_storage
-     * Responsabilidade: Implementa a responsabilidade “subscription payment proof storage” dentro do módulo de domínio e regras de negócio.
+     * Responsabilidade: Resolve comprovantes no SSD, separando imagens sob `/ssd/img/`.
      * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
      * Chamadores detectados: `subscription_payment_proof_upload`.
      * Dependências chamadas: `RuntimeException`, `storage_path`, `is_link`, `is_dir`, `mkdir`, `chmod`, `realpath`, `str_starts_with`.
      * Classes ou serviços instanciados: `RuntimeException`.
      * Efeitos colaterais: acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     * Cuidado 1: Imagens enviadas devem permanecer exclusivamente sob `/ssd/img/`.
      */
     if ($cid <= 0) {
         throw new RuntimeException("Consultório inválido para o comprovante.");
     }
-    $root = storage_path("payment-proofs");
+    $relativeRoot = $image ? "ssd/img/payment-proofs" : "ssd/payment-proofs";
+    $root = $image ? storage_path("img/payment-proofs") : storage_path("payment-proofs");
     $directory = $root . "/clinic-" . $cid;
     foreach ([$root, $directory] as $path) {
         if (is_link($path)) {
             throw new RuntimeException("Diretório de comprovantes inválido.");
         }
         if (!is_dir($path) && !mkdir($path, 0750, true) && !is_dir($path)) {
-            throw new RuntimeException(
-                "Não foi possível preparar o armazenamento do comprovante.",
-            );
+            throw new RuntimeException("Não foi possível preparar o armazenamento do comprovante.");
         }
         @chmod($path, 0750);
     }
     $resolvedRoot = realpath($root);
     $resolvedDirectory = realpath($directory);
-    if (
-        $resolvedRoot === false ||
-        $resolvedDirectory === false ||
-        ($resolvedDirectory !== $resolvedRoot &&
-            !str_starts_with($resolvedDirectory, $resolvedRoot . DIRECTORY_SEPARATOR))
-    ) {
+    if ($resolvedRoot === false || $resolvedDirectory === false || ($resolvedDirectory !== $resolvedRoot && !str_starts_with($resolvedDirectory, $resolvedRoot . DIRECTORY_SEPARATOR))) {
         throw new RuntimeException("Diretório de comprovantes inválido.");
     }
-    return [
-        "absolute" => $resolvedDirectory,
-        "relative" => "storage/payment-proofs/clinic-" . $cid,
-    ];
+    return ["absolute" => $resolvedDirectory, "relative" => $relativeRoot . "/clinic-" . $cid];
 }
 
 function subscription_payment_proof_upload(int $cid, int $uid): ?string
@@ -631,7 +622,10 @@ function subscription_payment_proof_upload(int $cid, int $uid): ?string
     } else {
         subscription_payment_proof_validate_image($tmp, $mime);
     }
-    $storage = subscription_payment_proof_storage($cid);
+    $storage = subscription_payment_proof_storage(
+        $cid,
+        $mime !== "application/pdf",
+    );
     $dir = (string) $storage["absolute"];
     $baseName =
         "proof_" .
@@ -673,35 +667,46 @@ function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 {
     /*
      * GUIA DE MANUTENÇÃO — subscription_payment_proof_absolute_path
-     * Responsabilidade: Implementa a responsabilidade “subscription payment proof absolute path” dentro do módulo de domínio e regras de negócio.
+     * Responsabilidade: Resolve comprovantes atuais e caminhos legados já gravados.
      * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
      * Chamadores detectados: `subscription_payment_delete_proof`, `page_admin_payment_proof`.
-     * Dependências chamadas: `trim`, `str_replace`, `str_starts_with`, `str_contains`, `realpath`, `storage_path`, `app_root`, `ltrim`, `is_file`.
+     * Dependências chamadas: `trim`, `str_replace`, `str_starts_with`, `str_contains`, `realpath`, `storage_path`, `is_file`.
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     * Cuidado 1: Preserve a compatibilidade de leitura de `storage/payment-proofs/`.
      */
     $proofPath = trim((string) $proofPath);
     if ($proofPath === "") {
         return null;
     }
-    $proofPath = str_replace("\\", "/", $proofPath);
-    if (!str_starts_with($proofPath, "storage/payment-proofs/")) {
-        return null;
-    }
+    $proofPath = str_replace("\", "/", $proofPath);
     if (str_contains($proofPath, "..")) {
         return null;
     }
-    $root = realpath(storage_path("payment-proofs"));
-    if ($root === false) {
+    $roots = [
+        "ssd/img/payment-proofs/" => storage_path("img/payment-proofs"),
+        "ssd/payment-proofs/" => storage_path("payment-proofs"),
+        "storage/payment-proofs/" => storage_path("payment-proofs"),
+    ];
+    $matchedPrefix = null;
+    $rootPath = null;
+    foreach ($roots as $prefix => $candidateRoot) {
+        if (str_starts_with($proofPath, $prefix)) {
+            $matchedPrefix = $prefix;
+            $rootPath = $candidateRoot;
+            break;
+        }
+    }
+    if ($matchedPrefix === null || $rootPath === null) {
         return null;
     }
-    $candidate = app_root() . "/" . ltrim($proofPath, "/");
+    $root = realpath($rootPath);
+    $relative = substr($proofPath, strlen($matchedPrefix));
+    if ($root === false || $relative === false || $relative === "") {
+        return null;
+    }
+    $candidate = $root . DIRECTORY_SEPARATOR . str_replace("/", DIRECTORY_SEPARATOR, $relative);
     $full = realpath($candidate);
-    if (
-        $full === false ||
-        !is_file($full) ||
-        !str_starts_with($full, $root . DIRECTORY_SEPARATOR)
-    ) {
+    if ($full === false || !is_file($full) || !str_starts_with($full, $root . DIRECTORY_SEPARATOR)) {
         return null;
     }
     return $full;

@@ -1,8 +1,8 @@
 {
-  "version": "1.7.22.5",
+  "version": "1.7.22.6",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
-  "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
+  "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
   "classification_coverage_target_percent": 100,
   "native_files_min": 13,
   "transitional_files_max": 78,

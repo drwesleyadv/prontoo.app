@@ -216,7 +216,7 @@ final class LayerMap
         if (!is_dir($root)) {
             return [];
         }
-        $excluded = ['/storage/', '/vendor/', '/node_modules/', '/.git/'];
+        $excluded = ['/ssd/', '/vendor/', '/node_modules/', '/.git/'];
         $files = [];
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),

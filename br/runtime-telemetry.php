@@ -11,7 +11,7 @@ if (!function_exists("storage_path")) {
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
          * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
          */
-        $base = dirname(__DIR__) . DIRECTORY_SEPARATOR . "storage";
+        $base = dirname(__DIR__) . DIRECTORY_SEPARATOR . "ssd";
         return $suffix === ""
             ? $base
             : $base . DIRECTORY_SEPARATOR . ltrim($suffix, "/\\");
