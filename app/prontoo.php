@@ -7,6 +7,36 @@ $GLOBALS["PRONTOO_QUERY_WIDE_SELECT_COUNT"] = 0;
 if (!defined("PRONTOO_ROOT")) {
     define("PRONTOO_ROOT", dirname(__DIR__));
 }
+if (PHP_SAPI !== "cli") {
+    // PRONTOO_HTTPS_RUNTIME_GUARD
+    $prontooHttps = strtolower(trim((string) ($_SERVER["HTTPS"] ?? "")));
+    $prontooForwardedProtoParts = explode(",", strtolower((string) ($_SERVER["HTTP_X_FORWARDED_PROTO"] ?? "")));
+    $prontooForwardedProto = trim((string) ($prontooForwardedProtoParts[0] ?? ""));
+    $prontooRequestSecure = in_array($prontooHttps, ["on", "1"], true) ||
+        (int) ($_SERVER["SERVER_PORT"] ?? 0) === 443 ||
+        $prontooForwardedProto === "https";
+    $prontooRequestHost = strtolower(trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
+    $prontooRequestHost = preg_replace('/:\d+$/', '', $prontooRequestHost) ?? "";
+    if (!$prontooRequestSecure || $prontooRequestHost !== "prontoo.app") {
+        $prontooRequestUri = (string) ($_SERVER["REQUEST_URI"] ?? "/");
+        if ($prontooRequestUri === "" || !str_starts_with($prontooRequestUri, "/")) {
+            $prontooRequestUri = "/";
+        }
+        if (!headers_sent()) {
+            header("Location: https://prontoo.app" . $prontooRequestUri, true, 308);
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        }
+        exit;
+    }
+    unset(
+        $prontooHttps,
+        $prontooForwardedProtoParts,
+        $prontooForwardedProto,
+        $prontooRequestSecure,
+        $prontooRequestHost,
+        $prontooRequestUri,
+    );
+}
 if (!function_exists("mb_substr")) {
     if (!defined("MB_CASE_TITLE")) {
         define("MB_CASE_TITLE", 2);
@@ -87,7 +117,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.22.4";
+const PRONTOO_VERSION_FALLBACK = "1.7.22.5";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -216,7 +246,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.22.3";
+const PRONTOO_PREVIOUS_VERSION = "1.7.22.4";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Core\Database;
 
-use Prontoo\Core\Install\InstallAccess;
 
 final class SchemaMutationLock
 {
@@ -18,7 +17,7 @@ final class SchemaMutationLock
          * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
          * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; após o comissionamento, a janela estrutural existe somente na certificação CLI do GitHub Actions com todos os marcadores exigidos.
          */
     }
 
@@ -33,7 +32,7 @@ final class SchemaMutationLock
          * Classes ou serviços instanciados: `.RuntimeException`.
          * Estado externo lido: `$GLOBALS`.
          * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; após o comissionamento, a janela estrutural existe somente na certificação CLI do GitHub Actions com todos os marcadores exigidos.
          */
         if (!self::mayOpenInstallerWindow()) {
             throw new \RuntimeException('A janela estrutural só pode ser aberta pelo instalador autorizado ou pela certificação controlada.');
@@ -65,7 +64,7 @@ final class SchemaMutationLock
          * Dependências chamadas: `hash_equals`.
          * Estado externo lido: `$GLOBALS`.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; após o comissionamento, a janela estrutural existe somente na certificação CLI do GitHub Actions com todos os marcadores exigidos.
          */
         $provided = (string) ($GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE'] ?? '');
         return self::$depth === 1 &&
@@ -84,7 +83,7 @@ final class SchemaMutationLock
          * Dependências chamadas: `self::isActive`.
          * Classes ou serviços instanciados: `.RuntimeException`.
          * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; após o comissionamento, a janela estrutural existe somente na certificação CLI do GitHub Actions com todos os marcadores exigidos.
          */
         if (!self::isActive()) {
             throw new \RuntimeException('A estrutura do banco está congelada fora da janela privada do instalador.');
@@ -95,17 +94,19 @@ final class SchemaMutationLock
     {
         /*
          * GUIA DE MANUTENÇÃO — Core.Database.SchemaMutationLock::mayOpenInstallerWindow
-         * Responsabilidade: Implementa a responsabilidade “may open installer window” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Responsabilidade: Autoriza a abertura transitória da estrutura exclusivamente na certificação CLI do GitHub Actions. HTTP, localhost e variáveis parciais permanecem bloqueados.
          * Local arquitetural: app/Core/Database/SchemaMutationLock.php (núcleo de invariantes e decisões canônicas).
          * Chamadores detectados: `Core.Database.SchemaMutationLock::runForInstaller`.
-         * Dependências chamadas: `getenv`, `InstallAccess::isInstallerExecutionAllowed`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer no instalador autorizado — local ou dentro da janela pública temporária — ou no CI controlado.
+         * Dependências chamadas: `getenv`.
+         * Estado externo lido: `PHP_SAPI` e os quatro marcadores da certificação.
+         * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed.
+         * Cuidado 1: Não reintroduza bypass de instalação local, autorização HTTP ou exceção por localhost.
+         * Cuidado 2: A condição deve continuar exigindo `GITHUB_ACTIONS=true`, `CI=true`, `PRONTOO_SCHEMA_TEST_MODE=1` e `PRONTOO_INSTALLER_CLI_MODE=1` ao mesmo tempo.
          */
-        if (PHP_SAPI === 'cli') {
-            return (string) getenv('PRONTOO_SCHEMA_TEST_MODE') === '1' ||
-                (string) getenv('PRONTOO_ALLOW_LOCAL_INSTALL') === '1';
-        }
-        return InstallAccess::isInstallerExecutionAllowed($_SERVER);
+        return PHP_SAPI === 'cli' &&
+            (string) getenv('GITHUB_ACTIONS') === 'true' &&
+            (string) getenv('CI') === 'true' &&
+            (string) getenv('PRONTOO_SCHEMA_TEST_MODE') === '1' &&
+            (string) getenv('PRONTOO_INSTALLER_CLI_MODE') === '1';
     }
 }

@@ -78,8 +78,10 @@ if (!function_exists('prontoo_fs_unlink')) {
         return !file_exists($path) || @unlink($path);
     }
 }
+putenv('GITHUB_ACTIONS=true');
 putenv('CI=true');
 putenv('PRONTOO_SCHEMA_TEST_MODE=1');
+putenv('PRONTOO_INSTALLER_CLI_MODE=1');
 require_once $root . '/app/Core/Install/InstallAccess.php';
 require_once $root . '/app/Core/Database/SchemaMutationLock.php';
 require_once $root . '/app/Database/DatabaseSchema.php';
