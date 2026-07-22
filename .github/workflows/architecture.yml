@@ -7,9 +7,9 @@ permissions:
   contents: write
 
 jobs:
-  inventory-persistence-paths:
+  apply-ssd-persistence:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -17,19 +17,35 @@ jobs:
           ref: agent/ssd-persistence-1.7.22.6
           fetch-depth: 0
 
-      - name: Persist inventory
+      - name: Apply SSD persistence policy
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .automation
-          {
-            echo '=== STORAGE/PDFS/UPLOAD REFERENCES ==='
-            grep -RInE --exclude-dir=.git --exclude-dir=.automation --exclude='app/update.manifest.json' --exclude='*.map' '(storage|pdfs|move_uploaded_file|\$_FILES|image/(png|jpeg|webp|gif))' . || true
-            echo '=== DIRECTORIES ==='
-            find . -maxdepth 3 -type d | sort
-          } > .automation/persistence-inventory.txt
+          cp .automation/apply_ssd_persistence.py /tmp/apply_ssd_persistence.py
+          python3 /tmp/apply_ssd_persistence.py | tee /tmp/ssd-persistence-report.json
+
+      - name: Validate transformed tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -name '*.php' -type f -print0)
+          php tools/install-security-check.php
+          php -r '
+            $v = json_decode((string) file_get_contents("version.json"), true, 512, JSON_THROW_ON_ERROR);
+            if (($v["version"] ?? "") !== "1.7.22.6") { throw new RuntimeException("Versão divergente"); }
+            if (($v["persistent_storage_policy"]["root"] ?? "") !== "ssd") { throw new RuntimeException("Raiz SSD ausente"); }
+            if (($v["persistent_storage_policy"]["pdfs"] ?? "") !== "ssd/pdfs") { throw new RuntimeException("Política PDF divergente"); }
+            if (($v["persistent_storage_policy"]["images"] ?? "") !== "ssd/img") { throw new RuntimeException("Política de imagens divergente"); }
+          '
+
+      - name: Publish transformed branch
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .automation/persistence-inventory.txt
-          git commit -m 'Registra inventário temporário de persistência' || exit 0
+          git add -A
+          git commit -m 'Prontoo 1.7.22.6 — migra persistência para ssd'
           git push origin HEAD:agent/ssd-persistence-1.7.22.6
