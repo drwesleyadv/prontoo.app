@@ -463,7 +463,7 @@ function prontoo_run(bool $installMode = false): void
      * Responsabilidade: Orquestra a execução de “prontoo run” e delega etapas específicas às dependências do módulo.
      * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `prontoo_boot_database_for_route` e demais serviços de autorização, cache, auditoria e renderização.
+     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `.Core.Install.InstallAccess::isInstallerExecutionAllowed`, `headers_sent`, `header`, `prontoo_boot_database_for_route` e mais 29.
      * Classes ou serviços instanciados: `ProntooHttpError`, `RuntimeException`.
      * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`.
      * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
@@ -477,11 +477,21 @@ function prontoo_run(bool $installMode = false): void
         $publicHome = false;
         headers_secure(false);
         if (!has_cfg() && !$installMode && !$publicHome) {
+            if (is_file(storage_path("install.lock"))) {
+                throw new ProntooHttpError(
+                    503,
+                    "Instalação existente detectada, mas app/config.php não foi encontrado. Não execute o instalador: restaure o arquivo de configuração da instalação atual.",
+                );
+            }
+            if (\Prontoo\Core\Install\InstallAccess::isInstallerExecutionAllowed()) {
+                if (!headers_sent()) {
+                    header("Location: /install.php", true, 302);
+                }
+                exit();
+            }
             throw new ProntooHttpError(
                 503,
-                is_file(storage_path("install.lock"))
-                    ? "Instalação existente detectada, mas app/config.php não foi encontrado. O instalador está bloqueado: restaure o arquivo de configuração da instalação atual."
-                    : "Configuração ausente. A instalação desta publicação está encerrada e não pode ser iniciada por HTTP; restaure app/config.php a partir do ambiente comissionado.",
+                "Configuração ausente. O instalador não é exposto publicamente; restaure app/config.php ou acesse o servidor diretamente pelo localhost.",
             );
         }
         prontoo_boot_database_for_route($r);
