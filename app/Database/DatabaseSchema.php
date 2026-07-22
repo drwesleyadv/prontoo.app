@@ -20,7 +20,7 @@ function db_runtime_notice_once(string $key, string $message): void
     $version = defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "runtime";
     $dir = function_exists("storage_path")
         ? storage_path("cache/runtime-notices")
-        : dirname(__DIR__, 2) . "/storage/cache/runtime-notices";
+        : dirname(__DIR__, 2) . "/ssd/cache/runtime-notices";
     $marker =
         $dir .
         "/" .

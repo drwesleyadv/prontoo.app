@@ -511,7 +511,7 @@ function platform_autotest_actions(array $checks): array
         $actions[] = "Banco de dados indisponível no autoteste do login.";
     }
     if (empty($checks["storage"])) {
-        $actions[] = "Sistema de arquivos sem permissão de escrita no storage.";
+        $actions[] = "Diretório persistente /ssd sem permissão de escrita.";
     }
     if ((int) ($checks["open_errors"] ?? 0) > 0) {
         $actions[] =
@@ -2533,16 +2533,16 @@ function page_admin_diagnostics(): void
             "icon" => "folder_managed",
             "time" => "Storage",
             "title" => bool_status(
-                is_writable(app_root() . "/storage"),
+                is_writable(app_root() . "/ssd"),
                 "Diretório gravável",
-                "Sem escrita em storage",
+                "Sem escrita em /ssd",
             ),
-            "body" => app_root() . "/storage",
+            "body" => app_root() . "/ssd",
             "meta" =>
                 "Espaço livre: " .
                 (function_exists("disk_free_space")
                     ? human_bytes(
-                        (float) @disk_free_space(app_root() . "/storage"),
+                        (float) @disk_free_space(app_root() . "/ssd"),
                     )
                     : "não informado"),
         ],
@@ -3469,7 +3469,7 @@ function page_admin_painel(): void
             "time" => "Arquivos",
             "title" => "Storage sem permissão de escrita",
             "body" =>
-                "Arquivos temporários, métricas e comprovantes dependem de escrita no storage.",
+                "Arquivos temporários, métricas e comprovantes dependem de escrita em /ssd.",
             "meta" => "Verifique permissões.",
         ];
     }

@@ -3,19 +3,17 @@
 /.env
 /.env.*
 
-# Estado e dados gerados em runtime
+# Persistência canônica da instalação
+/ssd/
+
+# Entradas legadas preservadas até a migração automática
 /storage/
+/pdfs/
+
+# Logs e locks locais
 /error_log
 *.log
 *.lock
-
-# Documentos clínicos gerados
-/pdfs/*.pdf
-/pdfs/*.json
-/pdfs/*.tmp
-/pdfs/*.log
-/pdfs/*.txt
-/pdfs/*.bak
 
 # Arquivos locais de ferramentas e sistema operacional
 /.idea/

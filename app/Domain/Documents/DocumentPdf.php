@@ -23,34 +23,19 @@ function document_pdf_public_router_dir(): string
 {
     /*
      * GUIA DE MANUTENÇÃO — document_pdf_public_router_dir
-     * Responsabilidade: Implementa a responsabilidade “document pdf public router dir” dentro do módulo de domínio e regras de negócio.
+     * Responsabilidade: Resolve o armazenamento físico protegido dos PDFs, mantendo a URL pública abstrata sob controle do roteador autenticado.
      * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
      * Chamadores detectados: `document_pdf_dir`.
-     * Dependências chamadas: `app_root`, `is_dir`, `mkdir`, `is_file`, `file_get_contents`, `file_put_contents`, `chmod`.
+     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`.
      * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+     * Cuidado 1: PDFs físicos devem permanecer exclusivamente em `/ssd/pdfs/`; não recrie o diretório raiz `/pdfs/`.
      */
-    $dir = app_root() . "/pdfs";
+    $dir = storage_path("pdfs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }
-    $router = $dir . "/.htaccess";
-    $routerRules =
-        "Options -Indexes\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^([A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\\.pdf)$ ../index.php?r=document_pdf_file&file=$1 [QSA,L,NC]\nRewriteRule ^ - [F,L]\n</IfModule>\n<IfModule !mod_rewrite.c>\n<FilesMatch \"\\.pdf$\">\nRequire all denied\n</FilesMatch>\n</IfModule>\n<FilesMatch \"\\.(json|tmp|log|txt|bak)$\">\nRequire all denied\n</FilesMatch>\n";
-    if (
-        !is_file($router) ||
-        (string) @file_get_contents($router) !== $routerRules
-    ) {
-        @file_put_contents($router, $routerRules, LOCK_EX);
-    }
-    @chmod($router, 0640);
-    $index = $dir . "/index.html";
-    if (!is_file($index)) {
-        @file_put_contents(
-            $index,
-            '<!doctype html><meta charset="utf-8"><title>403</title>' . "\n",
-            LOCK_EX,
-        );
+    if (function_exists("security_storage_deny_file")) {
+        security_storage_deny_file($dir);
     }
     return $dir;
 }

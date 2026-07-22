@@ -123,11 +123,11 @@ function install_environment_checks(bool $touchPaths = false): array
     $appDir = dirname(cfg_file());
     $paths = [
         "app/" => $appDir,
-        "storage/" => storage_path(),
-        "storage/cache/" => storage_path("cache"),
-        "storage/telemetry/" => storage_path("telemetry"),
-        "storage/tmp/" => storage_path("tmp"),
-        "pdfs/" => install_pdf_dir(),
+        "ssd/" => storage_path(),
+        "ssd/cache/" => storage_path("cache"),
+        "ssd/telemetry/" => storage_path("telemetry"),
+        "ssd/tmp/" => storage_path("tmp"),
+        "ssd/pdfs/" => install_pdf_dir(),
     ];
     foreach ($paths as $label => $dir) {
         if ($touchPaths && !is_dir($dir)) {
@@ -557,13 +557,13 @@ function install_technical_report(
         [
             ["app/", dirname(cfg_file())],
             ["app/config.php", cfg_file()],
-            ["storage/", storage_path()],
-            ["storage/install.lock", storage_path("install.lock")],
-            ["storage/cache/", storage_path("cache")],
-            ["storage/telemetry/", storage_path("telemetry")],
-            ["storage/tmp/", storage_path("tmp")],
-            ["pdfs/ (rota pública)", install_pdf_dir()],
-            ["storage/pdfs/", storage_path("pdfs")],
+            ["ssd/", storage_path()],
+            ["ssd/install.lock", storage_path("install.lock")],
+            ["ssd/cache/", storage_path("cache")],
+            ["ssd/telemetry/", storage_path("telemetry")],
+            ["ssd/tmp/", storage_path("tmp")],
+            ["ssd/pdfs/ (persistência física)", install_pdf_dir()],
+            ["ssd/img/", storage_path("img")],
         ]
         as [$label, $path]
     ) {
@@ -762,6 +762,7 @@ function install_safe_failure_message(Throwable $e): string
         }
     }
     if (
+        str_contains($msg, "ssd") ||
         str_contains($msg, "storage") ||
         str_contains($msg, "cache") ||
         str_contains($msg, "telemetry") ||
@@ -776,9 +777,9 @@ function install_safe_failure_message(Throwable $e): string
             "Tabela(s) com clinic_id fora do registro de isolamento",
         )
     ) {
-        return "A instalação encontrou divergência diagnóstica de isolamento multi-consultório. Verifique storage/tenant_integrity.json e use banco vazio.";
+        return "A instalação encontrou divergência diagnóstica de isolamento multi-consultório. Verifique ssd/tenant_integrity.json e use banco vazio.";
     }
-    return "A instalação não foi concluída. Revise os dados informados, o banco vazio e as permissões de escrita em app/, storage/ e pdfs/.";
+    return "A instalação não foi concluída. Revise os dados informados, o banco vazio e as permissões de escrita em app/ e ssd/.";
 }
 function install_head(string $title): string
 {
@@ -872,9 +873,9 @@ function install_state_page(string $state): void
     if ($state === "installed") {
         echo '<section class="auth widebox"><h1>Prontoo já configurado</h1><p>Esta instalação já possui configuração e trava de instalação concluída.</p><p><a class="primary" href="/">Abrir</a></p></section>';
     } elseif ($state === "config_without_lock") {
-        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">O arquivo app/config.php existe, mas storage/install.lock não foi encontrado. Para uma instalação limpa, use outro banco vazio e remova app/config.php apenas se esta configuração parcial puder ser descartada.</p></section>';
+        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">O arquivo app/config.php existe, mas ssd/install.lock não foi encontrado. Para uma instalação limpa, use outro banco vazio e remova app/config.php apenas se esta configuração parcial puder ser descartada.</p></section>';
     } else {
-        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">storage/install.lock existe, mas app/config.php não foi encontrado. Remova o lock apenas se esta instalação puder ser refeita do zero.</p></section>';
+        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">ssd/install.lock existe, mas app/config.php não foi encontrado. Remova o lock apenas se esta instalação puder ser refeita do zero.</p></section>';
     }
     echo install_tail();
 }
@@ -1120,7 +1121,7 @@ function prontoo_install(): void
                 ) === false
             ) {
                 throw new RuntimeException(
-                    "Não foi possível gravar storage/install.lock.",
+                    "Não foi possível gravar ssd/install.lock.",
                 );
             }
             prontoo_fs_chmod(storage_path("install.lock"), 0640);

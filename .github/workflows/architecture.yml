@@ -45,7 +45,7 @@ jobs:
             php -l "$file" >/dev/null
           done < <(find . \
             -path './.git' -prune -o \
-            -path './storage' -prune -o \
+            -path './ssd' -prune -o \
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
             -name '*.php' -print0)
@@ -84,7 +84,7 @@ jobs:
                   continue;
               }
               $path = str_replace('\\', '/', $file->getPathname());
-              if (str_contains($path, '/storage/') ||
+              if (str_contains($path, '/ssd/') ||
                   str_contains($path, '/vendor/') ||
                   str_contains($path, '/node_modules/')) {
                   continue;

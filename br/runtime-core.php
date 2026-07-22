@@ -92,7 +92,7 @@ function br_landing_send_asset(string $asset): void
         echo "Allow: /br/\n";
         echo "Allow: /index.php?r=signup\n";
         echo "Disallow: /app/\n";
-        echo "Disallow: /storage/\n";
+        echo "Disallow: /ssd/\n";
         echo "Disallow: /pdfs/\n";
         echo "Disallow: /rom.php\n";
         echo "Sitemap: " . br_landing_url("sitemap.xml") . "\n";
