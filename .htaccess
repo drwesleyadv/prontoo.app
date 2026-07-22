@@ -10,11 +10,11 @@ FileETag None
     Require all denied
 </Files>
 
-# Janela pública temporária do instalador.
-# O controle efetivo permanece em app/Core/Install/InstallAccess.php e expira
-# automaticamente em 2026-07-22T16:06:54Z (22/07/2026 12:06:54 em Cuiabá).
+# Instalação concluída e comissionada.
+# O instalador permanece no pacote apenas para rastreabilidade e certificação,
+# mas não pode ser servido pelo Apache/LiteSpeed em produção.
 <Files "install.php">
-    Require all granted
+    Require all denied
 </Files>
 
 <IfModule mod_rewrite.c>

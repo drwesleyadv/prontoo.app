@@ -11,21 +11,18 @@ use Prontoo\Core\Install\InstallAccess;
 
 $errors = [];
 $originalServer = $_SERVER;
-$cases = [
-    ['127.0.0.1', 'localhost', [], true, 'ipv4_localhost'],
-    ['127.7.9.3', '127.0.0.1:8080', [], true, 'ipv4_loopback_range'],
-    ['::1', '[::1]:8080', [], true, 'ipv6_loopback'],
-    ['203.0.113.10', 'localhost', [], false, 'public_remote'],
-    ['127.0.0.1', 'prontoo.app', [], false, 'public_host'],
-    ['127.0.0.1', 'localhost', ['HTTP_X_FORWARDED_FOR' => '203.0.113.10'], false, 'forwarded_request'],
-];
-foreach ($cases as [$remote, $host, $extra, $expected, $label]) {
-    $_SERVER = ['REMOTE_ADDR' => $remote, 'HTTP_HOST' => $host] + $extra;
-    if (InstallAccess::isLocalServer($_SERVER) !== $expected) {
-        $errors[] = 'install_access:' . $label;
-    }
+$originalEnv = [];
+foreach ([
+    'GITHUB_ACTIONS',
+    'CI',
+    'PRONTOO_SCHEMA_TEST_MODE',
+    'PRONTOO_INSTALLER_CLI_MODE',
+    'PRONTOO_ALLOW_LOCAL_INSTALL',
+] as $name) {
+    $value = getenv($name);
+    $originalEnv[$name] = $value === false ? null : (string) $value;
+    putenv($name);
 }
-$_SERVER = $originalServer;
 
 $publicServer = [
     'REMOTE_ADDR' => '203.0.113.10',
@@ -33,68 +30,109 @@ $publicServer = [
     'HTTPS' => 'on',
     'SERVER_PORT' => '443',
 ];
-if (InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX - InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX !== 14400) {
-    $errors[] = 'public_window_not_exactly_four_hours';
+$localServer = [
+    'REMOTE_ADDR' => '127.0.0.1',
+    'HTTP_HOST' => 'localhost',
+    'SERVER_PORT' => '80',
+];
+if (InstallAccess::isInstallerExecutionAllowed($publicServer)) {
+    $errors[] = 'public_http_installer_allowed';
 }
-if (!InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
-    $errors[] = 'public_window_start_not_allowed';
+if (InstallAccess::isInstallerExecutionAllowed($localServer)) {
+    $errors[] = 'local_http_installer_allowed';
 }
-if (!InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX - 1)) {
-    $errors[] = 'public_window_last_second_not_allowed';
-}
-if (InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_END_UNIX)) {
-    $errors[] = 'public_window_expiry_not_closed';
-}
-if (InstallAccess::isInstallerExecutionAllowed($publicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX - 1)) {
-    $errors[] = 'public_window_before_start_allowed';
-}
-$insecurePublicServer = $publicServer;
-unset($insecurePublicServer['HTTPS']);
-$insecurePublicServer['SERVER_PORT'] = '80';
-if (InstallAccess::isInstallerExecutionAllowed($insecurePublicServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
-    $errors[] = 'public_window_insecure_http_allowed';
-}
-$wrongHostServer = $publicServer;
-$wrongHostServer['HTTP_HOST'] = 'example.test';
-if (InstallAccess::isInstallerExecutionAllowed($wrongHostServer, InstallAccess::TEMPORARY_PUBLIC_WINDOW_START_UNIX)) {
-    $errors[] = 'public_window_wrong_host_allowed';
+if (InstallAccess::isInstallerExecutionAllowed()) {
+    $errors[] = 'unmarked_cli_installer_allowed';
 }
 
-if (SchemaMutationLock::isActive()) {
-    $errors[] = 'schema_lock_active_by_default';
+putenv('CI=true');
+if (InstallAccess::isInstallerExecutionAllowed()) {
+    $errors[] = 'partial_cli_installer_allowed_ci_only';
 }
-$blocked = false;
+putenv('GITHUB_ACTIONS=true');
+putenv('PRONTOO_SCHEMA_TEST_MODE=1');
+if (InstallAccess::isInstallerExecutionAllowed()) {
+    $errors[] = 'partial_cli_installer_allowed_without_installer_mode';
+}
+putenv('PRONTOO_INSTALLER_CLI_MODE=1');
+if (!InstallAccess::isInstallerExecutionAllowed()) {
+    $errors[] = 'fully_marked_github_actions_cli_denied';
+}
+
+$opened = false;
 try {
-    db_reject_runtime_ddl('DROP TABLE pi_users');
-} catch (RuntimeException $error) {
-    $blocked = str_contains($error->getMessage(), 'estrutura do banco está congelada');
+    $opened = SchemaMutationLock::runForInstaller(static function (): bool {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@tools/install-security-check.php:62
+         * Responsabilidade: Confirma que a janela estrutural só abre no contexto integral da certificação e que o nonce interno é válido durante o callback.
+         * Local arquitetural: tools/install-security-check.php (ferramentas de certificação e manutenção).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `SchemaMutationLock::isActive`, `db_reject_runtime_ddl`.
+         * Efeitos colaterais: executa somente uma prova controlada, sem persistir estrutura ou dados.
+         * Cuidado 1: Mantenha esta closure única para preservar o inventário documental da baseline.
+         */
+        if (!SchemaMutationLock::isActive()) {
+            return false;
+        }
+        db_reject_runtime_ddl('CREATE TABLE pi_test (id int)');
+        return true;
+    });
+} catch (Throwable $error) {
+    $errors[] = 'fully_marked_schema_window:' . $error->getMessage();
 }
-if (!$blocked) {
+if (!$opened || SchemaMutationLock::isActive()) {
+    $errors[] = 'schema_window_lifecycle';
+}
+
+putenv('PRONTOO_INSTALLER_CLI_MODE');
+$blockedPartial = false;
+try {
+    SchemaMutationLock::runForInstaller('strlen');
+} catch (RuntimeException $error) {
+    $blockedPartial = str_contains($error->getMessage(), 'janela estrutural');
+}
+if (!$blockedPartial) {
+    $errors[] = 'partial_schema_markers_not_blocked';
+}
+
+$ddlBlocked = false;
+try {
+    db_reject_runtime_ddl('ALTER TABLE pi_meta ADD COLUMN forbidden int');
+} catch (RuntimeException $error) {
+    $ddlBlocked = str_contains($error->getMessage(), 'estrutura do banco está congelada');
+}
+if (!$ddlBlocked) {
     $errors[] = 'runtime_ddl_not_blocked';
 }
-putenv('CI=true');
-putenv('PRONTOO_SCHEMA_TEST_MODE=1');
-$opened = SchemaMutationLock::runForInstaller(static function (): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — closure@tools/install-security-check.php:44
-     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de ferramentas de certificação e manutenção.
-     * Local arquitetural: tools/install-security-check.php (ferramentas de certificação e manutenção).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `db_reject_runtime_ddl`, `SchemaMutationLock::isActive`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
-    db_reject_runtime_ddl('CREATE TABLE pi_test (id int)');
-    return SchemaMutationLock::isActive();
-});
-if (!$opened || SchemaMutationLock::isActive()) {
-    $errors[] = 'private_schema_window_contract';
+
+$installAccessSource = (string) file_get_contents($root . '/app/Core/Install/InstallAccess.php');
+foreach ([
+    'TEMPORARY_PUBLIC_HOST',
+    'TEMPORARY_PUBLIC_WINDOW_START_UNIX',
+    'TEMPORARY_PUBLIC_WINDOW_END_UNIX',
+] as $legacy) {
+    if (str_contains($installAccessSource, $legacy)) {
+        $errors[] = 'legacy_public_window_symbol:' . $legacy;
+    }
+}
+foreach ([
+    "getenv('GITHUB_ACTIONS')",
+    "getenv('CI')",
+    "getenv('PRONTOO_SCHEMA_TEST_MODE')",
+    "getenv('PRONTOO_INSTALLER_CLI_MODE')",
+] as $required) {
+    if (!str_contains($installAccessSource, $required)) {
+        $errors[] = 'installer_marker_missing:' . $required;
+    }
 }
 
-$installerSource = (string) file_get_contents($root . '/app/Install/Installer.php');
-if (str_contains($installerSource, 'InstallAccess::assertLocalEntry') ||
-    !str_contains($installerSource, 'InstallAccess::assertInstallerEntry')) {
-    $errors[] = 'installer_legacy_access_method_reference';
+$schemaLockSource = (string) file_get_contents($root . '/app/Core/Database/SchemaMutationLock.php');
+if (str_contains($schemaLockSource, 'PRONTOO_ALLOW_LOCAL_INSTALL')) {
+    $errors[] = 'legacy_local_install_bypass';
+}
+if (str_contains($schemaLockSource, 'InstallAccess::isInstallerExecutionAllowed') ||
+    str_contains($schemaLockSource, 'use Prontoo\\Core\\Install\\InstallAccess')) {
+    $errors[] = 'schema_lock_depends_on_http_install_access';
 }
 
 $installEntry = (string) file_get_contents($root . '/install.php');
@@ -104,47 +142,47 @@ if ($guardPos === false || $bootstrapPos === false || $guardPos > $bootstrapPos)
     $errors[] = 'install_entry_guard_order';
 }
 
-$runner = (string) file_get_contents($root . '/app/Runtime/Runner.php');
-$configGuardStart = strpos($runner, 'if (!has_cfg() && !$installMode && !$publicHome)');
-$configGuardEnd = $configGuardStart === false
-    ? false
-    : strpos($runner, 'prontoo_boot_database_for_route($r);', $configGuardStart);
-if ($configGuardStart === false || $configGuardEnd === false) {
-    $errors[] = 'runtime_missing_config_guard_not_found';
-} else {
-    $configGuard = substr($runner, $configGuardStart, $configGuardEnd - $configGuardStart);
-    if (!str_contains($configGuard, 'InstallAccess::isInstallerExecutionAllowed()')) {
-        $errors[] = 'runtime_missing_config_not_using_canonical_installer_gate';
-    }
-    if (str_contains($configGuard, 'InstallAccess::isLocalHttpRequest()')) {
-        $errors[] = 'runtime_missing_config_still_localhost_only';
-    }
-    if (!str_contains($configGuard, 'Location: /install.php')) {
-        $errors[] = 'runtime_missing_config_no_installer_redirect';
-    }
+$installer = (string) file_get_contents($root . '/app/Install/Installer.php');
+if (str_contains($installer, 'assertLocalEntry') ||
+    !str_contains($installer, 'InstallAccess::assertInstallerEntry')) {
+    $errors[] = 'installer_internal_guard';
 }
+
+$runtime = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+if (str_contains($runtime, 'Location: /install.php') ||
+    str_contains($runtime, 'InstallAccess::isInstallerExecutionAllowed')) {
+    $errors[] = 'runtime_install_fallback_present';
+}
+
 $htaccess = (string) file_get_contents($root . '/.htaccess');
-if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+granted\s*<\/Files>/s', $htaccess) ||
-    preg_match('/<Files\s+"install\.php">\s*Require\s+local\s*<\/Files>/s', $htaccess)) {
-    $errors[] = 'webserver_temporary_public_rule';
+if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+denied\s*<\/Files>/s', $htaccess) ||
+    preg_match('/<Files\s+"install\.php">\s*Require\s+all\s+granted\s*<\/Files>/s', $htaccess)) {
+    $errors[] = 'webserver_install_not_denied';
 }
-if (is_file($root . '/app/Infrastructure/Database/CleanInstallReset.php')) {
-    $errors[] = 'clean_install_reset_still_present';
-}
-$runtime = (string) file_get_contents($root . '/app/prontoo.php');
-if (str_contains($runtime, 'prontoo_force_clean_install_1_7_21_1') || str_contains($runtime, 'CleanInstallReset::reset')) {
-    $errors[] = 'destructive_reset_runtime_reference';
+
+$components = (string) file_get_contents($root . '/app/Ui/Components.php');
+if (!preg_match('/\$current\s*===\s*"admin_painel"\)\s*\{\s*return\s+"network_ping";/s', $components)) {
+    $errors[] = 'developer_panel_network_ping_icon';
 }
 
 $forbiddenAssignments = [];
-$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS),
+);
 foreach ($iterator as $file) {
-    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+    if (!$file instanceof SplFileInfo ||
+        !$file->isFile() ||
+        strtolower($file->getExtension()) !== 'php') {
         continue;
     }
-    $relative = str_replace(str_replace('\\', '/', $root) . '/', '', str_replace('\\', '/', $file->getPathname()));
+    $relative = str_replace(
+        str_replace('\\', '/', $root) . '/',
+        '',
+        str_replace('\\', '/', $file->getPathname()),
+    );
     $content = (string) file_get_contents($file->getPathname());
-    if ($relative !== 'app/Core/Database/SchemaMutationLock.php' && preg_match('/PRONTOO_SCHEMA_INSTALLING["\']?\]\s*=/', $content)) {
+    if ($relative !== 'app/Core/Database/SchemaMutationLock.php' &&
+        preg_match('/PRONTOO_SCHEMA_INSTALLING["\']?\]\s*=/', $content)) {
         $forbiddenAssignments[] = $relative;
     }
 }
@@ -152,16 +190,30 @@ if ($forbiddenAssignments !== []) {
     $errors[] = 'schema_flag_assignment_outside_lock:' . implode(',', $forbiddenAssignments);
 }
 
+$_SERVER = $originalServer;
+foreach ($originalEnv as $name => $value) {
+    if ($value === null) {
+        putenv($name);
+    } else {
+        putenv($name . '=' . $value);
+    }
+}
+
+$errors = array_values(array_unique($errors));
 $result = [
     'ok' => $errors === [],
-    'policy' => 'temporary-public-installer-window-v1',
-    'public_installer' => true,
-    'public_host' => 'prontoo.app',
-    'public_window_start_unix' => 1784722014,
-    'public_window_end_unix' => 1784736414,
-    'public_window_end_utc' => '2026-07-22T16:06:54Z',
+    'policy' => 'commissioned-installation-lockdown-v1',
+    'public_installer' => false,
+    'local_http_installer' => false,
+    'runtime_install_redirect' => false,
+    'schema_mutation' => 'github-actions-cli-four-markers-only',
+    'webserver_install_denied' => true,
+    'developer_panel_icon' => 'network_ping',
     'schema_frozen' => true,
-    'errors' => array_values(array_unique($errors)),
+    'errors' => $errors,
 ];
-echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), PHP_EOL;
+echo json_encode(
+    $result,
+    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+), PHP_EOL;
 exit($errors === [] ? 0 : 1);
