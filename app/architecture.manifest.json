@@ -1,5 +1,5 @@
 {
-  "version": "1.7.22.2",
+  "version": "1.7.22.3",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
@@ -44,14 +44,14 @@
   ],
   "database_changes": false,
   "schema_changes": false,
-  "visual_changes": false,
+  "visual_changes": true,
   "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
   "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
   "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
   "support_record_policy": "one_action_ledger_row_per_protected_action_and_inline_audit_dimensions",
   "clean_install_policy": "existing_prontoo_r6_database_is_dropped_after_safety_checks_and_installer_requires_zero_tables",
-  "installer_access_policy": "localhost_or_https_prontoo_app_during_fixed_four_hour_window_then_local_only",
-  "schema_mutation_policy": "frozen_except_authorized_installer_window_or_ci",
+  "installer_access_policy": "http_disabled_after_commissioning_github_actions_cli_certification_only",
+  "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
   "destructive_reset_policy": "removed_from_runtime",
   "runtime_loading_policy": "route_loaded_installer_local_only_no_historical_cleanup_on_hot_path",
   "json_cache_policy": "get_only_scoped_tag_invalidated_stable_lookup_cache",
@@ -63,13 +63,13 @@
   "function_documentation_closures": 125,
   "function_documentation_arrows": 98,
   "function_documentation_ci": ".github/workflows/architecture.yml",
-  "temporary_public_installer_window": {
-    "host": "prontoo.app",
-    "https_required": true,
-    "start_unix": 1784722014,
-    "end_unix": 1784736414,
-    "end_utc": "2026-07-22T16:06:54Z",
-    "automatic_revocation": true
-  },
-  "logic_changes": true
+  "logic_changes": true,
+  "commissioned_installation_lockdown": {
+    "http": "denied_at_webserver_and_php_entry",
+    "runtime_redirect": false,
+    "localhost_bypass": false,
+    "public_window": false,
+    "schema_mutation": "github-actions-cli-four-markers-only",
+    "developer_panel_icon": "network_ping"
+  }
 }
