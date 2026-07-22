@@ -940,7 +940,7 @@ function prontoo_install(): void
      * Responsabilidade: Opera a etapa “prontoo install” do contrato de banco e instalação, restrita às janelas autorizadas.
      * Local arquitetural: app/Install/Installer.php (instalação local controlada).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `.Core.Install.InstallAccess::assertLocalEntry`, `boot_security`, `guard_request`, `headers_secure`, `header`, `install_state`, `.Core.Install.InstallAccess::denyPublicAccess`, `install_form`, `install_environment_checks`, `install_environment_has_blocker`, `install_error`, `RuntimeException` e mais 50.
+     * Dependências chamadas: `.Core.Install.InstallAccess::assertInstallerEntry`, `boot_security`, `guard_request`, `headers_secure`, `header`, `install_state`, `.Core.Install.InstallAccess::denyPublicAccess`, `install_form`, `install_environment_checks`, `install_environment_has_blocker`, `install_error`, `RuntimeException` e mais 50.
      * Classes ou serviços instanciados: `RuntimeException`.
      * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`, `$GLOBALS`.
      * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
@@ -949,7 +949,7 @@ function prontoo_install(): void
      * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
      */
     try {
-        \Prontoo\Core\Install\InstallAccess::assertLocalEntry();
+        \Prontoo\Core\Install\InstallAccess::assertInstallerEntry();
         boot_security();
         guard_request();
         headers_secure(true);

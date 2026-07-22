@@ -91,6 +91,12 @@ if (!$opened || SchemaMutationLock::isActive()) {
     $errors[] = 'private_schema_window_contract';
 }
 
+$installerSource = (string) file_get_contents($root . '/app/Install/Installer.php');
+if (str_contains($installerSource, 'InstallAccess::assertLocalEntry') ||
+    !str_contains($installerSource, 'InstallAccess::assertInstallerEntry')) {
+    $errors[] = 'installer_legacy_access_method_reference';
+}
+
 $installEntry = (string) file_get_contents($root . '/install.php');
 $guardPos = strpos($installEntry, 'InstallAccess::assertInstallerEntry');
 $bootstrapPos = strpos($installEntry, 'app/prontoo.php');

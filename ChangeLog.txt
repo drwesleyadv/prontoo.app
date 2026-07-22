@@ -1,3 +1,11 @@
+Prontoo 1.7.22.2 — hotfix do método de acesso do instalador
+
+- Corrige a falha fatal `Call to undefined method Prontoo\Core\Install\InstallAccess::assertLocalEntry()` observada após o diagnóstico público alcançar o instalador.
+- Atualiza `prontoo_install()` para chamar `InstallAccess::assertInstallerEntry()`, a guarda canônica existente e já utilizada por `install.php`.
+- Atualiza o guia de manutenção da função para refletir a dependência real e elimina toda referência executável ao método removido.
+- Acrescenta teste regressivo que falha se `app/Install/Installer.php` voltar a referenciar `assertLocalEntry` ou deixar de chamar `assertInstallerEntry`.
+- Preserva a janela pública vigente, sua expiração automática, banco, schema, dados, interface e ativos.
+
 Prontoo 1.7.22.1 — hotfix da guarda pública do instalador
 
 - Corrige a segunda proteção acionada quando `app/config.php` está ausente: `prontoo_run()` deixa de aceitar somente localhost e passa a reutilizar `InstallAccess::isInstallerExecutionAllowed()`.
