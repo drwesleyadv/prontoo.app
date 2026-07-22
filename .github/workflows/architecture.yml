@@ -7,9 +7,9 @@ permissions:
   contents: write
 
 jobs:
-  apply-hardening:
+  assemble-final:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout dispatch branch
         uses: actions/checkout@v4
@@ -17,19 +17,33 @@ jobs:
           ref: agent/dispatch-hardening-1.7.22.5
           fetch-depth: 0
 
-      - name: Preserve temporary applicator
-        run: cp .automation/reapply_hardening_1_7_22_5.py /tmp/reapply_hardening_1_7_22_5.py
-
-      - name: Restore and publish hardened product tree
+      - name: Assemble final branch from main
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin agent/reapply-hardening-1.7.22.5
-          git checkout -B agent/reapply-hardening-1.7.22.5 origin/agent/reapply-hardening-1.7.22.5
-          git read-tree --reset -u 61b03209c246074de1aa84febd39efd0e16f6fdf
-          python3 /tmp/reapply_hardening_1_7_22_5.py | tee /tmp/hardening-report.json
+          git fetch origin main agent/reapply-hardening-1.7.22.5 agent/final-hardening-1.7.22.5
+          git checkout -B agent/final-hardening-1.7.22.5 origin/main
+          git checkout origin/agent/reapply-hardening-1.7.22.5 -- \
+            .htaccess \
+            ChangeLog.txt \
+            app/Core/Database/SchemaMutationLock.php \
+            app/Core/Install/InstallAccess.php \
+            app/Database/operational-schema.contract.json \
+            app/Runtime/Runner.php \
+            app/Ui/Components.php \
+            app/architecture.manifest.json \
+            app/prontoo.php \
+            app/update.manifest.json \
+            br/index.php \
+            tools/install-security-check.php \
+            tools/schema-check.php \
+            version.json
+          git rm -f -- \
+            .automation/kick-hardening-1.7.22.5.txt \
+            .github/workflows/bootstrap-reapply-hardening-1.7.22.5.yml \
+            .github/workflows/reapply-hardening-1.7.22.5.yml
           git add -A
-          git commit -m "Prontoo 1.7.22.5 — reaplica hardening e HTTPS obrigatório"
-          git push origin HEAD:agent/reapply-hardening-1.7.22.5
+          git commit -m "Prontoo 1.7.22.5 — finaliza hardening pós-reinstalação"
+          git push origin HEAD:agent/final-hardening-1.7.22.5
