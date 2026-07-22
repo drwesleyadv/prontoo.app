@@ -678,7 +678,7 @@ function subscription_payment_proof_absolute_path(?string $proofPath): ?string
     if ($proofPath === "") {
         return null;
     }
-    $proofPath = str_replace("\", "/", $proofPath);
+    $proofPath = str_replace("\\", "/", $proofPath);
     if (str_contains($proofPath, "..")) {
         return null;
     }

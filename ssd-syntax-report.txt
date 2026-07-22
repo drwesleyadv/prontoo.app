@@ -1,0 +1,100 @@
+No syntax errors detected in ./cron/maestro.php
+No syntax errors detected in ./tools/architecture-check.php
+No syntax errors detected in ./tools/install-security-check.php
+No syntax errors detected in ./tools/schema-check.php
+No syntax errors detected in ./index.php
+No syntax errors detected in ./br/runtime-data.php
+No syntax errors detected in ./br/runtime-core.php
+No syntax errors detected in ./br/index.php
+No syntax errors detected in ./br/runtime-telemetry.php
+No syntax errors detected in ./br/runtime-schema.php
+No syntax errors detected in ./br/landing/view-final.php
+No syntax errors detected in ./br/landing/view-hero.php
+No syntax errors detected in ./br/landing/view-head.php
+No syntax errors detected in ./br/landing/view-flow.php
+No syntax errors detected in ./install.php
+No syntax errors detected in ./app/Ui/Components.php
+No syntax errors detected in ./app/Ui/PublicWeb.php
+PHP Parse error:  syntax error, unexpected token "->" in ./app/Admin/AdminPages.php on line 1087
+Errors parsing ./app/Admin/AdminPages.php
+No syntax errors detected in ./app/Database/DatabaseSchema.php
+No syntax errors detected in ./app/bootstrap_architecture.php
+No syntax errors detected in ./app/Core/Database/SqlScopeGuard.php
+No syntax errors detected in ./app/Core/Database/SchemaHardening.php
+No syntax errors detected in ./app/Core/Database/TenantIntegrity.php
+No syntax errors detected in ./app/Core/Database/SchemaMutationLock.php
+No syntax errors detected in ./app/Core/Architecture/ArchitectureVerifier.php
+No syntax errors detected in ./app/Core/Architecture/LayerMap.php
+No syntax errors detected in ./app/Core/Metrics/GlobalMetricScope.php
+No syntax errors detected in ./app/Core/Tenant/TenantRegistry.php
+PHP Parse error:  syntax error, unexpected token "->", expecting ";" in ./app/Core/Temporal/PiTime.php on line 719
+Errors parsing ./app/Core/Temporal/PiTime.php
+No syntax errors detected in ./app/Core/Invariant/Mutation/MutationInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Mutation/MutationLedger.php
+No syntax errors detected in ./app/Core/Invariant/Tenant/SqlScopeGuard.php
+No syntax errors detected in ./app/Core/Invariant/Tenant/TenantContext.php
+No syntax errors detected in ./app/Core/Invariant/Tenant/ScopeProof.php
+No syntax errors detected in ./app/Core/Invariant/InvariantKernel.php
+No syntax errors detected in ./app/Core/Invariant/Request/ActionProof.php
+No syntax errors detected in ./app/Core/Invariant/Canonical.php
+No syntax errors detected in ./app/Core/Invariant/Context/FinancialContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/PeopleContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/DocumentContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/TaskContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/MaestroContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/AppointmentContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/AccessContextInvariant.php
+No syntax errors detected in ./app/Core/Invariant/Context/ContextInvariantRegistry.php
+No syntax errors detected in ./app/Core/Invariant/SqlExpression.php
+No syntax errors detected in ./app/Core/Invariant/Decision.php
+No syntax errors detected in ./app/Core/Invariant/Workflow/AppointmentWorkflow.php
+No syntax errors detected in ./app/Core/Invariant/Workflow/StateMachine.php
+No syntax errors detected in ./app/Core/Invariant/Relation/ForeignKeyGraph.php
+No syntax errors detected in ./app/Core/Install/InstallAccess.php
+No syntax errors detected in ./app/Core/Install/RuntimeContract.php
+No syntax errors detected in ./app/Core/Support/Check.php
+No syntax errors detected in ./app/Core/Readonly/ReadonlyPolicy.php
+No syntax errors detected in ./app/Core/Integrity/PiIntegrity.php
+No syntax errors detected in ./app/Core/Integrity/AuditChain.php
+No syntax errors detected in ./app/prontoo.php
+No syntax errors detected in ./app/Auth/AuthOnboarding.php
+No syntax errors detected in ./app/Infrastructure/Database/SeqContract.php
+No syntax errors detected in ./app/Infrastructure/Authorization/RuntimeCapabilityProvider.php
+No syntax errors detected in ./app/Infrastructure/Audit/PdoActionProofStore.php
+No syntax errors detected in ./app/Pages/Dashboards.php
+No syntax errors detected in ./app/Domain/Authorization/ActionContract.php
+No syntax errors detected in ./app/Domain/Audit/AuditActivity.php
+No syntax errors detected in ./app/Domain/Permissions/UsersPermissions.php
+No syntax errors detected in ./app/Domain/Tasks/TasksNotices.php
+No syntax errors detected in ./app/Domain/Leads/Leads.php
+No syntax errors detected in ./app/Domain/Documents/Documents.php
+No syntax errors detected in ./app/Domain/Documents/DocumentPdf.php
+No syntax errors detected in ./app/Domain/Clinic/SubscriptionSettings.php
+No syntax errors detected in ./app/Domain/Clinic/ClinicConfig.php
+PHP Parse error:  syntax error, unexpected token "->" in ./app/Domain/Financial/Financial.php on line 2483
+Errors parsing ./app/Domain/Financial/Financial.php
+PHP Parse error:  syntax error, unexpected token "->" in ./app/Domain/Patients/Patients.php on line 340
+Errors parsing ./app/Domain/Patients/Patients.php
+PHP Parse error:  syntax error, unexpected token "->", expecting ";" in ./app/Domain/Appointments/Appointments.php on line 268
+Errors parsing ./app/Domain/Appointments/Appointments.php
+No syntax errors detected in ./app/Domain/Maestro/Maestro.php
+No syntax errors detected in ./app/Install/Installer.php
+No syntax errors detected in ./app/bootstrap_specialized.php
+No syntax errors detected in ./app/Support/FinancialGuard.php
+No syntax errors detected in ./app/Support/SecurityPrivacy.php
+No syntax errors detected in ./app/Support/SecurityAccess.php
+No syntax errors detected in ./app/Support/ServerJsonCache.php
+No syntax errors detected in ./app/Support/Foundation.php
+PHP Parse error:  syntax error, unexpected token "->", expecting "]" in ./app/Support/Telemetry.php on line 245
+Errors parsing ./app/Support/Telemetry.php
+No syntax errors detected in ./app/Support/SeqFooter.php
+No syntax errors detected in ./app/Support/Runtime.php
+No syntax errors detected in ./app/Support/ModuleLoader.php
+No syntax errors detected in ./app/Application/Authorization/CapabilityProvider.php
+No syntax errors detected in ./app/Application/Authorization/AuthorizationService.php
+No syntax errors detected in ./app/Application/Authorization/ActionCatalog.php
+No syntax errors detected in ./app/Application/Audit/ActionProofPort.php
+No syntax errors detected in ./app/Presentation/Http/ActionMiddleware.php
+No syntax errors detected in ./app/Runtime/LayeredKernel.php
+No syntax errors detected in ./app/Runtime/Runner.php
+overall_status=1
