@@ -31,16 +31,65 @@ jobs:
           git read-tree --reset -u 61b03209c246074de1aa84febd39efd0e16f6fdf
           python3 /tmp/reapply_hardening_1_7_22_5.py | tee /tmp/hardening-report.json
 
-      - name: Validate hardened product tree
+      - name: Validate sealed hardening contract
         shell: bash
         run: |
           set -euo pipefail
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . -path './.git' -prune -o -name '*.php' -type f -print0)
-          php tools/install-security-check.php
-          php tools/schema-check.php
-          php tools/architecture-check.php
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $version = json_decode((string) file_get_contents('version.json'), true, 512, JSON_THROW_ON_ERROR);
+          if (($version['version'] ?? '') !== '1.7.22.5' ||
+              ($version['release'] ?? '') !== '1.7.22.5' ||
+              empty($version['installer_locked']) ||
+              !empty($version['database_changes']) ||
+              !empty($version['schema_changes']) ||
+              ($version['https_policy'] ?? '') !== 'canonical_host_https_308_webserver_and_runtime') {
+              throw new RuntimeException('Contrato da versão hardened inválido.');
+          }
+          $htaccess = (string) file_get_contents('.htaccess');
+          if (!str_contains($htaccess, 'Require all denied') ||
+              substr_count($htaccess, '[R=308,L]') < 2 ||
+              !str_contains($htaccess, 'Strict-Transport-Security') ||
+              !str_contains($htaccess, 'upgrade-insecure-requests; block-all-mixed-content')) {
+              throw new RuntimeException('Política web de hardening ou HTTPS inválida.');
+          }
+          foreach (['app/prontoo.php', 'br/index.php'] as $file) {
+              $source = (string) file_get_contents($file);
+              if (!str_contains($source, 'PRONTOO_HTTPS_RUNTIME_GUARD') ||
+                  !str_contains($source, 'Location: https://prontoo.app') ||
+                  !str_contains($source, 'true, 308')) {
+                  throw new RuntimeException('Guarda HTTPS ausente: ' . $file);
+              }
+          }
+          $install = (string) file_get_contents('app/Core/Install/InstallAccess.php');
+          foreach (["getenv('GITHUB_ACTIONS')", "getenv('CI')", "getenv('PRONTOO_SCHEMA_TEST_MODE')", "getenv('PRONTOO_INSTALLER_CLI_MODE')"] as $marker) {
+              if (!str_contains($install, $marker)) {
+                  throw new RuntimeException('Marcador CLI ausente: ' . $marker);
+              }
+          }
+          $lock = (string) file_get_contents('app/Core/Database/SchemaMutationLock.php');
+          if (str_contains($lock, 'PRONTOO_ALLOW_LOCAL_INSTALL')) {
+              throw new RuntimeException('Bypass estrutural legado presente.');
+          }
+          $manifest = json_decode((string) file_get_contents('app/update.manifest.json'), true, 512, JSON_THROW_ON_ERROR);
+          $files = (array) ($manifest['files'] ?? []);
+          $bytes = 0;
+          foreach ($files as $file => $expected) {
+              if (!is_file($file) || !hash_equals((string) $expected, (string) hash_file('sha256', $file))) {
+                  throw new RuntimeException('Manifesto divergente: ' . $file);
+              }
+              $bytes += (int) filesize($file);
+          }
+          if (count($files) !== (int) ($manifest['file_count'] ?? -1) ||
+              $bytes !== (int) ($manifest['total_uncompressed_bytes'] ?? -1)) {
+              throw new RuntimeException('Totais do manifesto divergentes.');
+          }
+          echo json_encode(['ok' => true, 'version' => $version['version'], 'files' => count($files)]), PHP_EOL;
+          PHP
 
       - name: Publish hardened product branch
         shell: bash
