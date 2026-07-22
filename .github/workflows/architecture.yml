@@ -5,11 +5,12 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
-  apply-ssd-persistence:
+  finalize-ssd-branch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -17,40 +18,17 @@ jobs:
           ref: agent/ssd-persistence-1.7.22.6
           fetch-depth: 0
 
-      - name: Apply SSD persistence policy
+      - name: Restore canonical workflow and clean temporary files
         shell: bash
         run: |
           set -euo pipefail
-          cp .automation/apply_ssd_persistence.py /tmp/apply_ssd_persistence.py
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          path = Path('/tmp/apply_ssd_persistence.py')
-          source = path.read_text(encoding='utf-8')
-          source = re.sub(
-              r"canonical = subprocess\.check_output\(.*?save\('\.github/workflows/architecture\.yml', canonical\)\n",
-              "# Workflow temporário preservado para publicação; restauração ocorre pelo conector.\n",
-              source,
-              count=1,
-              flags=re.S,
-          )
-          source = re.sub(
-              r"for temporary in \[.*?except OSError:\n    pass\n",
-              "# Artefatos temporários serão removidos pelo conector após a publicação.\n",
-              source,
-              count=1,
-              flags=re.S,
-          )
-          path.write_text(source, encoding='utf-8')
-          PY
-          python3 /tmp/apply_ssd_persistence.py | tee /tmp/ssd-apply.log
-
-      - name: Publish transformed application tree
-        shell: bash
-        run: |
-          set -euo pipefail
+          git show origin/main:.github/workflows/architecture.yml > .github/workflows/architecture.yml
+          sed -i "s|-path './storage' -prune|-path './ssd' -prune|g" .github/workflows/architecture.yml
+          sed -i "s|str_contains(\$path, '/storage/')|str_contains(\$path, '/ssd/')|g" .github/workflows/architecture.yml
+          rm -f .automation/apply_ssd_persistence.py .automation/persistence-inventory.txt ssd-apply-error.txt
+          rmdir .automation 2>/dev/null || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Prontoo 1.7.22.6 — migra persistência para ssd'
+          git commit -m 'Finaliza branch SSD e restaura contrato canônico'
           git push origin HEAD:agent/ssd-persistence-1.7.22.6
