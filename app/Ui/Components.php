@@ -1828,9 +1828,6 @@ function page_head_icon_name(string $title = ""): string
      */
     $current = route();
     $params = $_GET;
-    if ($current === "admin_painel") {
-        return "network_ping";
-    }
     if (function_exists("prontoo_icon_for_route_label")) {
         if (
             str_starts_with($current, "admin_") &&

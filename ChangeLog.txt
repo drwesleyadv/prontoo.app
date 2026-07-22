@@ -1,16 +1,11 @@
-Prontoo 1.7.22.3 — hardening pós-comissionamento e Network Ping
+Prontoo 1.7.22.4 — restauração temporária do instalador público para reinstalação
 
-- Confirma a instalação de produção como concluída e encerra a superfície de instalação por HTTP.
-- Substitui a regra temporária `Require all granted` do `install.php` por `Require all denied` no Apache/LiteSpeed.
-- Mantém uma segunda guarda fail-closed no primeiro ponto PHP: requisições públicas, localhost e cabeçalhos encaminhados não podem executar o instalador.
-- Remove do runtime o redirecionamento automático para `/install.php` quando `app/config.php` estiver ausente; o sistema exige a restauração da configuração do ambiente comissionado.
-- Remove os símbolos e timestamps da antiga janela pública temporária.
-- Restringe `SchemaMutationLock` à certificação CLI do GitHub Actions, exigindo simultaneamente `GITHUB_ACTIONS=true`, `CI=true`, `PRONTOO_SCHEMA_TEST_MODE=1` e `PRONTOO_INSTALLER_CLI_MODE=1`.
-- Elimina o bypass legado `PRONTOO_ALLOW_LOCAL_INSTALL` e impede que a autorização de DDL dependa de uma decisão HTTP.
-- Reforça o teste permanente para bloquear instalação pública, instalação HTTP local, fallback do runtime, marcadores parciais, atribuição externa da flag estrutural e DDL em runtime.
-- Preserva `schema.sql`, revisão r7, 62 tabelas, dados existentes e todos os contratos operacionais.
-- No painel do Desenvolvedor, o ícone do PageHead passa a usar o Material Symbol `network_ping` (Network Ping), mantendo a classe visual e a biblioteca já carregada.
-- Alteração de banco: não. Alteração de schema: não. Alteração visual: apenas o ícone Network Ping no painel do Desenvolvedor.
+- Restaura integralmente a base certificada da 1.7.22.2, incluindo o hotfix `assertInstallerEntry()`.
+- Reabre temporariamente `https://prontoo.app/install.php` somente no host exato `prontoo.app` e sob HTTPS.
+- Janela autorizada: 22/07/2026 11:54:00 America/Cuiaba até 22/07/2026 15:54:00 America/Cuiaba; o limite final é exclusivo e a revogação é automática.
+- Preserva o schema r7, as 62 tabelas do instalador limpo e não aplica migração sobre banco existente.
+- Esta é uma release transitória para reinstalação completa; após o comissionamento, o hardening da versão mais recente deverá ser reaplicado.
+- Alteração de banco: não. Alteração de schema: não. Alteração de dados: não.
 
 Prontoo 1.7.22.2 — hotfix do método de acesso do instalador
 
