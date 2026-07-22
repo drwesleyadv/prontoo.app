@@ -1,0 +1,41 @@
+name: Bootstrap Reapply Hardening 1.7.22.5
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch hardening workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint="https://api.github.com/repos/${REPOSITORY}/actions/workflows/reapply-hardening-1.7.22.5.yml/dispatches"
+          payload='{"ref":"main"}'
+          for attempt in 1 2 3; do
+            code="$(curl -sS -o /tmp/dispatch-response.txt -w '%{http_code}' \
+              -X POST \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "${endpoint}" \
+              -d "${payload}")"
+            if [ "${code}" = "204" ]; then
+              echo 'Workflow de hardening acionado.'
+              exit 0
+            fi
+            cat /tmp/dispatch-response.txt >&2 || true
+            sleep 2
+          done
+          echo 'Não foi possível acionar o workflow de hardening.' >&2
+          exit 1
