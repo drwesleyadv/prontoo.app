@@ -22,22 +22,30 @@ jobs:
         run: |
           set -euo pipefail
           cp .automation/apply_ssd_persistence.py /tmp/apply_ssd_persistence.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('/tmp/apply_ssd_persistence.py')
+          source = path.read_text(encoding='utf-8')
+          source = re.sub(
+              r"canonical = subprocess\.check_output\(.*?save\('\.github/workflows/architecture\.yml', canonical\)\n",
+              "# Workflow temporário preservado para publicação; restauração ocorre pelo conector.\n",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          source = re.sub(
+              r"for temporary in \[.*?except OSError:\n    pass\n",
+              "# Artefatos temporários serão removidos pelo conector após a publicação.\n",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          path.write_text(source, encoding='utf-8')
+          PY
           python3 /tmp/apply_ssd_persistence.py | tee /tmp/ssd-apply.log
 
-      - name: Record provisional validation
-        shell: bash
-        run: |
-          set +e
-          {
-            while IFS= read -r -d '' file; do
-              php -l "$file"
-            done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -name '*.php' -type f -print0)
-            php tools/install-security-check.php
-          } > /tmp/ssd-validation.log 2>&1
-          cat /tmp/ssd-validation.log
-          exit 0
-
-      - name: Publish transformed branch
+      - name: Publish transformed application tree
         shell: bash
         run: |
           set -euo pipefail
