@@ -6,9 +6,6 @@ namespace Prontoo\Core\Install;
 final class InstallAccess
 {
     private const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1'];
-    public const TEMPORARY_PUBLIC_HOST = 'prontoo.app';
-    public const TEMPORARY_PUBLIC_WINDOW_START_UNIX = 1784735640;
-    public const TEMPORARY_PUBLIC_WINDOW_END_UNIX = 1784750040;
     private const FORWARDED_HEADERS = [
         'HTTP_FORWARDED',
         'HTTP_X_FORWARDED_FOR',
@@ -128,50 +125,36 @@ final class InstallAccess
     {
         /*
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isInstallerExecutionAllowed
-         * Responsabilidade: Decide se o instalador pode executar no contexto atual. CLI continua autorizado para certificação; HTTP local continua autorizado; HTTP público só é aceito no host HTTPS exato prontoo.app durante a janela UTC fixa de quatro horas.
+         * Responsabilidade: Decide se o código de instalação pode executar após o comissionamento. Nenhuma requisição HTTP — pública, local ou encaminhada — é aceita. A única exceção é a certificação CLI do GitHub Actions, que exige quatro marcadores simultâneos e explícitos.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Database.SchemaMutationLock::mayOpenInstallerWindow`, `Core.Install.InstallAccess::assertInstallerEntry`, `prontoo_run`.
-         * Dependências chamadas: `self::isLocalServer`, `time`, `self::requestHostFrom`, `strtolower`, `trim`, `explode`, `in_array`.
-         * Estado externo lido: `$_SERVER`, relógio Unix do servidor e `PHP_SAPI`.
-         * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed para o ponto de entrada e para a janela estrutural.
-         * Cuidado 1: Não prolongue a janela alterando apenas a interface. Os dois timestamps formam o contrato real e o limite final é exclusivo: no segundo 1784750040 o acesso público já deve falhar.
-         * Cuidado 2: A exceção pública exige simultaneamente host `prontoo.app` e HTTPS. Acesso local mantém as validações contra cabeçalhos encaminhados.
+         * Chamadores detectados: `Core.Install.InstallAccess::assertInstallerEntry`.
+         * Dependências chamadas: `getenv`.
+         * Estado externo lido: `PHP_SAPI` e variáveis de ambiente exclusivas da certificação.
+         * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed.
+         * Cuidado 1: Não reintroduza autorização por host, relógio, localhost ou cabeçalhos encaminhados. Depois do comissionamento, HTTP deve permanecer invariavelmente bloqueado.
+         * Cuidado 2: A certificação exige simultaneamente `GITHUB_ACTIONS=true`, `CI=true`, `PRONTOO_SCHEMA_TEST_MODE=1` e `PRONTOO_INSTALLER_CLI_MODE=1`; nenhum marcador isolado deve abrir a instalação.
          */
-        if (PHP_SAPI === 'cli' && $server === null) {
-            return true;
-        }
-        $server ??= $_SERVER;
-        if (self::isLocalServer($server)) {
-            return true;
-        }
-        $now ??= time();
-        if ($now < self::TEMPORARY_PUBLIC_WINDOW_START_UNIX ||
-            $now >= self::TEMPORARY_PUBLIC_WINDOW_END_UNIX) {
+        if (PHP_SAPI !== 'cli' || $server !== null) {
             return false;
         }
-        if (self::requestHostFrom($server) !== self::TEMPORARY_PUBLIC_HOST) {
-            return false;
-        }
-        $https = strtolower(trim((string) ($server['HTTPS'] ?? '')));
-        $forwardedProtoParts = explode(',', strtolower((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? '')));
-        $forwardedProto = trim((string) ($forwardedProtoParts[0] ?? ''));
-        $serverPort = (int) ($server['SERVER_PORT'] ?? 0);
-        return in_array($https, ['on', '1'], true) ||
-            $serverPort === 443 ||
-            $forwardedProto === 'https';
+        return (string) getenv('GITHUB_ACTIONS') === 'true' &&
+            (string) getenv('CI') === 'true' &&
+            (string) getenv('PRONTOO_SCHEMA_TEST_MODE') === '1' &&
+            (string) getenv('PRONTOO_INSTALLER_CLI_MODE') === '1';
     }
 
     public static function assertInstallerEntry(): void
     {
         /*
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::assertInstallerEntry
-         * Responsabilidade: Protege o primeiro ponto executável de install.php e encerra com 404 qualquer acesso que não seja CLI, local legítimo ou a exceção pública temporária ainda vigente.
+         * Responsabilidade: Protege o primeiro ponto executável de install.php após o comissionamento e encerra qualquer acesso HTTP. Somente a certificação CLI integralmente marcada pode ultrapassar esta guarda.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `install.php`.
+         * Chamadores detectados: `install.php`, `prontoo_install`.
          * Dependências chamadas: `self::isInstallerExecutionAllowed`, `self::denyPublicAccess`.
          * Estado externo lido: contexto HTTP ou CLI por meio de `isInstallerExecutionAllowed`.
          * Efeitos colaterais: pode encerrar a requisição antes do bootstrap da aplicação.
-         * Cuidado 1: Esta guarda deve continuar antes de `app/prontoo.php`; movê-la para depois do bootstrap expõe trabalho e diagnóstico desnecessários a requisições recusadas.
+         * Cuidado 1: Esta guarda deve continuar antes de `app/prontoo.php`; movê-la para depois do bootstrap expõe trabalho e diagnóstico desnecessários.
+         * Cuidado 2: Não crie bypass por localhost. O acesso ao instalador foi encerrado porque a instalação de produção já foi concluída.
          */
         if (!self::isInstallerExecutionAllowed()) {
             self::denyPublicAccess();
