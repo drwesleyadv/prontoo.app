@@ -463,7 +463,7 @@ function prontoo_run(bool $installMode = false): void
      * Responsabilidade: Orquestra a execução de “prontoo run” e delega etapas específicas às dependências do módulo.
      * Local arquitetural: app/Runtime/Runner.php (composição geral do runtime).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `.Core.Install.InstallAccess::isLocalHttpRequest`, `headers_sent`, `header`, `prontoo_boot_database_for_route` e mais 29.
+     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `.Core.Install.InstallAccess::isInstallerExecutionAllowed`, `headers_sent`, `header`, `prontoo_boot_database_for_route` e mais 29.
      * Classes ou serviços instanciados: `ProntooHttpError`, `RuntimeException`.
      * Estado externo lido: `$_SERVER`, `$_SESSION`, `$_POST`.
      * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
@@ -483,7 +483,7 @@ function prontoo_run(bool $installMode = false): void
                     "Instalação existente detectada, mas app/config.php não foi encontrado. Não execute o instalador: restaure o arquivo de configuração da instalação atual.",
                 );
             }
-            if (\Prontoo\Core\Install\InstallAccess::isLocalHttpRequest()) {
+            if (\Prontoo\Core\Install\InstallAccess::isInstallerExecutionAllowed()) {
                 if (!headers_sent()) {
                     header("Location: /install.php", true, 302);
                 }
