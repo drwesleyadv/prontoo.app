@@ -1,0 +1,450 @@
+=== STORAGE/PDFS/UPLOAD REFERENCES ===
+./.github/workflows/architecture.yml:27:            grep -RInE --exclude-dir=.git --exclude-dir=.automation --exclude='app/update.manifest.json' --exclude='*.map' '(storage|pdfs|move_uploaded_file|\$_FILES|image/(png|jpeg|webp|gif))' . || true
+./cron/maestro.php:20:     * Dependências chamadas: `defined`, `storage_path`, `is_dir`, `mkdir`, `hash`.
+./cron/maestro.php:30:    $dir = storage_path("cache");
+./cron/maestro.php:46:     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `preg_replace`.
+./cron/maestro.php:50:    $dir = storage_path("logs");
+./cron/maestro.php:156:        storage_path(),
+./cron/maestro.php:157:        storage_path("cache"),
+./cron/maestro.php:158:        storage_path("telemetry"),
+./cron/maestro.php:159:        storage_path("logs"),
+./cron/maestro.php:160:        storage_path("tmp"),
+./br/runtime-core.php:95:        echo "Disallow: /storage/\n";
+./br/runtime-core.php:96:        echo "Disallow: /pdfs/\n";
+./br/runtime-telemetry.php:2:if (!function_exists("storage_path")) {
+./br/runtime-telemetry.php:3:    function storage_path(string $suffix = ""): string
+./br/runtime-telemetry.php:6:         * GUIA DE MANUTENÇÃO — storage_path
+./br/runtime-telemetry.php:7:         * Responsabilidade: Implementa a responsabilidade “storage path” dentro do módulo de site público e landing page.
+./br/runtime-telemetry.php:9:         * Chamadores detectados: `platform_storage_status`, `db_runtime_notice_once`, `schema_lock_file`, `subscription_payment_proof_storage`, `subscription_payment_proof_absolute_path`, `document_pdf_storage_dir`, `document_pdf_cleanup_due`, `maestro_cron_run` e mais 18.
+./br/runtime-telemetry.php:14:        $base = dirname(__DIR__) . DIRECTORY_SEPARATOR . "storage";
+./app/Ui/Components.php:45:        "database" => "storage",
+./app/Ui/Components.php:46:        "schema" => "storage",
+./app/Ui/Components.php:1308:        '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
+./app/Domain/Appointments/Appointments.php:524:     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_journey_role_matches`, `mb_strtolower`, `trim`.
+./app/Domain/Appointments/Appointments.php:530:    $startTs = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+./app/Domain/Appointments/Appointments.php:750:     * Dependências chamadas: `app_storage_timestamp`, `in_array`, `floor`, `max`, `format_minutes`.
+./app/Domain/Appointments/Appointments.php:760:         * Dependências chamadas: `app_storage_timestamp`.
+./app/Domain/Appointments/Appointments.php:765:            $ts = app_storage_timestamp((string) ($a[$k] ?? ""));
+./app/Domain/Appointments/Appointments.php:774:        $ts = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+./app/Domain/Appointments/Appointments.php:844:     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_journey_steps`, `appointment_journey_elapsed_label`, `appointment_journey_role_actions`, `appointment_journey_role_hint`.
+./app/Domain/Appointments/Appointments.php:851:    $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+./app/Domain/Appointments/Appointments.php:1032:     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`.
+./app/Domain/Appointments/Appointments.php:1038:    $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+./app/Domain/Appointments/Appointments.php:1136:     * Dependências chamadas: `time`, `appointment_status_code`, `appointment_journey_view_code`, `app_storage_timestamp`, `appointment_journey_role_matches`, `in_array`, `appointment_journey_hard_guard_message`.
+./app/Domain/Appointments/Appointments.php:1144:    $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+./app/Domain/Appointments/Appointments.php:1537:     * Dependências chamadas: `app_storage_timestamp`, `max`, `floor`.
+./app/Domain/Appointments/Appointments.php:1541:    $scheduled = app_storage_timestamp($a["start_at"] ?? "");
+./app/Domain/Appointments/Appointments.php:1542:    $started = app_storage_timestamp($a["consultation_started_at"] ?? "");
+./app/Domain/Appointments/Appointments.php:4122:         * Dependências chamadas: `app_storage_timestamp`, `in_array`, `appointment_status_code`.
+./app/Domain/Appointments/Appointments.php:4126:        $start = app_storage_timestamp($a["start_at"] ?? "") ?: 0;
+./app/Domain/Appointments/Appointments.php:4508:         * Dependências chamadas: `app_storage_timestamp`, `trim`, `app_time_br`, `first_name`, `function_exists`, `financial_appointment_operational_chip_html`, `e`, `icon`, `appointment_journey_measure_html`.
+./app/Domain/Appointments/Appointments.php:4512:        $startTs = app_storage_timestamp($r["start_at"]);
+./app/Domain/Appointments/Appointments.php:4513:        $endTs = app_storage_timestamp($r["end_at"]);
+./app/Domain/Appointments/Appointments.php:4577:         * Dependências chamadas: `app_storage_timestamp`, `first_name`, `agenda_doctor_name`, `app_time_br`, `csrf_field`, `select_label`, `form_row`, `input`, `datetime_local_value`, `icon`, `e`, `trim`.
+./app/Domain/Appointments/Appointments.php:4581:        $startTs = app_storage_timestamp($b["start_at"]);
+./app/Domain/Appointments/Appointments.php:4582:        $endTs = app_storage_timestamp($b["end_at"]);
+./app/Domain/Appointments/Appointments.php:4706:        $start = app_storage_timestamp($a["start_at"]) ?: 0;
+./app/Domain/Appointments/Appointments.php:4730:                app_storage_timestamp($a["start_at"]) ?: 0,
+./app/Domain/Appointments/Appointments.php:4731:                app_storage_timestamp($a["end_at"]) ?: 0,
+./app/Domain/Appointments/Appointments.php:4736:                app_storage_timestamp($b["start_at"]) ?: 0,
+./app/Domain/Appointments/Appointments.php:4737:                app_storage_timestamp($b["end_at"]) ?: 0,
+./app/Domain/Documents/Documents.php:1565:     * Dependências chamadas: `app_storage_timestamp`, `date`.
+./app/Domain/Documents/Documents.php:1569:    $ts = app_storage_timestamp($dt);
+./app/Domain/Documents/Documents.php:3421:         * Dependências chamadas: `app_storage_timestamp`, `strcmp`.
+./app/Domain/Documents/Documents.php:3425:        $la = app_storage_timestamp($a["last_used_at"] ?? "") ?: 0;
+./app/Domain/Documents/Documents.php:3426:        $lb = app_storage_timestamp($b["last_used_at"] ?? "") ?: 0;
+./app/Domain/Documents/DocumentPdf.php:33:    $dir = app_root() . "/pdfs";
+./app/Domain/Documents/DocumentPdf.php:57:function document_pdf_storage_dir(): string
+./app/Domain/Documents/DocumentPdf.php:60:     * GUIA DE MANUTENÇÃO — document_pdf_storage_dir
+./app/Domain/Documents/DocumentPdf.php:61:     * Responsabilidade: Implementa a responsabilidade “document pdf storage dir” dentro do módulo de domínio e regras de negócio.
+./app/Domain/Documents/DocumentPdf.php:64:     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`.
+./app/Domain/Documents/DocumentPdf.php:68:    $dir = storage_path("pdfs");
+./app/Domain/Documents/DocumentPdf.php:72:    if (function_exists("security_storage_deny_file")) {
+./app/Domain/Documents/DocumentPdf.php:73:        security_storage_deny_file($dir);
+./app/Domain/Documents/DocumentPdf.php:84:     * Dependências chamadas: `document_pdf_public_router_dir`, `document_pdf_storage_dir`.
+./app/Domain/Documents/DocumentPdf.php:89:    $dir = document_pdf_storage_dir();
+./app/Domain/Documents/DocumentPdf.php:132:                    "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND created_at < ?",
+./app/Domain/Documents/DocumentPdf.php:136:                q("DELETE FROM pi_document_pdfs WHERE created_at < ?", [
+./app/Domain/Documents/DocumentPdf.php:153:     * Dependências chamadas: `storage_path`, `is_file`, `filemtime`, `time`, `is_dir`, `dirname`, `mkdir`, `touch`, `document_pdf_cleanup`, `error_log`, `->getMessage`.
+./app/Domain/Documents/DocumentPdf.php:158:        $flag = storage_path("cache/document_pdf_cleanup.flag");
+./app/Domain/Documents/DocumentPdf.php:246:    return "/pdfs/" . basename($fileName);
+./app/Domain/Documents/DocumentPdf.php:400:                "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND file_name=?",
+./app/Domain/Documents/DocumentPdf.php:425:    $url = (base_path() ?: "") . "/pdfs/" . rawurlencode(basename($fileName));
+./app/Domain/Documents/DocumentPdf.php:908:            "INSERT INTO pi_document_pdfs (clinic_id,document_id,generated_by,document_identifier,generated_unix,file_name,file_path,file_sha256,file_size,created_at) VALUES (?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE clinic_id=VALUES(clinic_id), document_id=VALUES(document_id), generated_by=VALUES(generated_by), document_identifier=VALUES(document_identifier), generated_unix=VALUES(generated_unix), file_path=VALUES(file_path), file_sha256=VALUES(file_sha256), file_size=VALUES(file_size), created_at=VALUES(created_at)",
+./app/Domain/Documents/DocumentPdf.php:1022:            "SELECT clinic_id,document_id,file_sha256,generated_unix,created_at FROM pi_document_pdfs WHERE file_name=? LIMIT 1",
+./app/Domain/Documents/DocumentPdf.php:1172:            "PDF servido por /pdfs/ após validação da sessão, consultório, permissão documental, token temporário, expiração e hash do arquivo.",
+./app/Domain/Permissions/UsersPermissions.php:2270:                e(app_date_input_from_storage($person["birth_date"] ?? "")) .
+./app/Domain/Leads/Leads.php:588:            "birth_date" => app_date_input_from_storage(
+./app/Domain/Leads/Leads.php:1429:            app_storage_timestamp($nextRaw) < time() &&
+./app/Domain/Patients/Patients.php:1165:     * Dependências chamadas: `max`, `min`, `e`, `q`, `->fetchAll`, `date_br`, `mask`, `app_date_input_from_storage`.
+./app/Domain/Patients/Patients.php:1196:            e(app_date_input_from_storage($r["birth_date"] ?? "")) .
+./app/Domain/Patients/Patients.php:1366:     * Dependências chamadas: `only_digits`, `valid_cpf`, `patient_identity_by_cpf`, `one`, `error_log`, `->getMessage`, `function_exists`, `app_date_input_from_storage`, `preg_match`, `substr`, `trim`, `href` e mais 1.
+./app/Domain/Patients/Patients.php:1404:    $birth = function_exists("app_date_input_from_storage")
+./app/Domain/Patients/Patients.php:1405:        ? app_date_input_from_storage($p["birth_date"] ?? "")
+./app/Domain/Patients/Patients.php:2458:     * Dependências chamadas: `require_can`, `patient_guardians_ensure_schema`, `only_digits`, `trim`, `valid_cpf`, `valid_birth_date`, `patient_identity_by_cpf`, `app_date_input_from_storage`, `flash`, `redirect`, `val`, `one` e mais 39.
+./app/Domain/Patients/Patients.php:2479:                    $birth = app_date_input_from_storage(
+./app/Domain/Patients/Patients.php:3389:     * Dependências chamadas: `patient_appointment_code`, `app_storage_timestamp`, `strtotime`.
+./app/Domain/Patients/Patients.php:3407:            app_storage_timestamp($a["start_at"] ?? "") >= strtotime("today") &&
+./app/Domain/Patients/Patients.php:3408:            app_storage_timestamp($a["start_at"] ?? "") < strtotime("tomorrow")
+./app/Domain/Patients/Patients.php:4250:            $scheduled = app_storage_timestamp(
+./app/Domain/Patients/Patients.php:4546:        $ts = app_storage_timestamp($p["birth_date"]);
+./app/Domain/Patients/Patients.php:4764:            app_storage_timestamp($a["start_at"]) >= strtotime("today") &&
+./app/Domain/Patients/Patients.php:4765:            app_storage_timestamp($a["start_at"]) < strtotime("tomorrow")
+./app/Domain/Patients/Patients.php:4912:                e(app_date_input_from_storage($p["birth_date"] ?? "")) .
+./app/Domain/Financial/Financial.php:997:            "birth_date" => app_date_input_from_storage($p["birth_date"] ?? ""),
+./app/Domain/Financial/Financial.php:2862:    $storageDates = array_map(
+./app/Domain/Financial/Financial.php:2867:    $params = array_merge([$cid], $locationIds, $storageDates);
+./app/Domain/Financial/Financial.php:2876:            app_date_input_from_storage($session["business_date"] ?? "");
+./app/Domain/Financial/Financial.php:2909:            app_date_input_from_storage($movement["business_date"] ?? "");
+./app/Domain/Maestro/Maestro.php:1609:     * Dependências chamadas: `maestro_trigger_catalog`, `maestro_decode_json`, `maestro_amount`, `max`, `min`, `audit_clinic_name_lookup`, `date`, `strtotime`, `q`, `->fetchAll`, `app_storage_timestamp`, `maestro_match_base` e mais 11.
+./app/Domain/Maestro/Maestro.php:1642:                $ts = app_storage_timestamp($r["start_at"]);
+./app/Domain/Maestro/Maestro.php:1668:                $ts = app_storage_timestamp($r["start_at"]);
+./app/Domain/Maestro/Maestro.php:1693:                $ts = app_storage_timestamp($r["start_at"]);
+./app/Domain/Maestro/Maestro.php:1719:                $ts = app_storage_timestamp($r["start_at"]);
+./app/Domain/Maestro/Maestro.php:1744:                $ts = app_storage_timestamp($r["arrived_at"]);
+./app/Domain/Maestro/Maestro.php:1769:                $ts = app_storage_timestamp($r["consultation_finished_at"]);
+./app/Domain/Maestro/Maestro.php:1796:                $ts = app_storage_timestamp($r["start_at"]);
+./app/Domain/Maestro/Maestro.php:1846:                $ts = app_storage_timestamp($r["next_action_at"]);
+./app/Domain/Maestro/Maestro.php:1994:                $birthTs = app_storage_timestamp($r["birth_date"]);
+./app/Domain/Maestro/Maestro.php:2046:                $ts = app_storage_timestamp(
+./app/Domain/Maestro/Maestro.php:2083:                $ts = app_storage_timestamp($r["issued_at"]);
+./app/Domain/Maestro/Maestro.php:2572:     * Dependências chamadas: `app_storage_timestamp`, `max`, `min`, `time`.
+./app/Domain/Maestro/Maestro.php:2578:        ? app_storage_timestamp($rule["next_run_at"])
+./app/Domain/Maestro/Maestro.php:2767:     * Dependências chamadas: `has_cfg`, `maestro_ensure_schema`, `microtime`, `max`, `min`, `storage_path`, `fopen`, `flock`, `q`, `->fetchAll`, `count`, `array_map` e mais 13.
+./app/Domain/Maestro/Maestro.php:2787:    $lockPath = storage_path("maestro.lock");
+./app/Domain/Clinic/SubscriptionSettings.php:126:     * Dependências chamadas: `app_storage_timestamp`.
+./app/Domain/Clinic/SubscriptionSettings.php:130:    return app_storage_timestamp($value, $endOfDay);
+./app/Domain/Clinic/SubscriptionSettings.php:447:    if (!in_array($detectedMime, ["image/jpeg", "image/png", "image/webp"], true)) {
+./app/Domain/Clinic/SubscriptionSettings.php:475:    if ($mime === "image/jpeg" && function_exists("imagecreatefromjpeg")) {
+./app/Domain/Clinic/SubscriptionSettings.php:477:    } elseif ($mime === "image/png" && function_exists("imagecreatefrompng")) {
+./app/Domain/Clinic/SubscriptionSettings.php:480:        $mime === "image/webp" &&
+./app/Domain/Clinic/SubscriptionSettings.php:516:function subscription_payment_proof_storage(int $cid): array
+./app/Domain/Clinic/SubscriptionSettings.php:519:     * GUIA DE MANUTENÇÃO — subscription_payment_proof_storage
+./app/Domain/Clinic/SubscriptionSettings.php:520:     * Responsabilidade: Implementa a responsabilidade “subscription payment proof storage” dentro do módulo de domínio e regras de negócio.
+./app/Domain/Clinic/SubscriptionSettings.php:523:     * Dependências chamadas: `RuntimeException`, `storage_path`, `is_link`, `is_dir`, `mkdir`, `chmod`, `realpath`, `str_starts_with`.
+./app/Domain/Clinic/SubscriptionSettings.php:531:    $root = storage_path("payment-proofs");
+./app/Domain/Clinic/SubscriptionSettings.php:556:        "relative" => "storage/payment-proofs/clinic-" . $cid,
+./app/Domain/Clinic/SubscriptionSettings.php:569:     * Estado externo lido: `$_FILES`.
+./app/Domain/Clinic/SubscriptionSettings.php:574:        empty($_FILES["payment_proof"]) ||
+./app/Domain/Clinic/SubscriptionSettings.php:575:        !is_array($_FILES["payment_proof"])
+./app/Domain/Clinic/SubscriptionSettings.php:579:    $f = $_FILES["payment_proof"];
+./app/Domain/Clinic/SubscriptionSettings.php:599:        "jpg" => "image/jpeg",
+./app/Domain/Clinic/SubscriptionSettings.php:600:        "jpeg" => "image/jpeg",
+./app/Domain/Clinic/SubscriptionSettings.php:601:        "png" => "image/png",
+./app/Domain/Clinic/SubscriptionSettings.php:602:        "webp" => "image/webp",
+./app/Domain/Clinic/SubscriptionSettings.php:623:        !($ext === "jpg" && $mime === "image/jpeg")
+./app/Domain/Clinic/SubscriptionSettings.php:634:    $storage = subscription_payment_proof_storage($cid);
+./app/Domain/Clinic/SubscriptionSettings.php:635:    $dir = (string) $storage["absolute"];
+./app/Domain/Clinic/SubscriptionSettings.php:647:        $stored = move_uploaded_file($tmp, $dest);
+./app/Domain/Clinic/SubscriptionSettings.php:656:                "image/png" => "png",
+./app/Domain/Clinic/SubscriptionSettings.php:657:                "image/webp" => "webp",
+./app/Domain/Clinic/SubscriptionSettings.php:662:            $stored = move_uploaded_file($tmp, $dest);
+./app/Domain/Clinic/SubscriptionSettings.php:670:    return (string) $storage["relative"] . "/" . $name;
+./app/Domain/Clinic/SubscriptionSettings.php:679:     * Dependências chamadas: `trim`, `str_replace`, `str_starts_with`, `str_contains`, `realpath`, `storage_path`, `app_root`, `ltrim`, `is_file`.
+./app/Domain/Clinic/SubscriptionSettings.php:688:    if (!str_starts_with($proofPath, "storage/payment-proofs/")) {
+./app/Domain/Clinic/SubscriptionSettings.php:694:    $root = realpath(storage_path("payment-proofs"));
+./app/Domain/Clinic/SubscriptionSettings.php:801:        "png" => "image/png",
+./app/Domain/Clinic/SubscriptionSettings.php:802:        "jpg", "jpeg" => "image/jpeg",
+./app/Domain/Clinic/SubscriptionSettings.php:803:        "webp" => "image/webp",
+./app/Domain/Clinic/SubscriptionSettings.php:1052:                    'accept="application/pdf,image/png,image/jpeg,image/webp" required',
+./app/Domain/Clinic/ClinicConfig.php:1679:     * Dependências chamadas: `array_key_exists`, `one`, `trim`, `function_exists`, `subscription_paid_is_active`, `app_date_only_end_timestamp`, `time`, `subscription_trial_is_active`, `app_storage_timestamp`, `error_log`, `->getMessage`.
+./app/Domain/Clinic/ClinicConfig.php:1718:                : app_storage_timestamp($row["trial_ends_at"] ?? null, true) >=
+./app/Support/SecurityAccess.php:24:     * Dependências chamadas: `function_exists`, `security_disable_runtime_error_display`, `security_storage_deny_file`, `storage_path`, `ini_set`, `security_https_active`, `session_name`, `session_set_cookie_params`, `session_status`, `session_start`, `time`, `hash` e mais 9.
+./app/Support/SecurityAccess.php:34:        function_exists("security_storage_deny_file") &&
+./app/Support/SecurityAccess.php:35:        function_exists("storage_path")
+./app/Support/SecurityAccess.php:37:        security_storage_deny_file(storage_path());
+./app/Support/SecurityAccess.php:38:        security_storage_deny_file(storage_path("cache"));
+./app/Support/SecurityAccess.php:39:        security_storage_deny_file(storage_path("logs"));
+./app/Support/SecurityAccess.php:262:     * Estado externo lido: `$_SERVER`, `$_GET`, `$_POST`, `$_FILES`.
+./app/Support/SecurityAccess.php:312:        if (count($_FILES, COUNT_RECURSIVE) > 40) {
+./app/Support/SecurityAccess.php:1051:     * Dependências chamadas: `time`, `device_session_lifetime_seconds`, `secure_session_destroy`, `device_cookie_clear`, `header`, `href`, `one`, `app_storage_timestamp`, `q`, `route`, `error_log`, `->getMessage`.
+./app/Support/SecurityAccess.php:1092:        $databaseExpires = app_storage_timestamp($row["expires_at"] ?? 0);
+./app/Support/SecurityAccess.php:1127:     * Dependências chamadas: `device_cookie_unpack`, `one`, `app_storage_timestamp`, `time`, `hash_equals`, `device_token_hash`, `device_cookie_clear`, `session_harden_after_login`, `function_exists`, `login_last_credential_remember`, `single_active_role_cleanup_for_user`, `device_session_lifetime_seconds` e mais 5.
+./app/Support/SecurityAccess.php:1152:            app_storage_timestamp($row["expires_at"] ?? 0) <= time() ||
+./app/Support/SecurityAccess.php:2616:     * Dependências chamadas: `now`, `app_storage_timestamp`, `time`, `default_trial_days`, `default_monthly_price_cents`, `app_date_only_end_timestamp`, `trim`, `max`, `ceil`.
+./app/Support/SecurityAccess.php:2621:    $startedTs = app_storage_timestamp($started);
+./app/Support/SecurityAccess.php:2634:    $trialEndTs = app_storage_timestamp($trialEnd, true);
+./app/Support/Telemetry.php:40:function telemetry_storage_dir(): string
+./app/Support/Telemetry.php:43:     * GUIA DE MANUTENÇÃO — telemetry_storage_dir
+./app/Support/Telemetry.php:44:     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry storage dir”.
+./app/Support/Telemetry.php:46:     * Chamadores detectados: `telemetry_page_file`, `telemetry_prepare_storage`, `telemetry_route_perf_file`.
+./app/Support/Telemetry.php:47:     * Dependências chamadas: `storage_path`.
+./app/Support/Telemetry.php:51:    return storage_path("telemetry");
+./app/Support/Telemetry.php:60:     * Dependências chamadas: `telemetry_storage_dir`.
+./app/Support/Telemetry.php:64:    return telemetry_storage_dir() . "/page-load.json";
+./app/Support/Telemetry.php:81:function telemetry_prepare_storage(): bool
+./app/Support/Telemetry.php:84:     * GUIA DE MANUTENÇÃO — telemetry_prepare_storage
+./app/Support/Telemetry.php:85:     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “telemetry prepare storage”.
+./app/Support/Telemetry.php:88:     * Dependências chamadas: `telemetry_storage_dir`, `is_dir`, `mkdir`, `is_writable`, `function_exists`, `security_storage_deny_file`, `is_file`, `file_put_contents`.
+./app/Support/Telemetry.php:93:        $dir = telemetry_storage_dir();
+./app/Support/Telemetry.php:100:        if (function_exists("security_storage_deny_file")) {
+./app/Support/Telemetry.php:101:            security_storage_deny_file($dir);
+./app/Support/Telemetry.php:195:     * Dependências chamadas: `function_exists`, `telemetry_prepare_storage`, `telemetry_page_file`, `time`, `fopen`, `flock`, `rewind`, `stream_get_contents`, `is_string`, `trim`, `json_decode`, `is_array` e mais 15.
+./app/Support/Telemetry.php:200:    if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
+./app/Support/Telemetry.php:278:     * Dependências chamadas: `telemetry_storage_dir`.
+./app/Support/Telemetry.php:282:    return telemetry_storage_dir() . "/route-performance.json";
+./app/Support/Telemetry.php:498:     * Dependências chamadas: `function_exists`, `telemetry_prepare_storage`, `telemetry_route_perf_file`, `time`, `telemetry_route_perf_bucket_start`, `telemetry_route_perf_safe_route`, `telemetry_release_safe`, `defined`, `max`, `is_array`, `DateTimeImmutable`, `->setTimezone` e mais 25.
+./app/Support/Telemetry.php:503:    if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
+./app/Support/Telemetry.php:704:            "storage" => "json",
+./app/Support/ServerJsonCache.php:107:     * Dependências chamadas: `is_string`, `storage_path`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`, `is_file`, `file_put_contents`.
+./app/Support/ServerJsonCache.php:115:    $resolved = storage_path("cache/server-json");
+./app/Support/ServerJsonCache.php:119:    if (function_exists("security_storage_deny_file")) {
+./app/Support/ServerJsonCache.php:120:        security_storage_deny_file($resolved);
+./app/Support/ServerJsonCache.php:137:     * Dependências chamadas: `preg_replace`, `server_json_cache_root`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`.
+./app/Support/ServerJsonCache.php:150:    if (function_exists("security_storage_deny_file")) {
+./app/Support/ServerJsonCache.php:151:        security_storage_deny_file($dir);
+./app/Support/ServerJsonCache.php:251:        function_exists("storage_path") &&
+./app/Support/ServerJsonCache.php:387:    if (($json["server_side_only"] ?? "") !== "storage-json") {
+./app/Support/ServerJsonCache.php:429:        "server_side_only" => "storage-json",
+./app/Support/ServerJsonCache.php:643:     * Dependências chamadas: `storage_path`, `is_dir`, `scandir`, `is_array`, `RuntimeException`, `is_link`, `is_file`, `strtolower`, `pathinfo`, `unlink`, `server_json_cache_metric_add`.
+./app/Support/ServerJsonCache.php:649:    $root = storage_path("cache");
+./app/Support/Foundation.php:390:function app_storage_timestamp(
+./app/Support/Foundation.php:395:     * GUIA DE MANUTENÇÃO — app_storage_timestamp
+./app/Support/Foundation.php:396:     * Responsabilidade: Implementa a responsabilidade “app storage timestamp” dentro do módulo de serviços transversais de suporte.
+./app/Support/Foundation.php:419:function app_date_input_from_storage(null|string|int $value): string
+./app/Support/Foundation.php:422:     * GUIA DE MANUTENÇÃO — app_date_input_from_storage
+./app/Support/Foundation.php:423:     * Responsabilidade: Implementa a responsabilidade “app date input from storage” dentro do módulo de serviços transversais de suporte.
+./app/Support/Foundation.php:494:     * Dependências chamadas: `app_date_input_from_storage`, `preg_match`, `checkdate`, `app_local_day_utc_range`, `max`.
+./app/Support/Foundation.php:498:    $ymd = app_date_input_from_storage($value);
+./app/Support/Foundation.php:1023:        '.png" type="image/png"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+./app/Support/Foundation.php:1069:function storage_path(string $path = ""): string
+./app/Support/Foundation.php:1072:     * GUIA DE MANUTENÇÃO — storage_path
+./app/Support/Foundation.php:1073:     * Responsabilidade: Implementa a responsabilidade “storage path” dentro do módulo de serviços transversais de suporte.
+./app/Support/Foundation.php:1075:     * Chamadores detectados: `platform_storage_status`, `db_runtime_notice_once`, `schema_lock_file`, `subscription_payment_proof_storage`, `subscription_payment_proof_absolute_path`, `document_pdf_storage_dir`, `document_pdf_cleanup_due`, `maestro_cron_run` e mais 18.
+./app/Support/Foundation.php:1080:    return app_root() . "/storage" . ($path ? "/" . ltrim($path, "/") : "");
+./app/Support/Foundation.php:1089:     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `preg_replace`.
+./app/Support/Foundation.php:1093:    $dir = storage_path("cache");
+./app/Support/Foundation.php:1292:     * Dependências chamadas: `pdo`, `->query`, `->fetchColumn`, `hash`, `->getMessage`, `db_table_exists`, `function_exists`, `storage_path`, `app_root`, `disk_free_space`, `is_dir`, `is_writable`.
+./app/Support/Foundation.php:1317:        $storageDir = function_exists("storage_path")
+./app/Support/Foundation.php:1318:            ? storage_path()
+./app/Support/Foundation.php:1320:        $free = @disk_free_space($storageDir);
+./app/Support/Foundation.php:1321:        $writable = is_dir($storageDir) && is_writable($storageDir);
+./app/Support/Foundation.php:1323:        $checks["storage"] = $writable && $freeOk;
+./app/Support/Foundation.php:1324:        $checks["storage_free_bytes"] = $free === false ? null : (float) $free;
+./app/Support/Foundation.php:1325:        $ok = $ok && (bool) $checks["storage"];
+./app/Support/Foundation.php:1327:        $checks["storage"] = false;
+./app/Support/Foundation.php:1518:     * Dependências chamadas: `one`, `only_digits`, `trim`, `app_date_input_from_storage`, `RuntimeException`, `valid_cpf`, `valid_birth_date`.
+./app/Support/Foundation.php:1532:    $currentBirth = app_date_input_from_storage($currentBirthRaw);
+./app/Support/Foundation.php:1534:    $newBirth = app_date_input_from_storage(trim((string) ($birthInput ?? "")));
+./app/Support/Foundation.php:1703:     * Dependências chamadas: `function_exists`, `privacy_sanitize_error_message`, `mb_substr`, `->getMessage`, `privacy_log_file_label`, `->getFile`, `basename`, `storage_path`, `is_dir`, `mkdir`, `security_storage_deny_file`, `date` e mais 12.
+./app/Support/Foundation.php:1715:    $dir = storage_path("logs");
+./app/Support/Foundation.php:1719:    if (function_exists("security_storage_deny_file")) {
+./app/Support/Foundation.php:1720:        security_storage_deny_file($dir);
+./app/Support/SecurityPrivacy.php:224:function security_storage_deny_file(string $dir): void
+./app/Support/SecurityPrivacy.php:227:     * GUIA DE MANUTENÇÃO — security_storage_deny_file
+./app/Support/SecurityPrivacy.php:228:     * Responsabilidade: Implementa a responsabilidade “security storage deny file” dentro do módulo de serviços transversais de suporte.
+./app/Support/SecurityPrivacy.php:230:     * Chamadores detectados: `document_pdf_storage_dir`, `install_prepare_writable_paths`, `log_runtime_error`, `boot_security`, `server_json_cache_root`, `server_json_cache_category_dir`, `telemetry_prepare_storage`.
+./app/Support/Runtime.php:357:     * Dependências chamadas: `prontoo_runtime_attempt`, `move_uploaded_file`.
+./app/Support/Runtime.php:362:        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `move_uploaded_file`. Efeitos: transformação local sem efeito externo detectado. */ fn(): bool => move_uploaded_file($source, $destination),
+./app/Pages/Dashboards.php:23:     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `q`, `->fetchAll`, `count`, `is_done_appointment`, `delay_minutes_from_appointment`, `round`, `val`, `appointment_patient_names`, `app_storage_timestamp`, `app_time_br` e mais 12.
+./app/Pages/Dashboards.php:69:        $startTs = app_storage_timestamp($a["start_at"]);
+./app/Pages/Dashboards.php:70:        $endTs = app_storage_timestamp($a["end_at"]);
+./app/Pages/Dashboards.php:184:        $startTs = app_storage_timestamp($a["start_at"]) ?: 0;
+./app/Pages/Dashboards.php:296:         * Dependências chamadas: `app_storage_timestamp`, `app_time_br`, `trim`, `first_name`, `href`, `appointment_journey_compact_html`, `e`, `icon`.
+./app/Pages/Dashboards.php:300:        $startTs = app_storage_timestamp($a["start_at"]);
+./app/Pages/Dashboards.php:301:        $endTs = app_storage_timestamp($a["end_at"]);
+./app/Pages/Dashboards.php:369:            $st = app_storage_timestamp($a["start_at"]) ?: 0;
+./app/Pages/Dashboards.php:442:            "ts" => app_storage_timestamp($a["start_at"]) ?: 0,
+./app/Pages/Dashboards.php:447:        $startTs = app_storage_timestamp($b["start_at"]) ?: 0;
+./app/Pages/Dashboards.php:448:        $endTs = app_storage_timestamp($b["end_at"]) ?: 0;
+./app/Pages/Dashboards.php:539:     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `q`, `->fetchAll`, `appointment_patient_names`, `int_ids`, `fetch_map`, `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_is_terminal` e mais 14.
+./app/Pages/Dashboards.php:563:        $ts = app_storage_timestamp($a["start_at"]) ?: 0;
+./app/Pages/Dashboards.php:595:         * Dependências chamadas: `app_storage_timestamp`, `trim`, `appointment_journey_meta`, `appointment_journey_compact_html`, `href`, `e`, `app_time_br`, `first_name`, `icon`.
+./app/Pages/Dashboards.php:599:        $ts = app_storage_timestamp($a["start_at"]);
+./app/architecture.manifest.json:5:  "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
+./app/Runtime/Runner.php:216:     * Dependências chamadas: `storage_path`, `is_dir`, `prontoo_fs_mkdir`, `hash`, `defined`.
+./app/Runtime/Runner.php:220:    $dir = storage_path("cache");
+./app/Runtime/Runner.php:466:     * Dependências chamadas: `boot_security`, `guard_request`, `route`, `headers_secure`, `has_cfg`, `is_file`, `storage_path`, `ProntooHttpError`, `prontoo_boot_database_for_route` e demais serviços de autorização, cache, auditoria e renderização.
+./app/Runtime/Runner.php:482:                is_file(storage_path("install.lock"))
+./app/Database/schema.sql:1548:CREATE TABLE `pi_document_pdfs` (
+./app/Database/schema.sql:1563:  UNIQUE KEY `uq_document_pdfs_clinic_id` (`clinic_id`,`id`),
+./app/Database/schema.sql:1564:  UNIQUE KEY `uq_document_pdfs_seq` (`Seq`),
+./app/Database/schema.sql:1565:  KEY `idx_document_pdfs_doc` (`clinic_id`,`document_id`,`generated_unix`),
+./app/Database/schema.sql:1566:  KEY `idx_document_pdfs_clinic_date` (`clinic_id`,`created_at`,`id`),
+./app/Database/schema.sql:1567:  KEY `idx_fk_document_pdfs_generated_by` (`generated_by`),
+./app/Database/schema.sql:1568:  CONSTRAINT `fk_document_pdfs_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `pi_clinics` (`id`),
+./app/Database/schema.sql:1569:  CONSTRAINT `fk_document_pdfs_document` FOREIGN KEY (`clinic_id`,`document_id`) REFERENCES `pi_documents` (`clinic_id`, `id`) ON DELETE CASCADE,
+./app/Database/schema.sql:1570:  CONSTRAINT `fk_document_pdfs_generated_by` FOREIGN KEY (`generated_by`) REFERENCES `pi_users` (`id`) ON DELETE SET NULL
+./app/Database/operational-schema.contract.json:20:    "pi_document_pdfs": "c6b0a22e406f60b3698d12680a62739ed39bfcf5ecac87d1e6fccca53959cc75",
+./app/Database/DatabaseSchema.php:10:     * Dependências chamadas: `preg_replace`, `strtolower`, `defined`, `function_exists`, `storage_path`, `dirname`, `is_file`, `error_log`, `is_dir`, `mkdir`, `is_writable`, `file_put_contents` e mais 2.
+./app/Database/DatabaseSchema.php:21:    $dir = function_exists("storage_path")
+./app/Database/DatabaseSchema.php:22:        ? storage_path("cache/runtime-notices")
+./app/Database/DatabaseSchema.php:23:        : dirname(__DIR__, 2) . "/storage/cache/runtime-notices";
+./app/Database/DatabaseSchema.php:1631:     * Dependências chamadas: `storage_path`.
+./app/Database/DatabaseSchema.php:1635:    return storage_path("schema.ready");
+./app/prontoo.php:265:const PRONTOO_SERVER_JSON_CACHE_POLICY = "server-storage-only-domain-invalidated-short-ttl";
+./app/prontoo.php:293:    $logDir = PRONTOO_ROOT . "/storage/logs";
+./app/Core/Invariant/Context/DocumentContextInvariant.php:10:        "pi_document_pdfs",
+./app/Core/Tenant/TenantRegistry.php:28:        "pi_document_pdfs" => "clinic_id",
+./app/Core/Database/TenantIntegrity.php:129:        if (!function_exists("storage_path")) {
+./app/Core/Database/TenantIntegrity.php:146:        $file = \storage_path("tenant_integrity.json");
+./app/Core/Temporal/PiTime.php:58:         * Chamadores detectados: `Core.Temporal.PiTime::storageDefinitionFor`, `Core.Temporal.PiTime::rewriteColumnDefinition`, `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:152`, `closure@app/Core/Temporal/PiTime.php:158`, `closure@app/Core/Temporal/PiTime.php:203`, `Core.Temporal.PiTime::convertParamsBySql`.
+./app/Core/Temporal/PiTime.php:136:    public static function storageDefinitionFor(
+./app/Core/Temporal/PiTime.php:141:         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::storageDefinitionFor
+./app/Core/Temporal/PiTime.php:142:         * Responsabilidade: Implementa a responsabilidade “storage definition for” dentro do módulo de núcleo de invariantes e decisões canônicas.
+./app/Core/Temporal/PiTime.php:217:         * Dependências chamadas: `self::rewriteTemporalFunctions`, `preg_replace_callback`, `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`, `str_replace`, `self::rewriteColumnDefinition`.
+./app/Core/Temporal/PiTime.php:231:                     * Dependências chamadas: `preg_replace_callback`, `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`, `str_replace`.
+./app/Core/Temporal/PiTime.php:246:                                 * Dependências chamadas: `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`.
+./app/Core/Temporal/PiTime.php:279:                                        self::storageDefinitionFor(
+./app/Core/Temporal/PiTime.php:639:         * Responsabilidade: Implementa a responsabilidade “to storage” dentro do módulo de núcleo de invariantes e decisões canônicas.
+./app/Core/Temporal/PiTime.php:1181:         * Chamadores detectados: `Core.Temporal.PiTime::storageDefinitionFor`, `Core.Temporal.PiTime::rewriteColumnDefinition`, `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:152`, `closure@app/Core/Temporal/PiTime.php:158`, `Core.Temporal.PiTime::normalizeInsertedTemporalDefaults`.
+./app/Core/Architecture/LayerMap.php:219:        $excluded = ['/storage/', '/vendor/', '/node_modules/', '/.git/'];
+./app/Core/Install/RuntimeContract.php:361:            $strict = is_file($root . '/storage/install.lock');
+./app/Admin/AdminPages.php:3:function platform_storage_status(): array
+./app/Admin/AdminPages.php:6:     * GUIA DE MANUTENÇÃO — platform_storage_status
+./app/Admin/AdminPages.php:7:     * Responsabilidade: Implementa a responsabilidade “platform storage status” dentro do módulo de painel global do Desenvolvedor.
+./app/Admin/AdminPages.php:10:     * Dependências chamadas: `storage_path`, `is_dir`, `is_writable`, `function_exists`, `disk_free_space`.
+./app/Admin/AdminPages.php:14:    $dir = storage_path();
+./app/Admin/AdminPages.php:413:     * Dependências chamadas: `val`, `platform_storage_status`, `admin_model_clinic_exclude_sql`, `admin_model_clinic_exclude_where`, `array_key_exists`, `cached_val`, `admin_model_clinic_id`, `class_exists`, `.Core.Database.SqlScopeGuard::logicSelfTest`, `function_exists`, `scope_guard_context_selftest`, `cache_remember` e mais 3.
+./app/Admin/AdminPages.php:426:    $storage = platform_storage_status();
+./app/Admin/AdminPages.php:427:    $checks["storage"] = (bool) $storage["ok"];
+./app/Admin/AdminPages.php:428:    $checks["storage_free_bytes"] = $storage["free_bytes"];
+./app/Admin/AdminPages.php:429:    $ok = $ok && (bool) $storage["ok"];
+./app/Admin/AdminPages.php:513:    if (empty($checks["storage"])) {
+./app/Admin/AdminPages.php:514:        $actions[] = "Sistema de arquivos sem permissão de escrita no storage.";
+./app/Admin/AdminPages.php:2536:                is_writable(app_root() . "/storage"),
+./app/Admin/AdminPages.php:2538:                "Sem escrita em storage",
+./app/Admin/AdminPages.php:2540:            "body" => app_root() . "/storage",
+./app/Admin/AdminPages.php:2545:                        (float) @disk_free_space(app_root() . "/storage"),
+./app/Admin/AdminPages.php:2552:            "title" => is_file(app_root() . "/storage/install.lock")
+./app/Admin/AdminPages.php:3290:            $trustBlockedUntil = app_storage_timestamp(
+./app/Admin/AdminPages.php:3466:    if (empty($checks["storage"])) {
+./app/Admin/AdminPages.php:3472:                "Arquivos temporários, métricas e comprovantes dependem de escrita no storage.",
+./app/Admin/AdminPages.php:4024:                app_date_input_from_storage($billing["paid_until"] ?? ""),
+./app/Admin/AdminPages.php:4530:                (is_file(app_root() . "/storage/install.lock")
+./app/Auth/AuthOnboarding.php:389:     * Dependências chamadas: `function_exists`, `app_date_input_from_storage`.
+./app/Auth/AuthOnboarding.php:393:    return function_exists("app_date_input_from_storage")
+./app/Auth/AuthOnboarding.php:394:        ? app_date_input_from_storage($birth)
+./app/Auth/AuthOnboarding.php:1620:     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `val`, `person_identity_immutable_values`, `app_date_input_from_storage`, `one`, `q`, `implode`, `person_signature_refresh_verified` e mais 2.
+./app/Auth/AuthOnboarding.php:1641:        $expectedBirth = app_date_input_from_storage(
+./app/Auth/AuthOnboarding.php:1654:        $currentBirth = app_date_input_from_storage(
+./app/Auth/AuthOnboarding.php:1669:        $storedBirth = app_date_input_from_storage(
+./app/Auth/AuthOnboarding.php:1726:     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `session_clinic_scope_id`, `val`, `person_identity_immutable_values`, `one`, `app_date_input_from_storage`, `q`, `implode` e mais 3.
+./app/Auth/AuthOnboarding.php:1772:            $currentBirth = app_date_input_from_storage(
+./app/Auth/AuthOnboarding.php:1780:                $params[] = app_date_input_from_storage($expectedBirth);
+./app/Auth/AuthOnboarding.php:1791:                $storedBirth = app_date_input_from_storage(
+./app/Auth/AuthOnboarding.php:1797:                $normalizedExpected = app_date_input_from_storage($expectedBirth);
+./app/Install/Installer.php:35:    return app_root() . "/pdfs";
+./app/Install/Installer.php:44:     * Dependências chamadas: `has_cfg`, `is_file`, `storage_path`.
+./app/Install/Installer.php:49:    $lock = is_file(storage_path("install.lock"));
+./app/Install/Installer.php:68:     * Dependências chamadas: `prontoo_php_runtime_ok`, `prontoo_php_runtime_message`, `extension_loaded`, `prontoo_memory_limit_label`, `prontoo_memory_limit_meets`, `dirname`, `cfg_file`, `storage_path`, `install_pdf_dir`, `is_dir`, `prontoo_fs_mkdir`, `is_writable` e mais 6.
+./app/Install/Installer.php:126:        "storage/" => storage_path(),
+./app/Install/Installer.php:127:        "storage/cache/" => storage_path("cache"),
+./app/Install/Installer.php:128:        "storage/telemetry/" => storage_path("telemetry"),
+./app/Install/Installer.php:129:        "storage/tmp/" => storage_path("tmp"),
+./app/Install/Installer.php:130:        "pdfs/" => install_pdf_dir(),
+./app/Install/Installer.php:517:     * Dependências chamadas: `defined`, `gmdate`, `ini_get`, `install_yesno`, `extension_loaded`, `app_root`, `cfg_file`, `install_state`, `has_cfg`, `is_file`, `storage_path`, `dirname` e mais 8.
+./app/Install/Installer.php:555:        install_yesno(is_file(storage_path("install.lock")));
+./app/Install/Installer.php:560:            ["storage/", storage_path()],
+./app/Install/Installer.php:561:            ["storage/install.lock", storage_path("install.lock")],
+./app/Install/Installer.php:562:            ["storage/cache/", storage_path("cache")],
+./app/Install/Installer.php:563:            ["storage/telemetry/", storage_path("telemetry")],
+./app/Install/Installer.php:564:            ["storage/tmp/", storage_path("tmp")],
+./app/Install/Installer.php:565:            ["pdfs/ (rota pública)", install_pdf_dir()],
+./app/Install/Installer.php:566:            ["storage/pdfs/", storage_path("pdfs")],
+./app/Install/Installer.php:659:     * Dependências chamadas: `storage_path`, `gmdate`, `prontoo_fs_write`, `prontoo_fs_chmod`.
+./app/Install/Installer.php:663:    $file = storage_path("install-error-" . gmdate("Ymd-His") . ".log");
+./app/Install/Installer.php:713:     * Dependências chamadas: `install_environment_checks`, `install_environment_has_blocker`, `RuntimeException`, `is_file`, `storage_path`, `prontoo_fs_write`, `function_exists`, `security_storage_deny_file`.
+./app/Install/Installer.php:724:    if (!is_file(storage_path(".htaccess"))) {
+./app/Install/Installer.php:726:            storage_path(".htaccess"),
+./app/Install/Installer.php:730:    if (function_exists("security_storage_deny_file")) {
+./app/Install/Installer.php:731:        security_storage_deny_file(storage_path("logs"));
+./app/Install/Installer.php:732:        security_storage_deny_file(storage_path("pdfs"));
+./app/Install/Installer.php:765:        str_contains($msg, "storage") ||
+./app/Install/Installer.php:779:        return "A instalação encontrou divergência diagnóstica de isolamento multi-consultório. Verifique storage/tenant_integrity.json e use banco vazio.";
+./app/Install/Installer.php:781:    return "A instalação não foi concluída. Revise os dados informados, o banco vazio e as permissões de escrita em app/, storage/ e pdfs/.";
+./app/Install/Installer.php:802:        '.png" type="image/png"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+./app/Install/Installer.php:875:        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">O arquivo app/config.php existe, mas storage/install.lock não foi encontrado. Para uma instalação limpa, use outro banco vazio e remova app/config.php apenas se esta configuração parcial puder ser descartada.</p></section>';
+./app/Install/Installer.php:877:        echo '<section class="auth widebox"><h1>Instalação incompleta</h1><p class="flash bad">storage/install.lock existe, mas app/config.php não foi encontrado. Remova o lock apenas se esta instalação puder ser refeita do zero.</p></section>';
+./app/Install/Installer.php:1118:                    storage_path("install.lock"),
+./app/Install/Installer.php:1123:                    "Não foi possível gravar storage/install.lock.",
+./app/Install/Installer.php:1126:            prontoo_fs_chmod(storage_path("install.lock"), 0640);
+./app/Install/Installer.php:1146:            if ($cfgWritten && !is_file(storage_path("install.lock"))) {
+./tools/schema-check.php:34:if (!function_exists('storage_path')) {
+./tools/schema-check.php:35:    function storage_path(string $path = ''): string
+./tools/schema-check.php:38:         * GUIA DE MANUTENÇÃO — storage_path
+./tools/schema-check.php:39:         * Responsabilidade: Implementa a responsabilidade “storage path” dentro do módulo de ferramentas de certificação e manutenção.
+./tools/schema-check.php:41:         * Chamadores detectados: `platform_storage_status`, `db_runtime_notice_once`, `schema_lock_file`, `subscription_payment_proof_storage`, `subscription_payment_proof_absolute_path`, `document_pdf_storage_dir`, `document_pdf_cleanup_due`, `maestro_cron_run` e mais 18.
+./tools/schema-check.php:276:    $storage = storage_path();
+./tools/schema-check.php:277:    if (!is_dir($storage) && !mkdir($storage, 0750, true) && !is_dir($storage)) {
+./tools/schema-check.php:278:        throw new RuntimeException('Não foi possível criar storage temporário do instalador.');
+./tools/schema-check.php:335:    @rmdir($storage);
+./.htaccess:31:    RewriteRule ^storage/ - [F,L]
+./.htaccess:36:    RewriteRule ^pdfs/([A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf)$ index.php?r=document_pdf_file&file=$1 [QSA,L,NC]
+./.htaccess:37:    RewriteRule ^pdfs/ - [F,L]
+./.htaccess:75:    ExpiresByType image/png "access plus 1 year"
+./.htaccess:78:    ExpiresByType image/webp "access plus 1 year"
+./.gitignore:7:/storage/
+./.gitignore:13:/pdfs/*.pdf
+./.gitignore:14:/pdfs/*.json
+./.gitignore:15:/pdfs/*.tmp
+./.gitignore:16:/pdfs/*.log
+./.gitignore:17:/pdfs/*.txt
+./.gitignore:18:/pdfs/*.bak
+=== DIRECTORIES ===
+.
+./.automation
+./.git
+./.git/hooks
+./.git/info
+./.git/logs
+./.git/logs/refs
+./.git/objects
+./.git/objects/info
+./.git/objects/pack
+./.git/refs
+./.git/refs/heads
+./.git/refs/remotes
+./.git/refs/tags
+./.github
+./.github/workflows
+./app
+./app/Admin
+./app/Application
+./app/Application/Audit
+./app/Application/Authorization
+./app/Auth
+./app/Core
+./app/Core/Architecture
+./app/Core/Database
+./app/Core/Install
+./app/Core/Integrity
+./app/Core/Invariant
+./app/Core/Metrics
+./app/Core/Readonly
+./app/Core/Support
+./app/Core/Temporal
+./app/Core/Tenant
+./app/Database
+./app/Domain
+./app/Domain/Appointments
+./app/Domain/Audit
+./app/Domain/Authorization
+./app/Domain/Clinic
+./app/Domain/Documents
+./app/Domain/Financial
+./app/Domain/Leads
+./app/Domain/Maestro
+./app/Domain/Patients
+./app/Domain/Permissions
+./app/Domain/Tasks
+./app/Infrastructure
+./app/Infrastructure/Audit
+./app/Infrastructure/Authorization
+./app/Infrastructure/Database
+./app/Install
+./app/Pages
+./app/Presentation
+./app/Presentation/Http
+./app/Runtime
+./app/Support
+./app/Ui
+./br
+./br/assets
+./br/images
+./br/landing
+./cron
+./pdfs
+./public
+./public/assets
+./tools
