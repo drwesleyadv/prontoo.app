@@ -1,0 +1,3 @@
+target_branch=agent/reapply-hardening-1.7.22.5
+version=1.7.22.5
+requested_at=2026-07-22T19:04:00Z
