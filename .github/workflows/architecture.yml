@@ -4,23 +4,32 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   inventory-persistence-paths:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
+          ref: agent/ssd-persistence-1.7.22.6
           fetch-depth: 0
 
-      - name: Inventory persistence references
+      - name: Persist inventory
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== STORAGE/PDFS/UPLOAD REFERENCES ==='
-          grep -RInE --exclude-dir=.git --exclude='app/update.manifest.json' --exclude='*.map' '(storage|pdfs|move_uploaded_file|\$_FILES|image/(png|jpeg|webp|gif))' . || true
-          echo '=== DIRECTORIES ==='
-          find . -maxdepth 3 -type d | sort
+          mkdir -p .automation
+          {
+            echo '=== STORAGE/PDFS/UPLOAD REFERENCES ==='
+            grep -RInE --exclude-dir=.git --exclude-dir=.automation --exclude='app/update.manifest.json' --exclude='*.map' '(storage|pdfs|move_uploaded_file|\$_FILES|image/(png|jpeg|webp|gif))' . || true
+            echo '=== DIRECTORIES ==='
+            find . -maxdepth 3 -type d | sort
+          } > .automation/persistence-inventory.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .automation/persistence-inventory.txt
+          git commit -m 'Registra inventário temporário de persistência' || exit 0
+          git push origin HEAD:agent/ssd-persistence-1.7.22.6
