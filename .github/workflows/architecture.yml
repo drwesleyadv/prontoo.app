@@ -17,7 +17,7 @@ jobs:
           ref: agent/ssd-persistence-1.7.22.6
           fetch-depth: 0
 
-      - name: Repair PHP escape and seal manifest
+      - name: Repair escape, seal manifest and record syntax
         shell: bash
         run: |
           set -euo pipefail
@@ -29,11 +29,14 @@ jobs:
 
           target = Path('app/Domain/Clinic/SubscriptionSettings.php')
           source = target.read_text(encoding='utf-8')
-          broken = '$proofPath = str_replace("\\", "/", $proofPath);'
-          fixed = '$proofPath = str_replace("\\\\", "/", $proofPath);'
-          if broken not in source:
-              raise RuntimeError('Linha de escape inválida não localizada.')
-          target.write_text(source.replace(broken, fixed, 1), encoding='utf-8')
+          slash = chr(92)
+          broken = '$proofPath = str_replace("' + slash + '", "/", $proofPath);'
+          fixed = '$proofPath = str_replace("' + slash + slash + '", "/", $proofPath);'
+          if broken in source:
+              source = source.replace(broken, fixed, 1)
+          elif fixed not in source:
+              raise RuntimeError('Linha de normalização de caminho não localizada.')
+          target.write_text(source, encoding='utf-8')
 
           canonical = subprocess.check_output(
               ['git', 'show', 'origin/main:.github/workflows/architecture.yml'],
@@ -47,10 +50,7 @@ jobs:
           files = dict(manifest['files'])
           total = 0
           for name in files:
-              if name == '.github/workflows/architecture.yml':
-                  data = canonical_bytes
-              else:
-                  data = Path(name).read_bytes()
+              data = canonical_bytes if name == '.github/workflows/architecture.yml' else Path(name).read_bytes()
               files[name] = hashlib.sha256(data).hexdigest()
               total += len(data)
           manifest['files'] = files
@@ -62,12 +62,18 @@ jobs:
           )
           PY
 
+          status=0
+          : > ssd-syntax-report.txt
           while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
+            if ! php -l "$file" >> ssd-syntax-report.txt 2>&1; then
+              status=1
+            fi
           done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -name '*.php' -type f -print0)
+          echo "overall_status=${status}" >> ssd-syntax-report.txt
+          cat ssd-syntax-report.txt
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/Domain/Clinic/SubscriptionSettings.php app/update.manifest.json
-          git commit -m 'Corrige escape e sela manifesto da 1.7.22.6'
+          git add app/Domain/Clinic/SubscriptionSettings.php app/update.manifest.json ssd-syntax-report.txt
+          git commit -m 'Corrige sintaxe e registra validação da 1.7.22.6'
           git push origin HEAD:agent/ssd-persistence-1.7.22.6
