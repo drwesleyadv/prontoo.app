@@ -1,0 +1,180 @@
+name: Apply Commissioned Hardening 1.7.22.3
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  apply:
+    if: github.head_ref == 'agent/commissioned-hardening-lockdown-1.7.22.3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout hardening branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/commissioned-hardening-lockdown-1.7.22.3
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+
+      - name: Apply commissioned lockdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .automation/apply_commissioned_hardening.py | tee hardening-apply-report.json
+
+      - name: PHP syntax and documentation coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './storage' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $functions = 0;
+          $guides = 0;
+          $iterator = new RecursiveIteratorIterator(
+              new RecursiveDirectoryIterator('.', FilesystemIterator::SKIP_DOTS),
+          );
+          foreach ($iterator as $file) {
+              if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+                  continue;
+              }
+              $path = str_replace('\\', '/', $file->getPathname());
+              if (str_contains($path, '/storage/') ||
+                  str_contains($path, '/vendor/') ||
+                  str_contains($path, '/node_modules/')) {
+                  continue;
+              }
+              $source = (string) file_get_contents($file->getPathname());
+              foreach (token_get_all($source) as $token) {
+                  if (is_array($token) && ($token[0] === T_FUNCTION || $token[0] === T_FN)) {
+                      $functions++;
+                  }
+              }
+              $guides += substr_count($source, 'GUIA DE MANUTENÇÃO —');
+              $guides += substr_count($source, 'Guia de manutenção:');
+          }
+          if ($functions !== $guides || $functions !== 1865) {
+              throw new RuntimeException("Cobertura documental divergente: {$guides}/{$functions}.");
+          }
+          echo json_encode(['ok' => true, 'functions' => $functions, 'guides' => $guides]), PHP_EOL;
+          PHP
+
+      - name: JSON and sealed release manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json", "app/Database/operational-schema.contract.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+            $version = json_decode((string) file_get_contents("version.json"), true, 512, JSON_THROW_ON_ERROR);
+            if (($version["version"] ?? "") !== "1.7.22.3" || empty($version["installer_locked"])) {
+              throw new RuntimeException("Contrato de versão/hardening inválido");
+            }
+            if (isset($version["temporary_public_installer"])) {
+              throw new RuntimeException("Janela pública temporária ainda presente");
+            }
+            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $files = (array) ($manifest["files"] ?? []);
+            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
+              throw new RuntimeException("file_count divergente");
+            }
+            $bytes = 0;
+            foreach ($files as $file => $expected) {
+              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
+              $actual = hash_file("sha256", $file);
+              if (!hash_equals((string) $expected, (string) $actual)) {
+                throw new RuntimeException("Hash divergente: " . $file);
+              }
+              $bytes += (int) filesize($file);
+            }
+            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
+              throw new RuntimeException("total_uncompressed_bytes divergente");
+            }
+          '
+
+      - name: Hardening, installer and schema contracts
+        shell: bash
+        env:
+          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
+          PRONTOO_SCHEMA_USER: root
+          PRONTOO_SCHEMA_PASS: root
+        run: |
+          set -euo pipefail
+          php tools/install-security-check.php | tee install-security-report.json
+          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
+          php tools/architecture-check.php | tee architecture-report.json
+
+      - name: Commit certified product files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            .htaccess \
+            ChangeLog.txt \
+            app/Core/Database/SchemaMutationLock.php \
+            app/Core/Install/InstallAccess.php \
+            app/Database/operational-schema.contract.json \
+            app/Runtime/Runner.php \
+            app/Ui/Components.php \
+            app/architecture.manifest.json \
+            app/prontoo.php \
+            app/update.manifest.json \
+            br/index.php \
+            tools/install-security-check.php \
+            tools/schema-check.php \
+            version.json
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração de produto a gravar."
+          else
+            git commit -m "Prontoo 1.7.22.3 — hardening pós-comissionamento"
+            git push origin HEAD:agent/commissioned-hardening-lockdown-1.7.22.3
+          fi
+
+      - name: Upload certification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commissioned-hardening-certification
+          path: |
+            hardening-apply-report.json
+            install-security-report.json
+            schema-report.json
+            architecture-report.json
+          if-no-files-found: warn
+          retention-days: 7
