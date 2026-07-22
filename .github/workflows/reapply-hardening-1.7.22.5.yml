@@ -1,6 +1,7 @@
 name: Reapply Hardening 1.7.22.5
 
 on:
+  pull_request:
   push:
     branches: [agent/reapply-hardening-1.7.22.5]
   workflow_dispatch:
