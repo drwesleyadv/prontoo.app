@@ -115,7 +115,7 @@ final class InstallAccess
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isLocalHttpRequest
          * Responsabilidade: Implementa a responsabilidade “is local http request” dentro do módulo de núcleo de invariantes e decisões canônicas.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `prontoo_run`.
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
          * Dependências chamadas: `self::isLocalServer`.
          * Estado externo lido: `$_SERVER`.
          * Efeitos colaterais: consome dados da requisição HTTP.
@@ -130,7 +130,7 @@ final class InstallAccess
          * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isInstallerExecutionAllowed
          * Responsabilidade: Decide se o instalador pode executar no contexto atual. CLI continua autorizado para certificação; HTTP local continua autorizado; HTTP público só é aceito no host HTTPS exato prontoo.app durante a janela UTC fixa de quatro horas.
          * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Database.SchemaMutationLock::mayOpenInstallerWindow`, `Core.Install.InstallAccess::assertInstallerEntry`.
+         * Chamadores detectados: `Core.Database.SchemaMutationLock::mayOpenInstallerWindow`, `Core.Install.InstallAccess::assertInstallerEntry`, `prontoo_run`.
          * Dependências chamadas: `self::isLocalServer`, `time`, `self::requestHostFrom`, `strtolower`, `trim`, `explode`, `in_array`.
          * Estado externo lido: `$_SERVER`, relógio Unix do servidor e `PHP_SAPI`.
          * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed para o ponto de entrada e para a janela estrutural.

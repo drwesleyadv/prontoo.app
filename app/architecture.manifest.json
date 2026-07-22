@@ -1,5 +1,5 @@
 {
-  "version": "1.7.21.8",
+  "version": "1.7.22.1",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_storage_vendor_node_modules_and_git",
@@ -70,5 +70,6 @@
     "end_unix": 1784736414,
     "end_utc": "2026-07-22T16:06:54Z",
     "automatic_revocation": true
-  }
+  },
+  "logic_changes": true
 }

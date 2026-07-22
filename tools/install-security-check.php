@@ -97,6 +97,26 @@ $bootstrapPos = strpos($installEntry, 'app/prontoo.php');
 if ($guardPos === false || $bootstrapPos === false || $guardPos > $bootstrapPos) {
     $errors[] = 'install_entry_guard_order';
 }
+
+$runner = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+$configGuardStart = strpos($runner, 'if (!has_cfg() && !$installMode && !$publicHome)');
+$configGuardEnd = $configGuardStart === false
+    ? false
+    : strpos($runner, 'prontoo_boot_database_for_route($r);', $configGuardStart);
+if ($configGuardStart === false || $configGuardEnd === false) {
+    $errors[] = 'runtime_missing_config_guard_not_found';
+} else {
+    $configGuard = substr($runner, $configGuardStart, $configGuardEnd - $configGuardStart);
+    if (!str_contains($configGuard, 'InstallAccess::isInstallerExecutionAllowed()')) {
+        $errors[] = 'runtime_missing_config_not_using_canonical_installer_gate';
+    }
+    if (str_contains($configGuard, 'InstallAccess::isLocalHttpRequest()')) {
+        $errors[] = 'runtime_missing_config_still_localhost_only';
+    }
+    if (!str_contains($configGuard, 'Location: /install.php')) {
+        $errors[] = 'runtime_missing_config_no_installer_redirect';
+    }
+}
 $htaccess = (string) file_get_contents($root . '/.htaccess');
 if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+granted\s*<\/Files>/s', $htaccess) ||
     preg_match('/<Files\s+"install\.php">\s*Require\s+local\s*<\/Files>/s', $htaccess)) {

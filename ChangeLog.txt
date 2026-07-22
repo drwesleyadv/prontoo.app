@@ -1,3 +1,11 @@
+Prontoo 1.7.22.1 — hotfix da guarda pública do instalador
+
+- Corrige a segunda proteção acionada quando `app/config.php` está ausente: `prontoo_run()` deixa de aceitar somente localhost e passa a reutilizar `InstallAccess::isInstallerExecutionAllowed()`.
+- Durante a janela pública vigente, qualquer fallback do runtime redireciona para `/install.php` em vez de exibir “O instalador não é exposto publicamente”.
+- Após o timestamp final, a mesma decisão canônica continua falhando fechada e o instalador volta a responder 404 para acessos públicos.
+- Acrescenta teste regressivo que rejeita o retorno da checagem exclusiva `isLocalHttpRequest()` no fluxo sem configuração.
+- Não altera banco, schema, dados, interface, ativos ou a duração da janela pública já aprovada.
+
 Prontoo 1.7.21.8 — liberação pública temporária e autoexpirável do instalador
 
 - Libera `install.php` publicamente apenas no host HTTPS exato `prontoo.app`.
