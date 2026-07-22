@@ -1,0 +1,68 @@
+name: Redeploy Version Sync 1.7.22.3
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  sync:
+    if: github.head_ref == 'agent/redeploy-version-sync-1.7.22.3-20260722' || github.ref_name == 'agent/redeploy-version-sync-1.7.22.3-20260722'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout redeploy branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/redeploy-version-sync-1.7.22.3-20260722
+          fetch-depth: 0
+
+      - name: Apply version synchronization marker
+        run: python3 .automation/redeploy_version_sync.py | tee redeploy-version-report.json
+
+      - name: Validate release and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -r '
+            $v=json_decode((string)file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR);
+            $m=json_decode((string)file_get_contents("app/update.manifest.json"),true,512,JSON_THROW_ON_ERROR);
+            if(($v["version"]??"")!=="1.7.22.3"||($v["release"]??"")!=="1.7.22.3") throw new RuntimeException("Versão alterada");
+            if(($v["deployment_sync_id"]??"")!=="hostoo-redeploy-20260722T145259Z") throw new RuntimeException("Marcador ausente");
+            if(empty($v["installer_locked"])||!empty($v["database_changes"])||!empty($v["schema_changes"])) throw new RuntimeException("Contrato de hardening alterado");
+            $files=(array)($m["files"]??[]); $bytes=0;
+            if(count($files)!==(int)($m["file_count"]??-1)) throw new RuntimeException("file_count divergente");
+            foreach($files as $file=>$expected){
+              if(!is_file($file)) throw new RuntimeException("Arquivo ausente: ".$file);
+              if(!hash_equals((string)$expected,hash_file("sha256",$file))) throw new RuntimeException("Hash divergente: ".$file);
+              $bytes+=filesize($file);
+            }
+            if($bytes!==(int)($m["total_uncompressed_bytes"]??-1)) throw new RuntimeException("Bytes divergentes");
+            echo json_encode(["ok"=>true,"version"=>$v["version"],"files"=>count($files),"bytes"=>$bytes]),PHP_EOL;
+          '
+
+      - name: Commit synchronized metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- version.json app/update.manifest.json
+          if git diff --cached --quiet; then
+            echo "Sincronização já aplicada."
+          else
+            git commit -m "Reempacota a versão 1.7.22.3 para sincronização Hostoo"
+            git push origin HEAD:agent/redeploy-version-sync-1.7.22.3-20260722
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redeploy-version-sync-report
+          path: redeploy-version-report.json
+          if-no-files-found: warn
+          retention-days: 3
