@@ -1,0 +1,98 @@
+name: Apply Installer Method Hotfix 1.7.22.2
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  apply:
+    if: github.head_ref == 'agent/installer-method-hotfix-1.7.22.2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/installer-method-hotfix-1.7.22.2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, json, openssl
+
+      - name: Apply canonical method hotfix
+        run: python3 .automation/apply-installer-method-hotfix-1.7.22.2.py
+
+      - name: PHP syntax and legacy reference regression
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' \
+            -not -path './vendor/*' \
+            -not -path './node_modules/*' \
+            -print0 | xargs -0 -n1 php -l >/tmp/php-lint.txt
+          if grep -R --line-number --fixed-strings 'assertLocalEntry' app --include='*.php'; then
+            echo 'Referência legada assertLocalEntry encontrada em app/.' >&2
+            exit 1
+          fi
+          grep -q 'InstallAccess::assertInstallerEntry();' app/Install/Installer.php
+
+      - name: JSON and sealed manifest
+        run: |
+          set -euo pipefail
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json", "app/Database/operational-schema.contract.json"] as $file) {
+              $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (($data["version"] ?? "") !== "1.7.22.2") {
+                  throw new RuntimeException("Versão divergente em {$file}");
+              }
+            }
+          '
+          php -r '
+            $m = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
+            $bytes = 0;
+            foreach ($m["files"] as $file => $hash) {
+                if (!is_file($file)) throw new RuntimeException("Ausente: {$file}");
+                if (!hash_equals($hash, hash_file("sha256", $file))) throw new RuntimeException("Hash divergente: {$file}");
+                $bytes += filesize($file);
+            }
+            if (count($m["files"]) !== (int) $m["file_count"] || $bytes !== (int) $m["total_uncompressed_bytes"]) {
+                throw new RuntimeException("Contagem ou bytes do manifesto divergentes");
+            }
+          '
+
+      - name: Installer and architecture contracts
+        run: |
+          set -euo pipefail
+          php tools/install-security-check.php | tee /tmp/install-security-check.json
+          php tools/architecture-check.php | tee /tmp/architecture-check.json
+          php -r '$r=json_decode((string)file_get_contents("/tmp/install-security-check.json"),true,512,JSON_THROW_ON_ERROR); if(empty($r["ok"])) exit(1);'
+          php -r '$r=json_decode((string)file_get_contents("/tmp/architecture-check.json"),true,512,JSON_THROW_ON_ERROR); if(empty($r["ok"])) exit(1);'
+          git diff --check
+
+      - name: Commit certified product files
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            ChangeLog.txt \
+            app/Install/Installer.php \
+            tools/install-security-check.php \
+            version.json \
+            app/prontoo.php \
+            br/index.php \
+            app/update.manifest.json \
+            app/architecture.manifest.json \
+            app/Database/operational-schema.contract.json
+          if git diff --cached --quiet; then
+            echo 'Nenhuma alteração de produto a gravar.' >&2
+            exit 1
+          fi
+          git commit -m 'Corrige método de acesso do instalador na 1.7.22.2 [skip ci]'
+          git push origin HEAD:agent/installer-method-hotfix-1.7.22.2
