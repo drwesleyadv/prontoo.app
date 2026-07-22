@@ -25,10 +25,12 @@ jobs:
           python3 /tmp/apply_ssd_persistence.py > /tmp/ssd-apply.log 2>&1
           status=$?
           if [ "$status" -ne 0 ]; then
-            cp /tmp/ssd-apply.log .automation/ssd-apply-error.txt
+            git reset --hard HEAD
+            git clean -fd
+            cp /tmp/ssd-apply.log ssd-apply-error.txt
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add .automation/ssd-apply-error.txt
+            git add ssd-apply-error.txt
             git commit -m 'Registra diagnóstico da migração SSD' || true
             git push origin HEAD:agent/ssd-persistence-1.7.22.6
             cat /tmp/ssd-apply.log
