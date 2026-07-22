@@ -1,1 +1,2 @@
-trigger=2026-07-22T18:49:00Z
+trigger=2026-07-22T18:59:00Z
+bootstrap_main=ae5f51c1b301e49bf796216e78ca7d29351fff26
