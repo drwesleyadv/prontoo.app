@@ -3,7 +3,7 @@
   "release": "1.7.21.8",
   "generated_at_unix": 1784670941,
   "generated_at": "2026-07-21T21:55:41Z",
-  "updated_at": "2026-07-21T21:55:41Z",
+  "updated_at": "2026-07-22T12:06:54Z",
   "build": "1.7.21.8-temporary-public-installer",
   "asset_version": "1.7.15.10",
   "package_type": "temporary_public_installer_window",
@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "ChangeLog.txt",
-  "notes": "Libera temporariamente o instalador público por quatro horas a partir do merge certificado, com revogação automática por timestamp fixo.",
+  "notes": "Renova a janela pública temporária do instalador por quatro horas contadas do timestamp atual solicitado, com revogação automática por timestamp fixo.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -36,12 +36,12 @@
   "temporary_public_installer": {
     "host": "prontoo.app",
     "https_required": true,
-    "start_unix": 1784671890,
-    "end_unix": 1784686290,
-    "start_utc": "2026-07-21T22:11:30Z",
-    "end_utc": "2026-07-22T02:11:30Z",
-    "start_local": "21/07/2026 18:11:30 America/Cuiaba",
-    "end_local": "21/07/2026 22:11:30 America/Cuiaba",
+    "start_unix": 1784722014,
+    "end_unix": 1784736414,
+    "start_utc": "2026-07-22T12:06:54Z",
+    "end_utc": "2026-07-22T16:06:54Z",
+    "start_local": "22/07/2026 08:06:54 America/Cuiaba",
+    "end_local": "22/07/2026 12:06:54 America/Cuiaba",
     "automatic_revocation": true
   }
 }

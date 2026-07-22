@@ -12,7 +12,7 @@ FileETag None
 
 # Janela pública temporária do instalador.
 # O controle efetivo permanece em app/Core/Install/InstallAccess.php e expira
-# automaticamente em 2026-07-22T02:11:30Z (21/07/2026 22:11:30 em Cuiabá).
+# automaticamente em 2026-07-22T16:06:54Z (22/07/2026 12:06:54 em Cuiabá).
 <Files "install.php">
     Require all granted
 </Files>
