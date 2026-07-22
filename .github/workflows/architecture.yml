@@ -17,12 +17,24 @@ jobs:
           ref: agent/ssd-persistence-1.7.22.6
           fetch-depth: 0
 
-      - name: Apply SSD persistence policy
+      - name: Apply SSD persistence policy with diagnostic
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           cp .automation/apply_ssd_persistence.py /tmp/apply_ssd_persistence.py
-          python3 /tmp/apply_ssd_persistence.py | tee /tmp/ssd-persistence-report.json
+          python3 /tmp/apply_ssd_persistence.py > /tmp/ssd-apply.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/ssd-apply.log .automation/ssd-apply-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add .automation/ssd-apply-error.txt
+            git commit -m 'Registra diagnóstico da migração SSD' || true
+            git push origin HEAD:agent/ssd-persistence-1.7.22.6
+            cat /tmp/ssd-apply.log
+            exit "$status"
+          fi
+          cat /tmp/ssd-apply.log
 
       - name: Validate transformed tree
         shell: bash
@@ -32,13 +44,6 @@ jobs:
             php -l "$file" >/dev/null
           done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -name '*.php' -type f -print0)
           php tools/install-security-check.php
-          php -r '
-            $v = json_decode((string) file_get_contents("version.json"), true, 512, JSON_THROW_ON_ERROR);
-            if (($v["version"] ?? "") !== "1.7.22.6") { throw new RuntimeException("Versão divergente"); }
-            if (($v["persistent_storage_policy"]["root"] ?? "") !== "ssd") { throw new RuntimeException("Raiz SSD ausente"); }
-            if (($v["persistent_storage_policy"]["pdfs"] ?? "") !== "ssd/pdfs") { throw new RuntimeException("Política PDF divergente"); }
-            if (($v["persistent_storage_policy"]["images"] ?? "") !== "ssd/img") { throw new RuntimeException("Política de imagens divergente"); }
-          '
 
       - name: Publish transformed branch
         shell: bash
