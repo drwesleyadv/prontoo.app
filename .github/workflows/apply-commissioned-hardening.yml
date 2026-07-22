@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 .automation/apply_commissioned_hardening.py | tee hardening-apply-report.json
+          python3 .automation/apply_commissioned_hardening.py 2>&1 | tee hardening-apply-report.json
 
       - name: PHP syntax and documentation coverage
         shell: bash
