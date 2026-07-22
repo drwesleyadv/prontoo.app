@@ -3,7 +3,7 @@
   "release": "1.7.22.3",
   "generated_at_unix": 1784726469,
   "generated_at": "2026-07-22T13:21:09Z",
-  "updated_at": "2026-07-22T13:21:09Z",
+  "updated_at": "2026-07-22T14:52:59Z",
   "build": "1.7.22.3-commissioned-hardening-lockdown",
   "asset_version": "1.7.15.10",
   "package_type": "commissioned_hardening_lockdown",
@@ -35,5 +35,7 @@
   "documentation_changes": true,
   "installer_locked": true,
   "installer_access_policy": "http_disabled_github_actions_cli_certification_only",
-  "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only"
+  "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
+  "deployment_sync_id": "hostoo-redeploy-20260722T145259Z",
+  "deployment_sync_requested_at": "2026-07-22T14:52:59Z"
 }
