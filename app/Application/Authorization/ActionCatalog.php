@@ -249,7 +249,7 @@ final class ActionCatalog
             'admin_alerts' => ['create', 'read'],
             'admin_errors' => ['resolve_incident'],
             'admin_security' => ['release_login_lock'],
-            'admin_maintenance' => ['save_settings', 'regenerate_footer_seq_alphabet', 'save_maintenance'],
+            'admin_maintenance' => ['save_settings', 'save_maintenance'],
             'admin_deleted' => ['restore_patient', 'restore_care'],
         ];
         foreach ($globalActions as $route => $actions) {

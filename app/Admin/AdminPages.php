@@ -2886,7 +2886,7 @@ function page_admin_maintenance(): void
      * Responsabilidade: Coordena a rota e renderiza a tela “page admin maintenance”, reunindo validação, leitura de dados e resposta HTTP.
      * Local arquitetural: app/Admin/AdminPages.php (painel global do Desenvolvedor).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `preg_replace`, `in_array`, `meta_set`, `trim`, `audit`, `flash`, `redirect`, `function_exists`, `seq_footer_regenerate_alphabet`, `app_timezone_safe`, `app_global_admin_timezone` e mais 34.
+     * Dependências chamadas: `require_can`, `preg_replace`, `in_array`, `meta_set`, `trim`, `audit`, `flash`, `redirect`, `function_exists`, `app_timezone_safe`, `app_global_admin_timezone` e mais 33.
      * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
      * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
@@ -2915,18 +2915,6 @@ function page_admin_maintenance(): void
             audit("manutencao_atualizada", "manutencao", null, $_POST);
             flash("Manutenção atualizada.");
             redirect("admin_maintenance", ["tab" => "manutencao"]);
-        }
-        if ($act === "regenerate_footer_seq_alphabet") {
-            if (function_exists("seq_footer_regenerate_alphabet")) {
-                seq_footer_regenerate_alphabet();
-            }
-            audit("config_global_atualizada", "configuracao", null, [
-                "campos" => ["alfabeto_rodape_seq"],
-                "audit_body" =>
-                    "Alfabeto global do rodapé Seq regenerado pelo Desenvolvedor.",
-            ]);
-            flash("Alfabeto do rodapé Seq regenerado.");
-            redirect("admin_maintenance", ["tab" => "configuracoes"]);
         }
         if ($act === "save_settings") {
             foreach (
@@ -3024,21 +3012,6 @@ function page_admin_maintenance(): void
             "scope" => "global",
             "timezone" => $adminTimezone,
         ])->format("d/m/Y \à\s H\hi");
-        $footerAlphabet = function_exists("seq_footer_ensure_alphabet")
-            ? seq_footer_ensure_alphabet()
-            : "";
-        $footerSeq = function_exists("seq_footer_max_seq")
-            ? seq_footer_max_seq()
-            : 0;
-        $footerCode = function_exists("seq_footer_encode")
-            ? seq_footer_encode($footerSeq, $footerAlphabet, 4)
-            : "";
-        $footerCapacity = function_exists("seq_footer_capacity_for_width")
-            ? seq_footer_capacity_for_width(
-                max(4, strlen($footerCode)),
-                $footerAlphabet,
-            )
-            : 0;
         $form =
             '<form method="post" class="compact">' .
             csrf_field() .
@@ -3061,29 +3034,7 @@ function page_admin_maintenance(): void
             ) .
             '<p class="field-help">Agora para você: ' .
             e($timezoneNow) .
-            '</p></section><section class="settings-section full"><h2>Rodapé de integridade</h2><p class="field-help">Alfabeto global gerado no perfil do Desenvolvedor. Usa todas as consoantes e todos os números para codificar o maior Seq físico da base.</p><div class="seq-admin-preview"><span class="seq-footer-chip">' .
-            e($footerCode) .
-            "</span><small>Maior Seq: " .
-            n($footerSeq) .
-            " · Alfabeto: " .
-            e($footerAlphabet) .
-            " · Capacidade com " .
-            strlen($footerCode) .
-            " dígitos: " .
-            n($footerCapacity) .
-            "</small></div>" .
-            form_row(
-                "Alfabeto atual",
-                input(
-                    "footer_seq_alphabet",
-                    "text",
-                    $footerAlphabet,
-                    'readonly aria-readonly="true"',
-                ),
-            ) .
-            '<button class="ghost" name="act" value="regenerate_footer_seq_alphabet" type="submit">' .
-            icon("shuffle") .
-            '<span>Gerar novo alfabeto</span></button></section><section class="settings-section full"><h2>Assinatura</h2><p class="field-help">Regra comercial padrão dos novos consultórios e chave Pix exibida no card de pagamento.</p><div class="two">' .
+            '</p></section><section class="settings-section full"><h2>Assinatura</h2><p class="field-help">Regra comercial padrão dos novos consultórios e chave Pix exibida no card de pagamento.</p><div class="two">' .
             form_row(
                 "Mensalidade padrão",
                 input(

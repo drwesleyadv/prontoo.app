@@ -1,3 +1,20 @@
+Prontoo 1.7.23.7 — supressão do alfabeto legado do rodapé Seq
+
+- Remove integralmente o subsistema órfão do alfabeto usado para codificar a antiga impressão digital do rodapé Seq.
+- Exclui geração, normalização, persistência, regeneração, codificação, cálculo de capacidade, consulta do maior Seq e renderização vazia do rodapé.
+- Remove a ação protegida, o formulário administrativo, o carregamento do módulo, o acoplamento da página e o método de infraestrutura que existia apenas para esse recurso.
+- Preserva o contrato estrutural de Seq, os fingerprints SQL de segurança, os identificadores documentais, o MFA e todos os controles de autenticação e sessão.
+- Banco e schema permanecem inalterados; o metadado legado eventualmente existente deixa de ser lido ou gravado.
+
+Prontoo 1.7.23.6 — refinamento do MFA e da reautenticação global
+
+- Alinha cadastro, validação e códigos de recuperação do MFA ao shell público e à gramática visual do Design System.
+- Organiza o cadastro obrigatório em etapas, cria tratamento próprio para a chave manual e apresenta os códigos de recuperação em grade legível e responsiva.
+- Refina a confirmação recorrente do segundo fator com hierarquia, orientação e ações coerentes com a tela de login.
+- Atualiza global_reauth com PageHead contextual, card de segurança, aviso de sessão, alternância de visibilidade da senha e ações acessíveis.
+- Acrescenta a versão da release à URL do Design System para atualização segura do CSS sem alterar os ativos de ícone versionados.
+- Preserva integralmente MFA/TOTP, códigos de recuperação, rate limits, timeout de 60 minutos, revogação de sessões, senha mínima de 8 caracteres, banco e schema.
+
 Prontoo 1.7.23.5 — senha mínima restaurada para 8 caracteres
 
 - Restaura exclusivamente o tamanho mínimo da senha de 15 para 8 caracteres no validador central, formulários, cadastro de colaboradores e instalação.

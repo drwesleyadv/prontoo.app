@@ -58,39 +58,6 @@ final class SeqContract
         }
     }
 
-    public static function max(\PDO $pdo): int
-    {
-        /*
-         * GUIA DE MANUTENÇÃO — Infrastructure.Database.SeqContract::max
-         * Responsabilidade: Implementa a responsabilidade “max” dentro do módulo de infraestrutura, persistência e integração com o runtime.
-         * Local arquitetural: app/Infrastructure/Database/SeqContract.php (infraestrutura, persistência e integração com o runtime).
-         * Chamadores detectados: `seq_footer_max_seq`.
-         * Dependências chamadas: `->query`, `->fetchAll`, `preg_match`, `implode`, `->fetchColumn`, `max`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
-        $tables = $pdo->query(
-            "SELECT TABLE_NAME FROM information_schema.columns " .
-            "WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='Seq' AND TABLE_NAME LIKE 'pi\\_%' ESCAPE '\\\\' " .
-            "ORDER BY TABLE_NAME",
-        )?->fetchAll(\PDO::FETCH_COLUMN) ?: [];
-        $selects = [];
-        foreach ($tables as $table) {
-            $table = (string) $table;
-            if (!preg_match('/^pi_[a-z0-9_]+$/', $table)) {
-                continue;
-            }
-            $selects[] = "SELECT COALESCE(MAX(`Seq`),0) AS max_seq FROM `{$table}`";
-        }
-        if ($selects === []) {
-            return 0;
-        }
-        $value = $pdo->query(
-            'SELECT COALESCE(MAX(max_seq),0) FROM (' . implode(' UNION ALL ', $selects) . ') seq_union',
-        )?->fetchColumn();
-        return max(0, (int) $value);
-    }
-
     private static function tableExists(\PDO $pdo, string $table): bool
     {
         /*

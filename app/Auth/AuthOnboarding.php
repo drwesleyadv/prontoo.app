@@ -980,14 +980,23 @@ function page_mfa(): void
     if ($recovery) {
         $items = "";
         foreach ($recovery as $code) {
-            $items .= "<li><code>" . e((string) $code) . "</code></li>";
+            $items .=
+                '<li><code tabindex="0">' .
+                e((string) $code) .
+                "</code></li>";
         }
         $body =
-            '<section class="auth login-card"><span class="eyebrow">Segurança obrigatória</span><h1>Códigos de recuperação</h1><p>Guarde estes códigos em local seguro. Cada código funciona uma única vez e não será exibido novamente.</p><ul class="recovery-code-list">' .
+            '<section class="auth login-card security-auth-card security-recovery-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
+            icon("verified_user") .
+            '</span><div><span class="eyebrow">MFA configurado</span><h1>Códigos de recuperação</h1><p>Conclua esta etapa antes de entrar.</p></div></div><div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
+            icon("key") .
+            '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez e não será exibido novamente.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
             $items .
-            '</ul><form method="post">' .
+            '</ul><form method="post" class="security-auth-form">' .
             csrf_field() .
-            '<input type="hidden" name="act" value="mfa_continue"><button type="submit" class="primary wide">Continuar</button></form></section>';
+            '<input type="hidden" name="act" value="mfa_continue"><button type="submit" class="primary wide security-auth-submit">' .
+            icon("arrow_forward") .
+            "<span>Concluir e entrar</span></button></form></section>";
         page("Códigos de recuperação", $body, ["public" => true]);
         return;
     }
@@ -998,28 +1007,38 @@ function page_mfa(): void
             ((string) ($user["name"] ?? "Desenvolvedor") . " #" . $uid);
         $uri = mfa_otpauth_uri($account, $secret);
         $body =
-            '<section class="auth login-card"><span class="eyebrow">Primeiro acesso do Desenvolvedor</span><h1>Cadastre o MFA</h1><p>Adicione esta conta a um aplicativo autenticador por meio do link ou da chave manual. Depois, informe o código de seis dígitos.</p><p><a class="ghost wide" href="' .
+            '<section class="auth login-card security-auth-card security-enrollment-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
+            icon("shield_lock") .
+            '</span><div><span class="eyebrow">Primeiro acesso · Desenvolvedor</span><h1>Proteja sua conta</h1><p>O MFA será exigido nos próximos acessos.</p></div></div><ol class="security-step-list" aria-label="Etapas do cadastro"><li class="is-current"><span>1</span><div><strong>Adicione a conta</strong><small>Abra seu aplicativo autenticador pelo botão ou use a chave manual.</small></div></li><li><span>2</span><div><strong>Confirme o código</strong><small>Digite os seis dígitos exibidos pelo aplicativo.</small></div></li></ol><a class="ghost wide security-auth-launch" href="' .
             e($uri) .
-            '">Abrir no autenticador</a></p><div class="mfa-secret"><span>Chave manual</span><code>' .
+            '">' .
+            icon("open_in_new") .
+            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
             e($secret) .
-            '</code></div><form method="post" class="compact">' .
+            '</code></div><form method="post" class="compact security-auth-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="mfa_enroll">' .
             form_row(
-                "Código do autenticador",
+                "Código de seis dígitos",
                 input(
                     "code",
                     "text",
                     "",
-                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"',
+                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" aria-describedby="mfa-code-help"',
                 ),
             ) .
-            '<button type="submit" class="primary wide">Confirmar e cadastrar</button></form></section>';
+            '<small id="mfa-code-help" class="field-help">Digite o código atual do aplicativo autenticador.</small><button type="submit" class="primary wide security-auth-submit">' .
+            icon("check_circle") .
+            "<span>Confirmar e cadastrar</span></button></form></section>";
         page("Cadastrar MFA", $body, ["public" => true]);
         return;
     }
     $body =
-        '<section class="auth login-card"><span class="eyebrow">Desenvolvedor</span><h1>Confirme o segundo fator</h1><p>Informe o código do aplicativo autenticador ou um código de recuperação.</p><form method="post" class="compact">' .
+        '<section class="auth login-card security-auth-card security-verification-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
+        icon("shield_lock") .
+        '</span><div><span class="eyebrow">Desenvolvedor</span><h1>Confirme sua identidade</h1><p>Esta verificação protege o acesso global.</p></div></div><div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
+        icon("phonelink_lock") .
+        '</span><div><strong>Segundo fator</strong><span>Use o código atual do autenticador ou um código de recuperação.</span></div></div><form method="post" class="compact security-auth-form">' .
         csrf_field() .
         '<input type="hidden" name="act" value="mfa_verify">' .
         form_row(
@@ -1028,10 +1047,12 @@ function page_mfa(): void
                 "code",
                 "text",
                 "",
-                'required autocomplete="one-time-code" maxlength="16"',
+                'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false"',
             ),
         ) .
-        '<button type="submit" class="primary wide">Validar e entrar</button></form></section>';
+        '<button type="submit" class="primary wide security-auth-submit">' .
+        icon("login") .
+        "<span>Validar e entrar</span></button></form></section>";
     page("Confirmar MFA", $body, ["public" => true]);
 }
 /* Guia de manutenção: Exige nova senha e MFA para elevar sessão clínica ao Painel do Desenvolvedor. */
@@ -1109,18 +1130,26 @@ function page_global_reauth(): void
     $body =
         page_head(
             "Confirmar acesso de Desenvolvedor",
-            "Esta elevação exige nova autenticação.",
+            "Confirme sua identidade antes de entrar no ambiente global.",
         ) .
-        '<section class="card account-card"><form method="post" class="compact">' .
+        '<section class="card account-card security-reauth-card"><header class="security-reauth-head"><span class="security-reauth-icon">' .
+        icon("admin_panel_settings") .
+        '</span><div><span class="eyebrow">Elevação de acesso</span><h2>Verificação adicional</h2><p>Informe novamente sua senha e o segundo fator.</p></div></header><div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
+        icon("enhanced_encryption") .
+        '</span><div><strong>Acesso protegido</strong><span>A liberação vale somente para esta sessão e não cria dispositivo persistente.</span></div></div><form method="post" class="compact security-reauth-form">' .
         csrf_field() .
         form_row(
             "Senha atual",
-            input(
-                "password",
-                "password",
-                "",
-                'required autocomplete="current-password"',
-            ),
+            '<div class="password-field">' .
+                input(
+                    "password",
+                    "password",
+                    "",
+                    'required autocomplete="current-password" data-password-toggle',
+                ) .
+                '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
+                icon("visibility") .
+                "</button></div>",
         ) .
         form_row(
             "Código MFA",
@@ -1128,12 +1157,16 @@ function page_global_reauth(): void
                 "code",
                 "text",
                 "",
-                'required autocomplete="one-time-code" maxlength="16"',
+                'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false"',
             ),
         ) .
-        '<div class="form-actions"><button type="submit" class="primary">Confirmar acesso</button><a class="ghost" href="' .
+        '<div class="form-actions security-reauth-actions"><a class="ghost" href="' .
         href("profile") .
-        '">Cancelar</a></div></form></section>';
+        '">' .
+        icon("arrow_back") .
+        '<span>Cancelar</span></a><button type="submit" class="primary">' .
+        icon("verified_user") .
+        "<span>Confirmar acesso</span></button></div></form></section>";
     page("Confirmar acesso", $body);
 }
 function page_login(): void

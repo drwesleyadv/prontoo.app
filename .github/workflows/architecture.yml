@@ -123,7 +123,7 @@ jobs:
                   "Cobertura documental divergente: {$guides} guias para {$functions} funções.",
               );
           }
-          if ($functions !== 1931) {
+          if ($functions !== 1914) {
               throw new RuntimeException(
                   "Inventário funcional divergente da baseline documentada: {$functions}.",
               );
