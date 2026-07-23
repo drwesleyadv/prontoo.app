@@ -63,7 +63,8 @@ jobs:
             if ($version === "" ||
                 trim((string) ($contracts["version.json"]["release"] ?? "")) !== $version ||
                 trim((string) ($contracts["app/update.manifest.json"]["version"] ?? "")) !== $version ||
-                trim((string) ($contracts["app/update.manifest.json"]["release"] ?? "")) !== $version) {
+                trim((string) ($contracts["app/update.manifest.json"]["release"] ?? "")) !== $version ||
+                trim((string) ($contracts["app/architecture.manifest.json"]["version"] ?? "")) !== $version) {
               throw new RuntimeException("Contrato JSON de versão divergente");
             }
             foreach ([
