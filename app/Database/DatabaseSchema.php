@@ -399,7 +399,7 @@ function q(string $sql, array $params = []): PDOStatement
      * Responsabilidade: Implementa a responsabilidade “q” dentro do módulo de acesso, contrato e instalação do banco de dados.
      * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
      * Chamadores detectados: `admin_scope_guard_groups`, `admin_global_sequence_series_30d`, `admin_maestro_health_pill_html`, `page_admin_deleted`, `page_admin_errors`, `page_admin_painel`, `page_admin_people`, `admin_clinic_detail_page` e mais 228.
-     * Dependências chamadas: `db_reject_runtime_ddl`, `pdo`, `->inTransaction`, `microtime`, `count`, `function_exists`, `sql_write_scope_guard`, `class_exists`, `.Core.Integrity.PiIntegrity::prepareRuntimeQuery`, `.Core.Integrity.PiIntegrity::beforeQuery`, `->prepare`, `->execute` e mais 10.
+     * Dependências chamadas: `db_reject_runtime_ddl`, `pdo`, `->inTransaction`, `db_begin_transaction`, `db_commit`, `db_rollback`, `microtime`, `count`, `function_exists`, `sql_write_scope_guard`, `class_exists`, `.Core.Integrity.PiIntegrity::prepareRuntimeQuery`, `.Core.Integrity.PiIntegrity::beforeQuery`, `->prepare`, `->execute` e mais 10.
      * Classes ou serviços instanciados: `RuntimeException`.
      * Estado externo lido: `$GLOBALS`.
      * Efeitos colaterais: acessa a camada de persistência; pode interromper o fluxo por exceção.
@@ -407,6 +407,12 @@ function q(string $sql, array $params = []): PDOStatement
      */
     db_reject_runtime_ddl($sql);
     $connection = pdo();
+    $autoIntegrityTransaction =
+        !$connection->inTransaction() &&
+        preg_match("/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i", $sql) === 1 &&
+        class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity") &&
+        function_exists("has_cfg") &&
+        has_cfg();
     $attempts = $connection->inTransaction() ? 1 : 3;
     $lastError = null;
 
@@ -415,12 +421,19 @@ function q(string $sql, array $params = []): PDOStatement
         $runtimeSql = $sql;
         $runtimeParams = $params;
         $integrityContext = [];
+        $queryCompleted = false;
         $GLOBALS["PRONTOO_INSTALL_LAST_SQL"] = $sql;
         $GLOBALS["PRONTOO_INSTALL_LAST_PARAM_COUNT"] = count($params);
 
         try {
             if (function_exists("sql_write_scope_guard")) {
                 sql_write_scope_guard($sql, $params);
+            }
+            if ($autoIntegrityTransaction) {
+                db_begin_transaction();
+            }
+            if (function_exists("financial_movement_write_guard")) {
+                financial_movement_write_guard($sql, $params);
             }
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
                 [
@@ -459,22 +472,31 @@ function q(string $sql, array $params = []): PDOStatement
                     $integrityContext,
                 );
             }
+            $queryCompleted = true;
+            if ($autoIntegrityTransaction) {
+                db_commit();
+            }
             return $statement;
         } catch (Throwable $error) {
             $lastError = $error;
-            $elapsedMs = (microtime(true) - $startedAt) * 1000;
-            db_query_metric_record($runtimeSql, $elapsedMs, false, $error);
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
-                    $sql,
-                    $runtimeSql,
-                    $runtimeParams,
-                    false,
-                    0,
-                    $elapsedMs,
-                    $error,
-                    $integrityContext,
-                );
+            if (!$queryCompleted) {
+                $elapsedMs = (microtime(true) - $startedAt) * 1000;
+                db_query_metric_record($runtimeSql, $elapsedMs, false, $error);
+                if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+                    \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
+                        $sql,
+                        $runtimeSql,
+                        $runtimeParams,
+                        false,
+                        0,
+                        $elapsedMs,
+                        $error,
+                        $integrityContext,
+                    );
+                }
+            }
+            if ($autoIntegrityTransaction && $connection->inTransaction()) {
+                db_rollback();
             }
             if ($attempt + 1 < $attempts && db_retryable_conflict($error)) {
                 usleep(db_retry_delay_us($attempt));
@@ -609,7 +631,7 @@ function db_commit(): void
     }
     try {
         if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-            \Prontoo\Core\Integrity\PiIntegrity::flushFastEvents();
+            \Prontoo\Core\Integrity\PiIntegrity::flushTransactionEvents();
         }
         $connection->commit();
         if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {

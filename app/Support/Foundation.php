@@ -302,6 +302,56 @@ function app_today_in_timezone(
      */
     return app_now_in_timezone($clinicId, $context)->format("Y-m-d");
 }
+function app_month_in_timezone(
+    int $clinicId = 0,
+    ?array $context = null,
+    ?DateTimeImmutable $nowUtc = null,
+): string {
+    /*
+     * GUIA DE MANUTENÇÃO — app_month_in_timezone
+     * Responsabilidade: Resolve a chave mensal no fuso do consultório, sem depender do UTC global do processo.
+     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
+     * Chamadores detectados: metas financeiras, cmdBar compartilhada, painel do gerente e certificação matemática do CI.
+     * Dependências chamadas: `app_now_utc`, `app_context_timezone`, `DateTimeZone`.
+     * Efeitos colaterais: pode consultar o fuso do consultório quando o contexto não o fornece.
+     * Cuidado 1: O argumento temporal opcional existe para testes determinísticos de virada de mês.
+     */
+    $nowUtc ??= app_now_utc();
+    return $nowUtc
+        ->setTimezone(
+            new DateTimeZone(app_context_timezone($context, $clinicId)),
+        )
+        ->format("Y-m");
+}
+function app_local_month_utc_range(
+    string $month,
+    int $clinicId = 0,
+    ?array $context = null,
+): array {
+    /*
+     * GUIA DE MANUTENÇÃO — app_local_month_utc_range
+     * Responsabilidade: Converte um mês civil do consultório no intervalo UTC semiaberto usado pelas consultas persistentes.
+     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
+     * Chamadores detectados: métricas e metas mensais.
+     * Dependências chamadas: `preg_match`, `app_month_in_timezone`, `app_context_timezone`, `DateTimeZone`, `DateTimeImmutable`.
+     * Efeitos colaterais: pode consultar o fuso do consultório quando o contexto não o fornece.
+     * Cuidado 1: Use sempre o intervalo [início, próximo mês) para evitar sobreposição.
+     */
+    if (
+        preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) !== 1 ||
+        !checkdate((int) $parts[2], 1, (int) $parts[1])
+    ) {
+        $month = app_month_in_timezone($clinicId, $context);
+    }
+    $zone = new DateTimeZone(app_context_timezone($context, $clinicId));
+    $start = new DateTimeImmutable($month . "-01 00:00:00", $zone);
+    $end = $start->modify("+1 month");
+    $utc = new DateTimeZone("UTC");
+    return [
+        (string) $start->setTimezone($utc)->getTimestamp(),
+        (string) $end->setTimezone($utc)->getTimestamp(),
+    ];
+}
 function app_parse_db_utc(null|string|int $value): ?DateTimeImmutable
 {
     /*

@@ -574,9 +574,6 @@ function verify_audit_row(array $r): bool
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     $hash = trim((string) ($r["integrity_hash"] ?? ""));
-    if ($hash === "") {
-        return true;
-    }
     try {
         if (class_exists("\\Prontoo\\Core\\Integrity\\AuditChain")) {
             return \Prontoo\Core\Integrity\AuditChain::verifyRow(
@@ -584,12 +581,49 @@ function verify_audit_row(array $r): bool
                 secret_key(),
             );
         }
-        return hash_equals(
+        return $hash !== "" && hash_equals(
             $hash,
             hash_hmac("sha256", audit_integrity_base($r), secret_key()),
         );
     } catch (Throwable $e) {
         return false;
+    }
+}
+function audit_chain_integrity_status(int $limit = 240): array
+{
+    /*
+     * GUIA DE MANUTENÇÃO — audit_chain_integrity_status
+     * Responsabilidade: Valida uma janela contígua da cadeia de auditoria e confirma que sua cabeça ancorada coincide com o último registro.
+     * Local arquitetural: app/Domain/Audit/AuditActivity.php (domínio e regras de negócio).
+     * Chamadores detectados: `platform_backend_selftest`, `page_admin_health` e `page_admin_integrity`.
+     * Dependências chamadas: `q`, `audit_select_sql`, `AuditChain::verifySequence`, `AuditChain::storedHeadMatchesLatest`, `secret_key`.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: A consulta não pode filtrar eventos ou tenants, pois cada elo depende do registro global imediatamente anterior.
+     */
+    $limit = max(2, min(1000, $limit));
+    try {
+        $rows = q(
+            audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit,
+        )->fetchAll();
+        $sequenceOk = \Prontoo\Core\Integrity\AuditChain::verifySequence(
+            $rows,
+            secret_key(),
+        );
+        $headOk = \Prontoo\Core\Integrity\AuditChain::storedHeadMatchesLatest();
+        return [
+            "ok" => $sequenceOk && $headOk,
+            "sequence_ok" => $sequenceOk,
+            "head_ok" => $headOk,
+            "checked" => count($rows),
+        ];
+    } catch (Throwable $error) {
+        error_log("[Prontoo audit chain] " . $error->getMessage());
+        return [
+            "ok" => false,
+            "sequence_ok" => false,
+            "head_ok" => false,
+            "checked" => 0,
+        ];
     }
 }
 function audit_select_sql(): string
@@ -603,7 +637,7 @@ function audit_select_sql(): string
      * Efeitos colaterais: consulta dados persistidos.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.policy_version,a.created_at FROM pi_audit a";
+    return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.proof_json,a.policy_version,a.created_at FROM pi_audit a";
 }
 function int_ids(array $rows, string $key): array
 {

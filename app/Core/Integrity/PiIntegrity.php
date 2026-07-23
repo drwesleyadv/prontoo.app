@@ -16,6 +16,7 @@ final class PiIntegrity
     private static bool $shutdownRegistered = false;
     private static ?string $requestId = null;
     private static int $flushErrors = 0;
+    private static int $transactionPreparedEvents = 0;
 
     private function __construct() {
         /*
@@ -378,6 +379,15 @@ final class PiIntegrity
          * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
          */
         array_pop(self::$transactionMarks);
+        if (self::$transactionPreparedEvents > 0) {
+            self::$flushedEvents = array_merge(
+                self::$flushedEvents,
+                self::$events,
+            );
+            self::$events = [];
+            self::$transactionPreparedEvents = 0;
+            self::$flushErrors = 0;
+        }
     }
 
     public static function discardTransactionEvents(): void
@@ -395,6 +405,7 @@ final class PiIntegrity
         if (is_int($mark) && $mark >= 0) {
             self::$events = array_slice(self::$events, 0, $mark);
         }
+        self::$transactionPreparedEvents = 0;
     }
 
     public static function processDeferredEvents(int $budgetMs = 120000, int $batchSize = 120): array
@@ -433,25 +444,62 @@ final class PiIntegrity
          * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; pode interromper o fluxo por exceção.
          * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
          */
+        self::flushEvents(false);
+    }
+
+    public static function flushTransactionEvents(): void
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::flushTransactionEvents
+         * Responsabilidade: Persiste a prova da mutação dentro da mesma transação que contém os dados protegidos e falha fechada se a prova não puder ser gravada.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `db_commit`.
+         * Dependências chamadas: `self::flushEvents`.
+         * Efeitos colaterais: grava o ledger dentro da transação corrente; pode interromper o commit.
+         * Cuidado 1: Nunca capture a exceção deste método no chamador sem também desfazer a transação.
+         */
+        self::flushEvents(true);
+    }
+
+    private static function flushEvents(bool $transactional): void
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Integrity.PiIntegrity::flushEvents
+         * Responsabilidade: Materializa de forma canônica os eventos pendentes no ledger, com modo estrito para transações e modo resiliente fora delas.
+         * Local arquitetural: app/Core/Integrity/PiIntegrity.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::flushFastEvents`, `Core.Integrity.PiIntegrity::flushTransactionEvents`.
+         * Dependências chamadas: `self::pdo`, `self::ensureSystemTables`, `self::canonicalJson`, `hash_hmac`.
+         * Efeitos colaterais: acessa e grava a camada de persistência.
+         * Cuidado 1: No modo transacional, os eventos só saem da fila depois que `markTransactionCommitted` confirma o commit.
+         */
         if (!self::canUseDatabase() || self::$inside || self::$events === []) {
             return;
         }
-        if (self::$flushErrors > 3) {
-            self::$events = [];
+        if (!$transactional && self::$flushErrors > 3) {
             return;
         }
         try {
             $pdo = self::pdo();
-            if ($pdo->inTransaction()) {
+            if ($transactional && !$pdo->inTransaction()) {
+                throw new \RuntimeException(
+                    'A prova transacional exige uma transação ativa.',
+                );
+            }
+            if (!$transactional && $pdo->inTransaction()) {
                 return;
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $error) {
+            if ($transactional) {
+                throw $error;
+            }
             return;
         }
 
         $pendingEvents = self::$events;
         $events = array_merge(self::$flushedEvents, $pendingEvents);
-        self::$events = [];
+        if (!$transactional) {
+            self::$events = [];
+        }
         try {
             self::$inside = true;
             self::ensureSystemTables();
@@ -529,11 +577,21 @@ final class PiIntegrity
                 $GLOBALS['PRONTOO_ACTION_LEDGER_ID'] = (int) $pdo->lastInsertId();
                 $GLOBALS['PRONTOO_ACTION_LEDGER_REQUEST_ID'] = $requestId;
             }
-            self::$flushedEvents = $events;
+            if ($transactional) {
+                self::$transactionPreparedEvents = count($pendingEvents);
+            } else {
+                self::$flushedEvents = $events;
+                self::$flushErrors = 0;
+            }
         } catch (\Throwable $error) {
             self::$flushErrors++;
-            self::$events = array_merge($pendingEvents, self::$events);
+            if (!$transactional) {
+                self::$events = array_merge($pendingEvents, self::$events);
+            }
             self::logOnce('action-ledger-flush', $error);
+            if ($transactional) {
+                throw $error;
+            }
         } finally {
             self::$inside = false;
         }
