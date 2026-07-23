@@ -369,7 +369,7 @@ function shared_goal_cmdbar_html(?array $c = null): string
         ) {
             return "";
         }
-        $month = date("Y-m");
+        $month = app_month_in_timezone($cid, $c);
         $goal = one(
             "SELECT target_cents,base_metric,share_with_team FROM pi_financial_goals WHERE clinic_id=? AND month_key=? AND share_with_team=1 LIMIT 1",
             [$cid, $month],
@@ -385,12 +385,11 @@ function shared_goal_cmdbar_html(?array $c = null): string
         if (!in_array($base, ["prevista", "efetivada"], true)) {
             $base = "efetivada";
         }
-        $start = $month . "-01 00:00:00";
-        $next = date("Y-m-d H:i:s", strtotime($month . "-01 +1 month"));
+        [$start, $next] = app_local_month_utc_range($month, $cid, $c);
         if ($base === "prevista") {
             $done =
                 (int) (val(
-                    "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status IN ('prevista','efetivada') AND expected_at>=? AND expected_at<?",
+                    "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
                     [$cid, $start, $next],
                 ) ?? 0);
         } else {
