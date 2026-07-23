@@ -89,7 +89,7 @@ function save_team_member(int $cid, array $data): ?int
         );
     }
     $u = one(
-        "SELECT id,name,email,active FROM pi_users WHERE person_id=? LIMIT 1",
+        "SELECT id,name,email,password_hash,active FROM pi_users WHERE person_id=? LIMIT 1",
         [$pid],
     );
     if (!$u) {
@@ -108,6 +108,19 @@ function save_team_member(int $cid, array $data): ?int
         clinic_metric_inc($cid, "team_writes");
     } else {
         $uid = (int) $u["id"];
+        $alreadyLinked = (bool) one(
+            "SELECT id FROM pi_user_roles WHERE user_id=? AND clinic_id=? LIMIT 1",
+            [$uid, $cid],
+        );
+        if (
+            !$alreadyLinked &&
+            ($pass === "" ||
+                !password_verify($pass, (string) ($u["password_hash"] ?? "")))
+        ) {
+            throw new RuntimeException(
+                "Este CPF já possui acesso. Confirme a senha atual do usuário para vinculá-lo com segurança a outro consultório.",
+            );
+        }
         if (!(int) $u["active"]) {
             q("UPDATE pi_users SET active=1,updated_at=NOW() WHERE id=?", [
                 $uid,
