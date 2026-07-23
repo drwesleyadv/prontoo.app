@@ -95,7 +95,7 @@ function save_team_member(int $cid, array $data): ?int
     if (!$u) {
         if (!password_ok($pass)) {
             throw new RuntimeException(
-                "Informe uma senha inicial para o colaborador com 15 a 128 caracteres que não seja uma senha comum.",
+                "Informe uma senha inicial para o colaborador com 8 a 128 caracteres que não seja uma senha comum.",
             );
         }
         $email = $email !== "" ? $email : null;
