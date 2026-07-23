@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+const PRONTOO_FINANCIAL_MAX_CENTS = 2147483647;
 function parse_money_cents(string $v): int
 {
     /*
@@ -11,16 +12,173 @@ function parse_money_cents(string $v): int
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    $v = trim($v);
+    $v = trim(str_replace("\u{00A0}", " ", $v));
     if ($v === "") {
         return 0;
     }
-    $v = str_replace(['R$', " "], "", $v);
+    $v = str_replace(["R$", " "], "", $v);
     if (str_contains($v, ",")) {
-        $v = str_replace(".", "", $v);
-        $v = str_replace(",", ".", $v);
+        if (
+            preg_match(
+                '/^(?:\d+|\d{1,3}(?:\.\d{3})+),(\d{1,2})$/',
+                $v,
+                $match,
+            ) !== 1
+        ) {
+            throw new RuntimeException(
+                "Informe o valor em reais com no máximo duas casas decimais.",
+            );
+        }
+        [$whole, $fraction] = explode(",", $v, 2);
+        $whole = str_replace(".", "", $whole);
+    } elseif (preg_match('/^\d+(?:\.(\d{1,2}))?$/', $v, $match) === 1) {
+        [$whole, $fraction] = array_pad(explode(".", $v, 2), 2, "");
+    } else {
+        throw new RuntimeException(
+            "Informe o valor em reais com no máximo duas casas decimais.",
+        );
     }
-    return max(0, (int) round(((float) $v) * 100));
+    $whole = ltrim($whole, "0");
+    $whole = $whole === "" ? "0" : $whole;
+    $fraction = str_pad($fraction, 2, "0");
+    $maxWhole = (string) intdiv(PRONTOO_FINANCIAL_MAX_CENTS, 100);
+    if (
+        strlen($whole) > strlen($maxWhole) ||
+        (strlen($whole) === strlen($maxWhole) && strcmp($whole, $maxWhole) > 0)
+    ) {
+        throw new RuntimeException(
+            "O valor informado ultrapassa o limite financeiro seguro.",
+        );
+    }
+    $cents = ((int) $whole * 100) + (int) $fraction;
+    return financial_assert_amount_cents($cents);
+}
+function financial_assert_amount_cents(
+    int $value,
+    string $label = "Valor",
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_assert_amount_cents
+     * Responsabilidade: Fecha o domínio de valores monetários positivos no intervalo representável por todas as colunas financeiras persistidas.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `parse_money_cents`, `financial_create_movement`, `financial_validate_movement_invariants`.
+     * Dependências chamadas: nenhuma.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: O limite acompanha o menor domínio persistente comum, INT assinado.
+     */
+    if ($value < 0 || $value > PRONTOO_FINANCIAL_MAX_CENTS) {
+        throw new RuntimeException(
+            $label . " ultrapassa o domínio monetário seguro.",
+        );
+    }
+    return $value;
+}
+function financial_assert_balance_cents(
+    int $value,
+    string $label = "Saldo",
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_assert_balance_cents
+     * Responsabilidade: Garante que somas e diferenças permaneçam no domínio INT assinado comum aos snapshots financeiros.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: cálculos de sessão, posição e consolidação.
+     * Dependências chamadas: `abs`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Valide cada soma antes de persistir para impedir overflow silencioso no MySQL.
+     */
+    if (
+        $value < -PRONTOO_FINANCIAL_MAX_CENTS ||
+        $value > PRONTOO_FINANCIAL_MAX_CENTS
+    ) {
+        throw new RuntimeException(
+            $label . " ultrapassa o domínio monetário seguro.",
+        );
+    }
+    return $value;
+}
+function financial_checked_add(
+    int $left,
+    int $right,
+    string $label = "Saldo",
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_checked_add
+     * Responsabilidade: Executa adição monetária com prova explícita de fechamento do domínio.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: equações de posição, sessão e consolidação.
+     * Dependências chamadas: `financial_assert_balance_cents`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Não substitua por soma direta em valores que serão persistidos.
+     */
+    return financial_assert_balance_cents($left + $right, $label);
+}
+function financial_movement_delta_for_location(
+    int $amount,
+    ?int $from,
+    ?int $to,
+    int $locationId,
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_movement_delta_for_location
+     * Responsabilidade: Define a única orientação matemática de movimentos: destino soma e origem subtrai.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: validação de sessão, posição e testes de propriedades.
+     * Dependências chamadas: `financial_assert_amount_cents`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Origem e destino iguais são proibidos pela validação topológica.
+     */
+    financial_assert_amount_cents($amount);
+    return ($to === $locationId ? $amount : 0) -
+        ($from === $locationId ? $amount : 0);
+}
+function financial_validate_movement_topology(
+    string $type,
+    ?int $from,
+    ?int $to,
+): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_validate_movement_topology
+     * Responsabilidade: Impõe cardinalidade e orientação dos extremos para cada natureza de movimento financeiro.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_validate_movement_invariants` e certificação matemática do CI.
+     * Dependências chamadas: `in_array`.
+     * Efeitos colaterais: pode interromper o fluxo por exceção.
+     * Cuidado 1: Tipos novos precisam declarar sua lei de conservação antes de serem aceitos.
+     */
+    $from = ($from ?? 0) > 0 ? $from : null;
+    $to = ($to ?? 0) > 0 ? $to : null;
+    $valid = match ($type) {
+        "receipt", "cash_opening" => $from === null && $to !== null,
+        "payment", "refund" => $from !== null && $to === null,
+        "transfer", "deposit", "cash_closing" =>
+            $from !== null && $to !== null && $from !== $to,
+        "adjustment" => ($from === null) !== ($to === null),
+        default => false,
+    };
+    if (!$valid) {
+        throw new RuntimeException(
+            "Origem e destino não correspondem à natureza do movimento financeiro.",
+        );
+    }
+}
+function financial_closing_equation(
+    int $expected,
+    int $declared,
+    int $kept,
+    int $transferred,
+    int $difference,
+): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_closing_equation
+     * Responsabilidade: Prova a conservação do fechamento: declarado = mantido + transferido e diferença = declarado − esperado.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: reconciliação diária e certificação matemática do CI.
+     * Dependências chamadas: nenhuma.
+     * Efeitos colaterais: nenhum; função matemática pura.
+     * Cuidado 1: Todas as parcelas estão em centavos inteiros.
+     */
+    return $declared === $kept + $transferred &&
+        $difference === $declared - $expected;
 }
 function payment_methods_options(): array
 {
@@ -526,7 +684,7 @@ function monthly_goal_status(int $cid): array
      * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    $month = date("Y-m");
+    $month = app_month_in_timezone($cid);
     $loader = static function () use ($cid, $month): array {
         /*
          * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:384
@@ -537,8 +695,7 @@ function monthly_goal_status(int $cid): array
          * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
          * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
          */
-        $start = $month . "-01 00:00:00";
-        $next = date("Y-m-d H:i:s", strtotime($month . "-01 +1 month"));
+        [$start, $next] = app_local_month_utc_range($month, $cid);
         $goal = one(
             "SELECT target_cents,base_metric,share_with_team FROM pi_financial_goals WHERE clinic_id=? AND month_key=?",
             [$cid, $month],
@@ -555,7 +712,7 @@ function monthly_goal_status(int $cid): array
         if ($base === "prevista") {
             $done =
                 (int) (val(
-                    "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status IN ('prevista','efetivada') AND expected_at>=? AND expected_at<?",
+                    "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
                     [$cid, $start, $next],
                 ) ?? 0);
         } else {
@@ -2728,7 +2885,7 @@ function financial_drawer_balance_snapshot(
         $sessionIds = array_keys($sessionToLocation);
         $sessionPh = implode(",", array_fill(0, count($sessionIds), "?"));
         $movementRows = q(
-            "SELECT cash_session_id,movement_type,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id IN ($sessionPh) AND status IN ('confirmed','pending_review') GROUP BY cash_session_id,movement_type",
+            "SELECT cash_session_id,from_location_id,to_location_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id IN ($sessionPh) AND status IN ('confirmed','pending_review') GROUP BY cash_session_id,from_location_id,to_location_id",
             array_merge([$cid], $sessionIds),
         )->fetchAll();
         foreach ($movementRows as $movement) {
@@ -2739,20 +2896,16 @@ function financial_drawer_balance_snapshot(
                 continue;
             }
             $amount = (int) ($movement["total"] ?? 0);
-            $type = (string) ($movement["movement_type"] ?? "");
-            $balances[$locationId] += in_array(
-                $type,
-                ["receipt", "adjustment"],
-                true,
-            )
-                ? $amount
-                : (in_array(
-                    $type,
-                    ["payment", "refund", "transfer", "deposit"],
-                    true,
-                )
-                    ? -$amount
-                    : 0);
+            $balances[$locationId] = financial_checked_add(
+                (int) $balances[$locationId],
+                financial_movement_delta_for_location(
+                    $amount,
+                    (int) ($movement["from_location_id"] ?? 0) ?: null,
+                    (int) ($movement["to_location_id"] ?? 0) ?: null,
+                    $locationId,
+                ),
+                "Saldo da Gaveta",
+            );
         }
     }
     $closedLocationIds = array_values(
@@ -3026,8 +3179,197 @@ function financial_day_is_consolidated(
             0) > 0;
     } catch (Throwable $e) {
         error_log("[Prontoo daily closing check] " . $e->getMessage());
-        return false;
+        throw $e;
     }
+}
+function financial_daily_metrics(int $cid, string $businessDate): array
+{
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_metrics
+     * Responsabilidade: Calcula indicadores do mesmo universo temporal e exclui receitas de agendamentos cancelados, ausentes ou reagendados.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: conferência diária e consolidação.
+     * Dependências chamadas: `app_local_day_utc_range`, `val`, validadores monetários.
+     * Efeitos colaterais: consulta dados persistidos.
+     * Cuidado 1: Previsto, recebido e pendente pertencem sempre ao mesmo dia civil do consultório.
+     */
+    [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
+    $activeAppointment =
+        "(a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))";
+    $expected = (int) (val(
+        "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
+            $activeAppointment,
+        [$cid, $dayStart, $dayEnd],
+    ) ?? 0);
+    $received = (int) (val(
+        "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='efetivada' AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
+            $activeAppointment,
+        [$cid, $dayStart, $dayEnd],
+    ) ?? 0);
+    $pending = (int) (val(
+        "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
+            $activeAppointment,
+        [$cid, $dayStart, $dayEnd],
+    ) ?? 0);
+    $movements = (int) (val(
+        "SELECT COUNT(DISTINCT m.id) FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status='confirmed' AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?)",
+        [$cid, $dayStart, $dayEnd, $businessDate],
+    ) ?? 0);
+    $expected = financial_assert_balance_cents(
+        $expected,
+        "Receita prevista diária",
+    );
+    $received = financial_assert_balance_cents(
+        $received,
+        "Receita recebida diária",
+    );
+    $pending = financial_assert_balance_cents(
+        $pending,
+        "Receita pendente diária",
+    );
+    if (
+        $expected !==
+        financial_checked_add(
+            $received,
+            $pending,
+            "Partição da receita diária",
+        )
+    ) {
+        throw new RuntimeException(
+            "A receita diária não fecha entre valores recebidos e pendentes.",
+        );
+    }
+    return [
+        "expected_cents" => $expected,
+        "received_cents" => $received,
+        "pending_cents" => $pending,
+        "movement_count" => max(0, $movements),
+        "day_start" => $dayStart,
+        "day_end" => $dayEnd,
+    ];
+}
+function financial_daily_reconciliation(
+    int $cid,
+    string $businessDate,
+    int $uid = 0,
+    bool $prepareLegacy = false,
+): array {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_daily_reconciliation
+     * Responsabilidade: Prova equações de sessões, topologia de movimentos, limites numéricos e produz hash canônico do snapshot diário.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_daily_consolidation_state`, `financial_admin_daily_consolidate`.
+     * Dependências chamadas: validadores financeiros, `q`, `financial_global_position`, `PiIntegrity::canonicalJson`.
+     * Efeitos colaterais: consulta dados persistidos e, no modo de compatibilidade, cria apenas compensações legadas ausentes.
+     * Cuidado 1: O modo de compatibilidade só pode ser usado dentro da transação exclusiva da consolidação.
+     */
+    $issues = [];
+    $sessions = q(
+        "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND status IN ('approved','kept_closed') ORDER BY id",
+        [$cid, $businessDate],
+    )->fetchAll();
+    foreach ($sessions as $session) {
+        try {
+            if ($prepareLegacy && (string) $session["status"] === "approved") {
+                financial_ensure_closing_adjustment(
+                    $session,
+                    $uid,
+                    "confirmed",
+                );
+            }
+            financial_assert_session_reconciled($session);
+        } catch (Throwable $error) {
+            $issues[] =
+                "Sessão #" .
+                (int) ($session["id"] ?? 0) .
+                ": " .
+                $error->getMessage();
+        }
+    }
+    [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
+    $movements = q(
+        "SELECT DISTINCT m.id,m.movement_type,m.status,m.amount_cents,m.from_location_id,m.to_location_id,m.cash_session_id,m.source_entity,m.source_id FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status='confirmed' AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?) ORDER BY m.id",
+        [$cid, $dayStart, $dayEnd, $businessDate],
+    )->fetchAll();
+    foreach ($movements as $movement) {
+        try {
+            $type = (string) ($movement["movement_type"] ?? "");
+            $from = (int) ($movement["from_location_id"] ?? 0) ?: null;
+            $to = (int) ($movement["to_location_id"] ?? 0) ?: null;
+            financial_assert_amount_cents(
+                (int) ($movement["amount_cents"] ?? 0),
+            );
+            financial_validate_movement_topology($type, $from, $to);
+            $sessionId = (int) ($movement["cash_session_id"] ?? 0);
+            if ($sessionId > 0) {
+                $session = one(
+                    "SELECT location_id FROM pi_cash_sessions WHERE id=? AND clinic_id=? LIMIT 1",
+                    [$sessionId, $cid],
+                );
+                if (
+                    !$session ||
+                    financial_movement_delta_for_location(
+                        (int) $movement["amount_cents"],
+                        $from,
+                        $to,
+                        (int) $session["location_id"],
+                    ) === 0
+                ) {
+                    throw new RuntimeException(
+                        "extremos incompatíveis com a sessão",
+                    );
+                }
+            }
+        } catch (Throwable $error) {
+            $issues[] =
+                "Movimento #" .
+                (int) ($movement["id"] ?? 0) .
+                ": " .
+                $error->getMessage();
+        }
+    }
+    $metrics = financial_daily_metrics($cid, $businessDate);
+    $position = financial_global_position($cid);
+    foreach (
+        [
+            "drawer_cents" => (int) ($position["pos_cents"] ?? 0),
+            "safe_cents" => (int) ($position["safe_cents"] ?? 0),
+            "bank_cents" => (int) ($position["bank_cents"] ?? 0),
+            "total_cents" => (int) ($position["total_cents"] ?? 0),
+        ] as $label => $value
+    ) {
+        try {
+            financial_assert_balance_cents($value, $label);
+        } catch (Throwable $error) {
+            $issues[] = $error->getMessage();
+        }
+    }
+    $payload = [
+        "policy" => "financial-reconciliation-v2",
+        "clinic_id" => $cid,
+        "business_date" => $businessDate,
+        "metrics" => $metrics,
+        "position" => [
+            "drawer_cents" => (int) ($position["pos_cents"] ?? 0),
+            "safe_cents" => (int) ($position["safe_cents"] ?? 0),
+            "bank_cents" => (int) ($position["bank_cents"] ?? 0),
+            "total_cents" => (int) ($position["total_cents"] ?? 0),
+        ],
+        "sessions" => $sessions,
+        "movements" => $movements,
+    ];
+    $canonical = class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")
+        ? \Prontoo\Core\Integrity\PiIntegrity::canonicalJson($payload)
+        : (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: "{}");
+    return [
+        "ok" => $issues === [],
+        "issues" => $issues,
+        "hash" => hash("sha256", $canonical),
+        "metrics" => $metrics,
+        "position" => $position,
+        "session_count" => count($sessions),
+        "movement_count" => count($movements),
+    ];
 }
 function financial_daily_consolidation_state(
     int $cid,
@@ -3048,17 +3390,31 @@ function financial_daily_consolidation_state(
     [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
     $closure = financial_daily_drawer_closure_state($cid, $businessDate);
     $pendingOpen = (int) ($closure["blocking_count"] ?? 0);
-    $pendingReview = (int) safe_val(
+    $pendingReview = (int) (val(
         "SELECT COUNT(*) FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND status IN ('closed_pending_review','rejected','opening_pending_review','opening_rejected')",
         [$cid, $businessDate],
-        0,
-    );
-    $pendingMovements = (int) safe_val(
-        "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND created_at>=? AND created_at<? AND status IN ('pending_review','rejected')",
-        [$cid, $dayStart, $dayEnd],
-        0,
-    );
+    ) ?? 0);
+    $pendingMovements = (int) (val(
+        "SELECT COUNT(DISTINCT m.id) FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status IN ('pending_review','rejected') AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?)",
+        [$cid, $dayStart, $dayEnd, $businessDate],
+    ) ?? 0);
     $consolidated = financial_day_is_consolidated($cid, $businessDate);
+    $reconciliation = [
+        "ok" => false,
+        "issues" => [],
+        "hash" => "",
+    ];
+    if (
+        $pendingOpen === 0 &&
+        $pendingReview === 0 &&
+        $pendingMovements === 0 &&
+        !$consolidated
+    ) {
+        $reconciliation = financial_daily_reconciliation(
+            $cid,
+            $businessDate,
+        );
+    }
     $blockers = [];
     if ($pendingOpen > 0) {
         $blockers[] =
@@ -3076,6 +3432,18 @@ function financial_daily_consolidation_state(
     if ($consolidated) {
         $blockers[] = "dia financeiro já consolidado";
     }
+    if (
+        !$consolidated &&
+        $pendingOpen === 0 &&
+        $pendingReview === 0 &&
+        $pendingMovements === 0 &&
+        empty($reconciliation["ok"])
+    ) {
+        $blockers[] =
+            "a reconciliação matemática encontrou " .
+            max(1, count((array) ($reconciliation["issues"] ?? []))) .
+            " inconsistência(s)";
+    }
     return [
         "business_date" => $businessDate,
         "closure" => $closure,
@@ -3083,12 +3451,14 @@ function financial_daily_consolidation_state(
         "pending_reviews" => $pendingReview,
         "pending_movements" => $pendingMovements,
         "consolidated" => $consolidated,
+        "reconciliation" => $reconciliation,
         "blockers" => $blockers,
         "conference_released" => $pendingOpen === 0,
         "can_consolidate" =>
             $pendingOpen === 0 &&
             $pendingReview === 0 &&
             $pendingMovements === 0 &&
+            !empty($reconciliation["ok"]) &&
             !$consolidated,
     ];
 }
@@ -3315,18 +3685,19 @@ function financial_admin_receive_expected_revenue(
             [$cid, $appointmentId],
         );
         if ($existing) {
-            q(
-                "UPDATE pi_financial_movements SET status='confirmed', amount_cents=?, payment_method=?, from_location_id=NULL, to_location_id=?, cash_session_id=NULL, title=?, notes=?, updated_at=NOW(), confirmed_by=COALESCE(confirmed_by,?), confirmed_at=COALESCE(confirmed_at,NOW()) WHERE id=? AND clinic_id=?",
-                [
-                    $amount,
-                    $method,
-                    $destinationLocationId,
-                    $title,
-                    $movementNotes,
-                    $uid,
-                    (int) $existing["id"],
-                    $cid,
-                ],
+            financial_update_existing_movement(
+                $cid,
+                (int) $existing["id"],
+                "receipt",
+                $amount,
+                null,
+                $destinationLocationId,
+                null,
+                $uid,
+                $title,
+                $method,
+                $movementNotes,
+                "confirmed",
             );
             $movementId = (int) $existing["id"];
         } else {
@@ -3369,6 +3740,321 @@ function financial_admin_receive_expected_revenue(
             ],
         );
         return $movementId;
+    });
+}
+function financial_session_position_cents(
+    array $session,
+    int $excludeMovementId = 0,
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_session_position_cents
+     * Responsabilidade: Calcula a posição de uma sessão pela mesma topologia canônica usada por Cofre e Bancos.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_session_expected`, `financial_validate_movement_invariants`, reconciliação diária.
+     * Dependências chamadas: `q`, `financial_movement_delta_for_location`, `financial_checked_add`.
+     * Efeitos colaterais: consulta dados persistidos; pode interromper ao detectar overflow.
+     * Cuidado 1: Somente movimentos confirmados ou em revisão integram a posição potencial da sessão.
+     */
+    $cid = (int) ($session["clinic_id"] ?? 0);
+    $sessionId = (int) ($session["id"] ?? 0);
+    $locationId = (int) ($session["location_id"] ?? 0);
+    $balance = financial_assert_balance_cents(
+        (int) ($session["opening_balance_cents"] ?? 0),
+        "Saldo inicial da Gaveta",
+    );
+    $params = [$cid, $sessionId];
+    $sql =
+        "SELECT id,amount_cents,from_location_id,to_location_id FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND status IN ('confirmed','pending_review')";
+    if ($excludeMovementId > 0) {
+        $sql .= " AND id<>?";
+        $params[] = $excludeMovementId;
+    }
+    $sql .= " ORDER BY id";
+    foreach (q($sql, $params)->fetchAll() as $movement) {
+        $balance = financial_checked_add(
+            $balance,
+            financial_movement_delta_for_location(
+                (int) ($movement["amount_cents"] ?? 0),
+                (int) ($movement["from_location_id"] ?? 0) ?: null,
+                (int) ($movement["to_location_id"] ?? 0) ?: null,
+                $locationId,
+            ),
+            "Saldo potencial da Gaveta",
+        );
+    }
+    return $balance;
+}
+function financial_location_potential_balance(
+    int $cid,
+    int $locationId,
+    int $excludeMovementId = 0,
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_location_potential_balance
+     * Responsabilidade: Calcula o saldo topológico incluindo movimentos pendentes que poderão ser confirmados.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_validate_movement_invariants`.
+     * Dependências chamadas: `val`, `financial_assert_balance_cents`.
+     * Efeitos colaterais: consulta dados persistidos; pode interromper ao detectar overflow.
+     * Cuidado 1: O parâmetro de exclusão permite validar reescritas sem contar duas vezes o movimento atual.
+     */
+    $params = [$locationId, $cid, $locationId, $cid];
+    $excludeTo = "";
+    $excludeFrom = "";
+    if ($excludeMovementId > 0) {
+        $excludeTo = " AND id<>?";
+        $excludeFrom = " AND id<>?";
+        $params = [
+            $locationId,
+            $cid,
+            $excludeMovementId,
+            $locationId,
+            $cid,
+            $excludeMovementId,
+        ];
+    }
+    $balance = (int) (val(
+        "SELECT COALESCE(SUM(delta_cents),0) FROM (" .
+            "SELECT amount_cents delta_cents FROM pi_financial_movements WHERE to_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
+            $excludeTo .
+            " UNION ALL SELECT -amount_cents delta_cents FROM pi_financial_movements WHERE from_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
+            $excludeFrom .
+            ") financial_potential",
+        $params,
+    ) ?:
+        0);
+    return financial_assert_balance_cents(
+        $balance,
+        "Saldo potencial do local financeiro",
+    );
+}
+function financial_validate_movement_invariants(
+    int $cid,
+    string $type,
+    int $amount,
+    ?int $from,
+    ?int $to,
+    ?int $sessionId,
+    string $status,
+    int $excludeMovementId = 0,
+): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_validate_movement_invariants
+     * Responsabilidade: Impõe domínio, topologia, escopo, imutabilidade temporal e fechamento algébrico antes de inserir ou reescrever um movimento.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_create_movement`, `financial_update_existing_movement`.
+     * Dependências chamadas: validadores monetários, `q`, `one`, `financial_day_is_consolidated`, `financial_session_position_cents`.
+     * Efeitos colaterais: consulta e bloqueia linhas financeiras; pode interromper a mutação.
+     * Cuidado 1: Os locais são bloqueados em ordem numérica para reduzir deadlocks entre transferências concorrentes.
+     */
+    financial_assert_amount_cents($amount);
+    if ($cid <= 0 || $amount <= 0) {
+        throw new RuntimeException("Informe um valor financeiro válido.");
+    }
+    q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+    $allowedTypes = [
+        "receipt",
+        "payment",
+        "transfer",
+        "deposit",
+        "cash_opening",
+        "cash_closing",
+        "adjustment",
+        "refund",
+    ];
+    if (!in_array($type, $allowedTypes, true)) {
+        throw new RuntimeException("Natureza de movimento financeiro inválida.");
+    }
+    if (
+        !in_array(
+            $status,
+            ["confirmed", "pending_review", "cancelled", "rejected"],
+            true,
+        )
+    ) {
+        throw new RuntimeException("Estado de movimento financeiro inválido.");
+    }
+    $from = ($from ?? 0) > 0 ? $from : null;
+    $to = ($to ?? 0) > 0 ? $to : null;
+    financial_validate_movement_topology($type, $from, $to);
+    $locationIds = array_values(
+        array_unique(
+            array_filter(
+                [$from, $to],
+                static /* Guia de manutenção: Remove extremos financeiros ausentes; transformação local sem efeitos externos. */ fn(?int $id): bool =>
+                    $id !== null,
+            ),
+        ),
+    );
+    sort($locationIds, SORT_NUMERIC);
+    if ($locationIds) {
+        $placeholders = implode(",", array_fill(0, count($locationIds), "?"));
+        $locked = q(
+            "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND id IN ($placeholders) AND active=1 ORDER BY id FOR UPDATE",
+            array_merge([$cid], $locationIds),
+        )->fetchAll();
+        if (count($locked) !== count($locationIds)) {
+            throw new RuntimeException("Origem ou destino financeiro inválido.");
+        }
+    }
+    $session = null;
+    $businessDate = financial_today($cid);
+    if (($sessionId ?? 0) > 0) {
+        $session = one(
+            "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? FOR UPDATE",
+            [$sessionId, $cid],
+        );
+        if (!$session) {
+            throw new RuntimeException(
+                "Sessão de gaveta inválida para o lançamento.",
+            );
+        }
+        $businessDate = app_date_input_from_storage(
+            $session["business_date"] ?? "",
+        ) ?: $businessDate;
+        $sessionLocation = (int) ($session["location_id"] ?? 0);
+        if (
+            financial_movement_delta_for_location(
+                $amount,
+                $from,
+                $to,
+                $sessionLocation,
+            ) === 0
+        ) {
+            throw new RuntimeException(
+                "O movimento da sessão deve partir ou chegar à Gaveta vinculada.",
+            );
+        }
+        if (
+            (string) ($session["status"] ?? "") === "approved" &&
+            $status === "pending_review"
+        ) {
+            throw new RuntimeException(
+                "A sessão de gaveta já foi conferida. Novo lançamento exige ajuste próprio.",
+            );
+        }
+    }
+    if (financial_day_is_consolidated($cid, $businessDate)) {
+        throw new RuntimeException(
+            "O dia financeiro já foi consolidado e seus movimentos são imutáveis.",
+        );
+    }
+    if (in_array($status, ["confirmed", "pending_review"], true)) {
+        foreach ($locationIds as $locationId) {
+            financial_checked_add(
+                financial_location_potential_balance(
+                    $cid,
+                    $locationId,
+                    $excludeMovementId,
+                ),
+                financial_movement_delta_for_location(
+                    $amount,
+                    $from,
+                    $to,
+                    $locationId,
+                ),
+                "Saldo potencial do local financeiro",
+            );
+        }
+        if (is_array($session)) {
+            financial_checked_add(
+                financial_session_position_cents(
+                    $session,
+                    $excludeMovementId,
+                ),
+                financial_movement_delta_for_location(
+                    $amount,
+                    $from,
+                    $to,
+                    (int) $session["location_id"],
+                ),
+                "Saldo potencial da sessão",
+            );
+        }
+    }
+}
+function financial_update_existing_movement(
+    int $cid,
+    int $movementId,
+    string $type,
+    int $amount,
+    ?int $from,
+    ?int $to,
+    ?int $sessionId,
+    int $uid,
+    string $title,
+    string $paymentMethod,
+    string $notes,
+    string $status,
+): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_update_existing_movement
+     * Responsabilidade: Reescreve um movimento existente somente após provar as mesmas invariantes exigidas na criação.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: fluxos de recebimento de agendamento.
+     * Dependências chamadas: `db_tx`, `one`, `financial_validate_movement_invariants`, `q`.
+     * Efeitos colaterais: consulta e altera dados persistidos; pode interromper a mutação.
+     * Cuidado 1: Preserve `source_entity` e `source_id`; eles vinculam o movimento ao fato gerador.
+     */
+    db_tx(function () use (
+        $cid,
+        $movementId,
+        $type,
+        $amount,
+        $from,
+        $to,
+        $sessionId,
+        $uid,
+        $title,
+        $paymentMethod,
+        $notes,
+        $status,
+    ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Financial/Financial.php:financial_update_existing_movement
+         * Responsabilidade: Serializa a leitura, a prova das invariantes e a reescrita de um movimento financeiro existente.
+         * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+         * Chamadores detectados: `financial_update_existing_movement`.
+         * Dependências chamadas: `one`, `financial_validate_movement_invariants`, `q`.
+         * Efeitos colaterais: consulta e altera dados persistidos dentro de transação; pode interromper a mutação.
+         * Cuidado 1: A validação deve permanecer depois do bloqueio da linha e antes do `UPDATE`.
+         */
+        $existing = one(
+            "SELECT id FROM pi_financial_movements WHERE id=? AND clinic_id=? FOR UPDATE",
+            [$movementId, $cid],
+        );
+        if (!$existing) {
+            throw new RuntimeException("Movimento financeiro não encontrado.");
+        }
+        financial_validate_movement_invariants(
+            $cid,
+            $type,
+            $amount,
+            $from,
+            $to,
+            $sessionId,
+            $status,
+            $movementId,
+        );
+        q(
+            "UPDATE pi_financial_movements SET movement_type=?,status=?,amount_cents=?,payment_method=?,from_location_id=?,to_location_id=?,cash_session_id=?,title=?,notes=?,updated_at=NOW(),confirmed_by=IF(?='confirmed',COALESCE(confirmed_by,?),NULL),confirmed_at=IF(?='confirmed',COALESCE(confirmed_at,NOW()),NULL),reviewed_by=NULL,reviewed_at=NULL WHERE id=? AND clinic_id=?",
+            [
+                $type,
+                $status,
+                $amount,
+                trim($paymentMethod) ?: null,
+                $from ?: null,
+                $to ?: null,
+                $sessionId ?: null,
+                trim($title),
+                trim($notes) ?: null,
+                $status,
+                $uid ?: null,
+                $status,
+                $movementId,
+                $cid,
+            ],
+        );
     });
 }
 function financial_create_movement(
@@ -3422,69 +4108,17 @@ function financial_create_movement(
          * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
          * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
          * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        */
         financial_operational_schema_ready();
-        $amount = max(0, $amount);
-        if ($cid <= 0 || $amount <= 0) {
-            throw new RuntimeException("Informe um valor financeiro válido.");
-        }
-        $today = financial_today($cid);
-        if (financial_day_is_consolidated($cid, $today)) {
-            throw new RuntimeException(
-                "O dia financeiro já foi consolidado. Novos lançamentos exigem reabertura/ajuste autorizado em versão futura.",
-            );
-        }
-        if (
-            $from !== null &&
-            $from > 0 &&
-            !financial_location_belongs($cid, $from)
-        ) {
-            throw new RuntimeException("Origem financeira inválida.");
-        }
-        if ($to !== null && $to > 0 && !financial_location_belongs($cid, $to)) {
-            throw new RuntimeException("Destino financeiro inválido.");
-        }
-        $allowedTypes = [
-            "receipt",
-            "payment",
-            "transfer",
-            "deposit",
-            "cash_opening",
-            "cash_closing",
-            "adjustment",
-            "refund",
-        ];
-        if (!in_array($type, $allowedTypes, true)) {
-            $type = "adjustment";
-        }
-        $allowedStatus = [
-            "confirmed",
-            "pending_review",
-            "cancelled",
-            "rejected",
-        ];
-        if (!in_array($status, $allowedStatus, true)) {
-            $status = "confirmed";
-        }
-        if ($sessionId !== null && $sessionId > 0) {
-            $session = one(
-                "SELECT id,clinic_id,status FROM pi_cash_sessions WHERE id=? AND clinic_id=? FOR UPDATE",
-                [$sessionId, $cid],
-            );
-            if (!$session) {
-                throw new RuntimeException(
-                    "Sessão de gaveta inválida para o lançamento.",
-                );
-            }
-            if (
-                in_array((string) $session["status"], ["approved"], true) &&
-                $status === "pending_review"
-            ) {
-                throw new RuntimeException(
-                    "A sessão de gaveta já foi conferida. Novo lançamento exige ajuste próprio.",
-                );
-            }
-        }
+        financial_validate_movement_invariants(
+            $cid,
+            $type,
+            $amount,
+            $from,
+            $to,
+            $sessionId,
+            $status,
+        );
         $title = trim($title) ?: financial_human_movement_type($type);
         $paymentMethod = mb_substr(trim($paymentMethod), 0, 40);
         q(
@@ -3637,7 +4271,11 @@ function financial_notify_opening_authorization_request(
      */
     try {
         $cashier = financial_cashier_name($cashierUid);
-        $diff = $informed - $expected;
+        $diff = financial_checked_add(
+            $informed,
+            -$expected,
+            "Diferença da abertura",
+        );
         $title = "Autorizar abertura de caixa";
         $body =
             "A Recepção/Atendimento informou um Saldo Inicial diferente do saldo não retirado no último fechamento." .
@@ -3707,7 +4345,11 @@ function financial_request_opening_authorization(
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
-    $diff = $informed - $expected;
+    $diff = financial_checked_add(
+        $informed,
+        -$expected,
+        "Diferença da abertura",
+    );
     $notes =
         "Abertura bloqueada: Saldo Inicial informado diverge do saldo não retirado do último fechamento.";
     if ($existing && (int) ($existing["id"] ?? 0) > 0) {
@@ -3988,7 +4630,10 @@ function financial_open_session(int $cid, int $uid, int $openingBalance): int
                 "O caixa de hoje já foi fechado ou está em conferência.",
             );
         }
-        $openingBalance = max(0, $openingBalance);
+        $openingBalance = financial_assert_amount_cents(
+            max(0, $openingBalance),
+            "Saldo inicial",
+        );
         $expected = financial_expected_opening_balance(
             $cid,
             $uid,
@@ -4104,16 +4749,90 @@ function financial_session_expected(array $session): int
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    $cid = (int) $session["clinic_id"];
-    $sid = (int) $session["id"];
-    $t = financial_session_movement_totals($cid, $sid);
-    return (int) $session["opening_balance_cents"] +
-        $t["receipt"] +
-        $t["adjustment"] -
-        $t["payment"] -
-        $t["refund"] -
-        $t["transfer"] -
-        $t["deposit"];
+    return financial_session_position_cents($session);
+}
+function financial_record_cash_difference(
+    int $cid,
+    int $uid,
+    int $sessionId,
+    int $locationId,
+    int $difference,
+    string $phase,
+    string $status,
+    string $notes = "",
+    bool $linkSession = true,
+): int {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_record_cash_difference
+     * Responsabilidade: Materializa sobra ou falta como movimento compensatório, impedindo criação ou desaparecimento implícito de dinheiro.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: autorização de abertura divergente e fechamento de Gaveta.
+     * Dependências chamadas: `financial_create_movement`, `abs`.
+     * Efeitos colaterais: grava movimento financeiro; pode interromper a transação.
+     * Cuidado 1: Diferença positiva entra na Gaveta; diferença negativa sai dela.
+     */
+    if ($difference === 0) {
+        return 0;
+    }
+    $positive = $difference > 0;
+    return financial_create_movement(
+        $cid,
+        "adjustment",
+        abs($difference),
+        $positive ? null : $locationId,
+        $positive ? $locationId : null,
+        $linkSession ? $sessionId : null,
+        $uid,
+        ($positive ? "Sobra" : "Falta") .
+            " na reconciliação de " .
+            ($phase === "opening" ? "abertura" : "fechamento"),
+        "",
+        trim($notes),
+        $status,
+        "cash_" . $phase . "_adjustment",
+        $sessionId,
+    );
+}
+function financial_ensure_closing_adjustment(
+    array $session,
+    int $uid,
+    string $status,
+): void {
+    /*
+     * GUIA DE MANUTENÇÃO — financial_ensure_closing_adjustment
+     * Responsabilidade: Compatibiliza fechamentos pendentes anteriores à política v2 criando a compensação ausente uma única vez.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: conferência e consolidação diária.
+     * Dependências chamadas: `val`, `financial_record_cash_difference`.
+     * Efeitos colaterais: pode criar um movimento compensatório dentro da transação corrente.
+     * Cuidado 1: Nunca altera compensações existentes; duplicidade permanece erro de integridade.
+     */
+    $difference = (int) ($session["difference_cents"] ?? 0);
+    if ($difference === 0) {
+        return;
+    }
+    $existing = (int) (val(
+        "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND movement_type='adjustment' AND source_entity='cash_closing_adjustment' AND source_id=? AND status IN ('confirmed','pending_review')",
+        [
+            (int) $session["clinic_id"],
+            (int) $session["id"],
+            (int) $session["id"],
+        ],
+    ) ?:
+        0);
+    if ($existing === 0) {
+        financial_record_cash_difference(
+            (int) $session["clinic_id"],
+            $uid,
+            (int) $session["id"],
+            (int) $session["location_id"],
+            $difference,
+            "closing",
+            $status,
+            trim((string) ($session["closing_notes"] ?? "")),
+            true,
+        );
+    }
 }
 function financial_current_open_session(int $cid, int $uid): ?array
 {
@@ -4208,10 +4927,14 @@ function financial_close_session(
             throw new RuntimeException("Não há Gaveta aberta para fechamento.");
         }
         $expected = financial_session_expected($s);
-        $declared = max(0, $declared);
+        $declared = financial_assert_amount_cents(max(0, $declared));
         $withdrawalAmount = max(0, min($withdrawalAmount, $declared));
         $keep = max(0, $declared - $withdrawalAmount);
-        $diff = $declared - $expected;
+        $diff = financial_checked_add(
+            $declared,
+            -$expected,
+            "Diferença do fechamento",
+        );
         $destinationId = 0;
         if ($withdrawalAmount > 0) {
             if ($withdrawalDestinationId > 0) {
@@ -4266,6 +4989,17 @@ function financial_close_session(
                 $sessionId,
             );
         }
+        financial_record_cash_difference(
+            $cid,
+            $uid,
+            $sessionId,
+            (int) $s["location_id"],
+            $diff,
+            "closing",
+            "pending_review",
+            trim($notes),
+            true,
+        );
         financial_drawer_lock_after_close(
             $cid,
             (int) $s["location_id"],
@@ -4333,7 +5067,11 @@ function financial_review_opening_request(
         $decision = $decision === "reject" ? "reject" : "approve";
         $expected = (int) ($s["expected_closing_cents"] ?? 0);
         $informed = (int) ($s["opening_balance_cents"] ?? 0);
-        $diff = $informed - $expected;
+        $diff = financial_checked_add(
+            $informed,
+            -$expected,
+            "Diferença da abertura",
+        );
         $cleanNotes = trim($notes);
         if ($decision === "reject") {
             q(
@@ -4376,6 +5114,17 @@ function financial_review_opening_request(
         q(
             "UPDATE pi_cash_sessions SET opened_at=NOW(), kept_closed_at=NULL, closed_at=NULL, expected_closing_cents=0, declared_closing_cents=0, keep_in_drawer_cents=0, transfer_to_safe_cents=0, difference_cents=0, status='open', reviewed_by=?, reviewed_at=NOW(), review_status='approved', review_notes=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
             [$adminUid, $cleanNotes ?: null, $sessionId, $cid],
+        );
+        financial_record_cash_difference(
+            $cid,
+            $adminUid,
+            $sessionId,
+            (int) $s["location_id"],
+            $diff,
+            "opening",
+            "confirmed",
+            $cleanNotes,
+            false,
         );
         q(
             "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
@@ -4487,6 +5236,16 @@ function financial_review_session(
             ]);
             return;
         }
+        financial_ensure_closing_adjustment(
+            $s,
+            $uid,
+            "pending_review",
+        );
+        $s = one(
+            "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? FOR UPDATE",
+            [$sessionId, $cid],
+        ) ?: $s;
+        financial_assert_session_reconciled($s);
         $remaining =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_cash_sessions WHERE clinic_id=? AND location_id=? AND business_date=? AND status='closed_pending_review' AND id<>?",
@@ -4549,6 +5308,123 @@ function financial_review_session(
         ]);
     });
 }
+function financial_assert_session_reconciled(array $session): void
+{
+    /*
+     * GUIA DE MANUTENÇÃO — financial_assert_session_reconciled
+     * Responsabilidade: Prova as equações do fechamento e a existência do movimento compensatório antes da aprovação ou consolidação.
+     * Local arquitetural: app/Domain/Financial/Financial.php (domínio e regras de negócio).
+     * Chamadores detectados: `financial_review_session`, `financial_daily_reconciliation`.
+     * Dependências chamadas: `financial_closing_equation`, `financial_session_position_cents`, `q`, `financial_validate_movement_topology`.
+     * Efeitos colaterais: consulta dados persistidos; pode interromper o fluxo por exceção.
+     * Cuidado 1: A posição final da sessão deve ser exatamente o valor mantido na Gaveta.
+     */
+    $cid = (int) ($session["clinic_id"] ?? 0);
+    $sessionId = (int) ($session["id"] ?? 0);
+    $locationId = (int) ($session["location_id"] ?? 0);
+    $expected = (int) ($session["expected_closing_cents"] ?? 0);
+    $declared = (int) ($session["declared_closing_cents"] ?? 0);
+    $kept = (int) ($session["keep_in_drawer_cents"] ?? 0);
+    $transferred = (int) ($session["transfer_to_safe_cents"] ?? 0);
+    $difference = (int) ($session["difference_cents"] ?? 0);
+    if (
+        !financial_closing_equation(
+            $expected,
+            $declared,
+            $kept,
+            $transferred,
+            $difference,
+        )
+    ) {
+        throw new RuntimeException(
+            "O fechamento não satisfaz a equação de conservação monetária.",
+        );
+    }
+    if (financial_session_position_cents($session) !== $kept) {
+        throw new RuntimeException(
+            "A posição dos movimentos da Gaveta diverge do saldo mantido.",
+        );
+    }
+    $movements = q(
+        "SELECT movement_type,status,amount_cents,from_location_id,to_location_id,cash_session_id,source_entity,source_id FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND status IN ('confirmed','pending_review') ORDER BY id",
+        [$cid, $sessionId],
+    )->fetchAll();
+    $transferTotal = 0;
+    $adjustments = [];
+    foreach ($movements as $movement) {
+        $type = (string) ($movement["movement_type"] ?? "");
+        $from = (int) ($movement["from_location_id"] ?? 0) ?: null;
+        $to = (int) ($movement["to_location_id"] ?? 0) ?: null;
+        financial_validate_movement_topology($type, $from, $to);
+        if (
+            financial_movement_delta_for_location(
+                (int) ($movement["amount_cents"] ?? 0),
+                $from,
+                $to,
+                $locationId,
+            ) === 0
+        ) {
+            throw new RuntimeException(
+                "Movimento da sessão não alcança a Gaveta reconciliada.",
+            );
+        }
+        if (
+            $type === "transfer" &&
+            (string) ($movement["source_entity"] ?? "") === "cash_session" &&
+            (int) ($movement["source_id"] ?? 0) === $sessionId
+        ) {
+            $transferTotal = financial_checked_add(
+                $transferTotal,
+                (int) $movement["amount_cents"],
+                "Total de retiradas",
+            );
+        }
+        if (
+            $type === "adjustment" &&
+            (string) ($movement["source_entity"] ?? "") ===
+                "cash_closing_adjustment" &&
+            (int) ($movement["source_id"] ?? 0) === $sessionId
+        ) {
+            $adjustments[] = $movement;
+        }
+    }
+    if ($transferTotal !== $transferred) {
+        throw new RuntimeException(
+            "A retirada declarada diverge dos movimentos da sessão.",
+        );
+    }
+    if ($difference === 0 && $adjustments !== []) {
+        throw new RuntimeException(
+            "Fechamento sem diferença contém ajuste compensatório indevido.",
+        );
+    }
+    if ($difference !== 0) {
+        if (
+            count($adjustments) !== 1 ||
+            (int) $adjustments[0]["amount_cents"] !== abs($difference)
+        ) {
+            throw new RuntimeException(
+                "A diferença do fechamento não possui compensação única e exata.",
+            );
+        }
+        $adjustment = $adjustments[0];
+        $from = (int) ($adjustment["from_location_id"] ?? 0) ?: null;
+        $to = (int) ($adjustment["to_location_id"] ?? 0) ?: null;
+        $expectedDelta = $difference > 0 ? abs($difference) : -abs($difference);
+        if (
+            financial_movement_delta_for_location(
+                (int) $adjustment["amount_cents"],
+                $from,
+                $to,
+                $locationId,
+            ) !== $expectedDelta
+        ) {
+            throw new RuntimeException(
+                "O ajuste compensatório possui orientação incompatível com a diferença.",
+            );
+        }
+    }
+}
 function financial_location_movement_balance(int $cid, int $locationId): int
 {
     /*
@@ -4606,7 +5482,10 @@ function financial_location_movement_balances(
         )->fetchAll();
         foreach ($rows as $row) {
             $known[(int) $row["location_id"]] =
-                (int) $row["balance_cents"];
+                financial_assert_balance_cents(
+                    (int) $row["balance_cents"],
+                    "Saldo do local financeiro",
+                );
         }
         $requestCache[$cid] = $known;
     }
@@ -4682,7 +5561,11 @@ function financial_global_position(int $cid): array
         $r["balance_cents"] = $bal;
         $r["open_user_name"] = $open ? (string) ($open["user_name"] ?? "") : "";
         $r["linked_users"] = $links;
-        $posTotal += $bal;
+        $posTotal = financial_checked_add(
+            $posTotal,
+            $bal,
+            "Total das Gavetas",
+        );
         $pos[] = $r;
     }
     $bankRows = q(
@@ -4698,7 +5581,11 @@ function financial_global_position(int $cid): array
     foreach ($bankRows as $r) {
         $bal = (int) ($bankBalances[(int) $r["id"]] ?? 0);
         $r["balance_cents"] = $bal;
-        $bankTotal += $bal;
+        $bankTotal = financial_checked_add(
+            $bankTotal,
+            $bal,
+            "Total dos Bancos",
+        );
         $banks[] = $r;
     }
     return [
@@ -4709,7 +5596,15 @@ function financial_global_position(int $cid): array
         "pos_cents" => $posTotal,
         "bank_rows" => $banks,
         "bank_cents" => $bankTotal,
-        "total_cents" => $safeBalance + $posTotal + $bankTotal,
+        "total_cents" => financial_checked_add(
+            financial_checked_add(
+                $safeBalance,
+                $posTotal,
+                "Posição financeira global",
+            ),
+            $bankTotal,
+            "Posição financeira global",
+        ),
     ];
 }
 function financial_cashier_requires_attention(array $c): bool
@@ -4823,19 +5718,19 @@ function financial_register_appointment_payment_movement(
         );
     }
     if ($existing) {
-        q(
-            "UPDATE pi_financial_movements SET status='confirmed', amount_cents=?, payment_method=?, to_location_id=?, cash_session_id=?, title=?, notes=?, updated_at=NOW(), confirmed_by=COALESCE(confirmed_by,?), confirmed_at=COALESCE(confirmed_at,NOW()) WHERE id=? AND clinic_id=?",
-            [
-                $amount,
-                $method ?: null,
-                $to,
-                $sessionId,
-                $title,
-                $movementNotes,
-                $userId,
-                (int) $existing["id"],
-                $cid,
-            ],
+        financial_update_existing_movement(
+            $cid,
+            (int) $existing["id"],
+            "receipt",
+            $amount,
+            null,
+            $to,
+            $sessionId,
+            $userId,
+            $title,
+            $method,
+            $movementNotes,
+            "confirmed",
         );
     } else {
         financial_create_movement(
@@ -5514,22 +6409,19 @@ function financial_receive_expected_appointment_revenue(
             [$cid, $appointmentId],
         );
         if ($existing) {
-            q(
-                "UPDATE pi_financial_movements SET status=?, amount_cents=?, payment_method=?, from_location_id=NULL, to_location_id=?, cash_session_id=?, title=?, notes=?, updated_at=NOW(), confirmed_by=IF(?='confirmed',COALESCE(confirmed_by,?),NULL), confirmed_at=IF(?='confirmed',COALESCE(confirmed_at,NOW()),NULL), reviewed_by=NULL, reviewed_at=NULL WHERE id=? AND clinic_id=?",
-                [
-                    $movementStatus,
-                    $amount,
-                    $method,
-                    $to,
-                    $sessionId,
-                    $title,
-                    $movementNotes,
-                    $movementStatus,
-                    $uid,
-                    $movementStatus,
-                    (int) $existing["id"],
-                    $cid,
-                ],
+            financial_update_existing_movement(
+                $cid,
+                (int) $existing["id"],
+                "receipt",
+                $amount,
+                null,
+                $to,
+                $sessionId,
+                $uid,
+                $title,
+                $method,
+                $movementNotes,
+                $movementStatus,
             );
             $movementId = (int) $existing["id"];
         } else {
@@ -7511,28 +8403,12 @@ function financial_admin_daily_conference_panel(int $cid, int $uid): string
      */
     financial_operational_schema_ready();
     $today = financial_today($cid);
-    [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
     $state = financial_daily_consolidation_state($cid, $today);
-    $expected = (int) safe_val(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND amount_cents>0 AND expected_at>=? AND expected_at<?",
-        [$cid, $dayStart, $dayEnd],
-        0,
-    );
-    $received = (int) safe_val(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
-        [$cid, $dayStart, $dayEnd],
-        0,
-    );
-    $pending = (int) safe_val(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND amount_cents>0 AND expected_at<?",
-        [$cid, $dayEnd],
-        0,
-    );
-    $movements = (int) safe_val(
-        "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND created_at>=? AND created_at<? AND status IN ('confirmed','pending_review')",
-        [$cid, $dayStart, $dayEnd],
-        0,
-    );
+    $metrics = financial_daily_metrics($cid, $today);
+    $expected = (int) $metrics["expected_cents"];
+    $received = (int) $metrics["received_cents"];
+    $pending = (int) $metrics["pending_cents"];
+    $movements = (int) $metrics["movement_count"];
     $diffs = (int) safe_val(
         "SELECT COALESCE(SUM(ABS(difference_cents)),0) FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND difference_cents<>0",
         [$cid, $today],
@@ -7658,6 +8534,7 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
             "SELECT id FROM pi_financial_daily_closings WHERE clinic_id=? AND business_date=? FOR UPDATE",
             [$cid, $today],
         );
+        financial_daily_reconciliation($cid, $today, $uid, true);
         $state = financial_daily_consolidation_state($cid, $today);
         if (!empty($state["consolidated"])) {
             throw new RuntimeException(
@@ -7674,30 +8551,23 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
                 "Ainda existem conferências, devoluções ou movimentos pendentes. Resolva tudo antes de consolidar o dia.",
             );
         }
-        [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
-        $expected = (int) safe_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND amount_cents>0 AND expected_at>=? AND expected_at<?",
-            [$cid, $dayStart, $dayEnd],
-            0,
-        );
-        $received = (int) safe_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
-            [$cid, $dayStart, $dayEnd],
-            0,
-        );
-        $pending = (int) safe_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND amount_cents>0 AND expected_at<?",
-            [$cid, $dayEnd],
-            0,
-        );
-        $movements = (int) safe_val(
-            "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND created_at>=? AND created_at<? AND status='confirmed'",
-            [$cid, $dayStart, $dayEnd],
-            0,
-        );
-        $pos = financial_global_position($cid);
+        $reconciliation = (array) ($state["reconciliation"] ?? []);
+        if (empty($reconciliation["ok"])) {
+            throw new RuntimeException(
+                "A reconciliação matemática do dia não foi confirmada.",
+            );
+        }
+        $metrics = (array) $reconciliation["metrics"];
+        $expected = (int) $metrics["expected_cents"];
+        $received = (int) $metrics["received_cents"];
+        $pending = (int) $metrics["pending_cents"];
+        $movements = (int) $metrics["movement_count"];
+        $pos = (array) $reconciliation["position"];
+        $integrityNote =
+            "integrity:financial-reconciliation-v2:" .
+            (string) $reconciliation["hash"];
         q(
-            "INSERT INTO pi_financial_daily_closings (clinic_id,business_date,status,expected_cents,received_cents,pending_cents,drawer_cents,safe_cents,bank_cents,movement_count,closed_drawer_count,consolidated_by,consolidated_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE status='consolidado', expected_cents=VALUES(expected_cents), received_cents=VALUES(received_cents), pending_cents=VALUES(pending_cents), drawer_cents=VALUES(drawer_cents), safe_cents=VALUES(safe_cents), bank_cents=VALUES(bank_cents), movement_count=VALUES(movement_count), closed_drawer_count=VALUES(closed_drawer_count), consolidated_by=VALUES(consolidated_by), consolidated_at=NOW(), updated_at=NOW()",
+            "INSERT INTO pi_financial_daily_closings (clinic_id,business_date,status,expected_cents,received_cents,pending_cents,drawer_cents,safe_cents,bank_cents,movement_count,closed_drawer_count,notes,consolidated_by,consolidated_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE status='consolidado', expected_cents=VALUES(expected_cents), received_cents=VALUES(received_cents), pending_cents=VALUES(pending_cents), drawer_cents=VALUES(drawer_cents), safe_cents=VALUES(safe_cents), bank_cents=VALUES(bank_cents), movement_count=VALUES(movement_count), closed_drawer_count=VALUES(closed_drawer_count), notes=VALUES(notes), consolidated_by=VALUES(consolidated_by), consolidated_at=NOW(), updated_at=NOW()",
             [
                 $cid,
                 $today,
@@ -7710,6 +8580,7 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
                 (int) $pos["bank_cents"],
                 $movements,
                 (int) ($state["closure"]["opened_count"] ?? 0),
+                $integrityNote,
                 $uid,
             ],
         );
@@ -7718,6 +8589,7 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
             "opened_drawers_checked" =>
                 (int) ($state["closure"]["opened_count"] ?? 0),
             "movimentos" => $movements,
+            "reconciliation_hash" => (string) $reconciliation["hash"],
             "audit_body" =>
                 "Administrador conferiu e consolidou os lançamentos financeiros do dia após fechamento e revisão das gavetas abertas.",
         ]);
@@ -8918,7 +9790,7 @@ function financial_admin_page(array $c): void
                 if (!in_array($base, ["prevista", "efetivada"], true)) {
                     $base = "efetivada";
                 }
-                $month = date("Y-m");
+                $month = app_month_in_timezone($cid);
                 q(
                     "INSERT INTO pi_financial_goals (clinic_id,month_key,target_cents,base_metric,share_with_team,updated_by) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE target_cents=VALUES(target_cents), base_metric=VALUES(base_metric), share_with_team=VALUES(share_with_team), updated_by=VALUES(updated_by), updated_at=NOW()",
                     [$cid, $month, $target, $base, $share, $uid],
