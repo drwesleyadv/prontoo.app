@@ -585,7 +585,7 @@ function password_ok(string $s): bool
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     $length = mb_strlen($s);
-    return $length >= 15 &&
+    return $length >= 8 &&
         $length <= 128 &&
         !password_common_rejected($s);
 }

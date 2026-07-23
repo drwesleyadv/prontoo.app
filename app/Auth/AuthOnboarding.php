@@ -1347,7 +1347,7 @@ function page_login(): void
                     "password",
                     "password",
                     "",
-                    'required minlength="15" maxlength="128" autocomplete="current-password" placeholder="Sua senha" data-login-password data-password-toggle',
+                    'required minlength="8" maxlength="128" autocomplete="current-password" placeholder="Sua senha" data-login-password data-password-toggle',
                 ) .
                 '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
                 icon("visibility") .
@@ -1768,7 +1768,7 @@ function page_signup(): void
                 if (!password_ok($pass)) {
                     db_rollback();
                     flash(
-                        "Use senha com 15 a 128 caracteres que não seja uma senha comum.",
+                        "Use senha com 8 a 128 caracteres que não seja uma senha comum.",
                         "bad",
                     );
                     redirect("signup");
@@ -1947,7 +1947,7 @@ function page_signup(): void
                     "password",
                     "password",
                     "",
-                    'required minlength="15" maxlength="128" autocomplete="new-password" placeholder="Senha nova ou senha atual se o CPF já existir" data-password-strength data-password-toggle',
+                    'required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Senha nova ou senha atual se o CPF já existir" data-password-strength data-password-toggle',
                 ) .
                 '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
                 icon("visibility") .
@@ -2528,7 +2528,7 @@ function page_profile(): void
                 }
                 if (!password_ok($new)) {
                     throw new RuntimeException(
-                        "A nova senha precisa ter entre 15 e 128 caracteres e não pode ser uma senha comum.",
+                        "A nova senha precisa ter entre 8 e 128 caracteres e não pode ser uma senha comum.",
                     );
                 }
                 if (password_verify($new, (string) $u["password_hash"])) {
@@ -2691,7 +2691,7 @@ function page_profile(): void
                 "new_password",
                 "password",
                 "",
-                'required minlength="15" maxlength="128" autocomplete="new-password" data-password-strength',
+                'required minlength="8" maxlength="128" autocomplete="new-password" data-password-strength',
             ),
         ) .
         form_row(
@@ -2700,7 +2700,7 @@ function page_profile(): void
                 "new_password_confirm",
                 "password",
                 "",
-                'required minlength="15" maxlength="128" autocomplete="new-password"',
+                'required minlength="8" maxlength="128" autocomplete="new-password"',
             ),
         ) .
         '</div><div class="form-actions"><button type="submit" class="primary">' .
@@ -3124,7 +3124,7 @@ function page_onboarding(): void
                 "team_password",
                 "password",
                 "",
-                'minlength="15" maxlength="128" autocomplete="new-password" data-password-strength',
+                'minlength="8" maxlength="128" autocomplete="new-password" data-password-strength',
             ),
         ) .
         '</div></section><section class="wizard-step" data-wizard-step="3" hidden><div class="wizard-step-title"><span>' .
