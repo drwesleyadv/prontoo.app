@@ -844,8 +844,73 @@ function page_login(): void
             flash("Este CPF não existe.", "bad");
             redirect("login");
         }
-        $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
-        if ($wait > 0) {
+        [$loginSubjectHash, $loginIpHash] = login_key($cpf);
+        $loginAttemptLock =
+            "prontoo_login_" .
+            substr(
+                hash("sha256", $loginSubjectHash . "|" . $loginIpHash),
+                0,
+                48,
+            );
+        $loginAttemptLocked = false;
+        $loginAttemptState = "busy";
+        $person = null;
+        $userRow = null;
+        $wait = 2;
+        try {
+            $loginAttemptLocked =
+                (int) val("SELECT GET_LOCK(?,2)", [$loginAttemptLock]) === 1;
+            if ($loginAttemptLocked) {
+                $wait = max(
+                    $cpf ? login_lock($cpf) : 0,
+                    login_session_wait(),
+                );
+                if ($wait > 0) {
+                    $loginAttemptState = "locked";
+                } else {
+                    $person = one(
+                        "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
+                        [$cpf],
+                    );
+                    $userRow = $person
+                        ? one(
+                            "SELECT id uid,password_hash,active,is_global_admin FROM pi_users WHERE person_id=? LIMIT 1",
+                            [(int) $person["id"]],
+                        )
+                        : null;
+                    if ($person && $userRow) {
+                        $person += $userRow;
+                    }
+                    if (
+                        !$person ||
+                        !$userRow ||
+                        !(int) $person["active"] ||
+                        !password_verify(
+                            (string) $_POST["password"],
+                            (string) $person["password_hash"],
+                        )
+                    ) {
+                        $wait = login_fail($cpf);
+                        $loginAttemptState = "invalid";
+                    } else {
+                        login_clear($cpf);
+                        $loginAttemptState = "authenticated";
+                    }
+                }
+            }
+        } finally {
+            if ($loginAttemptLocked) {
+                try {
+                    val("SELECT RELEASE_LOCK(?)", [$loginAttemptLock]);
+                } catch (Throwable $unlockError) {
+                    error_log(
+                        "[Prontoo login attempt unlock] " .
+                            $unlockError->getMessage(),
+                    );
+                }
+            }
+        }
+        if (in_array($loginAttemptState, ["busy", "locked"], true)) {
             login_session_remember(
                 $cpf,
                 $wait,
@@ -853,42 +918,22 @@ function page_login(): void
             );
             audit("falha_entrada", "login", null, [
                 "cpf" => $cpf,
-                "motivo" => "tentativa durante pausa",
+                "motivo" =>
+                    $loginAttemptState === "busy"
+                        ? "tentativa concorrente"
+                        : "tentativa durante pausa",
                 "aguarde_segundos" => $wait,
             ]);
             redirect("login");
         }
-        $person = one(
-            "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
-            [$cpf],
-        );
-        $userRow = $person
-            ? one(
-                "SELECT id uid,password_hash,active,is_global_admin FROM pi_users WHERE person_id=? LIMIT 1",
-                [(int) $person["id"]],
-            )
-            : null;
-        if ($person && $userRow) {
-            $person += $userRow;
-        }
-        if (
-            !$person ||
-            !$userRow ||
-            !(int) $person["active"] ||
-            !password_verify(
-                (string) $_POST["password"],
-                (string) $person["password_hash"],
-            )
-        ) {
-            $w = login_fail($cpf);
-            login_session_remember($cpf, $w, "A senha não confere.");
+        if ($loginAttemptState === "invalid") {
+            login_session_remember($cpf, $wait, "A senha não confere.");
             audit("falha_entrada", "login", null, [
                 "cpf" => $cpf,
-                "aguarde_segundos" => $w,
+                "aguarde_segundos" => $wait,
             ]);
             redirect("login");
         }
-        login_clear($cpf);
         login_session_forget();
         $uid = (int) $person["uid"];
         prontoo_login_post_password_maintenance($uid);
@@ -1047,18 +1092,26 @@ function login_fail(string $cpf): int
     $seconds = 60;
     try {
         [$s, $i] = login_key($cpf);
-        $r = one(
-            "SELECT fail_count FROM pi_login_locks WHERE subject_hash=? AND ip_hash=?",
+        q(
+            "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until)
+             VALUES (?,?,1,UNIX_TIMESTAMP()+60)
+             ON DUPLICATE KEY UPDATE
+               fail_count=LEAST(11,fail_count+1),
+               locked_until=UNIX_TIMESTAMP()+CAST(
+                 LEAST(
+                   86400,
+                   60*POW(2,LEAST(10,GREATEST(0,fail_count-1)))
+                 ) AS UNSIGNED
+               )",
             [$s, $i],
         );
-        $n = (int) ($r["fail_count"] ?? 0) + 1;
-        $power = min(10, max(0, $n - 1));
-        $seconds = min(86400, 60 * 2 ** $power);
-        $lockedUntil = time() + $seconds;
-        q(
-            "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE fail_count=?, locked_until=?",
-            [$s, $i, $n, $lockedUntil, $n, $lockedUntil],
+        $r = one(
+            "SELECT GREATEST(0,locked_until-UNIX_TIMESTAMP()) wait_seconds
+             FROM pi_login_locks
+             WHERE subject_hash=? AND ip_hash=?",
+            [$s, $i],
         );
+        $seconds = max(1, (int) ($r["wait_seconds"] ?? 60));
     } catch (Throwable $e) {
         error_log("[Prontoo login_fail] " . $e->getMessage());
     }
@@ -1905,16 +1958,43 @@ function page_person_lookup(): void
         );
         return;
     }
-    $p = one(
-        "SELECT full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
-        [$cpf],
-    );
+    $current = ctx();
     $detailed =
         has_session_user() &&
         (can("patients") ||
             can("users") ||
             can("financial") ||
             can("admin_people"));
+    $p = null;
+    if ($detailed && ($current["scope"] ?? "") === "global" && can("admin_people")) {
+        $p = one(
+            "SELECT full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
+            [$cpf],
+        );
+    } elseif (
+        $detailed &&
+        ($current["scope"] ?? "") === "clinic" &&
+        (int) ($current["clinic_id"] ?? 0) > 0
+    ) {
+        $cid = (int) $current["clinic_id"];
+        $p = one(
+            "SELECT p.full_name,p.cpf,p.birth_date
+             FROM pi_persons p
+             WHERE p.cpf=?
+               AND (
+                 EXISTS (SELECT 1 FROM pi_patients pat WHERE pat.person_id=p.id AND pat.clinic_id=?)
+                 OR EXISTS (SELECT 1 FROM pi_leads l WHERE l.person_id=p.id AND l.clinic_id=?)
+                 OR EXISTS (
+                   SELECT 1
+                   FROM pi_users u
+                   JOIN pi_user_roles ur ON ur.user_id=u.id
+                   WHERE u.person_id=p.id AND ur.clinic_id=?
+                 )
+               )
+             LIMIT 1",
+            [$cpf, $cid, $cid, $cid],
+        );
+    }
     if (!$p || !$detailed) {
         echo json_encode(
             [
