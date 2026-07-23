@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "ChangeLog.txt",
-  "notes": "Corrige a divergência do fallback da landing br com a versão canônica e acrescenta certificação permanente de sincronismo entre version.json, runtime, landing e manifesto.",
+  "notes": "Corrige a divergência do fallback da landing br com a versão canônica e acrescenta certificação permanente de sincronismo entre version.json, runtime, landing e manifestos de atualização e arquitetura.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
