@@ -1,3 +1,10 @@
+Prontoo 1.7.23.3 — hotfix do contrato canônico de versão
+
+- Sincroniza `BR_LANDING_VERSION_FALLBACK` com a versão canônica da release e elimina o bloqueio `Contrato de versão divergente: br[caminho]`.
+- Atualiza os fallbacks do runtime, a versão anterior, o manifesto e os metadados de publicação como uma única unidade coerente.
+- Acrescenta ao CI uma prova explícita de igualdade entre `version.json`, `app/update.manifest.json`, `PRONTOO_VERSION_FALLBACK` e `BR_LANDING_VERSION_FALLBACK`.
+- Preserva os controles de integridade matemática da 1.7.23.2, banco, schema, dados, lógica de negócio, UX e composição visual.
+
 Prontoo 1.7.23.2 — integridade matemática e conservação dos dados
 
 - Encadeia cada novo registro de auditoria ao hash anterior sob trava transacional, ancora a cabeça da cadeia em `pi_meta` e passa a detectar adulteração do contexto da prova, remoção, reordenação e truncamento.
