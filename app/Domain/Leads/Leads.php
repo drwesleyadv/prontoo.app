@@ -552,8 +552,21 @@ function page_lead_patient_lookup(): void
         return;
     }
     $person = one(
-        "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
-        [$cpf],
+        "SELECT p.id,p.full_name,p.cpf,p.birth_date
+         FROM pi_persons p
+         WHERE p.cpf=?
+           AND (
+             EXISTS (SELECT 1 FROM pi_patients pat WHERE pat.person_id=p.id AND pat.clinic_id=?)
+             OR EXISTS (SELECT 1 FROM pi_leads l WHERE l.person_id=p.id AND l.clinic_id=?)
+             OR EXISTS (
+               SELECT 1
+               FROM pi_users u
+               JOIN pi_user_roles ur ON ur.user_id=u.id
+               WHERE u.person_id=p.id AND ur.clinic_id=?
+             )
+           )
+         LIMIT 1",
+        [$cpf, $cid, $cid, $cid],
     );
     if (!$person) {
         echo json_encode(
