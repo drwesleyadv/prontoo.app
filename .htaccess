@@ -24,9 +24,10 @@ FileETag None
     RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=308,L]
 
     RewriteCond %{HTTPS} !=on
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
     RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=308,L]
 
+    RewriteRule ^tools(?:/|$) - [F,L,NC]
+    RewriteRule ^cron(?:/|$) - [F,L,NC]
     RewriteRule ^app/ - [F,L]
     RewriteRule ^ssd/ - [F,L,NC]
     RewriteRule ^storage/ - [F,L,NC]
