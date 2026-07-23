@@ -2584,6 +2584,29 @@ function maestro_rule_score(array $rule, ?array $stat = null): float
     $duration = max(1, (float) ($stat["ewma_duration_ms"] ?? 100));
     return $priority + $lag + min(30, $yield * 8) - min(25, $duration / 500);
 }
+function maestro_ewma_observation(
+    ?float $previous,
+    float $observation,
+    bool $skipped = false,
+    float $alpha = 0.25,
+): ?float {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_ewma_observation
+     * Responsabilidade: Atualiza a média móvel somente quando existe medição real; adiamentos preservam integralmente a estimativa anterior.
+     * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+     * Chamadores detectados: `maestro_stats_update` e certificação matemática do CI.
+     * Dependências chamadas: `max`, `min`.
+     * Efeitos colaterais: nenhum; função estatística pura.
+     * Cuidado 1: Ausência de execução não é observação de valor zero.
+     */
+    if ($skipped) {
+        return $previous;
+    }
+    $alpha = max(0.0, min(1.0, $alpha));
+    return $previous === null
+        ? $observation
+        : ($previous * (1 - $alpha)) + ($observation * $alpha);
+}
 function maestro_stats_update(
     string $key,
     float $duration,
@@ -2600,33 +2623,61 @@ function maestro_stats_update(
      * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
-    $old = one("SELECT * FROM pi_maestro_job_stats WHERE routine_key=?", [
+    db_tx(function () use (
         $key,
-    ]);
-    $alpha = 0.25;
-    $dur = $old
-        ? (float) $old["ewma_duration_ms"] * (1 - $alpha) + $duration * $alpha
-        : $duration;
-    $yield = $old
-        ? (float) $old["ewma_yield"] * (1 - $alpha) + $created * $alpha
-        : $created;
-    q(
-        "INSERT INTO pi_maestro_job_stats (routine_key,ewma_duration_ms,ewma_yield,run_count,skip_count,last_score,last_run_at,updated_at) VALUES (?,?,?,?,?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE ewma_duration_ms=?, ewma_yield=?, run_count=run_count+?, skip_count=skip_count+?, last_score=?, last_run_at=IF(?=1,last_run_at,NOW()), updated_at=NOW()",
-        [
-            $key,
-            $dur,
-            $yield,
-            $skipped ? 0 : 1,
-            $skipped ? 1 : 0,
-            $score,
-            $dur,
-            $yield,
-            $skipped ? 0 : 1,
-            $skipped ? 1 : 0,
-            $score,
-            $skipped ? 1 : 0,
-        ],
-    );
+        $duration,
+        $created,
+        $score,
+        $skipped,
+    ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — closure@app/Domain/Maestro/Maestro.php:maestro_stats_update
+         * Responsabilidade: Serializa a atualização estatística para impedir perda de observações concorrentes.
+         * Local arquitetural: app/Domain/Maestro/Maestro.php (domínio e regras de negócio).
+         * Chamadores detectados: `maestro_stats_update`.
+         * Dependências chamadas: `one`, `q`, `maestro_ewma_observation`.
+         * Efeitos colaterais: consulta e grava dados persistidos dentro de transação.
+         * Cuidado 1: Adiamentos incrementam apenas `skip_count` e nunca `last_run_at`.
+         */
+        $old = one(
+            "SELECT * FROM pi_maestro_job_stats WHERE routine_key=? FOR UPDATE",
+            [$key],
+        );
+        if ($skipped) {
+            if ($old) {
+                q(
+                    "UPDATE pi_maestro_job_stats SET skip_count=skip_count+1,last_score=?,updated_at=NOW() WHERE routine_key=?",
+                    [$score, $key],
+                );
+            } else {
+                q(
+                    "INSERT INTO pi_maestro_job_stats (routine_key,ewma_duration_ms,ewma_yield,run_count,skip_count,last_score,last_run_at,updated_at) VALUES (?,0,0,0,1,?,NULL,NOW())",
+                    [$key, $score],
+                );
+            }
+            return;
+        }
+        $hasObservation = $old && (int) ($old["run_count"] ?? 0) > 0;
+        $dur = (float) maestro_ewma_observation(
+            $hasObservation ? (float) $old["ewma_duration_ms"] : null,
+            max(0.0, $duration),
+        );
+        $yield = (float) maestro_ewma_observation(
+            $hasObservation ? (float) $old["ewma_yield"] : null,
+            max(0, $created),
+        );
+        if ($old) {
+            q(
+                "UPDATE pi_maestro_job_stats SET ewma_duration_ms=?,ewma_yield=?,run_count=run_count+1,last_score=?,last_run_at=NOW(),updated_at=NOW() WHERE routine_key=?",
+                [$dur, $yield, $score, $key],
+            );
+        } else {
+            q(
+                "INSERT INTO pi_maestro_job_stats (routine_key,ewma_duration_ms,ewma_yield,run_count,skip_count,last_score,last_run_at,updated_at) VALUES (?,?,?,1,0,?,NOW(),NOW())",
+                [$key, $dur, $yield, $score],
+            );
+        }
+    });
 }
 function maestro_with_guarded_clinic(int $cid, callable $fn): mixed
 {
