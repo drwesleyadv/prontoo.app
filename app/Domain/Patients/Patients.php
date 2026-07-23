@@ -1330,7 +1330,7 @@ function resolve_patient_lookup_id(
     }
     return 0;
 }
-function patient_identity_by_cpf(string $cpf): ?array
+function patient_identity_by_cpf(string $cpf, int $cid): ?array
 {
     /*
      * GUIA DE MANUTENÇÃO — patient_identity_by_cpf
@@ -1347,8 +1347,21 @@ function patient_identity_by_cpf(string $cpf): ?array
     }
     try {
         $row = one(
-            "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
-            [$cpf],
+            "SELECT p.id,p.full_name,p.cpf,p.birth_date
+             FROM pi_persons p
+             WHERE p.cpf=?
+               AND (
+                 EXISTS (SELECT 1 FROM pi_patients pat WHERE pat.person_id=p.id AND pat.clinic_id=?)
+                 OR EXISTS (SELECT 1 FROM pi_leads l WHERE l.person_id=p.id AND l.clinic_id=?)
+                 OR EXISTS (
+                   SELECT 1
+                   FROM pi_users u
+                   JOIN pi_user_roles ur ON ur.user_id=u.id
+                   WHERE u.person_id=p.id AND ur.clinic_id=?
+                 )
+               )
+             LIMIT 1",
+            [$cpf, $cid, $cid, $cid],
         );
         return $row ?: null;
     } catch (Throwable $e) {
@@ -1375,7 +1388,7 @@ function patient_lookup_payload(int $cid, string $cpf): array
             "message" => "Informe um CPF válido.",
         ];
     }
-    $p = patient_identity_by_cpf($cpf);
+    $p = patient_identity_by_cpf($cpf, $cid);
     if (!$p) {
         return [
             "ok" => true,
@@ -1492,6 +1505,31 @@ function page_patient_lookup(): void
             return;
         }
         $cid = (int) $c["clinic_id"];
+        $uid = (int) ($c["user"]["id"] ?? 0);
+        if (
+            $uid <= 0 ||
+            security_rate_limit(
+                "patient_lookup_c" . $cid . "_u" . $uid,
+                6,
+                60,
+            )
+        ) {
+            if (!headers_sent()) {
+                header("Retry-After: 60");
+            }
+            http_response_code(429);
+            echo json_encode(
+                [
+                    "ok" => false,
+                    "found" => false,
+                    "rate_limited" => true,
+                    "message" =>
+                        "Limite de 6 consultas por minuto atingido. Aguarde um minuto antes de tentar novamente.",
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            );
+            return;
+        }
         $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
         echo json_encode(
             patient_lookup_payload($cid, $cpf),
@@ -2470,7 +2508,7 @@ function page_patients(): void
         $birth = (string) ($_POST["birth_date"] ?? "");
         $name = trim((string) ($_POST["name"] ?? ""));
         if (valid_cpf($cpf) && ($name === "" || !valid_birth_date($birth))) {
-            $identity = patient_identity_by_cpf($cpf);
+            $identity = patient_identity_by_cpf($cpf, $cid);
             if ($identity) {
                 if ($name === "") {
                     $name = trim((string) ($identity["full_name"] ?? ""));
