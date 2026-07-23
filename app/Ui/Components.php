@@ -1315,6 +1315,8 @@ function page(string $title, string $body, array $opts = []): void
         rawurlencode(
             defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,
         ) .
+        '&release=' .
+        rawurlencode(PRONTOO_VERSION) .
         '&ui=design-system-global-enxuto"></script></head><body class="' .
         e($bodyClass) .
         '" style="' .
