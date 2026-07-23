@@ -300,7 +300,7 @@ function prontoo_boot_database_for_route(string $route): void
     }
     $publicLight = prontoo_route_is_public_light($route);
     $forceDeep =
-        isset($_GET["schema_check"]) ||
+        PHP_SAPI === "cli" &&
         getenv("PRONTOO_FORCE_DEEP_BOOT") === "1";
     if ($publicLight && !$forceDeep) {
         if (class_exists("\Prontoo\Core\Integrity\PiIntegrity")) {
@@ -338,32 +338,70 @@ function prontoo_run_runtime_maintenance_cycle(
      */
     $startedAt = microtime(true);
     $result = ["ok" => false, "mode" => $mode, "uid" => $uid, "steps" => []];
-
-    prontoo_load_full_runtime_modules();
-    ensure_runtime_schema_minimum();
-    $result["steps"][] = "schema_contract";
-
-    if (function_exists("maestro_ensure_schema")) {
-        maestro_ensure_schema();
-        $result["steps"][] = "maestro_contract";
+    $lockDir = storage_path("cache/locks");
+    if (!is_dir($lockDir) &&
+        !@mkdir($lockDir, 0750, true) &&
+        !is_dir($lockDir)) {
+        return $result + [
+            "ran" => false,
+            "reason" => "maintenance_lock_unavailable",
+        ];
     }
-    if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-        \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest();
-        $result["steps"][] = "integrity_autotest";
+    $lockHandle = @fopen(
+        $lockDir . "/runtime-maintenance-" . hash("sha256", PRONTOO_SCHEMA_REV) . ".lock",
+        "c+",
+    );
+    if (!is_resource($lockHandle) ||
+        !flock($lockHandle, LOCK_EX | LOCK_NB)) {
+        if (is_resource($lockHandle)) {
+            fclose($lockHandle);
+        }
+        return $result + [
+            "ok" => true,
+            "ran" => false,
+            "reason" => "maintenance_in_progress",
+        ];
     }
+    try {
+        if ($mode === "route_deep" && prontoo_schema_boot_marker_valid()) {
+            return $result + [
+                "ok" => true,
+                "ran" => false,
+                "reason" => "maintenance_already_completed",
+            ];
+        }
+        prontoo_load_full_runtime_modules();
+        ensure_runtime_schema_minimum();
+        $result["steps"][] = "schema_contract";
 
-    runtime_self_check();
-    $result["steps"][] = "runtime_self_check";
+        if (function_exists("maestro_ensure_schema")) {
+            maestro_ensure_schema();
+            $result["steps"][] = "maestro_contract";
+        }
+        if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest();
+            $result["steps"][] = "integrity_autotest";
+        }
 
-    if (function_exists("document_pdf_cleanup_due")) {
-        document_pdf_cleanup_due();
-        $result["steps"][] = "pdf_cleanup";
+        runtime_self_check();
+        $result["steps"][] = "runtime_self_check";
+
+        if (function_exists("document_pdf_cleanup_due")) {
+            document_pdf_cleanup_due();
+            $result["steps"][] = "pdf_cleanup";
+        }
+
+        prontoo_schema_boot_mark_ok($mode);
+        $result["ok"] = true;
+        $result["ran"] = true;
+        $result["duration_ms"] = (int) round(
+            (microtime(true) - $startedAt) * 1000,
+        );
+        return $result;
+    } finally {
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
     }
-
-    prontoo_schema_boot_mark_ok($mode);
-    $result["ok"] = true;
-    $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
-    return $result;
 }
 
 function prontoo_login_post_password_maintenance(int $uid): array
