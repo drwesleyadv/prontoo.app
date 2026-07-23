@@ -208,6 +208,12 @@ if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
     !str_contains($authSecuritySource, 'login_locks_cleanup_maybe();')) {
     $errors[] = 'atomic_login_limit_policy';
 }
+if (!preg_match('/function\\s+password_ok\\(string\\s+\\$s\\):\\s*bool\\s*\\{.*?return\\s+\\$length\\s*>=\\s*8\\s*&&\\s*\\$length\\s*<=\\s*128\\s*&&\\s*!password_common_rejected\\(\\$s\\);/s', $securityAccessSource) ||
+    substr_count($authSecuritySource, 'minlength="8" maxlength="128"') < 5 ||
+    str_contains($authSecuritySource, 'minlength="15"') ||
+    str_contains($securityAccessSource, '$length >= 15')) {
+    $errors[] = 'password_minimum_8_policy';
+}
 $prontooSecuritySource = (string) file_get_contents($root . '/app/prontoo.php');
 if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600\s*;/', $prontooSecuritySource) ||
     !str_contains($prontooSecuritySource, 'PRONTOO_AUTH_POLICY_GENERATION')) {
