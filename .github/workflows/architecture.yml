@@ -103,7 +103,7 @@ jobs:
                   "Cobertura documental divergente: {$guides} guias para {$functions} funções.",
               );
           }
-          if ($functions !== 1865) {
+          if ($functions !== 1896) {
               throw new RuntimeException(
                   "Inventário funcional divergente da baseline documentada: {$functions}.",
               );
@@ -183,6 +183,265 @@ jobs:
                   throw new RuntimeException('Regressão de ação exata: ' . $required);
               }
           }
+          PHP
+
+      - name: Mathematical integrity properties
+        shell: bash
+        run: |
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+
+          function property_ok(bool $condition, string $message): void
+          {
+              if (!$condition) {
+                  throw new RuntimeException($message);
+              }
+          }
+
+          function property_throws(callable $operation, string $message): void
+          {
+              try {
+                  $operation();
+              } catch (Throwable) {
+                  return;
+              }
+              throw new RuntimeException($message);
+          }
+
+          function audit_integrity_base(array $row): string
+          {
+              return implode('|', [
+                  (string) ($row['clinic_id'] ?? ''),
+                  (string) ($row['user_id'] ?? ''),
+                  (string) ($row['event'] ?? ($row['event_key'] ?? '')),
+                  (string) ($row['entity'] ?? ($row['entity_key'] ?? '')),
+                  (string) ($row['entity_id'] ?? ''),
+                  (string) ($row['friendly_text'] ?? ''),
+                  (string) ($row['context_json'] ?? ''),
+              ]);
+          }
+
+          require 'app/Support/Foundation.php';
+          require 'app/Core/Integrity/AuditChain.php';
+          require 'app/Domain/Financial/Financial.php';
+          require 'app/Domain/Maestro/Maestro.php';
+
+          $secret = 'ci-property-secret';
+          $baseRows = [
+              [
+                  'id' => 1,
+                  'clinic_id' => 7,
+                  'user_id' => 11,
+                  'event_key' => 'created',
+                  'entity_key' => 'patient',
+                  'entity_id' => '101',
+                  'friendly_text' => 'Primeiro elo',
+                  'context_json' => '{"step":1}',
+              ],
+              [
+                  'id' => 2,
+                  'clinic_id' => 7,
+                  'user_id' => 11,
+                  'event_key' => 'updated',
+                  'entity_key' => 'patient',
+                  'entity_id' => '101',
+                  'friendly_text' => 'Segundo elo',
+                  'context_json' => '{"step":2}',
+              ],
+              [
+                  'id' => 3,
+                  'clinic_id' => 7,
+                  'user_id' => 11,
+                  'event_key' => 'reviewed',
+                  'entity_key' => 'patient',
+                  'entity_id' => '101',
+                  'friendly_text' => 'Terceiro elo',
+                  'context_json' => '{"step":3}',
+              ],
+          ];
+          $rows = [];
+          $previous = '';
+          foreach ($baseRows as $baseRow) {
+              $proof = \Prontoo\Core\Integrity\AuditChain::buildFromPrevious(
+                  $baseRow,
+                  $secret,
+                  $previous,
+                  ['method' => 'CI', 'route' => 'property'],
+              );
+              $rows[] = array_merge($baseRow, $proof);
+              $previous = (string) $proof['chain_hash'];
+          }
+          property_ok(
+              \Prontoo\Core\Integrity\AuditChain::verifySequence(
+                  array_reverse($rows),
+                  $secret,
+              ),
+              'A cadeia íntegra e reordenada para leitura deve validar.',
+          );
+          property_ok(
+              !\Prontoo\Core\Integrity\AuditChain::verifySequence(
+                  [$rows[0], $rows[2]],
+                  $secret,
+              ),
+              'A exclusão de um elo intermediário deve ser detectada.',
+          );
+          $tamperedProof = $rows[1];
+          $tamperedProof['proof_json'] = '{"route":"tampered"}';
+          property_ok(
+              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
+                  $tamperedProof,
+                  $secret,
+              ),
+              'A adulteração do contexto da prova deve ser detectada.',
+          );
+          $tamperedPolicy = $rows[1];
+          $tamperedPolicy['policy_version'] = 'audit-lite-v2-maestro';
+          property_ok(
+              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
+                  $tamperedPolicy,
+                  $secret,
+              ),
+              'A versão da política deve permanecer vinculada à prova.',
+          );
+          $missingHash = $rows[1];
+          $missingHash['integrity_hash'] = '';
+          property_ok(
+              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
+                  $missingHash,
+                  $secret,
+              ),
+              'Registro sem hash não pode ser considerado íntegro.',
+          );
+
+          property_ok(
+              parse_money_cents('R$ 1.234,56') === 123456,
+              'Conversão monetária brasileira inexata.',
+          );
+          property_ok(
+              parse_money_cents('12.3') === 1230,
+              'Conversão decimal canônica inexata.',
+          );
+          property_throws(
+              static fn(): int => parse_money_cents('1e3'),
+              'Notação exponencial deve ser rejeitada.',
+          );
+          property_throws(
+              static fn(): int => parse_money_cents('1,234'),
+              'Mais de duas casas decimais devem ser rejeitadas.',
+          );
+          financial_validate_movement_topology('receipt', null, 1);
+          property_throws(
+              static function (): void {
+                  financial_validate_movement_topology('transfer', 3, 3);
+              },
+              'Transferência reflexiva deve ser rejeitada.',
+          );
+          $transferAmount = 9850;
+          property_ok(
+              financial_movement_delta_for_location(
+                  $transferAmount,
+                  3,
+                  4,
+                  3,
+              ) +
+                  financial_movement_delta_for_location(
+                      $transferAmount,
+                      3,
+                      4,
+                      4,
+                  ) ===
+                  0,
+              'Transferência interna deve conservar o saldo global.',
+          );
+          property_ok(
+              financial_closing_equation(10000, 9500, 500, 9000, -500),
+              'Equação válida de fechamento foi recusada.',
+          );
+          property_ok(
+              !financial_closing_equation(10000, 9500, 500, 8500, -500),
+              'Fechamento sem conservação foi aceito.',
+          );
+          property_throws(
+              static fn(): int => financial_checked_add(
+                  PRONTOO_FINANCIAL_MAX_CENTS,
+                  1,
+              ),
+              'Overflow monetário deve falhar fechado.',
+          );
+
+          $boundaryUtc = new DateTimeImmutable(
+              '2026-08-01T02:00:00Z',
+              new DateTimeZone('UTC'),
+          );
+          $timezoneContext = ['timezone' => 'America/Cuiaba'];
+          property_ok(
+              app_month_in_timezone(7, $timezoneContext, $boundaryUtc) ===
+                  '2026-07',
+              'Chave mensal deve seguir o fuso do consultório.',
+          );
+          [$monthStart, $monthEnd] = app_local_month_utc_range(
+              '2026-07',
+              7,
+              $timezoneContext,
+          );
+          property_ok(
+              (int) $monthStart === 1782878400 &&
+                  (int) $monthEnd === 1785556800,
+              'Partição mensal UTC não corresponde ao mês civil local.',
+          );
+
+          property_ok(
+              maestro_ewma_observation(120.0, 0.0, true) === 120.0,
+              'Adiamento não pode degradar a estimativa EWMA.',
+          );
+          property_ok(
+              abs((float) maestro_ewma_observation(120.0, 60.0) - 105.0) <
+                  0.000001,
+              'Atualização EWMA observada está incorreta.',
+          );
+
+          $database = (string) file_get_contents(
+              'app/Database/DatabaseSchema.php',
+          );
+          property_ok(
+              str_contains($database, 'PiIntegrity::flushTransactionEvents()') &&
+                  strpos($database, 'PiIntegrity::flushTransactionEvents()') <
+                      strpos($database, '$connection->commit()'),
+              'A prova de mutação precisa preceder o commit.',
+          );
+          property_ok(
+              str_contains($database, '$autoIntegrityTransaction') &&
+                  str_contains($database, 'db_begin_transaction();') &&
+                  str_contains($database, 'db_commit();'),
+              'Mutações isoladas também precisam de transação probatória.',
+          );
+          property_ok(
+              str_contains(
+                  (string) file_get_contents('app/Support/FinancialGuard.php'),
+                  'Movimento de dia consolidado é imutável',
+              ),
+              'Guarda central de imutabilidade consolidada ausente.',
+          );
+          property_ok(
+              str_contains(
+                  (string) file_get_contents(
+                      'app/Domain/Financial/Financial.php',
+                  ),
+                  'integrity:financial-reconciliation-v2:',
+              ),
+              'Snapshot matemático da consolidação ausente.',
+          );
+
+          echo json_encode([
+              'ok' => true,
+              'audit_chain' => true,
+              'financial_conservation' => true,
+              'numeric_domain' => true,
+              'local_month_partition' => true,
+              'maestro_ewma' => true,
+              'transactional_ledger' => true,
+          ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), PHP_EOL;
           PHP
 
       - name: Maturity and runtime performance regressions
