@@ -965,7 +965,7 @@ function page(string $title, string $body, array $opts = []): void
             "css_vars" =>
                 "--clinic-accent:#334155;--clinic-accent-dark:#1f2937;",
         ];
-    if ($public && in_array($current, ["login", "signup"], true)) {
+    if ($public && in_array($current, ["login", "signup", "mfa"], true)) {
         $visual["brand"] = "#238763";
         $visual["brand_dark"] = "#105e44";
         $visual["brand_soft"] = "#dff3ea";
@@ -1310,6 +1310,8 @@ function page(string $title, string $body, array $opts = []): void
         rawurlencode(
             defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,
         ) .
+        '&release=' .
+        rawurlencode(PRONTOO_VERSION) .
         '"><script defer src="/public/assets/app.js?v=' .
         rawurlencode(
             defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,

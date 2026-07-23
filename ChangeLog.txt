@@ -1,3 +1,12 @@
+Prontoo 1.7.23.6 — refinamento do MFA e da reautenticação global
+
+- Alinha cadastro, validação e códigos de recuperação do MFA ao shell público e à gramática visual do Design System.
+- Organiza o cadastro obrigatório em etapas, cria tratamento próprio para a chave manual e apresenta os códigos de recuperação em grade legível e responsiva.
+- Refina a confirmação recorrente do segundo fator com hierarquia, orientação e ações coerentes com a tela de login.
+- Atualiza global_reauth com PageHead contextual, card de segurança, aviso de sessão, alternância de visibilidade da senha e ações acessíveis.
+- Acrescenta a versão da release à URL do Design System para atualização segura do CSS sem alterar os ativos de ícone versionados.
+- Preserva integralmente MFA/TOTP, códigos de recuperação, rate limits, timeout de 60 minutos, revogação de sessões, senha mínima de 8 caracteres, banco e schema.
+
 Prontoo 1.7.23.5 — senha mínima restaurada para 8 caracteres
 
 - Restaura exclusivamente o tamanho mínimo da senha de 15 para 8 caracteres no validador central, formulários, cadastro de colaboradores e instalação.
