@@ -331,24 +331,66 @@ function security_rate_limit(
      * Cuidado 1: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
      */
     $bucket = preg_replace("/[^a-zA-Z0-9_\-]/", "_", $bucket) ?: "rate";
-    $key = "security_rate_" . $bucket;
-    $now = time();
-    $state = cache_get($key, $windowSeconds);
-    if (!is_array($state)) {
-        $state = [];
-    }
-    $hits = array_values(
-        array_filter(
-            array_map("intval", $state),
-            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($t) => $t > $now - $windowSeconds,
-        ),
-    );
-    if (count($hits) >= $limit) {
+    $limit = max(1, $limit);
+    $windowSeconds = max(1, $windowSeconds);
+    $dir = storage_path("cache/rate-limits");
+    if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
+        error_log("[Prontoo rate limit] Diretório de controle indisponível.");
         return true;
     }
-    $hits[] = $now;
-    cache_set($key, $hits);
-    return false;
+    $file = $dir . "/" . hash("sha256", $bucket) . ".json";
+    $handle = @fopen($file, "c+");
+    if (!is_resource($handle)) {
+        error_log("[Prontoo rate limit] Controle atômico indisponível.");
+        return true;
+    }
+    $locked = false;
+    $now = time();
+    try {
+        $locked = flock($handle, LOCK_EX);
+        if (!$locked) {
+            error_log("[Prontoo rate limit] Trava atômica indisponível.");
+            return true;
+        }
+        rewind($handle);
+        $raw = stream_get_contents($handle);
+        $state = is_string($raw) && $raw !== ""
+            ? json_decode($raw, true)
+            : [];
+        if (!is_array($state)) {
+            $state = [];
+        }
+        $hits = array_values(
+            array_filter(
+                array_map("intval", $state),
+                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($t) => $t > $now - $windowSeconds,
+            ),
+        );
+        $limited = count($hits) >= $limit;
+        if (!$limited) {
+            $hits[] = $now;
+        }
+        $encoded = json_encode($hits, JSON_UNESCAPED_SLASHES);
+        if (!is_string($encoded)) {
+            return true;
+        }
+        rewind($handle);
+        $written = false;
+        if (ftruncate($handle, 0)) {
+            $written = fwrite($handle, $encoded);
+        }
+        if ($written !== strlen($encoded) || !fflush($handle)) {
+            error_log("[Prontoo rate limit] Estado atômico não pôde ser salvo.");
+            return true;
+        }
+        @chmod($file, 0640);
+        return $limited;
+    } finally {
+        if ($locked) {
+            flock($handle, LOCK_UN);
+        }
+        fclose($handle);
+    }
 }
 function security_client_bucket(string $prefix): string
 {
@@ -712,8 +754,10 @@ function device_secure_cookie(): bool
      * Efeitos colaterais: consome dados da requisição HTTP.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    return (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
-        ($_SERVER["HTTP_X_FORWARDED_PROTO"] ?? "") === "https";
+    return function_exists("security_https_active")
+        ? security_https_active()
+        : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
+            (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
 }
 function device_cookie_set(string $value, int $expires): void
 {
