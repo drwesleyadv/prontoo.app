@@ -1,3 +1,19 @@
+Prontoo 1.7.23.2 — integridade matemática e conservação dos dados
+
+- Encadeia cada novo registro de auditoria ao hash anterior sob trava transacional, ancora a cabeça da cadeia em `pi_meta` e passa a detectar adulteração do contexto da prova, remoção, reordenação e truncamento.
+- Torna obrigatória a gravação da prova de mutação no mesmo commit dos dados protegidos; falha de ledger agora desfaz a transação e eventos pendentes nunca são descartados por tolerância a erro.
+- Adota uma única orientação para movimentos financeiros: destino soma e origem subtrai, com cardinalidade válida por natureza, extremos distintos, vínculo de sessão e escopo de consultório.
+- Materializa sobras e faltas de abertura ou fechamento como ajustes compensatórios, preservando a conservação global sem mudar o fluxo operacional do usuário.
+- Exige reconciliação algébrica antes da aprovação e da consolidação: declarado = mantido + transferido, diferença = declarado − esperado e posição final da Gaveta = saldo mantido.
+- Grava em cada consolidação um hash SHA-256 canônico das sessões, movimentos, métricas diárias e posição financeira reconciliada.
+- Torna movimentos de dias consolidados imutáveis em uma guarda central aplicada a toda atualização ou exclusão.
+- Fecha o domínio monetário no intervalo INT assinado comum, elimina aritmética por `float`, rejeita notação exponencial e mais de duas casas decimais e bloqueia overflow em somas e saldos.
+- Unifica previsto, recebido e pendente no mesmo dia civil do consultório e exclui agendamentos cancelados, ausentes ou reagendados das projeções.
+- Resolve meses, metas e partições de consultas no fuso do consultório, inclusive nas horas próximas à virada UTC.
+- Faz o EWMA do Maestro aprender somente com execuções reais; adiamentos incrementam apenas o contador de saltos e preservam duração, rendimento e último instante executado.
+- Acrescenta ao CI testes de propriedades para cadeia criptográfica, conservação financeira, domínio numérico, partição temporal, EWMA e atomicidade do ledger.
+- Não altera banco, schema, composição visual ou passos das jornadas do usuário.
+
 Prontoo 1.7.23.1 — hardening red team e isolamento de consultas
 
 - Limita `patient_lookup` a 6 consultas por usuário e consultório em uma janela móvel de 60 segundos, com bloqueio HTTP 429 e aviso na própria tela.
