@@ -191,7 +191,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.23.3";
+const PRONTOO_VERSION_FALLBACK = "1.7.23.4";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -320,7 +320,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.23.2";
+const PRONTOO_PREVIOUS_VERSION = "1.7.23.3";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
@@ -406,8 +406,9 @@ const PRONTOO_MAESTRO_PI_BATCH_SIZE = 120;
 const PRONTOO_MAESTRO_SEQUENCE_BUDGET_MS = 12000;
 const PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS = 43200;
 const PRONTOO_RUNTIME_SELF_CHECK_TTL_SECONDS = 43200;
-const PRONTOO_SESSION_IDLE_SECONDS = 14400;
+const PRONTOO_SESSION_IDLE_SECONDS = 3600;
 const PRONTOO_SESSION_ABSOLUTE_SECONDS = 43200;
+const PRONTOO_AUTH_POLICY_GENERATION = "prontoo-auth-mfa-v1";
 const PRONTOO_ROLES = [
     "recepcionista" => "Recepção",
     "assistente" => "Assistente",

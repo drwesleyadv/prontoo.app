@@ -926,7 +926,7 @@ function install_form(array $checks): void
                 "admin_password",
                 "password",
                 "",
-                'required minlength="8" data-password-strength data-password-toggle',
+                'required minlength="15" maxlength="128" data-password-strength data-password-toggle',
             ),
         ) .
         '<button type="submit" class="primary wide"' .
@@ -1005,7 +1005,7 @@ function prontoo_install(): void
         }
         if (!password_ok($adminPass)) {
             install_error(
-                "A senha do Desenvolvedor precisa ter pelo menos 8 caracteres e dois tipos de caractere.",
+                "A senha do Desenvolvedor precisa ter entre 15 e 128 caracteres e não pode ser uma senha comum.",
             );
             return;
         }

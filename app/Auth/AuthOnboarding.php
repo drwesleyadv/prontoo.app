@@ -549,24 +549,7 @@ function login_last_credential_from_devices(int $uid): ?array
      * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    if (
-        $uid <= 0 ||
-        !has_cfg() ||
-        !function_exists("db_table_exists") ||
-        !db_table_exists("pi_user_devices")
-    ) {
-        return null;
-    }
-    try {
-        $row = one(
-            "SELECT scope,clinic_role_id FROM pi_user_devices WHERE user_id=? AND revoked_at IS NULL AND scope IN ('global','clinic') ORDER BY COALESCE(last_seen_at,updated_at,created_at) DESC, id DESC LIMIT 1",
-            [$uid],
-        );
-        return $row ? login_last_credential_normalize($row) : null;
-    } catch (Throwable $e) {
-        error_log("[Prontoo login last credential device] " . $e->getMessage());
-        return null;
-    }
+    return null;
 }
 function login_credential_match(
     int $uid,
@@ -632,15 +615,6 @@ function login_resolve_user_credential(
     if ($fromMeta) {
         return $fromMeta;
     }
-    $fromDevice = login_credential_match(
-        $uid,
-        $isAdmin,
-        $choices,
-        login_last_credential_from_devices($uid),
-    );
-    if ($fromDevice) {
-        return $fromDevice;
-    }
     if (count($choices) > 0) {
         return [
             "scope" => "clinic",
@@ -660,7 +634,6 @@ function login_resolve_user_credential(
 function login_apply_resolved_credential(
     int $uid,
     array $credential,
-    ?array $devicePayload = null,
 ): void {
     /*
      * GUIA DE MANUTENÇÃO — login_apply_resolved_credential
@@ -675,9 +648,11 @@ function login_apply_resolved_credential(
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
     $scope = (string) ($credential["scope"] ?? "clinic");
-    session_harden_after_login();
+    session_harden_after_login($uid);
     $_SESSION["uid"] = $uid;
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+    mfa_pending_login_clear();
+    security_clear_legacy_device_cookie();
     if ($scope === "global") {
         $_SESSION["scope"] = "global";
         unset(
@@ -689,12 +664,7 @@ function login_apply_resolved_credential(
         developer_first_login_clear_json_cache($uid);
         mark_login_success($uid);
         login_last_credential_remember($uid, "global", null);
-        device_session_remember_after_login(
-            $uid,
-            "global",
-            null,
-            $devicePayload,
-        );
+        security_retire_persistent_devices_for_user($uid);
         audit("entrada_realizada", "usuario", $uid, [
             "scope" => "global",
             "audit_body" =>
@@ -715,12 +685,7 @@ function login_apply_resolved_credential(
     $_SESSION["effective_roles"] = [(string) $choice["role_code"]];
     mark_login_success($uid);
     login_last_credential_remember($uid, "clinic", (int) $choice["id"]);
-    device_session_remember_after_login(
-        $uid,
-        "clinic",
-        (int) $choice["id"],
-        $devicePayload,
-    );
+    security_retire_persistent_devices_for_user($uid);
     audit("entrada_realizada", "usuario", $uid, [
         "clinic_id" => (int) $choice["clinic_id"],
         "role_code" => (string) $choice["role_code"],
@@ -814,6 +779,363 @@ function developer_first_login_clear_json_cache(int $uid): bool
         }
     }
 }
+/* Guia de manutenção: Limpa integralmente o estado temporário de MFA para impedir reaproveitamento entre tentativas. */
+function mfa_pending_login_clear(): void
+{
+    unset(
+        $_SESSION["pending_mfa_login"],
+        $_SESSION["mfa_enrollment_secret"],
+        $_SESSION["mfa_recovery_codes"],
+        $_SESSION["mfa_pending_verified"],
+    );
+}
+/* Guia de manutenção: Cria sessão pré-autenticada curta para o desafio MFA do Desenvolvedor. */
+function mfa_begin_pending_login(int $uid, array $credential): void
+{
+    session_regenerate_id(true);
+    $_SESSION["csrf"] = bin2hex(random_bytes(32));
+    $_SESSION["pending_mfa_login"] = [
+        "uid" => $uid,
+        "scope" => (string) ($credential["scope"] ?? "clinic"),
+        "clinic_role_id" => (int) ($credential["clinic_role_id"] ?? 0),
+        "issued_at" => time(),
+        "user_auth_generation" => user_auth_generation_ensure($uid),
+    ];
+    unset(
+        $_SESSION["mfa_enrollment_secret"],
+        $_SESSION["mfa_recovery_codes"],
+        $_SESSION["mfa_pending_verified"],
+    );
+}
+/* Guia de manutenção: Revalida usuário, privilégio, prazo e geração antes de aceitar o estado pré-autenticado. */
+function mfa_pending_login_user(): ?array
+{
+    $pending = $_SESSION["pending_mfa_login"] ?? null;
+    if (
+        !is_array($pending) ||
+        (int) ($pending["uid"] ?? 0) <= 0 ||
+        time() - (int) ($pending["issued_at"] ?? 0) > 300
+    ) {
+        mfa_pending_login_clear();
+        return null;
+    }
+    $uid = (int) $pending["uid"];
+    $user = one(
+        "SELECT id,name,email,password_hash,is_global_admin,active FROM pi_users WHERE id=? AND active=1 LIMIT 1",
+        [$uid],
+    );
+    if (
+        !$user ||
+        (int) ($user["is_global_admin"] ?? 0) !== 1 ||
+        !hash_equals(
+            user_auth_generation_current($uid),
+            (string) ($pending["user_auth_generation"] ?? ""),
+        )
+    ) {
+        mfa_pending_login_clear();
+        return null;
+    }
+    return $user;
+}
+/* Guia de manutenção: Converte desafio MFA aprovado em sessão autenticada usando credencial revalidada. */
+function mfa_complete_pending_login(): void
+{
+    $user = mfa_pending_login_user();
+    $pending = $_SESSION["pending_mfa_login"] ?? null;
+    if (
+        !$user ||
+        !is_array($pending) ||
+        empty($_SESSION["mfa_pending_verified"])
+    ) {
+        mfa_pending_login_clear();
+        redirect("login", ["relogin" => "1"]);
+    }
+    $uid = (int) $user["id"];
+    $choices = active_clinic_roles_for_user($uid);
+    $wanted = [
+        "scope" => (string) ($pending["scope"] ?? "clinic"),
+        "clinic_role_id" => (int) ($pending["clinic_role_id"] ?? 0),
+    ];
+    $credential = login_credential_match(
+        $uid,
+        true,
+        $choices,
+        $wanted,
+    );
+    if (!$credential) {
+        $credential = login_resolve_user_credential($uid, true, $choices);
+    }
+    if (!$credential) {
+        mfa_pending_login_clear();
+        throw new RuntimeException(
+            "Não foi possível carregar a credencial do Desenvolvedor.",
+        );
+    }
+    mfa_pending_login_clear();
+    $_SESSION["mfa_verified_at"] = time();
+    $_SESSION["privileged_auth_at"] = time();
+    prontoo_login_post_password_maintenance($uid);
+    login_apply_resolved_credential($uid, $credential);
+}
+/* Guia de manutenção: Limita tentativas MFA simultaneamente por usuário e endereço de origem. */
+function mfa_attempt_limited(int $uid, string $purpose): bool
+{
+    return security_rate_limit(
+        security_value_bucket("mfa_" . $purpose, (string) $uid),
+        10,
+        300,
+    ) ||
+        security_rate_limit(
+            security_ip_bucket("mfa_" . $purpose),
+            30,
+            300,
+        );
+}
+/* Guia de manutenção: Apresenta cadastro obrigatório inicial e validação MFA recorrente do Desenvolvedor. */
+function page_mfa(): void
+{
+    $user = mfa_pending_login_user();
+    if (!$user) {
+        redirect("login", ["relogin" => "1"]);
+    }
+    $uid = (int) $user["id"];
+    $enrolled = mfa_is_enrolled($uid);
+    if (!$enrolled && empty($_SESSION["mfa_enrollment_secret"])) {
+        $_SESSION["mfa_enrollment_secret"] = mfa_totp_secret_generate();
+    }
+    if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        $act = (string) ($_POST["act"] ?? "");
+        if (mfa_attempt_limited($uid, "login")) {
+            flash(
+                "Muitas tentativas de autenticação. Aguarde alguns minutos.",
+                "bad",
+            );
+            redirect("mfa");
+        }
+        try {
+            if ($act === "mfa_enroll" && !$enrolled) {
+                $secret = (string) ($_SESSION["mfa_enrollment_secret"] ?? "");
+                if ($secret === "") {
+                    throw new RuntimeException(
+                        "A configuração MFA expirou. Inicie novamente.",
+                    );
+                }
+                $codes = mfa_enroll_user(
+                    $uid,
+                    $secret,
+                    (string) ($_POST["code"] ?? ""),
+                );
+                $_SESSION["mfa_recovery_codes"] = $codes;
+                $_SESSION["mfa_pending_verified"] = true;
+                unset($_SESSION["mfa_enrollment_secret"]);
+                audit("mfa_cadastrado", "usuario", $uid, [
+                    "audit_body" =>
+                        "MFA obrigatório do Desenvolvedor cadastrado e confirmado por TOTP.",
+                ]);
+                redirect("mfa");
+            }
+            if (
+                $act === "mfa_continue" &&
+                !empty($_SESSION["mfa_pending_verified"]) &&
+                !empty($_SESSION["mfa_recovery_codes"])
+            ) {
+                unset($_SESSION["mfa_recovery_codes"]);
+                mfa_complete_pending_login();
+            }
+            if ($act === "mfa_verify" && $enrolled) {
+                if (
+                    !mfa_verify_user_code(
+                        $uid,
+                        (string) ($_POST["code"] ?? ""),
+                    )
+                ) {
+                    throw new RuntimeException(
+                        "O código de autenticação não confere.",
+                    );
+                }
+                $_SESSION["mfa_pending_verified"] = true;
+                audit("mfa_validado", "usuario", $uid, [
+                    "audit_body" =>
+                        "Segundo fator do Desenvolvedor validado antes da criação da sessão autenticada.",
+                ]);
+                mfa_complete_pending_login();
+            }
+            throw new RuntimeException("Ação MFA inválida.");
+        } catch (Throwable $e) {
+            usleep(random_int(250000, 450000));
+            audit("falha_mfa", "login", $uid, [
+                "motivo_hash" => hash("sha256", $e->getMessage()),
+            ]);
+            flash(
+                app_public_error_message(
+                    $e,
+                    "Não foi possível validar o segundo fator.",
+                ),
+                "bad",
+            );
+            redirect("mfa");
+        }
+    }
+    $recovery = (array) ($_SESSION["mfa_recovery_codes"] ?? []);
+    if ($recovery) {
+        $items = "";
+        foreach ($recovery as $code) {
+            $items .= "<li><code>" . e((string) $code) . "</code></li>";
+        }
+        $body =
+            '<section class="auth login-card"><span class="eyebrow">Segurança obrigatória</span><h1>Códigos de recuperação</h1><p>Guarde estes códigos em local seguro. Cada código funciona uma única vez e não será exibido novamente.</p><ul class="recovery-code-list">' .
+            $items .
+            '</ul><form method="post">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="mfa_continue"><button type="submit" class="primary wide">Continuar</button></form></section>';
+        page("Códigos de recuperação", $body, ["public" => true]);
+        return;
+    }
+    if (!$enrolled) {
+        $secret = (string) $_SESSION["mfa_enrollment_secret"];
+        $account =
+            trim((string) ($user["email"] ?? "")) ?:
+            ((string) ($user["name"] ?? "Desenvolvedor") . " #" . $uid);
+        $uri = mfa_otpauth_uri($account, $secret);
+        $body =
+            '<section class="auth login-card"><span class="eyebrow">Primeiro acesso do Desenvolvedor</span><h1>Cadastre o MFA</h1><p>Adicione esta conta a um aplicativo autenticador por meio do link ou da chave manual. Depois, informe o código de seis dígitos.</p><p><a class="ghost wide" href="' .
+            e($uri) .
+            '">Abrir no autenticador</a></p><div class="mfa-secret"><span>Chave manual</span><code>' .
+            e($secret) .
+            '</code></div><form method="post" class="compact">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="mfa_enroll">' .
+            form_row(
+                "Código do autenticador",
+                input(
+                    "code",
+                    "text",
+                    "",
+                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"',
+                ),
+            ) .
+            '<button type="submit" class="primary wide">Confirmar e cadastrar</button></form></section>';
+        page("Cadastrar MFA", $body, ["public" => true]);
+        return;
+    }
+    $body =
+        '<section class="auth login-card"><span class="eyebrow">Desenvolvedor</span><h1>Confirme o segundo fator</h1><p>Informe o código do aplicativo autenticador ou um código de recuperação.</p><form method="post" class="compact">' .
+        csrf_field() .
+        '<input type="hidden" name="act" value="mfa_verify">' .
+        form_row(
+            "Código de autenticação",
+            input(
+                "code",
+                "text",
+                "",
+                'required autocomplete="one-time-code" maxlength="16"',
+            ),
+        ) .
+        '<button type="submit" class="primary wide">Validar e entrar</button></form></section>';
+    page("Confirmar MFA", $body, ["public" => true]);
+}
+/* Guia de manutenção: Exige nova senha e MFA para elevar sessão clínica ao Painel do Desenvolvedor. */
+function page_global_reauth(): void
+{
+    $c = need_login();
+    if (($c["scope"] ?? "") === "global") {
+        redirect("admin_painel");
+    }
+    $uid = (int) ($c["user"]["id"] ?? 0);
+    $user = one(
+        "SELECT id,name,password_hash,is_global_admin,active FROM pi_users WHERE id=? AND active=1 LIMIT 1",
+        [$uid],
+    );
+    if (
+        !$user ||
+        (int) ($user["is_global_admin"] ?? 0) !== 1 ||
+        !mfa_is_enrolled($uid)
+    ) {
+        throw new ProntooHttpError(
+            403,
+            "Ambiente global indisponível para este usuário.",
+        );
+    }
+    if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        try {
+            if (mfa_attempt_limited($uid, "elevation")) {
+                throw new RuntimeException(
+                    "Muitas tentativas. Aguarde alguns minutos.",
+                );
+            }
+            $password = (string) ($_POST["password"] ?? "");
+            $code = (string) ($_POST["code"] ?? "");
+            if (
+                !password_verify($password, (string) $user["password_hash"]) ||
+                !mfa_verify_user_code($uid, $code)
+            ) {
+                usleep(random_int(250000, 450000));
+                throw new RuntimeException(
+                    "A senha ou o código de autenticação não confere.",
+                );
+            }
+            session_regenerate_id(true);
+            $_SESSION["csrf"] = bin2hex(random_bytes(32));
+            $_SESSION["scope"] = "global";
+            $_SESSION["mfa_verified_at"] = time();
+            $_SESSION["privileged_auth_at"] = time();
+            unset(
+                $_SESSION["uc_id"],
+                $_SESSION["clinic_id"],
+                $_SESSION["role_code"],
+                $_SESSION["effective_roles"],
+            );
+            login_last_credential_remember($uid, "global", null);
+            audit("elevacao_global_reautenticada", "usuario", $uid, [
+                "scope" => "global",
+                "audit_body" =>
+                    "Entrada no Painel do Desenvolvedor autorizada após nova confirmação de senha e MFA.",
+            ]);
+            redirect("admin_painel");
+        } catch (Throwable $e) {
+            audit("falha_elevacao_global", "seguranca", $uid, [
+                "motivo_hash" => hash("sha256", $e->getMessage()),
+            ]);
+            flash(
+                app_public_error_message(
+                    $e,
+                    "Não foi possível confirmar a elevação de acesso.",
+                ),
+                "bad",
+            );
+            redirect("global_reauth");
+        }
+    }
+    $body =
+        page_head(
+            "Confirmar acesso de Desenvolvedor",
+            "Esta elevação exige nova autenticação.",
+        ) .
+        '<section class="card account-card"><form method="post" class="compact">' .
+        csrf_field() .
+        form_row(
+            "Senha atual",
+            input(
+                "password",
+                "password",
+                "",
+                'required autocomplete="current-password"',
+            ),
+        ) .
+        form_row(
+            "Código MFA",
+            input(
+                "code",
+                "text",
+                "",
+                'required autocomplete="one-time-code" maxlength="16"',
+            ),
+        ) .
+        '<div class="form-actions"><button type="submit" class="primary">Confirmar acesso</button><a class="ghost" href="' .
+        href("profile") .
+        '">Cancelar</a></div></form></section>';
+    page("Confirmar acesso", $body);
+}
 function page_login(): void
 {
     /*
@@ -837,13 +1159,10 @@ function page_login(): void
         login_session_forget();
     }
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        login_locks_cleanup_maybe();
         $cpf = only_digits($_POST["cpf"] ?? "");
         $_SESSION["login_last_cpf"] = $cpf;
-        if (!valid_cpf($cpf)) {
-            login_session_forget();
-            flash("Este CPF não existe.", "bad");
-            redirect("login");
-        }
+        $cpfValid = valid_cpf($cpf);
         [$loginSubjectHash, $loginIpHash] = login_key($cpf);
         $loginAttemptLock =
             "prontoo_login_" .
@@ -868,10 +1187,12 @@ function page_login(): void
                 if ($wait > 0) {
                     $loginAttemptState = "locked";
                 } else {
-                    $person = one(
-                        "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
-                        [$cpf],
-                    );
+                    $person = $cpfValid
+                        ? one(
+                            "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
+                            [$cpf],
+                        )
+                        : null;
                     $userRow = $person
                         ? one(
                             "SELECT id uid,password_hash,active,is_global_admin FROM pi_users WHERE person_id=? LIMIT 1",
@@ -881,14 +1202,20 @@ function page_login(): void
                     if ($person && $userRow) {
                         $person += $userRow;
                     }
+                    $passwordValid = $person && $userRow
+                        ? password_verify(
+                            (string) $_POST["password"],
+                            (string) $person["password_hash"],
+                        )
+                        : password_verify(
+                            (string) ($_POST["password"] ?? ""),
+                            '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.',
+                        );
                     if (
                         !$person ||
                         !$userRow ||
                         !(int) $person["active"] ||
-                        !password_verify(
-                            (string) $_POST["password"],
-                            (string) $person["password_hash"],
-                        )
+                        !$passwordValid
                     ) {
                         $wait = login_fail($cpf);
                         $loginAttemptState = "invalid";
@@ -927,7 +1254,11 @@ function page_login(): void
             redirect("login");
         }
         if ($loginAttemptState === "invalid") {
-            login_session_remember($cpf, $wait, "A senha não confere.");
+            login_session_remember(
+                $cpf,
+                $wait,
+                "CPF ou senha não conferem.",
+            );
             audit("falha_entrada", "login", null, [
                 "cpf" => $cpf,
                 "aguarde_segundos" => $wait,
@@ -936,7 +1267,6 @@ function page_login(): void
         }
         login_session_forget();
         $uid = (int) $person["uid"];
-        prontoo_login_post_password_maintenance($uid);
         $choices = active_clinic_roles_for_user($uid);
         $credential = login_resolve_user_credential(
             $uid,
@@ -945,25 +1275,29 @@ function page_login(): void
         );
         if (!$credential) {
             $w = login_fail($cpf);
-            login_session_remember($cpf, $w, "A senha não confere.");
+            login_session_remember(
+                $cpf,
+                $w,
+                "CPF ou senha não conferem.",
+            );
             audit("falha_entrada", "login", null, [
                 "cpf" => $cpf,
                 "motivo" => "sem vínculo clínico ativo",
                 "aguarde_segundos" => $w,
             ]);
-            flash("Este CPF não possui vínculo ativo com uma clínica.", "bad");
             redirect("login");
         }
-        login_apply_resolved_credential(
-            $uid,
-            $credential,
-            device_login_payload_from_post(),
-        );
+        if ((int) $person["is_global_admin"] === 1) {
+            mfa_begin_pending_login($uid, $credential);
+            redirect("mfa");
+        }
+        prontoo_login_post_password_maintenance($uid);
+        login_apply_resolved_credential($uid, $credential);
     }
     $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
     $prefill = e($_SESSION["login_last_cpf"] ?? "");
     $lockTitle = e(
-        (string) ($_SESSION["login_lock_message"] ?? "A senha não confere."),
+        (string) ($_SESSION["login_lock_message"] ?? "CPF ou senha não conferem."),
     );
     $reloginNotice =
         (string) ($_GET["relogin"] ?? "") === "1"
@@ -997,7 +1331,6 @@ function page_login(): void
         ($wait > 0 ? "1" : "0") .
         '" class="login-form">' .
         csrf_field() .
-        device_login_fields() .
         form_row(
             "CPF",
             input(
@@ -1014,7 +1347,7 @@ function page_login(): void
                     "password",
                     "password",
                     "",
-                    'required minlength="8" autocomplete="current-password" placeholder="Sua senha" data-login-password data-password-toggle',
+                    'required minlength="15" maxlength="128" autocomplete="current-password" placeholder="Sua senha" data-login-password data-password-toggle',
                 ) .
                 '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
                 icon("visibility") .
@@ -1051,6 +1384,37 @@ function login_key(string $cpf): array
         hash_hmac("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "|ip", $secret),
     ];
 }
+/* Guia de manutenção: Deriva buckets por credencial, usuário e origem para conter ataques distribuídos. */
+function login_bucket_keys(string $cpf): array
+{
+    [$subject, $ip] = login_key($cpf);
+    $secret = secret_key();
+    return [
+        [$subject, $ip],
+        [
+            $subject,
+            hash_hmac("sha256", "login|all-ip-addresses", $secret),
+        ],
+        [
+            hash_hmac("sha256", "login|all-subjects", $secret),
+            $ip,
+        ],
+    ];
+}
+/* Guia de manutenção: Remove controles de login antigos oportunisticamente para limitar crescimento da tabela. */
+function login_locks_cleanup_maybe(): void
+{
+    if (random_int(1, 64) !== 1) {
+        return;
+    }
+    try {
+        q(
+            "DELETE FROM pi_login_locks WHERE locked_until<UNIX_TIMESTAMP()-604800 LIMIT 500",
+        );
+    } catch (Throwable $e) {
+        error_log("[Prontoo login lock cleanup] " . $e->getMessage());
+    }
+}
 function login_lock(string $cpf): int
 {
     /*
@@ -1063,11 +1427,19 @@ function login_lock(string $cpf): int
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     try {
-        [$s, $i] = login_key($cpf);
+        [$pair, $subject, $ip] = login_bucket_keys($cpf);
         $now = time();
         $r = one(
-            "SELECT GREATEST(0, locked_until - ?) AS wait_seconds FROM pi_login_locks WHERE subject_hash=? AND ip_hash=?",
-            [$now, $s, $i],
+            "SELECT MAX(GREATEST(0,locked_until-?)) AS wait_seconds FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
+            [
+                $now,
+                $pair[0],
+                $pair[1],
+                $subject[0],
+                $subject[1],
+                $ip[0],
+                $ip[1],
+            ],
         );
         if (!$r) {
             return 0;
@@ -1091,27 +1463,39 @@ function login_fail(string $cpf): int
      */
     $seconds = 60;
     try {
-        [$s, $i] = login_key($cpf);
-        q(
-            "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until)
-             VALUES (?,?,1,UNIX_TIMESTAMP()+60)
-             ON DUPLICATE KEY UPDATE
-               fail_count=LEAST(11,fail_count+1),
-               locked_until=UNIX_TIMESTAMP()+CAST(
-                 LEAST(
-                   86400,
-                   60*POW(2,LEAST(10,GREATEST(0,fail_count-1)))
-                 ) AS UNSIGNED
-               )",
-            [$s, $i],
-        );
-        $r = one(
-            "SELECT GREATEST(0,locked_until-UNIX_TIMESTAMP()) wait_seconds
-             FROM pi_login_locks
-             WHERE subject_hash=? AND ip_hash=?",
-            [$s, $i],
-        );
-        $seconds = max(1, (int) ($r["wait_seconds"] ?? 60));
+        [$pair, $subject, $ip] = login_bucket_keys($cpf);
+        $buckets = [
+            [$pair, 1, 2, 900],
+            [$subject, 5, 60, 86400],
+            [$ip, 20, 60, 3600],
+        ];
+        foreach ($buckets as [$keys, $threshold, $base, $cap]) {
+            q(
+                "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until,updated_at)
+                 VALUES (?,?,1,IF(?<=1,UNIX_TIMESTAMP()+?,0),NOW())
+                 ON DUPLICATE KEY UPDATE
+                   locked_until=CASE
+                     WHEN fail_count+1>=? THEN UNIX_TIMESTAMP()+CAST(
+                       LEAST(?,?*POW(2,LEAST(10,GREATEST(0,fail_count+1-?))))
+                       AS UNSIGNED
+                     )
+                     ELSE COALESCE(locked_until,0)
+                   END,
+                   fail_count=LEAST(100000,fail_count+1),
+                   updated_at=NOW()",
+                [
+                    $keys[0],
+                    $keys[1],
+                    $threshold,
+                    $base,
+                    $threshold,
+                    $cap,
+                    $base,
+                    $threshold,
+                ],
+            );
+        }
+        $seconds = max(1, login_lock($cpf));
     } catch (Throwable $e) {
         error_log("[Prontoo login_fail] " . $e->getMessage());
     }
@@ -1129,11 +1513,11 @@ function login_clear(string $cpf): void
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
     try {
-        [$s, $i] = login_key($cpf);
-        q("DELETE FROM pi_login_locks WHERE subject_hash=? AND ip_hash=?", [
-            $s,
-            $i,
-        ]);
+        [$pair, $subject] = login_bucket_keys($cpf);
+        q(
+            "DELETE FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
+            [$pair[0], $pair[1], $subject[0], $subject[1]],
+        );
     } catch (Throwable $e) {
         error_log("[Prontoo login_clear] " . $e->getMessage());
     }
@@ -1176,7 +1560,7 @@ function mark_login_success(int $uid): void
 function login_session_remember(
     string $cpf,
     int $wait,
-    string $message = "A senha não confere.",
+    string $message = "CPF ou senha não conferem.",
 ): void {
     /*
      * GUIA DE MANUTENÇÃO — login_session_remember
@@ -1384,7 +1768,7 @@ function page_signup(): void
                 if (!password_ok($pass)) {
                     db_rollback();
                     flash(
-                        "Use senha com pelo menos 8 caracteres e dois tipos de caractere.",
+                        "Use senha com 15 a 128 caracteres que não seja uma senha comum.",
                         "bad",
                     );
                     redirect("signup");
@@ -1563,7 +1947,7 @@ function page_signup(): void
                     "password",
                     "password",
                     "",
-                    'required minlength="8" autocomplete="new-password" placeholder="Senha nova ou senha atual se o CPF já existir" data-password-strength data-password-toggle',
+                    'required minlength="15" maxlength="128" autocomplete="new-password" placeholder="Senha nova ou senha atual se o CPF já existir" data-password-strength data-password-toggle',
                 ) .
                 '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
                 icon("visibility") .
@@ -2035,9 +2419,21 @@ function page_logout(): void
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         redirect("login");
     }
-    audit("saida_realizada", "usuario", $_SESSION["uid"] ?? null);
-    device_session_revoke_current();
-    secure_session_destroy();
+    $uid = (int) ($_SESSION["uid"] ?? 0);
+    try {
+        if ($uid > 0) {
+            user_auth_generation_rotate($uid);
+            security_retire_persistent_devices_for_user($uid);
+        }
+        audit("saida_realizada", "usuario", $uid ?: null, [
+            "audit_body" =>
+                "Logout concluído com revogação da geração de autenticação do usuário.",
+        ]);
+    } catch (Throwable $e) {
+        error_log("[Prontoo logout revocation] " . $e->getMessage());
+    } finally {
+        secure_session_destroy();
+    }
     header("Location: " . href("login"));
     exit();
 }
@@ -2132,7 +2528,7 @@ function page_profile(): void
                 }
                 if (!password_ok($new)) {
                     throw new RuntimeException(
-                        "A nova senha precisa ter pelo menos 8 caracteres e dois tipos de caractere.",
+                        "A nova senha precisa ter entre 15 e 128 caracteres e não pode ser uma senha comum.",
                     );
                 }
                 if (password_verify($new, (string) $u["password_hash"])) {
@@ -2140,17 +2536,24 @@ function page_profile(): void
                         "A nova senha precisa ser diferente da senha atual.",
                     );
                 }
+                db_begin_transaction();
                 q(
                     "UPDATE pi_users SET password_hash=?, updated_at=NOW() WHERE id=?",
                     [password_hash_secure($new), $uid],
                 );
+                user_auth_generation_rotate($uid);
+                security_retire_persistent_devices_for_user($uid);
                 audit("senha_redefinida", "usuario", $uid, [
                     "target_name" => (string) ($u["name"] ?? ""),
                     "audit_body" =>
-                        "O próprio usuário alterou a senha após confirmar a senha atual.",
+                        "O próprio usuário alterou a senha; todas as sessões anteriores foram revogadas.",
                 ]);
-                flash("Senha alterada.");
-                redirect("profile");
+                db_commit();
+                secure_session_destroy();
+                header(
+                    "Location: " . href("login", ["relogin" => "1"]),
+                );
+                exit();
             }
             if ($act === "profile_switch_environment") {
                 $target = (string) ($_POST["environment"] ?? "");
@@ -2160,26 +2563,7 @@ function page_profile(): void
                             "Ambiente indisponível para este usuário.",
                         );
                     }
-                    $_SESSION["uid"] = $uid;
-                    $_SESSION["scope"] = "global";
-                    unset(
-                        $_SESSION["uc_id"],
-                        $_SESSION["clinic_id"],
-                        $_SESSION["role_code"],
-                        $_SESSION["effective_roles"],
-                    );
-                    if (
-                        function_exists("device_session_update_current_context")
-                    ) {
-                        device_session_update_current_context("global", null);
-                    }
-                    audit("area_trabalho_alterada", "usuario", $uid, [
-                        "scope" => "global",
-                        "audit_body" =>
-                            "Ambiente alterado para Painel do Desenvolvedor na página do usuário.",
-                    ]);
-                    flash("Ambiente alterado para Desenvolvedor.");
-                    redirect("admin_painel");
+                    redirect("global_reauth");
                 }
                 if (!preg_match('/^role:(\d+)$/', $target, $m)) {
                     throw new RuntimeException("Escolha um ambiente válido.");
@@ -2202,12 +2586,6 @@ function page_profile(): void
                 $_SESSION["clinic_id"] = $cid;
                 $_SESSION["role_code"] = $role;
                 $_SESSION["effective_roles"] = [$role];
-                if (function_exists("device_session_update_current_context")) {
-                    device_session_update_current_context(
-                        "clinic",
-                        (int) $link["id"],
-                    );
-                }
                 audit("area_trabalho_alterada", "usuario", $uid, [
                     "clinic_id" => $cid,
                     "role_code" => $role,
@@ -2313,7 +2691,7 @@ function page_profile(): void
                 "new_password",
                 "password",
                 "",
-                'required minlength="8" autocomplete="new-password" data-password-strength',
+                'required minlength="15" maxlength="128" autocomplete="new-password" data-password-strength',
             ),
         ) .
         form_row(
@@ -2322,7 +2700,7 @@ function page_profile(): void
                 "new_password_confirm",
                 "password",
                 "",
-                'required minlength="8" autocomplete="new-password"',
+                'required minlength="15" maxlength="128" autocomplete="new-password"',
             ),
         ) .
         '</div><div class="form-actions"><button type="submit" class="primary">' .
@@ -2746,7 +3124,7 @@ function page_onboarding(): void
                 "team_password",
                 "password",
                 "",
-                'minlength="8" autocomplete="new-password" data-password-strength',
+                'minlength="15" maxlength="128" autocomplete="new-password" data-password-strength',
             ),
         ) .
         '</div></section><section class="wizard-step" data-wizard-step="3" hidden><div class="wizard-step-title"><span>' .

@@ -202,8 +202,65 @@ if (!str_contains($securityAccessSource, 'storage_path("cache/rate-limits")') ||
 }
 $authSecuritySource = (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php');
 if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
-    !str_contains($authSecuritySource, 'fail_count=LEAST(11,fail_count+1)')) {
+    !str_contains($authSecuritySource, 'fail_count=LEAST(100000,fail_count+1)') ||
+    !str_contains($authSecuritySource, 'login|all-ip-addresses') ||
+    !str_contains($authSecuritySource, 'login|all-subjects') ||
+    !str_contains($authSecuritySource, 'login_locks_cleanup_maybe();')) {
     $errors[] = 'atomic_login_limit_policy';
+}
+$prontooSecuritySource = (string) file_get_contents($root . '/app/prontoo.php');
+if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600\s*;/', $prontooSecuritySource) ||
+    !str_contains($prontooSecuritySource, 'PRONTOO_AUTH_POLICY_GENERATION')) {
+    $errors[] = 'session_idle_or_policy_generation';
+}
+if (!preg_match('/function\s+device_session_auto_login\(\):\s*bool\s*\{.*?return\s+false\s*;\s*\}/s', $securityAccessSource) ||
+    !str_contains($securityAccessSource, 'setcookie(device_cookie_name(), "",') ||
+    !str_contains($securityAccessSource, 'security_retire_persistent_devices_for_user') ||
+    !str_contains($securityAccessSource, 'user_auth_generation_rotate') ||
+    !str_contains($securityAccessSource, 'security_clear_legacy_device_cookie();')) {
+    $errors[] = 'persistent_device_retirement_policy';
+}
+foreach ([
+    'aes-256-gcm',
+    'function mfa_enroll_user(',
+    'function mfa_verify_user_code(',
+    '"last_counter"',
+    'SELECT GET_LOCK(?,5)',
+    'function security_global_scope_verified(',
+] as $requiredMfaPolicy) {
+    if (!str_contains($securityAccessSource, $requiredMfaPolicy)) {
+        $errors[] = 'mfa_runtime_policy:' . $requiredMfaPolicy;
+    }
+}
+foreach ([
+    'function page_mfa(): void',
+    'function page_global_reauth(): void',
+    'mfa_begin_pending_login(',
+    'password_verify($password',
+    'mfa_verify_user_code($uid, $code)',
+    'CPF ou senha não conferem.',
+    'user_auth_generation_rotate($uid);',
+] as $requiredAuthFlow) {
+    if (!str_contains($authSecuritySource, $requiredAuthFlow)) {
+        $errors[] = 'auth_flow_policy:' . $requiredAuthFlow;
+    }
+}
+if (str_contains($authSecuritySource, 'device_login_fields(') ||
+    str_contains($authSecuritySource, 'device_session_auto_login()')) {
+    $errors[] = 'persistent_device_auth_surface';
+}
+$foundationAuthSource = (string) file_get_contents($root . '/app/Support/Foundation.php');
+if (str_contains($foundationAuthSource, 'device_session_auto_login()') ||
+    !str_contains($foundationAuthSource, 'security_clear_legacy_device_cookie();')) {
+    $errors[] = 'login_autotest_persistent_device_bypass';
+}
+$runnerAuthSource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+$catalogAuthSource = (string) file_get_contents($root . '/app/Application/Authorization/ActionCatalog.php');
+foreach (['"mfa"', '"global_reauth"'] as $requiredRoute) {
+    if (!str_contains($runnerAuthSource, $requiredRoute) ||
+        !str_contains($catalogAuthSource, trim($requiredRoute, '"'))) {
+        $errors[] = 'mfa_route_contract:' . $requiredRoute;
+    }
 }
 $patientSecuritySource = (string) file_get_contents($root . '/app/Domain/Patients/Patients.php');
 if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $uid') ||

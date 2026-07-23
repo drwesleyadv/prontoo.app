@@ -56,6 +56,7 @@ function boot_security(): void
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
+    security_clear_legacy_device_cookie();
     $now = time();
     if (empty($_SESSION["born"])) {
         $_SESSION["born"] = $now;
@@ -72,14 +73,14 @@ function boot_security(): void
     if (!empty($_SESSION["uid"])) {
         $idle = (int) (defined("PRONTOO_SESSION_IDLE_SECONDS")
             ? PRONTOO_SESSION_IDLE_SECONDS
-            : 14400);
+            : 3600);
         $absolute = (int) (defined("PRONTOO_SESSION_ABSOLUTE_SECONDS")
             ? PRONTOO_SESSION_ABSOLUTE_SECONDS
             : 43200);
         $last = (int) ($_SESSION["last_activity"] ?? $now);
         $born = (int) ($_SESSION["born"] ?? $now);
         if (
-            ($idle > 0 && $now - $last > $idle) ||
+            ($idle > 0 && $now - $last >= $idle) ||
             ($absolute > 0 && $now - $born > $absolute)
         ) {
             try {
@@ -583,12 +584,10 @@ function password_ok(string $s): bool
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    $types =
-        (int) (preg_match("/[a-z]/", $s) > 0) +
-        (int) (preg_match("/[A-Z]/", $s) > 0) +
-        (int) (preg_match("/\d/", $s) > 0) +
-        (int) (preg_match("/[^a-zA-Z\d]/", $s) > 0);
-    return strlen($s) >= 8 && $types >= 2 && !password_common_rejected($s);
+    $length = mb_strlen($s);
+    return $length >= 15 &&
+        $length <= 128 &&
+        !password_common_rejected($s);
 }
 function password_hash_secure(string $password): string
 {
@@ -609,6 +608,357 @@ function password_hash_secure(string $password): string
         ]);
     }
     return password_hash($password, PASSWORD_DEFAULT);
+}
+/* Guia de manutenção: Resolve a chave canônica do cadastro MFA por usuário; mantenha o isolamento por identificador. */
+function mfa_meta_key(int $uid): string
+{
+    return "mfa_user_" . max(0, $uid);
+}
+/* Guia de manutenção: Deriva exclusivamente a chave de proteção dos segredos MFA; preserve a separação de domínio criptográfico. */
+function mfa_crypto_key(): string
+{
+    return hash_hmac(
+        "sha256",
+        "prontoo-mfa-secret-v1",
+        secret_key(),
+        true,
+    );
+}
+/* Guia de manutenção: Protege o segredo MFA com cifra autenticada; nunca persista o segredo em texto claro. */
+function mfa_secret_encrypt(string $secret): string
+{
+    if (!function_exists("openssl_encrypt")) {
+        throw new RuntimeException(
+            "Criptografia necessária para o MFA não está disponível.",
+        );
+    }
+    $nonce = random_bytes(12);
+    $tag = "";
+    $ciphertext = openssl_encrypt(
+        $secret,
+        "aes-256-gcm",
+        mfa_crypto_key(),
+        OPENSSL_RAW_DATA,
+        $nonce,
+        $tag,
+        "prontoo-mfa-v1",
+        16,
+    );
+    if (!is_string($ciphertext) || strlen($tag) !== 16) {
+        throw new RuntimeException("Não foi possível proteger o segredo MFA.");
+    }
+    return base64_encode($nonce . $tag . $ciphertext);
+}
+/* Guia de manutenção: Abre e autentica o segredo MFA persistido; falhe fechado quando a integridade não puder ser comprovada. */
+function mfa_secret_decrypt(string $encrypted): string
+{
+    if (!function_exists("openssl_decrypt")) {
+        throw new RuntimeException(
+            "Criptografia necessária para o MFA não está disponível.",
+        );
+    }
+    $payload = base64_decode($encrypted, true);
+    if (!is_string($payload) || strlen($payload) < 29) {
+        throw new RuntimeException("Cadastro MFA inválido.");
+    }
+    $secret = openssl_decrypt(
+        substr($payload, 28),
+        "aes-256-gcm",
+        mfa_crypto_key(),
+        OPENSSL_RAW_DATA,
+        substr($payload, 0, 12),
+        substr($payload, 12, 16),
+        "prontoo-mfa-v1",
+    );
+    if (!is_string($secret) || $secret === "") {
+        throw new RuntimeException("Não foi possível validar o cadastro MFA.");
+    }
+    return $secret;
+}
+/* Guia de manutenção: Carrega o cadastro MFA canônico do usuário; trate registros incompletos como não cadastrados. */
+function mfa_record_load(int $uid): ?array
+{
+    if ($uid <= 0 || !has_cfg()) {
+        return null;
+    }
+    $raw = val(
+        "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
+        [mfa_meta_key($uid)],
+    );
+    if (!is_string($raw) || trim($raw) === "") {
+        return null;
+    }
+    $record = json_decode($raw, true);
+    if (
+        !is_array($record) ||
+        (int) ($record["v"] ?? 0) !== 1 ||
+        empty($record["secret"])
+    ) {
+        return null;
+    }
+    return $record;
+}
+/* Guia de manutenção: Persiste atomicamente o cadastro MFA serializado; preserve a versão e as defesas contra repetição. */
+function mfa_record_save(int $uid, array $record): void
+{
+    $encoded = json_encode(
+        $record,
+        JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+    );
+    meta_set(mfa_meta_key($uid), $encoded);
+}
+/* Guia de manutenção: Informa se há MFA utilizável; erros de persistência não podem liberar acesso privilegiado. */
+function mfa_is_enrolled(int $uid): bool
+{
+    try {
+        return mfa_record_load($uid) !== null;
+    } catch (Throwable $e) {
+        error_log("[Prontoo MFA enrolled] " . $e->getMessage());
+        return false;
+    }
+}
+/* Guia de manutenção: Codifica segredos TOTP no alfabeto Base32 interoperável com autenticadores. */
+function mfa_base32_encode(string $bytes): string
+{
+    $alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    $buffer = 0;
+    $bits = 0;
+    $out = "";
+    $length = strlen($bytes);
+    for ($i = 0; $i < $length; $i++) {
+        $buffer = ($buffer << 8) | ord($bytes[$i]);
+        $bits += 8;
+        while ($bits >= 5) {
+            $bits -= 5;
+            $out .= $alphabet[($buffer >> $bits) & 31];
+        }
+    }
+    if ($bits > 0) {
+        $out .= $alphabet[($buffer << (5 - $bits)) & 31];
+    }
+    return $out;
+}
+/* Guia de manutenção: Decodifica Base32 estrito para validação TOTP; rejeite caracteres fora do alfabeto. */
+function mfa_base32_decode(string $value): string
+{
+    $alphabet = array_flip(
+        str_split("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"),
+    );
+    $value = strtoupper(
+        preg_replace('/[^A-Z2-7]/i', "", $value) ?? "",
+    );
+    $buffer = 0;
+    $bits = 0;
+    $out = "";
+    foreach (str_split($value) as $char) {
+        if (!isset($alphabet[$char])) {
+            throw new RuntimeException("Segredo MFA inválido.");
+        }
+        $buffer = ($buffer << 5) | (int) $alphabet[$char];
+        $bits += 5;
+        if ($bits >= 8) {
+            $bits -= 8;
+            $out .= chr(($buffer >> $bits) & 255);
+        }
+    }
+    return $out;
+}
+/* Guia de manutenção: Calcula o contador TOTP de 30 segundos; preserve a compatibilidade temporal. */
+function mfa_totp_counter(?int $timestamp = null): int
+{
+    return intdiv($timestamp ?? time(), 30);
+}
+/* Guia de manutenção: Calcula TOTP RFC 6238 de seis dígitos; preserve algoritmo e truncamento interoperáveis. */
+function mfa_totp_code(string $secret, int $counter): string
+{
+    $binary = mfa_base32_decode($secret);
+    $counterBytes = pack(
+        "N2",
+        (int) floor($counter / 4294967296),
+        $counter & 0xffffffff,
+    );
+    $hash = hash_hmac("sha1", $counterBytes, $binary, true);
+    $offset = ord($hash[19]) & 15;
+    $number =
+        ((ord($hash[$offset]) & 127) << 24) |
+        ((ord($hash[$offset + 1]) & 255) << 16) |
+        ((ord($hash[$offset + 2]) & 255) << 8) |
+        (ord($hash[$offset + 3]) & 255);
+    return str_pad(
+        (string) ($number % 1000000),
+        6,
+        "0",
+        STR_PAD_LEFT,
+    );
+}
+/* Guia de manutenção: Valida TOTP em janela curta e impede reutilização de contador já aceito. */
+function mfa_totp_matching_counter(
+    string $secret,
+    string $code,
+    int $lastCounter = -1,
+): ?int {
+    $code = preg_replace('/\D/', "", $code) ?? "";
+    if (strlen($code) !== 6) {
+        return null;
+    }
+    $current = mfa_totp_counter();
+    for ($delta = -1; $delta <= 1; $delta++) {
+        $counter = $current + $delta;
+        if (
+            $counter > $lastCounter &&
+            hash_equals(mfa_totp_code($secret, $counter), $code)
+        ) {
+            return $counter;
+        }
+    }
+    return null;
+}
+/* Guia de manutenção: Canonicaliza códigos de recuperação antes da comparação criptográfica. */
+function mfa_recovery_code_normalize(string $code): string
+{
+    return strtoupper(
+        preg_replace('/[^A-Z0-9]/i', "", trim($code)) ?? "",
+    );
+}
+/* Guia de manutenção: Produz verificador não reversível; nunca persista o código de recuperação original. */
+function mfa_recovery_code_hash(string $code): string
+{
+    return hash_hmac(
+        "sha256",
+        mfa_recovery_code_normalize($code),
+        secret_key(),
+    );
+}
+/* Guia de manutenção: Gera códigos de recuperação aleatórios e legíveis; preserve entropia e uso único. */
+function mfa_recovery_codes_generate(int $count = 10): array
+{
+    $alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    $codes = [];
+    for ($i = 0; $i < $count; $i++) {
+        $raw = "";
+        for ($j = 0; $j < 12; $j++) {
+            $raw .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+        $codes[] =
+            substr($raw, 0, 4) .
+            "-" .
+            substr($raw, 4, 4) .
+            "-" .
+            substr($raw, 8, 4);
+    }
+    return $codes;
+}
+/* Guia de manutenção: Conclui cadastro MFA somente após prova TOTP e entrega recuperação uma única vez. */
+function mfa_enroll_user(
+    int $uid,
+    string $secret,
+    string $firstCode,
+): array {
+    $lock = "prontoo_mfa_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            throw new RuntimeException(
+                "Não foi possível proteger o cadastro MFA.",
+            );
+        }
+        if (mfa_record_load($uid) !== null) {
+            throw new RuntimeException("O MFA já está cadastrado.");
+        }
+        $counter = mfa_totp_matching_counter($secret, $firstCode);
+        if ($counter === null) {
+            throw new RuntimeException(
+                "O código do autenticador não confere.",
+            );
+        }
+        $codes = mfa_recovery_codes_generate();
+        mfa_record_save($uid, [
+            "v" => 1,
+            "secret" => mfa_secret_encrypt($secret),
+            "recovery" => array_map("mfa_recovery_code_hash", $codes),
+            "last_counter" => $counter,
+            "enrolled_at" => time(),
+            "updated_at" => time(),
+        ]);
+        return $codes;
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log("[Prontoo MFA enroll unlock] " . $e->getMessage());
+            }
+        }
+    }
+}
+/* Guia de manutenção: Valida TOTP ou recuperação sob trava por usuário, consumindo provas contra repetição. */
+function mfa_verify_user_code(int $uid, string $code): bool
+{
+    $lock = "prontoo_mfa_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            return false;
+        }
+        $record = mfa_record_load($uid);
+        if (!$record) {
+            return false;
+        }
+        $secret = mfa_secret_decrypt((string) $record["secret"]);
+        $counter = mfa_totp_matching_counter(
+            $secret,
+            $code,
+            (int) ($record["last_counter"] ?? -1),
+        );
+        if ($counter !== null) {
+            $record["last_counter"] = $counter;
+            $record["updated_at"] = time();
+            mfa_record_save($uid, $record);
+            return true;
+        }
+        $normalized = mfa_recovery_code_normalize($code);
+        if (strlen($normalized) !== 12) {
+            return false;
+        }
+        $candidate = mfa_recovery_code_hash($normalized);
+        foreach ((array) ($record["recovery"] ?? []) as $index => $hash) {
+            if (hash_equals((string) $hash, $candidate)) {
+                unset($record["recovery"][$index]);
+                $record["recovery"] = array_values($record["recovery"]);
+                $record["updated_at"] = time();
+                mfa_record_save($uid, $record);
+                return true;
+            }
+        }
+        return false;
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log("[Prontoo MFA unlock] " . $e->getMessage());
+            }
+        }
+    }
+}
+/* Guia de manutenção: Gera segredo TOTP criptograficamente aleatório com tamanho interoperável. */
+function mfa_totp_secret_generate(): string
+{
+    return mfa_base32_encode(random_bytes(20));
+}
+/* Guia de manutenção: Monta URI otpauth para cadastro; preserve a codificação dos componentes. */
+function mfa_otpauth_uri(string $account, string $secret): string
+{
+    $issuer = "Prontoo";
+    return "otpauth://totp/" .
+        rawurlencode($issuer . ":" . $account) .
+        "?secret=" .
+        rawurlencode($secret) .
+        "&issuer=" .
+        rawurlencode($issuer) .
+        "&algorithm=SHA1&digits=6&period=30";
 }
 function auth_generation_current(): string
 {
@@ -631,7 +981,76 @@ function auth_generation_current(): string
         return "0";
     }
 }
-function session_harden_after_login(): void
+/* Guia de manutenção: Resolve a chave da geração de autenticação por usuário para revogação seletiva. */
+function user_auth_generation_key(int $uid): string
+{
+    return "auth_user_" . max(0, $uid);
+}
+/* Guia de manutenção: Lê a geração vigente; ausência deve falhar fechado nas sessões existentes. */
+function user_auth_generation_current(int $uid): string
+{
+    if ($uid <= 0 || !has_cfg()) {
+        return "0";
+    }
+    try {
+        return (string) (val(
+            "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
+            [user_auth_generation_key($uid)],
+        ) ?? "0");
+    } catch (Throwable $e) {
+        error_log("[Prontoo user auth generation] " . $e->getMessage());
+        return "0";
+    }
+}
+/* Guia de manutenção: Inicializa uma geração única sob trava concorrente antes de criar a sessão. */
+function user_auth_generation_ensure(int $uid): string
+{
+    $current = user_auth_generation_current($uid);
+    if ($current !== "0" && $current !== "") {
+        return $current;
+    }
+    $lock = "prontoo_auth_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            throw new RuntimeException(
+                "Não foi possível proteger a geração de autenticação.",
+            );
+        }
+        $current = user_auth_generation_current($uid);
+        if ($current === "0" || $current === "") {
+            $current = bin2hex(random_bytes(24));
+            meta_set(user_auth_generation_key($uid), $current);
+        }
+        return $current;
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log(
+                    "[Prontoo user auth generation unlock] " .
+                        $e->getMessage(),
+                );
+            }
+        }
+    }
+}
+/* Guia de manutenção: Revoga todas as sessões do usuário pela rotação criptográfica da geração. */
+function user_auth_generation_rotate(int $uid): string
+{
+    if ($uid <= 0) {
+        throw new RuntimeException("Usuário inválido para revogação de sessão.");
+    }
+    $generation = bin2hex(random_bytes(24));
+    meta_set(user_auth_generation_key($uid), $generation);
+    if (function_exists("server_json_cache_clear_categories")) {
+        server_json_cache_clear_categories(["context", "meta"]);
+    }
+    return $generation;
+}
+function session_harden_after_login(int $uid = 0): void
 {
     /*
      * GUIA DE MANUTENÇÃO — session_harden_after_login
@@ -643,10 +1062,29 @@ function session_harden_after_login(): void
      * Efeitos colaterais: lê ou altera a sessão.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
+    $mfaVerified = !empty($_SESSION["mfa_verified_at"]);
+    $privilegedVerified = !empty($_SESSION["privileged_auth_at"]);
     session_regenerate_id(true);
     $_SESSION["csrf"] = bin2hex(random_bytes(32));
-    $_SESSION["rot"] = time();
+    $now = time();
+    $_SESSION["rot"] = $now;
+    $_SESSION["born"] = $now;
+    $_SESSION["last_activity"] = $now;
+    if ($mfaVerified) {
+        $_SESSION["mfa_verified_at"] = $now;
+    }
+    if ($privilegedVerified) {
+        $_SESSION["privileged_auth_at"] = $now;
+    }
     $_SESSION["auth_generation"] = auth_generation_current();
+    $_SESSION["auth_policy_generation"] = defined(
+        "PRONTOO_AUTH_POLICY_GENERATION",
+    )
+        ? PRONTOO_AUTH_POLICY_GENERATION
+        : "password-session-v1";
+    if ($uid > 0) {
+        $_SESSION["user_auth_generation"] = user_auth_generation_ensure($uid);
+    }
 }
 function security_session_generation_enforce(int $uid): void
 {
@@ -666,7 +1104,18 @@ function security_session_generation_enforce(int $uid): void
     }
     $current = auth_generation_current();
     $session = (string) ($_SESSION["auth_generation"] ?? "");
-    if ($current === "0" || $session === $current) {
+    $policy = defined("PRONTOO_AUTH_POLICY_GENERATION")
+        ? PRONTOO_AUTH_POLICY_GENERATION
+        : "password-session-v1";
+    $sessionPolicy = (string) ($_SESSION["auth_policy_generation"] ?? "");
+    $userCurrent = user_auth_generation_current($uid);
+    $userSession = (string) ($_SESSION["user_auth_generation"] ?? "");
+    if (
+        $sessionPolicy === $policy &&
+        ($current === "0" || $session === $current) &&
+        $userCurrent !== "0" &&
+        hash_equals($userCurrent, $userSession)
+    ) {
         return;
     }
     try {
@@ -677,12 +1126,7 @@ function security_session_generation_enforce(int $uid): void
     } catch (Throwable $e) {
         error_log("[Prontoo auth generation audit] " . $e->getMessage());
     }
-    try {
-        device_session_revoke_current();
-    } catch (Throwable $e) {
-        error_log("[Prontoo auth generation device] " . $e->getMessage());
-        device_cookie_clear();
-    }
+    security_clear_legacy_device_cookie();
     secure_session_destroy();
     if (!headers_sent()) {
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -773,13 +1217,16 @@ function device_cookie_set(string $value, int $expires): void
     if (headers_sent()) {
         return;
     }
-    setcookie(device_cookie_name(), $value, [
-        "expires" => $expires,
+    // O recurso de dispositivo persistente foi descontinuado. Esta função
+    // permanece apenas como compatibilidade defensiva e nunca emite credencial.
+    setcookie(device_cookie_name(), "", [
+        "expires" => time() - 42000,
         "path" => "/",
         "secure" => device_secure_cookie(),
         "httponly" => true,
         "samesite" => "Lax",
     ]);
+    unset($_COOKIE[device_cookie_name()]);
 }
 function device_cookie_clear(): void
 {
@@ -795,6 +1242,36 @@ function device_cookie_clear(): void
      */
     device_cookie_set("", time() - 42000);
     unset($_COOKIE[device_cookie_name()]);
+}
+/* Guia de manutenção: Remove cookie legado de dispositivo persistente sem aceitar seu conteúdo. */
+function security_clear_legacy_device_cookie(): void
+{
+    if (
+        isset($_COOKIE["PRONTOO_DEVICE"]) ||
+        isset($_SERVER["HTTP_COOKIE"]) &&
+            str_contains((string) $_SERVER["HTTP_COOKIE"], "PRONTOO_DEVICE=")
+    ) {
+        device_cookie_clear();
+    }
+}
+/* Guia de manutenção: Revoga e inutiliza credenciais legadas de dispositivo persistente do usuário. */
+function security_retire_persistent_devices_for_user(int $uid): void
+{
+    if ($uid <= 0 || !has_cfg()) {
+        security_clear_legacy_device_cookie();
+        return;
+    }
+    try {
+        q(
+            "UPDATE pi_user_devices SET revoked_at=COALESCE(revoked_at,NOW()), logout_at=COALESCE(logout_at,NOW()), token_hash=SHA2(CONCAT(token_hash,':retired:',id),256), updated_at=NOW() WHERE user_id=? AND (revoked_at IS NULL OR logout_at IS NULL)",
+            [$uid],
+        );
+    } catch (Throwable $e) {
+        error_log(
+            "[Prontoo persistent device retirement] " . $e->getMessage(),
+        );
+    }
+    security_clear_legacy_device_cookie();
 }
 function device_token_hash(string $token): string
 {
@@ -986,58 +1463,7 @@ function device_session_remember_after_login(
      * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP.
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
-    if ($uid <= 0) {
-        return;
-    }
-    $payload = $payload ?: device_login_payload_from_post();
-    $deviceHash = (string) ($payload["hash"] ?? "");
-    if (!device_hash_is_valid($deviceHash)) {
-        $deviceHash = device_fallback_hash();
-    }
-    $token = bin2hex(random_bytes(32));
-    [
-        $scope,
-        $clinicRoleId,
-        $clinicId,
-        $roleCode,
-    ] = device_session_context_payload($scope, $clinicRoleId);
-    $label = trim((string) ($payload["label"] ?? ""));
-    if ($label === "") {
-        $label = "Dispositivo reconhecido";
-    }
-    $ua = (string) ($payload["ua"] ?? ($_SERVER["HTTP_USER_AGENT"] ?? ""));
-    $uaHash = hash("sha256", $ua);
-    q(
-        "INSERT INTO pi_user_devices (user_id,device_hash,device_label,device_platform,device_meta,user_agent_hash,token_hash,scope,clinic_role_id,clinic_id,role_code,last_route,last_ip,first_seen_at,last_seen_at,expires_at,revoked_at,logout_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW(),DATE_ADD(NOW(), INTERVAL 24 HOUR),NULL,NULL,NOW(),NOW()) ON DUPLICATE KEY UPDATE device_label=VALUES(device_label), device_platform=VALUES(device_platform), device_meta=VALUES(device_meta), user_agent_hash=VALUES(user_agent_hash), token_hash=VALUES(token_hash), scope=VALUES(scope), clinic_role_id=VALUES(clinic_role_id), clinic_id=VALUES(clinic_id), role_code=VALUES(role_code), last_route=VALUES(last_route), last_ip=VALUES(last_ip), last_seen_at=NOW(), expires_at=DATE_ADD(NOW(), INTERVAL 24 HOUR), revoked_at=NULL, logout_at=NULL, updated_at=NOW()",
-        [
-            $uid,
-            $deviceHash,
-            $label,
-            (string) ($payload["platform"] ?? ""),
-            (string) ($payload["meta"] ?? ""),
-            $uaHash,
-            device_token_hash($token),
-            $scope,
-            $clinicRoleId,
-            $clinicId,
-            $roleCode,
-            route(),
-            (string) ($payload["ip"] ?? ($_SERVER["REMOTE_ADDR"] ?? "")),
-        ],
-    );
-    if (function_exists("login_last_credential_remember")) {
-        login_last_credential_remember($uid, $scope, $clinicRoleId);
-    }
-    $id = (int) val(
-        "SELECT id FROM pi_user_devices WHERE user_id=? AND device_hash=? LIMIT 1",
-        [$uid, $deviceHash],
-    );
-    $_SESSION["device_session_id"] = $id;
-    $_SESSION["device_hash"] = $deviceHash;
-    $_SESSION["device_expires_at"] = time() + device_session_lifetime_seconds();
-    $cookie = device_cookie_pack($uid, $deviceHash, $token);
-    $_COOKIE[device_cookie_name()] = $cookie;
-    device_cookie_set($cookie, time() + device_session_cookie_ttl_seconds());
+    security_retire_persistent_devices_for_user($uid);
 }
 function device_session_update_current_context(
     string $scope,
@@ -1053,37 +1479,7 @@ function device_session_update_current_context(
      * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
-    $id = (int) ($_SESSION["device_session_id"] ?? 0);
-    $uid = (int) ($_SESSION["uid"] ?? 0);
-    if ($id <= 0 || $uid <= 0) {
-        return;
-    }
-    [
-        $scope,
-        $clinicRoleId,
-        $clinicId,
-        $roleCode,
-    ] = device_session_context_payload($scope, $clinicRoleId);
-    try {
-        q(
-            "UPDATE pi_user_devices SET scope=?, clinic_role_id=?, clinic_id=?, role_code=?, last_route=?, last_ip=?, updated_at=NOW() WHERE id=? AND user_id=?",
-            [
-                $scope,
-                $clinicRoleId,
-                $clinicId,
-                $roleCode,
-                route(),
-                $_SERVER["REMOTE_ADDR"] ?? "",
-                $id,
-                $uid,
-            ],
-        );
-        if (function_exists("login_last_credential_remember")) {
-            login_last_credential_remember($uid, $scope, $clinicRoleId);
-        }
-    } catch (Throwable $e) {
-        error_log("[Prontoo device context update] " . $e->getMessage());
-    }
+    security_clear_legacy_device_cookie();
 }
 function device_session_enforce_current(int $uid): void
 {
@@ -1098,68 +1494,7 @@ function device_session_enforce_current(int $uid): void
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
      */
-    static $done = false;
-    if ($done || $uid <= 0) {
-        return;
-    }
-    $done = true;
-    $now = time();
-    $id = (int) ($_SESSION["device_session_id"] ?? 0);
-    if ($id <= 0) {
-        if (empty($_SESSION["device_session_started_at"])) {
-            $_SESSION["device_session_started_at"] = $now;
-        }
-        if (
-            $now - (int) $_SESSION["device_session_started_at"] >
-            device_session_lifetime_seconds()
-        ) {
-            secure_session_destroy();
-            device_cookie_clear();
-            header("Location: " . href("login"));
-            exit();
-        }
-        return;
-    }
-
-    // Revogações continuam percebidas rapidamente, sem SELECT/UPDATE em toda página.
-    $checkedAt = (int) ($_SESSION["device_session_checked_at"] ?? 0);
-    $sessionExpires = (int) ($_SESSION["device_expires_at"] ?? 0);
-    if ($checkedAt > 0 && $now - $checkedAt < 30 && $sessionExpires > $now) {
-        return;
-    }
-
-    try {
-        $row = one(
-            "SELECT id,user_id,device_hash,expires_at,revoked_at FROM pi_user_devices WHERE id=? AND user_id=? LIMIT 1",
-            [$id, $uid],
-        );
-        $databaseExpires = app_storage_timestamp($row["expires_at"] ?? 0);
-        if (!$row || !empty($row["revoked_at"]) || $databaseExpires <= $now) {
-            secure_session_destroy();
-            device_cookie_clear();
-            header("Location: " . href("login"));
-            exit();
-        }
-
-        $_SESSION["device_session_checked_at"] = $now;
-        $_SESSION["device_expires_at"] = $databaseExpires;
-        $touchedAt = (int) ($_SESSION["device_session_touched_at"] ?? 0);
-        $shouldTouch =
-            $touchedAt <= 0 ||
-            $now - $touchedAt >= 120 ||
-            $databaseExpires - $now < 3600;
-        if ($shouldTouch) {
-            q(
-                "UPDATE pi_user_devices SET last_seen_at=NOW(), expires_at=DATE_ADD(NOW(), INTERVAL 24 HOUR), last_route=?, last_ip=?, updated_at=NOW() WHERE id=? AND user_id=?",
-                [route(), $_SERVER["REMOTE_ADDR"] ?? "", $id, $uid],
-            );
-            $_SESSION["device_session_touched_at"] = $now;
-            $_SESSION["device_expires_at"] =
-                $now + device_session_lifetime_seconds();
-        }
-    } catch (Throwable $e) {
-        error_log("[Prontoo device enforce] " . $e->getMessage());
-    }
+    security_clear_legacy_device_cookie();
 }
 function device_session_auto_login(): bool
 {
@@ -1174,113 +1509,8 @@ function device_session_auto_login(): bool
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
-    if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
-        return false;
-    }
-    if (!empty($_SESSION["uid"])) {
-        return true;
-    }
-    $cookie = device_cookie_unpack();
-    if (!$cookie) {
-        return false;
-    }
-    try {
-        $row = one(
-            "SELECT d.id,d.user_id,d.device_hash,d.token_hash,d.scope,d.clinic_role_id,d.expires_at,d.revoked_at,u.active,u.is_global_admin FROM pi_user_devices d JOIN pi_users u ON u.id=d.user_id WHERE d.user_id=? AND d.device_hash=? LIMIT 1",
-            [$cookie["uid"], $cookie["hash"]],
-        );
-        if (
-            !$row ||
-            !(int) $row["active"] ||
-            !empty($row["revoked_at"]) ||
-            app_storage_timestamp($row["expires_at"] ?? 0) <= time() ||
-            !hash_equals(
-                (string) $row["token_hash"],
-                device_token_hash((string) $cookie["token"]),
-            )
-        ) {
-            device_cookie_clear();
-            return false;
-        }
-        $scope = (string) ($row["scope"] ?? "clinic");
-        $roleId = (int) ($row["clinic_role_id"] ?? 0);
-        if ($scope === "global" && (int) $row["is_global_admin"] === 1) {
-            session_harden_after_login();
-            $_SESSION["uid"] = (int) $row["user_id"];
-            $_SESSION["scope"] = "global";
-            unset(
-                $_SESSION["uc_id"],
-                $_SESSION["clinic_id"],
-                $_SESSION["role_code"],
-            );
-            if (function_exists("login_last_credential_remember")) {
-                login_last_credential_remember(
-                    (int) $row["user_id"],
-                    "global",
-                    null,
-                );
-            }
-        } else {
-            if (function_exists("single_active_role_cleanup_for_user")) {
-                single_active_role_cleanup_for_user(
-                    (int) $row["user_id"],
-                    null,
-                );
-            }
-            $role =
-                $roleId > 0
-                    ? one(
-                        "SELECT id,clinic_id,role_code FROM pi_user_roles WHERE id=? AND user_id=? AND active=1 LIMIT 1",
-                        [$roleId, (int) $row["user_id"]],
-                    )
-                    : null;
-            if (!$role) {
-                $role = one(
-                    "SELECT id,clinic_id,role_code FROM pi_user_roles WHERE user_id=? AND active=1 ORDER BY clinic_id ASC,is_owner DESC,FIELD(role_code,'gerente','medico','assistente','recepcionista'),id ASC LIMIT 1",
-                    [(int) $row["user_id"]],
-                );
-            }
-            if (!$role) {
-                device_cookie_clear();
-                return false;
-            }
-            session_harden_after_login();
-            $_SESSION["uid"] = (int) $row["user_id"];
-            $_SESSION["scope"] = "clinic";
-            $_SESSION["clinic_id"] = (int) $role["clinic_id"];
-            $_SESSION["uc_id"] = (int) $role["id"];
-            $_SESSION["role_code"] = (string) $role["role_code"];
-            if (function_exists("login_last_credential_remember")) {
-                login_last_credential_remember(
-                    (int) $row["user_id"],
-                    "clinic",
-                    (int) $role["id"],
-                );
-            }
-        }
-        $_SESSION["device_session_id"] = (int) $row["id"];
-        $_SESSION["device_hash"] = (string) $row["device_hash"];
-        $_SESSION["device_expires_at"] =
-            time() + device_session_lifetime_seconds();
-        q(
-            "UPDATE pi_user_devices SET last_seen_at=NOW(), expires_at=DATE_ADD(NOW(), INTERVAL 24 HOUR), last_route=?, last_ip=?, updated_at=NOW() WHERE id=?",
-            [route(), $_SERVER["REMOTE_ADDR"] ?? "", (int) $row["id"]],
-        );
-        audit(
-            "entrada_automatica_dispositivo",
-            "usuario",
-            (int) $row["user_id"],
-            [
-                "dispositivo" => (string) $row["device_hash"],
-                "audit_body" =>
-                    "Entrada automática realizada por dispositivo reconhecido dentro da janela móvel de 24 horas.",
-            ],
-        );
-        return true;
-    } catch (Throwable $e) {
-        error_log("[Prontoo device auto login] " . $e->getMessage());
-        return false;
-    }
+    security_clear_legacy_device_cookie();
+    return false;
 }
 function device_session_revoke_current(): void
 {
@@ -1294,19 +1524,8 @@ function device_session_revoke_current(): void
      * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
-    $id = (int) ($_SESSION["device_session_id"] ?? 0);
     $uid = (int) ($_SESSION["uid"] ?? 0);
-    if ($id > 0 && $uid > 0) {
-        try {
-            q(
-                "UPDATE pi_user_devices SET revoked_at=NOW(), logout_at=NOW(), updated_at=NOW() WHERE id=? AND user_id=?",
-                [$id, $uid],
-            );
-        } catch (Throwable $e) {
-            error_log("[Prontoo device revoke] " . $e->getMessage());
-        }
-    }
-    device_cookie_clear();
+    security_retire_persistent_devices_for_user($uid);
 }
 function secure_session_destroy(): void
 {
@@ -1323,17 +1542,30 @@ function secure_session_destroy(): void
     $_SESSION = [];
     if (ini_get("session.use_cookies")) {
         $p = session_get_cookie_params();
-        setcookie(
-            session_name(),
-            "",
-            time() - 42000,
-            $p["path"],
-            $p["domain"] ?? "",
-            (bool) $p["secure"],
-            (bool) $p["httponly"],
-        );
+        setcookie(session_name(), "", [
+            "expires" => time() - 42000,
+            "path" => $p["path"] ?? "/",
+            "domain" => $p["domain"] ?? "",
+            "secure" => (bool) ($p["secure"] ?? false),
+            "httponly" => true,
+            "samesite" => $p["samesite"] ?? "Lax",
+        ]);
     }
     session_destroy();
+}
+/* Guia de manutenção: Exige MFA e reautenticação recente antes de materializar contexto global privilegiado. */
+function security_global_scope_verified(int $uid): bool
+{
+    if ($uid <= 0) {
+        return false;
+    }
+    $mfaAt = (int) ($_SESSION["mfa_verified_at"] ?? 0);
+    $privilegedAt = (int) ($_SESSION["privileged_auth_at"] ?? 0);
+    $born = (int) ($_SESSION["born"] ?? 0);
+    return $mfaAt > 0 &&
+        $privilegedAt > 0 &&
+        $mfaAt >= $born &&
+        $privilegedAt >= $born;
 }
 function session_clinic_scope_id(): int
 {
@@ -2851,13 +3083,24 @@ function ctx(): array
         return $c = [];
     }
 
-    device_session_enforce_current($uid);
     security_session_generation_enforce($uid);
 
     $scopeHint = (string) ($_SESSION["scope"] ?? "global");
     $clinicHint = (int) ($_SESSION["clinic_id"] ?? 0);
     $ucHint = (int) ($_SESSION["uc_id"] ?? 0);
     $roleHint = (string) ($_SESSION["role_code"] ?? "");
+    if (
+        $scopeHint === "global" &&
+        !security_global_scope_verified($uid)
+    ) {
+        secure_session_destroy();
+        if (!headers_sent()) {
+            header(
+                "Location: " . href("login", ["relogin" => "1"]),
+            );
+        }
+        exit();
+    }
     if (
         function_exists("server_json_cache_context_key") &&
         function_exists("server_json_cache_get")
@@ -2945,7 +3188,8 @@ function ctx(): array
 
     if (
         (int) $user["is_global_admin"] === 1 &&
-        ($_SESSION["scope"] ?? "global") === "global"
+        ($_SESSION["scope"] ?? "global") === "global" &&
+        security_global_scope_verified($uid)
     ) {
         $_SESSION["scope"] = "global";
         unset(
@@ -2980,7 +3224,10 @@ function ctx(): array
         [$uid],
     )->fetchAll();
     if (!$links) {
-        if ((int) $user["is_global_admin"] === 1) {
+        if (
+            (int) $user["is_global_admin"] === 1 &&
+            security_global_scope_verified($uid)
+        ) {
             $_SESSION["scope"] = "global";
             unset(
                 $_SESSION["clinic_id"],
@@ -3203,10 +3450,12 @@ function secure_relogin_after_forbidden_action(string $action): void
         error_log("[Prontoo access guard audit] " . $e->getMessage());
     }
     try {
-        device_session_revoke_current();
+        if ((int) $uid > 0) {
+            user_auth_generation_rotate((int) $uid);
+            security_retire_persistent_devices_for_user((int) $uid);
+        }
     } catch (Throwable $e) {
-        error_log("[Prontoo access guard device] " . $e->getMessage());
-        device_cookie_clear();
+        error_log("[Prontoo access guard revocation] " . $e->getMessage());
     }
     secure_session_destroy();
     if (!headers_sent()) {

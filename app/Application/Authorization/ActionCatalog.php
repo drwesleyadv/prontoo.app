@@ -172,6 +172,7 @@ final class ActionCatalog
 
         // Public and authenticated session contracts.
         $add('login', self::DEFAULT_ACTION, 'public', $auth, [], ['session:authenticate']);
+        $add('mfa', ['mfa_enroll', 'mfa_verify', 'mfa_continue'], 'public', $auth, [], ['session:mfa']);
         $add('signup', self::DEFAULT_ACTION, 'public', $auth, [], ['clinic:create', 'session:authenticate']);
         $add('login_autotest', self::DEFAULT_ACTION, 'public', $auth, [], ['session:autotest']);
         $add('mobile_web_access', self::DEFAULT_ACTION, 'public', $auth, [], ['session:mobile_probe']);
@@ -179,6 +180,7 @@ final class ActionCatalog
         $add('switch', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:environment']);
         $add('switch', 'choose_admin', 'authenticated', $auth, ['session:self'], ['session:environment'], [], 'matrix', null, [$admin]);
         $add('profile', ['profile_update_user', 'profile_change_password', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:environment']);
+        $add('global_reauth', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:privileged']);
 
         // Central request operation.
         foreach (['painel', 'operations', 'leads', 'patients', 'appointments', 'procedures', 'documents', 'tasks', 'maestro', 'audit', 'financial', 'notices', 'users', 'settings', 'permissions'] as $route) {
