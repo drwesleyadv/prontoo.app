@@ -1,3 +1,11 @@
+Prontoo 1.7.23.5 — senha mínima restaurada para 8 caracteres
+
+- Restaura exclusivamente o tamanho mínimo da senha de 15 para 8 caracteres no validador central, formulários, cadastro de colaboradores e instalação.
+- Mantém o limite máximo de 128 caracteres e a rejeição de senhas comuns.
+- Preserva integralmente MFA obrigatório do Desenvolvedor, senha mais MFA na elevação global, expiração por 60 minutos de inatividade, revogação de sessões, bloqueio distribuído e supressão do dispositivo persistente.
+- Acrescenta ao CI uma prova regressiva permanente da política mínima de 8 caracteres.
+- Preserva banco e schema.
+
 Prontoo 1.7.23.4 — MFA obrigatório e sessões revogáveis
 
 - Suprime a autenticação por dispositivo persistente: nenhum cookie legado pode emitir ou recuperar credenciais, cookies remanescentes são apagados e registros ativos são revogados e inutilizados.
