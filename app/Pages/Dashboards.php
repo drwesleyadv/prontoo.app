@@ -854,10 +854,10 @@ function page_gerente_painel(array $c): void
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     $cid = (int) $c["clinic_id"];
-    $month = date("Y-m");
-    $monthStart = $month . "-01 00:00:00";
-    $nextMonth = date("Y-m-d H:i:s", strtotime($month . "-01 +1 month"));
-    $monthEnd = date("Y-m-t");
+    $month = app_month_in_timezone($cid, $c);
+    [$monthStart, $nextMonth] = app_local_month_utc_range($month, $cid, $c);
+    $localNow = app_now_in_timezone($cid, $c);
+    $monthEnd = $localNow->format("Y-m-t");
     [$todayStart, $todayEnd] = app_local_day_utc_range(
         app_today_in_timezone($cid, $c),
         $cid,
@@ -907,7 +907,7 @@ function page_gerente_painel(array $c): void
         [$cid],
     );
     $pendingRevenue = manager_metric_val(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND (expected_at IS NULL OR expected_at<?)",
+        "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND (r.expected_at IS NULL OR r.expected_at<?) AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
         [$cid, $nextMonth],
     );
     $overdueRevenue = manager_metric_val(
@@ -919,7 +919,7 @@ function page_gerente_painel(array $c): void
         [$cid, $monthStart, $nextMonth],
     );
     $plannedRevenue = manager_metric_val(
-        "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status IN ('prevista','efetivada') AND expected_at>=? AND expected_at<?",
+        "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
         [$cid, $monthStart, $nextMonth],
     );
     $paidExpenses = manager_metric_val(
@@ -934,13 +934,13 @@ function page_gerente_painel(array $c): void
     $missing = max(0, $target - $done);
     $result = $receivedRevenue - $paidExpenses;
     $goalBaseLabel = (string) ($goal["base_label"] ?? "Receita Efetivada");
-    $monthDay = (int) date("j");
-    $monthDays = (int) date("t");
+    $monthDay = (int) $localNow->format("j");
+    $monthDays = (int) $localNow->format("t");
     $expectedPct =
         $target > 0 ? (float) round(($monthDay / $monthDays) * 100, 1) : 0.0;
     $businessLeft = max(
         1,
-        manager_count_business_days(date("Y-m-d"), $monthEnd),
+        manager_count_business_days($localNow->format("Y-m-d"), $monthEnd),
     );
     $dailyNeeded = $missing > 0 ? (int) ceil($missing / $businessLeft) : 0;
     $goalState =
