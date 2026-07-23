@@ -663,7 +663,7 @@
         )
           .then((r) => {
             const ct = (r.headers.get("content-type") || "").toLowerCase();
-            if (!r.ok || !ct.includes("application/json"))
+            if (!ct.includes("application/json"))
               return Promise.reject();
             return r.json();
           })
