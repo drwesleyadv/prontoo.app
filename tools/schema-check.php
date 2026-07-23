@@ -26,7 +26,7 @@ if (!function_exists('cfg')) {
          * GUIA DE MANUTENÇÃO — cfg
          * Responsabilidade: Implementa a responsabilidade “cfg” dentro do módulo de ferramentas de certificação e manutenção.
          * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `seq_footer_deterministic_alphabet`, `pdo_metric`.
+         * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `pdo_metric`.
          * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
          * Estado externo lido: `$GLOBALS`.
          * Efeitos colaterais: nenhum efeito externo evidente na análise estática.

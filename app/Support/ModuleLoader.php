@@ -170,7 +170,6 @@ function prontoo_runtime_core_modules(): array
         'Support/ServerJsonCache.php',
         'Support/Telemetry.php',
         'Database/DatabaseSchema.php',
-        'Support/SeqFooter.php',
         'Support/SecurityAccess.php',
         'Support/FinancialGuard.php',
         'Domain/Audit/AuditActivity.php',

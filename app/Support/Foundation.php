@@ -1104,7 +1104,7 @@ function cfg(): array
      * GUIA DE MANUTENÇÃO — cfg
      * Responsabilidade: Implementa a responsabilidade “cfg” dentro do módulo de serviços transversais de suporte.
      * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `seq_footer_deterministic_alphabet`, `pdo_metric`.
+     * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `pdo_metric`.
      * Dependências chamadas: `has_cfg`, `cfg_file`, `is_array`.
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
@@ -1704,7 +1704,7 @@ function meta_set(string $key, mixed $value): void
      * GUIA DE MANUTENÇÃO — meta_set
      * Responsabilidade: Implementa a responsabilidade “meta set” dentro do módulo de serviços transversais de suporte.
      * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `page_admin_clinics`, `login_last_credential_remember`, `default_trial_days`, `seq_footer_alphabet`, `seq_footer_regenerate_alphabet`.
+     * Chamadores detectados: `page_admin_maintenance`, `page_admin_clinics`, `login_last_credential_remember`, `default_trial_days`.
      * Dependências chamadas: `q`, `function_exists`, `str_starts_with`, `server_json_cache_clear_categories`.
      * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.

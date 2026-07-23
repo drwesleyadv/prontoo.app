@@ -1262,12 +1262,6 @@ function page(string $title, string $body, array $opts = []): void
     }
     $installCta = "";
     $bodyClass = ($public ? "public" : "app") . " has-top-shell";
-    $seqFooter = function_exists("seq_footer_html")
-        ? seq_footer_html($c ?: null)
-        : "";
-    if ($seqFooter !== "") {
-        $bodyClass .= " has-seq-footer";
-    }
     if ($pendingFloating !== "") {
         $bodyClass .= " has-floating-pending";
     }
@@ -1339,7 +1333,6 @@ function page(string $title, string $body, array $opts = []): void
         onboarding_tip_html($c, $current) .
         $body .
         "</main>" .
-        $seqFooter .
         $clock .
         "</body></html>";
 }
