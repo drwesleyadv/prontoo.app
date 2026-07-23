@@ -1,3 +1,15 @@
+Prontoo 1.7.23.1 — hardening red team e isolamento de consultas
+
+- Limita `patient_lookup` a 6 consultas por usuário e consultório em uma janela móvel de 60 segundos, com bloqueio HTTP 429 e aviso na própria tela.
+- Torna o rate limiting atômico por trava exclusiva e serializa tentativas concorrentes de login antes da conferência da senha.
+- Restringe CPF, nome e nascimento ao consultório que já possui vínculo comprovado com a pessoa.
+- Exige confirmação da senha existente antes de reutilizar uma credencial em outro consultório, impedindo escalada por pré-sequestro de conta.
+- Remove o acionamento HTTP de manutenção profunda e impede ciclos pesados concorrentes.
+- Bloqueia `tools/` e `cron/` no servidor web e exige CLI nos três verificadores internos.
+- Só aceita protocolo encaminhado por proxy explicitamente confiável e remove a confiança direta em `X-Forwarded-Proto`.
+- Descarta atributos HTML não autorizados em documentos, preservando apenas as classes canônicas de alinhamento e recuo.
+- Não altera banco, schema, regras clínicas, financeiro, jornada do paciente ou composição visual.
+
 Prontoo 1.7.22.6 — persistência canônica em SSD
 
 - Renomeia o diretório persistente raiz de `storage/` para `ssd/` sem alterar banco ou schema.

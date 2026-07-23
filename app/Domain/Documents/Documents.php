@@ -1347,8 +1347,11 @@ function document_sanitize_html(string $html): string
         $html,
         "<b><strong><i><em><u><p><br><div><ul><ol><li><h2><h3>",
     );
+    // PRONTOO_DOCUMENT_HTML_ATTRIBUTE_ALLOWLIST:
+    // todos os atributos são descartados; somente classes visuais canônicas
+    // podem sobreviver nos blocos previstos pelo editor.
     $html = preg_replace_callback(
-        "/<(p|div|h2|h3)\b([^>]*)>/i",
+        "/<\s*(\/?)\s*(b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3)\b([^>]*)>/i",
         function ($m) {
             /*
              * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:979
@@ -1359,9 +1362,18 @@ function document_sanitize_html(string $html): string
              * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
              * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
              */
-            $attrs = $m[2] ?? "";
+            $closing = ($m[1] ?? "") === "/";
+            $tag = strtolower((string) ($m[2] ?? ""));
+            if ($closing) {
+                return $tag === "br" ? "" : "</" . $tag . ">";
+            }
+            if ($tag === "br") {
+                return "<br>";
+            }
+            $attrs = $m[3] ?? "";
             $classes = [];
             if (
+                in_array($tag, ["p", "div", "h2", "h3"], true) &&
                 preg_match_all(
                     "/\b(ta-(?:left|center|right|justify)|indent-[1-3])\b/i",
                     $attrs,
@@ -1373,7 +1385,7 @@ function document_sanitize_html(string $html): string
                 }
             }
             return "<" .
-                strtolower($m[1]) .
+                $tag .
                 ($classes
                     ? ' class="' . implode(" ", array_unique($classes)) . '"'
                     : "") .
