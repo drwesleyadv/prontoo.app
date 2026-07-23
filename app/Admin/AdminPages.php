@@ -486,6 +486,10 @@ function platform_backend_selftest(array $preloaded = []): array
             return $alerts;
         },
     );
+    $checks["audit_chain"] = function_exists("audit_chain_integrity_status")
+        ? audit_chain_integrity_status(240)
+        : ["ok" => false, "sequence_ok" => false, "head_ok" => false, "checked" => 0];
+    $ok = $ok && !empty($checks["audit_chain"]["ok"]);
     $versionContract = function_exists("prontoo_version_contract_status")
         ? prontoo_version_contract_status()
         : ["ok" => true, "version" => PRONTOO_VERSION, "issues" => []];
@@ -2374,6 +2378,10 @@ function page_admin_health(): void
             $bad++;
         }
     }
+    $chainStatus = audit_chain_integrity_status(240);
+    if (empty($chainStatus["ok"])) {
+        $bad++;
+    }
     $severity =
         !$dbOk || $openErrors > 0 || $bad > 0 || $scope24h > 0
             ? "Atenção"
@@ -2753,6 +2761,10 @@ function page_admin_integrity(): void
         if (!verify_audit_row($r)) {
             $bad++;
         }
+    }
+    $chainStatus = audit_chain_integrity_status(240);
+    if (empty($chainStatus["ok"])) {
+        $bad++;
     }
     $scopeViolations = (int) cached_val(
         "integrity_scope_actionable_7d_v2_model_" . admin_model_clinic_id(),
@@ -3187,13 +3199,21 @@ function page_admin_painel(): void
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "");
         if ($act === "goal") {
+            $goalContext = ctx();
+            $cid = (int) ($goalContext["clinic_id"] ?? 0);
+            $uid = (int) ($goalContext["user"]["id"] ?? 0);
+            if ($cid <= 0 || $uid <= 0) {
+                throw new RuntimeException(
+                    "A meta mensal exige um consultório ativo.",
+                );
+            }
             $target = parse_money_cents((string) ($_POST["target"] ?? "0"));
             $share = isset($_POST["share_with_team"]) ? 1 : 0;
             $base = (string) ($_POST["base_metric"] ?? "efetivada");
             if (!in_array($base, ["prevista", "efetivada"], true)) {
                 $base = "efetivada";
             }
-            $month = date("Y-m");
+            $month = app_month_in_timezone($cid, $goalContext);
             q(
                 "INSERT INTO pi_financial_goals (clinic_id,month_key,target_cents,base_metric,share_with_team,updated_by) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE target_cents=VALUES(target_cents), base_metric=VALUES(base_metric), share_with_team=VALUES(share_with_team), updated_by=VALUES(updated_by), updated_at=NOW()",
                 [$cid, $month, $target, $base, $share, $uid],
