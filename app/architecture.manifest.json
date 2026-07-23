@@ -1,5 +1,5 @@
 {
-  "version": "1.7.23.2",
+  "version": "1.7.23.3",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",

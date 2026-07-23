@@ -54,9 +54,29 @@ jobs:
         shell: bash
         run: |
           php -r '
+            $contracts = [];
             foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
-              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+              $contracts[$file] = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($contracts[$file])) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+            $version = trim((string) ($contracts["version.json"]["version"] ?? ""));
+            if ($version === "" ||
+                trim((string) ($contracts["version.json"]["release"] ?? "")) !== $version ||
+                trim((string) ($contracts["app/update.manifest.json"]["version"] ?? "")) !== $version ||
+                trim((string) ($contracts["app/update.manifest.json"]["release"] ?? "")) !== $version ||
+                trim((string) ($contracts["app/architecture.manifest.json"]["version"] ?? "")) !== $version) {
+              throw new RuntimeException("Contrato JSON de versão divergente");
+            }
+            foreach ([
+              "app/prontoo.php" => "PRONTOO_VERSION_FALLBACK",
+              "br/index.php" => "BR_LANDING_VERSION_FALLBACK",
+            ] as $file => $constant) {
+              $source = (string) file_get_contents($file);
+              $pattern = "/const\\s+" . preg_quote($constant, "/") . "\\s*=\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*;/";
+              if (!preg_match($pattern, $source, $match) ||
+                  trim((string) ($match[1] ?? "")) !== $version) {
+                throw new RuntimeException("Fallback de versão divergente: " . $file);
+              }
             }
           '
 
