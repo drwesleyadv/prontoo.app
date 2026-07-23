@@ -1,5 +1,9 @@
 <?php
 declare(strict_types=1);
+if (PHP_SAPI !== "cli") {
+    http_response_code(404);
+    exit;
+}
 
 $root = dirname(__DIR__);
 require_once $root . '/app/Core/Install/InstallAccess.php';
@@ -164,13 +168,63 @@ if (substr_count($htaccess, '[R=308,L]') < 2 ||
     !str_contains($htaccess, 'Content-Security-Policy "upgrade-insecure-requests; block-all-mixed-content"')) {
     $errors[] = 'webserver_https_policy';
 }
+if (str_contains($htaccess, 'HTTP:X-Forwarded-Proto') ||
+    !str_contains($htaccess, 'RewriteRule ^tools(?:/|$) - [F,L,NC]') ||
+    !str_contains($htaccess, 'RewriteRule ^cron(?:/|$) - [F,L,NC]')) {
+    $errors[] = 'webserver_spoofed_proxy_or_internal_tools_policy';
+}
 foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     $httpsRuntimeSource = (string) file_get_contents($root . '/' . $httpsRuntimeFile);
     if (!str_contains($httpsRuntimeSource, 'PRONTOO_HTTPS_RUNTIME_GUARD') ||
         !str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
-        !str_contains($httpsRuntimeSource, 'true, 308')) {
+        !str_contains($httpsRuntimeSource, 'true, 308') ||
+        !str_contains($httpsRuntimeSource, 'security_https_active()') ||
+        str_contains($httpsRuntimeSource, 'HTTP_X_FORWARDED_PROTO')) {
         $errors[] = 'runtime_https_guard:' . $httpsRuntimeFile;
     }
+}
+foreach (['tools/architecture-check.php', 'tools/schema-check.php', 'tools/install-security-check.php'] as $cliTool) {
+    $cliToolSource = (string) file_get_contents($root . '/' . $cliTool);
+    if (!str_contains($cliToolSource, 'PHP_SAPI !== "cli"')) {
+        $errors[] = 'tool_not_cli_only:' . $cliTool;
+    }
+}
+
+$runnerSecuritySource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+if (str_contains($runnerSecuritySource, '$_GET["schema_check"]') ||
+    !str_contains($runnerSecuritySource, 'LOCK_EX | LOCK_NB')) {
+    $errors[] = 'runtime_maintenance_trigger_or_lock_policy';
+}
+$securityAccessSource = (string) file_get_contents($root . '/app/Support/SecurityAccess.php');
+if (!str_contains($securityAccessSource, 'storage_path("cache/rate-limits")') ||
+    !str_contains($securityAccessSource, 'flock($handle, LOCK_EX)')) {
+    $errors[] = 'atomic_rate_limit_policy';
+}
+$authSecuritySource = (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php');
+if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
+    !str_contains($authSecuritySource, 'fail_count=LEAST(11,fail_count+1)')) {
+    $errors[] = 'atomic_login_limit_policy';
+}
+$patientSecuritySource = (string) file_get_contents($root . '/app/Domain/Patients/Patients.php');
+if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $uid') ||
+    !preg_match('/"patient_lookup_c"\s*\.\s*\$cid.*?\b6,\s*60,/s', $patientSecuritySource) ||
+    !str_contains($patientSecuritySource, 'JOIN pi_user_roles ur ON ur.user_id=u.id')) {
+    $errors[] = 'patient_lookup_limit_or_tenant_policy';
+}
+$leadSecuritySource = (string) file_get_contents($root . '/app/Domain/Leads/Leads.php');
+if (!str_contains($leadSecuritySource, 'WHERE p.cpf=?') ||
+    !str_contains($leadSecuritySource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
+    $errors[] = 'lead_patient_lookup_tenant_policy';
+}
+$teamSecuritySource = (string) file_get_contents($root . '/app/Domain/Permissions/UsersPermissions.php');
+if (!str_contains($teamSecuritySource, '!$alreadyLinked') ||
+    !str_contains($teamSecuritySource, 'password_verify($pass')) {
+    $errors[] = 'cross_clinic_credential_reuse_policy';
+}
+$documentSecuritySource = (string) file_get_contents($root . '/app/Domain/Documents/Documents.php');
+if (!str_contains($documentSecuritySource, 'PRONTOO_DOCUMENT_HTML_ATTRIBUTE_ALLOWLIST') ||
+    !str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3')) {
+    $errors[] = 'document_html_attribute_allowlist_policy';
 }
 
 $gitignore = (string) file_get_contents($root . '/.gitignore');
