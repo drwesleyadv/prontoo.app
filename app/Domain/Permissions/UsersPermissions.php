@@ -95,7 +95,7 @@ function save_team_member(int $cid, array $data): ?int
     if (!$u) {
         if (!password_ok($pass)) {
             throw new RuntimeException(
-                "Informe uma senha inicial para o colaborador com pelo menos 8 caracteres e dois tipos de caractere.",
+                "Informe uma senha inicial para o colaborador com 15 a 128 caracteres que não seja uma senha comum.",
             );
         }
         $email = $email !== "" ? $email : null;
@@ -886,25 +886,13 @@ function propagate_user_role_permissions(
             : null,
     );
     try {
-        if ($replacement) {
-            q(
-                "UPDATE pi_user_devices SET clinic_role_id=?, clinic_id=?, role_code=?, scope='clinic', updated_at=NOW() WHERE user_id=? AND clinic_id=? AND revoked_at IS NULL",
-                [
-                    (int) $replacement["id"],
-                    $cid,
-                    (string) $replacement["role_code"],
-                    $uid,
-                    $cid,
-                ],
-            );
-        } else {
-            q(
-                "UPDATE pi_user_devices SET revoked_at=NOW(), logout_at=NOW(), updated_at=NOW() WHERE user_id=? AND clinic_id=? AND revoked_at IS NULL",
-                [$uid, $cid],
-            );
+        $newGeneration = user_auth_generation_rotate($uid);
+        security_retire_persistent_devices_for_user($uid);
+        if ((int) ($_SESSION["uid"] ?? 0) === $uid) {
+            $_SESSION["user_auth_generation"] = $newGeneration;
         }
     } catch (Throwable $e) {
-        error_log("[Prontoo role propagation devices] " . $e->getMessage());
+        error_log("[Prontoo role propagation sessions] " . $e->getMessage());
     }
     if (
         (int) ($_SESSION["uid"] ?? 0) === $uid &&
@@ -918,12 +906,6 @@ function propagate_user_role_permissions(
             $_SESSION["effective_roles"] = [
                 (string) $replacement["role_code"],
             ];
-            if (function_exists("device_session_update_current_context")) {
-                device_session_update_current_context(
-                    "clinic",
-                    (int) $replacement["id"],
-                );
-            }
         } else {
             unset(
                 $_SESSION["uc_id"],
@@ -931,9 +913,6 @@ function propagate_user_role_permissions(
                 $_SESSION["role_code"],
             );
             unset($_SESSION["effective_roles"]);
-            if (function_exists("device_session_revoke_current")) {
-                device_session_revoke_current();
-            }
         }
     }
     if (function_exists("server_json_cache_clear_categories")) {

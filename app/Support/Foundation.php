@@ -1416,13 +1416,7 @@ function page_login_autotest(): void
     $checks = prontoo_login_selftest_light();
     $auto = false;
     $redirect = "";
-    if (!empty($checks["ok"]) && device_session_auto_login()) {
-        $auto = true;
-        $c = ctx();
-        $redirect = href(
-            ($c["scope"] ?? "") === "global" ? "admin_painel" : "appointments",
-        );
-    }
+    security_clear_legacy_device_cookie();
     if (function_exists("platform_login_loaded_audit")) {
         platform_login_loaded_audit($checks, $auto);
     } elseif (function_exists("audit")) {
@@ -1649,7 +1643,11 @@ function meta_cache_ttl(string $key): int
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    if ($key === "auth_generation") {
+    if (
+        $key === "auth_generation" ||
+        str_starts_with($key, "auth_user_") ||
+        str_starts_with($key, "mfa_user_")
+    ) {
         return 15;
     }
     if (str_starts_with($key, "global_admin_timezone_")) {
@@ -1717,7 +1715,11 @@ function meta_set(string $key, mixed $value): void
     );
     if (function_exists("server_json_cache_clear_categories")) {
         $categories = ["meta"];
-        if ($key === "auth_generation") {
+        if (
+            $key === "auth_generation" ||
+            str_starts_with($key, "auth_user_") ||
+            str_starts_with($key, "mfa_user_")
+        ) {
             $categories[] = "context";
         }
         if (str_starts_with($key, "global_admin_timezone_") || $key === "maintenance") {

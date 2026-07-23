@@ -1,3 +1,16 @@
+Prontoo 1.7.23.4 — MFA obrigatório e sessões revogáveis
+
+- Suprime a autenticação por dispositivo persistente: nenhum cookie legado pode emitir ou recuperar credenciais, cookies remanescentes são apagados e registros ativos são revogados e inutilizados.
+- Encerra a sessão após 60 minutos ou mais sem atividade e preserva o limite absoluto de 12 horas.
+- Acrescenta uma geração de autenticação por usuário; logout, troca de senha, alteração de cargo e divergência de autorização revogam sessões paralelas.
+- Torna o cadastro de MFA TOTP obrigatório para o Desenvolvedor no primeiro login, com segredo cifrado por AES-256-GCM, proteção contra repetição e códigos de recuperação de uso único.
+- Exige confirmação recente de senha e MFA antes de elevar uma sessão clínica ao Painel do Desenvolvedor.
+- Uniformiza a falha de CPF e senha e executa uma verificação de senha equivalente quando a conta não existe, reduzindo enumeração por mensagem e tempo.
+- Reforça o bloqueio de login com buckets simultâneos por CPF e IP, por CPF em qualquer IP e por IP contra qualquer CPF, além de limpeza oportunística dos controles expirados.
+- Eleva a senha mínima para 15 caracteres, permite frases-senha até 128 caracteres e rejeita senhas comuns.
+- Acrescenta ao CI provas estáticas dos controles de sessão, MFA, revogação, limitação distribuída e remoção do bypass por dispositivo.
+- Preserva banco e schema; a tabela legada de dispositivos permanece apenas como estrutura inerte para revogação compatível.
+
 Prontoo 1.7.23.3 — hotfix do contrato canônico de versão
 
 - Sincroniza `BR_LANDING_VERSION_FALLBACK` com a versão canônica da release e elimina o bloqueio `Contrato de versão divergente: br[caminho]`.

@@ -8,15 +8,18 @@ final class ReadonlyPolicy
     private const PASSIVE_ROUTES = [
         "login",
         "login_autotest",
+        "mfa",
         "logout",
         "switch",
         "profile",
+        "global_reauth",
         "onboarding",
     ];
     private const PASSIVE_WRITE_TABLES = [
         "pi_audit",
         "pi_user_devices",
         "pi_login_locks",
+        "pi_meta",
         "pi_clinic_roles",
         "pi_permissions",
         "pi_platform_counters",

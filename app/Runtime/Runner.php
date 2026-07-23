@@ -15,12 +15,14 @@ function prontoo_route_map(): array
         "home",
         "login",
         "login_autotest",
+        "mfa",
         "mobile_web_access",
         "goal_status",
         "signup",
         "logout",
         "switch",
         "profile",
+        "global_reauth",
         "onboarding",
         "painel",
         "operations",
@@ -87,6 +89,7 @@ function prontoo_public_runtime_routes(): array
     return [
         "login",
         "login_autotest",
+        "mfa",
         "mobile_web_access",
         "signup",
         "logout",
@@ -197,7 +200,7 @@ function prontoo_route_is_public_light(string $route): bool
      * Efeitos colaterais: consome dados da requisição HTTP.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    if (in_array($route, ["login", "login_autotest"], true)) {
+    if (in_array($route, ["login", "login_autotest", "mfa"], true)) {
         return true;
     }
     return in_array(
@@ -564,7 +567,7 @@ function prontoo_run(bool $installMode = false): void
             (!$cNow || ($cNow["scope"] ?? "") !== "global") &&
             !in_array(
                 $r,
-                ["login", "login_autotest", "logout"],
+                ["login", "login_autotest", "mfa", "logout"],
                 true,
             )
         ) {

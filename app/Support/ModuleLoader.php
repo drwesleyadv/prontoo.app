@@ -134,7 +134,7 @@ function prontoo_public_light_routes(): array
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    return ['login', 'login_autotest', 'mobile_web_access', 'signup'];
+    return ['login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup'];
 }
 
 function prontoo_use_light_boot(): bool
@@ -293,7 +293,7 @@ function prontoo_route_module_groups(string $route): array
     $map = [
         'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
         'painel' => $commonClinic + $appointments + $patients + $leads + $tasks + $financial + $documents,
-        'login' => [], 'login_autotest' => [], 'signup' => [], 'logout' => [], 'switch' => [], 'profile' => [], 'onboarding' => [], 'mobile_web_access' => [],
+        'login' => [], 'login_autotest' => [], 'mfa' => [], 'signup' => [], 'logout' => [], 'switch' => [], 'profile' => [], 'global_reauth' => [], 'onboarding' => [], 'mobile_web_access' => [],
         'patient_lookup' => $patients, 'patient_suggest' => $patients, 'person_lookup' => $patients,
         'lead_lookup' => $leads, 'lead_patient_lookup' => $leads + $patients, 'leads' => $leads,
         'appointments' => $appointments + $patients + $tasks + $financial,
