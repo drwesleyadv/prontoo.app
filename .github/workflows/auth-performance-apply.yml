@@ -18,11 +18,41 @@ jobs:
         with:
           ref: agent/auth-performance-20260724
           fetch-depth: 0
+          show-progress: false
 
       - name: Apply authentication performance changes
-        run: python3 tools/apply-auth-performance.py
+        id: apply
+        shell: bash
+        run: |
+          set +e
+          python3 tools/apply-auth-performance.py > /tmp/auth-apply.out 2> /tmp/auth-apply.err
+          status=$?
+          cat /tmp/auth-apply.out
+          cat /tmp/auth-apply.err >&2
+          if [ "$status" -ne 0 ]; then
+            {
+              echo "status=$status"
+              echo "--- stdout ---"
+              cat /tmp/auth-apply.out
+              echo "--- stderr ---"
+              cat /tmp/auth-apply.err
+            } > tools/auth-performance-error.txt
+          fi
+          exit "$status"
+
+      - name: Publish diagnostic on failure
+        if: failure() && hashFiles('tools/auth-performance-error.txt') != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/auth-performance-error.txt
+          git commit -m "Registrar diagnóstico do aplicador de autenticação" || exit 0
+          git push origin HEAD:agent/auth-performance-20260724
 
       - name: Validate generated sources
+        if: success()
         shell: bash
         run: |
           set -euo pipefail
@@ -35,6 +65,7 @@ jobs:
           python3 -m json.tool app/architecture.manifest.json >/dev/null
 
       - name: Publish target branch
+        if: success()
         shell: bash
         run: |
           set -euo pipefail
