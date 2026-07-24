@@ -1,3 +1,10 @@
+Prontoo 1.7.24.2 — ícones do Painel do Administrador restaurados
+
+- Corrige o seletor tipográfico genérico dos cartões KPI, que aplicava Roboto aos elementos Material Symbols e fazia os nomes dos ícones aparecerem como texto ou não renderizarem.
+- Restringe a tipografia de rótulo apenas aos spans textuais, preservando integralmente a fonte, as ligaturas e as variações dos ícones.
+- Mantém os ícones dos indicadores e das ações recomendadas aderentes ao Design System e acrescenta prova regressiva permanente no verificador de arquitetura.
+- Não altera autenticação, dados, regras de negócio, banco ou schema.
+
 Prontoo 1.7.24.1 — Painel do Administrador restaurado
 
 - Dá precedência ao cargo Administrativo ao abrir a tela Painel, inclusive quando o usuário possui múltiplos cargos ativos.

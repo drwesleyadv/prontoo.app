@@ -42,10 +42,41 @@ require_once $root . '/app/Runtime/Runner.php';
 
 $architecture = ArchitectureVerifier::report($root, true);
 $selfTest = LayeredKernel::logicSelfTest($root);
+$dashboardIconCss = (string) file_get_contents(
+    $root . '/public/assets/design-system.css',
+);
+$dashboardIconFailures = [];
+if (str_contains(
+    $dashboardIconCss,
+    '.stat-card span,.ds-kpi span,.notice-kpi span,.kpi-card span,.mini-stat span{',
+)) {
+    $dashboardIconFailures[] = 'broad_kpi_span_selector';
+}
+foreach ([
+    '.stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    '.ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    '.notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    '.kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    '.mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    '.manager-action > .pt-icon-glyph',
+    '.material-symbols-rounded{font-family:"Material Symbols Rounded"',
+] as $requiredIconContract) {
+    if (!str_contains($dashboardIconCss, $requiredIconContract)) {
+        $dashboardIconFailures[] = $requiredIconContract;
+    }
+}
+$dashboardIconCascade = [
+    'ok' => $dashboardIconFailures === [],
+    'failed' => $dashboardIconFailures,
+];
 $result = [
-    'ok' => !empty($architecture['ok']) && !empty($selfTest['ok']),
+    'ok' =>
+        !empty($architecture['ok']) &&
+        !empty($selfTest['ok']) &&
+        !empty($dashboardIconCascade['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
+    'dashboard_icon_cascade' => $dashboardIconCascade,
 ];
 
 echo json_encode(
