@@ -1,10 +1,10 @@
 {
-    "version": "1.7.23.7",
-    "release": "1.7.23.7",
+    "version": "1.7.24.1",
+    "release": "1.7.24.1",
     "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
-    "build": "1.7.23.7-remove-seq-footer-alphabet",
-    "package_type": "legacy_code_removal",
-    "generated_at": "2026-07-23T20:27:00Z",
+    "build": "1.7.24.1-admin-panel-navigation",
+    "package_type": "admin_panel_ux_fix",
+    "generated_at": "2026-07-24T12:36:00Z",
     "version_format": "1.month.day.sequence",
     "minimum_php": "8.4.0",
     "minimum_mysql": "8.0.30",
@@ -25,11 +25,11 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 98,
-    "total_uncompressed_bytes": 4013586,
+    "total_uncompressed_bytes": 4016019,
     "files": {
-        ".github/workflows/architecture.yml": "2c21da97b4103ffc5a7c3840e07ee5c63abd58dbffeafa54c9a576399e473358",
+        ".github/workflows/architecture.yml": "cd2bc9eca2e152dae8a696ccc8c6b672a0d316b8ce6b0b16cde291b3b892498a",
         ".htaccess": "a7143c58d8ebee8ff1d52bbd57cca31704e93c5037f814d8abe7f15bd0aa211b",
-        "ChangeLog.txt": "5e682b09ea2d826c4451c4c6d0859464b5246ca749370e8d1d5a0e7f62b7c4fc",
+        "ChangeLog.txt": "3e26e6879b6cfc1e3b71547042501e0025a0e850f676889eddc718cf736c2d2b",
         "app/Admin/AdminPages.php": "befe38b723ca6c177419f7cfad77c448f88b99eaaf492398bad0d2948d81950e",
         "app/Application/Audit/ActionProofPort.php": "d31c551cf6ff872cd08673f9f4f822f87d7d69ebbc5229ae90ecbafd3c2a8a99",
         "app/Application/Authorization/ActionCatalog.php": "bac8dea3da183e1811aa52ca48923fac9466bc73c2cd5009f192d78c14c5aaa0",
@@ -91,7 +91,7 @@
         "app/Infrastructure/Authorization/RuntimeCapabilityProvider.php": "0981c5d8366a97583053de86ceb6638f971be36ccde063390325b2e679690e65",
         "app/Infrastructure/Database/SeqContract.php": "1ed7980a3f4dd64f88682a9827d676396cfd5f7d5835ad5924d51b0b6f439d34",
         "app/Install/Installer.php": "ed962d2f1140b1681c6ac076791820363a0f5f74da5992834bd209e0b80fc114",
-        "app/Pages/Dashboards.php": "1b58c0ca2bcb886fbbff36d28bdc268c305f2c0d959cb039dff354b61d28947e",
+        "app/Pages/Dashboards.php": "fc4e6bab99a9ca29ae7feab407b613c554b4233b33541413a041d02c6e61a509",
         "app/Presentation/Http/ActionMiddleware.php": "0bdefd02fd1926f1621ce8ddd5d6f7a8dd77a2789029b9ef7ab06789d111f3ca",
         "app/Runtime/LayeredKernel.php": "2339dc156013809d1c41ec7270ae36aec9dd3cda20e06dd3554745536d5c2d44",
         "app/Runtime/Runner.php": "218efc2ec1395b70370c62e071693a06c82a95b689209fd8795d05265d06088c",
@@ -99,17 +99,17 @@
         "app/Support/Foundation.php": "f0ca6d31344f66534bc23aa7af21c99139ec16aa7da30b71e2a2da92d3ae9167",
         "app/Support/ModuleLoader.php": "a9d05e1d5600fab9876a5c0c0454c69592040ec8c6370f5abe787580946d12da",
         "app/Support/Runtime.php": "fd4be1c53d30429d8cf3f9a0f4eddda63e5bb2489677ad7fb9d398bcfe3bae26",
-        "app/Support/SecurityAccess.php": "25089d6bf717ff7dd25ad83185bf8ab8f85bf60b623a0d539673605f35b09ccc",
+        "app/Support/SecurityAccess.php": "a0a2dd4e762fb5f541c95c5476b0d6606e11c9ce834387301acaee18937a6c74",
         "app/Support/SecurityPrivacy.php": "0660615b1603680a7085626590bedf024521124f174a382540c339632a7a1b88",
         "app/Support/ServerJsonCache.php": "0a53a1cb11513b01649adc978244361776975babfffde7a77e40013f9a392bc0",
         "app/Support/Telemetry.php": "20fde82031cd7667e3dc3d36d9edd47ed3b04c1dc54c19de9db564836e2498dd",
         "app/Ui/Components.php": "af2c94d892c69cb020dc9585b9557b759c900aa4f7305704c057972b03233ed9",
         "app/Ui/PublicWeb.php": "5f2dcb19828273e9e221e7cad2285985aa9654e431a912cc61b2891289dc2b12",
-        "app/architecture.manifest.json": "2e05a874cf7f52479bdbfbb7d2588c094e49bf27329d40f084ab833703a78295",
+        "app/architecture.manifest.json": "63c3d46055ea0bdd1540be1bc27f6dbf1feda4be366fa847c9df068df6beec79",
         "app/bootstrap_architecture.php": "09c737653312414a5723179548788d431af8f25eb1e40355116a2f7786d36587",
         "app/bootstrap_specialized.php": "495cd5fff7338034067bb8e2a87f97adec1a798e7b0c2560cd7f4ab8dc91e110",
-        "app/prontoo.php": "54fc741d1c976a066e34921d178829237db3209fbbceafa2b36cdf3bffe50fe4",
-        "br/index.php": "e9cb2db19aebd591baa1f05bfc691ae1e4638baa474df8f67899fa081625a7d9",
+        "app/prontoo.php": "6daaaaa08b82aff9cbd8ff508fc019762cef20ffeed9a77bfc946788cb16b29c",
+        "br/index.php": "c47900d0413d426400590f3bac89fc5e7d8e93d689f6f7dbe2a210f7266caeb0",
         "br/landing/view-final.php": "6ef9f2020e97a3c52e7110c865fbc3717bf6914d96a898c72b9b312b56c2049b",
         "br/landing/view-flow.php": "275c5d2829fec6c049e337da9362ddc4bfc87662a87c37b93abd4b70c4d31538",
         "br/landing/view-head.php": "dbfc41c9ab019af86731d12732569881144a1bda12970c3f6a7cf7f5cc92da5a",
@@ -124,7 +124,7 @@
         "tools/architecture-check.php": "e73811d146e1427f26669d64f892b35f8bb1557a98ea68d31030a7818a9a5ec8",
         "tools/install-security-check.php": "df000371e4f202180a17e6d2e586e3ccbba904560fdad210e2348ede163b64ae",
         "tools/schema-check.php": "14abd0ed9b8c25a68a87b8748005d1e01c22da519f370218da685f78c70dd4fc",
-        "version.json": "0b51d5a2267e08c1ea3714f4e215b61432d2e24f042d7cda380106a9eb666d3d"
+        "version.json": "bbee99e833b064b30fad22811b3597d69625dac9f64affb000114926dc43a6da"
     },
     "removed_files": [
         "ARCHITECTURE.md",
@@ -146,10 +146,10 @@
         "app/Support/SeqFooter.php"
     ],
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "previous_version": "1.7.23.6",
-    "updated_at": "2026-07-23T20:27:00Z",
-    "notes": "Remove integralmente o subsistema órfão do alfabeto e da impressão digital do rodapé Seq, sem alterar o contrato estrutural de Seq, MFA, autenticação, banco ou schema.",
-    "deployment_sync_id": "hostoo-remove-seq-footer-alphabet-20260723T202700Z",
+    "previous_version": "1.7.23.7",
+    "updated_at": "2026-07-24T12:36:00Z",
+    "notes": "Painel do Administrador com itens restaurados e botão Painel antes de Agenda.",
+    "deployment_sync_id": "hostoo-admin-panel-20260724T123600Z",
     "authentication_policy": "password_plus_mfa_for_developer_no_persistent_device_idle_3600_seconds_per_user_session_generation",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
@@ -158,5 +158,6 @@
         "images": "ssd/img",
         "legacy_storage_migration": true,
         "legacy_root_pdfs_migration": true
-    }
+    },
+    "admin_panel_policy": "manager_only_panel_button_before_agenda_and_explicit_dashboard_sections"
 }

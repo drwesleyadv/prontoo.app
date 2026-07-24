@@ -1,3 +1,11 @@
+Prontoo 1.7.24.1 — Painel do Administrador
+
+- Restaura a exibição do acesso Painel exclusivamente no perfil Administrador.
+- Posiciona Painel antes de Agenda na barra de contextos, usando o ícone Material Symbol space_dashboard.
+- Estrutura KPIs, meta, indicadores financeiros, ações recomendadas e receita por procedimento em um contêiner administrativo explícito, preservando os estados vazios informativos.
+- Mantém Agenda como primeira tela do primeiro login; o novo botão não altera a rota inicial.
+- Banco e schema permanecem inalterados.
+
 Prontoo 1.7.23.7 — supressão do alfabeto legado do rodapé Seq
 
 - Remove integralmente o subsistema órfão do alfabeto usado para codificar a antiga impressão digital do rodapé Seq.

@@ -1,12 +1,12 @@
 {
-  "version": "1.7.23.7",
-  "release": "1.7.23.7",
-  "generated_at_unix": 1784838420,
-  "generated_at": "2026-07-23T20:27:00Z",
-  "updated_at": "2026-07-23T20:27:00Z",
-  "build": "1.7.23.7-remove-seq-footer-alphabet",
+  "version": "1.7.24.1",
+  "release": "1.7.24.1",
+  "generated_at_unix": 1784896560,
+  "generated_at": "2026-07-24T12:36:00Z",
+  "updated_at": "2026-07-24T12:36:00Z",
+  "build": "1.7.24.1-admin-panel-navigation",
   "asset_version": "1.7.15.10",
-  "package_type": "legacy_code_removal",
+  "package_type": "admin_panel_ux_fix",
   "theme_policy": "light-only",
   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
   "database_changes": false,
@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "ChangeLog.txt",
-  "notes": "Remove integralmente o subsistema órfão do alfabeto e da impressão digital do rodapé Seq, preservando o contrato estrutural de Seq, os fingerprints SQL, os identificadores documentais, MFA, autenticação, banco e schema.",
+  "notes": "Corrige a exibição dos itens do Painel do Administrador e restaura o acesso Painel antes de Agenda, com ícone space_dashboard.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -31,13 +31,13 @@
   "minimum_mysql": "8.0.30",
   "minimum_php": "8.4.0",
   "database_policy": "clean-schema-layer2-ledger-v1",
-  "previous_version": "1.7.23.6",
+  "previous_version": "1.7.23.7",
   "documentation_changes": true,
   "installer_locked": true,
   "installer_access_policy": "http_disabled_github_actions_cli_certification_only",
   "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-  "deployment_sync_id": "hostoo-remove-seq-footer-alphabet-20260723T202700Z",
-  "deployment_sync_requested_at": "2026-07-23T20:27:00Z",
+  "deployment_sync_id": "hostoo-admin-panel-20260724T123600Z",
+  "deployment_sync_requested_at": "2026-07-24T12:36:00Z",
   "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
   "persistent_storage_policy": {
     "root": "ssd",
@@ -45,5 +45,6 @@
     "images": "ssd/img",
     "legacy_storage_migration": true,
     "legacy_root_pdfs_migration": true
-  }
+  },
+  "admin_panel_policy": "manager_only_panel_button_before_agenda_and_explicit_dashboard_sections"
 }

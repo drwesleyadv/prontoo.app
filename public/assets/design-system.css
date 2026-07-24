@@ -13465,6 +13465,16 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
 
 /* 1.7.9.44 — Fase 10 segura: Painéis por perfil no padrão estrutural validado
    Escopo visual: Painel inicial por perfil, mantendo markup, regras, dados e permissões. */
+body[data-route="painel"] .manager-dashboard{
+  display:grid!important;
+  gap:var(--pt-dashboard-gap)!important;
+  min-width:0!important;
+}
+body[data-route="painel"] .manager-dashboard > *{
+  min-width:0!important;
+  margin-top:0!important;
+  margin-bottom:0!important;
+}
 body[data-route="painel"] main{
   --pt-dashboard-gap:14px;
   --pt-dashboard-radius:24px;
@@ -13569,6 +13579,7 @@ body[data-route="painel"] .reception-card,
 body[data-route="painel"] .card.manager-goal,
 body[data-route="painel"] .card.manager-actions,
 body[data-route="painel"] .card.manager-procedures,
+body[data-route="painel"] .card.manager-finance-card,
 body[data-route="painel"] main > .card{
   border-radius:var(--pt-dashboard-radius)!important;
   border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 68%,transparent)!important;
@@ -13579,6 +13590,7 @@ body[data-route="painel"] .reception-card h2,
 body[data-route="painel"] .manager-goal h2,
 body[data-route="painel"] .manager-actions h2,
 body[data-route="painel"] .manager-procedures h2,
+body[data-route="painel"] .manager-finance-card h2,
 body[data-route="painel"] main > .card h2{
   margin:0 0 4px!important;
   font:var(--md-sys-typescale-title-medium)!important;

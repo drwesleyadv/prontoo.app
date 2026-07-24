@@ -1169,11 +1169,13 @@ function page_gerente_painel(array $c): void
             "Painel",
             "Indicadores operacionais, meta mensal, financeiro e ações prioritárias.",
         ) .
+            '<div class="manager-dashboard" aria-label="Painel administrativo">' .
             $kpis .
             $goalHtml .
             $finance .
             $actionsHtml .
-            $procedureBlock,
+            $procedureBlock .
+            "</div>",
     );
 }
 function page_painel(): void

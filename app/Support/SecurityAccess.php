@@ -2611,6 +2611,7 @@ function role_actions(string $role): array
         ],
         "medico" => ["appointments", "patients", "documents", "tasks", "audit"],
         "gerente" => [
+            "painel",
             "appointments",
             "patients",
             "documents",
@@ -2709,8 +2710,8 @@ function role_actions_effective(array $roles): array
         return [];
     }
     $order = [
-        "appointments",
         "painel",
+        "appointments",
         "leads",
         "patients",
         "documents",
