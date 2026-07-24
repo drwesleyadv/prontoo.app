@@ -25,7 +25,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 98,
-    "total_uncompressed_bytes": 4022466,
+    "total_uncompressed_bytes": 4023185,
     "files": {
         ".github/workflows/architecture.yml": "2c21da97b4103ffc5a7c3840e07ee5c63abd58dbffeafa54c9a576399e473358",
         ".htaccess": "a7143c58d8ebee8ff1d52bbd57cca31704e93c5037f814d8abe7f15bd0aa211b",
@@ -99,7 +99,7 @@
         "app/Support/Foundation.php": "f0ca6d31344f66534bc23aa7af21c99139ec16aa7da30b71e2a2da92d3ae9167",
         "app/Support/ModuleLoader.php": "56aa09523c736544872ab4f18215f82e8aad4b08daad9b65e700286fa7ad552f",
         "app/Support/Runtime.php": "fd4be1c53d30429d8cf3f9a0f4eddda63e5bb2489677ad7fb9d398bcfe3bae26",
-        "app/Support/SecurityAccess.php": "7770996cac0f0c41e88bf2832804d98c28a600722b27abd19825e09d13926ff0",
+        "app/Support/SecurityAccess.php": "c3554534b8113cef76ad3ab304a95ff20fdedd4869ce5fdb19632777d9d85814",
         "app/Support/SecurityPrivacy.php": "0660615b1603680a7085626590bedf024521124f174a382540c339632a7a1b88",
         "app/Support/ServerJsonCache.php": "7a4c5c57ef6bb84c697b81deeda8b9718e5c9bb9fc0c5b5a1a1f3a2160fbfe32",
         "app/Support/Telemetry.php": "20fde82031cd7667e3dc3d36d9edd47ed3b04c1dc54c19de9db564836e2498dd",
@@ -121,7 +121,7 @@
         "cron/maestro.php": "12864bced4c8eac1e757b7fbddddbc78a7d7b9318171c7293cb96b0207eefc3b",
         "index.php": "bafd8276ca45fd95d23a100812e1a2e9eb541a4f51fdbeb1384c7cd9a262a99e",
         "install.php": "c0fcc1a9b3b7407c8bf3d11dae0751ac231aca6a940499e089a86470e7a11738",
-        "tools/architecture-check.php": "b0cf969f6c98f6ebf7a27165f0ada46c4aefe520eaa4543b083fe0cacfc9fd4a",
+        "tools/architecture-check.php": "18a69a966eb5092e728b8ccd983605bb922f17718c9d6a9155cc4c6d8d1e2cee",
         "tools/install-security-check.php": "df000371e4f202180a17e6d2e586e3ccbba904560fdad210e2348ede163b64ae",
         "tools/schema-check.php": "14abd0ed9b8c25a68a87b8748005d1e01c22da519f370218da685f78c70dd4fc",
         "version.json": "cbbbf78c0e9de79d9bb5acc2a0d44ecbf6500615614642087543057093b748bd"

@@ -76,18 +76,29 @@ $dashboardIconCascade = [
     'ok' => $dashboardIconFailures === [],
     'failed' => $dashboardIconFailures,
 ];
+$logoutModuleSource = (string) file_get_contents(
+    $root . '/app/Auth/AuthOnboarding.php',
+);
+$logoutPageStart = strpos($logoutModuleSource, 'function page_logout(): void');
+$logoutPageEnd = $logoutPageStart === false
+    ? false
+    : strpos($logoutModuleSource, 'function page_profile(): void', $logoutPageStart);
+$logoutPageSource =
+    $logoutPageStart !== false && $logoutPageEnd !== false
+        ? substr($logoutModuleSource, $logoutPageStart, $logoutPageEnd - $logoutPageStart)
+        : '';
 $logoutCascadeSources = [
     'auth' => (string) file_get_contents($root . '/app/Support/SecurityAccess.php'),
     'cache' => (string) file_get_contents($root . '/app/Support/ServerJsonCache.php'),
     'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
     'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
     'audit' => (string) file_get_contents($root . '/app/Domain/Audit/AuditActivity.php'),
-    'logout' => (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php'),
+    'logout' => $logoutPageSource,
 ];
 $logoutCascadeFailures = [];
 foreach ([
     'auth' => [
-        'meta_set(user_auth_generation_key($uid), $generation);',
+        'INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)',
         'hash_equals($userCurrent, $userSession)',
     ],
     'cache' => [
@@ -117,7 +128,10 @@ foreach ([
     }
 }
 foreach ([
-    'auth' => ['server_json_cache_clear_categories(["context", "meta"])'],
+    'auth' => [
+        'server_json_cache_clear_categories(["context", "meta"])',
+        'meta_set(user_auth_generation_key($uid), $generation);',
+    ],
     'logout' => ['security_retire_persistent_devices_for_user($uid);'],
 ] as $sourceKey => $forbiddenTokens) {
     foreach ($forbiddenTokens as $forbiddenToken) {

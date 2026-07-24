@@ -1044,7 +1044,10 @@ function user_auth_generation_rotate(int $uid): string
         throw new RuntimeException("Usuário inválido para revogação de sessão.");
     }
     $generation = bin2hex(random_bytes(24));
-    meta_set(user_auth_generation_key($uid), $generation);
+    q(
+        "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)",
+        [user_auth_generation_key($uid), $generation],
+    );
     return $generation;
 }
 function session_harden_after_login(int $uid = 0): void
