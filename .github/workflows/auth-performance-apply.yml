@@ -20,6 +20,9 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
+      - name: Repair authentication applicator
+        run: python3 tools/repair-auth-performance-loader.py
+
       - name: Apply authentication performance changes
         id: apply
         shell: bash
