@@ -63,6 +63,43 @@ if old not in source:
     raise RuntimeError("Bloco MFA original não encontrado")
 source = source.replace(old, new, 1)
 
+old_generation = (
+    'auth = replace_once(\n'
+    '    auth,\n'
+    '    "    login_apply_resolved_credential($uid, $credential);\\\\n",\n'
+    "    '''    login_apply_resolved_credential(\n"
+    '        $uid,\n'
+    '        $credential,\n'
+    '        (string) ($pending["user_auth_generation"] ?? ""),\n'
+    '    );\n'
+    "''',\n"
+    '    "reutilizar geração MFA validada",\n'
+    ')\n'
+)
+new_generation = (
+    'auth = replace_once(\n'
+    '    auth,\n'
+    '    """    $_SESSION["privileged_auth_at"] = time();\n'
+    '    prontoo_login_post_password_maintenance($uid);\n'
+    '    login_apply_resolved_credential($uid, $credential);\n'
+    '}\n'
+    '""",\n'
+    '    """    $_SESSION["privileged_auth_at"] = time();\n'
+    '    prontoo_login_post_password_maintenance($uid);\n'
+    '    login_apply_resolved_credential(\n'
+    '        $uid,\n'
+    '        $credential,\n'
+    '        (string) ($pending["user_auth_generation"] ?? ""),\n'
+    '    );\n'
+    '}\n'
+    '""",\n'
+    '    "reutilizar geração MFA validada",\n'
+    ')\n'
+)
+if old_generation not in source:
+    raise RuntimeError("Bloco de geração MFA original não encontrado")
+source = source.replace(old_generation, new_generation, 1)
+
 old = '''script_path = ROOT / "tools/apply-auth-performance.py"
 if script_path.exists():
     script_path.unlink()
