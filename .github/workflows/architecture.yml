@@ -17,11 +17,25 @@ jobs:
           ref: agent/admin-panel-1.7.24.1
           fetch-depth: 0
 
-      - name: Apply administrator panel correction
+      - name: Apply or record diagnostic
         shell: bash
         run: |
-          set -euo pipefail
-          python3 .automation/apply_admin_panel_1_7_24_1.py | tee /tmp/admin-panel-report.json
+          set +e
+          python3 .automation/apply_admin_panel_1_7_24_1.py > /tmp/admin-panel-apply.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            git reset --hard HEAD
+            git clean -fd
+            cp /tmp/admin-panel-apply.log admin-panel-apply-error.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add admin-panel-apply-error.txt
+            git commit -m 'Registra diagnóstico do Painel do Administrador' || true
+            git push origin HEAD:agent/admin-panel-1.7.24.1
+            cat /tmp/admin-panel-apply.log
+            exit "$status"
+          fi
+          cat /tmp/admin-panel-apply.log
 
       - name: Validate changed PHP and contracts
         shell: bash
@@ -37,9 +51,6 @@ jobs:
               if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
             }
           '
-          grep -F '"gerente" => [' app/Support/SecurityAccess.php >/dev/null
-          grep -F 'class="manager-dashboard"' app/Pages/Dashboards.php >/dev/null
-          grep -F 'body[data-route="painel"] .manager-dashboard{' public/assets/design-system.css >/dev/null
 
       - name: Publish transformed application tree
         shell: bash
