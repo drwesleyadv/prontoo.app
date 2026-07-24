@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - agent/admin-manager-kpi-icons-20260724
+  pull_request:
+    branches:
+      - main
+    types: [synchronize]
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
