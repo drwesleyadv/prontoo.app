@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/runner/work/prontoo.app/prontoo.app/.automation/apply_admin_panel_1_7_24_1.py", line 101, in <module>
-    css = replace_once(css, css_anchor, css_rules + css_anchor, "contêiner visual do Painel")
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/prontoo.app/prontoo.app/.automation/apply_admin_panel_1_7_24_1.py", line 29, in replace_once
-    raise RuntimeError(f"Âncora {label!r} encontrada {count} vez(es), esperado 1")
-RuntimeError: Âncora 'contêiner visual do Painel' encontrada 2 vez(es), esperado 1
