@@ -16,11 +16,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== ROLE ACTIONS ==='
-          grep -RInE --include='*.php' 'function role_actions|"gerente" => \[|"painel" => \[|"appointments" => \[' app/Support app/Ui || true
-          echo '=== PANEL ROUTE AND AUTHORIZATION ==='
-          grep -RInE --include='*.php' 'page_gerente_painel|page_painel|painel.*view|"painel"|painel:' app/Application app/Domain app/Infrastructure app/Pages app/Runtime app/Support || true
-          echo '=== MANAGER DASHBOARD CSS ==='
-          grep -nE 'manager-(kpis|stat|goal|finance|actions|action|procedure|mini|dashboard)' public/assets/design-system.css || true
-          echo '=== ROUTES AND PAGE DISPATCH ==='
-          grep -RInE --include='*.php' 'painel.*page_painel|page_painel.*painel|"painel".*page' app/Runtime app/Support app/Application || true
+          {
+            echo '=== ROLE ACTIONS ==='
+            grep -RInE --include='*.php' 'function role_actions|"gerente" => \[|"painel" => \[|"appointments" => \[' app/Support app/Ui || true
+            echo '=== PANEL ROUTE AND AUTHORIZATION ==='
+            grep -RInE --include='*.php' 'page_gerente_painel|page_painel|painel.*view|"painel"|painel:' app/Application app/Domain app/Infrastructure app/Pages app/Runtime app/Support || true
+            echo '=== MANAGER DASHBOARD CSS ==='
+            grep -nE 'manager-(kpis|stat|goal|finance|actions|action|procedure|mini|dashboard)' public/assets/design-system.css || true
+            echo '=== ROUTES AND PAGE DISPATCH ==='
+            grep -RInE --include='*.php' 'painel.*page_painel|page_painel.*painel|"painel".*page' app/Runtime app/Support app/Application || true
+          } > admin-panel-inventory.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-panel-inventory
+          path: admin-panel-inventory.txt
+          if-no-files-found: error
+          retention-days: 1
