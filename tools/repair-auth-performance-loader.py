@@ -63,42 +63,43 @@ if old not in source:
     raise RuntimeError("Bloco MFA original não encontrado")
 source = source.replace(old, new, 1)
 
-old_generation = (
-    'auth = replace_once(\n'
-    '    auth,\n'
-    '    "    login_apply_resolved_credential($uid, $credential);\\\\n",\n'
-    "    '''    login_apply_resolved_credential(\n"
-    '        $uid,\n'
-    '        $credential,\n'
-    '        (string) ($pending["user_auth_generation"] ?? ""),\n'
-    '    );\n'
-    "''',\n"
-    '    "reutilizar geração MFA validada",\n'
-    ')\n'
+generation_pattern = re.compile(
+    r'auth = replace_once\(\n'
+    r'    auth,\n'
+    r'    "    login_apply_resolved_credential\(\$uid, \$credential\);\\n",\n'
+    r'.*?'
+    r'    "reutilizar geração MFA validada",\n'
+    r'\)\n',
+    re.S,
 )
-new_generation = (
-    'auth = replace_once(\n'
-    '    auth,\n'
-    '    """    $_SESSION["privileged_auth_at"] = time();\n'
-    '    prontoo_login_post_password_maintenance($uid);\n'
-    '    login_apply_resolved_credential($uid, $credential);\n'
-    '}\n'
-    '""",\n'
-    '    """    $_SESSION["privileged_auth_at"] = time();\n'
-    '    prontoo_login_post_password_maintenance($uid);\n'
-    '    login_apply_resolved_credential(\n'
-    '        $uid,\n'
-    '        $credential,\n'
-    '        (string) ($pending["user_auth_generation"] ?? ""),\n'
-    '    );\n'
-    '}\n'
-    '""",\n'
-    '    "reutilizar geração MFA validada",\n'
-    ')\n'
+generation_replacement = '''auth = replace_once(
+    auth,
+    """    $_SESSION["privileged_auth_at"] = time();
+    prontoo_login_post_password_maintenance($uid);
+    login_apply_resolved_credential($uid, $credential);
+}
+""",
+    """    $_SESSION["privileged_auth_at"] = time();
+    prontoo_login_post_password_maintenance($uid);
+    login_apply_resolved_credential(
+        $uid,
+        $credential,
+        (string) ($pending["user_auth_generation"] ?? ""),
+    );
+}
+""",
+    "reutilizar geração MFA validada",
 )
-if old_generation not in source:
-    raise RuntimeError("Bloco de geração MFA original não encontrado")
-source = source.replace(old_generation, new_generation, 1)
+'''
+source, generation_count = generation_pattern.subn(
+    generation_replacement,
+    source,
+    count=1,
+)
+if generation_count != 1:
+    raise RuntimeError(
+        f"Bloco de geração MFA original não encontrado: {generation_count}",
+    )
 
 old = '''script_path = ROOT / "tools/apply-auth-performance.py"
 if script_path.exists():
