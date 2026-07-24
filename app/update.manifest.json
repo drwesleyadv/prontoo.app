@@ -121,7 +121,7 @@
     "cron/maestro.php": "12864bced4c8eac1e757b7fbddddbc78a7d7b9318171c7293cb96b0207eefc3b",
     "index.php": "bafd8276ca45fd95d23a100812e1a2e9eb541a4f51fdbeb1384c7cd9a262a99e",
     "install.php": "c0fcc1a9b3b7407c8bf3d11dae0751ac231aca6a940499e089a86470e7a11738",
-    "tools/architecture-check.php": "2a810eaec3aea8c86fcda08aad4b661bb8ad2b10a674af96d76a34446c6a5592",
+    "tools/architecture-check.php": "18cc8ed5efd64ce51e2edb0582d16402d0e7effc0e26aa246c3b5e61961d5f67",
     "tools/install-security-check.php": "df000371e4f202180a17e6d2e586e3ccbba904560fdad210e2348ede163b64ae",
     "tools/schema-check.php": "14abd0ed9b8c25a68a87b8748005d1e01c22da519f370218da685f78c70dd4fc",
     "version.json": "17f852f475cd3f88962e97c30200ad0e2ad61d3b7f6767f4a0772681d5d45871"

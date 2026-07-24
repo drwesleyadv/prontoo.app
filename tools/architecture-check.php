@@ -176,7 +176,7 @@ $loginPerformanceFailures = [];
 foreach ([
     'auth' => [
         'JOIN pi_users u ON u.person_id=p.id',
-        'VALUES\n               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),',
+        "VALUES\n               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),",
         'meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)',
         "LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)",
         'server_json_cache_file(',
