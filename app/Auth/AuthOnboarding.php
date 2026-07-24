@@ -2440,33 +2440,39 @@ function page_logout(): void
 {
     /*
      * GUIA DE MANUTENÇÃO — page_logout
-     * Responsabilidade: Coordena a rota e renderiza a tela “page logout”, reunindo validação, leitura de dados e resposta HTTP.
+     * Responsabilidade: Invalida a raiz canônica da autenticação e encerra a sessão local; os demais artefatos derivados falham fechados no próximo uso.
      * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `redirect`, `audit`, `device_session_revoke_current`, `secure_session_destroy`, `header`, `href`.
+     * Dependências chamadas: `redirect`, `user_auth_generation_rotate`, `audit`, `secure_session_destroy`, `header`, `href`.
      * Estado externo lido: `$_SERVER`, `$_SESSION`.
      * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
+     * Cuidado 2: A geração do usuário é a raiz da cascata; não reintroduza limpeza física ampla de cache ou varredura de dispositivos no caminho crítico.
      */
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         redirect("login");
     }
     $uid = (int) ($_SESSION["uid"] ?? 0);
+    $clinicId = (int) ($_SESSION["clinic_id"] ?? 0);
+    $roleCode = (string) ($_SESSION["role_code"] ?? "");
     try {
         if ($uid > 0) {
             user_auth_generation_rotate($uid);
-            security_retire_persistent_devices_for_user($uid);
         }
-        audit("saida_realizada", "usuario", $uid ?: null, [
+        audit("saida_realizada", "seguranca", $uid ?: null, [
+            "_skip_runtime_context" => 1,
+            "_skip_context_enrichment" => 1,
+            "clinic_id" => $clinicId > 0 ? $clinicId : null,
+            "role_code" => $roleCode,
             "audit_body" =>
-                "Logout concluído com revogação da geração de autenticação do usuário.",
+                "Logout concluído pela rotação da geração canônica; sessões, contextos e credenciais derivadas serão recusados na próxima tentativa de uso.",
         ]);
     } catch (Throwable $e) {
-        error_log("[Prontoo logout revocation] " . $e->getMessage());
+        error_log("[Prontoo logout cascade] " . $e->getMessage());
     } finally {
         secure_session_destroy();
     }
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
     header("Location: " . href("login"));
     exit();
 }

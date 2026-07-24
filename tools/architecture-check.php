@@ -76,14 +76,84 @@ $dashboardIconCascade = [
     'ok' => $dashboardIconFailures === [],
     'failed' => $dashboardIconFailures,
 ];
+$logoutModuleSource = (string) file_get_contents(
+    $root . '/app/Auth/AuthOnboarding.php',
+);
+$logoutPageStart = strpos($logoutModuleSource, 'function page_logout(): void');
+$logoutPageEnd = $logoutPageStart === false
+    ? false
+    : strpos($logoutModuleSource, 'function page_profile(): void', $logoutPageStart);
+$logoutPageSource =
+    $logoutPageStart !== false && $logoutPageEnd !== false
+        ? substr($logoutModuleSource, $logoutPageStart, $logoutPageEnd - $logoutPageStart)
+        : '';
+$logoutCascadeSources = [
+    'auth' => (string) file_get_contents($root . '/app/Support/SecurityAccess.php'),
+    'cache' => (string) file_get_contents($root . '/app/Support/ServerJsonCache.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+    'audit' => (string) file_get_contents($root . '/app/Domain/Audit/AuditActivity.php'),
+    'logout' => $logoutPageSource,
+];
+$logoutCascadeFailures = [];
+foreach ([
+    'auth' => [
+        'INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)',
+        'hash_equals($userCurrent, $userSession)',
+    ],
+    'cache' => [
+        'if ($route === "logout") {',
+        '"user_auth_generation" =>',
+        '$_SESSION["user_auth_generation"]',
+    ],
+    'runner' => [
+        '$publicHome || $r === "logout" ? [] : ctx()',
+        'if ($r !== "logout") {',
+    ],
+    'loader' => ["'signup', 'logout'"],
+    'audit' => [
+        '$skipRuntimeContext = !empty($context["_skip_runtime_context"])',
+        '$c = $skipRuntimeContext ? [] : ctx();',
+    ],
+    'logout' => [
+        'user_auth_generation_rotate($uid);',
+        '"_skip_runtime_context" => 1',
+        'secure_session_destroy();',
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($logoutCascadeSources[$sourceKey], $requiredToken)) {
+            $logoutCascadeFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'auth' => [
+        'server_json_cache_clear_categories(["context", "meta"])',
+        'meta_set(user_auth_generation_key($uid), $generation);',
+    ],
+    'logout' => ['security_retire_persistent_devices_for_user($uid);'],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($logoutCascadeSources[$sourceKey], $forbiddenToken)) {
+            $logoutCascadeFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$logoutCascade = [
+    'ok' => $logoutCascadeFailures === [],
+    'failed' => $logoutCascadeFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
         !empty($selfTest['ok']) &&
-        !empty($dashboardIconCascade['ok']),
+        !empty($dashboardIconCascade['ok']) &&
+        !empty($logoutCascade['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
+    'logout_cascade' => $logoutCascade,
 ];
 
 echo json_encode(

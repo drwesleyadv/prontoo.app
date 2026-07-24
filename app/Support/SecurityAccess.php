@@ -1037,17 +1037,17 @@ function user_auth_generation_ensure(int $uid): string
         }
     }
 }
-/* Guia de manutenção: Revoga todas as sessões do usuário pela rotação criptográfica da geração. */
+/* Guia de manutenção: Rotaciona a raiz canônica da cascata; artefatos derivados falham no próximo uso sem limpeza física síncrona. */
 function user_auth_generation_rotate(int $uid): string
 {
     if ($uid <= 0) {
         throw new RuntimeException("Usuário inválido para revogação de sessão.");
     }
     $generation = bin2hex(random_bytes(24));
-    meta_set(user_auth_generation_key($uid), $generation);
-    if (function_exists("server_json_cache_clear_categories")) {
-        server_json_cache_clear_categories(["context", "meta"]);
-    }
+    q(
+        "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)",
+        [user_auth_generation_key($uid), $generation],
+    );
     return $generation;
 }
 function session_harden_after_login(int $uid = 0): void
@@ -1120,8 +1120,12 @@ function security_session_generation_enforce(int $uid): void
     }
     try {
         audit("sessao_obsoleta_encerrada", "seguranca", $uid, [
+            "_skip_runtime_context" => 1,
+            "_skip_context_enrichment" => 1,
+            "clinic_id" => (int) ($_SESSION["clinic_id"] ?? 0) ?: null,
+            "role_code" => (string) ($_SESSION["role_code"] ?? ""),
             "audit_body" =>
-                "Sessão encerrada porque a geração de autenticação foi renovada pela normalização pré-login do index.",
+                "Sessão encerrada no primeiro uso após divergência da geração canônica de autenticação do usuário.",
         ]);
     } catch (Throwable $e) {
         error_log("[Prontoo auth generation audit] " . $e->getMessage());

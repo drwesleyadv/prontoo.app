@@ -1,5 +1,5 @@
 {
-  "version": "1.7.24.3",
+  "version": "1.7.24.4",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -49,7 +49,7 @@
   ],
   "database_changes": false,
   "schema_changes": false,
-  "visual_changes": true,
+  "visual_changes": false,
   "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
   "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
   "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
@@ -59,7 +59,7 @@
   "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
   "destructive_reset_policy": "removed_from_runtime",
   "runtime_loading_policy": "route_loaded_installer_local_only_no_historical_cleanup_on_hot_path",
-  "json_cache_policy": "get_only_scoped_tag_invalidated_stable_lookup_cache",
+  "json_cache_policy": "generation_keyed_lazy_cascade_without_logout_directory_sweep",
   "authorization_scope_check": "ActionCatalog::logicSelfTest + RuntimeCapabilityProvider::logicSelfTest + .github/workflows/architecture.yml",
   "authorization_action_policy": "every_protected_post_uses_an_explicit_exact_action_contract_and_unknown_actions_fail_closed",
   "documentation_policy": "ChangeLog.txt_and_in_source_function_guides_only_no_markdown_files",
@@ -68,8 +68,8 @@
   "function_documentation_closures": 127,
   "function_documentation_arrows": 100,
   "function_documentation_ci": ".github/workflows/architecture.yml",
-  "logic_changes": false,
-  "authentication_policy": "password_plus_mfa_for_developer_no_persistent_device_idle_3600_seconds_per_user_session_generation",
+  "logic_changes": true,
+  "authentication_policy": "password_plus_mfa_idle_3600_seconds_per_user_generation_cascade_lazy_revocation",
   "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
   "commissioned_installation_lockdown": {
     "http": "denied_at_webserver_and_php_entry",
@@ -78,5 +78,6 @@
     "public_window": false,
     "schema_mutation": "github-actions-cli-four-markers-only",
     "developer_panel_icon": "network_ping"
-  }
+  },
+  "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use"
 }

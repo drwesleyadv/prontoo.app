@@ -2862,7 +2862,15 @@ function audit(
              * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; produz conteúdo de saída.
              * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
              */
-            $c = ctx();
+            $skipRuntimeContext = !empty($context["_skip_runtime_context"]);
+            $skipContextEnrichment = !empty(
+                $context["_skip_context_enrichment"]
+            );
+            unset(
+                $context["_skip_runtime_context"],
+                $context["_skip_context_enrichment"],
+            );
+            $c = $skipRuntimeContext ? [] : ctx();
             $uid = (int) ($c["user"]["id"] ?? ($_SESSION["uid"] ?? 0)) ?: null;
             $cid = $context["clinic_id"] ?? ($c["clinic_id"] ?? null);
             unset($context["clinic_id"]);
@@ -2881,13 +2889,15 @@ function audit(
                     );
                 }
             }
-            $context = audit_enrich_context(
-                $event,
-                $entity,
-                $entityId,
-                $context,
-                $cid ? (int) $cid : null,
-            );
+            if (!$skipContextEnrichment) {
+                $context = audit_enrich_context(
+                    $event,
+                    $entity,
+                    $entityId,
+                    $context,
+                    $cid ? (int) $cid : null,
+                );
+            }
             if (trim((string) ($context["audit_body"] ?? "")) === "") {
                 $context["audit_body"] = audit_body_for_event(
                     $event,

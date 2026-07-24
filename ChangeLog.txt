@@ -1,3 +1,11 @@
+Prontoo 1.7.24.4 — logout em cascata por geração canônica
+
+- Torna a geração de autenticação do usuário a raiz única da revogação: ao ser rotacionada, todas as sessões paralelas falham fechadas na próxima requisição.
+- Vincula a chave do cache de contexto à geração da sessão, tornando contextos anteriores automaticamente inalcançáveis sem varredura ou exclusão síncrona de arquivos.
+- Retira do logout a limpeza de 18 categorias de cache, a atualização em massa de dispositivos legados, a materialização completa de contexto e a descarga do Guardião.
+- Mantém CSRF, auditoria, destruição da sessão local, MFA, timeout de 60 minutos e revogação global do usuário.
+- Acrescenta prova regressiva permanente; banco e schema permanecem inalterados.
+
 Prontoo 1.7.24.3 — ícones dos KPIs gerenciais restaurados integralmente
 
 - Corrige o segundo seletor tipográfico do Design System que ainda alcançava os elementos Material Symbols dentro de manager-kpis e manager-operational-kpis.

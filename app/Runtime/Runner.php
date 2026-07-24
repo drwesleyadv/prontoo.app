@@ -200,7 +200,7 @@ function prontoo_route_is_public_light(string $route): bool
      * Efeitos colaterais: consome dados da requisição HTTP.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    if (in_array($route, ["login", "login_autotest", "mfa"], true)) {
+    if (in_array($route, ["login", "login_autotest", "mfa", "logout"], true)) {
         return true;
     }
     return in_array(
@@ -542,9 +542,11 @@ function prontoo_run(bool $installMode = false): void
         ) {
             ensure_clinic_trial_active((int) $_SESSION["clinic_id"], true);
         }
-        $cNow = $publicHome ? [] : ctx();
+        $cNow = $publicHome || $r === "logout" ? [] : ctx();
         enforce_read_only($cNow, $r);
-        enforce_action_integrity($cNow, $r);
+        if ($r !== "logout") {
+            enforce_action_integrity($cNow, $r);
+        }
         if ($isPost) {
             if (
                 function_exists(
@@ -634,7 +636,9 @@ function prontoo_run(bool $installMode = false): void
             redirect("financial");
         }
         prontoo_load_route_modules($r);
-        prontoo_flush_integrity_before_render();
+        if ($r !== "logout") {
+            prontoo_flush_integrity_before_render();
+        }
         $fn = in_array($r, $map, true) ? "page_" . $r : "page_home";
         if (!function_exists($fn)) {
             throw new RuntimeException("Rota sem função de página: " . $fn);

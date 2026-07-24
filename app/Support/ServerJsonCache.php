@@ -713,6 +713,12 @@ function server_json_cache_write_categories(string $route, string $act): array
     $route = strtolower(trim($route));
     $act = strtolower(trim($act));
 
+    // Logout invalida somente a geração canônica. Os artefatos derivados
+    // tornam-se inalcançáveis ou falham fechados na próxima tentativa de uso.
+    if ($route === "logout") {
+        return [];
+    }
+
     // Tudo que representa estado operacional permanece live após qualquer gravação.
     $categories = [
         "hot", "agenda", "recepcao", "financial", "gavetas",
@@ -848,6 +854,8 @@ function server_json_cache_context_key(
         "clinic_id" => $clinicId,
         "uc_id" => $ucId,
         "role" => $role,
+        "user_auth_generation" =>
+            (string) ($_SESSION["user_auth_generation"] ?? ""),
         "version" => defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "",
         "schema" => defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : "",
     ]);
