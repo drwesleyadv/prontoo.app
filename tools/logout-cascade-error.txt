@@ -1,1 +1,0 @@
-app/Support/SecurityAccess.php: esperado 1 trecho, encontrado 0: '        audit("sessao_obsoleta_encerrada", "seguranca", $uid, [\n  "audit_body" =>\n      "S'
