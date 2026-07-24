@@ -103,8 +103,18 @@ auth = replace_once(
 )
 auth = replace_once(
     auth,
-    '        (string) ($pending["user_auth_generation"] ?? ""),\n',
-    '        (string) ($user["user_auth_generation"] ?? ""),\n',
+    '''    login_apply_resolved_credential(
+        $uid,
+        $credential,
+        (string) ($pending["user_auth_generation"] ?? ""),
+    );
+''',
+    '''    login_apply_resolved_credential(
+        $uid,
+        $credential,
+        (string) ($user["user_auth_generation"] ?? ""),
+    );
+''',
     "geração MFA final",
 )
 if auth.count("mfa_complete_pending_login($user);") != 2:
@@ -168,9 +178,14 @@ changelog = changelog.replace(
 )
 write("ChangeLog.txt", changelog)
 
-self_path = ROOT / "tools/finalize-auth-performance.py"
-if self_path.exists():
-    self_path.unlink()
+for transient in [
+    "tools/finalize-auth-performance.py",
+    "tools/auth-finalize-error.txt",
+    "tools/auth-finalize-retry.txt",
+]:
+    transient_path = ROOT / transient
+    if transient_path.exists():
+        transient_path.unlink()
 
 manifest_path = ROOT / "app/update.manifest.json"
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
