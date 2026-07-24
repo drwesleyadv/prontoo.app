@@ -43,15 +43,30 @@ jobs:
       - name: Validate implementation
         shell: bash
         run: |
-          php -l app/Support/SecurityAccess.php
-          php -l app/Support/ServerJsonCache.php
-          php -l app/Runtime/Runner.php
-          php -l app/Support/ModuleLoader.php
-          php -l app/Domain/Audit/AuditActivity.php
-          php -l app/Auth/AuthOnboarding.php
-          php -l tools/architecture-check.php
-          php tools/architecture-check.php
-          git diff --check
+          set +e
+          {
+            php -l app/Support/SecurityAccess.php
+            php -l app/Support/ServerJsonCache.php
+            php -l app/Runtime/Runner.php
+            php -l app/Support/ModuleLoader.php
+            php -l app/Domain/Audit/AuditActivity.php
+            php -l app/Auth/AuthOnboarding.php
+            php -l tools/architecture-check.php
+            php tools/architecture-check.php
+            git diff --check
+          } > /tmp/logout-cascade-validation.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            cat /tmp/logout-cascade-validation.log
+            cp /tmp/logout-cascade-validation.log tools/logout-cascade-error.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/logout-cascade-error.txt
+            git commit -m "Registrar falha de validação do logout em cascata"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            exit "$status"
+          fi
 
       - name: Commit implementation
         shell: bash
