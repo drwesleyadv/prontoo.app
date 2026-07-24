@@ -22,21 +22,11 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, pdo_mysql, openssl
 
-      - name: Extract and apply implementation
+      - name: Apply implementation
         shell: bash
         run: |
-          python3 <<'PY'
-          from pathlib import Path
-          source = Path('.github/workflows/logout-cascade-apply.yml').read_text(encoding='utf-8')
-          marker = "          python3 <<'PY'\n"
-          start = source.index(marker) + len(marker)
-          end = source.index("\n          PY\n", start)
-          lines = source[start:end].splitlines()
-          script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines) + "\n"
-          Path('/tmp/apply-logout-cascade.py').write_text(script, encoding='utf-8')
-          PY
           set +e
-          python3 /tmp/apply-logout-cascade.py > /tmp/logout-cascade-apply.log 2>&1
+          python3 tools/apply-logout-cascade.py > /tmp/logout-cascade-apply.log 2>&1
           status=$?
           set -e
           if [ "$status" -ne 0 ]; then
