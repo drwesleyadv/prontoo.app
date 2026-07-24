@@ -52,12 +52,19 @@ if (str_contains(
 )) {
     $dashboardIconFailures[] = 'broad_kpi_span_selector';
 }
+if (str_contains(
+    $dashboardIconCss,
+    ') > :where(article,div,a,span) :where(span,small,strong){',
+)) {
+    $dashboardIconFailures[] = 'broad_manager_kpi_descendant_span_selector';
+}
 foreach ([
     '.stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
     '.ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
     '.notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
     '.kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
     '.mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+    ':where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong)',
     '.manager-action > .pt-icon-glyph',
     '.material-symbols-rounded{font-family:"Material Symbols Rounded"',
 ] as $requiredIconContract) {
