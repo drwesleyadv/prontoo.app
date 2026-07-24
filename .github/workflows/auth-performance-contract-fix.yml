@@ -1,0 +1,42 @@
+name: Auth Performance Contract Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'agent/auth-performance-20260724'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/auth-performance-20260724
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Fix regression contract
+        run: python3 tools/fix-auth-performance-contract.py
+
+      - name: Validate generated sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l tools/architecture-check.php >/dev/null
+          python3 -m json.tool app/update.manifest.json >/dev/null
+
+      - name: Publish target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "Nenhuma alteração produzida" >&2; exit 1; }
+          git commit -m "Corrigir contrato regressivo de autenticação"
+          git push origin HEAD:agent/auth-performance-20260724
