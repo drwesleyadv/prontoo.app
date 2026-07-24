@@ -21,9 +21,37 @@ jobs:
           show-progress: false
 
       - name: Finalize authentication performance changes
-        run: python3 tools/finalize-auth-performance.py
+        shell: bash
+        run: |
+          set +e
+          python3 tools/finalize-auth-performance.py > /tmp/auth-finalize.out 2> /tmp/auth-finalize.err
+          status=$?
+          cat /tmp/auth-finalize.out
+          cat /tmp/auth-finalize.err >&2
+          if [ "$status" -ne 0 ]; then
+            {
+              echo "status=$status"
+              echo "--- stdout ---"
+              cat /tmp/auth-finalize.out
+              echo "--- stderr ---"
+              cat /tmp/auth-finalize.err
+            } > tools/auth-finalize-error.txt
+          fi
+          exit "$status"
+
+      - name: Publish diagnostic on failure
+        if: failure() && hashFiles('tools/auth-finalize-error.txt') != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/auth-finalize-error.txt
+          git commit -m "Registrar diagnóstico final da autenticação" || exit 0
+          git push origin HEAD:agent/auth-performance-20260724
 
       - name: Validate generated sources
+        if: success()
         shell: bash
         run: |
           set -euo pipefail
@@ -36,6 +64,7 @@ jobs:
           python3 -m json.tool app/architecture.manifest.json >/dev/null
 
       - name: Publish target branch
+        if: success()
         shell: bash
         run: |
           set -euo pipefail
