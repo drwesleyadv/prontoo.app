@@ -1,3 +1,10 @@
+Prontoo 1.7.24.1 — Painel do Administrador restaurado
+
+- Dá precedência ao cargo Administrativo ao abrir a tela Painel, inclusive quando o usuário possui múltiplos cargos ativos.
+- Restaura a exibição dos indicadores operacionais, meta mensal, financeiro, ações recomendadas e receita por procedimento do Administrador.
+- Inclui, exclusivamente para o Administrador, o botão Painel imediatamente antes de Agenda, com ícone próprio da tela.
+- Mantém Agenda como tela inicial do primeiro login e dos acessos comuns; não altera autenticação, banco ou schema.
+
 Prontoo 1.7.23.7 — supressão do alfabeto legado do rodapé Seq
 
 - Remove integralmente o subsistema órfão do alfabeto usado para codificar a antiga impressão digital do rodapé Seq.

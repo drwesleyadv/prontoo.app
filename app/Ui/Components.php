@@ -1118,6 +1118,29 @@ function page(string $title, string $body, array $opts = []): void
                 $visibleActions[$key] = $a;
             }
         }
+        if (has_effective_role($c, "gerente") && can("painel")) {
+            $adminPainelAction = [
+                "label" => "Painel",
+                "icon" => "dashboard",
+            ];
+            $adminVisibleActions = [];
+            $adminPainelInserted = false;
+            foreach ($visibleActions as $key => $action) {
+                if ($key === "painel") {
+                    continue;
+                }
+                if (!$adminPainelInserted && $key === "appointments") {
+                    $adminVisibleActions["painel"] = $adminPainelAction;
+                    $adminPainelInserted = true;
+                }
+                $adminVisibleActions[$key] = $action;
+            }
+            if (!$adminPainelInserted) {
+                $adminVisibleActions =
+                    ["painel" => $adminPainelAction] + $adminVisibleActions;
+            }
+            $visibleActions = $adminVisibleActions;
+        }
         $visibleActions = cmdbar_order_items(
             $visibleActions,
             $current,

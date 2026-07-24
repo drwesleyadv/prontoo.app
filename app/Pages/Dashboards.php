@@ -1190,6 +1190,10 @@ function page_painel(): void
     $c = require_can("painel");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
+    if (has_effective_role($c, "gerente")) {
+        page_gerente_painel($c);
+        return;
+    }
     if (($c["role"] ?? "") === "medico") {
         page_medico_painel($c);
         return;
@@ -1200,10 +1204,6 @@ function page_painel(): void
     }
     if (($c["role"] ?? "") === "assistente") {
         page_triagem_painel($c);
-        return;
-    }
-    if (has_effective_role($c, "gerente")) {
-        page_gerente_painel($c);
         return;
     }
     [$todayStart, $todayEnd] = app_local_day_utc_range(
