@@ -39,6 +39,30 @@ if old not in source:
     raise RuntimeError("Bloco de aposentadoria original não encontrado")
 source = source.replace(old, new, 1)
 
+old = '''auth = replace_once(
+    auth,
+    "    $user = mfa_pending_login_user();\\n",
+    "    $user = $verifiedUser ?: mfa_pending_login_user();\\n",
+    "reutilizar usuário MFA validado",
+)
+'''
+new = '''auth = replace_once(
+    auth,
+    """function mfa_complete_pending_login(?array $verifiedUser = null): void
+{
+    $user = mfa_pending_login_user();
+""",
+    """function mfa_complete_pending_login(?array $verifiedUser = null): void
+{
+    $user = $verifiedUser ?: mfa_pending_login_user();
+""",
+    "reutilizar usuário MFA validado",
+)
+'''
+if old not in source:
+    raise RuntimeError("Bloco MFA original não encontrado")
+source = source.replace(old, new, 1)
+
 old = '''script_path = ROOT / "tools/apply-auth-performance.py"
 if script_path.exists():
     script_path.unlink()
