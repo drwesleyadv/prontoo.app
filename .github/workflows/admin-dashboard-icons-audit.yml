@@ -7,11 +7,12 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 
 jobs:
   audit:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,16 +21,30 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 1
+          persist-credentials: true
 
-      - name: Inspect manager icon markup and CSS
+      - name: Build focused audit report
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== MANAGER ICON CALLS ==='
-          sed -n '780,1190p' app/Pages/Dashboards.php | grep -n -E 'manager_dashboard_card|manager_action_card|icon\(' || true
-          echo '=== MANAGER CSS RULES ==='
-          grep -n -E -C 4 'manager-(stat|action|kpis|goal|finance|procedure)' public/assets/design-system.css || true
-          echo '=== GLOBAL ICON RULES ==='
-          grep -n -E -C 3 'material-symbols-rounded|pt-icon-glyph' public/assets/design-system.css | head -n 320 || true
-          echo '=== BROAD SPAN RULES IN MANAGER BLOCKS ==='
-          grep -n -E -C 3 '\.manager-(stat|action)[^\{]*span|\.manager-(stat|action) span' public/assets/design-system.css || true
+          mkdir -p tmp
+          {
+            echo '=== MANAGER ICON CALLS ==='
+            sed -n '780,1190p' app/Pages/Dashboards.php | grep -n -E 'manager_dashboard_card|manager_action_card|icon\(' || true
+            echo '=== MANAGER CSS RULES ==='
+            grep -n -E -C 5 'manager-(stat|action|kpis|goal|finance|procedure)' public/assets/design-system.css || true
+            echo '=== BROAD SPAN RULES ==='
+            grep -n -E -C 5 '\.manager-(stat|action)[^\{]*span|\.manager-(stat|action) span' public/assets/design-system.css || true
+            echo '=== ICON BASE RULE ==='
+            grep -n -E -C 5 '^\.material-symbols-rounded|^\.pt-icon-glyph|material-symbols-rounded.*pt-icon-glyph' public/assets/design-system.css | head -n 220 || true
+          } > tmp/admin-icon-audit.txt
+
+      - name: Commit report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tmp/admin-icon-audit.txt
+          git commit -m "chore: registrar auditoria temporária de ícones"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
