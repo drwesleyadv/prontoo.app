@@ -1,0 +1,33 @@
+name: Audit Admin Dashboard Icons
+
+on:
+  push:
+    branches:
+      - agent/admin-dashboard-icons-20260724
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/admin-dashboard-icons-20260724
+          fetch-depth: 1
+
+      - name: Inspect manager icon markup and CSS
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== MANAGER ICON CALLS ==='
+          sed -n '780,1190p' app/Pages/Dashboards.php | grep -n -E 'manager_dashboard_card|manager_action_card|icon\(' || true
+          echo '=== MANAGER CSS RULES ==='
+          grep -n -E -C 4 'manager-(stat|action|kpis|goal|finance|procedure)' public/assets/design-system.css || true
+          echo '=== GLOBAL ICON RULES ==='
+          grep -n -E -C 3 'material-symbols-rounded|pt-icon-glyph' public/assets/design-system.css | head -n 320 || true
+          echo '=== BROAD SPAN RULES IN MANAGER BLOCKS ==='
+          grep -n -E -C 3 '\.manager-(stat|action)[^\{]*span|\.manager-(stat|action) span' public/assets/design-system.css || true
