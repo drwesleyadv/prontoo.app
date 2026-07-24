@@ -1,5 +1,5 @@
 {
-  "version": "1.7.24.1",
+  "version": "1.7.24.2",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -68,7 +68,7 @@
   "function_documentation_closures": 127,
   "function_documentation_arrows": 100,
   "function_documentation_ci": ".github/workflows/architecture.yml",
-  "logic_changes": true,
+  "logic_changes": false,
   "authentication_policy": "password_plus_mfa_for_developer_no_persistent_device_idle_3600_seconds_per_user_session_generation",
   "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
   "commissioned_installation_lockdown": {
