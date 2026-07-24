@@ -144,16 +144,93 @@ $logoutCascade = [
     'ok' => $logoutCascadeFailures === [],
     'failed' => $logoutCascadeFailures,
 ];
+
+$loginApplyStart = strpos(
+    $logoutModuleSource,
+    'function login_apply_resolved_credential(',
+);
+$loginApplyEnd = $loginApplyStart === false
+    ? false
+    : strpos(
+        $logoutModuleSource,
+        'function developer_first_login_clear_json_cache(',
+        $loginApplyStart,
+    );
+$loginApplySource =
+    $loginApplyStart !== false && $loginApplyEnd !== false
+        ? substr(
+            $logoutModuleSource,
+            $loginApplyStart,
+            $loginApplyEnd - $loginApplyStart,
+        )
+        : '';
+$loginPerformanceSources = [
+    'auth' => $logoutModuleSource,
+    'login_apply' => $loginApplySource,
+    'security' => (string) file_get_contents(
+        $root . '/app/Support/SecurityAccess.php',
+    ),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+];
+$loginPerformanceFailures = [];
+foreach ([
+    'auth' => [
+        'JOIN pi_users u ON u.person_id=p.id',
+        "VALUES\n               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),",
+        'meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)',
+        "LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)",
+        'server_json_cache_file(',
+        'developer_first_login_clear_json_cache($uid, true);',
+    ],
+    'login_apply' => [
+        '"_skip_runtime_context" => 1',
+        '"_skip_context_enrichment" => 1',
+        'session_harden_after_login($uid, $verifiedUserGeneration);',
+    ],
+    'security' => [
+        '.security-storage-',
+        '$storageGuardFilesPresent',
+        'static $secret = null;',
+        '?string $verifiedUserGeneration = null',
+    ],
+    'runner' => [
+        '["route_deep", "post_password_login"]',
+        '"reason" => "runtime_marker_fresh"',
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($loginPerformanceSources[$sourceKey], $requiredToken)) {
+            $loginPerformanceFailures[] =
+                $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'login_apply' => ['security_retire_persistent_devices_for_user($uid);'],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($loginPerformanceSources[$sourceKey], $forbiddenToken)) {
+            $loginPerformanceFailures[] =
+                $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$loginPerformance = [
+    'ok' => $loginPerformanceFailures === [],
+    'failed' => $loginPerformanceFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
         !empty($selfTest['ok']) &&
         !empty($dashboardIconCascade['ok']) &&
-        !empty($logoutCascade['ok']),
+        !empty($logoutCascade['ok']) &&
+        !empty($loginPerformance['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
     'logout_cascade' => $logoutCascade,
+    'login_performance' => $loginPerformance,
 ];
 
 echo json_encode(

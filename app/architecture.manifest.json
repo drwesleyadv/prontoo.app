@@ -1,5 +1,5 @@
 {
-  "version": "1.7.24.4",
+  "version": "1.7.24.5",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -79,5 +79,7 @@
     "schema_mutation": "github-actions-cli-four-markers-only",
     "developer_panel_icon": "network_ping"
   },
-  "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use"
+  "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use",
+  "generated_at": "2026-07-24T15:21:24Z",
+  "updated_at": "2026-07-24T15:21:24Z"
 }

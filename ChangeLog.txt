@@ -1,3 +1,13 @@
+Prontoo 1.7.24.5 — autenticação com caminho crítico reduzido
+
+- Executa a manutenção completa do runtime após a senha somente quando o marcador canônico estiver ausente ou vencido; acessos comuns permanecem no light-check já protegido.
+- Torna a auditoria de entrada compacta, sem materializar ctx antes do redirecionamento, preservando cadeia de integridade, usuário, consultório, cargo, origem e agente.
+- Consolida a busca de CPF e usuário em uma única consulta e os três buckets de falha em um único UPSERT, sem alterar limiares, exponencial ou bloqueio distribuído.
+- Remove do login comum a aposentadoria síncrona de dispositivos persistentes já descontinuados e evita regravar a última credencial quando seu valor não muda.
+- Combina usuário, privilégio e geração em uma única consulta por revalidação MFA, preserva a rechecagem final contra revogação concorrente, memoiza a chave criptográfica por requisição e retira consultas de timezone antes de respostas que apenas redirecionam.
+- Valida a proteção dos diretórios sob marcador horário versionado, mantendo fail-closed, cookies seguros, CSRF, password_verify equivalente, MFA, delays defensivos e revogação em cascata.
+- Acrescenta prova regressiva permanente; banco e schema permanecem inalterados.
+
 Prontoo 1.7.24.4 — logout em cascata por geração canônica
 
 - Torna a geração de autenticação do usuário a raiz única da revogação: ao ser rotacionada, todas as sessões paralelas falham fechadas na próxima requisição.
