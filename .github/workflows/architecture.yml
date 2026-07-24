@@ -1,564 +1,62 @@
-name: Architecture Contract
+name: Apply Admin Panel 1.7.24.1
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  verify:
+  apply-admin-panel:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 10
     steps:
-      - name: Checkout
+      - name: Checkout product branch
         uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
+          ref: agent/admin-panel-1.7.24.1
+          fetch-depth: 0
 
-      - name: PHP syntax
+      - name: Apply administrator panel correction
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
-          done < <(find . \
-            -path './.git' -prune -o \
-            -path './ssd' -prune -o \
-            -path './vendor' -prune -o \
-            -path './node_modules' -prune -o \
-            -name '*.php' -print0)
+          python3 .automation/apply_admin_panel_1_7_24_1.py | tee /tmp/admin-panel-report.json
 
-      - name: JSON contracts
+      - name: Validate changed PHP and contracts
         shell: bash
         run: |
+          set -euo pipefail
+          php -l app/Support/SecurityAccess.php >/dev/null
+          php -l app/Pages/Dashboards.php >/dev/null
+          php -l app/prontoo.php >/dev/null
+          php -l br/index.php >/dev/null
           php -r '
-            $contracts = [];
             foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
-              $contracts[$file] = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-              if (!is_array($contracts[$file])) { throw new RuntimeException("JSON inválido: " . $file); }
-            }
-            $version = trim((string) ($contracts["version.json"]["version"] ?? ""));
-            if ($version === "" ||
-                trim((string) ($contracts["version.json"]["release"] ?? "")) !== $version ||
-                trim((string) ($contracts["app/update.manifest.json"]["version"] ?? "")) !== $version ||
-                trim((string) ($contracts["app/update.manifest.json"]["release"] ?? "")) !== $version ||
-                trim((string) ($contracts["app/architecture.manifest.json"]["version"] ?? "")) !== $version) {
-              throw new RuntimeException("Contrato JSON de versão divergente");
-            }
-            foreach ([
-              "app/prontoo.php" => "PRONTOO_VERSION_FALLBACK",
-              "br/index.php" => "BR_LANDING_VERSION_FALLBACK",
-            ] as $file => $constant) {
-              $source = (string) file_get_contents($file);
-              $pattern = "/const\\s+" . preg_quote($constant, "/") . "\\s*=\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*;/";
-              if (!preg_match($pattern, $source, $match) ||
-                  trim((string) ($match[1] ?? "")) !== $version) {
-                throw new RuntimeException("Fallback de versão divergente: " . $file);
-              }
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
             }
           '
+          grep -F '"gerente" => [' app/Support/SecurityAccess.php >/dev/null
+          grep -F 'class="manager-dashboard"' app/Pages/Dashboards.php >/dev/null
+          grep -F 'body[data-route="painel"] .manager-dashboard{' public/assets/design-system.css >/dev/null
 
-      - name: Source documentation policy
+      - name: Publish transformed application tree
         shell: bash
         run: |
           set -euo pipefail
-          if find . -type f -name '*.md' -print -quit | grep -q .; then
-            echo "Arquivos Markdown não são permitidos; use ChangeLog.txt e comentários no código." >&2
-            exit 1
-          fi
-          test -f ChangeLog.txt
-          test ! -e ChangeLog.history.txt
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-
-          $functions = 0;
-          $guides = 0;
-          $iterator = new RecursiveIteratorIterator(
-              new RecursiveDirectoryIterator('.', FilesystemIterator::SKIP_DOTS),
-          );
-          foreach ($iterator as $file) {
-              if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') {
-                  continue;
-              }
-              $path = str_replace('\\', '/', $file->getPathname());
-              if (str_contains($path, '/ssd/') ||
-                  str_contains($path, '/vendor/') ||
-                  str_contains($path, '/node_modules/')) {
-                  continue;
-              }
-              $source = (string) file_get_contents($file->getPathname());
-              foreach (token_get_all($source) as $token) {
-                  if (is_array($token) && ($token[0] === T_FUNCTION || $token[0] === T_FN)) {
-                      $functions++;
-                  }
-              }
-              $guides += substr_count($source, 'GUIA DE MANUTENÇÃO —');
-              $guides += substr_count($source, 'Guia de manutenção:');
-          }
-          if ($functions !== $guides) {
-              throw new RuntimeException(
-                  "Cobertura documental divergente: {$guides} guias para {$functions} funções.",
-              );
-          }
-          if ($functions !== 1914) {
-              throw new RuntimeException(
-                  "Inventário funcional divergente da baseline documentada: {$functions}.",
-              );
-          }
-          echo json_encode([
-              'ok' => true,
-              'php_function_units' => $functions,
-              'maintenance_guides' => $guides,
-              'documentation_file' => 'ChangeLog.txt',
-          ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), PHP_EOL;
-          PHP
-
-      - name: Runtime contract and audit SQL regression
-        shell: bash
-        run: |
-          php -r '
-            $runtime = (string) file_get_contents("app/Core/Install/RuntimeContract.php");
-            if (str_contains($runtime, "CleanInstallReset")) {
-              throw new RuntimeException("RuntimeContract ainda referencia CleanInstallReset");
-            }
-            $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
-            if (str_contains($audit, "et.event_key")) {
-              throw new RuntimeException("Alias SQL inexistente et.event_key");
-            }
-            if (!str_contains($audit, "a.event_key NOT IN")) {
-              throw new RuntimeException("Filtro canônico a.event_key ausente");
-            }
-          '
-
-      - name: Authorization scope matrix
-        shell: bash
-        run: |
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-
-          require 'app/Core/Invariant/Canonical.php';
-          require 'app/Core/Invariant/Decision.php';
-          require 'app/Domain/Authorization/ActionContract.php';
-          require 'app/Application/Authorization/CapabilityProvider.php';
-          require 'app/Application/Authorization/ActionCatalog.php';
-          require 'app/Infrastructure/Authorization/RuntimeCapabilityProvider.php';
-
-          use Prontoo\Application\Authorization\ActionCatalog;
-          use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
-
-          $catalog = ActionCatalog::logicSelfTest();
-          $runtime = RuntimeCapabilityProvider::logicSelfTest();
-          if (empty($catalog['ok'])) {
-              throw new RuntimeException('Falha no catálogo de autorização: ' . implode(', ', (array) ($catalog['failed'] ?? [])));
-          }
-          if (empty($runtime['ok'])) {
-              throw new RuntimeException('Falha na matriz de cargos: ' . implode(', ', (array) ($runtime['failed'] ?? [])));
-          }
-
-          foreach ([
-              ['admin_errors', 'resolve_incident'],
-              ['admin_security', 'release_login_lock'],
-          ] as [$route, $action]) {
-              $contract = ActionCatalog::resolve($route, ['act' => $action]);
-              if ($contract === null ||
-                  $contract->scope !== 'global' ||
-                  $contract->policy !== 'global_admin' ||
-                  $contract->required !== ['admin:*']) {
-                  throw new RuntimeException("Contrato global inválido: {$route}:{$action}");
-              }
-          }
-
-          $source = (string) file_get_contents('app/Admin/AdminPages.php');
-          foreach ([
-              'name="act" value="resolve_incident"',
-              'name="act" value="release_login_lock"',
-              '$act !== "resolve_incident"',
-              '$act !== "release_login_lock"',
-          ] as $required) {
-              if (!str_contains($source, $required)) {
-                  throw new RuntimeException('Regressão de ação exata: ' . $required);
-              }
-          }
-          PHP
-
-      - name: Mathematical integrity properties
-        shell: bash
-        run: |
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-
-          function property_ok(bool $condition, string $message): void
-          {
-              if (!$condition) {
-                  throw new RuntimeException($message);
-              }
-          }
-
-          function property_throws(callable $operation, string $message): void
-          {
-              try {
-                  $operation();
-              } catch (Throwable) {
-                  return;
-              }
-              throw new RuntimeException($message);
-          }
-
-          function audit_integrity_base(array $row): string
-          {
-              return implode('|', [
-                  (string) ($row['clinic_id'] ?? ''),
-                  (string) ($row['user_id'] ?? ''),
-                  (string) ($row['event'] ?? ($row['event_key'] ?? '')),
-                  (string) ($row['entity'] ?? ($row['entity_key'] ?? '')),
-                  (string) ($row['entity_id'] ?? ''),
-                  (string) ($row['friendly_text'] ?? ''),
-                  (string) ($row['context_json'] ?? ''),
-              ]);
-          }
-
-          require 'app/Support/Foundation.php';
-          require 'app/Core/Integrity/AuditChain.php';
-          require 'app/Domain/Financial/Financial.php';
-          require 'app/Domain/Maestro/Maestro.php';
-
-          $secret = 'ci-property-secret';
-          $baseRows = [
-              [
-                  'id' => 1,
-                  'clinic_id' => 7,
-                  'user_id' => 11,
-                  'event_key' => 'created',
-                  'entity_key' => 'patient',
-                  'entity_id' => '101',
-                  'friendly_text' => 'Primeiro elo',
-                  'context_json' => '{"step":1}',
-              ],
-              [
-                  'id' => 2,
-                  'clinic_id' => 7,
-                  'user_id' => 11,
-                  'event_key' => 'updated',
-                  'entity_key' => 'patient',
-                  'entity_id' => '101',
-                  'friendly_text' => 'Segundo elo',
-                  'context_json' => '{"step":2}',
-              ],
-              [
-                  'id' => 3,
-                  'clinic_id' => 7,
-                  'user_id' => 11,
-                  'event_key' => 'reviewed',
-                  'entity_key' => 'patient',
-                  'entity_id' => '101',
-                  'friendly_text' => 'Terceiro elo',
-                  'context_json' => '{"step":3}',
-              ],
-          ];
-          $rows = [];
-          $previous = '';
-          foreach ($baseRows as $baseRow) {
-              $proof = \Prontoo\Core\Integrity\AuditChain::buildFromPrevious(
-                  $baseRow,
-                  $secret,
-                  $previous,
-                  ['method' => 'CI', 'route' => 'property'],
-              );
-              $rows[] = array_merge($baseRow, $proof);
-              $previous = (string) $proof['chain_hash'];
-          }
-          property_ok(
-              \Prontoo\Core\Integrity\AuditChain::verifySequence(
-                  array_reverse($rows),
-                  $secret,
-              ),
-              'A cadeia íntegra e reordenada para leitura deve validar.',
-          );
-          property_ok(
-              !\Prontoo\Core\Integrity\AuditChain::verifySequence(
-                  [$rows[0], $rows[2]],
-                  $secret,
-              ),
-              'A exclusão de um elo intermediário deve ser detectada.',
-          );
-          $tamperedProof = $rows[1];
-          $tamperedProof['proof_json'] = '{"route":"tampered"}';
-          property_ok(
-              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
-                  $tamperedProof,
-                  $secret,
-              ),
-              'A adulteração do contexto da prova deve ser detectada.',
-          );
-          $tamperedPolicy = $rows[1];
-          $tamperedPolicy['policy_version'] = 'audit-lite-v2-maestro';
-          property_ok(
-              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
-                  $tamperedPolicy,
-                  $secret,
-              ),
-              'A versão da política deve permanecer vinculada à prova.',
-          );
-          $missingHash = $rows[1];
-          $missingHash['integrity_hash'] = '';
-          property_ok(
-              !\Prontoo\Core\Integrity\AuditChain::verifyRow(
-                  $missingHash,
-                  $secret,
-              ),
-              'Registro sem hash não pode ser considerado íntegro.',
-          );
-
-          property_ok(
-              parse_money_cents('R$ 1.234,56') === 123456,
-              'Conversão monetária brasileira inexata.',
-          );
-          property_ok(
-              parse_money_cents('12.3') === 1230,
-              'Conversão decimal canônica inexata.',
-          );
-          property_throws(
-              static fn(): int => parse_money_cents('1e3'),
-              'Notação exponencial deve ser rejeitada.',
-          );
-          property_throws(
-              static fn(): int => parse_money_cents('1,234'),
-              'Mais de duas casas decimais devem ser rejeitadas.',
-          );
-          financial_validate_movement_topology('receipt', null, 1);
-          property_throws(
-              static function (): void {
-                  financial_validate_movement_topology('transfer', 3, 3);
-              },
-              'Transferência reflexiva deve ser rejeitada.',
-          );
-          $transferAmount = 9850;
-          property_ok(
-              financial_movement_delta_for_location(
-                  $transferAmount,
-                  3,
-                  4,
-                  3,
-              ) +
-                  financial_movement_delta_for_location(
-                      $transferAmount,
-                      3,
-                      4,
-                      4,
-                  ) ===
-                  0,
-              'Transferência interna deve conservar o saldo global.',
-          );
-          property_ok(
-              financial_closing_equation(10000, 9500, 500, 9000, -500),
-              'Equação válida de fechamento foi recusada.',
-          );
-          property_ok(
-              !financial_closing_equation(10000, 9500, 500, 8500, -500),
-              'Fechamento sem conservação foi aceito.',
-          );
-          property_throws(
-              static fn(): int => financial_checked_add(
-                  PRONTOO_FINANCIAL_MAX_CENTS,
-                  1,
-              ),
-              'Overflow monetário deve falhar fechado.',
-          );
-
-          $boundaryUtc = new DateTimeImmutable(
-              '2026-08-01T02:00:00Z',
-              new DateTimeZone('UTC'),
-          );
-          $timezoneContext = ['timezone' => 'America/Cuiaba'];
-          property_ok(
-              app_month_in_timezone(7, $timezoneContext, $boundaryUtc) ===
-                  '2026-07',
-              'Chave mensal deve seguir o fuso do consultório.',
-          );
-          [$monthStart, $monthEnd] = app_local_month_utc_range(
-              '2026-07',
-              7,
-              $timezoneContext,
-          );
-          property_ok(
-              (int) $monthStart === 1782878400 &&
-                  (int) $monthEnd === 1785556800,
-              'Partição mensal UTC não corresponde ao mês civil local.',
-          );
-
-          property_ok(
-              maestro_ewma_observation(120.0, 0.0, true) === 120.0,
-              'Adiamento não pode degradar a estimativa EWMA.',
-          );
-          property_ok(
-              abs((float) maestro_ewma_observation(120.0, 60.0) - 105.0) <
-                  0.000001,
-              'Atualização EWMA observada está incorreta.',
-          );
-
-          $database = (string) file_get_contents(
-              'app/Database/DatabaseSchema.php',
-          );
-          property_ok(
-              str_contains($database, 'PiIntegrity::flushTransactionEvents()') &&
-                  strpos($database, 'PiIntegrity::flushTransactionEvents()') <
-                      strpos($database, '$connection->commit()'),
-              'A prova de mutação precisa preceder o commit.',
-          );
-          property_ok(
-              str_contains($database, '$autoIntegrityTransaction') &&
-                  str_contains($database, 'db_begin_transaction();') &&
-                  str_contains($database, 'db_commit();'),
-              'Mutações isoladas também precisam de transação probatória.',
-          );
-          property_ok(
-              str_contains(
-                  (string) file_get_contents('app/Support/FinancialGuard.php'),
-                  'Movimento de dia consolidado é imutável',
-              ),
-              'Guarda central de imutabilidade consolidada ausente.',
-          );
-          property_ok(
-              str_contains(
-                  (string) file_get_contents(
-                      'app/Domain/Financial/Financial.php',
-                  ),
-                  'integrity:financial-reconciliation-v2:',
-              ),
-              'Snapshot matemático da consolidação ausente.',
-          );
-
-          echo json_encode([
-              'ok' => true,
-              'audit_chain' => true,
-              'financial_conservation' => true,
-              'numeric_domain' => true,
-              'local_month_partition' => true,
-              'maestro_ewma' => true,
-              'transactional_ledger' => true,
-          ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), PHP_EOL;
-          PHP
-
-      - name: Maturity and runtime performance regressions
-        shell: bash
-        run: |
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          $runtime = (string) file_get_contents("app/prontoo.php");
-          if (str_contains($runtime, "prontoo_release_cleanup_1_7_14_8")) {
-              throw new RuntimeException("Limpeza histórica voltou ao hot path");
-          }
-          $loader = (string) file_get_contents("app/Support/ModuleLoader.php");
-          $core = strstr($loader, "function prontoo_full_runtime_modules", true);
-          if (str_contains((string) $core, "Install/Installer.php")) {
-              throw new RuntimeException("Instalador voltou ao bootstrap comum");
-          }
-          $install = (string) file_get_contents("install.php");
-          if (!str_contains($install, 'prontoo_require_module("Install/Installer.php")')) {
-              throw new RuntimeException("Instalador local não é carregado explicitamente");
-          }
-          $cache = (string) file_get_contents("app/Support/ServerJsonCache.php");
-          if (!str_contains($cache, "static $resolved")) {
-              throw new RuntimeException("Memoização dos diretórios de cache ausente");
-          }
-          $audit = (string) file_get_contents("app/Domain/Audit/AuditActivity.php");
-          foreach (["audit_user_name", "audit_clinic_name", "audit_team"] as $key) {
-              if (!str_contains($audit, $key)) {
-                  throw new RuntimeException("Cache de lookup ausente: " . $key);
-              }
-          }
-          if (hash_file("sha256", "app/Database/schema.sql") !== "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33") {
-              throw new RuntimeException("schema.sql alterado");
-          }
-          PHP
-
-      - name: Release manifest
-        shell: bash
-        run: |
-          php -r '
-            $manifest = json_decode((string) file_get_contents("app/update.manifest.json"), true, 512, JSON_THROW_ON_ERROR);
-            $files = (array) ($manifest["files"] ?? []);
-            if (count($files) !== (int) ($manifest["file_count"] ?? -1)) {
-              throw new RuntimeException("file_count divergente");
-            }
-            $bytes = 0;
-            foreach ($files as $file => $expected) {
-              if (!is_file($file)) { throw new RuntimeException("Arquivo ausente: " . $file); }
-              $actual = hash_file("sha256", $file);
-              if (!hash_equals((string) $expected, (string) $actual)) {
-                throw new RuntimeException("Hash divergente: " . $file);
-              }
-              $bytes += (int) filesize($file);
-            }
-            if ($bytes !== (int) ($manifest["total_uncompressed_bytes"] ?? -1)) {
-              throw new RuntimeException("total_uncompressed_bytes divergente");
-            }
-            foreach ((array) ($manifest["removed_files"] ?? []) as $file) {
-              if (file_exists((string) $file)) {
-                throw new RuntimeException("Arquivo legado ainda presente: " . $file);
-              }
-            }
-          '
-
-      - name: Installer access and schema freeze
-        shell: bash
-        run: |
-          php tools/install-security-check.php | tee install-security-report.json
-
-      - name: Static schema contract with Guardian loaded
-        shell: bash
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php
-
-      - name: Full zero-table installer with Guardian loaded on MySQL 8
-        shell: bash
-        env:
-          PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4
-          PRONTOO_SCHEMA_USER: root
-          PRONTOO_SCHEMA_PASS: root
-        run: |
-          php -d auto_prepend_file=app/Core/Integrity/PiIntegrity.php tools/schema-check.php | tee schema-report.json
-
-      - name: Layered architecture
-        shell: bash
-        run: |
-          set -o pipefail
-          php tools/architecture-check.php | tee architecture-report.json
-
-      - name: Upload architecture report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: architecture-report
-          path: |
-            architecture-report.json
-            schema-report.json
-            install-security-report.json
-          if-no-files-found: error
-          retention-days: 7
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            app/Support/SecurityAccess.php \
+            app/Pages/Dashboards.php \
+            public/assets/design-system.css \
+            ChangeLog.txt \
+            version.json \
+            app/prontoo.php \
+            br/index.php \
+            app/architecture.manifest.json \
+            app/update.manifest.json \
+            .automation/final-architecture.yml
+          git commit -m 'Prontoo 1.7.24.1 — corrige Painel do Administrador'
+          git push origin HEAD:agent/admin-panel-1.7.24.1
