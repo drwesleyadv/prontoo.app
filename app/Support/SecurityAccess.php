@@ -34,9 +34,34 @@ function boot_security(): void
         function_exists("security_storage_deny_file") &&
         function_exists("storage_path")
     ) {
-        security_storage_deny_file(storage_path());
-        security_storage_deny_file(storage_path("cache"));
-        security_storage_deny_file(storage_path("logs"));
+        $storageGuardRoot = storage_path("cache");
+        $storageGuardVersion = defined("PRONTOO_VERSION")
+            ? PRONTOO_VERSION
+            : "runtime";
+        $storageGuardMarker =
+            $storageGuardRoot .
+            "/.security-storage-" .
+            hash("sha256", $storageGuardVersion) .
+            ".json";
+        $storageGuardFresh =
+            is_file($storageGuardMarker) &&
+            time() - (int) filemtime($storageGuardMarker) < 3600;
+        if (!$storageGuardFresh) {
+            security_storage_deny_file(storage_path());
+            security_storage_deny_file(storage_path("cache"));
+            security_storage_deny_file(storage_path("logs"));
+            if (is_dir($storageGuardRoot)) {
+                @file_put_contents(
+                    $storageGuardMarker,
+                    json_encode(
+                        ["ok" => true, "version" => $storageGuardVersion],
+                        JSON_UNESCAPED_SLASHES,
+                    ),
+                    LOCK_EX,
+                );
+                @chmod($storageGuardMarker, 0640);
+            }
+        }
     }
     ini_set("session.use_strict_mode", "1");
     ini_set("session.use_only_cookies", "1");
@@ -1050,7 +1075,10 @@ function user_auth_generation_rotate(int $uid): string
     );
     return $generation;
 }
-function session_harden_after_login(int $uid = 0): void
+function session_harden_after_login(
+    int $uid = 0,
+    ?string $verifiedUserGeneration = null,
+): void
 {
     /*
      * GUIA DE MANUTENÇÃO — session_harden_after_login
@@ -1083,7 +1111,11 @@ function session_harden_after_login(int $uid = 0): void
         ? PRONTOO_AUTH_POLICY_GENERATION
         : "password-session-v1";
     if ($uid > 0) {
-        $_SESSION["user_auth_generation"] = user_auth_generation_ensure($uid);
+        $verifiedUserGeneration = trim((string) $verifiedUserGeneration);
+        $_SESSION["user_auth_generation"] =
+            $verifiedUserGeneration !== "" && $verifiedUserGeneration !== "0"
+                ? $verifiedUserGeneration
+                : user_auth_generation_ensure($uid);
     }
 }
 function security_session_generation_enforce(int $uid): void
@@ -2872,19 +2904,16 @@ function seed_permissions(int $clinicId): void
 }
 function secret_key(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — secret_key
-     * Responsabilidade: Implementa a responsabilidade “secret key” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/SecurityAccess.php (serviços transversais de suporte).
-     * Chamadores detectados: `login_key`, `verify_audit_row`, `audit`, `closure@app/Domain/Audit/AuditActivity.php:2161`, `person_signature_value`, `device_token_hash`, `device_fallback_hash`.
-     * Dependências chamadas: `val`, `cfg`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
-    return (string) (val(
+    /* Guia de manutenção: Memoiza a chave somente durante a requisição; a fonte canônica permanece pi_meta/configuração. */
+    static $secret = null;
+    if (is_string($secret) && $secret !== "") {
+        return $secret;
+    }
+    $secret = (string) (val(
         "SELECT meta_value FROM pi_meta WHERE meta_key='app_secret'",
     ) ??
         (cfg()["secret"] ?? "prontoo"));
+    return $secret;
 }
 function billing_state(array $clinic): array
 {

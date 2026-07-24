@@ -366,7 +366,10 @@ function prontoo_run_runtime_maintenance_cycle(
         ];
     }
     try {
-        if ($mode === "route_deep" && prontoo_schema_boot_marker_valid()) {
+        if (
+            in_array($mode, ["route_deep", "post_password_login"], true) &&
+            prontoo_schema_boot_marker_valid()
+        ) {
             return $result + [
                 "ok" => true,
                 "ran" => false,
@@ -427,6 +430,15 @@ function prontoo_login_post_password_maintenance(int $uid): array
         ];
     }
     $done = true;
+    if (prontoo_schema_boot_marker_valid()) {
+        return [
+            "ok" => true,
+            "ran" => false,
+            "reason" => "runtime_marker_fresh",
+            "uid" => $uid,
+            "steps" => [],
+        ];
+    }
     try {
         $result = prontoo_run_runtime_maintenance_cycle(
             "post_password_login",

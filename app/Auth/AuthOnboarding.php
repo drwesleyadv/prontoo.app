@@ -479,15 +479,7 @@ function login_last_credential_remember(
     string $scope,
     ?int $clinicRoleId = null,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — login_last_credential_remember
-     * Responsabilidade: Implementa a responsabilidade “login last credential remember” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_apply_resolved_credential`, `page_signup`, `device_session_remember_after_login`, `device_session_update_current_context`, `device_session_auto_login`.
-     * Dependências chamadas: `has_cfg`, `date`, `meta_set`, `login_last_credential_key`, `json_encode`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    /* Guia de manutenção: Persiste somente a credencial estável, sem timestamp mutável nem invalidação ampla de cache a cada login. */
     if ($uid <= 0 || !has_cfg()) {
         return;
     }
@@ -496,18 +488,22 @@ function login_last_credential_remember(
         return;
     }
     try {
-        $payload = [
-            "scope" => $scope,
-            "clinic_role_id" =>
-                $scope === "clinic" ? (int) $clinicRoleId : null,
-            "remembered_at" => date("c"),
-        ];
-        meta_set(
-            login_last_credential_key($uid),
-            json_encode(
-                $payload,
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            ),
+        $payload = json_encode(
+            [
+                "scope" => $scope,
+                "clinic_role_id" =>
+                    $scope === "clinic" ? (int) $clinicRoleId : null,
+            ],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+        if (!is_string($payload)) {
+            return;
+        }
+        q(
+            "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?)
+             ON DUPLICATE KEY UPDATE
+               meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)",
+            [login_last_credential_key($uid), $payload],
         );
     } catch (Throwable $e) {
         error_log(
@@ -634,6 +630,7 @@ function login_resolve_user_credential(
 function login_apply_resolved_credential(
     int $uid,
     array $credential,
+    ?string $verifiedUserGeneration = null,
 ): void {
     /*
      * GUIA DE MANUTENÇÃO — login_apply_resolved_credential
@@ -648,7 +645,7 @@ function login_apply_resolved_credential(
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
     $scope = (string) ($credential["scope"] ?? "clinic");
-    session_harden_after_login($uid);
+    session_harden_after_login($uid, $verifiedUserGeneration);
     $_SESSION["uid"] = $uid;
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
     mfa_pending_login_clear();
@@ -661,11 +658,12 @@ function login_apply_resolved_credential(
             $_SESSION["role_code"],
             $_SESSION["effective_roles"],
         );
-        developer_first_login_clear_json_cache($uid);
+        developer_first_login_clear_json_cache($uid, true);
         mark_login_success($uid);
         login_last_credential_remember($uid, "global", null);
-        security_retire_persistent_devices_for_user($uid);
         audit("entrada_realizada", "usuario", $uid, [
+            "_skip_runtime_context" => 1,
+            "_skip_context_enrichment" => 1,
             "scope" => "global",
             "audit_body" =>
                 "Entrada realizada com a última credencial do usuário carregada automaticamente.",
@@ -685,8 +683,9 @@ function login_apply_resolved_credential(
     $_SESSION["effective_roles"] = [(string) $choice["role_code"]];
     mark_login_success($uid);
     login_last_credential_remember($uid, "clinic", (int) $choice["id"]);
-    security_retire_persistent_devices_for_user($uid);
     audit("entrada_realizada", "usuario", $uid, [
+        "_skip_runtime_context" => 1,
+        "_skip_context_enrichment" => 1,
         "clinic_id" => (int) $choice["clinic_id"],
         "role_code" => (string) $choice["role_code"],
         "audit_body" =>
@@ -698,7 +697,10 @@ function login_apply_resolved_credential(
             : "appointments",
     );
 }
-function developer_first_login_clear_json_cache(int $uid): bool
+function developer_first_login_clear_json_cache(
+    int $uid,
+    bool $knownDeveloper = false,
+): bool
 {
     /*
      * GUIA DE MANUTENÇÃO — developer_first_login_clear_json_cache
@@ -721,6 +723,7 @@ function developer_first_login_clear_json_cache(int $uid): bool
     $locked = false;
     try {
         $isDeveloper =
+            $knownDeveloper ||
             (int) val(
                 "SELECT is_global_admin FROM pi_users WHERE id=? AND active=1 LIMIT 1",
                 [$uid],
@@ -838,9 +841,9 @@ function mfa_pending_login_user(): ?array
     return $user;
 }
 /* Guia de manutenção: Converte desafio MFA aprovado em sessão autenticada usando credencial revalidada. */
-function mfa_complete_pending_login(): void
+function mfa_complete_pending_login(?array $verifiedUser = null): void
 {
-    $user = mfa_pending_login_user();
+    $user = $verifiedUser ?: mfa_pending_login_user();
     $pending = $_SESSION["pending_mfa_login"] ?? null;
     if (
         !$user ||
@@ -875,7 +878,11 @@ function mfa_complete_pending_login(): void
     $_SESSION["mfa_verified_at"] = time();
     $_SESSION["privileged_auth_at"] = time();
     prontoo_login_post_password_maintenance($uid);
-    login_apply_resolved_credential($uid, $credential);
+    login_apply_resolved_credential(
+        $uid,
+        $credential,
+        (string) ($pending["user_auth_generation"] ?? ""),
+    );
 }
 /* Guia de manutenção: Limita tentativas MFA simultaneamente por usuário e endereço de origem. */
 function mfa_attempt_limited(int $uid, string $purpose): bool
@@ -940,7 +947,7 @@ function page_mfa(): void
                 !empty($_SESSION["mfa_recovery_codes"])
             ) {
                 unset($_SESSION["mfa_recovery_codes"]);
-                mfa_complete_pending_login();
+                mfa_complete_pending_login($user);
             }
             if ($act === "mfa_verify" && $enrolled) {
                 if (
@@ -958,7 +965,7 @@ function page_mfa(): void
                     "audit_body" =>
                         "Segundo fator do Desenvolvedor validado antes da criação da sessão autenticada.",
                 ]);
-                mfa_complete_pending_login();
+                mfa_complete_pending_login($user);
             }
             throw new RuntimeException("Ação MFA inválida.");
         } catch (Throwable $e) {
@@ -1183,8 +1190,13 @@ function page_login(): void
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
-    if (ctx()) {
-        redirect(ctx()["scope"] === "global" ? "admin_painel" : "appointments");
+    $currentCtx = ctx();
+    if ($currentCtx) {
+        redirect(
+            ($currentCtx["scope"] ?? "") === "global"
+                ? "admin_painel"
+                : "appointments",
+        );
     }
     $cpf = only_digits($_POST["cpf"] ?? ($_SESSION["login_last_cpf"] ?? ""));
     $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
@@ -1222,20 +1234,15 @@ function page_login(): void
                 } else {
                     $person = $cpfValid
                         ? one(
-                            "SELECT id,full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
+                            "SELECT p.full_name,p.cpf,p.birth_date,u.id uid,u.password_hash,u.active,u.is_global_admin
+                             FROM pi_persons p
+                             JOIN pi_users u ON u.person_id=p.id
+                             WHERE p.cpf=? LIMIT 1",
                             [$cpf],
                         )
                         : null;
-                    $userRow = $person
-                        ? one(
-                            "SELECT id uid,password_hash,active,is_global_admin FROM pi_users WHERE person_id=? LIMIT 1",
-                            [(int) $person["id"]],
-                        )
-                        : null;
-                    if ($person && $userRow) {
-                        $person += $userRow;
-                    }
-                    $passwordValid = $person && $userRow
+                    $userRow = $person;
+$passwordValid = $person && $userRow
                         ? password_verify(
                             (string) $_POST["password"],
                             (string) $person["password_hash"],
@@ -1485,49 +1492,55 @@ function login_lock(string $cpf): int
 }
 function login_fail(string $cpf): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_fail
-     * Responsabilidade: Implementa a responsabilidade “login fail” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `login_key`, `one`, `min`, `max`, `time`, `q`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    /* Guia de manutenção: Aplica os três buckets distribuídos em um único UPSERT, preservando limiares, exponencial e falha fechada. */
     $seconds = 60;
     try {
         [$pair, $subject, $ip] = login_bucket_keys($cpf);
-        $buckets = [
-            [$pair, 1, 2, 900],
-            [$subject, 5, 60, 86400],
-            [$ip, 20, 60, 3600],
-        ];
-        foreach ($buckets as [$keys, $threshold, $base, $cap]) {
-            q(
-                "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until,updated_at)
-                 VALUES (?,?,1,IF(?<=1,UNIX_TIMESTAMP()+?,0),NOW())
-                 ON DUPLICATE KEY UPDATE
-                   locked_until=CASE
-                     WHEN fail_count+1>=? THEN UNIX_TIMESTAMP()+CAST(
-                       LEAST(?,?*POW(2,LEAST(10,GREATEST(0,fail_count+1-?))))
+        q(
+            "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until,updated_at)
+             VALUES
+               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),
+               (?,?,1,0,NOW()),
+               (?,?,1,0,NOW())
+             ON DUPLICATE KEY UPDATE
+               locked_until=CASE
+                 WHEN subject_hash=? AND ip_hash=? THEN
+                   UNIX_TIMESTAMP()+CAST(
+                     LEAST(900,2*POW(2,LEAST(10,GREATEST(0,fail_count))))
+                     AS UNSIGNED
+                   )
+                 WHEN subject_hash=? AND ip_hash=? THEN
+                   CASE
+                     WHEN fail_count+1>=5 THEN UNIX_TIMESTAMP()+CAST(
+                       LEAST(86400,60*POW(2,LEAST(10,GREATEST(0,fail_count+1-5))))
                        AS UNSIGNED
                      )
                      ELSE COALESCE(locked_until,0)
-                   END,
-                   fail_count=LEAST(100000,fail_count+1),
-                   updated_at=NOW()",
-                [
-                    $keys[0],
-                    $keys[1],
-                    $threshold,
-                    $base,
-                    $threshold,
-                    $cap,
-                    $base,
-                    $threshold,
-                ],
-            );
-        }
+                   END
+                 ELSE
+                   CASE
+                     WHEN fail_count+1>=20 THEN UNIX_TIMESTAMP()+CAST(
+                       LEAST(3600,60*POW(2,LEAST(10,GREATEST(0,fail_count+1-20))))
+                       AS UNSIGNED
+                     )
+                     ELSE COALESCE(locked_until,0)
+                   END
+               END,
+               fail_count=LEAST(100000,fail_count+1),
+               updated_at=NOW()",
+            [
+                $pair[0],
+                $pair[1],
+                $subject[0],
+                $subject[1],
+                $ip[0],
+                $ip[1],
+                $pair[0],
+                $pair[1],
+                $subject[0],
+                $subject[1],
+            ],
+        );
         $seconds = max(1, login_lock($cpf));
     } catch (Throwable $e) {
         error_log("[Prontoo login_fail] " . $e->getMessage());
@@ -1557,31 +1570,8 @@ function login_clear(string $cpf): void
 }
 function mark_login_success(int $uid): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — mark_login_success
-     * Responsabilidade: Implementa a responsabilidade “mark login success” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_apply_resolved_credential`.
-     * Dependências chamadas: `val`, `app_apply_request_timezone`, `app_global_admin_timezone`, `q`, `error_log`, `->getMessage`.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    /* Guia de manutenção: Registra o sucesso no usuário sem consultas de timezone antes do redirecionamento; o próximo request aplica o fuso pelo contexto validado. */
     try {
-        if (
-            ($_SESSION["scope"] ?? "") === "clinic" &&
-            (int) ($_SESSION["uc_id"] ?? 0) > 0
-        ) {
-            $tz =
-                (string) (val(
-                    "SELECT c.timezone FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id WHERE ur.id=? AND ur.user_id=? LIMIT 1",
-                    [(int) $_SESSION["uc_id"], $uid],
-                ) ?:
-                "America/Cuiaba");
-            app_apply_request_timezone($tz);
-        } elseif (($_SESSION["scope"] ?? "") === "global") {
-            app_apply_request_timezone(app_global_admin_timezone($uid));
-        }
         q(
             "UPDATE pi_users SET failed_login_count=0, locked_until=NULL, last_login_at=NOW() WHERE id=?",
             [$uid],
