@@ -1,0 +1,92 @@
+name: Logout Cascade Finalize
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.head_ref == 'agent/logout-cascade-20260724' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, openssl
+
+      - name: Remove residual meta cache invalidation
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+
+          root = Path('.')
+          auth_path = root / 'app/Support/SecurityAccess.php'
+          auth = auth_path.read_text(encoding='utf-8')
+          old = '    meta_set(user_auth_generation_key($uid), $generation);\n    return $generation;'
+          new = '''    q(
+        "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)",
+        [user_auth_generation_key($uid), $generation],
+    );
+    return $generation;'''
+          if old not in auth:
+              raise SystemExit('Trecho canônico da rotação não encontrado.')
+          auth_path.write_text(auth.replace(old, new, 1), encoding='utf-8')
+
+          check_path = root / 'tools/architecture-check.php'
+          check = check_path.read_text(encoding='utf-8')
+          old_required = "        'meta_set(user_auth_generation_key($uid), $generation);',"
+          new_required = "        'INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)',"
+          if old_required not in check:
+              raise SystemExit('Prova da gravação geracional não encontrada.')
+          check = check.replace(old_required, new_required, 1)
+          old_forbidden = "    'auth' => ['server_json_cache_clear_categories([\"context\", \"meta\"])'],"
+          new_forbidden = '''    'auth' => [
+        'server_json_cache_clear_categories(["context", "meta"])',
+        'meta_set(user_auth_generation_key($uid), $generation);',
+    ],'''
+          if old_forbidden not in check:
+              raise SystemExit('Lista de proibições da cascata não encontrada.')
+          check_path.write_text(check.replace(old_forbidden, new_forbidden, 1), encoding='utf-8')
+
+          manifest_path = root / 'app/update.manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          refreshed = {}
+          total = 0
+          for relative in manifest.get('files', {}):
+              path = root / relative
+              data = path.read_bytes()
+              refreshed[relative] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = refreshed
+          manifest['file_count'] = len(refreshed)
+          manifest['total_uncompressed_bytes'] = total
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          PY
+
+      - name: Validate final cascade
+        shell: bash
+        run: |
+          php -l app/Support/SecurityAccess.php
+          php -l tools/architecture-check.php
+          php tools/architecture-check.php
+          git diff --check
+
+      - name: Commit final cascade
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Support/SecurityAccess.php tools/architecture-check.php app/update.manifest.json
+          git commit -m "Eliminar invalidação residual do logout"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
