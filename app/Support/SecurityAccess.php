@@ -43,7 +43,23 @@ function boot_security(): void
             "/.security-storage-" .
             hash("sha256", $storageGuardVersion) .
             ".json";
+        $storageGuardFiles = [
+            storage_path() . "/.htaccess",
+            storage_path() . "/index.html",
+            storage_path("cache") . "/.htaccess",
+            storage_path("cache") . "/index.html",
+            storage_path("logs") . "/.htaccess",
+            storage_path("logs") . "/index.html",
+        ];
+        $storageGuardFilesPresent = true;
+        foreach ($storageGuardFiles as $storageGuardFile) {
+            if (!is_file($storageGuardFile)) {
+                $storageGuardFilesPresent = false;
+                break;
+            }
+        }
         $storageGuardFresh =
+            $storageGuardFilesPresent &&
             is_file($storageGuardMarker) &&
             time() - (int) filemtime($storageGuardMarker) < 3600;
         if (!$storageGuardFresh) {

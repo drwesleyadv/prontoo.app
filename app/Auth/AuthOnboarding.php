@@ -505,6 +505,20 @@ function login_last_credential_remember(
                meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)",
             [login_last_credential_key($uid), $payload],
         );
+        if (
+            function_exists("server_json_cache_file") &&
+            function_exists("server_json_cache_safe_key")
+        ) {
+            $cacheFile = server_json_cache_file(
+                "meta",
+                server_json_cache_safe_key("meta", [
+                    login_last_credential_key($uid),
+                ]),
+            );
+            if (is_file($cacheFile)) {
+                @unlink($cacheFile);
+            }
+        }
     } catch (Throwable $e) {
         error_log(
             "[Prontoo login last credential remember] " . $e->getMessage(),
@@ -824,14 +838,18 @@ function mfa_pending_login_user(): ?array
     }
     $uid = (int) $pending["uid"];
     $user = one(
-        "SELECT id,name,email,password_hash,is_global_admin,active FROM pi_users WHERE id=? AND active=1 LIMIT 1",
+        "SELECT u.id,u.name,u.email,u.password_hash,u.is_global_admin,u.active,
+                m.meta_value user_auth_generation
+         FROM pi_users u
+         LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)
+         WHERE u.id=? AND u.active=1 LIMIT 1",
         [$uid],
     );
     if (
         !$user ||
         (int) ($user["is_global_admin"] ?? 0) !== 1 ||
         !hash_equals(
-            user_auth_generation_current($uid),
+            (string) ($user["user_auth_generation"] ?? "0"),
             (string) ($pending["user_auth_generation"] ?? ""),
         )
     ) {
@@ -841,9 +859,9 @@ function mfa_pending_login_user(): ?array
     return $user;
 }
 /* Guia de manutenção: Converte desafio MFA aprovado em sessão autenticada usando credencial revalidada. */
-function mfa_complete_pending_login(?array $verifiedUser = null): void
+function mfa_complete_pending_login(): void
 {
-    $user = $verifiedUser ?: mfa_pending_login_user();
+    $user = mfa_pending_login_user();
     $pending = $_SESSION["pending_mfa_login"] ?? null;
     if (
         !$user ||
@@ -881,7 +899,7 @@ function mfa_complete_pending_login(?array $verifiedUser = null): void
     login_apply_resolved_credential(
         $uid,
         $credential,
-        (string) ($pending["user_auth_generation"] ?? ""),
+        (string) ($user["user_auth_generation"] ?? ""),
     );
 }
 /* Guia de manutenção: Limita tentativas MFA simultaneamente por usuário e endereço de origem. */
@@ -947,7 +965,7 @@ function page_mfa(): void
                 !empty($_SESSION["mfa_recovery_codes"])
             ) {
                 unset($_SESSION["mfa_recovery_codes"]);
-                mfa_complete_pending_login($user);
+                mfa_complete_pending_login();
             }
             if ($act === "mfa_verify" && $enrolled) {
                 if (
@@ -965,7 +983,7 @@ function page_mfa(): void
                     "audit_body" =>
                         "Segundo fator do Desenvolvedor validado antes da criação da sessão autenticada.",
                 ]);
-                mfa_complete_pending_login($user);
+                mfa_complete_pending_login();
             }
             throw new RuntimeException("Ação MFA inválida.");
         } catch (Throwable $e) {
@@ -1242,7 +1260,7 @@ function page_login(): void
                         )
                         : null;
                     $userRow = $person;
-$passwordValid = $person && $userRow
+                    $passwordValid = $person && $userRow
                         ? password_verify(
                             (string) $_POST["password"],
                             (string) $person["password_hash"],

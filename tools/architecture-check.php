@@ -178,7 +178,8 @@ foreach ([
         'JOIN pi_users u ON u.person_id=p.id',
         'VALUES\n               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),',
         'meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)',
-        'mfa_complete_pending_login($user);',
+        "LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)",
+        'server_json_cache_file(',
         'developer_first_login_clear_json_cache($uid, true);',
     ],
     'login_apply' => [
@@ -188,6 +189,7 @@ foreach ([
     ],
     'security' => [
         '.security-storage-',
+        '$storageGuardFilesPresent',
         'static $secret = null;',
         '?string $verifiedUserGeneration = null',
     ],
