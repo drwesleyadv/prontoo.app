@@ -134,7 +134,7 @@ function prontoo_public_light_routes(): array
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
-    return ['login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup'];
+    return ['login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
 }
 
 function prontoo_use_light_boot(): bool
