@@ -147,7 +147,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
     "previous_version": "1.7.23.7",
-    "updated_at": "2026-07-23T20:27:00Z",
+    "updated_at": "2026-07-24T12:32:45Z",
     "notes": "Corrige a precedência do Painel do Administrador para usuários com múltiplos cargos, restaura a exibição integral dos indicadores administrativos e inclui acesso exclusivo ao Painel antes de Agenda, sem alterar a Agenda como tela inicial.",
     "deployment_sync_id": "hostoo-admin-dashboard-access-20260724T123245Z",
     "authentication_policy": "password_plus_mfa_for_developer_no_persistent_device_idle_3600_seconds_per_user_session_generation",
