@@ -35,7 +35,20 @@ jobs:
           script = "\n".join(line[10:] if line.startswith("          ") else line for line in lines) + "\n"
           Path('/tmp/apply-logout-cascade.py').write_text(script, encoding='utf-8')
           PY
-          python3 /tmp/apply-logout-cascade.py
+          set +e
+          python3 /tmp/apply-logout-cascade.py > /tmp/logout-cascade-apply.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            cat /tmp/logout-cascade-apply.log
+            cp /tmp/logout-cascade-apply.log tools/logout-cascade-error.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add tools/logout-cascade-error.txt
+            git commit -m "Registrar falha da aplicação do logout em cascata"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            exit "$status"
+          fi
 
       - name: Validate implementation
         shell: bash
