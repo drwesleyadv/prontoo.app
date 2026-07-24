@@ -1,0 +1,308 @@
+name: Admin Dashboard Patch
+
+on:
+  push:
+    branches:
+      - agent/admin-dashboard-fix-20260724
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/admin-dashboard-fix-20260724
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+
+      - name: Apply administrator dashboard correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+
+          VERSION = "1.7.24.1"
+          PREVIOUS_VERSION = "1.7.23.7"
+          GENERATED_AT = "2026-07-24T12:32:45Z"
+          GENERATED_AT_UNIX = 1784896365
+          BUILD = "1.7.24.1-admin-dashboard-access"
+          PACKAGE_TYPE = "admin_dashboard_fix"
+          DEPLOYMENT_ID = "hostoo-admin-dashboard-access-20260724T123245Z"
+          NOTES = (
+              "Corrige a precedência do Painel do Administrador para usuários com múltiplos cargos, "
+              "restaura a exibição integral dos indicadores administrativos e inclui acesso exclusivo "
+              "ao Painel antes de Agenda, sem alterar a Agenda como tela inicial."
+          )
+
+          def read(path: str) -> str:
+              return Path(path).read_text(encoding="utf-8")
+
+          def write(path: str, content: str) -> None:
+              Path(path).write_text(content, encoding="utf-8", newline="\n")
+
+          dashboards_path = "app/Pages/Dashboards.php"
+          dashboards = read(dashboards_path)
+          old_dispatch = '''    if (($c["role"] ?? "") === "medico") {
+              page_medico_painel($c);
+              return;
+          }
+          if (($c["role"] ?? "") === "recepcionista") {
+              page_recepcao_painel($c);
+              return;
+          }
+          if (($c["role"] ?? "") === "assistente") {
+              page_triagem_painel($c);
+              return;
+          }
+          if (has_effective_role($c, "gerente")) {
+              page_gerente_painel($c);
+              return;
+          }
+          '''
+          new_dispatch = '''    if (has_effective_role($c, "gerente")) {
+              page_gerente_painel($c);
+              return;
+          }
+          if (($c["role"] ?? "") === "medico") {
+              page_medico_painel($c);
+              return;
+          }
+          if (($c["role"] ?? "") === "recepcionista") {
+              page_recepcao_painel($c);
+              return;
+          }
+          if (($c["role"] ?? "") === "assistente") {
+              page_triagem_painel($c);
+              return;
+          }
+          '''
+          if dashboards.count(old_dispatch) != 1:
+              raise SystemExit("Âncora única do despacho do Painel não encontrada")
+          dashboards = dashboards.replace(old_dispatch, new_dispatch, 1)
+          write(dashboards_path, dashboards)
+
+          components_path = "app/Ui/Components.php"
+          components = read(components_path)
+          old_nav = '''        foreach (role_actions_effective($effectiveRoles) as $key => $a) {
+              if (can($key)) {
+                  $visibleActions[$key] = $a;
+              }
+          }
+          $visibleActions = cmdbar_order_items(
+          '''
+          new_nav = '''        foreach (role_actions_effective($effectiveRoles) as $key => $a) {
+              if (can($key)) {
+                  $visibleActions[$key] = $a;
+              }
+          }
+          if (has_effective_role($c, "gerente") && can("painel")) {
+              $adminPainelAction = [
+                  "label" => "Painel",
+                  "icon" => "dashboard",
+              ];
+              $adminVisibleActions = [];
+              $adminPainelInserted = false;
+              foreach ($visibleActions as $key => $action) {
+                  if ($key === "painel") {
+                      continue;
+                  }
+                  if (!$adminPainelInserted && $key === "appointments") {
+                      $adminVisibleActions["painel"] = $adminPainelAction;
+                      $adminPainelInserted = true;
+                  }
+                  $adminVisibleActions[$key] = $action;
+              }
+              if (!$adminPainelInserted) {
+                  $adminVisibleActions =
+                      ["painel" => $adminPainelAction] + $adminVisibleActions;
+              }
+              $visibleActions = $adminVisibleActions;
+          }
+          $visibleActions = cmdbar_order_items(
+          '''
+          if components.count(old_nav) != 1:
+              raise SystemExit("Âncora única da barra de contexto não encontrada")
+          components = components.replace(old_nav, new_nav, 1)
+          write(components_path, components)
+
+          version_path = Path("version.json")
+          version = json.loads(version_path.read_text(encoding="utf-8"))
+          version.update({
+              "version": VERSION,
+              "release": VERSION,
+              "generated_at_unix": GENERATED_AT_UNIX,
+              "generated_at": GENERATED_AT,
+              "updated_at": GENERATED_AT,
+              "build": BUILD,
+              "package_type": PACKAGE_TYPE,
+              "database_changes": False,
+              "schema_changes": False,
+              "logic_changes": True,
+              "visual_changes": True,
+              "notes": NOTES,
+              "previous_version": PREVIOUS_VERSION,
+              "documentation_changes": True,
+              "deployment_sync_id": DEPLOYMENT_ID,
+              "deployment_sync_requested_at": GENERATED_AT,
+          })
+          version_path.write_text(
+              json.dumps(version, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+              newline="\n",
+          )
+
+          architecture_path = Path("app/architecture.manifest.json")
+          architecture = json.loads(architecture_path.read_text(encoding="utf-8"))
+          architecture.update({
+              "version": VERSION,
+              "database_changes": False,
+              "schema_changes": False,
+              "visual_changes": True,
+              "logic_changes": True,
+          })
+          architecture_path.write_text(
+              json.dumps(architecture, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+              newline="\n",
+          )
+
+          runtime_path = "app/prontoo.php"
+          runtime = read(runtime_path)
+          runtime, fallback_count = re.subn(
+              r'const PRONTOO_VERSION_FALLBACK = "[^"]+";',
+              f'const PRONTOO_VERSION_FALLBACK = "{VERSION}";',
+              runtime,
+              count=1,
+          )
+          runtime, previous_count = re.subn(
+              r'const PRONTOO_PREVIOUS_VERSION = "[^"]+";',
+              f'const PRONTOO_PREVIOUS_VERSION = "{PREVIOUS_VERSION}";',
+              runtime,
+              count=1,
+          )
+          if fallback_count != 1 or previous_count != 1:
+              raise SystemExit("Contrato de versão do runtime não localizado")
+          write(runtime_path, runtime)
+
+          landing_path = "br/index.php"
+          landing = read(landing_path)
+          landing, landing_count = re.subn(
+              r'(BR_LANDING_VERSION_FALLBACK\s*=\s*)["\'][^"\']+["\']',
+              rf'\1"{VERSION}"',
+              landing,
+              count=1,
+          )
+          if landing_count != 1:
+              raise SystemExit("Fallback da landing não localizado")
+          write(landing_path, landing)
+
+          changelog_path = "ChangeLog.txt"
+          changelog = read(changelog_path)
+          entry = f'''Prontoo {VERSION} — Painel do Administrador restaurado
+
+          - Dá precedência ao cargo Administrativo ao abrir a tela Painel, inclusive quando o usuário possui múltiplos cargos ativos.
+          - Restaura a exibição dos indicadores operacionais, meta mensal, financeiro, ações recomendadas e receita por procedimento do Administrador.
+          - Inclui, exclusivamente para o Administrador, o botão Painel imediatamente antes de Agenda, com ícone próprio da tela.
+          - Mantém Agenda como tela inicial do primeiro login e dos acessos comuns; não altera autenticação, banco ou schema.
+
+          '''
+          write(changelog_path, entry + changelog)
+
+          manifest_path = Path("app/update.manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest.update({
+              "version": VERSION,
+              "release": VERSION,
+              "build": BUILD,
+              "package_type": PACKAGE_TYPE,
+              "generated_at": GENERATED_AT,
+              "database_changes": False,
+              "schema_changes": False,
+              "logic_changes": True,
+              "visual_changes": True,
+              "documentation_changes": True,
+              "previous_version": PREVIOUS_VERSION,
+              "notes": NOTES,
+              "deployment_sync_id": DEPLOYMENT_ID,
+              "deployment_sync_requested_at": GENERATED_AT,
+          })
+          files = manifest.get("files")
+          if not isinstance(files, dict) or not files:
+              raise SystemExit("Mapa de arquivos do manifesto ausente")
+          total = 0
+          for file_name in list(files):
+              file_path = Path(file_name)
+              if not file_path.is_file():
+                  raise SystemExit(f"Arquivo do manifesto ausente: {file_name}")
+              payload = file_path.read_bytes()
+              files[file_name] = hashlib.sha256(payload).hexdigest()
+              total += len(payload)
+          manifest["file_count"] = len(files)
+          manifest["total_uncompressed_bytes"] = total
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
+              encoding="utf-8",
+              newline="\n",
+          )
+
+          if dashboards.index('has_effective_role($c, "gerente")') > dashboards.index('($c["role"] ?? "") === "medico"'):
+              raise SystemExit("Precedência administrativa não foi aplicada")
+          if components.index('$adminVisibleActions["painel"]') > components.index('$adminVisibleActions[$key]'):
+              raise SystemExit("Painel não ficou antes de Agenda")
+          PY
+
+      - name: Validate changed release
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Pages/Dashboards.php
+          php -l app/Ui/Components.php
+          php -l app/prontoo.php
+          php -l br/index.php
+          php -r '
+            foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
+              $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
+            }
+          '
+          php -r '
+            $dashboard = (string) file_get_contents("app/Pages/Dashboards.php");
+            $components = (string) file_get_contents("app/Ui/Components.php");
+            if (strpos($dashboard, "has_effective_role(\$c, \"gerente\")") > strpos($dashboard, "(\$c[\"role\"] ?? \"\") === \"medico\"")) {
+              throw new RuntimeException("Administrador não tem precedência no Painel");
+            }
+            foreach (["\"label\" => \"Painel\"", "\"icon\" => \"dashboard\"", "\$key === \"appointments\""] as $required) {
+              if (!str_contains($components, $required)) { throw new RuntimeException("Acesso administrativo ausente: " . $required); }
+            }
+          '
+          php tools/architecture-check.php
+          git diff --check
+
+      - name: Commit correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ChangeLog.txt version.json app/architecture.manifest.json app/update.manifest.json app/prontoo.php br/index.php app/Pages/Dashboards.php app/Ui/Components.php
+          git commit -m "Prontoo 1.7.24.1 — corrige Painel do Administrador"
+          git push origin HEAD:agent/admin-dashboard-fix-20260724
