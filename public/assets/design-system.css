@@ -2912,7 +2912,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   .reception-flow,
   .finance-drawer-metrics,
   .cash-drawer-pills
-) > :where(article,div,a,span) :where(span,small,strong){
+) > :where(article,div,a,span) :where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong){
   color:var(--md-sys-color-on-surface-variant);
   font:var(--md-sys-typescale-label-large);
   font-weight:760;

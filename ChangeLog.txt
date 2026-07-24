@@ -1,3 +1,10 @@
+Prontoo 1.7.24.3 — ícones dos KPIs gerenciais restaurados integralmente
+
+- Corrige o segundo seletor tipográfico do Design System que ainda alcançava os elementos Material Symbols dentro de manager-kpis e manager-operational-kpis.
+- Exclui explicitamente .material-symbols-rounded e .pt-icon-glyph da regra de texto aplicada aos descendentes dos cartões.
+- Amplia a prova regressiva para impedir que seletores genéricos de span voltem a substituir a fonte de ícones nessas grades.
+- Não altera autenticação, permissões, dados, regras de negócio, banco ou schema.
+
 Prontoo 1.7.24.2 — ícones do Painel do Administrador restaurados
 
 - Corrige o seletor tipográfico genérico dos cartões KPI, que aplicava Roboto aos elementos Material Symbols e fazia os nomes dos ícones aparecerem como texto ou não renderizarem.
