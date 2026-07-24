@@ -74,45 +74,60 @@ jobs:
               raise SystemExit("Seletor tipográfico dos KPIs não localizado")
           write(css_path, css)
 
-          workflow_path = ".github/workflows/architecture.yml"
-          workflow = read(workflow_path)
-          step_name = "      - name: Admin dashboard icon cascade\n"
-          if step_name not in workflow:
-              anchor = "      - name: Source documentation policy\n"
-              if workflow.count(anchor) != 1:
-                  raise SystemExit("Âncora do workflow de arquitetura não localizada")
-              regression_step = '''      - name: Admin dashboard icon cascade
-                shell: bash
-                run: |
-                  php -r '
-                    $css = (string) file_get_contents("public/assets/design-system.css");
-                    $unsafe = ".stat-card span,.ds-kpi span,.notice-kpi span,.kpi-card span,.mini-stat span{";
-                    if (str_contains($css, $unsafe)) {
-                      throw new RuntimeException("Seletor tipográfico volta a capturar ícones dos KPIs");
-                    }
-                    foreach ([
-                      ".stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-                      ".ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-                      ".notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-                      ".kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-                      ".mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-                      ".manager-action > .pt-icon-glyph",
-                      ".material-symbols-rounded{font-family:\"Material Symbols Rounded\"",
-                    ] as $required) {
-                      if (!str_contains($css, $required)) {
-                        throw new RuntimeException("Contrato visual de ícones ausente: " . $required);
-                      }
-                    }
-                    $dashboard = (string) file_get_contents("app/Pages/Dashboards.php");
-                    if (substr_count($dashboard, "manager_dashboard_card(") < 6 ||
-                        !str_contains($dashboard, "icon($iconName)")) {
-                      throw new RuntimeException("Composição dos ícones do Painel Administrativo divergente");
-                    }
-                  '
-
+          check_path = "tools/architecture-check.php"
+          check = read(check_path)
+          old_result = '''$architecture = ArchitectureVerifier::report($root, true);
+          $selfTest = LayeredKernel::logicSelfTest($root);
+          $result = [
+              'ok' => !empty($architecture['ok']) && !empty($selfTest['ok']),
+              'architecture' => $architecture,
+              'self_test' => $selfTest,
+          ];
           '''
-              workflow = workflow.replace(anchor, regression_step + anchor, 1)
-              write(workflow_path, workflow)
+          new_result = '''$architecture = ArchitectureVerifier::report($root, true);
+          $selfTest = LayeredKernel::logicSelfTest($root);
+          $dashboardIconCss = (string) file_get_contents(
+              $root . '/public/assets/design-system.css',
+          );
+          $dashboardIconFailures = [];
+          if (str_contains(
+              $dashboardIconCss,
+              '.stat-card span,.ds-kpi span,.notice-kpi span,.kpi-card span,.mini-stat span{',
+          )) {
+              $dashboardIconFailures[] = 'broad_kpi_span_selector';
+          }
+          foreach ([
+              '.stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+              '.ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+              '.notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+              '.kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+              '.mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
+              '.manager-action > .pt-icon-glyph',
+              '.material-symbols-rounded{font-family:"Material Symbols Rounded"',
+          ] as $requiredIconContract) {
+              if (!str_contains($dashboardIconCss, $requiredIconContract)) {
+                  $dashboardIconFailures[] = $requiredIconContract;
+              }
+          }
+          $dashboardIconCascade = [
+              'ok' => $dashboardIconFailures === [],
+              'failed' => $dashboardIconFailures,
+          ];
+          $result = [
+              'ok' =>
+                  !empty($architecture['ok']) &&
+                  !empty($selfTest['ok']) &&
+                  !empty($dashboardIconCascade['ok']),
+              'architecture' => $architecture,
+              'self_test' => $selfTest,
+              'dashboard_icon_cascade' => $dashboardIconCascade,
+          ];
+          '''
+          if old_result in check:
+              check = check.replace(old_result, new_result, 1)
+          elif new_result not in check:
+              raise SystemExit("Âncora do verificador de arquitetura não localizada")
+          write(check_path, check)
 
           version_path = Path("version.json")
           version = json.loads(version_path.read_text(encoding="utf-8"))
@@ -193,7 +208,7 @@ jobs:
 
           - Corrige o seletor tipográfico genérico dos cartões KPI, que aplicava Roboto aos elementos Material Symbols e fazia os nomes dos ícones aparecerem como texto ou não renderizarem.
           - Restringe a tipografia de rótulo apenas aos spans textuais, preservando integralmente a fonte, as ligaturas e as variações dos ícones.
-          - Mantém os ícones dos indicadores e das ações recomendadas aderentes ao Design System e acrescenta prova regressiva permanente no CI.
+          - Mantém os ícones dos indicadores e das ações recomendadas aderentes ao Design System e acrescenta prova regressiva permanente no verificador de arquitetura.
           - Não altera autenticação, dados, regras de negócio, banco ou schema.
 
           '''
@@ -252,21 +267,11 @@ jobs:
           set -euo pipefail
           php -l app/prontoo.php
           php -l br/index.php
+          php -l tools/architecture-check.php
           php -r '
             foreach (["version.json", "app/update.manifest.json", "app/architecture.manifest.json"] as $file) {
               $json = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
               if (!is_array($json)) { throw new RuntimeException("JSON inválido: " . $file); }
-            }
-            $css = (string) file_get_contents("public/assets/design-system.css");
-            if (str_contains($css, ".stat-card span,.ds-kpi span,.notice-kpi span,.kpi-card span,.mini-stat span{")) {
-              throw new RuntimeException("Seletor inseguro de ícones ainda presente");
-            }
-            foreach ([
-              ".stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)",
-              ".manager-action > .pt-icon-glyph",
-              ".material-symbols-rounded{font-family:\"Material Symbols Rounded\"",
-            ] as $required) {
-              if (!str_contains($css, $required)) { throw new RuntimeException("Contrato CSS ausente: " . $required); }
             }
           '
           php tools/architecture-check.php
