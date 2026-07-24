@@ -1,1 +1,1 @@
-trigger 2026-07-24 default-workflow
+trigger 2026-07-24 pull-request-target
