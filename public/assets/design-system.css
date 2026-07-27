@@ -5024,6 +5024,16 @@ body.public[data-route="login"] .login-boot{
 body.public[data-route="login"] .login-form{
   gap:12px!important;
 }
+body.public[data-route="login"] .login-form .field,
+body.public[data-route="login"] .login-mfa-help{
+  animation:pt-login-field-in var(--motion-med) both;
+}
+body.public[data-route="login"] .login-form.is-submitting{
+  pointer-events:none;
+}
+body.public[data-route="login"] .login-form.is-submitting .field{
+  opacity:.76;
+}
 body.public[data-route="login"] .login-form .field{
   gap:7px!important;
 }
@@ -5032,9 +5042,25 @@ body.public[data-route="login"] .login-form .field>span{
   font:var(--md-sys-typescale-label-medium)!important;
   font-weight:900!important;
 }
+body.public[data-route="login"] [data-login-cpf][readonly]{
+  color:var(--md-sys-color-on-surface-variant)!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+  cursor:default;
+}
+body.public[data-route="login"] .login-mfa-help{
+  display:block;
+  margin:-5px 2px 0;
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+  line-height:1.4;
+}
 body.public[data-route="login"] .login-submit{
   min-height:48px!important;
   border-radius:18px!important;
+}
+@keyframes pt-login-field-in{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
 }
 body.public[data-route="login"] .auth-footer{
   margin-top:0!important;
@@ -6202,6 +6228,16 @@ body.scope-global .ds-clinic-list-item .clinic-actions-summary{
 .account-env-card .account-env-option.active .account-env-mark{background:color-mix(in srgb,var(--md-sys-color-on-primary-container) 8%,var(--md-sys-color-primary-container));color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,transparent)}
 .account-env-card .account-env-option.active .account-env-copy strong,.account-env-card .account-env-option.active .account-env-copy small{color:var(--md-sys-color-on-primary-container)}
 @media(max-width:760px){.account-env-card{padding:12px;border-radius:22px}.account-env-card-head{grid-template-columns:1fr}.account-env-card-icon{display:none}.account-env-card .account-env-option{grid-template-columns:34px minmax(0,1fr) auto;padding:8px}.account-env-card .account-env-mark{width:34px;height:34px}.account-env-card .account-env-status span{display:none}.account-env-card .account-env-status{width:32px;height:32px;padding:0;justify-content:center}.account-env-card .account-env-enter{width:30px;height:30px}}
+.account-mfa-panel{display:grid;gap:14px;margin-top:18px;padding:16px;border-radius:22px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)}
+.account-mfa-panel.is-active{background:color-mix(in srgb,var(--md-sys-color-primary-container) 34%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-outline-variant))}
+.account-mfa-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px}
+.account-mfa-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:16px;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)}
+.account-mfa-head h3{margin:2px 0 0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-medium);font-weight:900}
+.account-mfa-head p{margin:3px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.4}
+.account-mfa-form{display:grid;gap:12px}
+.account-mfa-actions{justify-content:flex-end}
+.account-mfa-cancel-form{display:flex;justify-content:flex-start}
+@media(max-width:620px){.account-mfa-panel{padding:14px}.account-mfa-head{grid-template-columns:1fr}.account-mfa-icon{display:none}.account-mfa-actions{display:grid!important}.account-mfa-actions button{width:100%}}
 
 /* v157 · Criar consultório refinado em três ciclos do Design System */
 body.public .signup-ds-shell{
@@ -14972,4 +15008,3 @@ body[data-route="global_reauth"] .pagehead,body[data-route="global_reauth"] .sec
   .security-reauth-actions{display:grid!important;grid-template-columns:1fr}
   .security-reauth-actions :is(a,button){width:100%;justify-content:center}
 }
-

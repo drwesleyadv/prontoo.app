@@ -172,14 +172,15 @@ final class ActionCatalog
 
         // Public and authenticated session contracts.
         $add('login', self::DEFAULT_ACTION, 'public', $auth, [], ['session:authenticate']);
-        $add('mfa', ['mfa_enroll', 'mfa_verify', 'mfa_continue'], 'public', $auth, [], ['session:mfa']);
+        $add('login', 'mfa_verify', 'public', $auth, [], ['session:mfa']);
+        $add('mfa', ['mfa_enroll', 'mfa_continue'], 'public', $auth, [], ['session:mfa']);
         $add('signup', self::DEFAULT_ACTION, 'public', $auth, [], ['clinic:create', 'session:authenticate']);
         $add('login_autotest', self::DEFAULT_ACTION, 'public', $auth, [], ['session:autotest']);
         $add('mobile_web_access', self::DEFAULT_ACTION, 'public', $auth, [], ['session:mobile_probe']);
         $add('logout', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:logout']);
         $add('switch', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:environment']);
         $add('switch', 'choose_admin', 'authenticated', $auth, ['session:self'], ['session:environment'], [], 'matrix', null, [$admin]);
-        $add('profile', ['profile_update_user', 'profile_change_password', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:environment']);
+        $add('profile', ['profile_update_user', 'profile_change_password', 'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:mfa', 'session:environment']);
         $add('global_reauth', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:privileged']);
 
         // Central request operation.
@@ -323,6 +324,14 @@ final class ActionCatalog
         $cases = [];
         $cases['catalog_nonempty'] = self::definitions() !== [];
         $cases['public_login'] = self::resolve('login', [])?->scope === 'public';
+        $cases['public_login_mfa_exact'] =
+            self::resolve('login', ['act' => 'mfa_verify'])?->effects ===
+            ['session:mfa'];
+        $cases['profile_mfa_enable_exact'] =
+            self::resolve('profile', ['act' => 'profile_mfa_enable'])?->scope ===
+                'authenticated' &&
+            self::resolve('profile', ['act' => 'profile_mfa_enable'])?->required ===
+                ['session:self'];
         $cases['unknown_denied_by_absence'] = self::resolve('patient', ['act' => 'not_real']) === null;
         $cases['patient_document_composed'] = self::resolve('patient', ['act' => 'issue_patient_document'])?->required === ['patients:view', 'documents:add'];
         $cases['patient_financial_composed'] = self::resolve('patient', ['act' => 'patient_revenue_receive'])?->required === ['patients:view', 'financial:edit'];
