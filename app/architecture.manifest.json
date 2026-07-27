@@ -81,8 +81,9 @@
   },
   "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use",
   "logout_secondary_work_policy": "signed_primary_and_emergency_spool_with_retry_dead_letter_health_and_idempotent_route_page_telemetry_consumed_by_next_maestro_cycle",
+  "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
   "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
   "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-  "generated_at": "2026-07-27T19:06:16Z",
-  "updated_at": "2026-07-27T19:06:16Z"
+  "generated_at": "2026-07-27T19:20:34Z",
+  "updated_at": "2026-07-27T19:20:34Z"
 }
