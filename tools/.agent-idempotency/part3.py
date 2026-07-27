@@ -19,7 +19,7 @@ def protect_save(section: str) -> str:
 source = mutate_section(
     source,
     '        if ($act === "save") {',
-    '    $tab =',
+    '    $statusRaw =',
     protect_save,
     "cadastro",
 )
