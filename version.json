@@ -1,12 +1,12 @@
 {
-  "version": "1.7.27.1",
-  "release": "1.7.27.1",
-  "generated_at_unix": 1785154868,
-  "generated_at": "2026-07-27T12:21:08Z",
-  "updated_at": "2026-07-27T12:21:08Z",
-  "build": "1.7.27.1-inline-mfa",
+  "version": "1.7.27.2",
+  "release": "1.7.27.2",
+  "generated_at_unix": 1785156724,
+  "generated_at": "2026-07-27T12:52:04Z",
+  "updated_at": "2026-07-27T12:52:04Z",
+  "build": "1.7.27.2-maestro-deferred-logout",
   "asset_version": "1.7.15.10",
-  "package_type": "inline_mfa_for_all_users",
+  "package_type": "maestro_deferred_logout",
   "theme_policy": "light-only",
   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
   "database_changes": false,
@@ -23,7 +23,7 @@
   "version_format": "1.month.day.sequence",
   "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
   "version_policy_file": "ChangeLog.txt",
-  "notes": "Valida o MFA de todo usuário inscrito na própria tela de login, sem recarregamento após a senha, e oferece ativação opcional na área de alteração de senha.",
+  "notes": "Mantém apenas a revogação canônica e a destruição da sessão no caminho crítico do logout; auditoria encadeada e telemetria de login/logout são entregues por fila assinada à próxima execução do Maestro; o card opcional de MFA recebe as novas labels e o ícone Security Key; e o login sem MFA conclui o contrato assíncrono sem falsa mensagem de falha.",
   "clean_install_schema": true,
   "requires_empty_database": true,
   "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -31,13 +31,13 @@
   "minimum_mysql": "8.0.30",
   "minimum_php": "8.4.0",
   "database_policy": "clean-schema-layer2-ledger-v1",
-  "previous_version": "1.7.24.5",
+  "previous_version": "1.7.27.1",
   "documentation_changes": true,
   "installer_locked": true,
   "installer_access_policy": "http_disabled_github_actions_cli_certification_only",
   "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-  "deployment_sync_id": "hostoo-inline-mfa-20260727T122108Z",
-  "deployment_sync_requested_at": "2026-07-27T12:21:08Z",
+  "deployment_sync_id": "hostoo-maestro-deferred-logout-20260727T125204Z",
+  "deployment_sync_requested_at": "2026-07-27T12:52:04Z",
   "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
   "persistent_storage_policy": {
     "root": "ssd",
@@ -46,5 +46,5 @@
     "legacy_storage_migration": true,
     "legacy_root_pdfs_migration": true
   },
-  "authentication_policy": "password_then_inline_mfa_for_all_enrolled_users_developer_mandatory_idle_3600_generation_cascade"
+  "authentication_policy": "password_then_inline_mfa_for_all_enrolled_users_developer_mandatory_idle_3600_generation_cascade_maestro_deferred_secondary_work"
 }
