@@ -645,7 +645,8 @@ function login_apply_resolved_credential(
     int $uid,
     array $credential,
     ?string $verifiedUserGeneration = null,
-): void {
+    bool $redirectAfterLogin = true,
+): string {
     /*
      * GUIA DE MANUTENÇÃO — login_apply_resolved_credential
      * Responsabilidade: Implementa a responsabilidade “login apply resolved credential” dentro do módulo de autenticação, sessão e entrada de usuários.
@@ -682,7 +683,10 @@ function login_apply_resolved_credential(
             "audit_body" =>
                 "Entrada realizada com a última credencial do usuário carregada automaticamente.",
         ]);
-        redirect("admin_painel");
+        if ($redirectAfterLogin) {
+            redirect("admin_painel");
+        }
+        return "admin_painel";
     }
     $choice = $credential["choice"] ?? null;
     if (!$choice || (int) ($choice["id"] ?? 0) <= 0) {
@@ -705,11 +709,14 @@ function login_apply_resolved_credential(
         "audit_body" =>
             "Entrada realizada com a última credencial de trabalho do usuário carregada automaticamente.",
     ]);
-    redirect(
+    $destination =
         (string) ($choice["role_code"] ?? "") === "gerente"
             ? "painel"
-            : "appointments",
-    );
+            : "appointments";
+    if ($redirectAfterLogin) {
+        redirect($destination);
+    }
+    return $destination;
 }
 function developer_first_login_clear_json_cache(
     int $uid,
@@ -806,7 +813,7 @@ function mfa_pending_login_clear(): void
         $_SESSION["mfa_pending_verified"],
     );
 }
-/* Guia de manutenção: Cria sessão pré-autenticada curta para o desafio MFA do Desenvolvedor. */
+/* Guia de manutenção: Cria sessão pré-autenticada curta para o desafio MFA de qualquer usuário cadastrado. */
 function mfa_begin_pending_login(int $uid, array $credential): void
 {
     session_regenerate_id(true);
@@ -824,7 +831,7 @@ function mfa_begin_pending_login(int $uid, array $credential): void
         $_SESSION["mfa_pending_verified"],
     );
 }
-/* Guia de manutenção: Revalida usuário, privilégio, prazo e geração antes de aceitar o estado pré-autenticado. */
+/* Guia de manutenção: Revalida usuário, prazo e geração antes de aceitar o estado pré-autenticado. */
 function mfa_pending_login_user(): ?array
 {
     $pending = $_SESSION["pending_mfa_login"] ?? null;
@@ -847,7 +854,6 @@ function mfa_pending_login_user(): ?array
     );
     if (
         !$user ||
-        (int) ($user["is_global_admin"] ?? 0) !== 1 ||
         !hash_equals(
             (string) ($user["user_auth_generation"] ?? "0"),
             (string) ($pending["user_auth_generation"] ?? ""),
@@ -859,7 +865,7 @@ function mfa_pending_login_user(): ?array
     return $user;
 }
 /* Guia de manutenção: Converte desafio MFA aprovado em sessão autenticada usando credencial revalidada. */
-function mfa_complete_pending_login(): void
+function mfa_complete_pending_login(bool $redirectAfterLogin = true): string
 {
     $user = mfa_pending_login_user();
     $pending = $_SESSION["pending_mfa_login"] ?? null;
@@ -869,9 +875,15 @@ function mfa_complete_pending_login(): void
         empty($_SESSION["mfa_pending_verified"])
     ) {
         mfa_pending_login_clear();
-        redirect("login", ["relogin" => "1"]);
+        if ($redirectAfterLogin) {
+            redirect("login", ["relogin" => "1"]);
+        }
+        throw new RuntimeException(
+            "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+        );
     }
     $uid = (int) $user["id"];
+    $isGlobalAdmin = (int) ($user["is_global_admin"] ?? 0) === 1;
     $choices = active_clinic_roles_for_user($uid);
     $wanted = [
         "scope" => (string) ($pending["scope"] ?? "clinic"),
@@ -879,27 +891,36 @@ function mfa_complete_pending_login(): void
     ];
     $credential = login_credential_match(
         $uid,
-        true,
+        $isGlobalAdmin,
         $choices,
         $wanted,
     );
     if (!$credential) {
-        $credential = login_resolve_user_credential($uid, true, $choices);
+        $credential = login_resolve_user_credential(
+            $uid,
+            $isGlobalAdmin,
+            $choices,
+        );
     }
     if (!$credential) {
         mfa_pending_login_clear();
         throw new RuntimeException(
-            "Não foi possível carregar a credencial do Desenvolvedor.",
+            "Não foi possível carregar a credencial do usuário.",
         );
     }
     mfa_pending_login_clear();
     $_SESSION["mfa_verified_at"] = time();
-    $_SESSION["privileged_auth_at"] = time();
+    if ($isGlobalAdmin) {
+        $_SESSION["privileged_auth_at"] = time();
+    } else {
+        unset($_SESSION["privileged_auth_at"]);
+    }
     prontoo_login_post_password_maintenance($uid);
-    login_apply_resolved_credential(
+    return login_apply_resolved_credential(
         $uid,
         $credential,
         (string) ($user["user_auth_generation"] ?? ""),
+        $redirectAfterLogin,
     );
 }
 /* Guia de manutenção: Limita tentativas MFA simultaneamente por usuário e endereço de origem. */
@@ -916,7 +937,7 @@ function mfa_attempt_limited(int $uid, string $purpose): bool
             300,
         );
 }
-/* Guia de manutenção: Apresenta cadastro obrigatório inicial e validação MFA recorrente do Desenvolvedor. */
+/* Guia de manutenção: Apresenta somente o cadastro obrigatório inicial; a validação recorrente acontece na própria tela de login. */
 function page_mfa(): void
 {
     $user = mfa_pending_login_user();
@@ -924,7 +945,14 @@ function page_mfa(): void
         redirect("login", ["relogin" => "1"]);
     }
     $uid = (int) $user["id"];
+    if ((int) ($user["is_global_admin"] ?? 0) !== 1) {
+        mfa_pending_login_clear();
+        redirect("login");
+    }
     $enrolled = mfa_is_enrolled($uid);
+    if ($enrolled && empty($_SESSION["mfa_recovery_codes"])) {
+        redirect("login");
+    }
     if (!$enrolled && empty($_SESSION["mfa_enrollment_secret"])) {
         $_SESSION["mfa_enrollment_secret"] = mfa_totp_secret_generate();
     }
@@ -965,24 +993,6 @@ function page_mfa(): void
                 !empty($_SESSION["mfa_recovery_codes"])
             ) {
                 unset($_SESSION["mfa_recovery_codes"]);
-                mfa_complete_pending_login();
-            }
-            if ($act === "mfa_verify" && $enrolled) {
-                if (
-                    !mfa_verify_user_code(
-                        $uid,
-                        (string) ($_POST["code"] ?? ""),
-                    )
-                ) {
-                    throw new RuntimeException(
-                        "O código de autenticação não confere.",
-                    );
-                }
-                $_SESSION["mfa_pending_verified"] = true;
-                audit("mfa_validado", "usuario", $uid, [
-                    "audit_body" =>
-                        "Segundo fator do Desenvolvedor validado antes da criação da sessão autenticada.",
-                ]);
                 mfa_complete_pending_login();
             }
             throw new RuntimeException("Ação MFA inválida.");
@@ -1058,27 +1068,6 @@ function page_mfa(): void
         page("Cadastrar MFA", $body, ["public" => true]);
         return;
     }
-    $body =
-        '<section class="auth login-card security-auth-card security-verification-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
-        icon("shield_lock") .
-        '</span><div><span class="eyebrow">Desenvolvedor</span><h1>Confirme sua identidade</h1><p>Esta verificação protege o acesso global.</p></div></div><div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
-        icon("phonelink_lock") .
-        '</span><div><strong>Segundo fator</strong><span>Use o código atual do autenticador ou um código de recuperação.</span></div></div><form method="post" class="compact security-auth-form">' .
-        csrf_field() .
-        '<input type="hidden" name="act" value="mfa_verify">' .
-        form_row(
-            "Código de autenticação",
-            input(
-                "code",
-                "text",
-                "",
-                'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false"',
-            ),
-        ) .
-        '<button type="submit" class="primary wide security-auth-submit">' .
-        icon("login") .
-        "<span>Validar e entrar</span></button></form></section>";
-    page("Confirmar MFA", $body, ["public" => true]);
 }
 /* Guia de manutenção: Exige nova senha e MFA para elevar sessão clínica ao Painel do Desenvolvedor. */
 function page_global_reauth(): void
@@ -1208,6 +1197,9 @@ function page_login(): void
      * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
      */
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+    $wantsJson =
+        function_exists("prontoo_route_wants_json") &&
+        prontoo_route_wants_json("login");
     $currentCtx = ctx();
     if ($currentCtx) {
         redirect(
@@ -1216,12 +1208,110 @@ function page_login(): void
                 : "appointments",
         );
     }
+    $pendingMfaUser = mfa_pending_login_user();
+    $mfaStage =
+        is_array($pendingMfaUser) &&
+        mfa_is_enrolled((int) ($pendingMfaUser["id"] ?? 0));
     $cpf = only_digits($_POST["cpf"] ?? ($_SESSION["login_last_cpf"] ?? ""));
     $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
-    if ($wait <= 0) {
+    if ($wait <= 0 && !$mfaStage) {
         login_session_forget();
     }
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+        if ((string) ($_POST["act"] ?? "") === "mfa_verify") {
+            $user = mfa_pending_login_user();
+            if (!$user || !mfa_is_enrolled((int) ($user["id"] ?? 0))) {
+                mfa_pending_login_clear();
+                if ($wantsJson) {
+                    prontoo_json_response(
+                        [
+                            "ok" => false,
+                            "stage" => "password",
+                            "reset" => true,
+                            "message" =>
+                                "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+                        ],
+                        409,
+                    );
+                    return;
+                }
+                flash(
+                    "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+                    "warn",
+                );
+                redirect("login");
+            }
+            $uid = (int) $user["id"];
+            if (mfa_attempt_limited($uid, "login")) {
+                if ($wantsJson) {
+                    prontoo_json_response(
+                        [
+                            "ok" => false,
+                            "stage" => "mfa",
+                            "message" =>
+                                "Muitas tentativas de autenticação. Aguarde alguns minutos.",
+                            "retry_after" => 300,
+                        ],
+                        429,
+                    );
+                    return;
+                }
+                flash(
+                    "Muitas tentativas de autenticação. Aguarde alguns minutos.",
+                    "bad",
+                );
+                redirect("login");
+            }
+            try {
+                if (
+                    !mfa_verify_user_code(
+                        $uid,
+                        (string) ($_POST["code"] ?? ""),
+                    )
+                ) {
+                    throw new RuntimeException(
+                        "O código de autenticação não confere.",
+                    );
+                }
+                $_SESSION["mfa_pending_verified"] = true;
+                audit("mfa_validado", "usuario", $uid, [
+                    "audit_body" =>
+                        "Segundo fator do usuário validado na mesma tela do login antes da criação da sessão autenticada.",
+                ]);
+                login_session_forget();
+                $destination = mfa_complete_pending_login(!$wantsJson);
+                if ($wantsJson) {
+                    prontoo_json_response([
+                        "ok" => true,
+                        "stage" => "complete",
+                        "redirect" => href($destination),
+                    ]);
+                    return;
+                }
+            } catch (Throwable $e) {
+                usleep(random_int(250000, 450000));
+                audit("falha_mfa", "login", $uid, [
+                    "motivo_hash" => hash("sha256", $e->getMessage()),
+                ]);
+                $message = app_public_error_message(
+                    $e,
+                    "Não foi possível validar o segundo fator.",
+                );
+                if ($wantsJson) {
+                    prontoo_json_response(
+                        [
+                            "ok" => false,
+                            "stage" => "mfa",
+                            "message" => $message,
+                        ],
+                        401,
+                    );
+                    return;
+                }
+                flash($message, "bad");
+                redirect("login");
+            }
+        }
         login_locks_cleanup_maybe();
         $cpf = only_digits($_POST["cpf"] ?? "");
         $_SESSION["login_last_cpf"] = $cpf;
@@ -1309,6 +1399,18 @@ function page_login(): void
                         : "tentativa durante pausa",
                 "aguarde_segundos" => $wait,
             ]);
+            if ($wantsJson) {
+                prontoo_json_response(
+                    [
+                        "ok" => false,
+                        "stage" => "password",
+                        "message" => "Você tentou entrar muitas vezes.",
+                        "retry_after" => max(1, $wait),
+                    ],
+                    429,
+                );
+                return;
+            }
             redirect("login");
         }
         if ($loginAttemptState === "invalid") {
@@ -1321,6 +1423,18 @@ function page_login(): void
                 "cpf" => $cpf,
                 "aguarde_segundos" => $wait,
             ]);
+            if ($wantsJson) {
+                prontoo_json_response(
+                    [
+                        "ok" => false,
+                        "stage" => "password",
+                        "message" => "CPF ou senha não conferem.",
+                        "retry_after" => max(1, $wait),
+                    ],
+                    401,
+                );
+                return;
+            }
             redirect("login");
         }
         login_session_forget();
@@ -1343,16 +1457,54 @@ function page_login(): void
                 "motivo" => "sem vínculo clínico ativo",
                 "aguarde_segundos" => $w,
             ]);
+            if ($wantsJson) {
+                prontoo_json_response(
+                    [
+                        "ok" => false,
+                        "stage" => "password",
+                        "message" => "CPF ou senha não conferem.",
+                        "retry_after" => max(1, $w),
+                    ],
+                    401,
+                );
+                return;
+            }
             redirect("login");
         }
-        if ((int) $person["is_global_admin"] === 1) {
+        $isGlobalAdmin = (int) $person["is_global_admin"] === 1;
+        $enrolled = mfa_is_enrolled($uid);
+        if ($isGlobalAdmin || $enrolled) {
+            $_SESSION["login_last_cpf"] = $cpf;
             mfa_begin_pending_login($uid, $credential);
-            redirect("mfa");
+            if ($isGlobalAdmin && !$enrolled) {
+                if ($wantsJson) {
+                    prontoo_json_response([
+                        "ok" => true,
+                        "stage" => "enroll",
+                        "redirect" => href("mfa"),
+                    ]);
+                    return;
+                }
+                redirect("mfa");
+            }
+            if ($wantsJson) {
+                prontoo_json_response([
+                    "ok" => true,
+                    "stage" => "mfa",
+                    "message" =>
+                        "Senha confirmada. Informe o código MFA para entrar.",
+                    "csrf" => csrf(),
+                ]);
+                return;
+            }
+            redirect("login");
         }
         prontoo_login_post_password_maintenance($uid);
         login_apply_resolved_credential($uid, $credential);
     }
-    $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
+    $wait = $mfaStage
+        ? 0
+        : max($cpf ? login_lock($cpf) : 0, login_session_wait());
     $prefill = e($_SESSION["login_last_cpf"] ?? "");
     $lockTitle = e(
         (string) ($_SESSION["login_lock_message"] ?? "CPF ou senha não conferem."),
@@ -1362,7 +1514,7 @@ function page_login(): void
             ? '<div class="flash warn" role="status">Entre novamente para continuar.</div>'
             : "";
     $msg =
-        $wait > 0
+        !$mfaStage && $wait > 0
             ? '<div class="login-lock-panel" role="alert" aria-live="polite" data-login-wait data-login-lock-title="' .
                 $lockTitle .
                 '" data-login-lock-total="' .
@@ -1376,29 +1528,27 @@ function page_login(): void
                 '">' .
                 seconds_label($wait) .
                 '</em>.</span></div><div class="login-lock-meter" aria-hidden="true"><i data-countdown-bar style="--progress:100%"></i></div></div>'
-            : $reloginNotice;
-    $form =
-        '<section class="auth login-card login-shell"><div class="auth-titleline login-titleline"><div class="auth-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon" src="/public/assets/app-icon-' .
-        e(PRONTOO_ASSET_REV) .
-        '.png" alt="" aria-hidden="true"></div><div><span class="eyebrow">Prontoo</span><h1>Meu Consultório</h1></div></div>' .
-        $msg .
-        '<div class="login-boot" data-login-boot role="status" aria-live="polite"><span data-login-boot-icon>' .
-        icon("sync") .
-        "</span><small data-login-boot-status>Verificando liberação do acesso.</small></div>" .
-        '<form method="post" data-login-form data-login-autotest data-login-locked="' .
-        ($wait > 0 ? "1" : "0") .
-        '" class="login-form">' .
-        csrf_field() .
-        form_row(
-            "CPF",
-            input(
-                "cpf",
-                "text",
-                $prefill,
-                'required inputmode="numeric" autocomplete="username" maxlength="14" placeholder="000.000.000-00" data-login-cpf',
-            ),
-        ) .
-        form_row(
+            : ($mfaStage ? "" : $reloginNotice);
+    $bootStatus = $mfaStage
+        ? "Senha confirmada. Informe o código MFA para entrar."
+        : "Verificando liberação do acesso.";
+    $bootIcon = $mfaStage ? "verified_user" : "sync";
+    $cpfAttributes =
+        'required inputmode="numeric" autocomplete="username" maxlength="14" placeholder="000.000.000-00" data-login-cpf' .
+        ($mfaStage ? ' readonly aria-readonly="true"' : "");
+    $credentialField = $mfaStage
+        ? '<input type="hidden" name="act" value="mfa_verify" data-login-act>' .
+            form_row(
+                "Código MFA",
+                input(
+                    "code",
+                    "text",
+                    "",
+                    'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false" data-login-code',
+                ),
+            ) .
+            '<small class="field-help login-mfa-help" data-login-mfa-help>Use o código atual do autenticador ou um código de recuperação.</small>'
+        : form_row(
             "Senha",
             '<div class="password-field">' .
                 input(
@@ -1410,11 +1560,48 @@ function page_login(): void
                 '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
                 icon("visibility") .
                 "</button></div>",
+        );
+    $submitLabel = $mfaStage ? "Validar e entrar" : "Entrar";
+    $submitIcon = $mfaStage ? "verified_user" : "hourglass_top";
+    $form =
+        '<section class="auth login-card login-shell"><div class="auth-titleline login-titleline"><div class="auth-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon" src="/public/assets/app-icon-' .
+        e(PRONTOO_ASSET_REV) .
+        '.png" alt="" aria-hidden="true"></div><div><span class="eyebrow">Prontoo</span><h1>Meu Consultório</h1></div></div>' .
+        $msg .
+        '<div class="login-boot' .
+        ($mfaStage ? " is-ok" : "") .
+        '" data-login-boot role="status" aria-live="polite"><span data-login-boot-icon>' .
+        icon($bootIcon) .
+        "</span><small data-login-boot-status>" .
+        e($bootStatus) .
+        "</small></div>" .
+        '<form method="post" data-login-form data-login-stage="' .
+        ($mfaStage ? "mfa" : "password") .
+        '"' .
+        ($mfaStage
+            ? ' data-autotest-ready="1"'
+            : " data-login-autotest") .
+        ' data-login-locked="' .
+        (!$mfaStage && $wait > 0 ? "1" : "0") .
+        '" class="login-form">' .
+        csrf_field() .
+        form_row(
+            "CPF",
+            input(
+                "cpf",
+                "text",
+                $prefill,
+                $cpfAttributes,
+            ),
         ) .
+        $credentialField .
         '<button type="submit" class="primary wide login-submit" data-login-submit disabled aria-disabled="true">' .
-        icon("hourglass_top") .
-        "<span>Entrar</span></button></form>" .
-        (function_exists("clinic_signup_blocked") && clinic_signup_blocked()
+        icon($submitIcon) .
+        "<span>" .
+        e($submitLabel) .
+        "</span></button></form>" .
+        ($mfaStage ||
+        (function_exists("clinic_signup_blocked") && clinic_signup_blocked())
             ? ""
             : '<div class="auth-footer"><span>Ainda não usa o Prontoo?</span><a class="ghost small" href="' .
                 href("signup") .
@@ -2512,6 +2699,20 @@ function page_profile(): void
         redirect("login");
     }
     $act = (string) ($_POST["act"] ?? "");
+    $profileMfaIssuedAt = (int) (
+        $_SESSION["profile_mfa_enrollment_issued_at"] ?? 0
+    );
+    if (
+        $profileMfaIssuedAt > 0 &&
+        time() - $profileMfaIssuedAt > 600
+    ) {
+        unset(
+            $_SESSION["profile_mfa_enrollment_secret"],
+            $_SESSION["profile_mfa_enrollment_issued_at"],
+            $_SESSION["profile_mfa_password_verified_at"],
+        );
+        $profileMfaIssuedAt = 0;
+    }
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         if ($act === "") {
             $act = "profile_change_password";
@@ -2559,6 +2760,104 @@ function page_profile(): void
                 ]);
                 db_commit();
                 flash("Dados do usuário atualizados.");
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_prepare") {
+                if (mfa_is_enrolled($uid)) {
+                    throw new RuntimeException(
+                        "O MFA já está ativo para este usuário.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "enrollment")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                if (
+                    !password_verify(
+                        (string) ($_POST["current_password"] ?? ""),
+                        (string) $u["password_hash"],
+                    )
+                ) {
+                    usleep(random_int(250000, 450000));
+                    throw new RuntimeException("A senha atual não confere.");
+                }
+                $_SESSION["profile_mfa_enrollment_secret"] =
+                    mfa_totp_secret_generate();
+                $_SESSION["profile_mfa_enrollment_issued_at"] = time();
+                $_SESSION["profile_mfa_password_verified_at"] = time();
+                audit("mfa_cadastro_iniciado", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário confirmou a senha e iniciou o cadastro opcional de MFA em Minha conta.",
+                ]);
+                flash(
+                    "Senha confirmada. Adicione a conta ao autenticador e informe o primeiro código.",
+                );
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_cancel") {
+                unset(
+                    $_SESSION["profile_mfa_enrollment_secret"],
+                    $_SESSION["profile_mfa_enrollment_issued_at"],
+                    $_SESSION["profile_mfa_password_verified_at"],
+                );
+                flash("Ativação do MFA cancelada.", "warn");
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_enable") {
+                if (mfa_is_enrolled($uid)) {
+                    throw new RuntimeException(
+                        "O MFA já está ativo para este usuário.",
+                    );
+                }
+                $secret = (string) (
+                    $_SESSION["profile_mfa_enrollment_secret"] ?? ""
+                );
+                $issuedAt = (int) (
+                    $_SESSION["profile_mfa_enrollment_issued_at"] ?? 0
+                );
+                $passwordVerifiedAt = (int) (
+                    $_SESSION["profile_mfa_password_verified_at"] ?? 0
+                );
+                if (
+                    $secret === "" ||
+                    $issuedAt <= 0 ||
+                    $passwordVerifiedAt <= 0 ||
+                    time() - $issuedAt > 600 ||
+                    time() - $passwordVerifiedAt > 600
+                ) {
+                    throw new RuntimeException(
+                        "A ativação expirou. Confirme novamente sua senha.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "enrollment")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                $codes = mfa_enroll_user(
+                    $uid,
+                    $secret,
+                    (string) ($_POST["code"] ?? ""),
+                );
+                $_SESSION["profile_mfa_recovery_codes"] = $codes;
+                unset(
+                    $_SESSION["profile_mfa_enrollment_secret"],
+                    $_SESSION["profile_mfa_enrollment_issued_at"],
+                    $_SESSION["profile_mfa_password_verified_at"],
+                );
+                $_SESSION["mfa_verified_at"] = time();
+                $_SESSION["user_auth_generation"] =
+                    user_auth_generation_rotate($uid);
+                session_regenerate_id(true);
+                $_SESSION["csrf"] = bin2hex(random_bytes(32));
+                audit("mfa_cadastrado", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário ativou MFA opcional em Minha conta; as demais sessões foram revogadas.",
+                ]);
+                flash(
+                    "MFA ativado. Guarde agora os códigos de recuperação exibidos abaixo.",
+                );
                 redirect("profile");
             }
             if ($act === "profile_change_password") {
@@ -2753,6 +3052,90 @@ function page_profile(): void
         '</div><div class="form-actions"><button type="submit" class="primary">' .
         icon("key") .
         "<span>Alterar senha</span></button></div></form>";
+    $mfaEnrolled = mfa_is_enrolled($uid);
+    $profileMfaSecret = (string) (
+        $_SESSION["profile_mfa_enrollment_secret"] ?? ""
+    );
+    $profileRecoveryCodes = (array) (
+        $_SESSION["profile_mfa_recovery_codes"] ?? []
+    );
+    unset($_SESSION["profile_mfa_recovery_codes"]);
+    if ($mfaEnrolled) {
+        $recoveryHtml = "";
+        if ($profileRecoveryCodes) {
+            $items = "";
+            foreach ($profileRecoveryCodes as $code) {
+                $items .=
+                    '<li><code tabindex="0">' .
+                    e((string) $code) .
+                    "</code></li>";
+            }
+            $recoveryHtml =
+                '<div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
+                icon("key") .
+                '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez e não será exibido novamente.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
+                $items .
+                "</ul>";
+        }
+        $mfaPanel =
+            '<section class="account-mfa-panel is-active" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
+            icon("verified_user") .
+            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">MFA ativo</h3><p>Depois da senha, o Prontoo solicitará o código MFA na mesma tela de entrada.</p></div></div>' .
+            $recoveryHtml .
+            "</section>";
+    } elseif ($profileMfaSecret !== "") {
+        $account =
+            trim((string) ($u["email"] ?? "")) ?:
+            ((string) ($u["name"] ?? "Usuário") . " #" . $uid);
+        $uri = mfa_otpauth_uri($account, $profileMfaSecret);
+        $mfaPanel =
+            '<section class="account-mfa-panel is-configuring" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
+            icon("shield_lock") .
+            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">Concluir ativação do MFA</h3><p>Adicione a conta ao autenticador e confirme o primeiro código.</p></div></div><a class="ghost wide security-auth-launch" href="' .
+            e($uri) .
+            '">' .
+            icon("open_in_new") .
+            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
+            e($profileMfaSecret) .
+            '</code></div><form method="post" class="compact account-mfa-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_enable">' .
+            form_row(
+                "Código de seis dígitos",
+                input(
+                    "code",
+                    "text",
+                    "",
+                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"',
+                ),
+            ) .
+            '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
+            icon("check_circle") .
+            '<span>Confirmar e ativar</span></button></div></form><form method="post" class="account-mfa-cancel-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_cancel"><button type="submit" class="ghost small">' .
+            icon("close") .
+            "<span>Cancelar ativação</span></button></form></section>";
+    } else {
+        $mfaPanel =
+            '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
+            icon("phonelink_lock") .
+            '</span><div><span class="eyebrow">Opcional</span><h3 id="account-mfa-title">Ativar MFA</h3><p>Acrescente um código do autenticador ao login deste usuário.</p></div></div><form method="post" class="compact account-mfa-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_prepare">' .
+            form_row(
+                "Confirme sua senha atual",
+                input(
+                    "current_password",
+                    "password",
+                    "",
+                    'required autocomplete="current-password"',
+                ),
+            ) .
+            '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
+            icon("shield_lock") .
+            "<span>Ativar MFA</span></button></div></form></section>";
+    }
     $envCards = "";
     $envActiveCards = "";
     $envOtherCards = "";
@@ -2872,6 +3255,7 @@ function page_profile(): void
         icon("key") .
         '<span>Alteração de Senha</span></h2><p class="muted-copy">Confirme a senha atual para cadastrar uma nova senha.</p>' .
         $passwordForm .
+        $mfaPanel .
         '</article><article class="card account-card account-env-card" id="meus-ambientes"><div class="account-env-card-head"><span class="account-env-card-icon">' .
         icon("workspaces") .
         '</span><div><span class="eyebrow">Acesso</span><h2>Meus ambientes</h2><p class="muted-copy">Escolha em qual consultório ou área você deseja trabalhar nesta sessão.</p></div></div>' .

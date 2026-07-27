@@ -219,18 +219,127 @@ $loginPerformance = [
     'ok' => $loginPerformanceFailures === [],
     'failed' => $loginPerformanceFailures,
 ];
+
+$mfaPendingStart = strpos(
+    $logoutModuleSource,
+    'function mfa_pending_login_user(): ?array',
+);
+$mfaPendingEnd = $mfaPendingStart === false
+    ? false
+    : strpos(
+        $logoutModuleSource,
+        'function mfa_complete_pending_login(',
+        $mfaPendingStart,
+    );
+$mfaPendingSource =
+    $mfaPendingStart !== false && $mfaPendingEnd !== false
+        ? substr(
+            $logoutModuleSource,
+            $mfaPendingStart,
+            $mfaPendingEnd - $mfaPendingStart,
+        )
+        : '';
+$mfaPageStart = strpos($logoutModuleSource, 'function page_mfa(): void');
+$mfaPageEnd = $mfaPageStart === false
+    ? false
+    : strpos(
+        $logoutModuleSource,
+        'function page_global_reauth(): void',
+        $mfaPageStart,
+    );
+$mfaPageSource =
+    $mfaPageStart !== false && $mfaPageEnd !== false
+        ? substr(
+            $logoutModuleSource,
+            $mfaPageStart,
+            $mfaPageEnd - $mfaPageStart,
+        )
+        : '';
+$inlineMfaSources = [
+    'auth' => $logoutModuleSource,
+    'pending' => $mfaPendingSource,
+    'mfa_page' => $mfaPageSource,
+    'catalog' => (string) file_get_contents(
+        $root . '/app/Application/Authorization/ActionCatalog.php',
+    ),
+    'javascript' => (string) file_get_contents(
+        $root . '/public/assets/app.js',
+    ),
+    'css' => $dashboardIconCss,
+];
+$inlineMfaFailures = [];
+foreach ([
+    'auth' => [
+        'if ($isGlobalAdmin || $enrolled) {',
+        'mfa_is_enrolled((int) ($pendingMfaUser["id"] ?? 0))',
+        'mfa_complete_pending_login(!$wantsJson)',
+        '"csrf" => csrf()',
+        '$isGlobalAdmin = (int) ($user["is_global_admin"] ?? 0) === 1;',
+        'unset($_SESSION["privileged_auth_at"]);',
+        'profile_mfa_prepare',
+        'profile_mfa_enable',
+        'user_auth_generation_rotate($uid)',
+    ],
+    'catalog' => [
+        "\$add('login', 'mfa_verify', 'public'",
+        "'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel'",
+    ],
+    'javascript' => [
+        'function initLoginMfaFlow(root = d)',
+        'const enterMfaStage = (data) =>',
+        'row.innerHTML =',
+        'Accept: "application/json"',
+        'data-login-code',
+    ],
+    'css' => [
+        '[data-login-cpf][readonly]',
+        '.login-mfa-help',
+        '.account-mfa-panel',
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($inlineMfaSources[$sourceKey], $requiredToken)) {
+            $inlineMfaFailures[] =
+                $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'pending' => ['($user["is_global_admin"] ?? 0) !== 1'],
+    'mfa_page' => [
+        'security-verification-card',
+        '<input type="hidden" name="act" value="mfa_verify">',
+    ],
+    'auth' => [
+        'Segundo fator do Desenvolvedor validado na mesma tela do login',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($inlineMfaSources[$sourceKey], $forbiddenToken)) {
+            $inlineMfaFailures[] =
+                $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$inlineMfa = [
+    'ok' => $inlineMfaFailures === [],
+    'failed' => $inlineMfaFailures,
+];
+
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
         !empty($selfTest['ok']) &&
         !empty($dashboardIconCascade['ok']) &&
         !empty($logoutCascade['ok']) &&
-        !empty($loginPerformance['ok']),
+        !empty($loginPerformance['ok']) &&
+        !empty($inlineMfa['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
     'logout_cascade' => $logoutCascade,
     'login_performance' => $loginPerformance,
+    'inline_mfa' => $inlineMfa,
 ];
 
 echo json_encode(

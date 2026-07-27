@@ -1,3 +1,12 @@
+Prontoo 1.7.27.1 — MFA integrado ao login para todos os usuários
+
+- Mantém CPF, senha e segundo fator em uma única tela: depois da confirmação da senha, o campo é substituído pelo código MFA sem recarregar a página.
+- Aplica a verificação a todo usuário com MFA ativo, independentemente do cargo, preservando o cadastro obrigatório inicial do Desenvolvedor.
+- Acrescenta ativação opcional de MFA para usuários regulares na mesma área de Minha conta onde a senha é alterada, com confirmação da senha atual e do primeiro código TOTP.
+- Mantém CSRF, rate limits, desafio pré-autenticado de cinco minutos, proteção contra reutilização de TOTP, códigos de recuperação, rotação de sessão e revogação das demais sessões após a ativação.
+- Impede que a conclusão de MFA de um usuário regular possa resolver uma credencial global ou marcar a sessão como privilegiada.
+- Acrescenta provas regressivas do fluxo sem recarga, da abrangência por usuário e dos contratos de ação; banco e schema permanecem inalterados.
+
 Prontoo 1.7.24.5 — autenticação com caminho crítico reduzido
 
 - Executa a manutenção completa do runtime após a senha somente quando o marcador canônico estiver ausente ou vencido; acessos comuns permanecem no light-check já protegido.

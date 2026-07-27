@@ -1,5 +1,5 @@
 {
-  "version": "1.7.24.5",
+  "version": "1.7.27.1",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -49,7 +49,7 @@
   ],
   "database_changes": false,
   "schema_changes": false,
-  "visual_changes": false,
+  "visual_changes": true,
   "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
   "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
   "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
@@ -69,7 +69,7 @@
   "function_documentation_arrows": 100,
   "function_documentation_ci": ".github/workflows/architecture.yml",
   "logic_changes": true,
-  "authentication_policy": "password_plus_mfa_idle_3600_seconds_per_user_generation_cascade_lazy_revocation",
+  "authentication_policy": "password_then_inline_mfa_for_all_enrolled_users_developer_mandatory_idle_3600_generation_cascade",
   "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
   "commissioned_installation_lockdown": {
     "http": "denied_at_webserver_and_php_entry",
@@ -80,6 +80,6 @@
     "developer_panel_icon": "network_ping"
   },
   "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use",
-  "generated_at": "2026-07-24T15:21:24Z",
-  "updated_at": "2026-07-24T15:21:24Z"
+  "generated_at": "2026-07-27T12:21:08Z",
+  "updated_at": "2026-07-27T12:21:08Z"
 }

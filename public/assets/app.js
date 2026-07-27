@@ -2273,24 +2273,39 @@
       forms.forEach((f) => {
         const cpf = $("[data-login-cpf]", f),
           pass = $("[data-login-password]", f),
+          code = $("[data-login-code]", f),
           btn = $("[data-login-submit]", f);
         if (!btn) return;
+        const mfaStage = f.dataset.loginStage === "mfa";
         const bootReady =
           f.dataset.autotestReady === "1" && f.dataset.loginLocked !== "1";
         const ready =
           bootReady &&
           String(cpf?.value || "").trim().length > 0 &&
-          String(pass?.value || "").trim().length > 0;
+          String(mfaStage ? code?.value || "" : pass?.value || "").trim()
+            .length > 0;
         if (ready) {
           btn.disabled = false;
           btn.removeAttribute("aria-disabled");
-          btn.innerHTML = loginIconMarkup("login") + "<span>Entrar</span>";
+          btn.innerHTML =
+            loginIconMarkup(mfaStage ? "verified_user" : "login") +
+            "<span>" +
+            (mfaStage ? "Validar e entrar" : "Entrar") +
+            "</span>";
         } else {
           btn.disabled = true;
           btn.setAttribute("aria-disabled", "true");
           btn.innerHTML =
-            loginIconMarkup(bootReady ? "login" : "hourglass_top") +
-            "<span>Entrar</span>";
+            loginIconMarkup(
+              bootReady
+                ? mfaStage
+                  ? "verified_user"
+                  : "login"
+                : "hourglass_top",
+            ) +
+            "<span>" +
+            (mfaStage ? "Validar e entrar" : "Entrar") +
+            "</span>";
         }
       });
     w.prontooSyncLoginButton = sync;
@@ -2333,6 +2348,222 @@
       }
     };
     run();
+  }
+  function initLoginMfaFlow(root = d) {
+    const forms = $$("form[data-login-form]", root);
+    if (!forms.length) return;
+    const iconMarkup = (name) =>
+      '<span class="material-symbols-rounded" aria-hidden="true">' +
+      name +
+      "</span>";
+    forms.forEach((form) => {
+      if (form.dataset.loginMfaFlowReady === "1") return;
+      form.dataset.loginMfaFlowReady = "1";
+      const boot = $("[data-login-boot]", root),
+        status = $("[data-login-boot-status]", root),
+        bootIcon = $("[data-login-boot-icon]", root),
+        submit = $("[data-login-submit]", form),
+        cpf = $("[data-login-cpf]", form);
+      let retryTimer = 0;
+      const setStatus = (message, state = null) => {
+        if (status) status.textContent = String(message || "");
+        if (bootIcon) {
+          bootIcon.innerHTML = iconMarkup(
+            state === true ? "verified_user" : state === false ? "error" : "sync",
+          );
+        }
+        if (boot) {
+          boot.classList.toggle("is-ok", state === true);
+          boot.classList.toggle("is-bad", state === false);
+        }
+      };
+      const sync = () => {
+        if (w.prontooSyncLoginButton) {
+          w.prontooSyncLoginButton();
+          return;
+        }
+        if (!submit) return;
+        const mfaStage = form.dataset.loginStage === "mfa";
+        const credential = mfaStage
+          ? $("[data-login-code]", form)
+          : $("[data-login-password]", form);
+        const ready =
+          form.dataset.autotestReady === "1" &&
+          form.dataset.loginLocked !== "1" &&
+          String(cpf?.value || "").trim() !== "" &&
+          String(credential?.value || "").trim() !== "";
+        submit.disabled = !ready;
+        submit.setAttribute("aria-disabled", ready ? "false" : "true");
+        if (ready) submit.removeAttribute("aria-disabled");
+      };
+      const setBusy = (busy) => {
+        form.classList.toggle("is-submitting", busy);
+        if (!submit) return;
+        submit.disabled = busy;
+        submit.setAttribute("aria-disabled", busy ? "true" : "false");
+        if (busy) {
+          submit.innerHTML =
+            iconMarkup("progress_activity") + "<span>Confirmando...</span>";
+        } else {
+          sync();
+        }
+      };
+      const setRetry = (seconds, message) => {
+        clearInterval(retryTimer);
+        let remaining = Math.max(1, Number(seconds) || 1);
+        form.dataset.loginLocked = "1";
+        const tick = () => {
+          setStatus(
+            message +
+              " Tente novamente em " +
+              remaining +
+              (remaining === 1 ? " segundo." : " segundos."),
+            false,
+          );
+          remaining -= 1;
+          if (remaining >= 0) return;
+          clearInterval(retryTimer);
+          retryTimer = 0;
+          form.dataset.loginLocked = "0";
+          setStatus(
+            form.dataset.loginStage === "mfa"
+              ? "Informe um novo código MFA."
+              : "Você já pode tentar entrar novamente.",
+            true,
+          );
+          sync();
+        };
+        tick();
+        retryTimer = w.setInterval(tick, 1000);
+      };
+      const updateCsrf = (value) => {
+        if (!value) return;
+        const csrf = $('[name="csrf"]', form);
+        if (csrf) csrf.value = String(value);
+        const meta = $('meta[name="csrf-token"]');
+        if (meta) meta.content = String(value);
+      };
+      const enterMfaStage = (data) => {
+        form.dataset.loginStage = "mfa";
+        form.dataset.autotestReady = "1";
+        form.dataset.loginLocked = "0";
+        if (cpf) {
+          cpf.readOnly = true;
+          cpf.setAttribute("aria-readonly", "true");
+        }
+        const password = $("[data-login-password]", form);
+        const row = password?.closest(".field");
+        if (!row) throw new Error("Campo de senha não encontrado.");
+        row.innerHTML =
+          '<span>Código MFA</span><input name="code" type="text" value="" required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false" data-login-code>';
+        let act = $("[data-login-act]", form);
+        if (!act) {
+          act = d.createElement("input");
+          act.type = "hidden";
+          act.name = "act";
+          act.dataset.loginAct = "";
+          form.insertBefore(act, row);
+        }
+        act.value = "mfa_verify";
+        let help = $("[data-login-mfa-help]", form);
+        if (!help) {
+          help = d.createElement("small");
+          help.className = "field-help login-mfa-help";
+          help.dataset.loginMfaHelp = "";
+          help.textContent =
+            "Use o código atual do autenticador ou um código de recuperação.";
+          row.insertAdjacentElement("afterend", help);
+        }
+        updateCsrf(data?.csrf);
+        setStatus(
+          data?.message ||
+            "Senha confirmada. Informe o código MFA para entrar.",
+          true,
+        );
+        sync();
+        const code = $("[data-login-code]", form);
+        if (code) {
+          ["input", "change"].forEach((eventName) =>
+            code.addEventListener(eventName, sync),
+          );
+          try {
+            code.focus();
+          } catch (_) {}
+        }
+      };
+      ["input", "change"].forEach((eventName) =>
+        form.addEventListener(eventName, sync),
+      );
+      form.addEventListener("submit", async (event) => {
+        if (form.dataset.loginLocked === "1") {
+          event.preventDefault();
+          return;
+        }
+        if (!form.checkValidity()) return;
+        event.preventDefault();
+        setBusy(true);
+        setStatus(
+          form.dataset.loginStage === "mfa"
+            ? "Validando o código MFA..."
+            : "Confirmando CPF e senha...",
+        );
+        try {
+          const response = await fetch(form.action || location.href, {
+            method: "POST",
+            body: new FormData(form),
+            cache: "no-store",
+            credentials: "same-origin",
+            headers: {
+              Accept: "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            redirect: "error",
+          });
+          const contentType = response.headers.get("content-type") || "";
+          if (!contentType.includes("application/json")) {
+            throw new Error("Resposta de autenticação inválida.");
+          }
+          const data = await response.json();
+          updateCsrf(data?.csrf);
+          if (data?.ok === true && data?.stage === "mfa") {
+            enterMfaStage(data);
+            return;
+          }
+          if (data?.ok === true && data?.redirect) {
+            setStatus("Acesso confirmado. Abrindo o Prontoo...", true);
+            location.assign(data.redirect);
+            return;
+          }
+          if (data?.reset) {
+            setStatus(
+              data?.message ||
+                "A confirmação expirou. Informe novamente o CPF e a senha.",
+              false,
+            );
+            w.setTimeout(() => location.replace("/?r=login&relogin=1"), 900);
+            return;
+          }
+          const message =
+            data?.message || "Não foi possível confirmar o acesso.";
+          if (Number(data?.retry_after) > 0) {
+            setRetry(Number(data.retry_after), message);
+          } else {
+            setStatus(message, false);
+          }
+        } catch (_) {
+          setStatus(
+            "Não foi possível confirmar o acesso agora. Tente novamente.",
+            false,
+          );
+        } finally {
+          setBusy(false);
+        }
+      });
+      if (form.dataset.loginStage === "mfa") {
+        setStatus("Senha confirmada. Informe o código MFA para entrar.", true);
+      }
+      sync();
+    });
   }
   function initMonthlyGoal(root = d) {
     const cards = $$("[data-monthly-goal-card]", root);
@@ -2517,6 +2748,7 @@
     initDeviceFingerprint(root);
     initVersionGate(root);
     initLoginAutotest(root);
+    initLoginMfaFlow(root);
     initLoginScrollLock();
     initOnboardingWizard(root);
     initMonthlyGoal(root);
