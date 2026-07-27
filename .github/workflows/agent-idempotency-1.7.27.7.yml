@@ -31,9 +31,12 @@ jobs:
           tools: none
 
       - name: Apply idempotency remediation
+        id: apply
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
+          set -o pipefail
+          {
           git fetch origin agent/prevent-duplicate-writes-1.7.27.6
           python3 <<'PY'
           from pathlib import Path
@@ -113,8 +116,23 @@ jobs:
               encoding='utf-8',
           )
           PY
+          } 2>&1 | tee /tmp/patch.log
+
+      - name: Upload patch failure log
+        if: steps.apply.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplicate-write-patch-error
+          path: /tmp/patch.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Stop after patch failure
+        if: steps.apply.outcome == 'failure'
+        run: exit 1
 
       - name: Validate changed runtime
+        if: steps.apply.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
