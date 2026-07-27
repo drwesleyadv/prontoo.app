@@ -1,0 +1,142 @@
+name: Agent duplicate-write remediation
+
+on:
+  push:
+    branches:
+      - agent/prevent-duplicate-writes-1.7.27.6
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+
+      - name: Apply idempotency remediation
+        shell: bash
+        env:
+          PATCH_B64: >-
+            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
+            EHFFJVjm/wOTFiY9
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, os, zlib
+          source = zlib.decompress(base64.b64decode(os.environ["PATCH_B64"])).decode("utf-8")
+          exec(compile(source, "agent-idempotency-patch", "exec"))
+          PY
+
+      - name: Validate changed runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Support/SecurityPrivacy.php >/dev/null
+          php -l app/Domain/Leads/Leads.php >/dev/null
+          php -l app/prontoo.php >/dev/null
+          php -l br/index.php >/dev/null
+          node --check public/assets/app.js
+          php tools/security-regression-check.php >/tmp/security-regression.json
+          php tools/architecture-check.php >/tmp/architecture-report.json
+          git diff --check
+
+      - name: Commit remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "prontoo-release-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Prontoo 1.7.27.6 — impedir gravações duplicadas"
+          git push origin HEAD:agent/prevent-duplicate-writes-1.7.27.6
