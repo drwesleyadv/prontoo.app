@@ -2290,7 +2290,7 @@
           btn.innerHTML =
             loginIconMarkup(mfaStage ? "verified_user" : "login") +
             "<span>" +
-            (mfaStage ? "Validar e entrar" : "Entrar") +
+            (mfaStage ? "Confirmar e entrar" : "Entrar") +
             "</span>";
         } else {
           btn.disabled = true;
@@ -2304,7 +2304,7 @@
                 : "hourglass_top",
             ) +
             "<span>" +
-            (mfaStage ? "Validar e entrar" : "Entrar") +
+            (mfaStage ? "Confirmar e entrar" : "Entrar") +
             "</span>";
         }
       });
@@ -2427,7 +2427,7 @@
           form.dataset.loginLocked = "0";
           setStatus(
             form.dataset.loginStage === "mfa"
-              ? "Informe um novo código MFA."
+              ? "Digite um novo código de verificação."
               : "Você já pode tentar entrar novamente.",
             true,
           );
@@ -2455,7 +2455,7 @@
         const row = password?.closest(".field");
         if (!row) throw new Error("Campo de senha não encontrado.");
         row.innerHTML =
-          '<span>Código MFA</span><input name="code" type="text" value="" required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false" data-login-code>';
+          '<span>Código de verificação</span><input name="code" type="text" value="" required autocomplete="one-time-code" maxlength="16" placeholder="Digite o código" autocapitalize="characters" spellcheck="false" aria-describedby="login-verification-help" data-login-code>';
         let act = $("[data-login-act]", form);
         if (!act) {
           act = d.createElement("input");
@@ -2470,14 +2470,15 @@
           help = d.createElement("small");
           help.className = "field-help login-mfa-help";
           help.dataset.loginMfaHelp = "";
+          help.id = "login-verification-help";
           help.textContent =
-            "Use o código atual do autenticador ou um código de recuperação.";
+            "Abra seu aplicativo autenticador e digite o código exibido. Você também pode usar um código de recuperação.";
           row.insertAdjacentElement("afterend", help);
         }
         updateCsrf(data?.csrf);
         setStatus(
           data?.message ||
-            "Senha confirmada. Informe o código MFA para entrar.",
+            "Senha confirmada. Agora, digite o código do aplicativo.",
           true,
         );
         sync();
@@ -2504,7 +2505,7 @@
         setBusy(true);
         setStatus(
           form.dataset.loginStage === "mfa"
-            ? "Validando o código MFA..."
+            ? "Conferindo o código..."
             : "Confirmando CPF e senha...",
         );
         try {
@@ -2560,7 +2561,10 @@
         }
       });
       if (form.dataset.loginStage === "mfa") {
-        setStatus("Senha confirmada. Informe o código MFA para entrar.", true);
+        setStatus(
+          "Senha confirmada. Agora, digite o código do aplicativo.",
+          true,
+        );
       }
       sync();
     });
