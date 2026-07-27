@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/prevent-duplicate-writes-1.7.27.6
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
