@@ -1,0 +1,22 @@
+# Configuração e credenciais da instalação
+/app/config.php
+/.env
+/.env.*
+
+# Persistência canônica da instalação
+/ssd/
+
+# Entradas legadas preservadas até a migração automática
+/storage/
+/pdfs/
+
+# Logs e locks locais
+/error_log
+*.log
+*.lock
+
+# Arquivos locais de ferramentas e sistema operacional
+/.idea/
+/.vscode/
+/.DS_Store
+Thumbs.db

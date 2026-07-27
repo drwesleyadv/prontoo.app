@@ -1,0 +1,1195 @@
+<?php
+declare(strict_types=1);
+namespace Prontoo\Core\Temporal;
+final class PiTime
+{
+    public const POLICY_VERSION = "pi-time-unix-utc-v2.3";
+    private const FALLBACK_TZ = "America/Cuiaba";
+    private function __construct() {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::__construct
+         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+    }
+    public static function now(): int
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::now
+         * Responsabilidade: Implementa a responsabilidade “now” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Dependências chamadas: `time`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return time();
+    }
+    public static function todayUtcNoon(): int
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::todayUtcNoon
+         * Responsabilidade: Implementa a responsabilidade “today utc noon” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return (int) \gmmktime(
+            12,
+            0,
+            0,
+            (int) \gmdate("n"),
+            (int) \gmdate("j"),
+            (int) \gmdate("Y"),
+        );
+    }
+    public static function isTemporalColumn(string $column): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::isTemporalColumn
+         * Responsabilidade: Implementa a responsabilidade “is temporal column” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::storageDefinitionFor`, `Core.Temporal.PiTime::rewriteColumnDefinition`, `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:152`, `closure@app/Core/Temporal/PiTime.php:158`, `closure@app/Core/Temporal/PiTime.php:203`, `Core.Temporal.PiTime::convertParamsBySql`.
+         * Dependências chamadas: `strtolower`, `trim`, `in_array`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $c = strtolower(trim($column, "` \t\n\r\0\x0B"));
+        if ($c === "" || $c === "Seq") {
+            return false;
+        }
+        if (
+            in_array(
+                $c,
+                [
+                    "birth_date",
+                    "paid_until",
+                    "business_date",
+                    "drawer_locked_business_date",
+                    "document_date",
+                    "anchor_date",
+                    "competence_date",
+                    "reference_date",
+                    "payment_date",
+                    "due_date",
+                ],
+                true,
+            )
+        ) {
+            return true;
+        }
+        if (preg_match('/(_at|_date|_datetime|_timestamp|_until)$/', $c)) {
+            return true;
+        }
+        if (
+            in_array(
+                $c,
+                [
+                    "created_at",
+                    "updated_at",
+                    "deleted_at",
+                    "restored_at",
+                    "start_at",
+                    "end_at",
+                    "due_at",
+                    "paid_at",
+                    "received_at",
+                    "expected_at",
+                    "issued_at",
+                    "confirmed_at",
+                    "cancelled_at",
+                    "trusted_until",
+                    "locked_until",
+                    "last_seen_at",
+                    "last_login_at",
+                ],
+                true,
+            )
+        ) {
+            return true;
+        }
+        return false;
+    }
+    public static function isDateOnlyColumn(string $column): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::isDateOnlyColumn
+         * Responsabilidade: Implementa a responsabilidade “is date only column” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::convertParamsBySql`.
+         * Dependências chamadas: `strtolower`, `trim`, `str_ends_with`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $c = strtolower(trim($column, "` \t\n\r\0\x0B"));
+        return $c === "birth_date" ||
+            $c === "paid_until" ||
+            $c === "business_date" ||
+            str_ends_with($c, "_date");
+    }
+    public static function storageDefinitionFor(
+        string $column,
+        string $definition,
+    ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::storageDefinitionFor
+         * Responsabilidade: Implementa a responsabilidade “storage definition for” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:152`, `closure@app/Core/Temporal/PiTime.php:158`.
+         * Dependências chamadas: `self::isTemporalColumn`, `preg_match`, `self::cleanIdent`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (
+            !self::isTemporalColumn($column) &&
+            !preg_match("/\b(DATETIME|TIMESTAMP|DATE)\b/i", $definition)
+        ) {
+            return $definition;
+        }
+        $primary = preg_match("/\bPRIMARY\s+KEY\b/i", $definition) === 1;
+        $nullable = !$primary && !preg_match("/\bNOT\s+NULL\b/i", $definition);
+        $after = "";
+        if (preg_match("/\s+AFTER\s+`?([A-Za-z0-9_]+)`?/i", $definition, $m)) {
+            $after = " AFTER `" . $m[1] . "`";
+        } elseif (preg_match("/\s+FIRST\b/i", $definition)) {
+            $after = " FIRST";
+        }
+        $comment = "";
+        if (
+            preg_match('/\s+COMMENT\s+(\'[^\']*\'|"[^"]*")/i', $definition, $m)
+        ) {
+            $comment = " COMMENT " . $m[1];
+        }
+        return "`" .
+            self::cleanIdent($column) .
+            "` BIGINT UNSIGNED " .
+            ($nullable ? "NULL" : "NOT NULL DEFAULT 0") .
+            ($primary ? " PRIMARY KEY" : "") .
+            $comment .
+            $after;
+    }
+    public static function rewriteColumnDefinition(
+        string $column,
+        string $definition,
+    ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::rewriteColumnDefinition
+         * Responsabilidade: Implementa a responsabilidade “rewrite column definition” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:203`.
+         * Dependências chamadas: `self::isTemporalColumn`, `preg_match`, `self::cleanIdent`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (
+            !self::isTemporalColumn($column) &&
+            !preg_match("/\b(DATETIME|TIMESTAMP|DATE)\b/i", $definition)
+        ) {
+            return $definition;
+        }
+        $primary = preg_match("/\bPRIMARY\s+KEY\b/i", $definition) === 1;
+        $nullable = !$primary && !preg_match("/\bNOT\s+NULL\b/i", $definition);
+        $after = "";
+        if (preg_match("/\s+AFTER\s+`?([A-Za-z0-9_]+)`?/i", $definition, $m)) {
+            $after = " AFTER `" . $m[1] . "`";
+        } elseif (preg_match("/\s+FIRST\b/i", $definition)) {
+            $after = " FIRST";
+        }
+        return self::cleanIdent($column) .
+            " BIGINT UNSIGNED " .
+            ($nullable ? "NULL" : "NOT NULL DEFAULT 0") .
+            ($primary ? " PRIMARY KEY" : "") .
+            $after;
+    }
+    public static function rewriteSchemaSql(string $sql): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::rewriteSchemaSql
+         * Responsabilidade: Implementa a responsabilidade “rewrite schema sql” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::rewriteSchemaSql`.
+         * Dependências chamadas: `self::rewriteTemporalFunctions`, `preg_replace_callback`, `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`, `str_replace`, `self::rewriteColumnDefinition`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $sql = self::rewriteTemporalFunctions($sql);
+        $sql =
+            preg_replace_callback(
+                "/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?[A-Za-z0-9_]+`?\s*\((.*)\)\s*ENGINE\s*=\s*InnoDB/isU",
+                function (array $m): string {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:152
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                     * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `preg_replace_callback`, `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`, `str_replace`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                     */
+                    $full = $m[0];
+                    $inside = $m[1];
+                    $rewritten =
+                        preg_replace_callback(
+                            '/(^|,)(\s*)`?([A-Za-z0-9_]+)`?\s+([^,\n]+(?:\([^\)]*\)[^,\n]*)?)/m',
+                            function (array $cm): string {
+                                /*
+                                 * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:158
+                                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                                 * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                                 * Dependências chamadas: `trim`, `preg_match`, `self::isTemporalColumn`, `self::cleanIdent`, `preg_replace`, `preg_quote`, `self::storageDefinitionFor`.
+                                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                                 */
+                                $prefix = $cm[1] . $cm[2];
+                                $col = $cm[3];
+                                $def = trim($cm[4]);
+                                if (
+                                    preg_match(
+                                        "/^(PRIMARY|UNIQUE|KEY|INDEX|CONSTRAINT|FOREIGN|CHECK)\b/i",
+                                        $col,
+                                    )
+                                ) {
+                                    return $cm[0];
+                                }
+                                if (
+                                    !self::isTemporalColumn($col) &&
+                                    !preg_match(
+                                        "/\b(DATETIME|TIMESTAMP|DATE)\b/i",
+                                        $def,
+                                    )
+                                ) {
+                                    return $cm[0];
+                                }
+                                return $prefix .
+                                    "`" .
+                                    self::cleanIdent($col) .
+                                    "` " .
+                                    preg_replace(
+                                        "/^`?" .
+                                            preg_quote($col, "/") .
+                                            "`?\s+/i",
+                                        "",
+                                        self::storageDefinitionFor(
+                                            $col,
+                                            $col . " " . $def,
+                                        ),
+                                    );
+                            },
+                            $inside,
+                        ) ?? $inside;
+                    return str_replace($inside, $rewritten, $full);
+                },
+                $sql,
+            ) ?? $sql;
+        $sql =
+            preg_replace_callback(
+                '/(ALTER\s+TABLE\s+`?[A-Za-z0-9_]+`?\s+ADD\s+COLUMN\s+)`?([A-Za-z0-9_]+)`?\s+(.+)$/is',
+                function (array $m): string {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:203
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                     * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `self::isTemporalColumn`, `preg_match`, `self::rewriteColumnDefinition`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                     */
+                    $prefix = $m[1];
+                    $col = $m[2];
+                    $def = $m[3];
+                    if (
+                        !self::isTemporalColumn($col) &&
+                        !preg_match("/\b(DATETIME|TIMESTAMP|DATE)\b/i", $def)
+                    ) {
+                        return $m[0];
+                    }
+                    return $prefix .
+                        self::rewriteColumnDefinition($col, $col . " " . $def);
+                },
+                $sql,
+            ) ?? $sql;
+        return $sql;
+    }
+    public static function prepareRuntimeQuery(
+        string $sql,
+        array $params,
+    ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::prepareRuntimeQuery
+         * Responsabilidade: Implementa a responsabilidade “prepare runtime query” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::prepareRuntimeQuery`.
+         * Dependências chamadas: `self::rewriteTemporalFunctions`, `self::expandDynamicIntervals`, `self::convertParamsBySql`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $sql = self::rewriteTemporalFunctions($sql);
+        [$sql, $params] = self::expandDynamicIntervals($sql, $params);
+        $params = self::convertParamsBySql($sql, $params);
+        return [$sql, $params];
+    }
+    public static function rewriteTemporalFunctions(string $sql): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::rewriteTemporalFunctions
+         * Responsabilidade: Implementa a responsabilidade “rewrite temporal functions” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Integrity.PiIntegrity::rewriteSqlForRuntime`, `Core.Temporal.PiTime::rewriteSchemaSql`, `Core.Temporal.PiTime::prepareRuntimeQuery`.
+         * Dependências chamadas: `self::now`, `self::contextToday`, `self::dateOnlyToTimestamp`, `self::contextDayRange`, `self::replaceCallbackOutsideStrings`, `strtoupper`, `self::adjustCurdateInterval`, `self::replaceOutsideStrings`, `preg_replace_callback`, `trim`, `stripos`, `self::adjustTimestamp` e mais 1.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $now = (string) self::now();
+        $todayYmd = self::contextToday();
+        $today = (string) self::dateOnlyToTimestamp($todayYmd);
+        [$dayStart, $dayEnd] = self::contextDayRange($todayYmd);
+        $sql = self::replaceCallbackOutsideStrings(
+            $sql,
+            "/DATE_(ADD|SUB)\s*\(\s*CURDATE\s*\(\s*\)\s*,\s*INTERVAL\s+([0-9]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
+            static function (array $m) use ($todayYmd): string {
+                /*
+                 * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:238
+                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                 * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                 * Dependências chamadas: `strtoupper`, `self::adjustCurdateInterval`.
+                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                 */
+                $amount = (strtoupper($m[1]) === "ADD" ? 1 : -1) * (int) $m[2];
+                return (string) self::adjustCurdateInterval(
+                    $todayYmd,
+                    $amount,
+                    strtoupper($m[3]),
+                );
+            },
+        );
+        $sql = self::replaceOutsideStrings($sql, [
+            "/\bDATE\s*\(\s*([A-Za-z0-9_`.]+)\s*\)\s*=\s*CURDATE\s*\(\s*\)/i" => "($1 >= " . $dayStart . " AND $1 < " . $dayEnd . ")",
+            "/\bCURDATE\s*\(\s*\)\s*=\s*DATE\s*\(\s*([A-Za-z0-9_`.]+)\s*\)/i" => "($1 >= " . $dayStart . " AND $1 < " . $dayEnd . ")",
+        ]);
+        $out = self::replaceOutsideStrings($sql, [
+            "/\bCURRENT_TIMESTAMP\s*(?:\(\s*\))?/i" => $now,
+            "/\bUTC_TIMESTAMP\s*\(\s*\)/i" => $now,
+            "/\bNOW\s*\(\s*\)/i" => $now,
+            "/\bCURDATE\s*\(\s*\)/i" => $today,
+            "/\bFROM_UNIXTIME\s*\(\s*\?\s*\)/i" => "?",
+            "/\bUNIX_TIMESTAMP\s*\(\s*\)/i" => $now,
+        ]);
+        $out =
+            preg_replace_callback(
+                "/DATE_FORMAT\s*\(\s*([A-Za-z0-9_`.]+)\s*,/i",
+                function (array $m): string {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:262
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                     * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `trim`, `stripos`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                     */
+                    $expr = trim($m[1]);
+                    if (stripos($expr, "FROM_UNIXTIME") !== false) {
+                        return $m[0];
+                    }
+                    return "DATE_FORMAT(FROM_UNIXTIME(" . $expr . "),";
+                },
+                $out,
+            ) ?? $out;
+        $out =
+            preg_replace_callback(
+                "/\bDATE\s*\(\s*([A-Za-z0-9_`.]+)\s*\)/i",
+                function (array $m): string {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:274
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                     * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `trim`, `stripos`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                     */
+                    $expr = trim($m[1]);
+                    if (stripos($expr, "FROM_UNIXTIME") !== false) {
+                        return $m[0];
+                    }
+                    return "DATE(FROM_UNIXTIME(" . $expr . "))";
+                },
+                $out,
+            ) ?? $out;
+        $out =
+            preg_replace_callback(
+                "/DATE_SUB\s*\(\s*([0-9]+)\s*,\s*INTERVAL\s+([0-9]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
+                /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `self::adjustTimestamp`, `strtoupper`. Efeitos: transformação local sem efeito externo detectado. */ fn($m) => (string) self::adjustTimestamp(
+                    (int) $m[1],
+                    -(int) $m[2],
+                    strtoupper($m[3]),
+                ),
+                $out,
+            ) ?? $out;
+        $out =
+            preg_replace_callback(
+                "/DATE_ADD\s*\(\s*([0-9]+)\s*,\s*INTERVAL\s+([0-9]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
+                /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `self::adjustTimestamp`, `strtoupper`. Efeitos: transformação local sem efeito externo detectado. */ fn($m) => (string) self::adjustTimestamp(
+                    (int) $m[1],
+                    (int) $m[2],
+                    strtoupper($m[3]),
+                ),
+                $out,
+            ) ?? $out;
+        $out =
+            preg_replace_callback(
+                "/DATE_(ADD|SUB)\s*\(\s*([0-9]+)\s*,\s*INTERVAL\s+([A-Za-z0-9_`.]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
+                function (array $m): string {
+                    /*
+                     * GUIA DE MANUTENÇÃO — closure@app/Core/Temporal/PiTime.php:306
+                     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de núcleo de invariantes e decisões canônicas.
+                     * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+                     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+                     * Dependências chamadas: `self::intervalSeconds`, `strtoupper`, `trim`.
+                     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+                     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+                     */
+                    $factor = self::intervalSeconds(1, strtoupper($m[4]));
+                    $sign = strtoupper($m[1]) === "ADD" ? "+" : "-";
+                    return "(" .
+                        (int) $m[2] .
+                        " " .
+                        $sign .
+                        " (" .
+                        trim($m[3]) .
+                        " * " .
+                        $factor .
+                        "))";
+                },
+                $out,
+            ) ?? $out;
+        return $out;
+    }
+    private static function expandDynamicIntervals(
+        string $sql,
+        array $params,
+    ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::expandDynamicIntervals
+         * Responsabilidade: Implementa a responsabilidade “expand dynamic intervals” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::prepareRuntimeQuery`.
+         * Dependências chamadas: `array_keys`, `range`, `count`, `preg_match`, `strtoupper`, `substr_count`, `substr`, `array_key_exists`, `self::adjustTimestamp`, `strlen`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (!$params || array_keys($params) !== range(0, count($params) - 1)) {
+            return [$sql, $params];
+        }
+        $pattern =
+            "/DATE_(ADD|SUB)\s*\(\s*([0-9]+)\s*,\s*INTERVAL\s+\?\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i";
+        $offset = 0;
+        while (preg_match($pattern, $sql, $m, PREG_OFFSET_CAPTURE, $offset)) {
+            $full = $m[0][0];
+            $start = $m[0][1];
+            $op = strtoupper($m[1][0]);
+            $base = (int) $m[2][0];
+            $unit = strtoupper($m[3][0]);
+            $idx = substr_count(substr($sql, 0, $start), "?");
+            if (array_key_exists($idx, $params)) {
+                $n = (int) $params[$idx];
+                $ts = self::adjustTimestamp(
+                    $base,
+                    ($op === "ADD" ? 1 : -1) * $n,
+                    $unit,
+                );
+                $params[$idx] = $ts;
+                $sql =
+                    substr($sql, 0, $start) .
+                    "?" .
+                    substr($sql, $start + strlen($full));
+                $offset = $start + 1;
+            } else {
+                $offset = $start + strlen($full);
+            }
+        }
+        return [$sql, $params];
+    }
+    private static function convertParamsBySql(
+        string $sql,
+        array $params,
+    ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::convertParamsBySql
+         * Responsabilidade: Implementa a responsabilidade “convert params by sql” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::prepareRuntimeQuery`.
+         * Dependências chamadas: `array_keys`, `range`, `count`, `self::looksTemporalValue`, `self::toStorage`, `self::keySuggestsDate`, `self::inferPlaceholderColumns`, `self::isTemporalColumn`, `self::isDateOnlyColumn`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (!$params) {
+            return $params;
+        }
+        $positional = array_keys($params) === range(0, count($params) - 1);
+        if (!$positional) {
+            foreach ($params as $k => $v) {
+                if (self::looksTemporalValue($v)) {
+                    $params[$k] = self::toStorage(
+                        $v,
+                        self::keySuggestsDate((string) $k),
+                    );
+                }
+            }
+            return $params;
+        }
+        $columns = self::inferPlaceholderColumns($sql, count($params));
+        foreach ($params as $i => $v) {
+            $col = $columns[$i] ?? "";
+            if ($col !== "" && self::isTemporalColumn($col)) {
+                $params[$i] = self::toStorage($v, self::isDateOnlyColumn($col));
+            }
+        }
+        return $params;
+    }
+    private static function inferPlaceholderColumns(
+        string $sql,
+        int $count,
+    ): array {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::inferPlaceholderColumns
+         * Responsabilidade: Implementa a responsabilidade “infer placeholder columns” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::convertParamsBySql`.
+         * Dependências chamadas: `preg_match`, `array_map`, `trim`, `explode`, `preg_match_all`, `array_slice`, `array_fill`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $cols = [];
+        if (
+            preg_match(
+                "/INSERT\s+INTO\s+`?[A-Za-z0-9_]+`?\s*\(([^\)]*)\)\s*VALUES\s*\(([^\)]*)\)/is",
+                $sql,
+                $m,
+            )
+        ) {
+            $names = array_map(
+                /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => trim($v, "` \t\n\r\0\x0B"),
+                explode(",", $m[1]),
+            );
+            $vals = array_map("trim", explode(",", $m[2]));
+            $p = 0;
+            foreach ($vals as $idx => $val) {
+                if ($val === "?") {
+                    $cols[$p++] = $names[$idx] ?? "";
+                }
+            }
+        }
+        if (
+            preg_match(
+                "/UPDATE\s+`?[A-Za-z0-9_]+`?\s+SET\s+(.+?)\s+WHERE\s+/is",
+                $sql,
+                $m,
+            )
+        ) {
+            $assign = $m[1];
+            if (
+                preg_match_all("/`?([A-Za-z0-9_]+)`?\s*=\s*\?/i", $assign, $mm)
+            ) {
+                foreach ($mm[1] as $col) {
+                    $cols[] = $col;
+                }
+            }
+        }
+        if (
+            preg_match_all(
+                "/`?([A-Za-z0-9_]+)`?\s*(?:=|>=|<=|>|<)\s*\?/i",
+                $sql,
+                $mm,
+            )
+        ) {
+            foreach ($mm[1] as $col) {
+                $cols[] = $col;
+            }
+        }
+        if (
+            preg_match_all(
+                "/`?([A-Za-z0-9_]+)`?\s+BETWEEN\s+\?\s+AND\s+\?/i",
+                $sql,
+                $mm,
+            )
+        ) {
+            foreach ($mm[1] as $col) {
+                $cols[] = $col;
+                $cols[] = $col;
+            }
+        }
+        return array_slice($cols + array_fill(0, $count, ""), 0, $count);
+    }
+    public static function toStorage(
+        mixed $value,
+        bool $dateOnly = false,
+    ): mixed {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::toStorage
+         * Responsabilidade: Implementa a responsabilidade “to storage” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::convertParamsBySql`, `Core.Temporal.PiTime::fromLocalToUtcTimestamp`.
+         * Dependências chamadas: `is_int`, `is_float`, `trim`, `preg_match`, `self::looksDateOnlyValue`, `self::dateOnlyToTimestamp`, `substr`, `self::contextTimezone`, `str_replace`, `->setTimezone`, `->getTimestamp`.
+         * Classes ou serviços instanciados: `.DateTimeZone`, `.DateTimeImmutable`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if ($value === null || $value === "") {
+            return $value;
+        }
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_float($value)) {
+            return (int) $value;
+        }
+        $s = trim((string) $value);
+        if ($s === "") {
+            return $value;
+        }
+        if (preg_match('/^-?\d+$/', $s)) {
+            return (int) $s;
+        }
+        if (self::looksDateOnlyValue($s) || $dateOnly) {
+            return self::dateOnlyToTimestamp(substr($s, 0, 10));
+        }
+        try {
+            $tz = new \DateTimeZone(self::contextTimezone());
+            $normalized = str_replace("T", " ", $s);
+            $dt = new \DateTimeImmutable($normalized, $tz);
+            return $dt->setTimezone(new \DateTimeZone("UTC"))->getTimestamp();
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+    public static function dateOnlyToTimestamp(string $ymd): int
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::dateOnlyToTimestamp
+         * Responsabilidade: Implementa a responsabilidade “date only to timestamp” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`, `Core.Temporal.PiTime::toStorage`, `Core.Temporal.PiTime::adjustCurdateInterval`, `financial_drawer_daily_totals_map`, `arrow@app/Domain/Financial/Financial.php:2079`.
+         * Dependências chamadas: `preg_match`, `substr`, `checkdate`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $ymd)) {
+            return 0;
+        }
+        $year = (int) substr($ymd, 0, 4);
+        $month = (int) substr($ymd, 5, 2);
+        $day = (int) substr($ymd, 8, 2);
+        if (!checkdate($month, $day, $year)) {
+            return 0;
+        }
+        return (int) \gmmktime(12, 0, 0, $month, $day, $year);
+    }
+    public static function toLocalDateTime(
+        mixed $value,
+        ?string $tz = null,
+    ): ?\DateTimeImmutable {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::toLocalDateTime
+         * Responsabilidade: Implementa a responsabilidade “to local date time” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `is_int`, `is_string`, `preg_match`, `trim`, `->setTimezone`, `self::safeTimezone`, `self::contextTimezone`.
+         * Classes ou serviços instanciados: `.DateTimeImmutable`, `.DateTimeZone`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if ($value === null || $value === "") {
+            return null;
+        }
+        try {
+            if (
+                is_int($value) ||
+                (is_string($value) && preg_match('/^-?\d+$/', trim($value)))
+            ) {
+                return new \DateTimeImmutable("@" . (int) $value)->setTimezone(
+                    new \DateTimeZone(
+                        self::safeTimezone($tz ?? self::contextTimezone()),
+                    ),
+                );
+            }
+            return new \DateTimeImmutable(
+                (string) $value,
+                new \DateTimeZone("UTC"),
+            )->setTimezone(
+                new \DateTimeZone(
+                    self::safeTimezone($tz ?? self::contextTimezone()),
+                ),
+            );
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+    public static function fromLocalToUtcTimestamp(
+        ?string $value,
+        bool $dateOnly = false,
+    ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::fromLocalToUtcTimestamp
+         * Responsabilidade: Implementa a responsabilidade “from local to utc timestamp” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `app_local_to_db_utc`.
+         * Dependências chamadas: `self::toStorage`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $v = self::toStorage($value, $dateOnly);
+        return $v === null || $v === "" ? "" : (string) $v;
+    }
+    public static function normalizeInsertedTemporalDefaults(
+        \PDO $pdo,
+        string $table,
+        string|int $id,
+    ): void {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::normalizeInsertedTemporalDefaults
+         * Responsabilidade: Implementa a responsabilidade “normalize inserted temporal defaults” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
+         * Dependências chamadas: `self::cleanIdent`, `self::singlePrimaryKey`, `self::columns`, `time`, `in_array`, `->prepare`, `implode`, `->execute`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        try {
+            $table = self::cleanIdent($table);
+            $pk = self::singlePrimaryKey($pdo, $table) ?: "id";
+            $cols = self::columns($pdo, $table);
+            $sets = [];
+            $params = [];
+            $now = time();
+            foreach (["created_at", "updated_at"] as $col) {
+                if (!in_array($col, $cols, true)) {
+                    continue;
+                }
+                if ($col === "created_at") {
+                    $sets[] =
+                        "`created_at`=IF(`created_at` IS NULL OR `created_at`=0, ?, `created_at`)";
+                    $params[] = $now;
+                }
+            }
+            if (!$sets) {
+                return;
+            }
+            $params[] = (string) $id;
+            $st = $pdo->prepare(
+                "UPDATE `" .
+                    $table .
+                    "` SET " .
+                    implode(",", $sets) .
+                    " WHERE `" .
+                    self::cleanIdent($pk) .
+                    "`=? LIMIT 1",
+            );
+            $st->execute($params);
+        } catch (\Throwable $e) {
+            error_log(
+                "[Prontoo PI time normalize insert] " .
+                    $table .
+                    " | " .
+                    $e->getMessage(),
+            );
+        }
+    }
+    private static function singlePrimaryKey(\PDO $pdo, string $table): ?string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::singlePrimaryKey
+         * Responsabilidade: Implementa a responsabilidade “single primary key” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::normalizeInsertedTemporalDefaults`.
+         * Dependências chamadas: `->prepare`, `->execute`, `->fetchAll`, `count`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
+        $st = $pdo->prepare(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_key='PRI' ORDER BY ordinal_position",
+        );
+        $st->execute([$table]);
+        $pks = $st->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        return count($pks) === 1 ? (string) $pks[0] : null;
+    }
+    private static function columns(\PDO $pdo, string $table): array
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::columns
+         * Responsabilidade: Implementa a responsabilidade “columns” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::normalizeInsertedTemporalDefaults`.
+         * Dependências chamadas: `->prepare`, `->execute`, `array_values`, `array_map`, `->fetchAll`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
+        $st = $pdo->prepare(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? ORDER BY ordinal_position",
+        );
+        $st->execute([$table]);
+        return array_values(
+            array_map("strval", $st->fetchAll(\PDO::FETCH_COLUMN) ?: []),
+        );
+    }
+    public static function countTemporalViolations(?\PDO $pdo = null): array
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::countTemporalViolations
+         * Responsabilidade: Implementa a responsabilidade “count temporal violations” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `schema_validate_complete`.
+         * Dependências chamadas: `function_exists`, `->query`, `->fetchAll`, `is_string`, `strtolower`, `trim`, `error_log`, `->getMessage`.
+         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
+         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
+         */
+        $out = [
+            "datetime_columns" => 0,
+            "date_columns" => 0,
+            "timestamp_columns" => 0,
+            "columns" => [],
+        ];
+        try {
+            $pdo = $pdo ?: (function_exists("pdo") ? \pdo() : null);
+            if (!$pdo) {
+                return $out;
+            }
+            $st = $pdo->query(
+                "SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name, DATA_TYPE AS data_type FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name LIKE 'pi\\_%' AND data_type IN ('datetime','timestamp','date') ORDER BY TABLE_NAME,COLUMN_NAME",
+            );
+            foreach (($st ? $st->fetchAll(\PDO::FETCH_ASSOC) : []) ?: [] as $r) {
+                $row = [];
+                foreach ($r as $k => $v) {
+                    if (is_string($k)) {
+                        $row[strtolower($k)] = $v;
+                    }
+                }
+                $dt = strtolower((string) ($row["data_type"] ?? ""));
+                $table = trim((string) ($row["table_name"] ?? ""));
+                $column = trim((string) ($row["column_name"] ?? ""));
+                if ($dt === "" || $table === "" || $column === "") {
+                    continue;
+                }
+                $out[$dt . "_columns"] =
+                    (int) ($out[$dt . "_columns"] ?? 0) + 1;
+                $out["columns"][] = $table . "." . $column . ":" . $dt;
+            }
+        } catch (\Throwable $e) {
+            error_log(
+                "[Prontoo recoverable " .
+                    __FUNCTION__ .
+                    "] " .
+                    $e->getMessage(),
+            );
+        }
+        return $out;
+    }
+    private static function replaceCallbackOutsideStrings(
+        string $sql,
+        string $pattern,
+        callable $callback,
+    ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::replaceCallbackOutsideStrings
+         * Responsabilidade: Implementa a responsabilidade “replace callback outside strings” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Dependências chamadas: `preg_split`, `preg_replace_callback`, `implode`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $parts = preg_split(
+            "/('(?:''|[^'])*'|\"(?:\\\\.|[^\"])*\")/",
+            $sql,
+            -1,
+            PREG_SPLIT_DELIM_CAPTURE,
+        );
+        if (!$parts) {
+            return $sql;
+        }
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 0) {
+                $parts[$i] = preg_replace_callback($pattern, $callback, $part) ?? $part;
+            }
+        }
+        return implode("", $parts);
+    }
+    private static function replaceOutsideStrings(
+        string $sql,
+        array $patterns,
+    ): string {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::replaceOutsideStrings
+         * Responsabilidade: Implementa a responsabilidade “replace outside strings” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Dependências chamadas: `preg_split`, `preg_replace`, `implode`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $parts = preg_split(
+            "/('(?:''|[^'])*'|\"(?:\\\\.|[^\"])*\")/",
+            $sql,
+            -1,
+            PREG_SPLIT_DELIM_CAPTURE,
+        );
+        if (!$parts) {
+            return $sql;
+        }
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 1) {
+                continue;
+            }
+            foreach ($patterns as $pattern => $replacement) {
+                $part = preg_replace($pattern, $replacement, $part) ?? $part;
+            }
+            $parts[$i] = $part;
+        }
+        return implode("", $parts);
+    }
+    private static function contextToday(): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::contextToday
+         * Responsabilidade: Implementa a responsabilidade “context today” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Dependências chamadas: `self::contextTimezone`, `->format`.
+         * Classes ou serviços instanciados: `.DateTimeImmutable`, `.DateTimeZone`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return (new \DateTimeImmutable(
+            "now",
+            new \DateTimeZone(self::contextTimezone()),
+        ))->format("Y-m-d");
+    }
+    private static function contextDayRange(string $ymd): array
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::contextDayRange
+         * Responsabilidade: Implementa a responsabilidade “context day range” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`.
+         * Dependências chamadas: `self::contextTimezone`, `->modify`, `->setTimezone`, `->getTimestamp`.
+         * Classes ou serviços instanciados: `.DateTimeZone`, `.DateTimeImmutable`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $zone = new \DateTimeZone(self::contextTimezone());
+        $start = new \DateTimeImmutable($ymd . " 00:00:00", $zone);
+        $end = $start->modify("+1 day");
+        $utc = new \DateTimeZone("UTC");
+        return [
+            $start->setTimezone($utc)->getTimestamp(),
+            $end->setTimezone($utc)->getTimestamp(),
+        ];
+    }
+    private static function adjustCurdateInterval(
+        string $todayYmd,
+        int $amount,
+        string $unit,
+    ): int {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::adjustCurdateInterval
+         * Responsabilidade: Implementa a responsabilidade “adjust curdate interval” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`, `closure@app/Core/Temporal/PiTime.php:238`.
+         * Dependências chamadas: `in_array`, `self::adjustTimestamp`, `self::dateOnlyToTimestamp`, `self::contextTimezone`, `->modify`, `->setTimezone`, `->getTimestamp`.
+         * Classes ou serviços instanciados: `.DateTimeZone`, `.DateTimeImmutable`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (in_array($unit, ["MONTH", "YEAR"], true)) {
+            return self::adjustTimestamp(
+                self::dateOnlyToTimestamp($todayYmd),
+                $amount,
+                $unit,
+            );
+        }
+        $zone = new \DateTimeZone(self::contextTimezone());
+        $base = new \DateTimeImmutable($todayYmd . " 00:00:00", $zone);
+        $spec = match ($unit) {
+            "MINUTE" => ($amount >= 0 ? "+" : "") . $amount . " minutes",
+            "HOUR" => ($amount >= 0 ? "+" : "") . $amount . " hours",
+            default => ($amount >= 0 ? "+" : "") . $amount . " days",
+        };
+        return $base
+            ->modify($spec)
+            ->setTimezone(new \DateTimeZone("UTC"))
+            ->getTimestamp();
+    }
+    private static function adjustTimestamp(int $base, int $amount, string $unit): int
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::adjustTimestamp
+         * Responsabilidade: Implementa a responsabilidade “adjust timestamp” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`, `arrow@app/Core/Temporal/PiTime.php:286`, `arrow@app/Core/Temporal/PiTime.php:296`, `Core.Temporal.PiTime::expandDynamicIntervals`, `Core.Temporal.PiTime::adjustCurdateInterval`.
+         * Dependências chamadas: `strtoupper`, `in_array`, `self::intervalSeconds`, `->setTimezone`, `->format`, `intdiv`, `min`, `cal_days_in_month`, `->setDate`, `->getTimestamp`.
+         * Classes ou serviços instanciados: `.DateTimeImmutable`, `.DateTimeZone`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $unit = strtoupper($unit);
+        if ($amount === 0) {
+            return $base;
+        }
+        if (in_array($unit, ["MINUTE", "HOUR", "DAY"], true)) {
+            return $base + $amount * self::intervalSeconds(1, $unit);
+        }
+        $dt = (new \DateTimeImmutable("@" . $base))->setTimezone(
+            new \DateTimeZone("UTC"),
+        );
+        $year = (int) $dt->format("Y");
+        $month = (int) $dt->format("n");
+        $day = (int) $dt->format("j");
+        if ($unit === "YEAR") {
+            $year += $amount;
+        } elseif ($unit === "MONTH") {
+            $total = $year * 12 + ($month - 1) + $amount;
+            $year = intdiv($total, 12);
+            $month = $total % 12 + 1;
+            if ($month <= 0) {
+                $month += 12;
+                $year--;
+            }
+        } else {
+            return $base + $amount;
+        }
+        $day = min($day, cal_days_in_month(CAL_GREGORIAN, $month, $year));
+        return $dt
+            ->setDate($year, $month, $day)
+            ->getTimestamp();
+    }
+    private static function intervalSeconds(int $n, string $unit): int
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::intervalSeconds
+         * Responsabilidade: Implementa a responsabilidade “interval seconds” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::rewriteTemporalFunctions`, `closure@app/Core/Temporal/PiTime.php:306`, `Core.Temporal.PiTime::adjustTimestamp`.
+         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return match ($unit) {
+            "MINUTE" => $n * 60,
+            "HOUR" => $n * 3600,
+            "DAY" => $n * 86400,
+            "MONTH" => $n * 2592000,
+            "YEAR" => $n * 31536000,
+            default => $n,
+        };
+    }
+    private static function looksTemporalValue(mixed $v): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::looksTemporalValue
+         * Responsabilidade: Implementa a responsabilidade “looks temporal value” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::convertParamsBySql`.
+         * Dependências chamadas: `is_string`, `trim`, `self::looksDateOnlyValue`, `preg_match`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        if (!is_string($v)) {
+            return false;
+        }
+        $s = trim($v);
+        return self::looksDateOnlyValue($s) ||
+            (bool) preg_match(
+                '/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/',
+                $s,
+            );
+    }
+    private static function looksDateOnlyValue(mixed $v): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::looksDateOnlyValue
+         * Responsabilidade: Implementa a responsabilidade “looks date only value” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::toStorage`, `Core.Temporal.PiTime::looksTemporalValue`.
+         * Dependências chamadas: `is_string`, `preg_match`, `trim`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return is_string($v) &&
+            (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($v));
+    }
+    private static function keySuggestsDate(string $key): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::keySuggestsDate
+         * Responsabilidade: Implementa a responsabilidade “key suggests date” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::convertParamsBySql`.
+         * Dependências chamadas: `str_ends_with`, `strtolower`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return str_ends_with(strtolower($key), "date") ||
+            strtolower($key) === "birth_date";
+    }
+    private static function contextTimezone(): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::contextTimezone
+         * Responsabilidade: Implementa a responsabilidade “context timezone” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::toStorage`, `Core.Temporal.PiTime::toLocalDateTime`, `Core.Temporal.PiTime::contextToday`, `Core.Temporal.PiTime::contextDayRange`, `Core.Temporal.PiTime::adjustCurdateInterval`.
+         * Dependências chamadas: `self::safeTimezone`.
+         * Estado externo lido: `$GLOBALS`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        return self::safeTimezone(
+            (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? self::FALLBACK_TZ),
+        );
+    }
+    private static function safeTimezone(string $tz): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::safeTimezone
+         * Responsabilidade: Implementa a responsabilidade “safe timezone” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::toLocalDateTime`, `Core.Temporal.PiTime::contextTimezone`.
+         * Dependências chamadas: `trim`, `in_array`.
+         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $tz = trim($tz);
+        return in_array($tz, \timezone_identifiers_list(), true)
+            ? $tz
+            : self::FALLBACK_TZ;
+    }
+    private static function cleanIdent(string $name): string
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Temporal.PiTime::cleanIdent
+         * Responsabilidade: Implementa a responsabilidade “clean ident” dentro do módulo de núcleo de invariantes e decisões canônicas.
+         * Local arquitetural: app/Core/Temporal/PiTime.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Temporal.PiTime::storageDefinitionFor`, `Core.Temporal.PiTime::rewriteColumnDefinition`, `Core.Temporal.PiTime::rewriteSchemaSql`, `closure@app/Core/Temporal/PiTime.php:152`, `closure@app/Core/Temporal/PiTime.php:158`, `Core.Temporal.PiTime::normalizeInsertedTemporalDefaults`.
+         * Dependências chamadas: `trim`, `preg_match`.
+         * Classes ou serviços instanciados: `.RuntimeException`.
+         * Efeitos colaterais: pode interromper o fluxo por exceção.
+         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
+         */
+        $name = trim($name, "` \t\n\r\0\x0B");
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            throw new \RuntimeException(
+                "Identificador temporal inválido: " . $name,
+            );
+        }
+        return $name;
+    }
+}

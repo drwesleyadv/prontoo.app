@@ -1,0 +1,433 @@
+Prontoo 1.7.27.5 — procedimentos consistentes e ações de interessados alinhadas
+
+- Impede que a repetição do mesmo envio crie dois procedimentos: cada formulário novo recebe um token de uso único, consumido no servidor antes da inserção.
+- Bloqueia o formulário e seu botão enquanto o primeiro envio está em andamento, oferecendo resposta imediata também contra clique ou toque repetido.
+- Remove “Outro / procedimento livre” exclusivamente do Agendamento Rápido e apresenta apenas procedimentos ativos cadastrados no consultório.
+- Substitui “Selecione o procedimento” por “Cadastre Procedimentos primeiro” quando o consultório ainda não possui procedimento ativo.
+- Torna a escolha obrigatória no Agendamento Rápido e rejeita no servidor valores vazios, livres, inativos ou pertencentes a outro consultório.
+- Revalida e bloqueia o procedimento ativo dentro da transação do agendamento, impedindo corrida com uma desativação simultânea.
+- Preserva a edição e a leitura de agendamentos históricos que já possuam descrição livre, sem reintroduzir essa alternativa em novos agendamentos rápidos.
+- Alinha “Tornar Paciente” e “Registrar contato” na expansão de Interessados e faz o painel aberto ocupar uma linha integral em telas largas ou estreitas.
+- Acrescenta contrato regressivo ao CI para impedir cadastros repetidos, o retorno da opção livre, a perda da validação e a divergência visual entre as ações.
+- Banco e schema permanecem inalterados.
+
+Prontoo 1.7.27.4 — MFA mais simples e didático
+
+- Unifica a linguagem visível em “verificação em duas etapas” e reserva a sigla MFA aos identificadores internos e à auditoria.
+- Torna a transição do login mais clara: após a senha, o usuário recebe orientação direta para informar o código do aplicativo ou um código de recuperação.
+- Reorganiza o primeiro cadastro e a troca de autenticador em duas etapas verticais: conectar o aplicativo e confirmar o código.
+- Mantém a chave manual disponível como alternativa recolhida, reduzindo informação simultânea sem retirar recursos.
+- Explica o propósito e a consequência de gerar códigos, trocar o aplicativo ou desativar a proteção antes de solicitar credenciais.
+- Simplifica a recuperação e a confirmação do ambiente global com textos objetivos, ajuda associada aos campos e ações nomeadas pelo resultado.
+- Preserva integralmente TOTP, códigos de recuperação, rate limits, reautenticação, revogação de sessões, permissões, banco e schema.
+
+Prontoo 1.7.27.3 — hardening do MFA, auditoria e fila do Maestro
+
+- Torna o estado MFA triádico — ativo, comprovadamente inativo ou indisponível — e bloqueia a criação da sessão quando persistência, criptografia ou integridade do cadastro não podem ser confirmadas.
+- Separa autoria, instante, origem e contexto criptográfico da auditoria em um argumento interno explícito; campos `_audit_*` e `_skip_*` recebidos no contexto comum são removidos e não controlam mais a prova.
+- Torna a telemetria adiada idempotente por envelope nos agregados independentes de rota e página, inclusive após interrupção entre as duas gravações.
+- Acrescenta spool emergencial para auditoria, recuperação de claims, cinco tentativas, idade máxima, fila morta e estado persistente de saúde; o logout não reativa auditoria síncrona quando o spool principal falha.
+- Faz telemetria, integridade e regras consumirem um único orçamento residual do Maestro, contado desde o início do preflight, sem somar janelas independentes acima do limite de 90 segundos.
+- Completa o ciclo MFA em Minha conta: códigos de recuperação permanecem disponíveis por até dez minutos ou até confirmação, podem ser regenerados, e o autenticador pode ser substituído após nova senha e MFA.
+- Permite que usuário regular desative a Proteção Avançada após senha e segundo fator; Desenvolvedor permanece impedido de desativá-la por duas camadas de validação.
+- Atualiza a baseline de telemetria para `1.7.27.2` e acrescenta prova executável de corrupção/indisponibilidade MFA, injeção de autoria, replay parcial, adulteração, tentativas e supervisão durável.
+- Banco e schema permanecem inalterados.
+
+Prontoo 1.7.27.2 — rotinas secundárias do logout transferidas ao Maestro
+
+- Mantém síncronas somente a rotação da geração canônica do usuário e a destruição da sessão local, que constituem o efeito de segurança indispensável do logout.
+- Entrega a auditoria `saida_realizada` por fila durável, assinada e publicada atomicamente, para materialização idempotente na próxima execução do Maestro.
+- Preserva na auditoria adiada o usuário, consultório, cargo, rota, método, instante, hash do IP e agente originais, sem atribuir o evento ao processo cron.
+- Transfere a consolidação dos agregados JSON de telemetria das rotas login e logout ao Maestro, removendo do redirecionamento a leitura, o recálculo, a regravação integral e a trava global desses arquivos.
+- Mantém fallback síncrono exclusivamente se a fila durável de auditoria estiver indisponível, evitando perda silenciosa da trilha de segurança.
+- Recupera trabalhos interrompidos, coloca envelopes inválidos em quarentena e impede auditorias duplicadas após falha entre o commit e a remoção do item.
+- Renomeia exclusivamente os textos do card opcional de MFA para “Proteção Avançada”, “Verificação em duas etapas” e “Habilitar Proteção Avançada”, sem alterar seu comportamento.
+- Substitui o ícone `phonelink_lock` do card por `security_key`, alinhado à identidade de Proteção Avançada.
+- Corrige o login sem MFA para concluir a resposta assíncrona com JSON e destino explícito, evitando a falsa mensagem de falha causada pelo redirecionamento HTTP depois de a sessão já ter sido criada.
+- Acrescenta prova regressiva permanente do novo contrato; banco, schema, MFA, timeout e demais fluxos permanecem inalterados.
+
+Prontoo 1.7.27.1 — MFA integrado ao login para todos os usuários
+
+- Mantém CPF, senha e segundo fator em uma única tela: depois da confirmação da senha, o campo é substituído pelo código MFA sem recarregar a página.
+- Aplica a verificação a todo usuário com MFA ativo, independentemente do cargo, preservando o cadastro obrigatório inicial do Desenvolvedor.
+- Acrescenta ativação opcional de MFA para usuários regulares na mesma área de Minha conta onde a senha é alterada, com confirmação da senha atual e do primeiro código TOTP.
+- Mantém CSRF, rate limits, desafio pré-autenticado de cinco minutos, proteção contra reutilização de TOTP, códigos de recuperação, rotação de sessão e revogação das demais sessões após a ativação.
+- Impede que a conclusão de MFA de um usuário regular possa resolver uma credencial global ou marcar a sessão como privilegiada.
+- Acrescenta provas regressivas do fluxo sem recarga, da abrangência por usuário e dos contratos de ação; banco e schema permanecem inalterados.
+
+Prontoo 1.7.24.5 — autenticação com caminho crítico reduzido
+
+- Executa a manutenção completa do runtime após a senha somente quando o marcador canônico estiver ausente ou vencido; acessos comuns permanecem no light-check já protegido.
+- Torna a auditoria de entrada compacta, sem materializar ctx antes do redirecionamento, preservando cadeia de integridade, usuário, consultório, cargo, origem e agente.
+- Consolida a busca de CPF e usuário em uma única consulta e os três buckets de falha em um único UPSERT, sem alterar limiares, exponencial ou bloqueio distribuído.
+- Remove do login comum a aposentadoria síncrona de dispositivos persistentes já descontinuados e evita regravar a última credencial quando seu valor não muda.
+- Combina usuário, privilégio e geração em uma única consulta por revalidação MFA, preserva a rechecagem final contra revogação concorrente, memoiza a chave criptográfica por requisição e retira consultas de timezone antes de respostas que apenas redirecionam.
+- Valida a proteção dos diretórios sob marcador horário versionado, mantendo fail-closed, cookies seguros, CSRF, password_verify equivalente, MFA, delays defensivos e revogação em cascata.
+- Acrescenta prova regressiva permanente; banco e schema permanecem inalterados.
+
+Prontoo 1.7.24.4 — logout em cascata por geração canônica
+
+- Torna a geração de autenticação do usuário a raiz única da revogação: ao ser rotacionada, todas as sessões paralelas falham fechadas na próxima requisição.
+- Vincula a chave do cache de contexto à geração da sessão, tornando contextos anteriores automaticamente inalcançáveis sem varredura ou exclusão síncrona de arquivos.
+- Retira do logout a limpeza de 18 categorias de cache, a atualização em massa de dispositivos legados, a materialização completa de contexto e a descarga do Guardião.
+- Mantém CSRF, auditoria, destruição da sessão local, MFA, timeout de 60 minutos e revogação global do usuário.
+- Acrescenta prova regressiva permanente; banco e schema permanecem inalterados.
+
+Prontoo 1.7.24.3 — ícones dos KPIs gerenciais restaurados integralmente
+
+- Corrige o segundo seletor tipográfico do Design System que ainda alcançava os elementos Material Symbols dentro de manager-kpis e manager-operational-kpis.
+- Exclui explicitamente .material-symbols-rounded e .pt-icon-glyph da regra de texto aplicada aos descendentes dos cartões.
+- Amplia a prova regressiva para impedir que seletores genéricos de span voltem a substituir a fonte de ícones nessas grades.
+- Não altera autenticação, permissões, dados, regras de negócio, banco ou schema.
+
+Prontoo 1.7.24.2 — ícones do Painel do Administrador restaurados
+
+- Corrige o seletor tipográfico genérico dos cartões KPI, que aplicava Roboto aos elementos Material Symbols e fazia os nomes dos ícones aparecerem como texto ou não renderizarem.
+- Restringe a tipografia de rótulo apenas aos spans textuais, preservando integralmente a fonte, as ligaturas e as variações dos ícones.
+- Mantém os ícones dos indicadores e das ações recomendadas aderentes ao Design System e acrescenta prova regressiva permanente no verificador de arquitetura.
+- Não altera autenticação, dados, regras de negócio, banco ou schema.
+
+Prontoo 1.7.24.1 — Painel do Administrador restaurado
+
+- Dá precedência ao cargo Administrativo ao abrir a tela Painel, inclusive quando o usuário possui múltiplos cargos ativos.
+- Restaura a exibição dos indicadores operacionais, meta mensal, financeiro, ações recomendadas e receita por procedimento do Administrador.
+- Inclui, exclusivamente para o Administrador, o botão Painel imediatamente antes de Agenda, com ícone próprio da tela.
+- Mantém Agenda como tela inicial do primeiro login e dos acessos comuns; não altera autenticação, banco ou schema.
+
+Prontoo 1.7.23.7 — supressão do alfabeto legado do rodapé Seq
+
+- Remove integralmente o subsistema órfão do alfabeto usado para codificar a antiga impressão digital do rodapé Seq.
+- Exclui geração, normalização, persistência, regeneração, codificação, cálculo de capacidade, consulta do maior Seq e renderização vazia do rodapé.
+- Remove a ação protegida, o formulário administrativo, o carregamento do módulo, o acoplamento da página e o método de infraestrutura que existia apenas para esse recurso.
+- Preserva o contrato estrutural de Seq, os fingerprints SQL de segurança, os identificadores documentais, o MFA e todos os controles de autenticação e sessão.
+- Banco e schema permanecem inalterados; o metadado legado eventualmente existente deixa de ser lido ou gravado.
+
+Prontoo 1.7.23.6 — refinamento do MFA e da reautenticação global
+
+- Alinha cadastro, validação e códigos de recuperação do MFA ao shell público e à gramática visual do Design System.
+- Organiza o cadastro obrigatório em etapas, cria tratamento próprio para a chave manual e apresenta os códigos de recuperação em grade legível e responsiva.
+- Refina a confirmação recorrente do segundo fator com hierarquia, orientação e ações coerentes com a tela de login.
+- Atualiza global_reauth com PageHead contextual, card de segurança, aviso de sessão, alternância de visibilidade da senha e ações acessíveis.
+- Acrescenta a versão da release à URL do Design System para atualização segura do CSS sem alterar os ativos de ícone versionados.
+- Preserva integralmente MFA/TOTP, códigos de recuperação, rate limits, timeout de 60 minutos, revogação de sessões, senha mínima de 8 caracteres, banco e schema.
+
+Prontoo 1.7.23.5 — senha mínima restaurada para 8 caracteres
+
+- Restaura exclusivamente o tamanho mínimo da senha de 15 para 8 caracteres no validador central, formulários, cadastro de colaboradores e instalação.
+- Mantém o limite máximo de 128 caracteres e a rejeição de senhas comuns.
+- Preserva integralmente MFA obrigatório do Desenvolvedor, senha mais MFA na elevação global, expiração por 60 minutos de inatividade, revogação de sessões, bloqueio distribuído e supressão do dispositivo persistente.
+- Acrescenta ao CI uma prova regressiva permanente da política mínima de 8 caracteres.
+- Preserva banco e schema.
+
+Prontoo 1.7.23.4 — MFA obrigatório e sessões revogáveis
+
+- Suprime a autenticação por dispositivo persistente: nenhum cookie legado pode emitir ou recuperar credenciais, cookies remanescentes são apagados e registros ativos são revogados e inutilizados.
+- Encerra a sessão após 60 minutos ou mais sem atividade e preserva o limite absoluto de 12 horas.
+- Acrescenta uma geração de autenticação por usuário; logout, troca de senha, alteração de cargo e divergência de autorização revogam sessões paralelas.
+- Torna o cadastro de MFA TOTP obrigatório para o Desenvolvedor no primeiro login, com segredo cifrado por AES-256-GCM, proteção contra repetição e códigos de recuperação de uso único.
+- Exige confirmação recente de senha e MFA antes de elevar uma sessão clínica ao Painel do Desenvolvedor.
+- Uniformiza a falha de CPF e senha e executa uma verificação de senha equivalente quando a conta não existe, reduzindo enumeração por mensagem e tempo.
+- Reforça o bloqueio de login com buckets simultâneos por CPF e IP, por CPF em qualquer IP e por IP contra qualquer CPF, além de limpeza oportunística dos controles expirados.
+- Eleva a senha mínima para 15 caracteres, permite frases-senha até 128 caracteres e rejeita senhas comuns.
+- Acrescenta ao CI provas estáticas dos controles de sessão, MFA, revogação, limitação distribuída e remoção do bypass por dispositivo.
+- Preserva banco e schema; a tabela legada de dispositivos permanece apenas como estrutura inerte para revogação compatível.
+
+Prontoo 1.7.23.3 — hotfix do contrato canônico de versão
+
+- Sincroniza `BR_LANDING_VERSION_FALLBACK` com a versão canônica da release e elimina o bloqueio `Contrato de versão divergente: br[caminho]`.
+- Atualiza os fallbacks do runtime, a versão anterior, o manifesto e os metadados de publicação como uma única unidade coerente.
+- Acrescenta ao CI uma prova explícita de igualdade entre `version.json`, os manifestos de atualização e arquitetura, `PRONTOO_VERSION_FALLBACK` e `BR_LANDING_VERSION_FALLBACK`.
+- Preserva os controles de integridade matemática da 1.7.23.2, banco, schema, dados, lógica de negócio, UX e composição visual.
+
+Prontoo 1.7.23.2 — integridade matemática e conservação dos dados
+
+- Encadeia cada novo registro de auditoria ao hash anterior sob trava transacional, ancora a cabeça da cadeia em `pi_meta` e passa a detectar adulteração do contexto da prova, remoção, reordenação e truncamento.
+- Torna obrigatória a gravação da prova de mutação no mesmo commit dos dados protegidos; falha de ledger agora desfaz a transação e eventos pendentes nunca são descartados por tolerância a erro.
+- Adota uma única orientação para movimentos financeiros: destino soma e origem subtrai, com cardinalidade válida por natureza, extremos distintos, vínculo de sessão e escopo de consultório.
+- Materializa sobras e faltas de abertura ou fechamento como ajustes compensatórios, preservando a conservação global sem mudar o fluxo operacional do usuário.
+- Exige reconciliação algébrica antes da aprovação e da consolidação: declarado = mantido + transferido, diferença = declarado − esperado e posição final da Gaveta = saldo mantido.
+- Grava em cada consolidação um hash SHA-256 canônico das sessões, movimentos, métricas diárias e posição financeira reconciliada.
+- Torna movimentos de dias consolidados imutáveis em uma guarda central aplicada a toda atualização ou exclusão.
+- Fecha o domínio monetário no intervalo INT assinado comum, elimina aritmética por `float`, rejeita notação exponencial e mais de duas casas decimais e bloqueia overflow em somas e saldos.
+- Unifica previsto, recebido e pendente no mesmo dia civil do consultório e exclui agendamentos cancelados, ausentes ou reagendados das projeções.
+- Resolve meses, metas e partições de consultas no fuso do consultório, inclusive nas horas próximas à virada UTC.
+- Faz o EWMA do Maestro aprender somente com execuções reais; adiamentos incrementam apenas o contador de saltos e preservam duração, rendimento e último instante executado.
+- Acrescenta ao CI testes de propriedades para cadeia criptográfica, conservação financeira, domínio numérico, partição temporal, EWMA e atomicidade do ledger.
+- Não altera banco, schema, composição visual ou passos das jornadas do usuário.
+
+Prontoo 1.7.23.1 — hardening red team e isolamento de consultas
+
+- Limita `patient_lookup` a 6 consultas por usuário e consultório em uma janela móvel de 60 segundos, com bloqueio HTTP 429 e aviso na própria tela.
+- Torna o rate limiting atômico por trava exclusiva e serializa tentativas concorrentes de login antes da conferência da senha.
+- Restringe CPF, nome e nascimento ao consultório que já possui vínculo comprovado com a pessoa.
+- Exige confirmação da senha existente antes de reutilizar uma credencial em outro consultório, impedindo escalada por pré-sequestro de conta.
+- Remove o acionamento HTTP de manutenção profunda e impede ciclos pesados concorrentes.
+- Bloqueia `tools/` e `cron/` no servidor web e exige CLI nos três verificadores internos.
+- Só aceita protocolo encaminhado por proxy explicitamente confiável e remove a confiança direta em `X-Forwarded-Proto`.
+- Descarta atributos HTML não autorizados em documentos, preservando apenas as classes canônicas de alinhamento e recuo.
+- Não altera banco, schema, regras clínicas, financeiro, jornada do paciente ou composição visual.
+
+Prontoo 1.7.22.6 — persistência canônica em SSD
+
+- Renomeia o diretório persistente raiz de `storage/` para `ssd/` sem alterar banco ou schema.
+- Move a persistência física de PDFs para `ssd/pdfs/`, mantendo a URL autenticada `/pdfs/` por compatibilidade.
+- Define `ssd/img/` como destino obrigatório para imagens enviadas; comprovantes em imagem ficam em `ssd/img/payment-proofs/`.
+- Mantém PDFs de comprovantes em `ssd/payment-proofs/` e preserva leitura de caminhos legados já gravados.
+- Migra automaticamente conteúdos existentes de `storage/` e do diretório físico raiz `pdfs/`, sem sobrescrever arquivos canônicos existentes.
+- Bloqueia acesso HTTP direto a `ssd/` e mantém bloqueio da entrada legada `storage/`.
+
+Prontoo 1.7.22.5 — hardening pós-reinstalação e HTTPS obrigatório
+
+- Restaura integralmente o hardening pós-comissionamento da árvore certificada 1.7.22.3.
+- Bloqueia `install.php` no Apache/LiteSpeed e novamente no primeiro ponto PHP.
+- Mantém a estrutura do banco congelada em runtime; DDL só pode abrir na certificação CLI integral do GitHub Actions.
+- Exige o host canônico `prontoo.app` e HTTPS em todas as páginas, com redirecionamento permanente 308 no servidor e fallback no runtime PHP.
+- Mantém HSTS e adiciona `upgrade-insecure-requests; block-all-mixed-content`.
+- Preserva o schema r7, os dados e a configuração da instalação atual; não há alteração de banco ou schema.
+
+Prontoo 1.7.22.3 — hardening pós-comissionamento e Network Ping
+
+- Confirma a instalação de produção como concluída e encerra a superfície de instalação por HTTP.
+- Substitui a regra temporária `Require all granted` do `install.php` por `Require all denied` no Apache/LiteSpeed.
+- Mantém uma segunda guarda fail-closed no primeiro ponto PHP: requisições públicas, localhost e cabeçalhos encaminhados não podem executar o instalador.
+- Remove do runtime o redirecionamento automático para `/install.php` quando `app/config.php` estiver ausente; o sistema exige a restauração da configuração do ambiente comissionado.
+- Remove os símbolos e timestamps da antiga janela pública temporária.
+- Restringe `SchemaMutationLock` à certificação CLI do GitHub Actions, exigindo simultaneamente `GITHUB_ACTIONS=true`, `CI=true`, `PRONTOO_SCHEMA_TEST_MODE=1` e `PRONTOO_INSTALLER_CLI_MODE=1`.
+- Elimina o bypass legado `PRONTOO_ALLOW_LOCAL_INSTALL` e impede que a autorização de DDL dependa de uma decisão HTTP.
+- Reforça o teste permanente para bloquear instalação pública, instalação HTTP local, fallback do runtime, marcadores parciais, atribuição externa da flag estrutural e DDL em runtime.
+- Preserva `schema.sql`, revisão r7, 62 tabelas, dados existentes e todos os contratos operacionais.
+- No painel do Desenvolvedor, o ícone do PageHead passa a usar o Material Symbol `network_ping` (Network Ping), mantendo a classe visual e a biblioteca já carregada.
+- Alteração de banco: não. Alteração de schema: não. Alteração visual: apenas o ícone Network Ping no painel do Desenvolvedor.
+
+Prontoo 1.7.22.2 — hotfix do método de acesso do instalador
+
+- Corrige a falha fatal `Call to undefined method Prontoo\Core\Install\InstallAccess::assertLocalEntry()` observada após o diagnóstico público alcançar o instalador.
+- Atualiza `prontoo_install()` para chamar `InstallAccess::assertInstallerEntry()`, a guarda canônica existente e já utilizada por `install.php`.
+- Atualiza o guia de manutenção da função para refletir a dependência real e elimina toda referência executável ao método removido.
+- Acrescenta teste regressivo que falha se `app/Install/Installer.php` voltar a referenciar `assertLocalEntry` ou deixar de chamar `assertInstallerEntry`.
+- Preserva a janela pública vigente, sua expiração automática, banco, schema, dados, interface e ativos.
+
+Prontoo 1.7.22.1 — hotfix da guarda pública do instalador
+
+- Corrige a segunda proteção acionada quando `app/config.php` está ausente: `prontoo_run()` deixa de aceitar somente localhost e passa a reutilizar `InstallAccess::isInstallerExecutionAllowed()`.
+- Durante a janela pública vigente, qualquer fallback do runtime redireciona para `/install.php` em vez de exibir “O instalador não é exposto publicamente”.
+- Após o timestamp final, a mesma decisão canônica continua falhando fechada e o instalador volta a responder 404 para acessos públicos.
+- Acrescenta teste regressivo que rejeita o retorno da checagem exclusiva `isLocalHttpRequest()` no fluxo sem configuração.
+- Não altera banco, schema, dados, interface, ativos ou a duração da janela pública já aprovada.
+
+Prontoo 1.7.21.8 — liberação pública temporária e autoexpirável do instalador
+
+- Libera `install.php` publicamente apenas no host HTTPS exato `prontoo.app`.
+- Janela renovada: 22/07/2026 08:06:54 America/Cuiaba até 22/07/2026 12:06:54 America/Cuiaba; duração exata de 14.400 segundos contados do timestamp solicitado.
+- A revogação é automática e fail-closed no núcleo `InstallAccess`: a partir de 2026-07-22T16:06:54Z, requisições públicas recebem 404 sem depender de cron ou nova publicação.
+- Mantém acesso local e execução CLI para instalação e certificação.
+- Faz `SchemaMutationLock` reutilizar a mesma decisão autorizadora, impedindo DDL fora do instalador local, da janela pública ainda vigente ou do CI controlado.
+- Acrescenta testes determinísticos para início, último segundo, expiração, tentativa anterior ao início, HTTP sem TLS e host incorreto.
+- Não altera tabelas, colunas, índices, constraints, dados, interface ou `schema.sql`.
+
+Prontoo 1.7.21.7 — documentação interna integral e baseline de manutenção humana
+
+- Remove todos os arquivos Markdown do repositório e elimina o `ChangeLog.history.txt`, mantendo o `ChangeLog.txt` como registro documental único.
+- Documenta diretamente no código 1.642 funções e métodos nomeados, 125 closures e 98 arrow functions, totalizando 1.865 unidades funcionais comentadas.
+- Cada guia de manutenção informa responsabilidade, posição arquitetural, chamadores detectados, dependências chamadas, classes instanciadas, estado externo lido, efeitos colaterais e cuidados de alteração.
+- Preserva docblocks existentes, tipos, assinaturas, retornos, consultas, regras de autorização, interface, banco e schema.
+- Adiciona ao CI uma política permanente que recusa arquivos `.md`, recusa um changelog paralelo e exige cobertura documental para todas as funções PHP.
+- Mantém `schema.sql`, revisão r7, 62 tabelas e contratos operacionais byte a byte inalterados.
+
+POLÍTICA DOCUMENTAL PERMANENTE
+
+1. Fonte única de documentação geral
+   - O arquivo `ChangeLog.txt` é a única documentação geral versionada do projeto.
+   - Toda publicação deve registrar aqui a versão, o objetivo, o escopo, os riscos, as validações e as decisões arquiteturais relevantes.
+   - Não criar README, relatórios de auditoria, guias de versão ou memorandos em Markdown. Quando uma explicação geral for necessária, acrescentá-la a este arquivo.
+
+2. Documentação junto ao código
+   - Toda função nomeada, método, closure e arrow function deve permanecer acompanhada por um comentário “GUIA DE MANUTENÇÃO”.
+   - O comentário deve ser atualizado quando a responsabilidade, as dependências, os efeitos colaterais ou os chamadores mudarem.
+   - Docblocks de tipos e contratos de API não substituem o guia de manutenção; ambos têm finalidades diferentes.
+   - Comentários não devem prometer comportamento que o corpo da função não execute. Em caso de divergência, corrigir o comentário na mesma alteração do código.
+
+3. Fluxo de inicialização
+   - `index.php` é a entrada privada principal e carrega `app/prontoo.php`, que consolida metadados da versão, bootstrap arquitetural e carregamento do runtime.
+   - `app/bootstrap_architecture.php` carrega o núcleo em ordem explícita: contratos puros, autorização, invariantes, infraestrutura, Guardião e kernel.
+   - `app/Support/ModuleLoader.php` seleciona módulos comuns e módulos específicos da rota. O instalador não participa do caminho comum e continua restrito ao `install.php` local.
+   - `app/Runtime/Runner.php` coordena banco, sessão, rota, autorização, despacho e telemetria final da requisição.
+
+4. Direção das dependências
+   - `Core`: decisões canônicas, invariantes, escopo de consultório, estado, integridade e políticas que não dependem da interface.
+   - `Domain`: contratos e regras de negócio dos pacientes, agenda, documentos, tarefas, financeiro, auditoria, consultório e Maestro.
+   - `Application`: casos de uso e portas que coordenam domínio sem conhecer detalhes de HTTP ou PDO.
+   - `Infrastructure`: implementações de banco, credenciais, persistência de provas e adaptadores externos.
+   - `Presentation`, `Ui`, `Pages` e `Admin`: adaptação HTTP, componentes e composição das telas.
+   - `Support` e arquivos de bootstrap: composição transitória; não devem absorver regras de negócio novas quando houver camada nativa adequada.
+   - Dependências devem apontar para dentro. A composição pode conhecer todas as camadas; regras internas não devem depender de páginas ou HTML.
+
+5. Ciclo de uma ação protegida
+   - O formulário envia uma ação explícita em `act`.
+   - `ActionCatalog` resolve um contrato exato por rota e ação; contrato ausente falha fechado.
+   - `RuntimeCapabilityProvider` recarrega credencial, vínculo, cargo e permissões do banco.
+   - `AuthorizationService` produz a decisão e `ActionMiddleware` aplica a resposta HTTP.
+   - Antes de uma mutação, `InvariantKernel` e o Guardião verificam escopo, relações, contexto, assinatura e regras de estado.
+   - A prova da ação é persistida no ledger e a auditoria funcional só deve ser registrada depois da confirmação da operação.
+
+6. Isolamento entre consultórios
+   - O `clinic_id` da sessão é a fronteira canônica dos dados clínicos.
+   - UPDATE e DELETE de tabelas isoladas devem conter WHERE demonstrável com `clinic_id` ativo.
+   - INSERT e REPLACE devem gravar `clinic_id` explicitamente em todas as linhas.
+   - Nenhuma rotina clínica pode alterar `clinic_id` para “mover” um registro.
+   - Identificadores recebidos por formulário devem ser buscados novamente dentro do consultório ativo antes da gravação.
+   - Alertas do Guardião são evidências técnicas; não devem ser silenciados com exceções genéricas.
+
+7. Banco e schema
+   - `app/Database/schema.sql` é o contrato congelado da instalação limpa.
+   - Requisições comuns não criam, alteram ou removem tabelas, colunas, índices ou constraints.
+   - A janela de DDL permanece limitada ao instalador local e ao CI.
+   - A instalação limpa exige banco vazio e cria exatamente 62 tabelas no MySQL 8.
+   - Mudanças pequenas devem preferir código e configuração; qualquer necessidade real de schema exige uma rodada própria, explícita e certificada.
+
+8. Cache JSON
+   - O cache JSON é derivado e nunca substitui MySQL como fonte de verdade.
+   - Usar somente quando a leitura for estável, escopada e tiver invalidação determinística.
+   - Chaves devem carregar o consultório e os identificadores relevantes; categorias devem usar TTL adequado.
+   - Toda gravação que altera a fonte deve invalidar as tags correspondentes.
+   - Permissões, saldos, agenda em tempo real e decisões críticas não devem depender de cache potencialmente obsoleto.
+
+9. Interface e rotas
+   - Funções `page_*` coordenam a rota: validam capacidade, tratam POST, carregam somente os dados necessários e compõem a resposta.
+   - Componentes HTML comuns pertencem a `app/Ui/Components.php`; evitar duplicar marcação e comportamento em páginas específicas.
+   - POSTs exigem CSRF, ação exata, identificadores válidos e comportamento idempotente quando tecnicamente possível.
+   - Redirecionamentos e cabeçalhos devem ocorrer antes de qualquer saída.
+   - Mudanças de interface devem preservar o Design System e não misturar regra de negócio com montagem visual.
+
+10. Erros, auditoria e telemetria
+    - Erros de execução devem ser registrados em `pi_error_events` sem expor detalhes sensíveis ao usuário final.
+    - A tela Incidentes usa ação global exata para resolver registros e permanece exclusiva do Desenvolvedor.
+    - Auditoria funcional registra quem fez, em qual consultório, qual entidade e qual ação foi concluída.
+    - Telemetria de desempenho usa JSON para métricas agregadas e não deve armazenar conteúdo clínico.
+    - Catch genérico deve registrar contexto suficiente; não deve transformar corrupção ou violação de escopo em sucesso silencioso.
+
+11. Maestro e tarefas agendadas
+    - `cron/maestro.php` é a entrada agendada e delega a execução ao núcleo de integridade.
+    - Cada ciclo deve respeitar orçamento de tempo, idempotência, escopo do consultório e estado das regras.
+    - O Maestro não recebe privilégios implícitos para atravessar consultórios ou ignorar o catálogo de ações.
+
+12. Procedimento para pequenas correções
+    - Partir sempre do `main` estável mais recente.
+    - Alterar o menor conjunto de arquivos possível, mas atualizar os comentários das funções afetadas.
+    - Incrementar `1.mês.dia.sequência`, sincronizar `version.json`, fallbacks, manifestos e `ChangeLog.txt`.
+    - Executar lint de todos os PHP, contratos JSON, matriz de autorização, manifesto, segurança do instalador, schema MySQL 8 e arquitetura.
+    - Publicar somente com workflow canônico aprovado no SHA exato da alteração.
+
+Prontoo 1.7.21.6 — autorização por escopo e contratos exatos
+- Corrige a ação de marcar Incidentes como resolvidos no Painel do Desenvolvedor.
+- Corrige preventivamente a liberação de bloqueios de login na tela Segurança.
+- Amplia testes de autorização para Desenvolvedor, Administrativo, Profissional, Assistente e Recepção.
+- Preserva integralmente banco, schema r7 e 62 tabelas.
+
+Prontoo 1.7.21.5 — maturação integral, runtime enxuto e cache JSON
+
+- Audita 100% dos 147 arquivos versionados e publica relatório verificável.
+- Remove a rotina histórica 1.7.14.8 do caminho de todas as requisições.
+- Carrega o instalador somente em install.php, preservando a restrição a localhost.
+- Suprime duplicações na composição dos módulos do runtime completo.
+- Memoiza diretórios do cache JSON e reduz operações repetidas de filesystem.
+- Adiciona cache JSON com escopo e invalidação para lookups da linha do tempo.
+- Remove comentários CSS de versões antigas sem alterar regras visuais.
+- Mantém schema r7, 62 tabelas, dados, interface e ativos funcionais.
+
+Prontoo 1.7.21.4 — contrato runtime e leitura de auditoria
+
+- Remove do `RuntimeContract` a dependência residual de `CleanInstallReset`, já eliminada no hardening anterior.
+- Corrige o filtro da auditoria compacta para usar o alias real `a.event_key`, eliminando os erros SQL 1054.
+- Adiciona verificação regressiva no workflow para impedir o retorno das duas referências inválidas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
+Prontoo 1.7.21.3 — instalador local e congelamento estrutural
+
+- Restringe `install.php` ao loopback e a host local explícito, com bloqueio no servidor web e antes do bootstrap PHP.
+- Rejeita cabeçalhos de proxy como prova de origem local.
+- Remove o redirecionamento público para o instalador quando a configuração estiver ausente.
+- Substitui a flag global de instalação por uma janela privada de mutação estrutural.
+- Remove a rotina histórica `CleanInstallReset`, capaz de apagar tabelas.
+- Mantém `schema.sql`, revisão r7, 62 tabelas, dados, interface e ativos sem alteração.
+
+Prontoo 1.7.21.2 — integração do instalador com o Guardião
+
+- Corrige a incompatibilidade de assinatura entre `run_schema_sql()` e `PiIntegrity::proveSchemaOperation()`.
+- Normaliza exclusivamente a chamada estrutural legada e extrai a tabela de `CREATE TABLE` canônico.
+- Faz o CI carregar o Guardião no mesmo caminho executado pela instalação real.
+- Certifica a criação integral das 62 tabelas em MySQL 8 partindo de banco vazio.
+- Não altera o schema SQL, a revisão r7, dados, interface ou ativos.
+
+Prontoo 1.7.21.1 — hotfix do instalador em banco com zero tabelas
+
+- Remove a invariante legada que exigia 75 tabelas no parser runtime do schema r7.
+- Faz o runtime comparar a coleção real de tabelas com o contrato operacional canônico: 60 tabelas preservadas, `pi_audit` redesenhada e `pi_action_ledger` nova.
+- Rejeita tabelas ausentes, inesperadas ou duplicadas antes de qualquer DDL.
+- Faz o CI chamar o mesmo `prontoo_schema_statements()` utilizado pelo instalador, evitando que validações paralelas ocultem divergências.
+- Certifica o fluxo completo `install_fresh_schema()` em MySQL 8 partindo de banco com zero tabelas.
+- Após criar as 62 tabelas, valida revisão, `schema.ready`, FKs, criação do primeiro usuário e `Seq` nativo de Pessoa e Usuário.
+- Mantém a revisão do banco `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`; não há nova mudança estrutural.
+
+Prontoo 1.7.20.6 — schema limpo alinhado à camada 2
+
+- Redesenha o banco exclusivamente para nova instalação em banco vazio e remove qualquer migração estrutural in-place.
+- Preserva por contrato 60 definições de tabela da versão anterior, alterando somente a geração técnica da coluna `Seq`.
+- Mantém `Seq` em todas as 62 tabelas como `BIGINT UNSIGNED NOT NULL DEFAULT (UUID_SHORT())`, com índice único e sem tabela central `pi_sequence`.
+- Consolida autorização e prova de mutação em `pi_action_ledger`, uma única evidência persistente por ação protegida.
+- Substitui provas, eventos, lotes e estado de checksum por finalização do mesmo ledger após o commit.
+- Torna `pi_audit` autossuficiente e remove cinco tabelas de dicionário e seus upserts auxiliares.
+- Remove estruturas de apoio sem responsabilidade ativa: cabeças de cadeia, âncoras, integridade duplicada por registro e flags redundantes.
+- Reduz o schema de 75 para 62 tabelas sem alterar as tabelas operacionais preservadas.
+- Adiciona contrato de equivalência operacional por hash e teste real de instalação em MySQL 8.
+- Publica rotina protegida que apaga a instalação r6 somente quando o banco contém exclusivamente tabelas `pi_*`, remove configuração e locks e força o retorno ao instalador.
+- Bloqueia a limpeza automática diante de tabela externa ou revisão de schema desconhecida.
+
+Prontoo 1.7.20.3 — arquitetura PHP em camadas e verificabilidade contínua
+
+- Separa o fluxo de autorização em Domain, Application, Infrastructure, Presentation e Composition, mantendo o Core dedicado a decisões canônicas, mutações, isolamento, relações, workflows e integridade.
+- Move o catálogo de ações e o serviço de autorização para Application; capacidades reais são resolvidas por uma porta implementada em Infrastructure.
+- Move a persistência das provas operacionais para Infrastructure e reduz `ActionProof` a uma ponte fina de compatibilidade sem PDO ou regra de negócio.
+- Remove integralmente `Core/Invariant/ActionCapabilityCatalog.php` e `Core/Invariant/CapabilityInvariant.php`.
+- Retira autorização do `InvariantKernel`, que passa a representar exclusivamente o núcleo de invariantes de mutação e sua cadeia de provas.
+- Introduz `LayeredKernel` como raiz de composição para autorização, capacidade, prova e middleware HTTP.
+- Classifica todos os arquivos PHP versionados em camadas e exige cobertura arquitetural de 100%, com direção de dependências verificada automaticamente.
+- Adiciona validação entre catálogo, rotas, arquivos-fonte e ações literais; ações novas sem contrato passam a bloquear o CI.
+- Adiciona bloqueio de PDO fora de Infrastructure ou Composition nos arquivos nativos da arquitetura.
+- Adiciona manifesto arquitetural, documentação técnica, ferramenta de verificação e workflow obrigatório do GitHub Actions.
+- Mantém `enforce_action_integrity()` apenas como adaptador fino para compatibilidade com o dispatcher atual, sem lógica de autorização ou persistência.
+- Mantidos banco de dados, schema, interface, ativos e comportamento funcional dos módulos clínicos.
+
+Prontoo 1.7.20.2 — catálogo exato de capacidades por ação
+
+- Remove integralmente a autorização inferida somente pela rota e pela semântica aproximada do nome da ação.
+- Introduz catálogo canônico `rota + ação real → capacidades exigidas`, carregado como módulo arquitetural obrigatório.
+- Toda ação POST autenticada sem contrato explícito passa a ser recusada antes do handler e antes da invalidação de cache ou de qualquer efeito operacional.
+- Ações transversais declaram todas as capacidades diretamente exigidas, como emissão documental pela ficha, recebimento financeiro do paciente e conversão de Interessado em Paciente.
+- Efeitos automáticos de workflow, como sincronização financeira e atualização de tarefas após mudanças da Jornada, permanecem delegados e não ampliam a permissão geral do usuário.
+- Operações de caixa da Recepção continuam restritas ao conjunto exato de ações operacionais, sem conceder administração financeira ampla.
+- Ações públicas, de perfil, onboarding, consultório, equipe, permissões, Agenda, Pacientes, Documentos, Tarefas, Avisos, Financeiro, Maestro e administração global passam a possuir contratos explícitos.
+- O dispatcher passa a autorizar a ação antes da invalidação de cache e antes do descarte da dica de onboarding.
+- Adiciona autotestes determinísticos para ações desconhecidas, compostas, públicas, clínicas e globais.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e verificações legadas como defesa em profundidade.
+
+Prontoo 1.7.20.1 — hotfix do contrato de versão da landing
+
+- Corrige a divergência introduzida pela decomposição da landing: `BR_LANDING_VERSION_FALLBACK` volta a ser declarado em `br/index.php`, arquivo efetivamente inspecionado pelo contrato canônico.
+- `br/runtime-core.php` passa a consumir o fallback já declarado, sem redefinição e sem mudança no HTML renderizado.
+- Elimina o fatal “Contrato de versão divergente: br/index.php” durante o carregamento do runtime.
+- Formaliza no próprio `ChangeLog.txt` a regra permanente `1.mês.dia.sequência`, com sequência reiniciada em `1` a cada novo dia de publicação.
+- Mantidos banco de dados, schema, interface, ativos, isolamento entre consultórios e contratos da camada 2.
+
+Prontoo 1.7.17.4 — camada 2 por invariantes especializadas
+
+- A camada 2 passa a ser coordenada por um núcleo formal de invariantes: uma mutação somente é admitida quando preserva autorização, escopo, relações e estado válido.
+- Capacidades são tratadas como conjuntos; a operação exigida deve pertencer integralmente ao conjunto efetivo do usuário no consultório ativo.
+- A prova de isolamento usa álgebra booleana conservadora no WHERE, valida todas as linhas de INSERT e impede alteração direta do clinic_id.
+- Relações entre tabelas com escopo são verificadas como arestas de um grafo de chaves estrangeiras, recusando vínculos inexistentes ou pertencentes a outro consultório.
+- A Jornada do Paciente passa a possuir autômato formal próprio, com aliases legados, estados iniciais e transições autorizadas verificadas antes da escrita.
+- As regras foram especializadas em arquivos distintos para Agenda, Pessoas, Tarefas e Avisos, Documentos, Financeiro, Maestro e Acessos.
+- O checksum transacional PiIntegrity permanece como prova persistente; o novo núcleo adiciona decisões e cadeia de provas canônicas por requisição.
+- Mantidos schema, banco de dados, interface, ativos, permissões configuradas e compatibilidade com a instalação atual.
+
+Histórico anterior preservado integralmente em ChangeLog.history.txt.
