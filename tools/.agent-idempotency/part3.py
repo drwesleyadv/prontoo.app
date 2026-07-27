@@ -78,8 +78,8 @@ path = ".github/workflows/architecture.yml"
 source = read(path)
 source = replace_once(
     source,
-    '            if ($functions !== 1938) {\n',
-    '            if ($functions !== 1940) {\n',
+    '          if ($functions !== 1938) {\n',
+    '          if ($functions !== 1940) {\n',
     "baseline documental",
 )
 anchor = "      - name: JSON contracts\n"
