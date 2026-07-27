@@ -1675,6 +1675,7 @@ function procedure_select_html(
     int $cid,
     string $name = "reason",
     string $selected = "",
+    bool $registeredOnly = false,
 ): string {
     /*
      * GUIA DE MANUTENÇÃO — procedure_select_html
@@ -1684,13 +1685,21 @@ function procedure_select_html(
      * Dependências chamadas: `procedure_options`, `e`, `trim`, `money_br`, `procedure_option_label`, `form_row`.
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    */
     $procedures = procedure_options($cid, true);
-    $custom = $selected !== "";
+    $custom = !$registeredOnly && $selected !== "";
+    $placeholder =
+        $registeredOnly && $procedures === []
+            ? "Cadastre Procedimentos primeiro"
+            : "Selecione o procedimento";
     $h =
         '<select name="' .
         e($name) .
-        '" data-procedure-select><option value="">Selecione o procedimento</option>';
+        '" data-procedure-select' .
+        ($registeredOnly ? " required" : "") .
+        '><option value="">' .
+        e($placeholder) .
+        "</option>";
     foreach ($procedures as $p) {
         $val = "procedure:" . (int) $p["id"];
         $sel =
@@ -1743,8 +1752,11 @@ function procedure_select_html(
             e($selected) .
             "</option>";
     }
+    if (!$registeredOnly) {
+        $h .= '<option value="Outro">Outro / procedimento livre</option>';
+    }
     $h .=
-        '<option value="Outro">Outro / procedimento livre</option></select><small class="field-hint" data-procedure-summary></small>';
+        '</select><small class="field-hint" data-procedure-summary></small>';
     return form_row("Procedimento", $h);
 }
 function procedure_reason_from_post(int $cid, string $field = "reason"): string
@@ -3554,6 +3566,15 @@ function page_appointments(): void
             $postRedirect();
         }
         $procId = appointment_procedure_id_from_post($cid);
+        if ($act === "create" && !$procId) {
+            flash(
+                procedure_options($cid, true) === []
+                    ? "Cadastre Procedimentos primeiro."
+                    : "Selecione um procedimento cadastrado.",
+                "bad",
+            );
+            $postRedirect();
+        }
         $durationMessage = appointment_min_duration_message(
             $cid,
             $procId,
@@ -3802,7 +3823,7 @@ function page_appointments(): void
                 $prePatientId ?: null,
                 "required",
             ) .
-            procedure_select_html($cid, "reason") .
+            procedure_select_html($cid, "reason", "", true) .
             "</div></fieldset>" .
             appointment_payment_form_html($cid) .
             '<fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
