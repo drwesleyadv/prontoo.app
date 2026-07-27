@@ -1,0 +1,423 @@
+name: Prepare Prontoo 1.7.27.7 clean installation
+
+on:
+  push:
+    branches:
+      - agent/clean-install-1-7-27-7
+    paths:
+      - .github/workflows/prepare-clean-install-1-7-27-7.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/clean-install-1-7-27-7
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Build temporary commissioning release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          from datetime import datetime, timezone
+          import hashlib
+          import json
+          import re
+          import time
+
+          root = Path('.')
+          version = '1.7.27.7'
+          previous = '1.7.27.6'
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          generated_at = now.isoformat().replace('+00:00', 'Z')
+          generated_unix = int(now.timestamp())
+          sync_stamp = now.strftime('%Y%m%dT%H%M%SZ')
+          sync_id = f'hostoo-clean-install-commissioning-{sync_stamp}'
+
+          def read(path: str) -> str:
+              return (root / path).read_text(encoding='utf-8')
+
+          def write(path: str, content: str) -> None:
+              (root / path).write_text(content, encoding='utf-8')
+
+          # 1. Runtime gate: retain CI certification and add a one-time HTTPS token window.
+          install_access_path = 'app/Core/Install/InstallAccess.php'
+          source = read(install_access_path)
+          method_pattern = re.compile(
+              r'    public static function isInstallerExecutionAllowed\(\?array \$server = null, \?int \$now = null\): bool\n'
+              r'    \{.*?\n    \}\n\n    public static function assertInstallerEntry\(\): void',
+              re.S,
+          )
+          replacement = r'''    public static function isInstallerExecutionAllowed(?array $server = null, ?int $now = null): bool
+    {
+        /*
+         * GUIA DE MANUTENÇÃO — Core.Install.InstallAccess::isInstallerExecutionAllowed
+         * Responsabilidade: Autoriza somente a certificação CLI integralmente marcada ou, durante a release temporária 1.7.27.7, uma janela HTTP de comissionamento com HTTPS, host canônico, estado fresh e token externo de uso único.
+         * Local arquitetural: app/Core/Install/InstallAccess.php (núcleo de invariantes e decisões canônicas).
+         * Chamadores detectados: `Core.Install.InstallAccess::assertInstallerEntry`, `tools/install-security-check.php`.
+         * Dependências chamadas: `getenv`, `self::requestHostFrom`, `dirname`, `is_file`, `is_readable`, `file_get_contents`, `preg_match`, `hash_equals`.
+         * Estado externo lido: `PHP_SAPI`, `$_SERVER`, `$_GET`, `$_POST` e o arquivo não versionado `ssd/install.token`.
+         * Efeitos colaterais: nenhum; apenas produz uma decisão fail-closed.
+         * Cuidado 1: A janela pública nunca pode funcionar sem HTTPS, host `prontoo.app`, ausência simultânea de `app/config.php` e `ssd/install.lock`, e token forte correspondente.
+         * Cuidado 2: A certificação exige simultaneamente `GITHUB_ACTIONS=true`, `CI=true`, `PRONTOO_SCHEMA_TEST_MODE=1` e `PRONTOO_INSTALLER_CLI_MODE=1`.
+         * Cuidado 3: `PRONTOO_TEST_ROOT`, `PRONTOO_TEST_GET` e `PRONTOO_TEST_POST` são aceitos somente em CLI integralmente marcada para provas do CI.
+         */
+        $ciMarked = PHP_SAPI === 'cli' &&
+            (string) getenv('GITHUB_ACTIONS') === 'true' &&
+            (string) getenv('CI') === 'true' &&
+            (string) getenv('PRONTOO_SCHEMA_TEST_MODE') === '1' &&
+            (string) getenv('PRONTOO_INSTALLER_CLI_MODE') === '1';
+
+        if ($server === null && PHP_SAPI === 'cli') {
+            return $ciMarked;
+        }
+        if ($server !== null && !$ciMarked) {
+            return false;
+        }
+
+        $request = $server ?? $_SERVER;
+        $method = strtoupper(trim((string) ($request['REQUEST_METHOD'] ?? 'GET')));
+        if (!in_array($method, ['GET', 'POST'], true)) {
+            return false;
+        }
+        $https = strtolower(trim((string) ($request['HTTPS'] ?? '')));
+        if (!in_array($https, ['on', '1'], true) &&
+            (string) ($request['SERVER_PORT'] ?? '') !== '443') {
+            return false;
+        }
+        if (self::requestHostFrom($request) !== 'prontoo.app') {
+            return false;
+        }
+
+        $root = dirname(__DIR__, 3);
+        if ($server !== null) {
+            $candidateRoot = trim((string) ($request['PRONTOO_TEST_ROOT'] ?? ''));
+            if ($candidateRoot === '') {
+                return false;
+            }
+            $root = $candidateRoot;
+        }
+        if (is_file($root . '/app/config.php') ||
+            is_file($root . '/ssd/install.lock')) {
+            return false;
+        }
+
+        $tokenFile = $root . '/ssd/install.token';
+        if (!is_file($tokenFile) || !is_readable($tokenFile)) {
+            return false;
+        }
+        $expected = trim((string) @file_get_contents($tokenFile));
+        if (!preg_match('/\A[A-Za-z0-9_-]{48,128}\z/', $expected)) {
+            return false;
+        }
+
+        if ($server !== null) {
+            $get = (array) ($request['PRONTOO_TEST_GET'] ?? []);
+            $post = (array) ($request['PRONTOO_TEST_POST'] ?? []);
+        } else {
+            $get = $_GET;
+            $post = $_POST;
+        }
+        $provided = '';
+        foreach ([
+            $request['HTTP_X_PRONTOO_INSTALL_TOKEN'] ?? '',
+            $post['install_token'] ?? '',
+            $get['token'] ?? '',
+        ] as $candidate) {
+            $candidate = trim((string) $candidate);
+            if ($candidate !== '') {
+                $provided = $candidate;
+                break;
+            }
+        }
+        return $provided !== '' && hash_equals($expected, $provided);
+    }
+
+    public static function assertInstallerEntry(): void'''
+          source, count = method_pattern.subn(replacement, source, count=1)
+          if count != 1:
+              raise RuntimeError('Não foi possível substituir a guarda de instalação.')
+          source = source.replace(
+              'Responsabilidade: Protege o primeiro ponto executável de install.php após o comissionamento e encerra qualquer acesso HTTP. Somente a certificação CLI integralmente marcada pode ultrapassar esta guarda.',
+              'Responsabilidade: Protege o primeiro ponto executável de install.php. A release temporária 1.7.27.7 aceita somente a janela HTTPS com token e estado fresh; após a criação da configuração ou do lock, somente a certificação CLI integralmente marcada permanece possível.',
+          )
+          source = source.replace(
+              'Cuidado 2: Não crie bypass por localhost. O acesso ao instalador foi encerrado porque a instalação de produção já foi concluída.',
+              'Cuidado 2: Não crie bypass por localhost, IP, relógio ou cabeçalhos encaminhados; a única janela HTTP autorizada é a validação explícita do token one-time em estado fresh.',
+          )
+          write(install_access_path, source)
+
+          # 2. Web server: expose install.php only to the runtime gate for this temporary release.
+          htaccess_path = '.htaccess'
+          htaccess = read(htaccess_path)
+          htaccess, count = re.subn(
+              r'# Instalação concluída e comissionada\.\n'
+              r'# O instalador permanece no pacote apenas para rastreabilidade e certificação,\n'
+              r'# mas não pode ser servido pelo Apache/LiteSpeed em produção\.\n'
+              r'<Files "install\.php">\n\s*Require all denied\n</Files>\n',
+              '# Janela temporária de comissionamento 1.7.27.7.\n'
+              '# install.php permanece protegido no runtime por HTTPS, host canônico,\n'
+              '# estado fresh e token one-time em ssd/install.token.\n',
+              htaccess,
+              count=1,
+          )
+          if count != 1:
+              raise RuntimeError('Bloco de bloqueio do install.php não encontrado.')
+          write(htaccess_path, htaccess)
+
+          # 3. Preserve the one-time token across the installer form and delete it on success.
+          installer_path = 'app/Install/Installer.php'
+          installer = read(installer_path)
+          form_old = """    echo '<form method=\"post\" class=\"compact\">' .
+        csrf_field() .
+        '<h2>Banco de dados</h2><div class=\"two\">' ."""
+          form_new = """    echo '<form method=\"post\" class=\"compact\">' .
+        csrf_field() .
+        '<input type=\"hidden\" name=\"install_token\" value=\"' .
+        h((string) ($_POST[\"install_token\"] ?? $_GET[\"token\"] ?? \"\")) .
+        '\">' .
+        '<h2>Banco de dados</h2><div class=\"two\">' ."""
+          if form_old not in installer:
+              raise RuntimeError('Formulário do instalador não encontrado.')
+          installer = installer.replace(form_old, form_new, 1)
+          lock_line = '            prontoo_fs_chmod(storage_path("install.lock"), 0640);\n'
+          if lock_line not in installer:
+              raise RuntimeError('Finalização do install.lock não encontrada.')
+          installer = installer.replace(
+              lock_line,
+              lock_line + '            prontoo_fs_unlink(storage_path("install.token"), false);\n',
+              1,
+          )
+          write(installer_path, installer)
+
+          # 4. Extend security regression coverage for the temporary commissioning window.
+          check_path = 'tools/install-security-check.php'
+          check = read(check_path)
+          insertion_anchor = """if (!InstallAccess::isInstallerExecutionAllowed()) {
+    $errors[] = 'fully_marked_github_actions_cli_denied';
+}
+"""
+          commissioning_test = r'''
+
+$temporaryRoot = sys_get_temp_dir() . '/prontoo-commissioning-' . getmypid();
+@mkdir($temporaryRoot . '/app', 0700, true);
+@mkdir($temporaryRoot . '/ssd', 0700, true);
+$temporaryToken = str_repeat('a', 64);
+file_put_contents($temporaryRoot . '/ssd/install.token', $temporaryToken, LOCK_EX);
+$commissioningServer = [
+    'REMOTE_ADDR' => '203.0.113.10',
+    'HTTP_HOST' => 'prontoo.app',
+    'HTTPS' => 'on',
+    'SERVER_PORT' => '443',
+    'REQUEST_METHOD' => 'GET',
+    'PRONTOO_TEST_ROOT' => $temporaryRoot,
+    'PRONTOO_TEST_GET' => ['token' => $temporaryToken],
+];
+if (!InstallAccess::isInstallerExecutionAllowed($commissioningServer)) {
+    $errors[] = 'fresh_https_token_commissioning_denied';
+}
+$wrongTokenServer = $commissioningServer;
+$wrongTokenServer['PRONTOO_TEST_GET'] = ['token' => str_repeat('b', 64)];
+if (InstallAccess::isInstallerExecutionAllowed($wrongTokenServer)) {
+    $errors[] = 'wrong_commissioning_token_allowed';
+}
+file_put_contents($temporaryRoot . '/app/config.php', '<?php return [];');
+if (InstallAccess::isInstallerExecutionAllowed($commissioningServer)) {
+    $errors[] = 'configured_commissioning_allowed';
+}
+@unlink($temporaryRoot . '/app/config.php');
+file_put_contents($temporaryRoot . '/ssd/install.lock', 'installed');
+if (InstallAccess::isInstallerExecutionAllowed($commissioningServer)) {
+    $errors[] = 'locked_commissioning_allowed';
+}
+@unlink($temporaryRoot . '/ssd/install.lock');
+@unlink($temporaryRoot . '/ssd/install.token');
+@rmdir($temporaryRoot . '/app');
+@rmdir($temporaryRoot . '/ssd');
+@rmdir($temporaryRoot);
+'''
+          if insertion_anchor not in check:
+              raise RuntimeError('Âncora do teste de certificação não encontrada.')
+          check = check.replace(insertion_anchor, insertion_anchor + commissioning_test, 1)
+          old_htaccess_check = r'''if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+denied\s*<\/Files>/s', $htaccess) ||
+    preg_match('/<Files\s+"install\.php">\s*Require\s+all\s+granted\s*<\/Files>/s', $htaccess)) {
+    $errors[] = 'webserver_install_not_denied';
+}'''
+          new_htaccess_check = r'''if (preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+denied\s*<\/Files>/s', $htaccess) ||
+    !str_contains($htaccess, 'Janela temporária de comissionamento 1.7.27.7')) {
+    $errors[] = 'webserver_commissioning_window_contract';
+}'''
+          if old_htaccess_check not in check:
+              raise RuntimeError('Contrato antigo do .htaccess não encontrado no teste.')
+          check = check.replace(old_htaccess_check, new_htaccess_check, 1)
+          legacy_anchor = """foreach ([
+    'TEMPORARY_PUBLIC_HOST',
+    'TEMPORARY_PUBLIC_WINDOW_START_UNIX',
+    'TEMPORARY_PUBLIC_WINDOW_END_UNIX',
+] as $legacy) {
+    if (str_contains($installAccessSource, $legacy)) {
+        $errors[] = 'legacy_public_window_symbol:' . $legacy;
+    }
+}
+"""
+          required_contract = """foreach (['ssd/install.token', 'hash_equals', 'PRONTOO_TEST_ROOT'] as $requiredCommissioningContract) {
+    if (!str_contains($installAccessSource, $requiredCommissioningContract)) {
+        $errors[] = 'commissioning_contract_missing:' . $requiredCommissioningContract;
+    }
+}
+"""
+          if legacy_anchor not in check:
+              raise RuntimeError('Âncora de símbolos legados não encontrada.')
+          check = check.replace(legacy_anchor, legacy_anchor + required_contract, 1)
+          write(check_path, check)
+
+          # 5. Canonical runtime and landing fallbacks.
+          runtime_path = 'app/prontoo.php'
+          runtime = read(runtime_path)
+          runtime = runtime.replace('const PRONTOO_VERSION_FALLBACK = "1.7.27.6";', 'const PRONTOO_VERSION_FALLBACK = "1.7.27.7";', 1)
+          runtime = runtime.replace('const PRONTOO_PREVIOUS_VERSION = "1.7.27.5";', 'const PRONTOO_PREVIOUS_VERSION = "1.7.27.6";', 1)
+          write(runtime_path, runtime)
+
+          landing_path = 'br/index.php'
+          landing = read(landing_path)
+          landing = landing.replace('const BR_LANDING_VERSION_FALLBACK = "1.7.27.6";', 'const BR_LANDING_VERSION_FALLBACK = "1.7.27.7";', 1)
+          write(landing_path, landing)
+
+          # 6. Release notes.
+          changelog_path = 'ChangeLog.txt'
+          changelog = read(changelog_path)
+          entry = '''Prontoo 1.7.27.7 — janela temporária para instalação limpa
+
+- Abre `install.php` somente em HTTPS no host canônico, enquanto `app/config.php` e `ssd/install.lock` não existem e o token forte enviado corresponde a `ssd/install.token`.
+- Mantém o token fora do Git e fora da área pública; após a instalação, grava `ssd/install.lock` e remove `ssd/install.token` para fechar definitivamente a janela.
+- Preserva a exigência de banco totalmente vazio, validações do ambiente, CSRF, criação transacional do Desenvolvedor, Guardião, schema e políticas de segurança.
+- Acrescenta prova regressiva para token incorreto, ambiente já configurado, instalação já bloqueada e certificação CLI do GitHub Actions.
+- Não altera interface operacional, schema, banco de dados ou regras de negócio da plataforma.
+- Release temporária de comissionamento; após a instalação limpa, o alvo de regressão é a baseline 1.7.27.6.
+
+'''
+          if not changelog.startswith('Prontoo 1.7.27.6'):
+              raise RuntimeError('Topo inesperado do ChangeLog.txt.')
+          write(changelog_path, entry + changelog)
+
+          # 7. Canonical JSON contracts.
+          version_path = root / 'version.json'
+          version_data = json.loads(version_path.read_text(encoding='utf-8'))
+          version_data.update({
+              'version': version,
+              'release': version,
+              'generated_at_unix': generated_unix,
+              'generated_at': generated_at,
+              'updated_at': generated_at,
+              'build': '1.7.27.7-clean-install-commissioning',
+              'package_type': 'temporary_clean_install_commissioning',
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+              'functional_equivalence_policy': 'runtime_business_security_permissions_financial_workflows_database_schema_and_assets_remain_equivalent_to_1_7_27_6_except_for_the_temporary_fresh_install_commissioning_gate',
+              'notes': 'Abre uma janela temporária e tokenizada para instalação limpa em HTTPS; após o comissionamento, a aplicação deve regressar para 1.7.27.6.',
+              'previous_version': previous,
+              'documentation_changes': True,
+              'installer_locked': False,
+              'installer_access_policy': 'temporary_https_canonical_host_fresh_state_one_time_token_then_install_lock',
+              'deployment_sync_id': sync_id,
+              'deployment_sync_requested_at': generated_at,
+              'baseline_source': previous,
+              'temporary_commissioning_release': True,
+              'install_token_file': 'ssd/install.token',
+              'rollback_target': previous,
+              'post_install_regression_required': True,
+          })
+          for key in ['full_baseline_rewrite', 'rewrite_scope']:
+              version_data.pop(key, None)
+          version_path.write_text(json.dumps(version_data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          architecture.update({
+              'version': version,
+              'database_changes': False,
+              'schema_changes': False,
+              'visual_changes': False,
+              'logic_changes': True,
+              'generated_at': generated_at,
+              'updated_at': generated_at,
+              'baseline_source': previous,
+              'clean_install_policy': 'fresh_zero_table_database_only_no_existing_database_drop',
+              'installer_access_policy': 'temporary_https_canonical_host_fresh_state_one_time_token_then_install_lock',
+              'temporary_commissioning_release': True,
+              'install_token_file': 'ssd/install.token',
+              'rollback_target': previous,
+              'post_install_regression_required': True,
+          })
+          architecture.pop('full_baseline_rewrite', None)
+          lockdown = dict(architecture.get('commissioned_installation_lockdown') or {})
+          lockdown.update({
+              'http': 'temporary_token_window_only_before_config_and_install_lock_then_denied',
+              'runtime_redirect': False,
+              'localhost_bypass': False,
+              'public_window': 'one_time_external_token_file_on_https_canonical_host',
+              'schema_mutation': 'installer_window_or_github-actions-cli-four-markers-only',
+          })
+          architecture['commissioned_installation_lockdown'] = lockdown
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          manifest_path = root / 'app/update.manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          manifest.update({
+              'version': version,
+              'release': version,
+              'build': '1.7.27.7-clean-install-commissioning',
+              'package_type': 'temporary_clean_install_commissioning',
+              'generated_at': generated_at,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+              'documentation_changes': True,
+              'installer_policy': 'temporary_https_canonical_host_fresh_state_one_time_token_then_install_lock',
+              'previous_version': previous,
+              'updated_at': generated_at,
+              'notes': 'Abre uma janela temporária e tokenizada para instalação limpa em HTTPS; após o comissionamento, a aplicação deve regressar para 1.7.27.6.',
+              'deployment_sync_id': sync_id,
+              'deployment_sync_requested_at': generated_at,
+              'baseline_source': previous,
+              'temporary_commissioning_release': True,
+              'install_token_file': 'ssd/install.token',
+              'rollback_target': previous,
+              'post_install_regression_required': True,
+          })
+          for key in ['full_baseline_rewrite', 'rewrite_scope']:
+              manifest.pop(key, None)
+
+          # Remove this generator before hashing and committing.
+          generator = root / '.github/workflows/prepare-clean-install-1-7-27-7.yml'
+          if generator.exists():
+              generator.unlink()
+
+          files = dict(manifest.get('files') or {})
+          for filename in files:
+              path = root / filename
+              if not path.is_file():
+                  raise RuntimeError(f'Arquivo do manifesto ausente: {filename}')
+              files[filename] = hashlib.sha256(path.read_bytes()).hexdigest()
+          manifest['files'] = files
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = sum((root / filename).stat().st_size for filename in files)
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          git config user.name "Prontoo Release"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Prontoo 1.7.27.7 — instalação limpa temporária"
+          git push origin HEAD:agent/clean-install-1-7-27-7
