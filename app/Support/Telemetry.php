@@ -63,6 +63,15 @@ function maestro_deferred_storage_dir(): string
      */
     return storage_path("maestro-deferred");
 }
+/* Guia de manutenção: Enumera o spool principal e, para auditoria, o spool emergencial independente usado quando o diretório primário não aceita gravação. */
+function maestro_deferred_storage_dirs(string $type = "audit"): array
+{
+    $dirs = [maestro_deferred_storage_dir()];
+    if ($type === "audit") {
+        $dirs[] = storage_path("logs/maestro-deferred-emergency");
+    }
+    return array_values(array_unique($dirs));
+}
 function maestro_deferred_canonicalize(mixed $value): mixed
 {
     /*
@@ -117,6 +126,54 @@ function maestro_deferred_sign(array $envelope): string
     }
     return hash_hmac("sha256", $json, $key);
 }
+/* Guia de manutenção: Grava um envelope já assinado por arquivo exclusivo e rename atômico, sem manter trava global entre requisições. */
+function maestro_deferred_spool_write(
+    string $dir,
+    string $id,
+    string $json,
+): bool {
+    $temp = null;
+    try {
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
+        if (!is_dir($dir) || !is_writable($dir)) {
+            return false;
+        }
+        if (
+            function_exists("security_storage_deny_file") &&
+            (!is_file($dir . "/.htaccess") ||
+                !is_file($dir . "/index.html"))
+        ) {
+            security_storage_deny_file($dir);
+        }
+        $temp = tempnam($dir, ".pending-");
+        if (
+            !is_string($temp) ||
+            @file_put_contents($temp, $json) !== strlen($json)
+        ) {
+            return false;
+        }
+        @chmod($temp, 0640);
+        if (!@rename($temp, $dir . "/" . $id . ".json")) {
+            return false;
+        }
+        $temp = null;
+        return true;
+    } catch (Throwable $e) {
+        error_log(
+            "[Prontoo Maestro spool] " .
+                basename($dir) .
+                ": " .
+                $e->getMessage(),
+        );
+        return false;
+    } finally {
+        if (is_string($temp) && is_file($temp)) {
+            @unlink($temp);
+        }
+    }
+}
 function maestro_deferred_enqueue(string $type, array $payload): ?string
 {
     /*
@@ -124,32 +181,14 @@ function maestro_deferred_enqueue(string $type, array $payload): ?string
      * Responsabilidade: Publica atomicamente um trabalho secundário em arquivo exclusivo, sem disputar a trava dos agregados de telemetria.
      * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
      * Chamadores detectados: `maestro_defer_audit_event`, `maestro_defer_telemetry_event`.
-     * Dependências chamadas: `has_cfg`, `maestro_deferred_storage_dir`, `mkdir`, `security_storage_deny_file`, `random_bytes`, `microtime`, `maestro_deferred_sign`, `json_encode`, `tempnam`, `file_put_contents`, `chmod`, `rename`, `unlink`.
+     * Dependências chamadas: `has_cfg`, `random_bytes`, `microtime`, `maestro_deferred_sign`, `json_encode`, `maestro_deferred_storage_dirs`, `maestro_deferred_spool_write`.
      * Efeitos colaterais: acessa o sistema de arquivos.
      * Cuidado 1: A publicação por arquivo exclusivo e rename atômico evita uma trava global no caminho crítico HTTP.
      */
     if (!has_cfg() || !in_array($type, ["audit", "telemetry"], true)) {
         return null;
     }
-    static $prepared = [];
-    $temp = null;
     try {
-        $dir = maestro_deferred_storage_dir();
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0750, true);
-        }
-        if (!is_dir($dir) || !is_writable($dir)) {
-            return null;
-        }
-        if (
-            empty($prepared[$dir]) &&
-            function_exists("security_storage_deny_file") &&
-            (!is_file($dir . "/.htaccess") ||
-                !is_file($dir . "/index.html"))
-        ) {
-            security_storage_deny_file($dir);
-        }
-        $prepared[$dir] = true;
         $id =
             sprintf("%020d", (int) round(microtime(true) * 1000000)) .
             "-" .
@@ -173,27 +212,15 @@ function maestro_deferred_enqueue(string $type, array $payload): ?string
         if (!is_string($json)) {
             return null;
         }
-        $temp = tempnam($dir, ".pending-");
-        if (
-            !is_string($temp) ||
-            @file_put_contents($temp, $json) !== strlen($json)
-        ) {
-            return null;
+        foreach (maestro_deferred_storage_dirs($type) as $dir) {
+            if (maestro_deferred_spool_write($dir, $id, $json)) {
+                return $id;
+            }
         }
-        @chmod($temp, 0640);
-        $target = $dir . "/" . $id . ".json";
-        if (!@rename($temp, $target)) {
-            return null;
-        }
-        $temp = null;
-        return $id;
+        return null;
     } catch (Throwable $e) {
         error_log("[Prontoo Maestro defer] " . $e->getMessage());
         return null;
-    } finally {
-        if (is_string($temp) && is_file($temp)) {
-            @unlink($temp);
-        }
     }
 }
 function maestro_defer_audit_event(
@@ -259,10 +286,16 @@ function maestro_defer_telemetry_event(
      * Efeitos colaterais: acessa o sistema de arquivos.
      * Cuidado 1: Falha de telemetria nunca pode impedir a resposta HTTP nem reativar a consolidação síncrona.
      */
-    return maestro_deferred_enqueue("telemetry", [
+    $queued = maestro_deferred_enqueue("telemetry", [
         "event" => $event,
         "include_page_metric" => $includePageMetric,
     ]) !== null;
+    if (!$queued) {
+        error_log(
+            "[Prontoo telemetry deferred] A amostra não pôde ser enfileirada.",
+        );
+    }
+    return $queued;
 }
 function maestro_deferred_envelope_valid(array $envelope): bool
 {
@@ -312,7 +345,11 @@ function maestro_process_deferred_audit(array $envelope): bool
      * Efeitos colaterais: consulta e grava a camada de persistência; gera trilha de auditoria.
      * Cuidado 1: O identificador do envelope impede duplicação caso o cron termine depois do commit e antes de remover o arquivo.
      */
-    if (!function_exists("audit")) {
+    if (
+        !function_exists("audit") ||
+        (string) ($envelope["type"] ?? "") !== "audit" ||
+        !maestro_deferred_envelope_valid($envelope)
+    ) {
         return false;
     }
     $id = (string) ($envelope["id"] ?? "");
@@ -336,22 +373,26 @@ function maestro_process_deferred_audit(array $envelope): bool
         $payload["occurred_at_utc"] ??
         ($envelope["queued_at_utc"] ?? "")
     );
-    $context["_audit_user_id"] = isset($payload["actor_user_id"])
-        ? (int) $payload["actor_user_id"]
-        : null;
-    $context["_audit_ip_hash"] = $payload["ip_hash"] ?? null;
-    $context["_audit_user_agent"] = $payload["user_agent"] ?? null;
-    $context["_audit_created_at"] = $payload["occurred_at_utc"] ?? null;
-    $context["_audit_proof_context"] =
-        isset($payload["proof_context"]) &&
-        is_array($payload["proof_context"])
-            ? $payload["proof_context"]
-            : null;
     return audit(
         $event,
         isset($payload["entity"]) ? (string) $payload["entity"] : null,
         $payload["entity_id"] ?? null,
         $context,
+        [
+            "skip_runtime_context" => true,
+            "skip_context_enrichment" => true,
+            "user_id" => isset($payload["actor_user_id"])
+                ? (int) $payload["actor_user_id"]
+                : null,
+            "ip_hash" => $payload["ip_hash"] ?? null,
+            "user_agent" => $payload["user_agent"] ?? null,
+            "created_at" => $payload["occurred_at_utc"] ?? null,
+            "proof_context" =>
+                isset($payload["proof_context"]) &&
+                is_array($payload["proof_context"])
+                    ? $payload["proof_context"]
+                    : null,
+        ],
     );
 }
 function maestro_process_deferred_telemetry(array $envelope): bool
@@ -369,14 +410,20 @@ function maestro_process_deferred_telemetry(array $envelope): bool
     $event = isset($payload["event"]) && is_array($payload["event"])
         ? $payload["event"]
         : [];
-    if ($event === [] || trim((string) ($event["route"] ?? "")) === "") {
+    $id = (string) ($envelope["id"] ?? "");
+    if (
+        $event === [] ||
+        trim((string) ($event["route"] ?? "")) === "" ||
+        preg_match('/^\d{20}-[a-f0-9]{16}$/', $id) !== 1
+    ) {
         return false;
     }
-    telemetry_append_route_performance_metric($event);
-    if (!empty($payload["include_page_metric"])) {
-        telemetry_append_page_metric($event);
+    $event["deferred_id"] = $id;
+    if (!telemetry_append_route_performance_metric($event)) {
+        return false;
     }
-    return true;
+    return empty($payload["include_page_metric"]) ||
+        telemetry_append_page_metric($event);
 }
 function maestro_process_deferred_work(
     int $budgetMs = 5000,
@@ -387,7 +434,7 @@ function maestro_process_deferred_work(
      * Responsabilidade: Consome na execução seguinte do Maestro os trabalhos secundários publicados pelas rotas críticas.
      * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
      * Chamadores detectados: `cron/maestro.php`.
-     * Dependências chamadas: `maestro_deferred_storage_dir`, `glob`, `filemtime`, `rename`, `sort`, `microtime`, `file_get_contents`, `json_decode`, `maestro_deferred_envelope_valid`, `maestro_process_deferred_audit`, `maestro_process_deferred_telemetry`, `unlink`.
+     * Dependências chamadas: `maestro_deferred_storage_dirs`, `glob`, `filemtime`, `rename`, `sort`, `microtime`, `file_get_contents`, `json_decode`, `maestro_deferred_envelope_valid`, `maestro_process_deferred_audit`, `maestro_process_deferred_telemetry`, `unlink`.
      * Efeitos colaterais: acessa o sistema de arquivos; pode consultar e gravar a camada de persistência; gera auditoria e telemetria.
      * Cuidado 1: O claim por rename é atômico; arquivos interrompidos são recuperados depois de cinco minutos e a auditoria é idempotente.
      */
@@ -402,31 +449,72 @@ function maestro_process_deferred_work(
         "telemetry" => 0,
         "invalid" => 0,
         "errors" => 0,
+        "retrying" => 0,
+        "dead_letter" => 0,
         "remaining" => 0,
+        "oldest_age_seconds" => 0,
+        "alert" => false,
         "duration_ms" => 0,
     ];
-    $dir = maestro_deferred_storage_dir();
-    if (!is_dir($dir)) {
-        return $stats;
-    }
-    foreach ((array) glob($dir . "/*.json.processing") as $stale) {
-        if ((int) @filemtime($stale) > 0 && time() - (int) @filemtime($stale) > 300) {
-            @rename($stale, substr($stale, 0, -strlen(".processing")));
+    $dirs = [];
+    foreach (maestro_deferred_storage_dirs("audit") as $dir) {
+        if (is_dir($dir)) {
+            $dirs[] = $dir;
         }
     }
-    $files = (array) glob($dir . "/*.json");
+    if ($dirs === []) {
+        return $stats;
+    }
+    $files = [];
+    foreach ($dirs as $dir) {
+        foreach ((array) glob($dir . "/*.json.processing") as $stale) {
+            if (
+                (int) @filemtime($stale) > 0 &&
+                time() - (int) @filemtime($stale) > 300
+            ) {
+                @rename(
+                    $stale,
+                    substr($stale, 0, -strlen(".processing")),
+                );
+            }
+        }
+        foreach ((array) glob($dir . "/*.json") as $file) {
+            $files[] = $file;
+        }
+        $stats["dead_letter"] += count(
+            (array) glob($dir . "/dead-letter/*"),
+        );
+    }
     sort($files, SORT_STRING);
     $stats["queued"] = count($files);
     foreach (array_slice($files, 0, $limit) as $file) {
         if ((microtime(true) - $started) * 1000 >= $budgetMs) {
             break;
         }
+        $dir = dirname($file);
+        $queuedAge = max(0, time() - (int) @filemtime($file));
+        $stats["oldest_age_seconds"] = max(
+            (int) $stats["oldest_age_seconds"],
+            $queuedAge,
+        );
         $claimed = $file . ".processing";
         if (!@rename($file, $claimed)) {
             continue;
         }
         $completed = false;
         $invalid = false;
+        $expired = $queuedAge > 86400;
+        $attempt = 0;
+        if (
+            preg_match(
+                '/\.retry-(\d+)\.json$/',
+                basename($file),
+                $retryMatch,
+            ) === 1
+        ) {
+            $attempt = max(0, (int) ($retryMatch[1] ?? 0));
+        }
+        $envelope = null;
         try {
             $raw = @file_get_contents($claimed);
             $envelope =
@@ -439,6 +527,10 @@ function maestro_process_deferred_work(
             ) {
                 $invalid = true;
                 $stats["invalid"]++;
+                continue;
+            }
+            if ($expired) {
+                $stats["errors"]++;
                 continue;
             }
             $type = (string) $envelope["type"];
@@ -458,17 +550,121 @@ function maestro_process_deferred_work(
         } finally {
             if ($completed) {
                 @unlink($claimed);
-            } elseif ($invalid) {
-                @rename($claimed, $file . ".invalid");
             } else {
-                @rename($claimed, $file);
+                $attempt++;
+                $deadReason = $invalid
+                    ? "invalid"
+                    : ($expired
+                        ? "expired"
+                        : ($attempt >= 5 ? "retries" : ""));
+                if ($deadReason !== "") {
+                    $deadDir = $dir . "/dead-letter";
+                    if (!is_dir($deadDir)) {
+                        @mkdir($deadDir, 0750, true);
+                    }
+                    $deadName =
+                        (string) (
+                            is_array($envelope)
+                                ? ($envelope["id"] ?? basename($file, ".json"))
+                                : basename($file, ".json")
+                        ) .
+                        "." .
+                        $deadReason .
+                        "." .
+                        time();
+                    if (@rename($claimed, $deadDir . "/" . $deadName)) {
+                        $stats["dead_letter"]++;
+                    } else {
+                        @rename($claimed, $file);
+                        $stats["errors"]++;
+                    }
+                } else {
+                    $id =
+                        is_array($envelope) &&
+                        preg_match(
+                            '/^\d{20}-[a-f0-9]{16}$/',
+                            (string) ($envelope["id"] ?? ""),
+                        ) === 1
+                            ? (string) $envelope["id"]
+                            : basename($file, ".json");
+                    $retryFile =
+                        $dir .
+                        "/" .
+                        $id .
+                        ".retry-" .
+                        $attempt .
+                        ".json";
+                    if (@rename($claimed, $retryFile)) {
+                        $stats["retrying"]++;
+                    } else {
+                        @rename($claimed, $file);
+                        $stats["errors"]++;
+                    }
+                }
             }
         }
     }
-    $stats["remaining"] = count((array) glob($dir . "/*.json"));
+    $remainingFiles = [];
+    $deadLetter = 0;
+    foreach ($dirs as $dir) {
+        foreach ((array) glob($dir . "/*.json") as $file) {
+            $remainingFiles[] = $file;
+        }
+        $deadLetter += count((array) glob($dir . "/dead-letter/*"));
+    }
+    $stats["remaining"] = count($remainingFiles);
+    $stats["dead_letter"] = $deadLetter;
+    foreach ($remainingFiles as $file) {
+        $stats["oldest_age_seconds"] = max(
+            (int) $stats["oldest_age_seconds"],
+            max(0, time() - (int) @filemtime($file)),
+        );
+    }
     $stats["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
-    $stats["success"] =
-        $stats["errors"] === 0 && $stats["invalid"] === 0;
+    $stats["alert"] =
+        $stats["errors"] > 0 ||
+        $stats["invalid"] > 0 ||
+        $stats["dead_letter"] > 0 ||
+        $stats["oldest_age_seconds"] > 3600;
+    $stats["success"] = !$stats["alert"];
+    $stateDir = maestro_deferred_storage_dir() . "/state";
+    $stateTemp = null;
+    try {
+        if (!is_dir($stateDir)) {
+            @mkdir($stateDir, 0750, true);
+        }
+        if (is_dir($stateDir) && is_writable($stateDir)) {
+            $state = json_encode(
+                [
+                    "updated_at_utc" => gmdate("Y-m-d H:i:s"),
+                    "status" => $stats["alert"] ? "attention" : "healthy",
+                    "stats" => $stats,
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            );
+            if (is_string($state)) {
+                $stateTemp = tempnam($stateDir, ".status-");
+                if (
+                    is_string($stateTemp) &&
+                    @file_put_contents($stateTemp, $state) === strlen($state)
+                ) {
+                    @chmod($stateTemp, 0640);
+                    if (
+                        @rename(
+                            $stateTemp,
+                            $stateDir . "/deferred-work.json",
+                        )
+                    ) {
+                        $stateTemp = null;
+                    }
+                }
+            }
+        }
+    } finally {
+        if (is_string($stateTemp) && is_file($stateTemp)) {
+            @unlink($stateTemp);
+        }
+    }
     return $stats;
 }
 function telemetry_page_file(): string
@@ -606,7 +802,7 @@ function telemetry_sanitize_events(array $events, int $nowTs): array
     }
     return $out;
 }
-function telemetry_append_page_metric(array $event): void
+function telemetry_append_page_metric(array $event): bool
 {
     /*
      * GUIA DE MANUTENÇÃO — telemetry_append_page_metric
@@ -619,17 +815,18 @@ function telemetry_append_page_metric(array $event): void
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
-        return;
+        return false;
     }
     $file = telemetry_page_file();
     $nowTs = (int) ($event["ts"] ?? time());
     $fh = @fopen($file, "c+");
     if (!$fh) {
-        return;
+        return false;
     }
+    $written = false;
     try {
         if (!flock($fh, LOCK_EX)) {
-            return;
+            return false;
         }
         rewind($fh);
         $raw = stream_get_contents($fh);
@@ -641,6 +838,31 @@ function telemetry_append_page_metric(array $event): void
             is_array($json["events"])
                 ? $json["events"]
                 : [];
+        $deferredId =
+            preg_match(
+                '/^\d{20}-[a-f0-9]{16}$/',
+                (string) ($event["deferred_id"] ?? ""),
+            ) === 1
+                ? (string) $event["deferred_id"]
+                : "";
+        $deferredIds =
+            is_array($json) &&
+            isset($json["deferred_ids"]) &&
+            is_array($json["deferred_ids"])
+                ? $json["deferred_ids"]
+                : [];
+        foreach ($deferredIds as $id => $ts) {
+            if (
+                preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) $id) !==
+                    1 ||
+                (int) $ts < $nowTs - 25 * 3600
+            ) {
+                unset($deferredIds[$id]);
+            }
+        }
+        if ($deferredId !== "" && isset($deferredIds[$deferredId])) {
+            return true;
+        }
         $events = telemetry_sanitize_events($events, $nowTs);
         $events[] = [
             "ts" => $nowTs,
@@ -659,12 +881,16 @@ function telemetry_append_page_metric(array $event): void
             "query_ms" => max(0.0, round((float) ($event["query_ms"] ?? 0), 3)),
             "success" => !empty($event["success"]) ? 1 : 0,
         ];
+        if ($deferredId !== "") {
+            $deferredIds[$deferredId] = $nowTs;
+        }
         $payload = [
             "timezone" => "America/Cuiaba",
             "retention_hours" => 25,
             "updated_at" => new DateTimeImmutable("@" . $nowTs)
                 ->setTimezone(telemetry_cuiaba_tz())
                 ->format(DateTimeInterface::ATOM),
+            "deferred_ids" => $deferredIds,
             "events" => $events,
         ];
         $encoded = json_encode(
@@ -674,8 +900,9 @@ function telemetry_append_page_metric(array $event): void
         if ($encoded !== false) {
             rewind($fh);
             ftruncate($fh, 0);
-            fwrite($fh, $encoded);
-            fflush($fh);
+            $written =
+                fwrite($fh, $encoded) === strlen($encoded) &&
+                fflush($fh);
         }
     } catch (Throwable $ignored) {
         error_log(
@@ -688,6 +915,7 @@ function telemetry_append_page_metric(array $event): void
         @flock($fh, LOCK_UN);
         @fclose($fh);
     }
+    return $written;
 }
 function telemetry_route_perf_file(): string
 {
@@ -909,7 +1137,7 @@ function telemetry_cache_add_metrics(array $row, array $metrics): array
     }
     return $row;
 }
-function telemetry_append_route_performance_metric(array $event): void
+function telemetry_append_route_performance_metric(array $event): bool
 {
     /*
      * GUIA DE MANUTENÇÃO — telemetry_append_route_performance_metric
@@ -922,7 +1150,7 @@ function telemetry_append_route_performance_metric(array $event): void
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
      */
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
-        return;
+        return false;
     }
     $file = telemetry_route_perf_file();
     $nowTs = (int) ($event["ts"] ?? time());
@@ -954,17 +1182,42 @@ function telemetry_append_route_performance_metric(array $event): void
         ->format("Y-m-d");
     $fh = @fopen($file, "c+");
     if (!$fh) {
-        return;
+        return false;
     }
+    $written = false;
     try {
         if (!flock($fh, LOCK_EX)) {
-            return;
+            return false;
         }
         rewind($fh);
         $raw = stream_get_contents($fh);
         $json = is_string($raw) && trim($raw) !== "" ? json_decode($raw, true) : [];
         if (!is_array($json)) {
             $json = [];
+        }
+        $deferredId =
+            preg_match(
+                '/^\d{20}-[a-f0-9]{16}$/',
+                (string) ($event["deferred_id"] ?? ""),
+            ) === 1
+                ? (string) $event["deferred_id"]
+                : "";
+        $deferredIds =
+            isset($json["deferred_ids"]) &&
+            is_array($json["deferred_ids"])
+                ? $json["deferred_ids"]
+                : [];
+        foreach ($deferredIds as $id => $ts) {
+            if (
+                preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) $id) !==
+                    1 ||
+                (int) $ts < $nowTs - 35 * 86400
+            ) {
+                unset($deferredIds[$id]);
+            }
+        }
+        if ($deferredId !== "" && isset($deferredIds[$deferredId])) {
+            return true;
         }
         $buckets = isset($json["buckets"]) && is_array($json["buckets"])
             ? $json["buckets"]
@@ -1119,6 +1372,9 @@ function telemetry_append_route_performance_metric(array $event): void
         }
         ksort($dailyRoutes[$dayKey], SORT_STRING);
         ksort($dailyRoutes, SORT_STRING);
+        if ($deferredId !== "") {
+            $deferredIds[$deferredId] = $nowTs;
+        }
 
         $payload = [
             "timezone" => "America/Cuiaba",
@@ -1131,6 +1387,7 @@ function telemetry_append_route_performance_metric(array $event): void
             "updated_at" => new DateTimeImmutable("@" . $nowTs)
                 ->setTimezone(telemetry_cuiaba_tz())
                 ->format(DateTimeInterface::ATOM),
+            "deferred_ids" => $deferredIds,
             "buckets" => $buckets,
             "release_buckets" => $releaseBuckets,
             "cache_buckets" => $cacheBuckets,
@@ -1141,8 +1398,9 @@ function telemetry_append_route_performance_metric(array $event): void
         if ($encoded !== false) {
             rewind($fh);
             ftruncate($fh, 0);
-            fwrite($fh, $encoded);
-            fflush($fh);
+            $written =
+                fwrite($fh, $encoded) === strlen($encoded) &&
+                fflush($fh);
         }
     } catch (Throwable $ignored) {
         error_log(
@@ -1152,6 +1410,7 @@ function telemetry_append_route_performance_metric(array $event): void
         @flock($fh, LOCK_UN);
         @fclose($fh);
     }
+    return $written;
 }
 function telemetry_route_perf_snapshot(): array
 {

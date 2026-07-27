@@ -180,7 +180,7 @@ final class ActionCatalog
         $add('logout', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:logout']);
         $add('switch', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:environment']);
         $add('switch', 'choose_admin', 'authenticated', $auth, ['session:self'], ['session:environment'], [], 'matrix', null, [$admin]);
-        $add('profile', ['profile_update_user', 'profile_change_password', 'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:mfa', 'session:environment']);
+        $add('profile', ['profile_update_user', 'profile_change_password', 'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel', 'profile_mfa_recovery_ack', 'profile_mfa_recovery_regenerate', 'profile_mfa_replace_prepare', 'profile_mfa_replace_enable', 'profile_mfa_disable', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:mfa', 'session:environment']);
         $add('global_reauth', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:privileged']);
 
         // Central request operation.

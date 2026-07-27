@@ -677,11 +677,12 @@ function login_apply_resolved_credential(
         mark_login_success($uid);
         login_last_credential_remember($uid, "global", null);
         audit("entrada_realizada", "usuario", $uid, [
-            "_skip_runtime_context" => 1,
-            "_skip_context_enrichment" => 1,
             "scope" => "global",
             "audit_body" =>
                 "Entrada realizada com a última credencial do usuário carregada automaticamente.",
+        ], [
+            "skip_runtime_context" => true,
+            "skip_context_enrichment" => true,
         ]);
         if ($redirectAfterLogin) {
             redirect("admin_painel");
@@ -702,12 +703,13 @@ function login_apply_resolved_credential(
     mark_login_success($uid);
     login_last_credential_remember($uid, "clinic", (int) $choice["id"]);
     audit("entrada_realizada", "usuario", $uid, [
-        "_skip_runtime_context" => 1,
-        "_skip_context_enrichment" => 1,
         "clinic_id" => (int) $choice["clinic_id"],
         "role_code" => (string) $choice["role_code"],
         "audit_body" =>
             "Entrada realizada com a última credencial de trabalho do usuário carregada automaticamente.",
+    ], [
+        "skip_runtime_context" => true,
+        "skip_context_enrichment" => true,
     ]);
     $destination =
         (string) ($choice["role_code"] ?? "") === "gerente"
@@ -1209,9 +1211,12 @@ function page_login(): void
         );
     }
     $pendingMfaUser = mfa_pending_login_user();
+    $pendingMfaState = is_array($pendingMfaUser)
+        ? mfa_enrollment_state((int) ($pendingMfaUser["id"] ?? 0))
+        : "inactive";
     $mfaStage =
         is_array($pendingMfaUser) &&
-        mfa_is_enrolled((int) ($pendingMfaUser["id"] ?? 0));
+        $pendingMfaState === "active";
     $cpf = only_digits($_POST["cpf"] ?? ($_SESSION["login_last_cpf"] ?? ""));
     $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
     if ($wait <= 0 && !$mfaStage) {
@@ -1220,7 +1225,29 @@ function page_login(): void
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         if ((string) ($_POST["act"] ?? "") === "mfa_verify") {
             $user = mfa_pending_login_user();
-            if (!$user || !mfa_is_enrolled((int) ($user["id"] ?? 0))) {
+            $userMfaState = $user
+                ? mfa_enrollment_state((int) ($user["id"] ?? 0))
+                : "inactive";
+            if ($user && $userMfaState === "unavailable") {
+                mfa_pending_login_clear();
+                $message =
+                    "Não foi possível confirmar a proteção MFA agora. O acesso não foi liberado; tente novamente em instantes.";
+                if ($wantsJson) {
+                    prontoo_json_response(
+                        [
+                            "ok" => false,
+                            "stage" => "password",
+                            "reset" => true,
+                            "message" => $message,
+                        ],
+                        503,
+                    );
+                    return;
+                }
+                flash($message, "bad");
+                redirect("login");
+            }
+            if (!$user || $userMfaState !== "active") {
                 mfa_pending_login_clear();
                 if ($wantsJson) {
                     prontoo_json_response(
@@ -1472,7 +1499,30 @@ function page_login(): void
             redirect("login");
         }
         $isGlobalAdmin = (int) $person["is_global_admin"] === 1;
-        $enrolled = mfa_is_enrolled($uid);
+        $mfaState = mfa_enrollment_state($uid);
+        if ($mfaState === "unavailable") {
+            audit("falha_mfa", "login", $uid, [
+                "motivo" => "cadastro_mfa_indisponivel",
+                "audit_body" =>
+                    "A senha foi confirmada, mas o estado MFA não pôde ser comprovado; a sessão não foi criada.",
+            ]);
+            $message =
+                "Não foi possível confirmar a proteção MFA agora. O acesso não foi liberado; tente novamente em instantes.";
+            if ($wantsJson) {
+                prontoo_json_response(
+                    [
+                        "ok" => false,
+                        "stage" => "password",
+                        "message" => $message,
+                    ],
+                    503,
+                );
+                return;
+            }
+            flash($message, "bad");
+            redirect("login");
+        }
+        $enrolled = $mfaState === "active";
         if ($isGlobalAdmin || $enrolled) {
             $_SESSION["login_last_cpf"] = $cpf;
             mfa_begin_pending_login($uid, $credential);
@@ -2668,8 +2718,6 @@ function page_logout(): void
             user_auth_generation_rotate($uid);
         }
         $auditContext = [
-            "_skip_runtime_context" => 1,
-            "_skip_context_enrichment" => 1,
             "clinic_id" => $clinicId > 0 ? $clinicId : null,
             "role_code" => $roleCode,
             "audit_body" =>
@@ -2685,11 +2733,10 @@ function page_logout(): void
                 $uid ?: null,
             );
         if (!$queued) {
-            audit(
-                "saida_realizada",
-                "seguranca",
-                $uid ?: null,
-                $auditContext,
+            error_log(
+                "[Prontoo logout deferred] Auditoria secundária não pôde ser enfileirada para o usuário " .
+                    max(0, $uid) .
+                    ".",
             );
         }
     } catch (Throwable $e) {
@@ -2740,8 +2787,21 @@ function page_profile(): void
             $_SESSION["profile_mfa_enrollment_secret"],
             $_SESSION["profile_mfa_enrollment_issued_at"],
             $_SESSION["profile_mfa_password_verified_at"],
+            $_SESSION["profile_mfa_enrollment_mode"],
         );
         $profileMfaIssuedAt = 0;
+    }
+    $profileMfaRecoveryIssuedAt = (int) (
+        $_SESSION["profile_mfa_recovery_codes_issued_at"] ?? 0
+    );
+    if (
+        $profileMfaRecoveryIssuedAt > 0 &&
+        time() - $profileMfaRecoveryIssuedAt > 600
+    ) {
+        unset(
+            $_SESSION["profile_mfa_recovery_codes"],
+            $_SESSION["profile_mfa_recovery_codes_issued_at"],
+        );
     }
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         if ($act === "") {
@@ -2793,7 +2853,13 @@ function page_profile(): void
                 redirect("profile");
             }
             if ($act === "profile_mfa_prepare") {
-                if (mfa_is_enrolled($uid)) {
+                $mfaState = mfa_enrollment_state($uid);
+                if ($mfaState === "unavailable") {
+                    throw new RuntimeException(
+                        "Não foi possível confirmar o estado MFA agora.",
+                    );
+                }
+                if ($mfaState === "active") {
                     throw new RuntimeException(
                         "O MFA já está ativo para este usuário.",
                     );
@@ -2816,6 +2882,7 @@ function page_profile(): void
                     mfa_totp_secret_generate();
                 $_SESSION["profile_mfa_enrollment_issued_at"] = time();
                 $_SESSION["profile_mfa_password_verified_at"] = time();
+                $_SESSION["profile_mfa_enrollment_mode"] = "enable";
                 audit("mfa_cadastro_iniciado", "usuario", $uid, [
                     "audit_body" =>
                         "O próprio usuário confirmou a senha e iniciou o cadastro opcional de MFA em Minha conta.",
@@ -2830,14 +2897,15 @@ function page_profile(): void
                     $_SESSION["profile_mfa_enrollment_secret"],
                     $_SESSION["profile_mfa_enrollment_issued_at"],
                     $_SESSION["profile_mfa_password_verified_at"],
+                    $_SESSION["profile_mfa_enrollment_mode"],
                 );
-                flash("Ativação do MFA cancelada.", "warn");
+                flash("Configuração do MFA cancelada.", "warn");
                 redirect("profile");
             }
             if ($act === "profile_mfa_enable") {
-                if (mfa_is_enrolled($uid)) {
+                if (mfa_enrollment_state($uid) !== "inactive") {
                     throw new RuntimeException(
-                        "O MFA já está ativo para este usuário.",
+                        "Não foi possível iniciar um novo cadastro MFA.",
                     );
                 }
                 $secret = (string) (
@@ -2849,8 +2917,12 @@ function page_profile(): void
                 $passwordVerifiedAt = (int) (
                     $_SESSION["profile_mfa_password_verified_at"] ?? 0
                 );
+                $enrollmentMode = (string) (
+                    $_SESSION["profile_mfa_enrollment_mode"] ?? ""
+                );
                 if (
                     $secret === "" ||
+                    $enrollmentMode !== "enable" ||
                     $issuedAt <= 0 ||
                     $passwordVerifiedAt <= 0 ||
                     time() - $issuedAt > 600 ||
@@ -2871,10 +2943,12 @@ function page_profile(): void
                     (string) ($_POST["code"] ?? ""),
                 );
                 $_SESSION["profile_mfa_recovery_codes"] = $codes;
+                $_SESSION["profile_mfa_recovery_codes_issued_at"] = time();
                 unset(
                     $_SESSION["profile_mfa_enrollment_secret"],
                     $_SESSION["profile_mfa_enrollment_issued_at"],
                     $_SESSION["profile_mfa_password_verified_at"],
+                    $_SESSION["profile_mfa_enrollment_mode"],
                 );
                 $_SESSION["mfa_verified_at"] = time();
                 $_SESSION["user_auth_generation"] =
@@ -2888,6 +2962,197 @@ function page_profile(): void
                 flash(
                     "MFA ativado. Guarde agora os códigos de recuperação exibidos abaixo.",
                 );
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_recovery_ack") {
+                unset(
+                    $_SESSION["profile_mfa_recovery_codes"],
+                    $_SESSION["profile_mfa_recovery_codes_issued_at"],
+                );
+                flash("Códigos de recuperação confirmados.");
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_recovery_regenerate") {
+                if (mfa_enrollment_state($uid) !== "active") {
+                    throw new RuntimeException(
+                        "O MFA não está disponível para gerenciamento.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "management")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                if (
+                    !password_verify(
+                        (string) ($_POST["current_password"] ?? ""),
+                        (string) $u["password_hash"],
+                    )
+                ) {
+                    usleep(random_int(250000, 450000));
+                    throw new RuntimeException("A senha atual não confere.");
+                }
+                $codes = mfa_recovery_codes_regenerate(
+                    $uid,
+                    (string) ($_POST["current_code"] ?? ""),
+                );
+                $_SESSION["profile_mfa_recovery_codes"] = $codes;
+                $_SESSION["profile_mfa_recovery_codes_issued_at"] = time();
+                $_SESSION["mfa_verified_at"] = time();
+                $_SESSION["user_auth_generation"] =
+                    user_auth_generation_rotate($uid);
+                session_regenerate_id(true);
+                $_SESSION["csrf"] = bin2hex(random_bytes(32));
+                audit("mfa_recuperacao_regenerada", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário regenerou os códigos de recuperação após confirmar senha e MFA; os códigos anteriores foram invalidados.",
+                ]);
+                flash(
+                    "Novos códigos gerados. Guarde-os e confirme abaixo.",
+                );
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_replace_prepare") {
+                if (mfa_enrollment_state($uid) !== "active") {
+                    throw new RuntimeException(
+                        "O MFA não está disponível para gerenciamento.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "management")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                if (
+                    !password_verify(
+                        (string) ($_POST["current_password"] ?? ""),
+                        (string) $u["password_hash"],
+                    )
+                ) {
+                    usleep(random_int(250000, 450000));
+                    throw new RuntimeException("A senha atual não confere.");
+                }
+                $_SESSION["profile_mfa_enrollment_secret"] =
+                    mfa_totp_secret_generate();
+                $_SESSION["profile_mfa_enrollment_issued_at"] = time();
+                $_SESSION["profile_mfa_password_verified_at"] = time();
+                $_SESSION["profile_mfa_enrollment_mode"] = "replace";
+                audit("mfa_troca_iniciada", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário confirmou a senha e iniciou a troca reautenticada do aplicativo autenticador.",
+                ]);
+                flash(
+                    "Senha confirmada. Cadastre a nova chave e confirme os dois códigos.",
+                );
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_replace_enable") {
+                if (mfa_enrollment_state($uid) !== "active") {
+                    throw new RuntimeException(
+                        "O MFA não está disponível para troca.",
+                    );
+                }
+                $secret = (string) (
+                    $_SESSION["profile_mfa_enrollment_secret"] ?? ""
+                );
+                $issuedAt = (int) (
+                    $_SESSION["profile_mfa_enrollment_issued_at"] ?? 0
+                );
+                $passwordVerifiedAt = (int) (
+                    $_SESSION["profile_mfa_password_verified_at"] ?? 0
+                );
+                $enrollmentMode = (string) (
+                    $_SESSION["profile_mfa_enrollment_mode"] ?? ""
+                );
+                if (
+                    $secret === "" ||
+                    $enrollmentMode !== "replace" ||
+                    $issuedAt <= 0 ||
+                    $passwordVerifiedAt <= 0 ||
+                    time() - $issuedAt > 600 ||
+                    time() - $passwordVerifiedAt > 600
+                ) {
+                    throw new RuntimeException(
+                        "A troca expirou. Confirme novamente sua senha.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "management")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                $codes = mfa_replace_user(
+                    $uid,
+                    (string) ($_POST["current_code"] ?? ""),
+                    $secret,
+                    (string) ($_POST["new_code"] ?? ""),
+                );
+                $_SESSION["profile_mfa_recovery_codes"] = $codes;
+                $_SESSION["profile_mfa_recovery_codes_issued_at"] = time();
+                unset(
+                    $_SESSION["profile_mfa_enrollment_secret"],
+                    $_SESSION["profile_mfa_enrollment_issued_at"],
+                    $_SESSION["profile_mfa_password_verified_at"],
+                    $_SESSION["profile_mfa_enrollment_mode"],
+                );
+                $_SESSION["mfa_verified_at"] = time();
+                $_SESSION["user_auth_generation"] =
+                    user_auth_generation_rotate($uid);
+                session_regenerate_id(true);
+                $_SESSION["csrf"] = bin2hex(random_bytes(32));
+                audit("mfa_autenticador_substituido", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário substituiu o autenticador após confirmar senha, MFA atual e novo TOTP; sessões e recuperações anteriores foram revogadas.",
+                ]);
+                flash(
+                    "Autenticador substituído. Guarde os novos códigos de recuperação.",
+                );
+                redirect("profile");
+            }
+            if ($act === "profile_mfa_disable") {
+                if ((int) ($u["is_global_admin"] ?? 0) === 1) {
+                    throw new RuntimeException(
+                        "A proteção MFA é obrigatória para Desenvolvedor.",
+                    );
+                }
+                if (mfa_enrollment_state($uid) !== "active") {
+                    throw new RuntimeException(
+                        "O MFA não está disponível para desativação.",
+                    );
+                }
+                if (mfa_attempt_limited($uid, "management")) {
+                    throw new RuntimeException(
+                        "Muitas tentativas. Aguarde alguns minutos.",
+                    );
+                }
+                if (
+                    !password_verify(
+                        (string) ($_POST["current_password"] ?? ""),
+                        (string) $u["password_hash"],
+                    )
+                ) {
+                    usleep(random_int(250000, 450000));
+                    throw new RuntimeException("A senha atual não confere.");
+                }
+                mfa_disable_user(
+                    $uid,
+                    (string) ($_POST["current_code"] ?? ""),
+                );
+                unset(
+                    $_SESSION["mfa_verified_at"],
+                    $_SESSION["privileged_auth_at"],
+                    $_SESSION["profile_mfa_recovery_codes"],
+                    $_SESSION["profile_mfa_recovery_codes_issued_at"],
+                );
+                $_SESSION["user_auth_generation"] =
+                    user_auth_generation_rotate($uid);
+                session_regenerate_id(true);
+                $_SESSION["csrf"] = bin2hex(random_bytes(32));
+                audit("mfa_desativado", "usuario", $uid, [
+                    "audit_body" =>
+                        "O próprio usuário regular desativou MFA após confirmar senha e segundo fator; as demais sessões foram revogadas.",
+                ]);
+                flash("Proteção Avançada desativada.", "warn");
                 redirect("profile");
             }
             if ($act === "profile_change_password") {
@@ -3082,15 +3347,96 @@ function page_profile(): void
         '</div><div class="form-actions"><button type="submit" class="primary">' .
         icon("key") .
         "<span>Alterar senha</span></button></div></form>";
-    $mfaEnrolled = mfa_is_enrolled($uid);
+    $mfaState = mfa_enrollment_state($uid);
+    $mfaEnrolled = $mfaState === "active";
     $profileMfaSecret = (string) (
         $_SESSION["profile_mfa_enrollment_secret"] ?? ""
+    );
+    $profileMfaMode = (string) (
+        $_SESSION["profile_mfa_enrollment_mode"] ?? ""
     );
     $profileRecoveryCodes = (array) (
         $_SESSION["profile_mfa_recovery_codes"] ?? []
     );
-    unset($_SESSION["profile_mfa_recovery_codes"]);
-    if ($mfaEnrolled) {
+    $managementPasswordField = form_row(
+        "Senha atual",
+        input(
+            "current_password",
+            "password",
+            "",
+            'required autocomplete="current-password"',
+        ),
+    );
+    $managementCodeField = form_row(
+        "Código MFA atual",
+        input(
+            "current_code",
+            "text",
+            "",
+            'required autocomplete="one-time-code" maxlength="16"',
+        ),
+    );
+    if ($profileMfaSecret !== "") {
+        $account =
+            trim((string) ($u["email"] ?? "")) ?:
+            ((string) ($u["name"] ?? "Usuário") . " #" . $uid);
+        $uri = mfa_otpauth_uri($account, $profileMfaSecret);
+        $isReplacement = $profileMfaMode === "replace";
+        $configurationFields = $isReplacement
+            ? $managementCodeField .
+                form_row(
+                    "Código do novo autenticador",
+                    input(
+                        "new_code",
+                        "text",
+                        "",
+                        'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"',
+                    ),
+                )
+            : form_row(
+                "Código de seis dígitos",
+                input(
+                    "code",
+                    "text",
+                    "",
+                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"',
+                ),
+            );
+        $mfaPanel =
+            '<section class="account-mfa-panel is-configuring" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
+            icon("shield_lock") .
+            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">' .
+            ($isReplacement
+                ? "Concluir troca do autenticador"
+                : "Concluir ativação do MFA") .
+            "</h3><p>" .
+            ($isReplacement
+                ? "Adicione a nova conta e confirme o fator atual e o novo código."
+                : "Adicione a conta ao autenticador e confirme o primeiro código.") .
+            '</p></div></div><a class="ghost wide security-auth-launch" href="' .
+            e($uri) .
+            '">' .
+            icon("open_in_new") .
+            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
+            e($profileMfaSecret) .
+            '</code></div><form method="post" class="compact account-mfa-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="' .
+            ($isReplacement
+                ? "profile_mfa_replace_enable"
+                : "profile_mfa_enable") .
+            '">' .
+            $configurationFields .
+            '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
+            icon("check_circle") .
+            "<span>" .
+            ($isReplacement ? "Confirmar troca" : "Confirmar e ativar") .
+            '</span></button></div></form><form method="post" class="account-mfa-cancel-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_cancel"><button type="submit" class="ghost small">' .
+            icon("close") .
+            "<span>Cancelar configuração</span></button></form></section>";
+    } elseif ($mfaEnrolled) {
         $recoveryHtml = "";
         if ($profileRecoveryCodes) {
             $items = "";
@@ -3103,49 +3449,53 @@ function page_profile(): void
             $recoveryHtml =
                 '<div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
                 icon("key") .
-                '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez e não será exibido novamente.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
+                '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez. Eles permanecerão disponíveis por até dez minutos ou até sua confirmação.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
                 $items .
-                "</ul>";
+                '</ul><form method="post" class="account-mfa-cancel-form">' .
+                csrf_field() .
+                '<input type="hidden" name="act" value="profile_mfa_recovery_ack"><button type="submit" class="ghost small">' .
+                icon("check") .
+                "<span>Já guardei os códigos</span></button></form>";
         }
+        $disableForm =
+            (int) ($u["is_global_admin"] ?? 0) === 1
+                ? '<div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
+                    icon("policy") .
+                    '</span><div><strong>Proteção obrigatória</strong><span>O MFA não pode ser desativado para Desenvolvedor.</span></div></div>'
+                : '<form method="post" class="compact account-mfa-form">' .
+                    csrf_field() .
+                    '<input type="hidden" name="act" value="profile_mfa_disable">' .
+                    $managementPasswordField .
+                    $managementCodeField .
+                    '<div class="form-actions"><button type="submit" class="ghost">' .
+                    icon("lock_open") .
+                    "<span>Desativar Proteção Avançada</span></button></div></form>";
         $mfaPanel =
             '<section class="account-mfa-panel is-active" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
             icon("verified_user") .
             '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">MFA ativo</h3><p>Depois da senha, o Prontoo solicitará o código MFA na mesma tela de entrada.</p></div></div>' .
             $recoveryHtml .
-            "</section>";
-    } elseif ($profileMfaSecret !== "") {
-        $account =
-            trim((string) ($u["email"] ?? "")) ?:
-            ((string) ($u["name"] ?? "Usuário") . " #" . $uid);
-        $uri = mfa_otpauth_uri($account, $profileMfaSecret);
+            '<details class="account-mfa-management"><summary>Gerenciar proteção</summary><div class="account-mfa-management-grid"><form method="post" class="compact account-mfa-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_recovery_regenerate">' .
+            $managementPasswordField .
+            $managementCodeField .
+            '<div class="form-actions"><button type="submit" class="ghost">' .
+            icon("key") .
+            '<span>Gerar novos códigos</span></button></div></form><form method="post" class="compact account-mfa-form">' .
+            csrf_field() .
+            '<input type="hidden" name="act" value="profile_mfa_replace_prepare">' .
+            $managementPasswordField .
+            '<div class="form-actions"><button type="submit" class="ghost">' .
+            icon("sync_lock") .
+            "<span>Trocar autenticador</span></button></div></form>" .
+            $disableForm .
+            "</div></details></section>";
+    } elseif ($mfaState === "unavailable") {
         $mfaPanel =
-            '<section class="account-mfa-panel is-configuring" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-            icon("shield_lock") .
-            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">Concluir ativação do MFA</h3><p>Adicione a conta ao autenticador e confirme o primeiro código.</p></div></div><a class="ghost wide security-auth-launch" href="' .
-            e($uri) .
-            '">' .
-            icon("open_in_new") .
-            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
-            e($profileMfaSecret) .
-            '</code></div><form method="post" class="compact account-mfa-form">' .
-            csrf_field() .
-            '<input type="hidden" name="act" value="profile_mfa_enable">' .
-            form_row(
-                "Código de seis dígitos",
-                input(
-                    "code",
-                    "text",
-                    "",
-                    'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"',
-                ),
-            ) .
-            '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
-            icon("check_circle") .
-            '<span>Confirmar e ativar</span></button></div></form><form method="post" class="account-mfa-cancel-form">' .
-            csrf_field() .
-            '<input type="hidden" name="act" value="profile_mfa_cancel"><button type="submit" class="ghost small">' .
-            icon("close") .
-            "<span>Cancelar ativação</span></button></form></section>";
+            '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
+            icon("gpp_bad") .
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Proteção temporariamente indisponível</h3><p>O estado MFA não pôde ser confirmado. Nenhuma alteração foi aplicada; tente novamente em instantes.</p></div></div></section>';
     } else {
         $mfaPanel =
             '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .

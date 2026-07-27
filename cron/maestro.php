@@ -300,6 +300,8 @@ function prontoo_cron_preflight_once(): array
     return $report;
 }
 $__prontooCronStarted = microtime(true);
+$__prontooCronDeadline =
+    $__prontooCronStarted + PRONTOO_MAESTRO_CRON_BUDGET_MS / 1000;
 try {
     if (!has_cfg()) {
         echo json_encode(
@@ -332,29 +334,84 @@ try {
     }
     ensure_runtime_schema_minimum();
     maestro_runtime_upgrade();
+    $remainingBudget = max(
+        0,
+        (int) floor(
+            ($__prontooCronDeadline - microtime(true)) * 1000,
+        ),
+    );
     $deferredBudget = min(
         10000,
-        max(1000, (int) (PRONTOO_MAESTRO_CRON_BUDGET_MS / 10)),
+        $remainingBudget,
+        max(250, (int) (PRONTOO_MAESTRO_CRON_BUDGET_MS / 10)),
     );
-    $deferredWork = function_exists("maestro_process_deferred_work")
+    $deferredWork =
+        $deferredBudget >= 250 &&
+        function_exists("maestro_process_deferred_work")
         ? maestro_process_deferred_work($deferredBudget, 1000)
         : [
             "success" => false,
             "errors" => 1,
             "remaining" => 0,
-            "note" => "Consumidor de rotinas secundárias indisponível.",
+            "note" =>
+                $deferredBudget < 250
+                    ? "Orçamento global esgotado antes das rotinas secundárias."
+                    : "Consumidor de rotinas secundárias indisponível.",
         ];
-    if (function_exists("clinic_auto_assign_missing_managers")) {
+    $remainingBudget = max(
+        0,
+        (int) floor(
+            ($__prontooCronDeadline - microtime(true)) * 1000,
+        ),
+    );
+    if (
+        $remainingBudget >= 1000 &&
+        function_exists("clinic_auto_assign_missing_managers")
+    ) {
         clinic_auto_assign_missing_managers(200);
     }
-    $piBudget = defined("PRONTOO_MAESTRO_PI_BUDGET_MS")
+    $remainingBudget = max(
+        0,
+        (int) floor(
+            ($__prontooCronDeadline - microtime(true)) * 1000,
+        ),
+    );
+    $configuredPiBudget = defined("PRONTOO_MAESTRO_PI_BUDGET_MS")
         ? (int) PRONTOO_MAESTRO_PI_BUDGET_MS
         : (int) max(15000, PRONTOO_MAESTRO_CRON_BUDGET_MS / 2);
-    $piResult = class_exists("\Prontoo\Core\Integrity\PiIntegrity")
+    $piBudget = min(
+        $configuredPiBudget,
+        max(0, (int) floor($remainingBudget / 2)),
+    );
+    $piResult =
+        $piBudget >= 1000 &&
+        class_exists("\Prontoo\Core\Integrity\PiIntegrity")
         ? \Prontoo\Core\Integrity\PiIntegrity::runMaestroCycle($piBudget)
-        : ["ok" => true];
-    $jobBudget = max(5000, (int) PRONTOO_MAESTRO_CRON_BUDGET_MS - $piBudget);
-    $result = maestro_cron_run($jobBudget);
+        : [
+            "ok" => $piBudget < 1000,
+            "complete" => false,
+            "note" =>
+                $piBudget < 1000
+                    ? "Integridade adiada por esgotamento do orçamento global."
+                    : "Núcleo de integridade indisponível.",
+        ];
+    $jobBudget = max(
+        0,
+        (int) floor(
+            ($__prontooCronDeadline - microtime(true)) * 1000,
+        ),
+    );
+    $result = $jobBudget >= 5000
+        ? maestro_cron_run($jobBudget)
+        : [
+            "success" => false,
+            "rules_seen" => 0,
+            "rules_run" => 0,
+            "actions_created" => 0,
+            "deferred" => 0,
+            "errors" => 1,
+            "note" => "Regras adiadas por esgotamento do orçamento global.",
+        ];
     $ok =
         (bool) ($result["success"] ?? true) &&
         (bool) ($piResult["ok"] ?? true) &&
