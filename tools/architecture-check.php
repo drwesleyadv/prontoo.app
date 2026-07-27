@@ -384,6 +384,62 @@ $inlineMfa = [
     'failed' => $inlineMfaFailures,
 ];
 
+$operationalUiSources = [
+    'appointments' => (string) file_get_contents(
+        $root . '/app/Domain/Appointments/Appointments.php',
+    ),
+    'leads' => (string) file_get_contents(
+        $root . '/app/Domain/Leads/Leads.php',
+    ),
+    'css' => $dashboardIconCss,
+];
+$operationalUiFailures = [];
+foreach ([
+    'appointments' => [
+        'bool $registeredOnly = false',
+        '$registeredOnly && $procedures === []',
+        'Cadastre Procedimentos primeiro',
+        'if (!$registeredOnly) {',
+        'if ($act === "create" && !$procId) {',
+        'Selecione um procedimento cadastrado.',
+        'procedure_select_html($cid, "reason", "", true)',
+    ],
+    'leads' => [
+        'action_summary_label("Tornar Paciente", "person_add")',
+        'action_summary_label("Registrar contato", "forum")',
+        '<footer><div class="lead-actions">',
+    ],
+    'css' => [
+        '.lead-card-expanded .lead-actions > .lead-card-details:not([open])',
+        'padding:0!important;',
+        '.lead-card-expanded .lead-actions > .lead-card-details > summary.cmdlike',
+        'min-height:34px!important;',
+        '.lead-card-expanded .lead-actions > .lead-card-details[open]',
+        'flex:1 0 100%!important;',
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($operationalUiSources[$sourceKey], $requiredToken)) {
+            $operationalUiFailures[] =
+                $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'appointments' => ['procedure_select_html($cid, "reason") .'],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($operationalUiSources[$sourceKey], $forbiddenToken)) {
+            $operationalUiFailures[] =
+                $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$operationalUi = [
+    'ok' => $operationalUiFailures === [],
+    'failed' => $operationalUiFailures,
+];
+
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -391,13 +447,15 @@ $result = [
         !empty($dashboardIconCascade['ok']) &&
         !empty($logoutCascade['ok']) &&
         !empty($loginPerformance['ok']) &&
-        !empty($inlineMfa['ok']),
+        !empty($inlineMfa['ok']) &&
+        !empty($operationalUi['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
     'logout_cascade' => $logoutCascade,
     'login_performance' => $loginPerformance,
     'inline_mfa' => $inlineMfa,
+    'operational_ui' => $operationalUi,
 ];
 
 echo json_encode(
