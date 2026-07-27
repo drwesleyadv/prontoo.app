@@ -1,11 +1,14 @@
-Prontoo 1.7.27.5 — procedimentos cadastrados e ações de interessados alinhadas
+Prontoo 1.7.27.5 — procedimentos consistentes e ações de interessados alinhadas
 
+- Impede que a repetição do mesmo envio crie dois procedimentos: cada formulário novo recebe um token de uso único, consumido no servidor antes da inserção.
+- Bloqueia o formulário e seu botão enquanto o primeiro envio está em andamento, oferecendo resposta imediata também contra clique ou toque repetido.
 - Remove “Outro / procedimento livre” exclusivamente do Agendamento Rápido e apresenta apenas procedimentos ativos cadastrados no consultório.
 - Substitui “Selecione o procedimento” por “Cadastre Procedimentos primeiro” quando o consultório ainda não possui procedimento ativo.
 - Torna a escolha obrigatória no Agendamento Rápido e rejeita no servidor valores vazios, livres, inativos ou pertencentes a outro consultório.
+- Revalida e bloqueia o procedimento ativo dentro da transação do agendamento, impedindo corrida com uma desativação simultânea.
 - Preserva a edição e a leitura de agendamentos históricos que já possuam descrição livre, sem reintroduzir essa alternativa em novos agendamentos rápidos.
 - Alinha “Tornar Paciente” e “Registrar contato” na expansão de Interessados e faz o painel aberto ocupar uma linha integral em telas largas ou estreitas.
-- Acrescenta contrato regressivo ao CI para impedir o retorno da opção livre, a perda da validação e a divergência visual entre as ações.
+- Acrescenta contrato regressivo ao CI para impedir cadastros repetidos, o retorno da opção livre, a perda da validação e a divergência visual entre as ações.
 - Banco e schema permanecem inalterados.
 
 Prontoo 1.7.27.4 — MFA mais simples e didático
