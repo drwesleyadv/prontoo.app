@@ -391,6 +391,12 @@ $operationalUiSources = [
     'leads' => (string) file_get_contents(
         $root . '/app/Domain/Leads/Leads.php',
     ),
+    'procedures' => (string) file_get_contents(
+        $root . '/app/Domain/Documents/Documents.php',
+    ),
+    'javascript' => (string) file_get_contents(
+        $root . '/public/assets/app.js',
+    ),
     'css' => $dashboardIconCss,
 ];
 $operationalUiFailures = [];
@@ -403,11 +409,30 @@ foreach ([
         'if ($act === "create" && !$procId) {',
         'Selecione um procedimento cadastrado.',
         'procedure_select_html($cid, "reason", "", true)',
+        'AND active=1 FOR UPDATE',
+        'O procedimento selecionado não está mais disponível.',
+        '(string) $lockedProcedure["title"]',
     ],
     'leads' => [
         'action_summary_label("Tornar Paciente", "person_add")',
         'action_summary_label("Registrar contato", "forum")',
         '<footer><div class="lead-actions">',
+    ],
+    'procedures' => [
+        '$_SESSION["procedure_create_submission_tokens"]',
+        'isset($submissionTokens[$submissionToken])',
+        'unset($submissionTokens[$submissionToken]);',
+        'procedure_submission_token',
+        'data-submit-once',
+        'array_slice(',
+        'random_bytes(24)',
+        'Este cadastro já foi enviado.',
+    ],
+    'javascript' => [
+        'form.matches?.("[data-submit-once]")',
+        'form.dataset.submitting === "1"',
+        'form.dataset.submitting = "1";',
+        'button.disabled = true;',
     ],
     'css' => [
         '.lead-card-expanded .lead-actions > .lead-card-details:not([open])',
