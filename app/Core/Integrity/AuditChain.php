@@ -17,7 +17,11 @@ final class AuditChain
          * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
          */
     }
-    public static function build(array $row, string $secret): array
+    public static function build(
+        array $row,
+        string $secret,
+        ?array $proofContext = null,
+    ): array
     {
         /*
          * GUIA DE MANUTENÇÃO — Core.Integrity.AuditChain::build
@@ -34,7 +38,7 @@ final class AuditChain
             $row,
             $secret,
             $previous,
-            self::runtimeProofContext(),
+            $proofContext ?? self::runtimeProofContext(),
         );
         self::advanceHead((string) $proof["chain_hash"]);
         return $proof;
