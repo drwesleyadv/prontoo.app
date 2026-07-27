@@ -719,7 +719,7 @@ function mfa_secret_decrypt(string $encrypted): string
     }
     return $secret;
 }
-/* Guia de manutenção: Carrega o cadastro MFA canônico do usuário; trate registros incompletos como não cadastrados. */
+/* Guia de manutenção: Carrega o cadastro MFA canônico do usuário; ausência é inativa, mas registro presente e inválido deve falhar fechado. */
 function mfa_record_load(int $uid): ?array
 {
     if ($uid <= 0 || !has_cfg()) {
@@ -732,13 +732,17 @@ function mfa_record_load(int $uid): ?array
     if (!is_string($raw) || trim($raw) === "") {
         return null;
     }
-    $record = json_decode($raw, true);
+    try {
+        $record = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    } catch (JsonException $e) {
+        throw new RuntimeException("Cadastro MFA corrompido.", 0, $e);
+    }
     if (
         !is_array($record) ||
         (int) ($record["v"] ?? 0) !== 1 ||
         empty($record["secret"])
     ) {
-        return null;
+        throw new RuntimeException("Cadastro MFA incompleto.");
     }
     return $record;
 }
@@ -751,15 +755,31 @@ function mfa_record_save(int $uid, array $record): void
     );
     meta_set(mfa_meta_key($uid), $encoded);
 }
-/* Guia de manutenção: Informa se há MFA utilizável; erros de persistência não podem liberar acesso privilegiado. */
+/* Guia de manutenção: Resolve MFA em três estados; indisponibilidade ou corrupção nunca equivalem a ausência comprovada. */
+function mfa_enrollment_state(int $uid): string
+{
+    if ($uid <= 0 || !has_cfg()) {
+        return "unavailable";
+    }
+    try {
+        $record = mfa_record_load($uid);
+        if ($record === null) {
+            return "inactive";
+        }
+        $secret = mfa_secret_decrypt((string) $record["secret"]);
+        if (strlen(mfa_base32_decode($secret)) < 16) {
+            throw new RuntimeException("Segredo MFA inválido.");
+        }
+        return "active";
+    } catch (Throwable $e) {
+        error_log("[Prontoo MFA state] " . $e->getMessage());
+        return "unavailable";
+    }
+}
+/* Guia de manutenção: Informa apenas cadastro MFA comprovadamente ativo; fluxos de acesso devem consultar o estado triádico para distinguir indisponibilidade. */
 function mfa_is_enrolled(int $uid): bool
 {
-    try {
-        return mfa_record_load($uid) !== null;
-    } catch (Throwable $e) {
-        error_log("[Prontoo MFA enrolled] " . $e->getMessage());
-        return false;
-    }
+    return mfa_enrollment_state($uid) === "active";
 }
 /* Guia de manutenção: Codifica segredos TOTP no alfabeto Base32 interoperável com autenticadores. */
 function mfa_base32_encode(string $bytes): string
@@ -936,6 +956,35 @@ function mfa_enroll_user(
         }
     }
 }
+/* Guia de manutenção: Aplica TOTP ou recuperação a um registro já protegido por trava; o chamador é responsável pela persistência atômica. */
+function mfa_record_verify_code(array &$record, string $code): bool
+{
+    $secret = mfa_secret_decrypt((string) ($record["secret"] ?? ""));
+    $counter = mfa_totp_matching_counter(
+        $secret,
+        $code,
+        (int) ($record["last_counter"] ?? -1),
+    );
+    if ($counter !== null) {
+        $record["last_counter"] = $counter;
+        $record["updated_at"] = time();
+        return true;
+    }
+    $normalized = mfa_recovery_code_normalize($code);
+    if (strlen($normalized) !== 12) {
+        return false;
+    }
+    $candidate = mfa_recovery_code_hash($normalized);
+    foreach ((array) ($record["recovery"] ?? []) as $index => $hash) {
+        if (hash_equals((string) $hash, $candidate)) {
+            unset($record["recovery"][$index]);
+            $record["recovery"] = array_values($record["recovery"]);
+            $record["updated_at"] = time();
+            return true;
+        }
+    }
+    return false;
+}
 /* Guia de manutenção: Valida TOTP ou recuperação sob trava por usuário, consumindo provas contra repetição. */
 function mfa_verify_user_code(int $uid, string $code): bool
 {
@@ -950,39 +999,147 @@ function mfa_verify_user_code(int $uid, string $code): bool
         if (!$record) {
             return false;
         }
-        $secret = mfa_secret_decrypt((string) $record["secret"]);
-        $counter = mfa_totp_matching_counter(
-            $secret,
-            $code,
-            (int) ($record["last_counter"] ?? -1),
-        );
-        if ($counter !== null) {
-            $record["last_counter"] = $counter;
-            $record["updated_at"] = time();
-            mfa_record_save($uid, $record);
-            return true;
-        }
-        $normalized = mfa_recovery_code_normalize($code);
-        if (strlen($normalized) !== 12) {
+        if (!mfa_record_verify_code($record, $code)) {
             return false;
         }
-        $candidate = mfa_recovery_code_hash($normalized);
-        foreach ((array) ($record["recovery"] ?? []) as $index => $hash) {
-            if (hash_equals((string) $hash, $candidate)) {
-                unset($record["recovery"][$index]);
-                $record["recovery"] = array_values($record["recovery"]);
-                $record["updated_at"] = time();
-                mfa_record_save($uid, $record);
-                return true;
-            }
-        }
-        return false;
+        mfa_record_save($uid, $record);
+        return true;
     } finally {
         if ($locked) {
             try {
                 val("SELECT RELEASE_LOCK(?)", [$lock]);
             } catch (Throwable $e) {
                 error_log("[Prontoo MFA unlock] " . $e->getMessage());
+            }
+        }
+    }
+}
+/* Guia de manutenção: Substitui todos os códigos de recuperação após nova prova MFA e devolve os novos códigos apenas ao usuário autenticado. */
+function mfa_recovery_codes_regenerate(int $uid, string $currentCode): array
+{
+    $lock = "prontoo_mfa_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            throw new RuntimeException(
+                "Não foi possível proteger a atualização MFA.",
+            );
+        }
+        $record = mfa_record_load($uid);
+        if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            throw new RuntimeException(
+                "O código de autenticação não confere.",
+            );
+        }
+        $codes = mfa_recovery_codes_generate();
+        $record["recovery"] = array_map(
+            "mfa_recovery_code_hash",
+            $codes,
+        );
+        $record["updated_at"] = time();
+        mfa_record_save($uid, $record);
+        return $codes;
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log(
+                    "[Prontoo MFA recovery unlock] " . $e->getMessage(),
+                );
+            }
+        }
+    }
+}
+/* Guia de manutenção: Troca o autenticador somente após prova do MFA atual e confirmação TOTP do novo segredo, invalidando toda recuperação anterior. */
+function mfa_replace_user(
+    int $uid,
+    string $currentCode,
+    string $newSecret,
+    string $newCode,
+): array {
+    $lock = "prontoo_mfa_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            throw new RuntimeException(
+                "Não foi possível proteger a troca do autenticador.",
+            );
+        }
+        $record = mfa_record_load($uid);
+        if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            throw new RuntimeException(
+                "O código MFA atual não confere.",
+            );
+        }
+        $counter = mfa_totp_matching_counter($newSecret, $newCode);
+        if ($counter === null) {
+            throw new RuntimeException(
+                "O código do novo autenticador não confere.",
+            );
+        }
+        $codes = mfa_recovery_codes_generate();
+        mfa_record_save($uid, [
+            "v" => 1,
+            "secret" => mfa_secret_encrypt($newSecret),
+            "recovery" => array_map("mfa_recovery_code_hash", $codes),
+            "last_counter" => $counter,
+            "enrolled_at" => (int) ($record["enrolled_at"] ?? time()),
+            "replaced_at" => time(),
+            "updated_at" => time(),
+        ]);
+        return $codes;
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log(
+                    "[Prontoo MFA replace unlock] " . $e->getMessage(),
+                );
+            }
+        }
+    }
+}
+/* Guia de manutenção: Desativa MFA apenas de usuário regular após prova atual; contas Desenvolvedor permanecem obrigatoriamente protegidas. */
+function mfa_disable_user(int $uid, string $currentCode): void
+{
+    $lock = "prontoo_mfa_user_" . max(0, $uid);
+    $locked = false;
+    try {
+        $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+        if (!$locked) {
+            throw new RuntimeException(
+                "Não foi possível proteger a desativação MFA.",
+            );
+        }
+        if (
+            (int) val(
+                "SELECT is_global_admin FROM pi_users WHERE id=? LIMIT 1",
+                [$uid],
+            ) === 1
+        ) {
+            throw new RuntimeException(
+                "A proteção MFA é obrigatória para Desenvolvedor.",
+            );
+        }
+        $record = mfa_record_load($uid);
+        if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            throw new RuntimeException(
+                "O código de autenticação não confere.",
+            );
+        }
+        q("DELETE FROM pi_meta WHERE meta_key=?", [mfa_meta_key($uid)]);
+    } finally {
+        if ($locked) {
+            try {
+                val("SELECT RELEASE_LOCK(?)", [$lock]);
+            } catch (Throwable $e) {
+                error_log(
+                    "[Prontoo MFA disable unlock] " . $e->getMessage(),
+                );
             }
         }
     }
@@ -1171,12 +1328,13 @@ function security_session_generation_enforce(int $uid): void
     }
     try {
         audit("sessao_obsoleta_encerrada", "seguranca", $uid, [
-            "_skip_runtime_context" => 1,
-            "_skip_context_enrichment" => 1,
             "clinic_id" => (int) ($_SESSION["clinic_id"] ?? 0) ?: null,
             "role_code" => (string) ($_SESSION["role_code"] ?? ""),
             "audit_body" =>
                 "Sessão encerrada no primeiro uso após divergência da geração canônica de autenticação do usuário.",
+        ], [
+            "skip_runtime_context" => true,
+            "skip_context_enrichment" => true,
         ]);
     } catch (Throwable $e) {
         error_log("[Prontoo auth generation audit] " . $e->getMessage());
