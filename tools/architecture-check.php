@@ -115,9 +115,10 @@ foreach ([
     ],
     'loader' => ["'signup', 'logout'"],
     'audit' => [
-        '$skipRuntimeContext = !empty($context["_skip_runtime_context"])',
+        'function audit_trusted_origin_resolve(',
+        'str_starts_with((string) $key, "_audit_")',
+        '?array $trustedOrigin = null',
         '$c = $skipRuntimeContext ? [] : ctx();',
-        '$hasForcedUser = array_key_exists("_audit_user_id", $context)',
         '$forcedProofContext',
         'COALESCE(?,NOW())',
     ],
@@ -132,14 +133,17 @@ foreach ([
         'maestro_defer_telemetry_event($event, $includePageMetric);',
         'function maestro_process_deferred_work(',
         'JSON_UNQUOTE(JSON_EXTRACT(context_json',
+        '$event["deferred_id"] = $id;',
+        '"dead_letter" => 0',
+        '$stateDir . "/deferred-work.json"',
     ],
     'cron' => [
         'maestro_process_deferred_work($deferredBudget, 1000)',
         '"deferred_work" => $deferredWork',
+        '$__prontooCronDeadline',
     ],
     'logout' => [
         'user_auth_generation_rotate($uid);',
-        '"_skip_runtime_context" => 1',
         'maestro_defer_audit_event(',
         'secure_session_destroy();',
     ],
@@ -155,7 +159,11 @@ foreach ([
         'server_json_cache_clear_categories(["context", "meta"])',
         'meta_set(user_auth_generation_key($uid), $generation);',
     ],
-    'logout' => ['security_retire_persistent_devices_for_user($uid);'],
+    'logout' => [
+        'security_retire_persistent_devices_for_user($uid);',
+        'audit(',
+        '"_skip_runtime_context"',
+    ],
 ] as $sourceKey => $forbiddenTokens) {
     foreach ($forbiddenTokens as $forbiddenToken) {
         if (str_contains($logoutCascadeSources[$sourceKey], $forbiddenToken)) {
@@ -206,8 +214,8 @@ foreach ([
         'developer_first_login_clear_json_cache($uid, true);',
     ],
     'login_apply' => [
-        '"_skip_runtime_context" => 1',
-        '"_skip_context_enrichment" => 1',
+        '"skip_runtime_context" => true',
+        '"skip_context_enrichment" => true',
         'session_harden_after_login($uid, $verifiedUserGeneration);',
     ],
     'security' => [
@@ -294,7 +302,8 @@ $inlineMfaFailures = [];
 foreach ([
     'auth' => [
         'if ($isGlobalAdmin || $enrolled) {',
-        'mfa_is_enrolled((int) ($pendingMfaUser["id"] ?? 0))',
+        'mfa_enrollment_state((int) ($pendingMfaUser["id"] ?? 0))',
+        '$mfaState === "unavailable"',
         'mfa_complete_pending_login(!$wantsJson)',
         'login_apply_resolved_credential(',
         'null,' . "\n" . '            !$wantsJson,',
@@ -305,6 +314,10 @@ foreach ([
         'icon("security_key")',
         'profile_mfa_prepare',
         'profile_mfa_enable',
+        'profile_mfa_recovery_regenerate',
+        'profile_mfa_replace_enable',
+        'profile_mfa_disable',
+        'profile_mfa_recovery_codes_issued_at',
         'user_auth_generation_rotate($uid)',
         'Proteção Avançada',
         'Verificação em duas etapas',
@@ -313,7 +326,7 @@ foreach ([
     ],
     'catalog' => [
         "\$add('login', 'mfa_verify', 'public'",
-        "'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel'",
+        "'profile_mfa_recovery_ack', 'profile_mfa_recovery_regenerate'",
     ],
     'javascript' => [
         'function initLoginMfaFlow(root = d)',
