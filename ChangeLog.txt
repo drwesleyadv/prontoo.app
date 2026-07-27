@@ -1,3 +1,13 @@
+Prontoo 1.7.27.4 — MFA mais simples e didático
+
+- Unifica a linguagem visível em “verificação em duas etapas” e reserva a sigla MFA aos identificadores internos e à auditoria.
+- Torna a transição do login mais clara: após a senha, o usuário recebe orientação direta para informar o código do aplicativo ou um código de recuperação.
+- Reorganiza o primeiro cadastro e a troca de autenticador em duas etapas verticais: conectar o aplicativo e confirmar o código.
+- Mantém a chave manual disponível como alternativa recolhida, reduzindo informação simultânea sem retirar recursos.
+- Explica o propósito e a consequência de gerar códigos, trocar o aplicativo ou desativar a proteção antes de solicitar credenciais.
+- Simplifica a recuperação e a confirmação do ambiente global com textos objetivos, ajuda associada aos campos e ações nomeadas pelo resultado.
+- Preserva integralmente TOTP, códigos de recuperação, rate limits, reautenticação, revogação de sessões, permissões, banco e schema.
+
 Prontoo 1.7.27.3 — hardening do MFA, auditoria e fila do Maestro
 
 - Torna o estado MFA triádico — ativo, comprovadamente inativo ou indisponível — e bloqueia a criação da sessão quando persistência, criptografia ou integridade do cadastro não podem ser confirmadas.

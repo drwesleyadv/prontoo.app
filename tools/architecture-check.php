@@ -321,8 +321,10 @@ foreach ([
         'user_auth_generation_rotate($uid)',
         'Proteção Avançada',
         'Verificação em duas etapas',
-        'Caso utilize um aplicativo autenticador, ative-o aqui.',
-        'Habilitar Proteção Avançada',
+        'Além da senha, você usará um código do aplicativo autenticador para entrar.',
+        'Começar configuração',
+        'Configurar com uma chave manual',
+        'Gerenciar verificação em duas etapas',
     ],
     'catalog' => [
         "\$add('login', 'mfa_verify', 'public'",
@@ -334,11 +336,16 @@ foreach ([
         'row.innerHTML =',
         'Accept: "application/json"',
         'data-login-code',
+        'Código de verificação',
+        'Confirmar e entrar',
     ],
     'css' => [
         '[data-login-cpf][readonly]',
         '.login-mfa-help',
         '.account-mfa-panel',
+        '.mfa-setup-step',
+        '.account-mfa-option-head',
+        '.security-reauth-form .field-help',
     ],
 ] as $sourceKey => $requiredTokens) {
     foreach ($requiredTokens as $requiredToken) {
@@ -359,6 +366,10 @@ foreach ([
         'Acrescente um código do autenticador ao login deste usuário.',
         '<span>Ativar MFA</span>',
         'icon("phonelink_lock")',
+        'Caso utilize um aplicativo autenticador, ative-o aqui.',
+        'Habilitar Proteção Avançada',
+        '<h3 id="account-mfa-title">MFA ativo</h3>',
+        'form_row(' . "\n" . '                "Código MFA"',
     ],
 ] as $sourceKey => $forbiddenTokens) {
     foreach ($forbiddenTokens as $forbiddenToken) {

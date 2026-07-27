@@ -6228,16 +6228,41 @@ body.scope-global .ds-clinic-list-item .clinic-actions-summary{
 .account-env-card .account-env-option.active .account-env-mark{background:color-mix(in srgb,var(--md-sys-color-on-primary-container) 8%,var(--md-sys-color-primary-container));color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,transparent)}
 .account-env-card .account-env-option.active .account-env-copy strong,.account-env-card .account-env-option.active .account-env-copy small{color:var(--md-sys-color-on-primary-container)}
 @media(max-width:760px){.account-env-card{padding:12px;border-radius:22px}.account-env-card-head{grid-template-columns:1fr}.account-env-card-icon{display:none}.account-env-card .account-env-option{grid-template-columns:34px minmax(0,1fr) auto;padding:8px}.account-env-card .account-env-mark{width:34px;height:34px}.account-env-card .account-env-status span{display:none}.account-env-card .account-env-status{width:32px;height:32px;padding:0;justify-content:center}.account-env-card .account-env-enter{width:30px;height:30px}}
-.account-mfa-panel{display:grid;gap:14px;margin-top:18px;padding:16px;border-radius:22px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)}
-.account-mfa-panel.is-active{background:color-mix(in srgb,var(--md-sys-color-primary-container) 34%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-outline-variant))}
-.account-mfa-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px}
-.account-mfa-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:16px;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)}
-.account-mfa-head h3{margin:2px 0 0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-medium);font-weight:900}
-.account-mfa-head p{margin:3px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.4}
+.account-mfa-panel{display:grid;gap:16px;margin-top:18px;padding:18px;border-radius:24px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)}
+.account-mfa-panel.is-active{background:color-mix(in srgb,var(--md-sys-color-primary-container) 24%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}
+.account-mfa-panel.is-configuring{background:var(--md-sys-color-surface-container-lowest)}
+.account-mfa-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px}
+.account-mfa-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:17px;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)}
+.account-mfa-head .eyebrow{margin-bottom:2px}
+.account-mfa-head h3{margin:0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-medium);font-weight:900}
+.account-mfa-head p{max-width:62ch;margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.5}
 .account-mfa-form{display:grid;gap:12px}
-.account-mfa-actions{justify-content:flex-end}
+.account-mfa-start{max-width:520px}
+.account-mfa-actions{justify-content:flex-start}
 .account-mfa-cancel-form{display:flex;justify-content:flex-start}
-@media(max-width:620px){.account-mfa-panel{padding:14px}.account-mfa-head{grid-template-columns:1fr}.account-mfa-icon{display:none}.account-mfa-actions{display:grid!important}.account-mfa-actions button{width:100%}}
+.mfa-setup-step{display:grid;grid-template-columns:32px minmax(0,1fr);align-items:start;gap:12px;padding:14px;border-radius:20px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 80%,transparent)}
+.mfa-step-number{display:grid;place-items:center;width:32px;height:32px;border-radius:999px;color:var(--md-sys-color-on-primary);background:var(--md-sys-color-primary);font:var(--md-sys-typescale-label-large);font-weight:900}
+.mfa-step-content{display:grid;gap:10px;min-width:0;padding-top:4px}
+.mfa-step-content>strong{color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:900}
+.mfa-step-content>small{margin-top:-7px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.45}
+.mfa-step-content :is(.security-auth-form,.account-mfa-form){margin-top:2px}
+.mfa-manual-setup{min-width:0}
+.mfa-manual-setup summary{width:max-content;max-width:100%;padding:5px 2px;cursor:pointer;color:var(--md-sys-color-primary);font:var(--md-sys-typescale-label-large);font-weight:850}
+.mfa-manual-setup summary:focus-visible,.account-mfa-management summary:focus-visible{outline:0;box-shadow:var(--pt-focus-ring);border-radius:8px}
+.mfa-manual-setup .mfa-secret{margin-top:8px}
+.account-mfa-management{padding-top:2px;border-top:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)}
+.account-mfa-management>summary{width:max-content;max-width:100%;padding:12px 2px 4px;cursor:pointer;color:var(--md-sys-color-primary);font:var(--md-sys-typescale-label-large);font-weight:900}
+.account-mfa-management-grid{display:grid;grid-template-columns:1fr;gap:10px;padding-top:12px}
+.account-mfa-option{align-content:start;padding:14px;border-radius:19px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)}
+.account-mfa-option.is-critical{border-color:color-mix(in srgb,var(--md-sys-color-error) 22%,var(--md-sys-color-outline-variant))}
+.account-mfa-option.is-critical .ghost{color:var(--md-sys-color-error)}
+.account-mfa-option-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:10px;margin-bottom:2px}
+.account-mfa-option-head>span{display:grid;place-items:center;width:36px;height:36px;border-radius:13px;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-low)}
+.account-mfa-option-head>div{display:grid;gap:2px;padding-top:1px}
+.account-mfa-option-head strong{color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-label-large);font-weight:900}
+.account-mfa-option-head small{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.4}
+.account-mfa-option .form-actions{justify-content:flex-start}
+@media(max-width:620px){.account-mfa-panel{padding:14px;border-radius:22px}.account-mfa-head{grid-template-columns:1fr}.account-mfa-icon{display:none}.mfa-setup-step{grid-template-columns:28px minmax(0,1fr);padding:12px}.mfa-step-number{width:28px;height:28px}.account-mfa-actions{display:grid!important}.account-mfa-actions button,.account-mfa-option .form-actions button{width:100%;justify-content:center}}
 
 /* v157 · Criar consultório refinado em três ciclos do Design System */
 body.public .signup-ds-shell{
@@ -14947,7 +14972,7 @@ body.scope-global .admin-alert-screen .notice-empty > :is(.material-symbols-roun
   }
 }
 
-/* 1.7.23.6 — MFA e elevação global aderentes ao Design System */
+/* 1.7.27.4 — verificação em duas etapas simples e didática */
 body.public[data-route="mfa"]{--pt-security-auth-max:560px}
 body.public[data-route="mfa"].has-top-shell .top{width:min(var(--pt-security-auth-max),calc(100% - max(24px,calc(var(--pt-safe-left,0px) + var(--pt-safe-right,0px) + 24px))))!important}
 body.public[data-route="mfa"].has-top-shell .top-actions{display:none!important}
@@ -14985,7 +15010,7 @@ body.public[data-route="mfa"] .flash{width:min(var(--pt-security-auth-max),100%)
 .security-auth-form{display:grid;gap:12px;margin:0;padding-top:2px}
 .security-auth-form .field{gap:7px}
 .security-auth-form .field>span{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:900}
-.security-auth-form .field-help{display:block;margin:-5px 2px 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
+.security-auth-form .field-help,.security-reauth-form .field-help{display:block;margin:-5px 2px 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
 .recovery-code-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
 .recovery-code-list li{min-width:0}
 .recovery-code-list code{text-align:center;white-space:nowrap}
