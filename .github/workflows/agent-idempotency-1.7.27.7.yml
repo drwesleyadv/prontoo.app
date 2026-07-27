@@ -37,85 +37,10 @@ jobs:
         run: |
           set -o pipefail
           {
-          git fetch origin agent/prevent-duplicate-writes-1.7.27.6
-          python3 <<'PY'
-          from pathlib import Path
-          import base64
-          import hashlib
-          import json
-          import re
-          import subprocess
-          import zlib
-
-          old = subprocess.check_output([
-              'git', 'show',
-              'origin/agent/prevent-duplicate-writes-1.7.27.6:.github/workflows/agent-idempotency-1.7.27.6.yml',
-          ], text=True)
-          match = re.search(
-              r'PATCH_B64: >-\n((?: {12}[A-Za-z0-9+/=]+\n)+)',
-              old,
-          )
-          if not match:
-              raise RuntimeError('Payload de correção anterior não localizado.')
-          payload = ''.join(line.strip() for line in match.group(1).splitlines())
-          source = zlib.decompress(base64.b64decode(payload)).decode('utf-8')
-
-          replacements = [
-              ('VERSION = "1.7.27.6"', 'VERSION = "1.7.27.7"'),
-              ('PREVIOUS = "1.7.27.5"', 'PREVIOUS = "1.7.27.6"'),
-              (
-                  "'const PRONTOO_VERSION_FALLBACK = \"1.7.27.5\";',\n    'const PRONTOO_VERSION_FALLBACK = \"1.7.27.6\";'",
-                  "'const PRONTOO_VERSION_FALLBACK = \"1.7.27.6\";',\n    'const PRONTOO_VERSION_FALLBACK = \"1.7.27.7\";'",
-              ),
-              (
-                  "'const PRONTOO_PREVIOUS_VERSION = \"1.7.27.4\";',\n    'const PRONTOO_PREVIOUS_VERSION = \"1.7.27.5\";'",
-                  "'const PRONTOO_PREVIOUS_VERSION = \"1.7.27.5\";',\n    'const PRONTOO_PREVIOUS_VERSION = \"1.7.27.6\";'",
-              ),
-              ('1\\.7\\.27\\.5(["\\\'];)', '1\\.7\\.27\\.6(["\\\'];)'),
-              (r'\g<1>1.7.27.6\g<2>', r'\g<1>1.7.27.7\g<2>'),
-              (
-                  'Prontoo 1.7.27.6 — gravações únicas e contatos consistentes',
-                  'Prontoo 1.7.27.7 — gravações únicas e contatos consistentes',
-              ),
-              (
-                  '.github/workflows/agent-idempotency-1.7.27.6.yml',
-                  '.github/workflows/agent-idempotency-1.7.27.7.yml',
-              ),
-          ]
-          for before, after in replacements:
-              if before not in source:
-                  raise RuntimeError('Trecho de versionamento não encontrado: ' + before[:80])
-              source = source.replace(before, after, 1)
-
-          exec(compile(source, 'agent-idempotency-patch', 'exec'))
-
-          # A baseline 1.7.27.6 possuía metadados exclusivos de republicação.
-          version_path = Path('version.json')
-          version = json.loads(version_path.read_text(encoding='utf-8'))
-          for key in ['baseline_source', 'full_baseline_rewrite', 'rewrite_scope']:
-              version.pop(key, None)
-          version_path.write_text(
-              json.dumps(version, ensure_ascii=False, indent=2) + '\n',
-              encoding='utf-8',
-          )
-
-          manifest_path = Path('app/update.manifest.json')
-          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          for key in ['baseline_source', 'full_baseline_rewrite', 'rewrite_scope']:
-              manifest.pop(key, None)
-          files = manifest.get('files', {})
-          for file in files:
-              files[file] = hashlib.sha256(Path(file).read_bytes()).hexdigest()
-          manifest['files'] = files
-          manifest['file_count'] = len(files)
-          manifest['total_uncompressed_bytes'] = sum(
-              Path(file).stat().st_size for file in files
-          )
-          manifest_path.write_text(
-              json.dumps(manifest, ensure_ascii=False, indent=2) + '\n',
-              encoding='utf-8',
-          )
-          PY
+            cat tools/.agent-idempotency/part*.py > /tmp/agent-idempotency-patch.py
+            python3 -m py_compile /tmp/agent-idempotency-patch.py
+            python3 /tmp/agent-idempotency-patch.py
+            rm -rf tools/.agent-idempotency
           } 2>&1 | tee /tmp/patch.log
 
       - name: Upload patch failure log
@@ -146,6 +71,7 @@ jobs:
           git diff --check
 
       - name: Commit remediation
+        if: steps.apply.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
