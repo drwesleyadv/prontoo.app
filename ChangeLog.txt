@@ -1,3 +1,16 @@
+Prontoo 1.7.27.2 — rotinas secundárias do logout transferidas ao Maestro
+
+- Mantém síncronas somente a rotação da geração canônica do usuário e a destruição da sessão local, que constituem o efeito de segurança indispensável do logout.
+- Entrega a auditoria `saida_realizada` por fila durável, assinada e publicada atomicamente, para materialização idempotente na próxima execução do Maestro.
+- Preserva na auditoria adiada o usuário, consultório, cargo, rota, método, instante, hash do IP e agente originais, sem atribuir o evento ao processo cron.
+- Transfere a consolidação dos agregados JSON de telemetria das rotas login e logout ao Maestro, removendo do redirecionamento a leitura, o recálculo, a regravação integral e a trava global desses arquivos.
+- Mantém fallback síncrono exclusivamente se a fila durável de auditoria estiver indisponível, evitando perda silenciosa da trilha de segurança.
+- Recupera trabalhos interrompidos, coloca envelopes inválidos em quarentena e impede auditorias duplicadas após falha entre o commit e a remoção do item.
+- Renomeia exclusivamente os textos do card opcional de MFA para “Proteção Avançada”, “Verificação em duas etapas” e “Habilitar Proteção Avançada”, sem alterar seu comportamento.
+- Substitui o ícone `phonelink_lock` do card por `security_key`, alinhado à identidade de Proteção Avançada.
+- Corrige o login sem MFA para concluir a resposta assíncrona com JSON e destino explícito, evitando a falsa mensagem de falha causada pelo redirecionamento HTTP depois de a sessão já ter sido criada.
+- Acrescenta prova regressiva permanente do novo contrato; banco, schema, MFA, timeout e demais fluxos permanecem inalterados.
+
 Prontoo 1.7.27.1 — MFA integrado ao login para todos os usuários
 
 - Mantém CPF, senha e segundo fator em uma única tela: depois da confirmação da senha, o campo é substituído pelo código MFA sem recarregar a página.
