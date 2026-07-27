@@ -2836,7 +2836,7 @@ function audit(
     ?string $entity = null,
     mixed $entityId = null,
     array $context = [],
-): void {
+): bool {
     /*
      * GUIA DE MANUTENÇÃO — audit
      * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “audit”.
@@ -2848,7 +2848,7 @@ function audit(
      * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
      */
     if (!has_cfg() || !audit_should_write($event)) {
-        return;
+        return false;
     }
     try {
         db_tx(function () use ($event, $entity, $entityId, $context): void {
@@ -2866,12 +2866,56 @@ function audit(
             $skipContextEnrichment = !empty(
                 $context["_skip_context_enrichment"]
             );
+            $hasForcedUser = array_key_exists("_audit_user_id", $context);
+            $forcedUserId = $hasForcedUser
+                ? max(0, (int) $context["_audit_user_id"])
+                : 0;
+            $hasForcedIpHash = array_key_exists(
+                "_audit_ip_hash",
+                $context,
+            );
+            $forcedIpHash = strtolower(
+                trim((string) ($context["_audit_ip_hash"] ?? "")),
+            );
+            $hasForcedUserAgent = array_key_exists(
+                "_audit_user_agent",
+                $context,
+            );
+            $forcedUserAgent = mb_substr(
+                trim((string) ($context["_audit_user_agent"] ?? "")),
+                0,
+                180,
+            );
+            $forcedCreatedAt = trim(
+                (string) ($context["_audit_created_at"] ?? ""),
+            );
+            if (
+                preg_match(
+                    '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
+                    $forcedCreatedAt,
+                ) !== 1
+            ) {
+                $forcedCreatedAt = "";
+            }
+            $forcedProofContext =
+                isset($context["_audit_proof_context"]) &&
+                is_array($context["_audit_proof_context"])
+                    ? $context["_audit_proof_context"]
+                    : null;
             unset(
                 $context["_skip_runtime_context"],
                 $context["_skip_context_enrichment"],
+                $context["_audit_user_id"],
+                $context["_audit_ip_hash"],
+                $context["_audit_user_agent"],
+                $context["_audit_created_at"],
+                $context["_audit_proof_context"],
             );
             $c = $skipRuntimeContext ? [] : ctx();
-            $uid = (int) ($c["user"]["id"] ?? ($_SESSION["uid"] ?? 0)) ?: null;
+            $uid = $hasForcedUser
+                ? ($forcedUserId > 0 ? $forcedUserId : null)
+                : ((int) ($c["user"]["id"] ?? ($_SESSION["uid"] ?? 0)) ?:
+                    null);
             $cid = $context["clinic_id"] ?? ($c["clinic_id"] ?? null);
             unset($context["clinic_id"]);
             if (($c["scope"] ?? "") === "clinic") {
@@ -2926,8 +2970,14 @@ function audit(
             $eventIcon = event_icon($event);
             $entityLabel = $entity !== null && $entity !== "" ? entity_label($entity) : null;
             $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
-            $ipHash = $ip !== "" ? hash("sha256", $ip . "|ip") : null;
-            $userAgent = mb_substr(trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")), 0, 180);
+            $ipHash = $hasForcedIpHash
+                ? (preg_match('/^[a-f0-9]{64}$/', $forcedIpHash) === 1
+                    ? $forcedIpHash
+                    : null)
+                : ($ip !== "" ? hash("sha256", $ip . "|ip") : null);
+            $userAgent = $hasForcedUserAgent
+                ? $forcedUserAgent
+                : mb_substr(trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")), 0, 180);
             if ($userAgent === "") {
                 $userAgent = null;
             }
@@ -2943,9 +2993,10 @@ function audit(
             $proof = \Prontoo\Core\Integrity\AuditChain::build(
                 $row,
                 secret_key(),
+                $forcedProofContext,
             );
             q(
-                "INSERT INTO pi_audit (clinic_id,user_id,event_key,event_label,event_icon,entity_key,entity_label,entity_id,friendly_text,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_hash,user_agent,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())",
+                "INSERT INTO pi_audit (clinic_id,user_id,event_key,event_label,event_icon,entity_key,entity_label,entity_id,friendly_text,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_hash,user_agent,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,COALESCE(?,NOW()))",
                 [
                     $cid,
                     $uid,
@@ -2965,11 +3016,14 @@ function audit(
                     $proof["policy_version"],
                     $ipHash,
                     $userAgent,
+                    $forcedCreatedAt !== "" ? $forcedCreatedAt : null,
                 ],
             );
         });
+        return true;
     } catch (Throwable $e) {
         error_log("[Prontoo audit] " . $e->getMessage());
+        return false;
     }
 }
 function audit_actor_name(array $ctx, ?int $uid): string
