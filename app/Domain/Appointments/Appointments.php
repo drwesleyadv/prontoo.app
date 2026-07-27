@@ -1685,7 +1685,7 @@ function procedure_select_html(
      * Dependências chamadas: `procedure_options`, `e`, `trim`, `money_br`, `procedure_option_label`, `form_row`.
      * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
      * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-    */
+     */
     $procedures = procedure_options($cid, true);
     $custom = !$registeredOnly && $selected !== "";
     $placeholder =
@@ -3575,20 +3575,33 @@ function page_appointments(): void
             );
             $postRedirect();
         }
-        $durationMessage = appointment_min_duration_message(
-            $cid,
-            $procId,
-            $startAt,
-            $endAt,
-        );
-        if ($durationMessage) {
-            flash($durationMessage, "bad");
-            $postRedirect();
-        }
         $appointmentId = 0;
         try {
             db_begin_transaction();
             q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+            $lockedProcedure = one(
+                "SELECT id,title,duration_minutes FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
+                [$procId, $cid],
+            );
+            if (!$lockedProcedure) {
+                db_rollback();
+                flash(
+                    "O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.",
+                    "bad",
+                );
+                $postRedirect();
+            }
+            $durationMessage = appointment_min_duration_message(
+                $cid,
+                $procId,
+                $startAt,
+                $endAt,
+            );
+            if ($durationMessage) {
+                db_rollback();
+                flash($durationMessage, "bad");
+                $postRedirect();
+            }
             $conflict = agenda_conflict_message(
                 $cid,
                 $did,
@@ -3621,7 +3634,7 @@ function page_appointments(): void
                     $startAt,
                     $endAt,
                     $procId,
-                    procedure_reason_from_post($cid),
+                    (string) $lockedProcedure["title"],
                     trim((string) ($_POST["notes"] ?? "")),
                     $amount,
                     $method ?: null,
