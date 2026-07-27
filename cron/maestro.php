@@ -158,6 +158,7 @@ function prontoo_cron_preflight_once(): array
         storage_path("telemetry"),
         storage_path("logs"),
         storage_path("tmp"),
+        storage_path("maestro-deferred"),
         document_pdf_dir(),
     ];
     foreach ($writableDirs as $dir) {
@@ -331,6 +332,18 @@ try {
     }
     ensure_runtime_schema_minimum();
     maestro_runtime_upgrade();
+    $deferredBudget = min(
+        10000,
+        max(1000, (int) (PRONTOO_MAESTRO_CRON_BUDGET_MS / 10)),
+    );
+    $deferredWork = function_exists("maestro_process_deferred_work")
+        ? maestro_process_deferred_work($deferredBudget, 1000)
+        : [
+            "success" => false,
+            "errors" => 1,
+            "remaining" => 0,
+            "note" => "Consumidor de rotinas secundárias indisponível.",
+        ];
     if (function_exists("clinic_auto_assign_missing_managers")) {
         clinic_auto_assign_missing_managers(200);
     }
@@ -343,7 +356,9 @@ try {
     $jobBudget = max(5000, (int) PRONTOO_MAESTRO_CRON_BUDGET_MS - $piBudget);
     $result = maestro_cron_run($jobBudget);
     $ok =
-        (bool) ($result["success"] ?? true) && (bool) ($piResult["ok"] ?? true);
+        (bool) ($result["success"] ?? true) &&
+        (bool) ($piResult["ok"] ?? true) &&
+        (bool) ($deferredWork["success"] ?? false);
     if (function_exists("server_json_cache_clear_categories")) {
         server_json_cache_clear_categories([
             "hot",
@@ -367,6 +382,7 @@ try {
                 "ran" => (bool) ($preflight["ran"] ?? false),
                 "duration_ms" => $preflight["duration_ms"] ?? null,
             ],
+            "deferred_work" => $deferredWork,
             "pi_integrity" => $piResult,
         ] + $result,
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
