@@ -33,32 +33,32 @@ source = replace_once(
 )
 source = replace_once(
     source,
-    "              csrf_field() .\n              '<input type=\"hidden\" name=\"act\" value=\"save\">' .",
-    "              csrf_field() .\n              '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n              e(security_submission_token_issue(\"lead.save\")) .\n              '\">' .\n              '<input type=\"hidden\" name=\"act\" value=\"save\">' .",
+    "        csrf_field() .\n        '<input type=\"hidden\" name=\"act\" value=\"save\">' .",
+    "        csrf_field() .\n        '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n        e(security_submission_token_issue(\"lead.save\")) .\n        '\">' .\n        '<input type=\"hidden\" name=\"act\" value=\"save\">' .",
     "token do formulário de cadastro",
 )
 
 # Formulário de arquivamento por conflito.
 source = replace_once(
     source,
-    '<form method="post" class="inline">' + "\n" + "                      csrf_field() .",
-    '<form method="post" class="inline" data-submit-once>' + "\n" + "                      csrf_field() .\n                      '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n                      e(security_submission_token_issue(\"lead.archive\", (int) $r[\"id\"])) .\n                      '\">' .",
+    '<form method="post" class="inline">' + "\n" + "                    csrf_field() .",
+    '<form method="post" class="inline" data-submit-once>' + "\n" + "                    csrf_field() .\n                    '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n                    e(security_submission_token_issue(\"lead.archive\", (int) $r[\"id\"])) .\n                    '\">' .",
     "token do formulário de arquivamento",
 )
 
 # Formulário de conversão.
 source = replace_once(
     source,
-    '<form method="post" class="compact lead-convert-form" data-lead-convert-form>' + "\n" + "                  csrf_field() .",
-    '<form method="post" class="compact lead-convert-form" data-lead-convert-form data-submit-once>' + "\n" + "                  csrf_field() .\n                  '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n                  e(security_submission_token_issue(\"lead.convert\", (int) $r[\"id\"])) .\n                  '\">' .",
+    '<form method="post" class="compact lead-convert-form" data-lead-convert-form>' + "\n" + "                csrf_field() .",
+    '<form method="post" class="compact lead-convert-form" data-lead-convert-form data-submit-once>' + "\n" + "                csrf_field() .\n                '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n                e(security_submission_token_issue(\"lead.convert\", (int) $r[\"id\"])) .\n                '\">' .",
     "token do formulário de conversão",
 )
 
 # Formulário de contato.
 source = replace_once(
     source,
-    '</summary><form method="post" class="compact lead-touch-form">' + "\n" + "              csrf_field() .",
-    '</summary><form method="post" class="compact lead-touch-form" data-submit-once>' + "\n" + "              csrf_field() .\n              '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n              e(security_submission_token_issue(\"lead.contact\", (int) $r[\"id\"])) .\n              '\">' .",
+    '</summary><form method="post" class="compact lead-touch-form">' + "\n" + "            csrf_field() .",
+    '</summary><form method="post" class="compact lead-touch-form" data-submit-once>' + "\n" + "            csrf_field() .\n            '<input type=\"hidden\" name=\"submission_token\" value=\"' .\n            e(security_submission_token_issue(\"lead.contact\", (int) $r[\"id\"])) .\n            '\">' .",
     "token do formulário de contato",
 )
 write(path, source)
