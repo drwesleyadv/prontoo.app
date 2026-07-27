@@ -50,6 +50,8 @@ function boot_security(): void
             storage_path("cache") . "/index.html",
             storage_path("logs") . "/.htaccess",
             storage_path("logs") . "/index.html",
+            storage_path("maestro-deferred") . "/.htaccess",
+            storage_path("maestro-deferred") . "/index.html",
         ];
         $storageGuardFilesPresent = true;
         foreach ($storageGuardFiles as $storageGuardFile) {
@@ -66,6 +68,7 @@ function boot_security(): void
             security_storage_deny_file(storage_path());
             security_storage_deny_file(storage_path("cache"));
             security_storage_deny_file(storage_path("logs"));
+            security_storage_deny_file(storage_path("maestro-deferred"));
             if (is_dir($storageGuardRoot)) {
                 @file_put_contents(
                     $storageGuardMarker,

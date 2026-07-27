@@ -93,6 +93,9 @@ $logoutCascadeSources = [
     'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
     'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
     'audit' => (string) file_get_contents($root . '/app/Domain/Audit/AuditActivity.php'),
+    'audit_chain' => (string) file_get_contents($root . '/app/Core/Integrity/AuditChain.php'),
+    'telemetry' => (string) file_get_contents($root . '/app/Support/Telemetry.php'),
+    'cron' => (string) file_get_contents($root . '/cron/maestro.php'),
     'logout' => $logoutPageSource,
 ];
 $logoutCascadeFailures = [];
@@ -114,10 +117,30 @@ foreach ([
     'audit' => [
         '$skipRuntimeContext = !empty($context["_skip_runtime_context"])',
         '$c = $skipRuntimeContext ? [] : ctx();',
+        '$hasForcedUser = array_key_exists("_audit_user_id", $context)',
+        '$forcedProofContext',
+        'COALESCE(?,NOW())',
+    ],
+    'audit_chain' => [
+        '?array $proofContext = null',
+        '$proofContext ?? self::runtimeProofContext()',
+    ],
+    'telemetry' => [
+        'maestro_deferred_enqueue("audit"',
+        'maestro_deferred_enqueue("telemetry"',
+        'in_array($event["route"], ["login", "logout"], true)',
+        'maestro_defer_telemetry_event($event, $includePageMetric);',
+        'function maestro_process_deferred_work(',
+        'JSON_UNQUOTE(JSON_EXTRACT(context_json',
+    ],
+    'cron' => [
+        'maestro_process_deferred_work($deferredBudget, 1000)',
+        '"deferred_work" => $deferredWork',
     ],
     'logout' => [
         'user_auth_generation_rotate($uid);',
         '"_skip_runtime_context" => 1',
+        'maestro_defer_audit_event(',
         'secure_session_destroy();',
     ],
 ] as $sourceKey => $requiredTokens) {
@@ -273,12 +296,20 @@ foreach ([
         'if ($isGlobalAdmin || $enrolled) {',
         'mfa_is_enrolled((int) ($pendingMfaUser["id"] ?? 0))',
         'mfa_complete_pending_login(!$wantsJson)',
+        'login_apply_resolved_credential(',
+        'null,' . "\n" . '            !$wantsJson,',
+        '"redirect" => href($destination)',
         '"csrf" => csrf()',
         '$isGlobalAdmin = (int) ($user["is_global_admin"] ?? 0) === 1;',
         'unset($_SESSION["privileged_auth_at"]);',
+        'icon("security_key")',
         'profile_mfa_prepare',
         'profile_mfa_enable',
         'user_auth_generation_rotate($uid)',
+        'Proteção Avançada',
+        'Verificação em duas etapas',
+        'Caso utilize um aplicativo autenticador, ative-o aqui.',
+        'Habilitar Proteção Avançada',
     ],
     'catalog' => [
         "\$add('login', 'mfa_verify', 'public'",
@@ -312,6 +343,9 @@ foreach ([
     ],
     'auth' => [
         'Segundo fator do Desenvolvedor validado na mesma tela do login',
+        'Acrescente um código do autenticador ao login deste usuário.',
+        '<span>Ativar MFA</span>',
+        'icon("phonelink_lock")',
     ],
 ] as $sourceKey => $forbiddenTokens) {
     foreach ($forbiddenTokens as $forbiddenToken) {

@@ -1500,7 +1500,20 @@ function page_login(): void
             redirect("login");
         }
         prontoo_login_post_password_maintenance($uid);
-        login_apply_resolved_credential($uid, $credential);
+        $destination = login_apply_resolved_credential(
+            $uid,
+            $credential,
+            null,
+            !$wantsJson,
+        );
+        if ($wantsJson) {
+            prontoo_json_response([
+                "ok" => true,
+                "stage" => "complete",
+                "redirect" => href($destination),
+            ]);
+            return;
+        }
     }
     $wait = $mfaStage
         ? 0
@@ -2638,7 +2651,7 @@ function page_logout(): void
      * Responsabilidade: Invalida a raiz canônica da autenticação e encerra a sessão local; os demais artefatos derivados falham fechados no próximo uso.
      * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
      * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `redirect`, `user_auth_generation_rotate`, `audit`, `secure_session_destroy`, `header`, `href`.
+     * Dependências chamadas: `redirect`, `user_auth_generation_rotate`, `maestro_defer_audit_event`, `audit`, `secure_session_destroy`, `header`, `href`.
      * Estado externo lido: `$_SERVER`, `$_SESSION`.
      * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
      * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
@@ -2654,14 +2667,31 @@ function page_logout(): void
         if ($uid > 0) {
             user_auth_generation_rotate($uid);
         }
-        audit("saida_realizada", "seguranca", $uid ?: null, [
+        $auditContext = [
             "_skip_runtime_context" => 1,
             "_skip_context_enrichment" => 1,
             "clinic_id" => $clinicId > 0 ? $clinicId : null,
             "role_code" => $roleCode,
             "audit_body" =>
                 "Logout concluído pela rotação da geração canônica; sessões, contextos e credenciais derivadas serão recusados na próxima tentativa de uso.",
-        ]);
+        ];
+        $queued =
+            function_exists("maestro_defer_audit_event") &&
+            maestro_defer_audit_event(
+                "saida_realizada",
+                "seguranca",
+                $uid ?: null,
+                $auditContext,
+                $uid ?: null,
+            );
+        if (!$queued) {
+            audit(
+                "saida_realizada",
+                "seguranca",
+                $uid ?: null,
+                $auditContext,
+            );
+        }
     } catch (Throwable $e) {
         error_log("[Prontoo logout cascade] " . $e->getMessage());
     } finally {
@@ -3119,8 +3149,8 @@ function page_profile(): void
     } else {
         $mfaPanel =
             '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-            icon("phonelink_lock") .
-            '</span><div><span class="eyebrow">Opcional</span><h3 id="account-mfa-title">Ativar MFA</h3><p>Acrescente um código do autenticador ao login deste usuário.</p></div></div><form method="post" class="compact account-mfa-form">' .
+            icon("security_key") .
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas</h3><p>Caso utilize um aplicativo autenticador, ative-o aqui.</p></div></div><form method="post" class="compact account-mfa-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="profile_mfa_prepare">' .
             form_row(
@@ -3134,7 +3164,7 @@ function page_profile(): void
             ) .
             '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
             icon("shield_lock") .
-            "<span>Ativar MFA</span></button></div></form></section>";
+            "<span>Habilitar Proteção Avançada</span></button></div></form></section>";
     }
     $envCards = "";
     $envActiveCards = "";
