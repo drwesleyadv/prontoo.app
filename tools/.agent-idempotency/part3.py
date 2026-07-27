@@ -67,50 +67,9 @@ write(path, source)
 # 3) Bloqueio global de reenvio acidental em POST.
 path = "public/assets/app.js"
 source = read(path)
-pattern = r'''  d\.addEventListener\("submit", \(e\) => \{\n.*?\n      const b = form\.querySelector\(\n'''
-replacement = '''  d.addEventListener("submit", (e) => {
-      const form = e.target;
-      if (!validateCpfFields(form)) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      // PRONTOO_GLOBAL_POST_SUBMIT_LOCK: todo POST é envio único, salvo opt-out explícito.
-      const method = String(form.getAttribute?.("method") || "get").toLowerCase();
-      const submitOnce =
-        form.matches?.("[data-submit-once]") ||
-        (method === "post" && !form.matches?.("[data-submit-repeat]"));
-      if (
-        submitOnce &&
-        (form.dataset.submitting === "1" || form.dataset.submitPending === "1")
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      $$("[data-doc-editor-wrap]", form).forEach(syncDocumentEditor);
-      if (e.defaultPrevented) return;
-      if (submitOnce) {
-        form.dataset.submitPending = "1";
-        const lock = () => {
-          delete form.dataset.submitPending;
-          if (e.defaultPrevented) return;
-          form.dataset.submitting = "1";
-          setTimeout(() => {
-            $$(\'button[type="submit"],input[type="submit"]\', form).forEach(
-              (button) => {
-                button.disabled = true;
-                button.setAttribute("aria-disabled", "true");
-              },
-            );
-          }, 0);
-        };
-        if (typeof w.queueMicrotask === "function") w.queueMicrotask(lock);
-        else Promise.resolve().then(lock);
-      }
-      const b = form.querySelector(
-'''
-source = sub_once(source, pattern, replacement, "bloqueio global de POST")
+old_js = '  d.addEventListener("submit", (e) => {\n    const form = e.target;\n    if (!validateCpfFields(e.target)) {\n      e.preventDefault();\n      e.stopPropagation();\n      return;\n    }\n    if (\n      form.matches?.("[data-submit-once]") &&\n      form.dataset.submitting === "1"\n    ) {\n      e.preventDefault();\n      e.stopPropagation();\n      return;\n    }\n    $$("[data-doc-editor-wrap]", form).forEach(syncDocumentEditor);\n    if (e.defaultPrevented) return;\n    if (form.matches?.("[data-submit-once]")) {\n      form.dataset.submitting = "1";\n      setTimeout(() => {\n        $$(\'button[type="submit"],input[type="submit"]\', form).forEach(\n          (button) => {\n            button.disabled = true;\n            button.setAttribute("aria-disabled", "true");\n          },\n        );\n      }, 0);\n    }\n    const b = form.querySelector(\n'
+new_js = '  d.addEventListener("submit", (e) => {\n    const form = e.target;\n    if (!validateCpfFields(form)) {\n      e.preventDefault();\n      e.stopPropagation();\n      return;\n    }\n    // PRONTOO_GLOBAL_POST_SUBMIT_LOCK: todo POST é envio único, salvo opt-out explícito.\n    const method = String(form.getAttribute?.("method") || "get").toLowerCase();\n    const submitOnce =\n      form.matches?.("[data-submit-once]") ||\n      (method === "post" && !form.matches?.("[data-submit-repeat]"));\n    if (\n      submitOnce &&\n      (form.dataset.submitting === "1" || form.dataset.submitPending === "1")\n    ) {\n      e.preventDefault();\n      e.stopPropagation();\n      return;\n    }\n    $$("[data-doc-editor-wrap]", form).forEach(syncDocumentEditor);\n    if (e.defaultPrevented) return;\n    if (submitOnce) {\n      form.dataset.submitPending = "1";\n      const lock = () => {\n        delete form.dataset.submitPending;\n        if (e.defaultPrevented) return;\n        form.dataset.submitting = "1";\n        setTimeout(() => {\n          $$(\'button[type="submit"],input[type="submit"]\', form).forEach(\n            (button) => {\n              button.disabled = true;\n              button.setAttribute("aria-disabled", "true");\n            },\n          );\n        }, 0);\n      };\n      if (typeof w.queueMicrotask === "function") w.queueMicrotask(lock);\n      else Promise.resolve().then(lock);\n    }\n    const b = form.querySelector(\n'
+source = replace_once(source, old_js, new_js, "bloqueio global de POST")
 write(path, source)
 
 
