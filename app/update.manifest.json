@@ -1,17 +1,17 @@
 {
-  "version": "1.7.27.5",
-  "release": "1.7.27.5",
+  "version": "1.7.27.6",
+  "release": "1.7.27.6",
   "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
-  "build": "1.7.27.5-procedure-integrity-lead-actions",
-  "package_type": "procedure_integrity_lead_actions",
-  "generated_at": "2026-07-27T19:20:34Z",
+  "build": "1.7.27.6-baseline-full-rewrite",
+  "package_type": "baseline_full_rewrite",
+  "generated_at": "2026-07-27T20:27:56Z",
   "version_format": "1.month.day.sequence",
   "minimum_php": "8.4.0",
   "minimum_mysql": "8.0.30",
   "database_changes": false,
   "schema_changes": false,
-  "logic_changes": true,
-  "visual_changes": true,
+  "logic_changes": false,
+  "visual_changes": false,
   "documentation_changes": true,
   "clean_install_schema": true,
   "requires_empty_database": true,
@@ -25,11 +25,11 @@
   "schema_table_count": 62,
   "operational_tables_verified": 60,
   "file_count": 99,
-  "total_uncompressed_bytes": 4130963,
+  "total_uncompressed_bytes": 4131387,
   "files": {
     ".github/workflows/architecture.yml": "f775d75add5fb53586790e0c29de30f46ef5921a00d4ad6ab6bc0ffa01f4480b",
     ".htaccess": "a7143c58d8ebee8ff1d52bbd57cca31704e93c5037f814d8abe7f15bd0aa211b",
-    "ChangeLog.txt": "1dad79b3b30b8552e22a54541f0b5f45f0a42f4d33ced75f0a1572d149441e06",
+    "ChangeLog.txt": "8a2752fe73ba8fa2ec7fbd0f6e91a685a67fba1797da0b48457d776083f29b5c",
     "app/Admin/AdminPages.php": "befe38b723ca6c177419f7cfad77c448f88b99eaaf492398bad0d2948d81950e",
     "app/Application/Audit/ActionProofPort.php": "d31c551cf6ff872cd08673f9f4f822f87d7d69ebbc5229ae90ecbafd3c2a8a99",
     "app/Application/Authorization/ActionCatalog.php": "81b3313d748896bf060284d1714132f9d8ef9ea27faeccf16a73830636ee8a25",
@@ -105,11 +105,11 @@
     "app/Support/Telemetry.php": "4958bacd4b7fa915b65428500766c8224617302fe7b2d1c06f5b7804ed466bf9",
     "app/Ui/Components.php": "48e345b0c396573675be0be28d44d4f371185189843a0bdf5e2240e1cc9edef7",
     "app/Ui/PublicWeb.php": "5f2dcb19828273e9e221e7cad2285985aa9654e431a912cc61b2891289dc2b12",
-    "app/architecture.manifest.json": "7210e43cdfab211babdb99e47ef6984f5909c000686804a8d2f9959ef8bd9128",
+    "app/architecture.manifest.json": "f6b20c62647c344f4267aaeb881dbec199ac796d21ced331674b7d4037a8a37f",
     "app/bootstrap_architecture.php": "09c737653312414a5723179548788d431af8f25eb1e40355116a2f7786d36587",
     "app/bootstrap_specialized.php": "495cd5fff7338034067bb8e2a87f97adec1a798e7b0c2560cd7f4ab8dc91e110",
-    "app/prontoo.php": "c61c68b097a6ed66656f1d45afbdca50b261ad60afaf74a977e1c6d374dd4537",
-    "br/index.php": "8e72a4d768bc3b3d377380e40b87035fb8c7467806785f70183015cda629250f",
+    "app/prontoo.php": "90cb695a08a9cc08ad5321f45f6e4bed48edb9a2aedae6e905bd21f0060e9f9d",
+    "br/index.php": "9fcf0af4c46df8c433a667e83c2bea58da0b36cb5f887f3d1fad0027bac9e9fd",
     "br/landing/view-final.php": "6ef9f2020e97a3c52e7110c865fbc3717bf6914d96a898c72b9b312b56c2049b",
     "br/landing/view-flow.php": "275c5d2829fec6c049e337da9362ddc4bfc87662a87c37b93abd4b70c4d31538",
     "br/landing/view-head.php": "dbfc41c9ab019af86731d12732569881144a1bda12970c3f6a7cf7f5cc92da5a",
@@ -125,7 +125,7 @@
     "tools/install-security-check.php": "df000371e4f202180a17e6d2e586e3ccbba904560fdad210e2348ede163b64ae",
     "tools/schema-check.php": "14abd0ed9b8c25a68a87b8748005d1e01c22da519f370218da685f78c70dd4fc",
     "tools/security-regression-check.php": "268fc347ca2f3a51ba87ec74d60fbf0ed383a347392c6d7a319db72589bbcb08",
-    "version.json": "1b6ba4d1d7c931dcbc5e29b59108043ec0ad42aa21309f0db9fde8851e0c6bb6"
+    "version.json": "cb21a31a85e9df18e8b15830b64b505e7b60e925cf65c0f2bc25b07c87e701c8"
   },
   "removed_files": [
     "ARCHITECTURE.md",
@@ -147,10 +147,10 @@
     "app/Support/SeqFooter.php"
   ],
   "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-  "previous_version": "1.7.27.4",
-  "updated_at": "2026-07-27T19:06:16Z",
-  "notes": "Torna o cadastro de procedimentos resistente a reenvio, exige procedimento ativo dentro da transação do Agendamento Rápido, orienta o cadastro quando a lista está vazia e alinha as ações Tornar Paciente e Registrar contato em Interessados.",
-  "deployment_sync_id": "hostoo-procedure-integrity-lead-actions-20260727T192034Z",
+  "previous_version": "1.7.27.5",
+  "updated_at": "2026-07-27T20:27:56Z",
+  "notes": "Republica integralmente todos os arquivos do manifesto a partir da baseline 1.7.27.5, sem alterações funcionais, visuais, de banco, schema, segurança, permissões ou regras de negócio.",
+  "deployment_sync_id": "hostoo-baseline-full-rewrite-20260727T202756Z",
   "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
   "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
   "persistent_storage_policy": {
@@ -160,5 +160,8 @@
     "legacy_storage_migration": true,
     "legacy_root_pdfs_migration": true
   },
-  "deployment_sync_requested_at": "2026-07-27T19:20:34Z"
+  "deployment_sync_requested_at": "2026-07-27T20:27:56Z",
+  "baseline_source": "1.7.27.5",
+  "full_baseline_rewrite": true,
+  "rewrite_scope": "all_update_manifest_files"
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.7.27.5",
+  "version": "1.7.27.6",
   "policy": "php-layered-invariants-v2",
   "architecture": "layered_php_with_invariant_core",
   "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -68,7 +68,7 @@
   "function_documentation_closures": 127,
   "function_documentation_arrows": 99,
   "function_documentation_ci": ".github/workflows/architecture.yml",
-  "logic_changes": true,
+  "logic_changes": false,
   "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
   "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
   "commissioned_installation_lockdown": {
@@ -84,6 +84,8 @@
   "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
   "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
   "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-  "generated_at": "2026-07-27T19:20:34Z",
-  "updated_at": "2026-07-27T19:20:34Z"
+  "generated_at": "2026-07-27T20:27:56Z",
+  "updated_at": "2026-07-27T20:27:56Z",
+  "baseline_source": "1.7.27.5",
+  "full_baseline_rewrite": true
 }
