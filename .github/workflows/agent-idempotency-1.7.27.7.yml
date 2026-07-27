@@ -57,21 +57,46 @@ jobs:
         run: exit 1
 
       - name: Validate changed runtime
+        id: validate
         if: steps.apply.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
-          php -l app/Support/SecurityPrivacy.php >/dev/null
-          php -l app/Domain/Leads/Leads.php >/dev/null
-          php -l app/prontoo.php >/dev/null
-          php -l br/index.php >/dev/null
-          node --check public/assets/app.js
-          php tools/security-regression-check.php >/tmp/security-regression.json
-          php tools/architecture-check.php >/tmp/architecture-report.json
-          git diff --check
+          set -o pipefail
+          {
+            echo "[php-lint] SecurityPrivacy"
+            php -l app/Support/SecurityPrivacy.php
+            echo "[php-lint] Leads"
+            php -l app/Domain/Leads/Leads.php
+            echo "[php-lint] runtime"
+            php -l app/prontoo.php
+            echo "[php-lint] landing"
+            php -l br/index.php
+            echo "[node-check] app.js"
+            node --check public/assets/app.js
+            echo "[security-regression]"
+            php tools/security-regression-check.php
+            echo "[architecture-check]"
+            php tools/architecture-check.php
+            echo "[diff-check]"
+            git diff --check
+          } 2>&1 | tee /tmp/validate.log
+
+      - name: Upload validation failure log
+        if: steps.validate.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplicate-write-validation-error
+          path: /tmp/validate.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Stop after validation failure
+        if: steps.validate.outcome == 'failure'
+        run: exit 1
 
       - name: Commit remediation
-        if: steps.apply.outcome == 'success'
+        if: steps.apply.outcome == 'success' && steps.validate.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
