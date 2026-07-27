@@ -7445,6 +7445,28 @@ body.public .signup-screen-flow .signup-ds-actions{
 .lead-card-details > summary.cmdlike{
   white-space:nowrap!important;
 }
+.lead-card-expanded .lead-actions > .lead-card-details{
+  align-self:center!important;
+}
+.lead-card-expanded .lead-actions > .lead-card-details:not([open]){
+  display:block!important;
+  gap:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.lead-card-expanded .lead-actions > .lead-card-details > summary.cmdlike{
+  margin:0!important;
+  min-height:34px!important;
+  padding:7px 12px!important;
+}
+.lead-card-expanded .lead-actions > .lead-card-details[open]{
+  flex:1 0 100%!important;
+  width:100%!important;
+  align-self:stretch!important;
+}
 @media(max-width:720px){
   .ds-lead-row.ds-person-row{
     grid-template-columns:40px minmax(0,1fr) auto!important;
