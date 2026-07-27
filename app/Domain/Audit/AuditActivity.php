@@ -2831,11 +2831,64 @@ function audit_should_write(string $event): bool
     }
     return true;
 }
+/* Guia de manutenção: Separa controles internos de autoria do contexto público; somente o quinto argumento explícito de audit pode fornecer origem confiável. */
+function audit_trusted_origin_resolve(
+    array &$context,
+    ?array $trustedOrigin,
+): array {
+    foreach (array_keys($context) as $key) {
+        if (
+            str_starts_with((string) $key, "_audit_") ||
+            str_starts_with((string) $key, "_skip_")
+        ) {
+            unset($context[$key]);
+        }
+    }
+    $origin = is_array($trustedOrigin) ? $trustedOrigin : [];
+    $createdAt = trim((string) ($origin["created_at"] ?? ""));
+    if (
+        preg_match(
+            '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
+            $createdAt,
+        ) !== 1
+    ) {
+        $createdAt = "";
+    }
+    $ipHash = strtolower(trim((string) ($origin["ip_hash"] ?? "")));
+    if (preg_match('/^[a-f0-9]{64}$/', $ipHash) !== 1) {
+        $ipHash = "";
+    }
+    return [
+        "skip_runtime_context" => !empty(
+            $origin["skip_runtime_context"]
+        ),
+        "skip_context_enrichment" => !empty(
+            $origin["skip_context_enrichment"]
+        ),
+        "has_user_id" => array_key_exists("user_id", $origin),
+        "user_id" => max(0, (int) ($origin["user_id"] ?? 0)),
+        "has_ip_hash" => array_key_exists("ip_hash", $origin),
+        "ip_hash" => $ipHash,
+        "has_user_agent" => array_key_exists("user_agent", $origin),
+        "user_agent" => mb_substr(
+            trim((string) ($origin["user_agent"] ?? "")),
+            0,
+            180,
+        ),
+        "created_at" => $createdAt,
+        "proof_context" =>
+            isset($origin["proof_context"]) &&
+            is_array($origin["proof_context"])
+                ? $origin["proof_context"]
+                : null,
+    ];
+}
 function audit(
     string $event,
     ?string $entity = null,
     mixed $entityId = null,
     array $context = [],
+    ?array $trustedOrigin = null,
 ): bool {
     /*
      * GUIA DE MANUTENÇÃO — audit
@@ -2851,7 +2904,13 @@ function audit(
         return false;
     }
     try {
-        db_tx(function () use ($event, $entity, $entityId, $context): void {
+        db_tx(function () use (
+            $event,
+            $entity,
+            $entityId,
+            $context,
+            $trustedOrigin,
+        ): void {
             /*
              * GUIA DE MANUTENÇÃO — closure@app/Domain/Audit/AuditActivity.php:2161
              * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
@@ -2862,55 +2921,22 @@ function audit(
              * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; produz conteúdo de saída.
              * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
              */
-            $skipRuntimeContext = !empty($context["_skip_runtime_context"]);
-            $skipContextEnrichment = !empty(
-                $context["_skip_context_enrichment"]
-            );
-            $hasForcedUser = array_key_exists("_audit_user_id", $context);
-            $forcedUserId = $hasForcedUser
-                ? max(0, (int) $context["_audit_user_id"])
-                : 0;
-            $hasForcedIpHash = array_key_exists(
-                "_audit_ip_hash",
+            $origin = audit_trusted_origin_resolve(
                 $context,
+                $trustedOrigin,
             );
-            $forcedIpHash = strtolower(
-                trim((string) ($context["_audit_ip_hash"] ?? "")),
-            );
-            $hasForcedUserAgent = array_key_exists(
-                "_audit_user_agent",
-                $context,
-            );
-            $forcedUserAgent = mb_substr(
-                trim((string) ($context["_audit_user_agent"] ?? "")),
-                0,
-                180,
-            );
-            $forcedCreatedAt = trim(
-                (string) ($context["_audit_created_at"] ?? ""),
-            );
-            if (
-                preg_match(
-                    '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
-                    $forcedCreatedAt,
-                ) !== 1
-            ) {
-                $forcedCreatedAt = "";
-            }
-            $forcedProofContext =
-                isset($context["_audit_proof_context"]) &&
-                is_array($context["_audit_proof_context"])
-                    ? $context["_audit_proof_context"]
-                    : null;
-            unset(
-                $context["_skip_runtime_context"],
-                $context["_skip_context_enrichment"],
-                $context["_audit_user_id"],
-                $context["_audit_ip_hash"],
-                $context["_audit_user_agent"],
-                $context["_audit_created_at"],
-                $context["_audit_proof_context"],
-            );
+            $skipRuntimeContext = (bool) $origin["skip_runtime_context"];
+            $skipContextEnrichment = (bool) $origin[
+                "skip_context_enrichment"
+            ];
+            $hasForcedUser = (bool) $origin["has_user_id"];
+            $forcedUserId = (int) $origin["user_id"];
+            $hasForcedIpHash = (bool) $origin["has_ip_hash"];
+            $forcedIpHash = (string) $origin["ip_hash"];
+            $hasForcedUserAgent = (bool) $origin["has_user_agent"];
+            $forcedUserAgent = (string) $origin["user_agent"];
+            $forcedCreatedAt = (string) $origin["created_at"];
+            $forcedProofContext = $origin["proof_context"];
             $c = $skipRuntimeContext ? [] : ctx();
             $uid = $hasForcedUser
                 ? ($forcedUserId > 0 ? $forcedUserId : null)
@@ -2971,9 +2997,7 @@ function audit(
             $entityLabel = $entity !== null && $entity !== "" ? entity_label($entity) : null;
             $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
             $ipHash = $hasForcedIpHash
-                ? (preg_match('/^[a-f0-9]{64}$/', $forcedIpHash) === 1
-                    ? $forcedIpHash
-                    : null)
+                ? ($forcedIpHash !== "" ? $forcedIpHash : null)
                 : ($ip !== "" ? hash("sha256", $ip . "|ip") : null);
             $userAgent = $hasForcedUserAgent
                 ? $forcedUserAgent
