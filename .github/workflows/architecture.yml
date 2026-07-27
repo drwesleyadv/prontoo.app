@@ -48,7 +48,13 @@ jobs:
             -path './ssd' -prune -o \
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
-            -name '*.php' -print0)
+              -name '*.php' -print0)
+
+      - name: Authentication and deferred-work regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          php tools/security-regression-check.php | tee security-regression-report.json
 
       - name: JSON contracts
         shell: bash
@@ -123,7 +129,7 @@ jobs:
                   "Cobertura documental divergente: {$guides} guias para {$functions} funções.",
               );
           }
-          if ($functions !== 1924) {
+          if ($functions !== 1938) {
               throw new RuntimeException(
                   "Inventário funcional divergente da baseline documentada: {$functions}.",
               );
@@ -560,5 +566,6 @@ jobs:
             architecture-report.json
             schema-report.json
             install-security-report.json
+            security-regression-report.json
           if-no-files-found: error
           retention-days: 7
