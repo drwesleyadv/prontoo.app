@@ -50,6 +50,427 @@ function telemetry_storage_dir(): string
      */
     return storage_path("telemetry");
 }
+function maestro_deferred_storage_dir(): string
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_deferred_storage_dir
+     * Responsabilidade: Resolve o diretório protegido da fila durável de trabalhos secundários consumidos pelo Maestro.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_deferred_enqueue`, `maestro_process_deferred_work`.
+     * Dependências chamadas: `storage_path`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: A fila permanece fora da raiz pública e não substitui a fonte canônica dos dados processados.
+     */
+    return storage_path("maestro-deferred");
+}
+function maestro_deferred_canonicalize(mixed $value): mixed
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_deferred_canonicalize
+     * Responsabilidade: Ordena mapas recursivamente para produzir assinaturas estáveis dos envelopes adiados.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_deferred_sign`.
+     * Dependências chamadas: `array_is_list`, `ksort`, `maestro_deferred_canonicalize`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Listas preservam sua ordem; somente mapas associativos são ordenados.
+     */
+    if (!is_array($value)) {
+        return $value;
+    }
+    if (array_is_list($value)) {
+        return array_map("maestro_deferred_canonicalize", $value);
+    }
+    ksort($value);
+    foreach ($value as $key => $item) {
+        $value[$key] = maestro_deferred_canonicalize($item);
+    }
+    return $value;
+}
+function maestro_deferred_sign(array $envelope): string
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_deferred_sign
+     * Responsabilidade: Autentica um envelope da fila do Maestro com chave derivada do segredo local da instalação.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_deferred_enqueue`, `maestro_deferred_envelope_valid`.
+     * Dependências chamadas: `cfg`, `secret_key`, `hash`, `json_encode`, `maestro_deferred_canonicalize`, `hash_hmac`.
+     * Efeitos colaterais: pode consultar a chave canônica apenas em instalações legadas sem segredo no arquivo de configuração.
+     * Cuidado 1: Nunca inclua a assinatura no próprio conteúdo assinado.
+     */
+    static $key = null;
+    if (!is_string($key) || $key === "") {
+        $configSecret = trim((string) (cfg()["secret"] ?? ""));
+        $source =
+            strlen($configSecret) >= 32 ? $configSecret : secret_key();
+        $key = hash("sha256", "prontoo|maestro-deferred|" . $source, true);
+    }
+    $json = json_encode(
+        maestro_deferred_canonicalize($envelope),
+        JSON_UNESCAPED_UNICODE |
+            JSON_UNESCAPED_SLASHES |
+            JSON_PRESERVE_ZERO_FRACTION,
+    );
+    if (!is_string($json)) {
+        throw new RuntimeException(
+            "Envelope secundário inválido para assinatura.",
+        );
+    }
+    return hash_hmac("sha256", $json, $key);
+}
+function maestro_deferred_enqueue(string $type, array $payload): ?string
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_deferred_enqueue
+     * Responsabilidade: Publica atomicamente um trabalho secundário em arquivo exclusivo, sem disputar a trava dos agregados de telemetria.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_defer_audit_event`, `maestro_defer_telemetry_event`.
+     * Dependências chamadas: `has_cfg`, `maestro_deferred_storage_dir`, `mkdir`, `security_storage_deny_file`, `random_bytes`, `microtime`, `maestro_deferred_sign`, `json_encode`, `tempnam`, `file_put_contents`, `chmod`, `rename`, `unlink`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: A publicação por arquivo exclusivo e rename atômico evita uma trava global no caminho crítico HTTP.
+     */
+    if (!has_cfg() || !in_array($type, ["audit", "telemetry"], true)) {
+        return null;
+    }
+    static $prepared = [];
+    $temp = null;
+    try {
+        $dir = maestro_deferred_storage_dir();
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
+        if (!is_dir($dir) || !is_writable($dir)) {
+            return null;
+        }
+        if (
+            empty($prepared[$dir]) &&
+            function_exists("security_storage_deny_file") &&
+            (!is_file($dir . "/.htaccess") ||
+                !is_file($dir . "/index.html"))
+        ) {
+            security_storage_deny_file($dir);
+        }
+        $prepared[$dir] = true;
+        $id =
+            sprintf("%020d", (int) round(microtime(true) * 1000000)) .
+            "-" .
+            bin2hex(random_bytes(8));
+        $unsigned = [
+            "version" => 1,
+            "id" => $id,
+            "type" => $type,
+            "queued_at_utc" => gmdate("Y-m-d H:i:s"),
+            "payload" => $payload,
+        ];
+        $envelope = $unsigned + [
+            "signature" => maestro_deferred_sign($unsigned),
+        ];
+        $json = json_encode(
+            $envelope,
+            JSON_UNESCAPED_UNICODE |
+                JSON_UNESCAPED_SLASHES |
+                JSON_PRESERVE_ZERO_FRACTION,
+        );
+        if (!is_string($json)) {
+            return null;
+        }
+        $temp = tempnam($dir, ".pending-");
+        if (
+            !is_string($temp) ||
+            @file_put_contents($temp, $json) !== strlen($json)
+        ) {
+            return null;
+        }
+        @chmod($temp, 0640);
+        $target = $dir . "/" . $id . ".json";
+        if (!@rename($temp, $target)) {
+            return null;
+        }
+        $temp = null;
+        return $id;
+    } catch (Throwable $e) {
+        error_log("[Prontoo Maestro defer] " . $e->getMessage());
+        return null;
+    } finally {
+        if (is_string($temp) && is_file($temp)) {
+            @unlink($temp);
+        }
+    }
+}
+function maestro_defer_audit_event(
+    string $event,
+    ?string $entity,
+    mixed $entityId,
+    array $context,
+    ?int $actorUserId = null,
+): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_defer_audit_event
+     * Responsabilidade: Captura o contexto mínimo de uma auditoria antes da sessão ser encerrada e a entrega à próxima execução do Maestro.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `page_logout`.
+     * Dependências chamadas: `hash`, `maestro_deferred_enqueue`.
+     * Estado externo lido: `$_SERVER`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: O endereço de rede é transformado em hash antes de entrar na fila e o agente é limitado ao mesmo tamanho da auditoria canônica.
+     */
+    $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
+    $userAgent = mb_substr(
+        trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")),
+        0,
+        180,
+    );
+    return maestro_deferred_enqueue("audit", [
+        "event" => mb_substr($event, 0, 80),
+        "entity" =>
+            $entity !== null ? mb_substr($entity, 0, 80) : null,
+        "entity_id" => (string) $entityId,
+        "context" => $context,
+        "actor_user_id" =>
+            $actorUserId !== null && $actorUserId > 0
+                ? $actorUserId
+                : null,
+        "ip_hash" => $ip !== "" ? hash("sha256", $ip . "|ip") : null,
+        "user_agent" => $userAgent !== "" ? $userAgent : null,
+        "occurred_at_utc" => gmdate("Y-m-d H:i:s"),
+        "proof_context" => [
+            "route" => function_exists("route")
+                ? (string) route()
+                : (string) ($_GET["r"] ?? ""),
+            "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
+            "scope" => (string) ($_SESSION["scope"] ?? ""),
+            "clinic_id" =>
+                (int) ($_SESSION["clinic_id"] ?? 0) > 0
+                    ? (int) $_SESSION["clinic_id"]
+                    : null,
+            "role" => (string) ($_SESSION["role_code"] ?? ""),
+        ],
+    ]) !== null;
+}
+function maestro_defer_telemetry_event(
+    array $event,
+    bool $includePageMetric,
+): bool {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_defer_telemetry_event
+     * Responsabilidade: Enfileira a amostra de desempenho de login ou logout para consolidação posterior pelo Maestro.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `prontoo_request_metric_shutdown`.
+     * Dependências chamadas: `maestro_deferred_enqueue`.
+     * Efeitos colaterais: acessa o sistema de arquivos.
+     * Cuidado 1: Falha de telemetria nunca pode impedir a resposta HTTP nem reativar a consolidação síncrona.
+     */
+    return maestro_deferred_enqueue("telemetry", [
+        "event" => $event,
+        "include_page_metric" => $includePageMetric,
+    ]) !== null;
+}
+function maestro_deferred_envelope_valid(array $envelope): bool
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_deferred_envelope_valid
+     * Responsabilidade: Valida formato, identidade e assinatura antes de o Maestro executar um trabalho secundário.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_process_deferred_work`.
+     * Dependências chamadas: `preg_match`, `in_array`, `maestro_deferred_sign`, `hash_equals`.
+     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
+     * Cuidado 1: Envelopes desconhecidos ou adulterados devem ser colocados em quarentena sem execução.
+     */
+    $signature = strtolower(trim((string) ($envelope["signature"] ?? "")));
+    if (
+        (int) ($envelope["version"] ?? 0) !== 1 ||
+        preg_match(
+            '/^\d{20}-[a-f0-9]{16}$/',
+            (string) ($envelope["id"] ?? ""),
+        ) !== 1 ||
+        !in_array(
+            (string) ($envelope["type"] ?? ""),
+            ["audit", "telemetry"],
+            true,
+        ) ||
+        !isset($envelope["payload"]) ||
+        !is_array($envelope["payload"]) ||
+        preg_match('/^[a-f0-9]{64}$/', $signature) !== 1
+    ) {
+        return false;
+    }
+    $unsigned = $envelope;
+    unset($unsigned["signature"]);
+    try {
+        return hash_equals(maestro_deferred_sign($unsigned), $signature);
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+function maestro_process_deferred_audit(array $envelope): bool
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_process_deferred_audit
+     * Responsabilidade: Materializa de forma idempotente a auditoria adiada, já fora do caminho crítico do logout.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_process_deferred_work`.
+     * Dependências chamadas: `one`, `audit`.
+     * Efeitos colaterais: consulta e grava a camada de persistência; gera trilha de auditoria.
+     * Cuidado 1: O identificador do envelope impede duplicação caso o cron termine depois do commit e antes de remover o arquivo.
+     */
+    if (!function_exists("audit")) {
+        return false;
+    }
+    $id = (string) ($envelope["id"] ?? "");
+    $payload = (array) ($envelope["payload"] ?? []);
+    $event = mb_substr((string) ($payload["event"] ?? ""), 0, 80);
+    if ($event === "") {
+        return false;
+    }
+    $existing = one(
+        "SELECT id FROM pi_audit WHERE event_key=? AND JSON_UNQUOTE(JSON_EXTRACT(context_json,'$.deferred_id'))=? ORDER BY id DESC LIMIT 1",
+        [$event, $id],
+    );
+    if ($existing) {
+        return true;
+    }
+    $context = isset($payload["context"]) && is_array($payload["context"])
+        ? $payload["context"]
+        : [];
+    $context["deferred_id"] = $id;
+    $context["occurred_at_utc"] = (string) (
+        $payload["occurred_at_utc"] ??
+        ($envelope["queued_at_utc"] ?? "")
+    );
+    $context["_audit_user_id"] = isset($payload["actor_user_id"])
+        ? (int) $payload["actor_user_id"]
+        : null;
+    $context["_audit_ip_hash"] = $payload["ip_hash"] ?? null;
+    $context["_audit_user_agent"] = $payload["user_agent"] ?? null;
+    $context["_audit_created_at"] = $payload["occurred_at_utc"] ?? null;
+    $context["_audit_proof_context"] =
+        isset($payload["proof_context"]) &&
+        is_array($payload["proof_context"])
+            ? $payload["proof_context"]
+            : null;
+    return audit(
+        $event,
+        isset($payload["entity"]) ? (string) $payload["entity"] : null,
+        $payload["entity_id"] ?? null,
+        $context,
+    );
+}
+function maestro_process_deferred_telemetry(array $envelope): bool
+{
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_process_deferred_telemetry
+     * Responsabilidade: Consolida no Maestro uma amostra de desempenho previamente capturada pelo runtime HTTP.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `maestro_process_deferred_work`.
+     * Dependências chamadas: `telemetry_append_route_performance_metric`, `telemetry_append_page_metric`.
+     * Efeitos colaterais: acessa o sistema de arquivos; gera telemetria.
+     * Cuidado 1: Preserve a amostra original; o tempo de espera da fila não integra a latência da requisição do usuário.
+     */
+    $payload = (array) ($envelope["payload"] ?? []);
+    $event = isset($payload["event"]) && is_array($payload["event"])
+        ? $payload["event"]
+        : [];
+    if ($event === [] || trim((string) ($event["route"] ?? "")) === "") {
+        return false;
+    }
+    telemetry_append_route_performance_metric($event);
+    if (!empty($payload["include_page_metric"])) {
+        telemetry_append_page_metric($event);
+    }
+    return true;
+}
+function maestro_process_deferred_work(
+    int $budgetMs = 5000,
+    int $limit = 500,
+): array {
+    /*
+     * GUIA DE MANUTENÇÃO — maestro_process_deferred_work
+     * Responsabilidade: Consome na execução seguinte do Maestro os trabalhos secundários publicados pelas rotas críticas.
+     * Local arquitetural: app/Support/Telemetry.php (serviços transversais de suporte).
+     * Chamadores detectados: `cron/maestro.php`.
+     * Dependências chamadas: `maestro_deferred_storage_dir`, `glob`, `filemtime`, `rename`, `sort`, `microtime`, `file_get_contents`, `json_decode`, `maestro_deferred_envelope_valid`, `maestro_process_deferred_audit`, `maestro_process_deferred_telemetry`, `unlink`.
+     * Efeitos colaterais: acessa o sistema de arquivos; pode consultar e gravar a camada de persistência; gera auditoria e telemetria.
+     * Cuidado 1: O claim por rename é atômico; arquivos interrompidos são recuperados depois de cinco minutos e a auditoria é idempotente.
+     */
+    $started = microtime(true);
+    $budgetMs = max(250, min(30000, $budgetMs));
+    $limit = max(1, min(5000, $limit));
+    $stats = [
+        "success" => true,
+        "queued" => 0,
+        "processed" => 0,
+        "audit" => 0,
+        "telemetry" => 0,
+        "invalid" => 0,
+        "errors" => 0,
+        "remaining" => 0,
+        "duration_ms" => 0,
+    ];
+    $dir = maestro_deferred_storage_dir();
+    if (!is_dir($dir)) {
+        return $stats;
+    }
+    foreach ((array) glob($dir . "/*.json.processing") as $stale) {
+        if ((int) @filemtime($stale) > 0 && time() - (int) @filemtime($stale) > 300) {
+            @rename($stale, substr($stale, 0, -strlen(".processing")));
+        }
+    }
+    $files = (array) glob($dir . "/*.json");
+    sort($files, SORT_STRING);
+    $stats["queued"] = count($files);
+    foreach (array_slice($files, 0, $limit) as $file) {
+        if ((microtime(true) - $started) * 1000 >= $budgetMs) {
+            break;
+        }
+        $claimed = $file . ".processing";
+        if (!@rename($file, $claimed)) {
+            continue;
+        }
+        $completed = false;
+        $invalid = false;
+        try {
+            $raw = @file_get_contents($claimed);
+            $envelope =
+                is_string($raw) && trim($raw) !== ""
+                    ? json_decode($raw, true)
+                    : null;
+            if (
+                !is_array($envelope) ||
+                !maestro_deferred_envelope_valid($envelope)
+            ) {
+                $invalid = true;
+                $stats["invalid"]++;
+                continue;
+            }
+            $type = (string) $envelope["type"];
+            $completed =
+                $type === "audit"
+                    ? maestro_process_deferred_audit($envelope)
+                    : maestro_process_deferred_telemetry($envelope);
+            if ($completed) {
+                $stats["processed"]++;
+                $stats[$type]++;
+            } else {
+                $stats["errors"]++;
+            }
+        } catch (Throwable $e) {
+            $stats["errors"]++;
+            error_log("[Prontoo Maestro deferred] " . $e->getMessage());
+        } finally {
+            if ($completed) {
+                @unlink($claimed);
+            } elseif ($invalid) {
+                @rename($claimed, $file . ".invalid");
+            } else {
+                @rename($claimed, $file);
+            }
+        }
+    }
+    $stats["remaining"] = count((array) glob($dir . "/*.json"));
+    $stats["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+    $stats["success"] =
+        $stats["errors"] === 0 && $stats["invalid"] === 0;
+    return $stats;
+}
 function telemetry_page_file(): string
 {
     /*
@@ -1467,11 +1888,19 @@ function prontoo_request_metric_shutdown(): void
                 ? server_json_cache_metrics_snapshot()
                 : ["totals" => [], "categories" => []],
         ];
-        telemetry_append_route_performance_metric($event);
-        if ($success && $elapsedMs < 1200 && random_int(1, $sample) !== 1) {
+        $includePageMetric = !(
+            $success &&
+            $elapsedMs < 1200 &&
+            random_int(1, $sample) !== 1
+        );
+        if (in_array($event["route"], ["login", "logout"], true)) {
+            maestro_defer_telemetry_event($event, $includePageMetric);
             return;
         }
-        telemetry_append_page_metric($event);
+        telemetry_append_route_performance_metric($event);
+        if ($includePageMetric) {
+            telemetry_append_page_metric($event);
+        }
     } catch (Throwable $ignored) {
         error_log(
             "[Prontoo recoverable " .
