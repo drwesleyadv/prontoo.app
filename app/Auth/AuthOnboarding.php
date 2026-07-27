@@ -881,7 +881,7 @@ function mfa_complete_pending_login(bool $redirectAfterLogin = true): string
             redirect("login", ["relogin" => "1"]);
         }
         throw new RuntimeException(
-            "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+            "A verificação expirou. Informe novamente o CPF e a senha.",
         );
     }
     $uid = (int) $user["id"];
@@ -972,7 +972,7 @@ function page_mfa(): void
                 $secret = (string) ($_SESSION["mfa_enrollment_secret"] ?? "");
                 if ($secret === "") {
                     throw new RuntimeException(
-                        "A configuração MFA expirou. Inicie novamente.",
+                        "A configuração expirou. Inicie novamente.",
                     );
                 }
                 $codes = mfa_enroll_user(
@@ -1006,7 +1006,7 @@ function page_mfa(): void
             flash(
                 app_public_error_message(
                     $e,
-                    "Não foi possível validar o segundo fator.",
+                    "Não foi possível confirmar o código de verificação.",
                 ),
                 "bad",
             );
@@ -1025,15 +1025,15 @@ function page_mfa(): void
         $body =
             '<section class="auth login-card security-auth-card security-recovery-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
             icon("verified_user") .
-            '</span><div><span class="eyebrow">MFA configurado</span><h1>Códigos de recuperação</h1><p>Conclua esta etapa antes de entrar.</p></div></div><div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
+            '</span><div><span class="eyebrow">Última etapa</span><h1>Guarde seus códigos de recuperação</h1><p>Eles permitem entrar se você perder o acesso ao aplicativo autenticador.</p></div></div><div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
             icon("key") .
-            '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez e não será exibido novamente.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
+            '</span><div><strong>Salve em um lugar seguro</strong><span>Cada código funciona uma única vez e não será exibido novamente.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
             $items .
             '</ul><form method="post" class="security-auth-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="mfa_continue"><button type="submit" class="primary wide security-auth-submit">' .
             icon("arrow_forward") .
-            "<span>Concluir e entrar</span></button></form></section>";
+            "<span>Já guardei. Entrar no Prontoo</span></button></form></section>";
         page("Códigos de recuperação", $body, ["public" => true]);
         return;
     }
@@ -1046,17 +1046,17 @@ function page_mfa(): void
         $body =
             '<section class="auth login-card security-auth-card security-enrollment-card"><div class="auth-titleline security-auth-titleline"><span class="auth-brandmark security-auth-icon">' .
             icon("shield_lock") .
-            '</span><div><span class="eyebrow">Primeiro acesso · Desenvolvedor</span><h1>Proteja sua conta</h1><p>O MFA será exigido nos próximos acessos.</p></div></div><ol class="security-step-list" aria-label="Etapas do cadastro"><li class="is-current"><span>1</span><div><strong>Adicione a conta</strong><small>Abra seu aplicativo autenticador pelo botão ou use a chave manual.</small></div></li><li><span>2</span><div><strong>Confirme o código</strong><small>Digite os seis dígitos exibidos pelo aplicativo.</small></div></li></ol><a class="ghost wide security-auth-launch" href="' .
+            '</span><div><span class="eyebrow">Primeiro acesso</span><h1>Ative a verificação em duas etapas</h1><p>Depois da senha, você usará um código do aplicativo autenticador.</p></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">1</span><div class="mfa-step-content"><strong>Conecte seu aplicativo</strong><small>Abra o aplicativo autenticador no celular e adicione uma nova conta.</small><a class="ghost wide security-auth-launch" href="' .
             e($uri) .
             '">' .
             icon("open_in_new") .
-            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
+            '<span>Abrir aplicativo autenticador</span></a><details class="mfa-manual-setup"><summary>Configurar com uma chave manual</summary><div class="mfa-secret"><div><span>Chave de configuração</span><small>No aplicativo, escolha a opção de inserir uma chave.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
             e($secret) .
-            '</code></div><form method="post" class="compact security-auth-form">' .
+            '</code></div></details></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">2</span><div class="mfa-step-content"><strong>Confirme o código</strong><small>Digite os seis dígitos exibidos pelo aplicativo.</small><form method="post" class="compact security-auth-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="mfa_enroll">' .
             form_row(
-                "Código de seis dígitos",
+                "Código de verificação",
                 input(
                     "code",
                     "text",
@@ -1064,10 +1064,10 @@ function page_mfa(): void
                     'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" aria-describedby="mfa-code-help"',
                 ),
             ) .
-            '<small id="mfa-code-help" class="field-help">Digite o código atual do aplicativo autenticador.</small><button type="submit" class="primary wide security-auth-submit">' .
+            '<small id="mfa-code-help" class="field-help">Use o código atual do aplicativo.</small><button type="submit" class="primary wide security-auth-submit">' .
             icon("check_circle") .
-            "<span>Confirmar e cadastrar</span></button></form></section>";
-        page("Cadastrar MFA", $body, ["public" => true]);
+            "<span>Ativar e continuar</span></button></form></div></div></section>";
+        page("Verificação em duas etapas", $body, ["public" => true]);
         return;
     }
 }
@@ -1145,14 +1145,14 @@ function page_global_reauth(): void
     }
     $body =
         page_head(
-            "Confirmar acesso de Desenvolvedor",
-            "Confirme sua identidade antes de entrar no ambiente global.",
+            "Confirmar identidade",
+            "Para entrar no ambiente global, confirme novamente seus dados.",
         ) .
         '<section class="card account-card security-reauth-card"><header class="security-reauth-head"><span class="security-reauth-icon">' .
         icon("admin_panel_settings") .
-        '</span><div><span class="eyebrow">Elevação de acesso</span><h2>Verificação adicional</h2><p>Informe novamente sua senha e o segundo fator.</p></div></header><div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
+        '</span><div><span class="eyebrow">Ambiente do Desenvolvedor</span><h2>Confirme que é você</h2><p>Informe sua senha e o código do aplicativo autenticador.</p></div></header><div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
         icon("enhanced_encryption") .
-        '</span><div><strong>Acesso protegido</strong><span>A liberação vale somente para esta sessão e não cria dispositivo persistente.</span></div></div><form method="post" class="compact security-reauth-form">' .
+        '</span><div><strong>Confirmação temporária</strong><span>Ela vale somente para esta sessão.</span></div></div><form method="post" class="compact security-reauth-form">' .
         csrf_field() .
         form_row(
             "Senha atual",
@@ -1168,22 +1168,23 @@ function page_global_reauth(): void
                 "</button></div>",
         ) .
         form_row(
-            "Código MFA",
+            "Código de verificação",
             input(
                 "code",
                 "text",
                 "",
-                'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false"',
+                'required autocomplete="one-time-code" maxlength="16" placeholder="Digite o código" autocapitalize="characters" spellcheck="false" aria-describedby="global-verification-help"',
             ),
         ) .
+        '<small id="global-verification-help" class="field-help">Use o código atual do aplicativo ou um código de recuperação.</small>' .
         '<div class="form-actions security-reauth-actions"><a class="ghost" href="' .
         href("profile") .
         '">' .
         icon("arrow_back") .
         '<span>Cancelar</span></a><button type="submit" class="primary">' .
         icon("verified_user") .
-        "<span>Confirmar acesso</span></button></div></form></section>";
-    page("Confirmar acesso", $body);
+        "<span>Entrar no ambiente global</span></button></div></form></section>";
+    page("Confirmar identidade", $body);
 }
 function page_login(): void
 {
@@ -1231,7 +1232,7 @@ function page_login(): void
             if ($user && $userMfaState === "unavailable") {
                 mfa_pending_login_clear();
                 $message =
-                    "Não foi possível confirmar a proteção MFA agora. O acesso não foi liberado; tente novamente em instantes.";
+                    "Não foi possível consultar a verificação em duas etapas agora. O acesso não foi liberado; tente novamente em instantes.";
                 if ($wantsJson) {
                     prontoo_json_response(
                         [
@@ -1256,14 +1257,14 @@ function page_login(): void
                             "stage" => "password",
                             "reset" => true,
                             "message" =>
-                                "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+                                "A verificação expirou. Informe novamente o CPF e a senha.",
                         ],
                         409,
                     );
                     return;
                 }
                 flash(
-                    "A confirmação MFA expirou. Informe novamente o CPF e a senha.",
+                    "A verificação expirou. Informe novamente o CPF e a senha.",
                     "warn",
                 );
                 redirect("login");
@@ -1322,7 +1323,7 @@ function page_login(): void
                 ]);
                 $message = app_public_error_message(
                     $e,
-                    "Não foi possível validar o segundo fator.",
+                    "Não foi possível confirmar o código de verificação.",
                 );
                 if ($wantsJson) {
                     prontoo_json_response(
@@ -1507,7 +1508,7 @@ function page_login(): void
                     "A senha foi confirmada, mas o estado MFA não pôde ser comprovado; a sessão não foi criada.",
             ]);
             $message =
-                "Não foi possível confirmar a proteção MFA agora. O acesso não foi liberado; tente novamente em instantes.";
+                "Não foi possível consultar a verificação em duas etapas agora. O acesso não foi liberado; tente novamente em instantes.";
             if ($wantsJson) {
                 prontoo_json_response(
                     [
@@ -1542,7 +1543,7 @@ function page_login(): void
                     "ok" => true,
                     "stage" => "mfa",
                     "message" =>
-                        "Senha confirmada. Informe o código MFA para entrar.",
+                        "Senha confirmada. Agora, digite o código do aplicativo.",
                     "csrf" => csrf(),
                 ]);
                 return;
@@ -1593,7 +1594,7 @@ function page_login(): void
                 '</em>.</span></div><div class="login-lock-meter" aria-hidden="true"><i data-countdown-bar style="--progress:100%"></i></div></div>'
             : ($mfaStage ? "" : $reloginNotice);
     $bootStatus = $mfaStage
-        ? "Senha confirmada. Informe o código MFA para entrar."
+        ? "Senha confirmada. Agora, digite o código do aplicativo."
         : "Verificando liberação do acesso.";
     $bootIcon = $mfaStage ? "verified_user" : "sync";
     $cpfAttributes =
@@ -1602,15 +1603,15 @@ function page_login(): void
     $credentialField = $mfaStage
         ? '<input type="hidden" name="act" value="mfa_verify" data-login-act>' .
             form_row(
-                "Código MFA",
+                "Código de verificação",
                 input(
                     "code",
                     "text",
                     "",
-                    'required autocomplete="one-time-code" maxlength="16" placeholder="Código do autenticador" autocapitalize="characters" spellcheck="false" data-login-code',
+                    'required autocomplete="one-time-code" maxlength="16" placeholder="Digite o código" autocapitalize="characters" spellcheck="false" aria-describedby="login-verification-help" data-login-code',
                 ),
             ) .
-            '<small class="field-help login-mfa-help" data-login-mfa-help>Use o código atual do autenticador ou um código de recuperação.</small>'
+            '<small id="login-verification-help" class="field-help login-mfa-help" data-login-mfa-help>Abra seu aplicativo autenticador e digite o código exibido. Você também pode usar um código de recuperação.</small>'
         : form_row(
             "Senha",
             '<div class="password-field">' .
@@ -2856,12 +2857,12 @@ function page_profile(): void
                 $mfaState = mfa_enrollment_state($uid);
                 if ($mfaState === "unavailable") {
                     throw new RuntimeException(
-                        "Não foi possível confirmar o estado MFA agora.",
+                        "Não foi possível consultar a verificação em duas etapas agora.",
                     );
                 }
                 if ($mfaState === "active") {
                     throw new RuntimeException(
-                        "O MFA já está ativo para este usuário.",
+                        "A verificação em duas etapas já está ativa.",
                     );
                 }
                 if (mfa_attempt_limited($uid, "enrollment")) {
@@ -2888,7 +2889,7 @@ function page_profile(): void
                         "O próprio usuário confirmou a senha e iniciou o cadastro opcional de MFA em Minha conta.",
                 ]);
                 flash(
-                    "Senha confirmada. Adicione a conta ao autenticador e informe o primeiro código.",
+                    "Senha confirmada. Siga as duas etapas abaixo.",
                 );
                 redirect("profile");
             }
@@ -2899,13 +2900,13 @@ function page_profile(): void
                     $_SESSION["profile_mfa_password_verified_at"],
                     $_SESSION["profile_mfa_enrollment_mode"],
                 );
-                flash("Configuração do MFA cancelada.", "warn");
+                flash("Configuração cancelada.", "warn");
                 redirect("profile");
             }
             if ($act === "profile_mfa_enable") {
                 if (mfa_enrollment_state($uid) !== "inactive") {
                     throw new RuntimeException(
-                        "Não foi possível iniciar um novo cadastro MFA.",
+                        "Não foi possível iniciar uma nova configuração.",
                     );
                 }
                 $secret = (string) (
@@ -2960,7 +2961,7 @@ function page_profile(): void
                         "O próprio usuário ativou MFA opcional em Minha conta; as demais sessões foram revogadas.",
                 ]);
                 flash(
-                    "MFA ativado. Guarde agora os códigos de recuperação exibidos abaixo.",
+                    "Verificação ativada. Guarde agora seus códigos de recuperação.",
                 );
                 redirect("profile");
             }
@@ -2975,7 +2976,7 @@ function page_profile(): void
             if ($act === "profile_mfa_recovery_regenerate") {
                 if (mfa_enrollment_state($uid) !== "active") {
                     throw new RuntimeException(
-                        "O MFA não está disponível para gerenciamento.",
+                        "A verificação em duas etapas não está disponível agora.",
                     );
                 }
                 if (mfa_attempt_limited($uid, "management")) {
@@ -3015,7 +3016,7 @@ function page_profile(): void
             if ($act === "profile_mfa_replace_prepare") {
                 if (mfa_enrollment_state($uid) !== "active") {
                     throw new RuntimeException(
-                        "O MFA não está disponível para gerenciamento.",
+                        "A verificação em duas etapas não está disponível agora.",
                     );
                 }
                 if (mfa_attempt_limited($uid, "management")) {
@@ -3042,14 +3043,14 @@ function page_profile(): void
                         "O próprio usuário confirmou a senha e iniciou a troca reautenticada do aplicativo autenticador.",
                 ]);
                 flash(
-                    "Senha confirmada. Cadastre a nova chave e confirme os dois códigos.",
+                    "Senha confirmada. Siga as duas etapas abaixo para trocar o aplicativo.",
                 );
                 redirect("profile");
             }
             if ($act === "profile_mfa_replace_enable") {
                 if (mfa_enrollment_state($uid) !== "active") {
                     throw new RuntimeException(
-                        "O MFA não está disponível para troca.",
+                        "A troca do aplicativo não está disponível agora.",
                     );
                 }
                 $secret = (string) (
@@ -3112,12 +3113,12 @@ function page_profile(): void
             if ($act === "profile_mfa_disable") {
                 if ((int) ($u["is_global_admin"] ?? 0) === 1) {
                     throw new RuntimeException(
-                        "A proteção MFA é obrigatória para Desenvolvedor.",
+                        "A verificação em duas etapas é obrigatória para Desenvolvedor.",
                     );
                 }
                 if (mfa_enrollment_state($uid) !== "active") {
                     throw new RuntimeException(
-                        "O MFA não está disponível para desativação.",
+                        "A verificação em duas etapas não está disponível agora.",
                     );
                 }
                 if (mfa_attempt_limited($uid, "management")) {
@@ -3152,7 +3153,7 @@ function page_profile(): void
                     "audit_body" =>
                         "O próprio usuário regular desativou MFA após confirmar senha e segundo fator; as demais sessões foram revogadas.",
                 ]);
-                flash("Proteção Avançada desativada.", "warn");
+                flash("Verificação em duas etapas desativada.", "warn");
                 redirect("profile");
             }
             if ($act === "profile_change_password") {
@@ -3368,12 +3369,12 @@ function page_profile(): void
         ),
     );
     $managementCodeField = form_row(
-        "Código MFA atual",
+        "Código de verificação",
         input(
             "current_code",
             "text",
             "",
-            'required autocomplete="one-time-code" maxlength="16"',
+            'required autocomplete="one-time-code" maxlength="16" placeholder="Digite o código"',
         ),
     );
     if ($profileMfaSecret !== "") {
@@ -3385,7 +3386,7 @@ function page_profile(): void
         $configurationFields = $isReplacement
             ? $managementCodeField .
                 form_row(
-                    "Código do novo autenticador",
+                    "Código do novo aplicativo",
                     input(
                         "new_code",
                         "text",
@@ -3394,7 +3395,7 @@ function page_profile(): void
                     ),
                 )
             : form_row(
-                "Código de seis dígitos",
+                "Código de verificação",
                 input(
                     "code",
                     "text",
@@ -3405,21 +3406,29 @@ function page_profile(): void
         $mfaPanel =
             '<section class="account-mfa-panel is-configuring" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
             icon("shield_lock") .
-            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">' .
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">' .
             ($isReplacement
-                ? "Concluir troca do autenticador"
-                : "Concluir ativação do MFA") .
+                ? "Troque o aplicativo autenticador"
+                : "Ative a verificação em duas etapas") .
             "</h3><p>" .
             ($isReplacement
-                ? "Adicione a nova conta e confirme o fator atual e o novo código."
-                : "Adicione a conta ao autenticador e confirme o primeiro código.") .
-            '</p></div></div><a class="ghost wide security-auth-launch" href="' .
+                ? "Conecte o novo aplicativo e confirme um código do aplicativo atual e outro do novo."
+                : "Conecte seu aplicativo autenticador e confirme o primeiro código.") .
+            '</p></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">1</span><div class="mfa-step-content"><strong>Conecte o aplicativo</strong><small>Abra o aplicativo autenticador e adicione uma nova conta.</small><a class="ghost wide security-auth-launch" href="' .
             e($uri) .
             '">' .
             icon("open_in_new") .
-            '<span>Abrir no autenticador</span></a><div class="mfa-secret"><div><span>Chave manual</span><small>Use se o aplicativo não abrir pelo botão.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
+            '<span>Abrir aplicativo autenticador</span></a><details class="mfa-manual-setup"><summary>Configurar com uma chave manual</summary><div class="mfa-secret"><div><span>Chave de configuração</span><small>No aplicativo, escolha a opção de inserir uma chave.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
             e($profileMfaSecret) .
-            '</code></div><form method="post" class="compact account-mfa-form">' .
+            '</code></div></details></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">2</span><div class="mfa-step-content"><strong>' .
+            ($isReplacement
+                ? "Confirme os dois aplicativos"
+                : "Confirme o código") .
+            '</strong><small>' .
+            ($isReplacement
+                ? "Use um código do aplicativo atual e outro do novo."
+                : "Digite os seis dígitos exibidos pelo aplicativo.") .
+            '</small><form method="post" class="compact account-mfa-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="' .
             ($isReplacement
@@ -3430,12 +3439,12 @@ function page_profile(): void
             '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
             icon("check_circle") .
             "<span>" .
-            ($isReplacement ? "Confirmar troca" : "Confirmar e ativar") .
-            '</span></button></div></form><form method="post" class="account-mfa-cancel-form">' .
+            ($isReplacement ? "Concluir troca" : "Ativar verificação") .
+            '</span></button></div></form></div></div><form method="post" class="account-mfa-cancel-form">' .
             csrf_field() .
             '<input type="hidden" name="act" value="profile_mfa_cancel"><button type="submit" class="ghost small">' .
             icon("close") .
-            "<span>Cancelar configuração</span></button></form></section>";
+            "<span>Cancelar</span></button></form></section>";
     } elseif ($mfaEnrolled) {
         $recoveryHtml = "";
         if ($profileRecoveryCodes) {
@@ -3449,62 +3458,68 @@ function page_profile(): void
             $recoveryHtml =
                 '<div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
                 icon("key") .
-                '</span><div><strong>Guarde agora</strong><span>Cada código funciona uma única vez. Eles permanecerão disponíveis por até dez minutos ou até sua confirmação.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
+                '</span><div><strong>Guarde seus novos códigos</strong><span>Use-os para entrar se perder o acesso ao aplicativo. Cada código funciona uma única vez.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
                 $items .
                 '</ul><form method="post" class="account-mfa-cancel-form">' .
                 csrf_field() .
                 '<input type="hidden" name="act" value="profile_mfa_recovery_ack"><button type="submit" class="ghost small">' .
                 icon("check") .
-                "<span>Já guardei os códigos</span></button></form>";
+                "<span>Já guardei</span></button></form>";
         }
         $disableForm =
             (int) ($u["is_global_admin"] ?? 0) === 1
                 ? '<div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
                     icon("policy") .
-                    '</span><div><strong>Proteção obrigatória</strong><span>O MFA não pode ser desativado para Desenvolvedor.</span></div></div>'
-                : '<form method="post" class="compact account-mfa-form">' .
+                    '</span><div><strong>Verificação obrigatória</strong><span>Esta proteção não pode ser desativada para Desenvolvedor.</span></div></div>'
+                : '<form method="post" class="compact account-mfa-form account-mfa-option is-critical"><header class="account-mfa-option-head"><span>' .
+                    icon("lock_open") .
+                    '</span><div><strong>Desativar verificação</strong><small>Você voltará a entrar usando somente a senha.</small></div></header>' .
                     csrf_field() .
                     '<input type="hidden" name="act" value="profile_mfa_disable">' .
                     $managementPasswordField .
                     $managementCodeField .
                     '<div class="form-actions"><button type="submit" class="ghost">' .
                     icon("lock_open") .
-                    "<span>Desativar Proteção Avançada</span></button></div></form>";
+                    "<span>Desativar verificação</span></button></div></form>";
         $mfaPanel =
             '<section class="account-mfa-panel is-active" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
             icon("verified_user") .
-            '</span><div><span class="eyebrow">Segundo fator</span><h3 id="account-mfa-title">MFA ativo</h3><p>Depois da senha, o Prontoo solicitará o código MFA na mesma tela de entrada.</p></div></div>' .
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas ativa</h3><p>Ao entrar, o código do aplicativo será pedido logo após a senha.</p></div></div>' .
             $recoveryHtml .
-            '<details class="account-mfa-management"><summary>Gerenciar proteção</summary><div class="account-mfa-management-grid"><form method="post" class="compact account-mfa-form">' .
+            '<details class="account-mfa-management"><summary>Gerenciar verificação em duas etapas</summary><div class="account-mfa-management-grid"><form method="post" class="compact account-mfa-form account-mfa-option"><header class="account-mfa-option-head"><span>' .
+            icon("key") .
+            '</span><div><strong>Códigos de recuperação</strong><small>Gere outros se perdeu ou já usou os atuais.</small></div></header>' .
             csrf_field() .
             '<input type="hidden" name="act" value="profile_mfa_recovery_regenerate">' .
             $managementPasswordField .
             $managementCodeField .
             '<div class="form-actions"><button type="submit" class="ghost">' .
             icon("key") .
-            '<span>Gerar novos códigos</span></button></div></form><form method="post" class="compact account-mfa-form">' .
+            '<span>Gerar novos códigos</span></button></div></form><form method="post" class="compact account-mfa-form account-mfa-option"><header class="account-mfa-option-head"><span>' .
+            icon("sync_lock") .
+            '</span><div><strong>Aplicativo autenticador</strong><small>Troque o aplicativo ou cadastre esta conta novamente.</small></div></header>' .
             csrf_field() .
             '<input type="hidden" name="act" value="profile_mfa_replace_prepare">' .
             $managementPasswordField .
             '<div class="form-actions"><button type="submit" class="ghost">' .
             icon("sync_lock") .
-            "<span>Trocar autenticador</span></button></div></form>" .
+            "<span>Começar troca</span></button></div></form>" .
             $disableForm .
             "</div></details></section>";
     } elseif ($mfaState === "unavailable") {
         $mfaPanel =
             '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
             icon("gpp_bad") .
-            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Proteção temporariamente indisponível</h3><p>O estado MFA não pôde ser confirmado. Nenhuma alteração foi aplicada; tente novamente em instantes.</p></div></div></section>';
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação temporariamente indisponível</h3><p>Não foi possível consultar esta proteção agora. Nenhuma alteração foi feita; tente novamente em instantes.</p></div></div></section>';
     } else {
         $mfaPanel =
             '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
             icon("security_key") .
-            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas</h3><p>Caso utilize um aplicativo autenticador, ative-o aqui.</p></div></div><form method="post" class="compact account-mfa-form">' .
+            '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas</h3><p>Além da senha, você usará um código do aplicativo autenticador para entrar.</p></div></div><form method="post" class="compact account-mfa-form account-mfa-start">' .
             csrf_field() .
             '<input type="hidden" name="act" value="profile_mfa_prepare">' .
             form_row(
-                "Confirme sua senha atual",
+                "Para continuar, confirme sua senha",
                 input(
                     "current_password",
                     "password",
@@ -3514,7 +3529,7 @@ function page_profile(): void
             ) .
             '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
             icon("shield_lock") .
-            "<span>Habilitar Proteção Avançada</span></button></div></form></section>";
+            "<span>Começar configuração</span></button></div></form></section>";
     }
     $envCards = "";
     $envActiveCards = "";
