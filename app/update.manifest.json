@@ -94,7 +94,7 @@
     "app/Infrastructure/Authorization/RuntimeCapabilityProvider.php": "0981c5d8366a97583053de86ceb6638f971be36ccde063390325b2e679690e65",
     "app/Infrastructure/Database/SeqContract.php": "1ed7980a3f4dd64f88682a9827d676396cfd5f7d5835ad5924d51b0b6f439d34",
     "app/Install/Installer.php": "ed962d2f1140b1681c6ac076791820363a0f5f74da5992834bd209e0b80fc114",
-    "app/Pages/Dashboards.php": "9d1f5d0a3776bcfa961078faf6b13ab6fb2548d5cc6221c",
+    "app/Pages/Dashboards.php": "9d1f5d0a3776bcfa961078faf6b13aa274014212e1cae13b6fb2548d5cc6221c",
     "app/Presentation/Http/ActionMiddleware.php": "0bdefd02fd1926f1621ce8ddd5d6f7a8dd77a2789029b9ef7ab06789d111f3ca",
     "app/Runtime/LayeredKernel.php": "2339dc156013809d1c41ec7270ae36aec9dd3cda20e06dd3554745536d5c2d44",
     "app/Runtime/Runner.php": "725f00788014f52bd6b290fdde87c089073b9400c75a9d217cdcad416a3fe0c6",
