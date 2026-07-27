@@ -4007,6 +4007,29 @@ function page_procedures(): void
             ]);
             flash("Procedimento atualizado.");
         } else {
+            $submissionToken = trim(
+                (string) ($_POST["procedure_submission_token"] ?? ""),
+            );
+            $submissionTokens =
+                $_SESSION["procedure_create_submission_tokens"] ?? [];
+            if (!is_array($submissionTokens)) {
+                $submissionTokens = [];
+            }
+            $submissionAccepted =
+                $submissionToken !== "" &&
+                isset($submissionTokens[$submissionToken]);
+            if ($submissionAccepted) {
+                unset($submissionTokens[$submissionToken]);
+                $_SESSION["procedure_create_submission_tokens"] =
+                    $submissionTokens;
+            }
+            if (!$submissionAccepted) {
+                flash(
+                    "Este cadastro já foi enviado. Confira a lista antes de tentar novamente.",
+                    "bad",
+                );
+                redirect("procedures");
+            }
             q(
                 "INSERT INTO pi_procedures (clinic_id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW())",
                 [
@@ -4058,6 +4081,32 @@ function page_procedures(): void
             $row = $found;
         }
         $isEdit = $editId > 0;
+        $submissionToken = "";
+        if (!$isEdit) {
+            $submissionTokens =
+                $_SESSION["procedure_create_submission_tokens"] ?? [];
+            if (!is_array($submissionTokens)) {
+                $submissionTokens = [];
+            }
+            $submissionCutoff = time() - 1800;
+            foreach ($submissionTokens as $token => $issuedAt) {
+                if ((int) $issuedAt < $submissionCutoff) {
+                    unset($submissionTokens[$token]);
+                }
+            }
+            if (count($submissionTokens) >= 8) {
+                $submissionTokens = array_slice(
+                    $submissionTokens,
+                    -7,
+                    null,
+                    true,
+                );
+            }
+            $submissionToken = bin2hex(random_bytes(24));
+            $submissionTokens[$submissionToken] = time();
+            $_SESSION["procedure_create_submission_tokens"] =
+                $submissionTokens;
+        }
         $title = $isEdit ? "Editar procedimento" : "Novo procedimento";
         $subtitle = $isEdit
             ? "Revise duração, valor, formas de pagamento e orientações usadas pela Agenda."
@@ -4097,11 +4146,19 @@ function page_procedures(): void
             '<section class="form-panel agenda-route-form agenda-quick-form-panel procedure-route-form-panel">' .
             $hero .
             $summary .
-            '<form method="post" class="compact agenda-create-form agenda-quick-form procedure-route-form">' .
+            '<form method="post" class="compact agenda-create-form agenda-quick-form procedure-route-form"' .
+            (!$isEdit ? " data-submit-once" : "") .
+            ">" .
             csrf_field() .
             '<input type="hidden" name="act" value="save"><input type="hidden" name="id" value="' .
             (int) ($row["id"] ?? 0) .
-            '"><fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
+            '">' .
+            (!$isEdit
+                ? '<input type="hidden" name="procedure_submission_token" value="' .
+                    e($submissionToken) .
+                    '">'
+                : "") .
+            '<fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
             icon("edit_note") .
             '<span>Identificação</span></legend><div class="agenda-quick-grid">' .
             form_row(
