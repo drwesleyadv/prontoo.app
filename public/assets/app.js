@@ -2838,13 +2838,34 @@
     true,
   );
   d.addEventListener("submit", (e) => {
+    const form = e.target;
     if (!validateCpfFields(e.target)) {
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    $$("[data-doc-editor-wrap]", e.target).forEach(syncDocumentEditor);
-    const b = e.target.querySelector(
+    if (
+      form.matches?.("[data-submit-once]") &&
+      form.dataset.submitting === "1"
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    $$("[data-doc-editor-wrap]", form).forEach(syncDocumentEditor);
+    if (e.defaultPrevented) return;
+    if (form.matches?.("[data-submit-once]")) {
+      form.dataset.submitting = "1";
+      setTimeout(() => {
+        $$('button[type="submit"],input[type="submit"]', form).forEach(
+          (button) => {
+            button.disabled = true;
+            button.setAttribute("aria-disabled", "true");
+          },
+        );
+      }, 0);
+    }
+    const b = form.querySelector(
       'button[type="submit"],button:not([type])',
     );
     if (b && !b.disabled && !b.dataset.loginSubmit)
