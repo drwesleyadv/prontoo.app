@@ -2,56 +2,56 @@
 declare(strict_types=1);
 function document_identifier_consonants(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_consonants
-     * Responsabilidade: Implementa a responsabilidade “document identifier consonants” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_identifier_base`, `document_identifier_random_alphabet`, `document_identifier_valid_alphabet`.
-     * Dependências chamadas: `str_split`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return str_split("BCDFGHJKLMNPQRSTVWXYZ");
 }
 function document_identifier_base(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_base
-     * Responsabilidade: Implementa a responsabilidade “document identifier base” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_identifier_valid_alphabet`, `document_identifier_digits`, `document_identifier_capacity_for_length`.
-     * Dependências chamadas: `count`, `document_identifier_consonants`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return count(document_identifier_consonants());
 }
 function document_identifier_random_alphabet(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_random_alphabet
-     * Responsabilidade: Implementa a responsabilidade “document identifier random alphabet” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_assign_identifier`, `closure@app/Domain/Documents/Documents.php:84`.
-     * Dependências chamadas: `document_identifier_consonants`, `shuffle`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $letters = document_identifier_consonants();
     shuffle($letters);
     return implode("", $letters);
 }
 function document_identifier_valid_alphabet(string $alphabet): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_valid_alphabet
-     * Responsabilidade: Implementa a responsabilidade “document identifier valid alphabet” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_identifier_encode`, `document_assign_identifier`, `closure@app/Domain/Documents/Documents.php:84`.
-     * Dependências chamadas: `strtoupper`, `trim`, `str_split`, `document_identifier_consonants`, `sort`, `strlen`, `document_identifier_base`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $alphabet = strtoupper(trim($alphabet));
     $letters = str_split($alphabet);
     $allowed = document_identifier_consonants();
@@ -62,16 +62,16 @@ function document_identifier_valid_alphabet(string $alphabet): bool
 }
 function document_identifier_digits(int $sequence): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_digits
-     * Responsabilidade: Implementa a responsabilidade “document identifier digits” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_identifier_numeric_part`, `document_identifier_encode`.
-     * Dependências chamadas: `RuntimeException`, `document_identifier_base`, `intdiv`, `array_reverse`, `count`, `array_unshift`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($sequence <= 0) {
         throw new RuntimeException("Sequência documental inválida.");
     }
@@ -90,35 +90,35 @@ function document_identifier_digits(int $sequence): array
 }
 function document_identifier_numeric_part(int $sequence): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_numeric_part
-     * Responsabilidade: Implementa a responsabilidade “document identifier numeric part” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `implode`, `array_map`, `document_identifier_digits`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return implode(
         "",
         array_map(
-            static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($d) => (string) $d,
+            static  fn($d) => (string) $d,
             document_identifier_digits($sequence),
         ),
     );
 }
 function document_identifier_encode(int $sequence, string $alphabet): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_encode
-     * Responsabilidade: Transforma e normaliza “document identifier encode” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_assign_identifier`, `closure@app/Domain/Documents/Documents.php:84`.
-     * Dependências chamadas: `strtoupper`, `document_identifier_valid_alphabet`, `RuntimeException`, `document_identifier_digits`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $alphabet = strtoupper($alphabet);
     if (!document_identifier_valid_alphabet($alphabet)) {
         throw new RuntimeException(
@@ -133,58 +133,58 @@ function document_identifier_encode(int $sequence, string $alphabet): string
 }
 function document_identifier_display(?string $identifier): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_display
-     * Responsabilidade: Implementa a responsabilidade “document identifier display” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_safe_code`, `document_pdf_identifier_footer_stream`, `document_pdf_build_simple`, `document_pdf_register_file`, `document_pdf_create_file`, `document_assign_identifier`, `closure@app/Domain/Documents/Documents.php:84`, `document_print_footer_html` e mais 2.
-     * Dependências chamadas: `strtoupper`, `trim`, `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $identifier = strtoupper(trim((string) $identifier));
     return preg_match('/^[A-Z]{3,12}$/', $identifier) ? $identifier : "";
 }
 function document_identifier_capacity_for_length(int $length = 3): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_identifier_capacity_for_length
-     * Responsabilidade: Implementa a responsabilidade “document identifier capacity for length” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `max`, `document_identifier_base`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $length = max(1, $length);
     return (int) (document_identifier_base() ** $length);
 }
 function document_assign_identifier(int $cid, int $docId): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_assign_identifier
-     * Responsabilidade: Valida e executa a mutação “document assign identifier”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `confirm_document_issue`, `closure@app/Domain/Documents/Documents.php:396`.
-     * Dependências chamadas: `RuntimeException`, `db_tx`, `one`, `document_identifier_display`, `strtoupper`, `trim`, `document_identifier_valid_alphabet`, `document_identifier_random_alphabet`, `max`, `val`, `document_identifier_encode`, `q`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $docId <= 0) {
         throw new RuntimeException("Documento inválido para identificação.");
     }
     return db_tx(function () use ($cid, $docId) {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:84
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `one`, `RuntimeException`, `document_identifier_display`, `strtoupper`, `trim`, `document_identifier_valid_alphabet`, `document_identifier_random_alphabet`, `max`, `val`, `document_identifier_encode`, `q`.
-         * Classes ou serviços instanciados: `RuntimeException`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
+
         $doc = one(
             "SELECT id,document_identifier FROM pi_documents WHERE id=? AND clinic_id=? LIMIT 1 FOR UPDATE",
             [$docId, $cid],
@@ -250,28 +250,28 @@ function document_assign_identifier(int $cid, int $docId): string
 }
 function document_print_header_html(?string $identifier): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_print_header_html
-     * Responsabilidade: Monta a representação de interface associada a “document print header html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_print_page_core_html`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "";
 }
 function document_print_footer_html(?string $identifier): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_print_footer_html
-     * Responsabilidade: Monta a representação de interface associada a “document print footer html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_print_page_core_html`.
-     * Dependências chamadas: `document_identifier_display`, `e`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $id = document_identifier_display($identifier);
     return $id !== ""
         ? '<footer class="doc-print-footer" aria-label="Identificador do documento para segunda via"><span class="doc-print-identifier">' .
@@ -281,15 +281,15 @@ function document_print_footer_html(?string $identifier): string
 }
 function document_status_label(string $status): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_status_label
-     * Responsabilidade: Monta a representação de interface associada a “document status label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `audit_enrich_context`, `save_document_draft`, `document_ds_status_chip`, `document_context_select_options`, `document_issue_context`, `page_documents`, `closure@app/Domain/Documents/Documents.php:2712`, `maestro_fetch_candidates` e mais 1.
-     * Dependências chamadas: `ucfirst`, `str_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "rascunho" => "Rascunho",
         "preparado" => "Pré-visualização",
@@ -306,15 +306,15 @@ function document_status_label(string $status): string
 }
 function document_status_class(string $status): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_status_class
-     * Responsabilidade: Implementa a responsabilidade “document status class” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_ds_status_chip`, `page_documents`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return match ($status) {
         "emitido", "entregue", "approved" => "ok",
         "preparado", "pendente_assinatura", "pending_approval" => "warn",
@@ -324,15 +324,15 @@ function document_status_class(string $status): string
 }
 function document_editable_status(string $status): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_editable_status
-     * Responsabilidade: Implementa a responsabilidade “document editable status” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `save_document_draft`, `discard_document_draft`, `document_ds_recent_row`, `document_issue_meta_sentence`, `page_documents`.
-     * Dependências chamadas: `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return in_array($status, ["rascunho", "preparado"], true);
 }
 function create_document_draft_from_template(
@@ -342,17 +342,17 @@ function create_document_draft_from_template(
     int $appointmentId = 0,
     array $context = [],
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — create_document_draft_from_template
-     * Responsabilidade: Valida e executa a mutação “create document draft from template”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`, `page_patient`.
-     * Dependências chamadas: `clinic_id_required`, `document_resolve_patient_appointment`, `patient_sensitive_block_reason`, `RuntimeException`, `document_template_visible_where`, `one`, `array_merge`, `document_can_issue_template`, `document_context_json_encode`, `document_issue_context`, `render_document_body`, `q` e mais 3.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $cid = clinic_id_required($c);
     $uid = (int) ($c["user"]["id"] ?? 0);
     [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
@@ -427,17 +427,17 @@ function save_document_draft(
     int $appointmentId = 0,
     array $context = [],
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — save_document_draft
-     * Responsabilidade: Valida e executa a mutação “save document draft”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `fetch_document_for_current_user`, `RuntimeException`, `document_editable_status`, `has_effective_role`, `document_resolve_patient_appointment`, `patient_sensitive_block_reason`, `one`, `document_context_json_encode`, `document_issue_context`, `render_document_body`, `document_body_is_empty`, `q` e mais 3.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
         throw new RuntimeException("Documento não encontrado.");
@@ -509,17 +509,17 @@ function save_document_draft(
 }
 function discard_document_draft(array $c, int $docId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — discard_document_draft
-     * Responsabilidade: Implementa a responsabilidade “discard document draft” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `fetch_document_for_current_user`, `RuntimeException`, `document_editable_status`, `has_effective_role`, `q`, `audit`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
         throw new RuntimeException("Documento não encontrado.");
@@ -551,17 +551,17 @@ function discard_document_draft(array $c, int $docId): void
 }
 function confirm_document_issue(array $c, int $docId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — confirm_document_issue
-     * Responsabilidade: Implementa a responsabilidade “confirm document issue” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `fetch_document_for_current_user`, `RuntimeException`, `has_effective_role`, `document_body_is_empty`, `db_tx`, `q`, `document_assign_identifier`, `document_type_options`, `audit`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
         throw new RuntimeException("Documento não encontrado.");
@@ -586,15 +586,15 @@ function confirm_document_issue(array $c, int $docId): void
         );
     }
     $identifier = db_tx(function () use ($c, $docId) {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:396
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `q`, `document_assign_identifier`.
-         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
         q(
             "UPDATE pi_documents SET document_status='emitido', confirmed_at=NOW(), issued_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
             [$docId, (int) $c["clinic_id"]],
@@ -618,15 +618,15 @@ function confirm_document_issue(array $c, int $docId): void
 }
 function document_type_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_type_options
-     * Responsabilidade: Implementa a responsabilidade “document type options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `audit_enrich_context`, `audit_document_type_text`, `page_document_pdf_file`, `page_document_pdf`, `confirm_document_issue`, `document_type_options_for_role`, `approved_document_template_options`, `closure@app/Domain/Documents/Documents.php:1785` e mais 6.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "recibo" => "Recibo",
         "comprovante" => "Comprovante",
@@ -646,15 +646,15 @@ function document_type_options(): array
 }
 function document_system_field_groups(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_system_field_groups
-     * Responsabilidade: Monta a representação de interface associada a “document system field groups” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_system_fields`, `document_field_buttons`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "consultorio" => [
             "label" => "Consultório",
@@ -742,15 +742,15 @@ function document_system_field_groups(): array
 }
 function document_system_fields(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_system_fields
-     * Responsabilidade: Implementa a responsabilidade “document system fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`.
-     * Dependências chamadas: `document_system_field_groups`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $out = [];
     foreach (document_system_field_groups() as $group) {
         foreach ($group["fields"] ?? [] as $key => $label) {
@@ -761,15 +761,15 @@ function document_system_fields(): array
 }
 function document_allowed_types_for_role(string $role): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_allowed_types_for_role
-     * Responsabilidade: Avalia ou impõe a regra “document allowed types for role”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_type_options_for_role`, `document_can_issue_template`, `page_documents`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return match ($role) {
         "recepcionista" => [
             "declaracao",
@@ -812,30 +812,30 @@ function document_allowed_types_for_role(string $role): array
 }
 function document_type_options_for_role(string $role): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_type_options_for_role
-     * Responsabilidade: Implementa a responsabilidade “document type options for role” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `document_type_options`, `array_flip`, `document_allowed_types_for_role`, `array_intersect_key`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $all = document_type_options();
     $allowed = array_flip(document_allowed_types_for_role($role));
     return array_intersect_key($all, $allowed);
 }
 function document_role_config(string $role, int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_role_config
-     * Responsabilidade: Implementa a responsabilidade “document role config” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `role_label_for`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $label = role_label_for($role, $cid);
     $base = [
         "recepcionista" => [
@@ -896,15 +896,15 @@ function document_ds_metric(
     string $note = "",
     string $class = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_ds_metric
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “document ds metric”.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_overview_cards`.
-     * Dependências chamadas: `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<article class="doc-ds-metric patient-kpi-card kpi-card ' .
         e($class) .
         '"><span class="doc-ds-metric-icon">' .
@@ -919,15 +919,15 @@ function document_ds_metric(
 }
 function document_ds_status_chip(string $status): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_ds_status_chip
-     * Responsabilidade: Implementa a responsabilidade “document ds status chip” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_ds_recent_row`.
-     * Dependências chamadas: `document_status_class`, `e`, `document_status_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<span class="doc-ds-chip ' .
         document_status_class($status) .
         '">' .
@@ -936,30 +936,30 @@ function document_ds_status_chip(string $status): string
 }
 function document_ds_type_label(array $typeOptions, ?string $type): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_ds_type_label
-     * Responsabilidade: Monta a representação de interface associada a “document ds type label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_ds_recent_row`.
-     * Dependências chamadas: `ucfirst`, `str_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $type = (string) ($type ?? "");
     return $typeOptions[$type] ??
         ucfirst(str_replace("_", " ", $type ?: "documento"));
 }
 function document_ds_recent_row(array $d, array $typeOptions): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_ds_recent_row
-     * Responsabilidade: Implementa a responsabilidade “document ds recent row” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `document_identifier_display`, `trim`, `document_ds_type_label`, `dt_br`, `icon`, `e`, `first_name`, `document_ds_status_chip`, `document_editable_status`, `href`, `document_pdf_link`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $st = (string) ($d["document_status"] ?? "emitido");
     $idText = document_identifier_display($d["document_identifier"] ?? "");
     $patient = trim((string) ($d["patient_name"] ?? ""));
@@ -1053,16 +1053,16 @@ function document_ds_recent_row(array $d, array $typeOptions): string
 }
 function document_ds_model_row(array $tpl, array $typeOptions, int $cid): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_ds_model_row
-     * Responsabilidade: Implementa a responsabilidade “document ds model row” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `role_label_for`, `dt_br`, `icon`, `e`, `csrf_field`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $kind = $typeOptions[(string) ($tpl["type_key"] ?? "")] ?? "Documento";
     $owner = role_label_for((string) ($tpl["owner_role"] ?? ""), $cid);
     $last = dt_br($tpl["last_used_at"] ?? null);
@@ -1116,15 +1116,15 @@ function document_ds_model_row(array $tpl, array $typeOptions, int $cid): string
 if (!function_exists("cpf_br")) {
     function cpf_br(string $cpf): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — cpf_br
-         * Responsabilidade: Implementa a responsabilidade “cpf br” dentro do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: `admin_clinic_detail_page`, `page_person_lookup`, `document_issue_context`.
-         * Dependências chamadas: `only_digits`, `strlen`, `substr`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $d = only_digits($cpf);
         return strlen($d) === 11
             ? substr($d, 0, 3) .
@@ -1139,15 +1139,15 @@ if (!function_exists("cpf_br")) {
 }
 function document_template_visible_where(array $c, string $alias = "dt"): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_template_visible_where
-     * Responsabilidade: Implementa a responsabilidade “document template visible where” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `approved_document_template_options`, `closure@app/Domain/Documents/Documents.php:1785`, `page_documents`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "");
     $uid = (int) ($c["user"]["id"] ?? 0);
     if ($role === "gerente") {
@@ -1163,15 +1163,15 @@ function document_template_visible_where(array $c, string $alias = "dt"): array
 }
 function can_edit_document_template(array $c, array $tpl): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — can_edit_document_template
-     * Responsabilidade: Avalia ou impõe a regra “can edit document template”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "");
     if ($role === "gerente") {
         return true;
@@ -1183,15 +1183,15 @@ function document_template_status_after_save(
     string $ownerRole,
     bool $isUpdate = false,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_template_status_after_save
-     * Responsabilidade: Valida e executa a mutação “document template status after save”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `now`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $editorRole = (string) ($c["role"] ?? "");
     if ($editorRole !== "gerente") {
         return ["pending_approval", 1, null, null];
@@ -1200,15 +1200,15 @@ function document_template_status_after_save(
 }
 function document_can_issue_template(array $c, array $tpl): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_can_issue_template
-     * Responsabilidade: Avalia ou impõe a regra “document can issue template”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `page_documents`.
-     * Dependências chamadas: `in_array`, `document_allowed_types_for_role`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "");
     $type = (string) ($tpl["type_key"] ?? "");
     $ownerRole = (string) ($tpl["owner_role"] ?? "");
@@ -1229,15 +1229,15 @@ function document_can_issue_template(array $c, array $tpl): bool
 }
 function document_sanitize_html(string $html): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_sanitize_html
-     * Responsabilidade: Monta a representação de interface associada a “document sanitize html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_body_to_html`, `render_document_body`.
-     * Dependências chamadas: `trim`, `preg_replace`, `preg_match`, `strtolower`, `max`, `min`, `ceil`, `implode`, `array_unique`, `preg_replace_callback`, `strip_tags`, `preg_match_all`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $html = trim($html);
     if ($html === "") {
         return "";
@@ -1254,15 +1254,15 @@ function document_sanitize_html(string $html): string
         $html,
     );
     $blockClass = function (string $attrs): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:901
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `preg_match`, `strtolower`, `max`, `min`, `ceil`, `implode`, `array_unique`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $classes = [];
         if (
             preg_match(
@@ -1327,15 +1327,15 @@ function document_sanitize_html(string $html): string
     $html = preg_replace_callback(
         "/<\s*(p|div|blockquote|h2|h3)\b([^>]*)>/i",
         function ($m) use ($blockClass) {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:965
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: `strtolower`.
-             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-             */
+            
+
+
+
+
+
+
+
+
             $tag =
                 strtolower($m[1]) === "blockquote" ? "div" : strtolower($m[1]);
             return "<" . $tag . $blockClass($m[2] ?? "") . ">";
@@ -1347,21 +1347,21 @@ function document_sanitize_html(string $html): string
         $html,
         "<b><strong><i><em><u><p><br><div><ul><ol><li><h2><h3>",
     );
-    // PRONTOO_DOCUMENT_HTML_ATTRIBUTE_ALLOWLIST:
-    // todos os atributos são descartados; somente classes visuais canônicas
-    // podem sobreviver nos blocos previstos pelo editor.
+    
+    
+    
     $html = preg_replace_callback(
         "/<\s*(\/?)\s*(b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3)\b([^>]*)>/i",
         function ($m) {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:979
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: `preg_match_all`, `strtolower`, `implode`, `array_unique`.
-             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-             */
+            
+
+
+
+
+
+
+
+
             $closing = ($m[1] ?? "") === "/";
             $tag = strtolower((string) ($m[2] ?? ""));
             if ($closing) {
@@ -1398,15 +1398,15 @@ function document_sanitize_html(string $html): string
 }
 function document_body_to_html(string $body): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_body_to_html
-     * Responsabilidade: Monta a representação de interface associada a “document body to html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_create_file`, `document_print_document_shell_html`, `render_document_body`, `page_document_view`, `page_document_print`, `document_editor_html`, `page_documents`.
-     * Dependências chamadas: `trim`, `strip_tags`, `preg_split`, `nl2br`, `e`, `document_sanitize_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $body = trim($body);
     if ($body === "") {
         return "";
@@ -1429,15 +1429,15 @@ function document_print_page_core_html(
     string $html,
     ?string $identifier = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_print_page_core_html
-     * Responsabilidade: Monta a representação de interface associada a “document print page core html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_preview_page_html`, `document_print_document_shell_html`.
-     * Dependências chamadas: `document_print_header_html`, `document_print_footer_html`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<div class="doc-print-page" role="document">' .
         document_print_header_html($identifier) .
         '<div class="doc-print-content"><div class="doc-print-main">' .
@@ -1450,15 +1450,15 @@ function document_preview_page_html(
     string $html,
     ?string $identifier = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_preview_page_html
-     * Responsabilidade: Monta a representação de interface associada a “document preview page html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_view`, `page_documents`.
-     * Dependências chamadas: `document_print_page_core_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<div class="doc-issued-body doc-a4-preview" aria-label="Pré-visualização em folha A4 aproximada da impressão"><div class="doc-a4-preview-frame">' .
         document_print_page_core_html($html, $identifier) .
         "</div></div>";
@@ -1468,16 +1468,16 @@ function document_print_document_shell_html(
     bool $autoPrint = true,
     string $mode = "print",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_print_document_shell_html
-     * Responsabilidade: Monta a representação de interface associada a “document print document shell html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf`, `page_document_print`.
-     * Dependências chamadas: `trim`, `document_body_to_html`, `e`, `preg_replace`, `rawurlencode`, `defined`, `document_print_page_core_html`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $title = trim((string) ($doc["title"] ?? "Documento"));
     if ($title === "") {
         $title = "Documento";
@@ -1507,15 +1507,15 @@ function document_print_document_shell_html(
 }
 function document_body_is_empty(string $html): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_body_is_empty
-     * Responsabilidade: Avalia ou impõe a regra “document body is empty”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `save_document_draft`, `confirm_document_issue`, `page_documents`.
-     * Dependências chamadas: `trim`, `preg_replace`, `strip_tags`, `str_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return trim(
         preg_replace(
             "/\s+/",
@@ -1530,15 +1530,15 @@ function document_issue_meta_sentence(
     null|string|int $issuedAt,
     string $status = "emitido",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_issue_meta_sentence
-     * Responsabilidade: Implementa a responsabilidade “document issue meta sentence” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_view`, `page_documents`.
-     * Dependências chamadas: `trim`, `first_name`, `dt_br`, `document_editable_status`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $actor = trim((string) ($issuedName ?? ""));
     $actor = $actor !== "" ? first_name($actor) : "Colaborador";
     $patient = trim((string) ($patientName ?? ""));
@@ -1552,15 +1552,15 @@ function document_issue_meta_sentence(
 }
 function render_document_body(string $body, array $vars): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — render_document_body
-     * Responsabilidade: Monta a representação de interface associada a “render document body” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`.
-     * Dependências chamadas: `e`, `document_sanitize_html`, `strtr`, `document_body_to_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $map = [];
     foreach ($vars as $k => $v) {
         $map["{{" . $k . "}}"] = e((string) $v);
@@ -1569,29 +1569,29 @@ function render_document_body(string $body, array $vars): string
 }
 function document_time_br(?string $dt): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_time_br
-     * Responsabilidade: Implementa a responsabilidade “document time br” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`.
-     * Dependências chamadas: `app_storage_timestamp`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = app_storage_timestamp($dt);
     return $ts ? date("H\hi", $ts) : "";
 }
 function document_appointment_row(int $cid, int $appointmentId): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_appointment_row
-     * Responsabilidade: Implementa a responsabilidade “document appointment row” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_resolve_patient_appointment`, `document_appointment_options`.
-     * Dependências chamadas: `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $appointmentId <= 0) {
         return null;
     }
@@ -1606,16 +1606,16 @@ function document_resolve_patient_appointment(
     int $patientId = 0,
     int $appointmentId = 0,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_resolve_patient_appointment
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “document resolve patient appointment” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`, `document_issue_context`.
-     * Dependências chamadas: `document_appointment_row`, `RuntimeException`, `require_patient_in_clinic`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($appointmentId > 0) {
         $appt = document_appointment_row($cid, $appointmentId);
         if (!$appt) {
@@ -1649,15 +1649,15 @@ function document_appointment_options(
     int $selectedId = 0,
     int $limit = 240,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_appointment_options
-     * Responsabilidade: Implementa a responsabilidade “document appointment options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_appointment_select_field`.
-     * Dependências chamadas: `max`, `min`, `q`, `->fetchAll`, `dt_br`, `trim`, `document_appointment_row`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $limit = max(20, min(500, $limit));
     $rows = q(
         "SELECT a.id,a.patient_link_id,a.start_at,a.end_at,a.reason,a.status,a.consultation_started_at,a.consultation_finished_at,COALESCE(pr.title,a.reason,'Consulta') AS procedure_title,u.name AS doctor_name,p.full_name AS patient_name FROM pi_appointments a LEFT JOIN pi_procedures pr ON pr.id=a.procedure_id AND pr.clinic_id=a.clinic_id LEFT JOIN pi_users u ON u.id=a.doctor_user_id LEFT JOIN pi_patients pl ON pl.id=a.patient_link_id AND pl.clinic_id=a.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE a.clinic_id=? AND COALESCE(a.status,'')<>'cancelado' ORDER BY ABS(TIMESTAMPDIFF(SECOND,a.start_at,NOW())) ASC, a.start_at DESC LIMIT " .
@@ -1694,15 +1694,15 @@ function document_appointment_select_field(
     int $cid,
     int $selectedId = 0,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_appointment_select_field
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “document appointment select field” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_context_binding_fields`.
-     * Dependências chamadas: `select_label`, `document_appointment_options`, `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return select_label(
         "Agendamento vinculado",
         "appointment_id",
@@ -1713,15 +1713,15 @@ function document_appointment_select_field(
 }
 function document_context_json_decode(mixed $raw): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_context_json_decode
-     * Responsabilidade: Transforma e normaliza “document context json decode” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`, `document_context_binding_fields`, `document_issue_context`.
-     * Dependências chamadas: `is_array`, `trim`, `json_decode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (is_array($raw)) {
         return $raw;
     }
@@ -1734,15 +1734,15 @@ function document_context_json_decode(mixed $raw): array
 }
 function document_context_json_encode(array $context): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_context_json_encode
-     * Responsabilidade: Transforma e normaliza “document context json encode” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`.
-     * Dependências chamadas: `max`, `json_encode`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $clean = [];
     foreach (
         [
@@ -1769,17 +1769,17 @@ function document_context_json_encode(array $context): string
 }
 function document_context_ids_from_post(array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_context_ids_from_post
-     * Responsabilidade: Implementa a responsabilidade “document context ids from post” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `max`, `safe_val`, `RuntimeException`, `clinic_user_exists`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: consulta dados persistidos; consome dados da requisição HTTP; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     $ctx = [];
     $checks = [
@@ -1827,15 +1827,15 @@ function document_context_select_options(
     int $selectedId = 0,
     int $limit = 120,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_context_select_options
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “document context select options” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_context_binding_fields`.
-     * Dependências chamadas: `max`, `min`, `q`, `->fetchAll`, `array_filter`, `trim`, `implode`, `array_slice`, `procedure_options`, `format_minutes`, `money_br`, `document_status_label` e mais 9.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $limit = max(20, min(240, $limit));
     $out = [];
     try {
@@ -1914,7 +1914,7 @@ function document_context_select_options(
                 }
                 break;
             case "collaborator":
-                $collaboratorLoader = /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `q`, `->fetchAll`. Efeitos: acessa a camada de persistência, consulta dados persistidos. */ fn(): array => q(
+                $collaboratorLoader =  fn(): array => q(
                     "SELECT u.id,u.name,u.email,GROUP_CONCAT(DISTINCT cr.label ORDER BY cr.sort_order SEPARATOR ', ') AS role_label FROM pi_users u JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE u.active=1 GROUP BY u.id,u.name,u.email ORDER BY u.name ASC LIMIT " .
                         (int) $limit,
                     [$cid],
@@ -1997,15 +1997,15 @@ function document_context_select_options(
 }
 function document_context_binding_fields(array $c, array $doc): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_context_binding_fields
-     * Responsabilidade: Implementa a responsabilidade “document context binding fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `document_context_json_decode`, `icon`, `form_row`, `patient_lookup_field`, `document_appointment_select_field`, `select_label`, `document_context_select_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     $ctx = document_context_json_decode($doc["context_json"] ?? "{}");
     $lead = (int) ($ctx["lead_id"] ?? 0);
@@ -2079,15 +2079,15 @@ function document_issue_context(
     int $appointmentId = 0,
     array $context = [],
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_issue_context
-     * Responsabilidade: Implementa a responsabilidade “document issue context” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`.
-     * Dependências chamadas: `document_resolve_patient_appointment`, `one`, `cpf_br`, `date_br`, `city_state_label`, `patient_primary_legal_guardian`, `patient_guardian_relationship_options`, `trim`, `document_time_br`, `strtotime`, `format_minutes`, `floor` e mais 15.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
         $cid,
@@ -2336,15 +2336,15 @@ function document_issue_context(
 }
 function approved_document_template_options(array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — approved_document_template_options
-     * Responsabilidade: Implementa a responsabilidade “approved document template options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `document_template_visible_where`, `q`, `array_merge`, `->fetchAll`, `document_type_options`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     $uid = (int) ($c["user"]["id"] ?? 0);
     $role = (string) ($c["role"] ?? "");
@@ -2352,15 +2352,15 @@ function approved_document_template_options(array $c): array
         return [];
     }
     $loader = function () use ($c, $cid): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:1785
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `document_template_visible_where`, `q`, `array_merge`, `->fetchAll`, `document_type_options`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         [$where, $params] = document_template_visible_where($c, "dt");
         $rows = q(
             "SELECT dt.id,dt.title,dt.type_key FROM pi_document_templates dt WHERE dt.clinic_id=? AND dt.status='approved' AND $where ORDER BY dt.title ASC, dt.id DESC",
@@ -2392,15 +2392,15 @@ function patient_document_timeline_items(
     int $patientId,
     int $limit = 40,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_document_timeline_items
-     * Responsabilidade: Monta a representação de interface associada a “patient document timeline items” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `document_type_options`, `max`, `min`, `q`, `->fetchAll`, `dt_br`, `href`, `document_pdf_link`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     $types = document_type_options();
     $limit = max(1, min(200, $limit));
@@ -2432,15 +2432,15 @@ function patient_document_timeline_items(
 }
 function patient_summary_excerpt(string $text, int $limit = 220): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_summary_excerpt
-     * Responsabilidade: Implementa a responsabilidade “patient summary excerpt” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`, `patient_summary_clinical_block`.
-     * Dependências chamadas: `str_ireplace`, `html_entity_decode`, `strip_tags`, `trim`, `preg_replace`, `mb_strlen`, `mb_substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $text = str_ireplace(["<br>", "<br/>", "<br />"], "\n", $text);
     $plain = html_entity_decode(
         strip_tags($text),
@@ -2461,15 +2461,15 @@ function patient_summary_clinical_block(
     array $items,
     string $empty,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_summary_clinical_block
-     * Responsabilidade: Implementa a responsabilidade “patient summary clinical block” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `array_slice`, `icon`, `e`, `is_array`, `patient_summary_excerpt`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $items = array_slice($items, 0, 3);
     $h =
         '<article class="patient-clinical-card"><header>' .
@@ -2496,15 +2496,15 @@ function patient_summary_clinical_block(
 }
 function document_can_access(array $c, array $doc): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_can_access
-     * Responsabilidade: Avalia ou impõe a regra “document can access”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `fetch_document_for_current_user`.
-     * Dependências chamadas: `can`, `clinic_patient_exists`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     $uid = (int) ($c["user"]["id"] ?? 0);
     $role = (string) ($c["role"] ?? "");
@@ -2538,15 +2538,15 @@ function document_can_access(array $c, array $doc): bool
 }
 function fetch_document_for_current_user(array $c, int $docId): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — fetch_document_for_current_user
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “fetch document for current user” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf_file`, `page_document_pdf`, `save_document_draft`, `discard_document_draft`, `confirm_document_issue`, `page_document_view`, `page_document_print`, `page_documents`.
-     * Dependências chamadas: `one`, `document_can_access`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($docId <= 0) {
         return null;
     }
@@ -2558,18 +2558,18 @@ function fetch_document_for_current_user(array $c, int $docId): ?array
 }
 function page_document_view(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_document_view
-     * Responsabilidade: Coordena a rota e renderiza a tela “page document view”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `ProntooHttpError`, `fetch_document_for_current_user`, `http_response_code`, `page`, `document_type_options`, `audit`, `href`, `icon`, `document_pdf_link`, `page_head`, `e` e mais 3.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         throw new ProntooHttpError(
@@ -2636,18 +2636,18 @@ function page_document_view(): void
 }
 function page_document_print(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_document_print
-     * Responsabilidade: Coordena a rota e renderiza a tela “page document print”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `ProntooHttpError`, `fetch_document_for_current_user`, `http_response_code`, `document_type_options`, `audit`, `headers_sent`, `header`, `document_body_to_html`, `document_print_document_shell_html`.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         throw new ProntooHttpError(
@@ -2680,15 +2680,15 @@ function page_document_print(): void
 }
 function document_field_buttons(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_field_buttons
-     * Responsabilidade: Monta a representação de interface associada a “document field buttons” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_editor_html`.
-     * Dependências chamadas: `icon`, `document_system_field_groups`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $h =
         '<div class="doc-field-panel-head"><strong>' .
         icon("data_object") .
@@ -2725,15 +2725,15 @@ function document_editor_button(
     string $label,
     string $value = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_editor_button
-     * Responsabilidade: Implementa a responsabilidade “document editor button” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_editor_html`.
-     * Dependências chamadas: `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $valueAttr = $value !== "" ? ' data-doc-value="' . e($value) . '"' : "";
     return '<button type="button" class="ghost small doc-tool" data-doc-cmd="' .
         e($cmd) .
@@ -2754,15 +2754,15 @@ function document_editor_html(
     string $value = "",
     string $id = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_editor_html
-     * Responsabilidade: Monta a representação de interface associada a “document editor html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_template_author_form`.
-     * Dependências chamadas: `bin2hex`, `random_bytes`, `document_body_to_html`, `document_editor_button`, `icon`, `e`, `document_field_buttons`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $id = $id !== "" ? $id : "doced_" . bin2hex(random_bytes(3));
     $html = document_body_to_html($value);
     $toolbar =
@@ -2837,15 +2837,15 @@ function document_editor_html(
 }
 function document_stage_actions(string $stage): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_stage_actions
-     * Responsabilidade: Implementa a responsabilidade “document stage actions” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `href`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $emit = href("documents", ["emit" => 1]);
     $models = href("documents", ["models" => 1]);
     $newModel = href("documents", ["new_model" => 1]);
@@ -2875,15 +2875,15 @@ function document_stage_strip(
     int $pending,
     int $visibleDocs,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_stage_strip
-     * Responsabilidade: Implementa a responsabilidade “document stage strip” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `href`, `icon`, `e`, `n`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $items = [
         [
             "recent",
@@ -2939,15 +2939,15 @@ function document_overview_cards(
     int $visibleDocs,
     string $docSearchMode,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_overview_cards
-     * Responsabilidade: Implementa a responsabilidade “document overview cards” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `document_ds_metric`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<section class="doc-overview-cards kpis" aria-label="Resumo de documentos">' .
         document_ds_metric(
             "Modelos aprovados",
@@ -2981,15 +2981,15 @@ function document_template_author_form(
     string $submitLabel = "Salvar modelo",
     string $cancelHref = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_template_author_form
-     * Responsabilidade: Monta a representação de interface associada a “document template author form” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `document_type_options`, `array_key_first`, `icon`, `select_label`, `form_row`, `input`, `document_editor_html`, `e`, `form_submit_icon`, `form_actions`, `csrf_field`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$typeOptions) {
         $typeOptions = document_type_options();
     }
@@ -3079,15 +3079,15 @@ function document_model_search_card(
     string $modelSearch,
     string $mode = "emit",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_model_search_card
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “document model search card” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`.
-     * Dependências chamadas: `href`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $mode = $mode === "models" ? "models" : "emit";
     $hidden =
         $mode === "models"
@@ -3124,18 +3124,18 @@ function document_model_search_card(
 }
 function page_documents(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_documents
-     * Responsabilidade: Coordena a rota e renderiza a tela “page documents”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `document_type_options`, `document_type_options_for_role`, `patient_autosuggest_datalist`, `document_role_config`, `trim`, `document_body_to_html`, `in_array`, `document_allowed_types_for_role`, `flash`, `redirect`, `document_body_is_empty` e mais 54.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("documents");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -3425,15 +3425,15 @@ function page_documents(): void
         }
     }
     usort($createTemplates, function ($a, $b) use ($role) {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:2696
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `strcmp`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $la = app_storage_timestamp($a["last_used_at"] ?? "") ?: 0;
         $lb = app_storage_timestamp($b["last_used_at"] ?? "") ?: 0;
         $aa = (string) $a["owner_role"] === $role ? 0 : 1;
@@ -3454,15 +3454,15 @@ function page_documents(): void
                 $cid,
                 $qModel,
             ) {
-                /*
-                 * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:2712
-                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-                 * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-                 * Dependências chamadas: `mb_strtolower`, `role_label_for`, `document_status_label`, `str_contains`.
-                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-                 */
+                
+
+
+
+
+
+
+
+
                 $hay = mb_strtolower(
                     ($tpl["title"] ?? "") .
                         " " .
@@ -3913,18 +3913,18 @@ function page_documents(): void
 }
 function page_procedures(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_procedures
-     * Responsabilidade: Coordena a rota e renderiza a tela “page procedures”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `has_effective_role`, `audit`, `http_response_code`, `page`, `one`, `q`, `flash`, `redirect`, `trim`, `max`, `min` e mais 19.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("procedures");
     if (!has_effective_role($c, "gerente")) {
         audit("acesso_negado", "rota", "procedures", [
@@ -4269,15 +4269,15 @@ function page_procedures(): void
         $needle = mb_strtolower($search);
         $rows = array_values(
             array_filter($allRows, function (array $r) use ($needle): bool {
-                /*
-                 * GUIA DE MANUTENÇÃO — closure@app/Domain/Documents/Documents.php:3453
-                 * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-                 * Local arquitetural: app/Domain/Documents/Documents.php (domínio e regras de negócio).
-                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-                 * Dependências chamadas: `mb_strtolower`, `trim`, `str_contains`.
-                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-                 */
+                
+
+
+
+
+
+
+
+
                 $hay = mb_strtolower(
                     trim(
                         (string) ($r["title"] ?? "") .

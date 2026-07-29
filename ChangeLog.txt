@@ -1,3 +1,10 @@
+Prontoo 1.7.29.1 — documentação como código e supressão integral de comentários
+
+- Remove todos os comentários dos arquivos de código versionados, preservando strings e comportamento executável.
+- Introduz README, CHANGELOG, guia de contribuição, política de segurança, documentação C4, ADRs, domínios, segurança, operação, banco e testes.
+- Adiciona verificadores permanentes de estrutura documental, links locais e ausência de comentários de código.
+- Preserva interface, regras de negócio, banco, schema, permissões e comportamento do runtime.
+
 Prontoo 1.7.27.6 — republicação integral da baseline
 
 - Regrava integralmente os arquivos descritos no manifesto de atualização a partir da baseline 1.7.27.5.

@@ -10,9 +10,9 @@ FileETag None
     Require all denied
 </Files>
 
-# Instalação concluída e comissionada.
-# O instalador permanece no pacote apenas para rastreabilidade e certificação,
-# mas não pode ser servido pelo Apache/LiteSpeed em produção.
+
+
+
 <Files "install.php">
     Require all denied
 </Files>
@@ -82,17 +82,17 @@ FileETag None
 </IfModule>
 
 
-# php -- BEGIN cPanel-generated handler, do not edit
-# Set the “ea-php84” package as the default “PHP” programming language.
+
+
 <IfModule mime_module>
   AddHandler application/x-httpd-ea-php84___lsphp .php .php8 .phtml
 </IfModule>
-# php -- END cPanel-generated handler, do not edit
 
-# BEGIN cPanel-generated php ini directives, do not edit
-# Manual editing of this file may result in unexpected behavior.
-# To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
-# For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+
+
+
+
+
 <IfModule php8_module>
    php_flag display_errors Off
    php_value max_execution_time 30
@@ -113,4 +113,4 @@ FileETag None
    php_value upload_max_filesize 20M
    php_flag zlib.output_compression Off
 </IfModule>
-# END cPanel-generated php ini directives, do not edit
+

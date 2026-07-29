@@ -2,30 +2,30 @@
 declare(strict_types=1);
 function default_monthly_price_cents(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — default_monthly_price_cents
-     * Responsabilidade: Implementa a responsabilidade “default monthly price cents” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_maintenance`, `page_admin_clinics`, `page_signup`, `ensure_clinic_trial_active`, `closure@app/Domain/Clinic/SubscriptionSettings.php:114`, `clinic_subscription_status_card`, `clinic_subscription_cta`, `clinic_subscription_register_claim` e mais 2.
-     * Dependências chamadas: `meta_get`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $v = meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
     $c = (int) $v;
     return $c > 0 ? $c : PRONTOO_MONTHLY_PRICE_CENTS;
 }
 function default_trial_days(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — default_trial_days
-     * Responsabilidade: Implementa a responsabilidade “default trial days” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_maintenance`, `page_admin_clinics`, `page_signup`, `page_onboarding`, `subscription_trial_end_from_start`, `ensure_clinic_trial_active`, `closure@app/Domain/Clinic/SubscriptionSettings.php:114`, `clinic_subscription_status_card` e mais 1.
-     * Dependências chamadas: `meta_get`, `meta_set`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $v = meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
     $days = (int) $v;
     $policyRevision = "trial_30_days_2026_07_14";
@@ -51,15 +51,15 @@ function default_trial_days(): int
 }
 function trial_period_label(int $days): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — trial_period_label
-     * Responsabilidade: Monta a representação de interface associada a “trial period label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `clinic_subscription_status_card`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($days === 90) {
         return "três meses";
     }
@@ -79,30 +79,30 @@ function trial_period_label(int $days): string
 }
 function subscription_pix_key(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_pix_key
-     * Responsabilidade: Implementa a responsabilidade “subscription pix key” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_maintenance`, `clinic_subscription_cta`.
-     * Dependências chamadas: `trim`, `meta_get`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $key = trim((string) meta_get("subscription_pix_key", "pix@prontoo.app"));
     return $key !== "" ? $key : "pix@prontoo.app";
 }
 function normalize_subscription_pix_key(string $key): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_subscription_pix_key
-     * Responsabilidade: Transforma e normaliza “normalize subscription pix key” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_maintenance`.
-     * Dependências chamadas: `trim`, `RuntimeException`, `mb_strlen`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $key = trim($key);
     if ($key === "") {
         throw new RuntimeException("Informe a chave Pix da assinatura.");
@@ -118,30 +118,30 @@ function subscription_time_ts(
     null|string|int $value,
     bool $endOfDay = false,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_time_ts
-     * Responsabilidade: Implementa a responsabilidade “subscription time ts” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_trial_end_from_start`, `subscription_trial_is_active`, `ensure_clinic_trial_active`, `closure@app/Domain/Clinic/SubscriptionSettings.php:114`.
-     * Dependências chamadas: `app_storage_timestamp`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_storage_timestamp($value, $endOfDay);
 }
 function subscription_trial_end_from_start(
     null|string|int $start = null,
     ?int $days = null,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_trial_end_from_start
-     * Responsabilidade: Implementa a responsabilidade “subscription trial end from start” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `ensure_clinic_trial_active`, `closure@app/Domain/Clinic/SubscriptionSettings.php:114`.
-     * Dependências chamadas: `default_trial_days`, `subscription_time_ts`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $days = $days ?? default_trial_days();
     if ($days <= 0) {
         $days = PRONTOO_TRIAL_DAYS;
@@ -157,15 +157,15 @@ function subscription_trial_end_from_start(
 }
 function subscription_trial_is_active(null|string|int $trialEnd): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_trial_is_active
-     * Responsabilidade: Avalia ou impõe a regra “subscription trial is active”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_read_only_db`, `clinic_subscription_kind`.
-     * Dependências chamadas: `subscription_time_ts`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = subscription_time_ts($trialEnd, true);
     return $ts <= 0 || $ts >= time();
 }
@@ -174,15 +174,15 @@ function subscription_paid_is_active(
     int $clinicId = 0,
     ?array $context = null,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_paid_is_active
-     * Responsabilidade: Avalia ou impõe a regra “subscription paid is active”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_read_only_db`, `ensure_clinic_trial_active`, `closure@app/Domain/Clinic/SubscriptionSettings.php:114`, `clinic_subscription_kind`.
-     * Dependências chamadas: `app_date_only_end_timestamp`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = app_date_only_end_timestamp($paidUntil, $clinicId, $context);
     return $ts > 0 && $ts >= time();
 }
@@ -190,28 +190,28 @@ function ensure_clinic_trial_active(
     int $clinicId,
     bool $onlyIfOnboardingPending = true,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — ensure_clinic_trial_active
-     * Responsabilidade: Implementa a responsabilidade “ensure clinic trial active” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `prontoo_run`.
-     * Dependências chamadas: `has_cfg`, `one`, `subscription_paid_is_active`, `subscription_time_ts`, `time`, `subscription_trial_end_from_start`, `default_trial_days`, `max`, `default_monthly_price_cents`, `q`, `function_exists`, `with_read_only_guard_disabled`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId <= 0 || !has_cfg()) {
         return;
     }
     $fn = function () use ($clinicId, $onlyIfOnboardingPending): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/SubscriptionSettings.php:114
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `one`, `subscription_paid_is_active`, `subscription_time_ts`, `time`, `subscription_trial_end_from_start`, `default_trial_days`, `max`, `default_monthly_price_cents`, `q`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
         $cl = one(
             "SELECT id,onboarding_done,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics WHERE id=? LIMIT 1",
             [$clinicId],
@@ -267,15 +267,15 @@ function ensure_clinic_trial_active(
 }
 function clinic_subscription_kind(array $cl): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_kind
-     * Responsabilidade: Implementa a responsabilidade “clinic subscription kind” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_status_card`, `clinic_subscription_cta`.
-     * Dependências chamadas: `trim`, `subscription_paid_is_active`, `subscription_trial_is_active`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $status = (string) ($cl["subscription_status"] ?? "trial");
     $paid = $cl["paid_until"] ?? null;
     $trial = $cl["trial_ends_at"] ?? null;
@@ -303,15 +303,15 @@ function clinic_subscription_kind(array $cl): string
 }
 function clinic_subscription_action_label(string $kind): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_action_label
-     * Responsabilidade: Monta a representação de interface associada a “clinic subscription action label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_cta`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return $kind === "trial"
         ? "Realizar assinatura"
         : ($kind === "pause"
@@ -320,15 +320,15 @@ function clinic_subscription_action_label(string $kind): string
 }
 function clinic_subscription_status_card(array $cl): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_status_card
-     * Responsabilidade: Monta a representação de interface associada a “clinic subscription status card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_settings`.
-     * Dependências chamadas: `clinic_subscription_kind`, `default_monthly_price_cents`, `trim`, `date_br`, `trial_period_label`, `default_trial_days`, `icon`, `e`, `money_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $kind = clinic_subscription_kind($cl);
     $price =
         (int) ($cl["monthly_price_cents"] ?? default_monthly_price_cents());
@@ -398,16 +398,16 @@ function clinic_subscription_status_card(array $cl): string
 }
 function subscription_payment_proof_guard(int $cid, int $uid): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_guard
-     * Responsabilidade: Avalia ou impõe a regra “subscription payment proof guard”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_proof_upload`.
-     * Dependências chamadas: `security_rate_limit`, `security_client_bucket`, `security_ip_bucket`, `security_value_bucket`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (
         security_rate_limit(security_client_bucket("payment_proof"), 8, 3600) ||
         security_rate_limit(security_ip_bucket("payment_proof"), 30, 3600) ||
@@ -426,16 +426,16 @@ function subscription_payment_proof_validate_image(
     string $tmp,
     string $mime,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_validate_image
-     * Responsabilidade: Avalia ou impõe a regra “subscription payment proof validate image”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_proof_upload`.
-     * Dependências chamadas: `getimagesize`, `RuntimeException`, `strtolower`, `trim`, `in_array`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $info = @getimagesize($tmp);
     if (!$info || empty($info[0]) || empty($info[1])) {
         throw new RuntimeException("Imagem inválida.");
@@ -459,15 +459,15 @@ function subscription_payment_proof_reencode_image(
     string $dest,
     string $mime,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_reencode_image
-     * Responsabilidade: Implementa a responsabilidade “subscription payment proof reencode image” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_proof_upload`.
-     * Dependências chamadas: `function_exists`, `imagecreatefromjpeg`, `imagecreatefrompng`, `imagecreatefromwebp`, `imagejpeg`, `is_resource`, `imagedestroy`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!function_exists("imagejpeg")) {
         return false;
     }
@@ -493,16 +493,16 @@ function subscription_payment_proof_reencode_image(
 }
 function subscription_payment_proof_validate_pdf(string $tmp): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_validate_pdf
-     * Responsabilidade: Avalia ou impõe a regra “subscription payment proof validate pdf”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_proof_upload`.
-     * Dependências chamadas: `fopen`, `RuntimeException`, `fread`, `fclose`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $fh = @fopen($tmp, "rb");
     if (!$fh) {
         throw new RuntimeException("Não foi possível ler o PDF.");
@@ -515,16 +515,16 @@ function subscription_payment_proof_validate_pdf(string $tmp): void
 }
 function subscription_payment_proof_storage(int $cid, bool $image = false): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_storage
-     * Responsabilidade: Resolve comprovantes no SSD, separando imagens sob `/ssd/img/`.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_proof_upload`.
-     * Dependências chamadas: `RuntimeException`, `storage_path`, `is_link`, `is_dir`, `mkdir`, `chmod`, `realpath`, `str_starts_with`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Imagens enviadas devem permanecer exclusivamente sob `/ssd/img/`.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($cid <= 0) {
         throw new RuntimeException("Consultório inválido para o comprovante.");
     }
@@ -550,17 +550,17 @@ function subscription_payment_proof_storage(int $cid, bool $image = false): arra
 
 function subscription_payment_proof_upload(int $cid, int $uid): ?string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_upload
-     * Responsabilidade: Implementa a responsabilidade “subscription payment proof upload” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_register_claim`.
-     * Dependências chamadas: `is_array`, `RuntimeException`, `subscription_payment_proof_guard`, `is_uploaded_file`, `strtolower`, `pathinfo`, `function_exists`, `finfo_open`, `finfo_file`, `finfo_close`, `subscription_payment_proof_validate_pdf`, `subscription_payment_proof_validate_image` e mais 8.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_FILES`.
-     * Efeitos colaterais: consome dados da requisição HTTP; acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     if (
         empty($_FILES["payment_proof"]) ||
         !is_array($_FILES["payment_proof"])
@@ -665,15 +665,15 @@ function subscription_payment_proof_upload(int $cid, int $uid): ?string
 }
 function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_absolute_path
-     * Responsabilidade: Resolve comprovantes atuais e caminhos legados já gravados.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `subscription_payment_delete_proof`, `page_admin_payment_proof`.
-     * Dependências chamadas: `trim`, `str_replace`, `str_starts_with`, `str_contains`, `realpath`, `storage_path`, `is_file`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Preserve a compatibilidade de leitura de `storage/payment-proofs/`.
-     */
+    
+
+
+
+
+
+
+
+
     $proofPath = trim((string) $proofPath);
     if ($proofPath === "") {
         return null;
@@ -713,15 +713,15 @@ function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 }
 function subscription_payment_delete_proof(?string $proofPath): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_delete_proof
-     * Responsabilidade: Valida e executa a mutação “subscription payment delete proof”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_painel`, `clinic_subscription_register_claim`.
-     * Dependências chamadas: `subscription_payment_proof_absolute_path`, `is_file`, `unlink`, `error_log`.
-     * Efeitos colaterais: acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $full = subscription_payment_proof_absolute_path($proofPath);
     if ($full === null) {
         return true;
@@ -740,15 +740,15 @@ function subscription_payment_delete_proof(?string $proofPath): bool
 }
 function subscription_payment_proof_view_link(array $payment): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_proof_view_link
-     * Responsabilidade: Monta a representação de interface associada a “subscription payment proof view link” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_painel`.
-     * Dependências chamadas: `trim`, `href`, `action_summary_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (trim((string) ($payment["proof_path"] ?? "")) === "") {
         return "";
     }
@@ -760,18 +760,18 @@ function subscription_payment_proof_view_link(array $payment): string
 }
 function page_admin_payment_proof(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_admin_payment_proof
-     * Responsabilidade: Coordena a rota e renderiza a tela “page admin payment proof”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `one`, `trim`, `flash`, `redirect`, `subscription_payment_proof_absolute_path`, `is_file`, `audit`, `strtolower`, `pathinfo`, `ob_get_level`, `ob_end_clean` e mais 3.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     require_can("admin_painel");
     $pid = (int) ($_GET["payment_id"] ?? 0);
     $p =
@@ -827,15 +827,15 @@ function page_admin_payment_proof(): void
 }
 function clinic_subscription_pending_payment(int $cid): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_pending_payment
-     * Responsabilidade: Implementa a responsabilidade “clinic subscription pending payment” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_cta`, `clinic_subscription_register_claim`.
-     * Dependências chamadas: `one`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $row = one(
             "SELECT id,amount_cents,proof_path,applied_until,created_at FROM pi_subscription_payments WHERE clinic_id=? AND status='pending_admin' ORDER BY id DESC LIMIT 1",
@@ -849,41 +849,41 @@ function clinic_subscription_pending_payment(int $cid): ?array
 }
 function subscription_payment_is_proof_review(array $payment): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_payment_is_proof_review
-     * Responsabilidade: Avalia ou impõe a regra “subscription payment is proof review”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_painel`, `clinic_subscription_cta`.
-     * Dependências chamadas: `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return trim((string) ($payment["proof_path"] ?? "")) !== "";
 }
 function subscription_trust_release_until(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_trust_release_until
-     * Responsabilidade: Implementa a responsabilidade “subscription trust release until” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_register_claim`.
-     * Dependências chamadas: `date`, `strtotime`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return date("Y-m-d", strtotime("+" . PRONTOO_TRUST_RELEASE_DAYS . " days"));
 }
 function subscription_renewal_until(array $cl): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — subscription_renewal_until
-     * Responsabilidade: Implementa a responsabilidade “subscription renewal until” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_register_claim`.
-     * Dependências chamadas: `trim`, `strtotime`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $base = trim((string) ($cl["paid_until"] ?? ""));
     $baseTs = $base !== "" ? strtotime($base . " 23:59:59") : 0;
     $startDate =
@@ -894,15 +894,15 @@ function subscription_renewal_until(array $cl): string
 }
 function later_date(?string $a, ?string $b): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — later_date
-     * Responsabilidade: Implementa a responsabilidade “later date” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_subscription_register_claim`.
-     * Dependências chamadas: `trim`, `strtotime`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $a = trim((string) $a);
     $b = trim((string) $b);
     if ($a === "") {
@@ -923,15 +923,15 @@ function later_date(?string $a, ?string $b): string
 }
 function clinic_subscription_cta(array $cl, string $tab = "assinatura"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_cta
-     * Responsabilidade: Implementa a responsabilidade “clinic subscription cta” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_settings`.
-     * Dependências chamadas: `clinic_subscription_pending_payment`, `default_monthly_price_cents`, `subscription_payment_is_proof_review`, `icon`, `e`, `card`, `clinic_subscription_kind`, `clinic_subscription_action_label`, `trim`, `strtotime`, `time`, `subscription_pix_key` e mais 5.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($tab !== "assinatura") {
         return "";
     }
@@ -1093,15 +1093,15 @@ function clinic_subscription_rejected_notice(
     int $cid,
     bool $proofRejected = false,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_rejected_notice
-     * Responsabilidade: Implementa a responsabilidade “clinic subscription rejected notice” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_painel`.
-     * Dependências chamadas: `one`, `q`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $cl =
             one(
@@ -1135,18 +1135,18 @@ function clinic_subscription_register_claim(
     int $uid,
     array $cl,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_subscription_register_claim
-     * Responsabilidade: Valida e executa a mutação “clinic subscription register claim”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_settings`.
-     * Dependências chamadas: `clinic_subscription_pending_payment`, `RuntimeException`, `trim`, `strtotime`, `time`, `subscription_payment_proof_upload`, `default_monthly_price_cents`, `subscription_renewal_until`, `subscription_trust_release_until`, `later_date`, `pdo`, `->inTransaction` e mais 7.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     if (clinic_subscription_pending_payment($cid)) {
         throw new RuntimeException(
             "Continue trabalhando enquanto confirmamos o recebimento. Nenhuma providência é necessária neste momento.",
@@ -1266,15 +1266,15 @@ function clinic_subscription_register_claim(
 }
 function clinic_settings_nav(string $tab): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_settings_nav
-     * Responsabilidade: Implementa a responsabilidade “clinic settings nav” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_settings`.
-     * Dependências chamadas: `href`, `icon`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $tabs = [
         "perfil" => ["Identificação", "home_health"],
         "setores" => ["Departamentos", "corporate_fare"],
@@ -1299,19 +1299,19 @@ function clinic_settings_nav(string $tab): string
 }
 function page_settings(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_settings
-     * Responsabilidade: Coordena a rota e renderiza a tela “page settings”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Clinic/SubscriptionSettings.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `seed_clinic_roles`, `trim`, `function_exists`, `mb_strtolower`, `strtolower`, `in_array`, `one`, `flash`, `redirect`, `strtoupper`, `br_states` e mais 33.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("settings");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];

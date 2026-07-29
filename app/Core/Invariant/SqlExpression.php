@@ -5,28 +5,28 @@ namespace Prontoo\Core\Invariant;
 final class SqlExpression
 {
     private function __construct() {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::__construct
-         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
     }
 
     public static function operation(string $sql): ?string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::operation
-         * Responsabilidade: Implementa a responsabilidade “operation” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.SqlExpression::assignments`.
-         * Dependências chamadas: `preg_match`, `strtoupper`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if (!preg_match('/^\s*(UPDATE|DELETE|INSERT|REPLACE)\b/i', $sql, $match)) {
             return null;
         }
@@ -35,15 +35,15 @@ final class SqlExpression
 
     public static function targetTable(string $sql): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::targetTable
-         * Responsabilidade: Implementa a responsabilidade “target table” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`.
-         * Dependências chamadas: `preg_match`, `strtolower`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $patterns = [
             '/^\s*(?:INSERT|REPLACE)\s+(?:(?:LOW_PRIORITY|DELAYED|HIGH_PRIORITY|IGNORE)\s+)*INTO\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?([a-z0-9_]+)`?/i',
             '/^\s*UPDATE\s+(?:(?:LOW_PRIORITY|IGNORE)\s+)*(?:`?[a-z0-9_]+`?\s*\.\s*)?`?([a-z0-9_]+)`?/i',
@@ -59,29 +59,29 @@ final class SqlExpression
 
     public static function topLevelKeywordPosition(string $sql, string $keyword, int $start = 0): ?int
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::topLevelKeywordPosition
-         * Responsabilidade: Implementa a responsabilidade “top level keyword position” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::assignments`, `Core.Invariant.SqlExpression::whereExpression`.
-         * Dependências chamadas: `self::topLevelPhrasePosition`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return self::topLevelPhrasePosition($sql, $keyword, $start);
     }
 
     public static function topLevelPhrasePosition(string $sql, string $phrase, int $start = 0): ?int
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::topLevelPhrasePosition
-         * Responsabilidade: Implementa a responsabilidade “top level phrase position” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::topLevelKeywordPosition`, `Core.Invariant.SqlExpression::parseInsert`, `Core.Invariant.SqlExpression::assignments`.
-         * Dependências chamadas: `strtolower`, `trim`, `preg_replace`, `strlen`, `max`, `substr`, `preg_match`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $phrase = strtolower(trim(preg_replace('/\s+/', ' ', $phrase) ?? $phrase));
         if ($phrase === "") {
             return null;
@@ -135,15 +135,15 @@ final class SqlExpression
 
     public static function splitTopLevelWithOffsets(string $expression, string $delimiter = ","): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::splitTopLevelWithOffsets
-         * Responsabilidade: Implementa a responsabilidade “split top level with offsets” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::parseInsert`, `Core.Invariant.SqlExpression::valueTuples`, `Core.Invariant.SqlExpression::assignments`, `Core.Invariant.SqlExpression::whereEqualityValues`, `Core.Invariant.SqlExpression::atomicColumnConstraint`.
-         * Dependências chamadas: `strlen`, `max`, `substr`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $parts = [];
         $start = 0;
         $length = strlen($expression);
@@ -186,15 +186,15 @@ final class SqlExpression
 
     public static function splitBooleanTopLevel(string $expression, string $operator): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::splitBooleanTopLevel
-         * Responsabilidade: Implementa a responsabilidade “split boolean top level” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::columnValueConstraint`, `Core.Invariant.Tenant.ScopeProof::booleanStatus`.
-         * Dependências chamadas: `strtolower`, `trim`, `strlen`, `max`, `strncasecmp`, `substr`, `preg_match`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $operator = strtolower(trim($operator));
         $parts = [];
         $start = 0;
@@ -249,30 +249,30 @@ final class SqlExpression
 
     public static function trimExpression(string $expression, int $baseOffset): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::trimExpression
-         * Responsabilidade: Implementa a responsabilidade “trim expression” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::columnValueConstraint`, `Core.Invariant.Tenant.ScopeProof::booleanStatus`.
-         * Dependências chamadas: `strlen`, `ltrim`, `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $left = strlen($expression) - strlen(ltrim($expression));
         return [trim($expression), $baseOffset + $left];
     }
 
     public static function outerParenthesesWrap(string $expression): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::outerParenthesesWrap
-         * Responsabilidade: Implementa a responsabilidade “outer parentheses wrap” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::columnValueConstraint`, `Core.Invariant.Tenant.ScopeProof::booleanStatus`.
-         * Dependências chamadas: `trim`, `strlen`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $expression = trim($expression);
         $length = strlen($expression);
         if ($length < 2 || $expression[0] !== "(" || $expression[$length - 1] !== ")") {
@@ -306,15 +306,15 @@ final class SqlExpression
 
     public static function placeholderIndexBefore(string $sql, int $offset): int
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::placeholderIndexBefore
-         * Responsabilidade: Implementa a responsabilidade “placeholder index before” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::tokenValue`.
-         * Dependências chamadas: `min`, `strlen`, `max`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $count = 0;
         $quote = null;
         $limit = min(strlen($sql), max(0, $offset));
@@ -350,15 +350,15 @@ final class SqlExpression
         array $params,
         ?bool &$known = null,
     ): mixed {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::tokenValue
-         * Responsabilidade: Implementa a responsabilidade “token value” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Context.TaskContextInvariant::assertEnumColumn`, `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`, `Core.Invariant.SqlExpression::whereEqualityValues`, `Core.Invariant.SqlExpression::atomicColumnConstraint`, `Core.Invariant.SqlExpression::insertColumnValues`, `Core.Invariant.Tenant.ScopeProof::atomicStatus`, `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`.
-         * Dependências chamadas: `trim`, `self::placeholderIndexBefore`, `array_key_exists`, `array_values`, `preg_match`, `strcasecmp`, `str_replace`, `stripcslashes`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $token = trim($token);
         $known = true;
         if ($token === "?") {
@@ -390,15 +390,15 @@ final class SqlExpression
 
     public static function parseInsert(string $sql): ?array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::parseInsert
-         * Responsabilidade: Implementa a responsabilidade “parse insert” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`, `Core.Invariant.Tenant.ScopeProof::logicSelfTest`.
-         * Dependências chamadas: `preg_match`, `self::splitTopLevelWithOffsets`, `self::identifier`, `strlen`, `self::topLevelPhrasePosition`, `self::valueTuples`, `count`, `strtolower`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if (!preg_match(
             '/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?([a-z0-9_]+)`?\s*\(([^)]*)\)\s*values\b/is',
             $sql,
@@ -437,15 +437,15 @@ final class SqlExpression
 
     private static function valueTuples(string $sql, int $start, int $end): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::valueTuples
-         * Responsabilidade: Implementa a responsabilidade “value tuples” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::parseInsert`.
-         * Dependências chamadas: `substr`, `self::splitTopLevelWithOffsets`, `strlen`, `ltrim`, `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $rows = [];
         $depth = 0;
         $quote = null;
@@ -500,15 +500,15 @@ final class SqlExpression
 
     public static function assignments(string $sql): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::assignments
-         * Responsabilidade: Implementa a responsabilidade “assignments” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Context.TaskContextInvariant::assertEnumColumn`, `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`, `Core.Invariant.Tenant.ScopeProof::updateChangesScope`, `Core.Invariant.Tenant.ScopeProof::duplicatePreservesScope`, `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`.
-         * Dependências chamadas: `self::operation`, `self::topLevelKeywordPosition`, `self::topLevelPhrasePosition`, `strlen`, `substr`, `self::splitTopLevelWithOffsets`, `preg_match`, `strtolower`, `trim`, `self::isDirectValueToken`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $operation = self::operation($sql);
         $setPosition = $operation === "UPDATE"
             ? self::topLevelKeywordPosition($sql, "set")
@@ -542,15 +542,15 @@ final class SqlExpression
 
     public static function whereExpression(string $sql): ?array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::whereExpression
-         * Responsabilidade: Implementa a responsabilidade “where expression” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.SqlExpression::whereEqualityValues`, `Core.Invariant.SqlExpression::whereAllowedValues`, `Core.Invariant.Tenant.ScopeProof::whereStatus`.
-         * Dependências chamadas: `self::topLevelKeywordPosition`, `substr`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $where = self::topLevelKeywordPosition($sql, "where");
         if ($where === null) {
             return null;
@@ -565,15 +565,15 @@ final class SqlExpression
         array $params,
         ?bool &$complete = null,
     ): array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::whereEqualityValues
-         * Responsabilidade: Implementa a responsabilidade “where equality values” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`, `closure@app/Core/Invariant/Mutation/MutationInvariant.php:225`, `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`.
-         * Dependências chamadas: `self::whereExpression`, `preg_quote`, `strtolower`, `preg_match_all`, `self::tokenValue`, `self::splitTopLevelWithOffsets`, `strlen`, `ltrim`, `trim`, `array_values`, `array_unique`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $complete = true;
         $where = self::whereExpression($sql);
         if ($where === null) {
@@ -632,15 +632,15 @@ final class SqlExpression
         array $params,
         ?bool &$complete = null,
     ): array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::whereAllowedValues
-         * Responsabilidade: Implementa a responsabilidade “where allowed values” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`, `Core.Invariant.Workflow.AppointmentWorkflow::logicSelfTest`.
-         * Dependências chamadas: `self::whereExpression`, `self::columnValueConstraint`, `strtolower`, `array_values`, `array_unique`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $complete = true;
         $where = self::whereExpression($sql);
         if ($where === null) {
@@ -669,15 +669,15 @@ final class SqlExpression
         string $column,
         array $params,
     ): ?array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::columnValueConstraint
-         * Responsabilidade: Implementa a responsabilidade “column value constraint” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::whereAllowedValues`.
-         * Dependências chamadas: `self::trimExpression`, `self::outerParenthesesWrap`, `substr`, `self::splitBooleanTopLevel`, `count`, `self::columnValueConstraint`, `array_merge`, `array_values`, `array_unique`, `array_shift`, `array_uintersect`, `strcmp` e mais 2.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         [$expression, $baseOffset] = self::trimExpression($expression, $baseOffset);
         while (self::outerParenthesesWrap($expression)) {
             $expression = substr($expression, 1, -1);
@@ -727,7 +727,7 @@ final class SqlExpression
                 $values = array_values(array_uintersect(
                     $values,
                     $constraint,
-                    static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `strcmp`, `self::canonicalComparable`. Efeitos: transformação local sem efeito externo detectado. */ fn(mixed $a, mixed $b): int => strcmp(
+                    static  fn(mixed $a, mixed $b): int => strcmp(
                         self::canonicalComparable($a),
                         self::canonicalComparable($b),
                     ),
@@ -752,15 +752,15 @@ final class SqlExpression
         string $column,
         array $params,
     ): ?array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::atomicColumnConstraint
-         * Responsabilidade: Implementa a responsabilidade “atomic column constraint” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::columnValueConstraint`.
-         * Dependências chamadas: `preg_quote`, `preg_match`, `self::tokenValue`, `self::splitTopLevelWithOffsets`, `strlen`, `ltrim`, `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $columnPattern = '(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?' . preg_quote($column, '/') . '`?';
         $valuePattern = '(\\?|[-+]?\\d+|\\\'[^\\\']*\\\'|"[^"]*")';
         $patterns = [
@@ -815,15 +815,15 @@ final class SqlExpression
 
     private static function canonicalComparable(mixed $value): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::canonicalComparable
-         * Responsabilidade: Implementa a responsabilidade “canonical comparable” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::columnValueConstraint`, `arrow@app/Core/Invariant/SqlExpression.php:567`.
-         * Dependências chamadas: `is_bool`, `is_int`, `is_float`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if ($value === null) {
             return "null";
         }
@@ -843,15 +843,15 @@ final class SqlExpression
         string $column,
         ?bool &$complete = null,
     ): array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::insertColumnValues
-         * Responsabilidade: Implementa a responsabilidade “insert column values” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Context.TaskContextInvariant::assertEnumColumn`, `Core.Invariant.Relation.ForeignKeyGraph::assertWrite`, `Core.Invariant.Tenant.ScopeProof::insertStatus`, `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`.
-         * Dependências chamadas: `array_search`, `strtolower`, `array_map`, `self::tokenValue`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $complete = true;
         $index = array_search(strtolower($column), array_map('strtolower', $parsed["columns"] ?? []), true);
         if ($index === false) {
@@ -880,15 +880,15 @@ final class SqlExpression
 
     public static function identifier(string $raw): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::identifier
-         * Responsabilidade: Implementa a responsabilidade “identifier” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::parseInsert`, `Core.Invariant.Tenant.ScopeProof::insertColumnPresent`, `arrow@app/Core/Invariant/Tenant/ScopeProof.php:78`.
-         * Dependências chamadas: `strtolower`, `trim`, `preg_match`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $raw = strtolower(trim($raw));
         $raw = trim($raw, "` \t\n\r\0\x0B");
         return preg_match('/^[a-z0-9_]+$/', $raw) ? $raw : "";
@@ -896,15 +896,15 @@ final class SqlExpression
 
     public static function isDirectValueToken(string $token): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.SqlExpression::isDirectValueToken
-         * Responsabilidade: Implementa a responsabilidade “is direct value token” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/SqlExpression.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.SqlExpression::assignments`.
-         * Dependências chamadas: `trim`, `preg_match`, `strcasecmp`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $token = trim($token);
         return $token === "?" ||
             preg_match('/^[-+]?\d+(?:\.\d+)?$/', $token) === 1 ||

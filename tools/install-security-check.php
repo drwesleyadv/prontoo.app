@@ -66,15 +66,15 @@ if (!InstallAccess::isInstallerExecutionAllowed()) {
 $opened = false;
 try {
     $opened = SchemaMutationLock::runForInstaller(static function (): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@tools/install-security-check.php:62
-         * Responsabilidade: Confirma que a janela estrutural só abre no contexto integral da certificação e que o nonce interno é válido durante o callback.
-         * Local arquitetural: tools/install-security-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `SchemaMutationLock::isActive`, `db_reject_runtime_ddl`.
-         * Efeitos colaterais: executa somente uma prova controlada, sem persistir estrutura ou dados.
-         * Cuidado 1: Mantenha esta closure única para preservar o inventário documental da baseline.
-         */
+        
+
+
+
+
+
+
+
+
         if (!SchemaMutationLock::isActive()) {
             return false;
         }

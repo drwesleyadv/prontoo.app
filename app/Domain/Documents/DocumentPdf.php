@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function document_pdf_link(int $docId, string $class = "ghost small"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_link
-     * Responsabilidade: Implementa a responsabilidade “document pdf link” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_ds_recent_row`, `patient_document_timeline_items`, `page_document_view`, `page_documents`.
-     * Dependências chamadas: `e`, `href`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<a class="' .
         e($class) .
         '" href="' .
@@ -21,15 +21,15 @@ function document_pdf_link(int $docId, string $class = "ghost small"): string
 }
 function document_pdf_public_router_dir(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_public_router_dir
-     * Responsabilidade: Resolve o armazenamento físico protegido dos PDFs, mantendo a URL pública abstrata sob controle do roteador autenticado.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_dir`.
-     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: PDFs físicos devem permanecer exclusivamente em `/ssd/pdfs/`; não recrie o diretório raiz `/pdfs/`.
-     */
+    
+
+
+
+
+
+
+
+
     $dir = storage_path("pdfs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
@@ -41,15 +41,15 @@ function document_pdf_public_router_dir(): string
 }
 function document_pdf_storage_dir(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_storage_dir
-     * Responsabilidade: Implementa a responsabilidade “document pdf storage dir” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_dir`.
-     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `function_exists`, `security_storage_deny_file`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dir = storage_path("pdfs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
@@ -61,30 +61,30 @@ function document_pdf_storage_dir(): string
 }
 function document_pdf_dir(int $cid = 0): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_dir
-     * Responsabilidade: Implementa a responsabilidade “document pdf dir” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_cleanup`, `document_pdf_absolute_path`, `document_pdf_create_file`, `document_pdf_catalog_row`, `install_pdf_dir`, `prontoo_cron_preflight_once`.
-     * Dependências chamadas: `document_pdf_public_router_dir`, `document_pdf_storage_dir`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     document_pdf_public_router_dir();
     $dir = document_pdf_storage_dir();
     return $dir;
 }
 function document_pdf_cleanup(?int $cid = null): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_cleanup
-     * Responsabilidade: Implementa a responsabilidade “document pdf cleanup” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_cleanup_due`, `document_pdf_create_file`.
-     * Dependências chamadas: `document_pdf_ttl_seconds`, `document_pdf_dir`, `is_dir`, `time`, `glob`, `is_file`, `filemtime`, `unlink`, `has_cfg`, `gmdate`, `q`, `error_log` e mais 1.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $ttl = document_pdf_ttl_seconds();
         $dir = document_pdf_dir((int) ($cid ?? 0));
@@ -130,15 +130,15 @@ function document_pdf_cleanup(?int $cid = null): void
 
 function document_pdf_cleanup_due(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_cleanup_due
-     * Responsabilidade: Implementa a responsabilidade “document pdf cleanup due” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `prontoo_run_runtime_maintenance_cycle`.
-     * Dependências chamadas: `storage_path`, `is_file`, `filemtime`, `time`, `is_dir`, `dirname`, `mkdir`, `touch`, `document_pdf_cleanup`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $flag = storage_path("cache/document_pdf_cleanup.flag");
         $last = is_file($flag) ? (int) filemtime($flag) : 0;
@@ -156,15 +156,15 @@ function document_pdf_cleanup_due(): void
 }
 function document_pdf_safe_code(array $doc): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_safe_code
-     * Responsabilidade: Implementa a responsabilidade “document pdf safe code” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_file_name`.
-     * Dependências chamadas: `document_identifier_display`, `max`, `strtoupper`, `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $code = document_identifier_display($doc["document_identifier"] ?? "");
     if ($code === "") {
         $code = "DOCUMENTO" . max(0, (int) ($doc["id"] ?? 0));
@@ -177,15 +177,15 @@ function document_pdf_file_name(
     ?int $generatedAt = null,
     int $clinicId = 0,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_file_name
-     * Responsabilidade: Implementa a responsabilidade “document pdf file name” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_create_file`.
-     * Dependências chamadas: `max`, `time`, `strtoupper`, `bin2hex`, `random_bytes`, `document_pdf_safe_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = max(0, (int) ($generatedAt ?? time()));
     $docId = max(0, (int) ($doc["id"] ?? 0));
     $scope =
@@ -203,15 +203,15 @@ function document_pdf_file_name(
 }
 function document_pdf_file_name_valid(string $file): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_file_name_valid
-     * Responsabilidade: Implementa a responsabilidade “document pdf file name valid” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_absolute_path`, `document_pdf_catalog_row`, `page_document_pdf_file`.
-     * Dependências chamadas: `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return (bool) preg_match(
         '/^[A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf$/',
         $file,
@@ -219,28 +219,28 @@ function document_pdf_file_name_valid(string $file): bool
 }
 function document_pdf_public_path(string $fileName): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_public_path
-     * Responsabilidade: Implementa a responsabilidade “document pdf public path” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_register_file`, `document_pdf_create_file`, `document_pdf_catalog_row`, `page_document_pdf_file`.
-     * Dependências chamadas: `basename`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "/pdfs/" . basename($fileName);
 }
 function document_pdf_ttl_seconds(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_ttl_seconds
-     * Responsabilidade: Implementa a responsabilidade “document pdf ttl seconds” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_cleanup`, `document_pdf_expired_row`.
-     * Dependências chamadas: `max`, `defined`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return max(
         300,
         (int) (defined("PRONTOO_DOCUMENT_PDF_TTL_SECONDS")
@@ -250,15 +250,15 @@ function document_pdf_ttl_seconds(): int
 }
 function document_pdf_token_secret(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_token_secret
-     * Responsabilidade: Implementa a responsabilidade “document pdf token secret” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_token`.
-     * Dependências chamadas: `app_config_string`, `getenv`, `defined`, `hash`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $seed =
         app_config_string("app_key", "") ?:
         app_config_string("app_secret", "") ?:
@@ -277,15 +277,15 @@ function document_pdf_token(
     int $uid,
     int $expires,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_token
-     * Responsabilidade: Implementa a responsabilidade “document pdf token” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_token_valid`.
-     * Dependências chamadas: `basename`, `hash_hmac`, `document_pdf_token_secret`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $payload = basename($fileName) . "|" . $cid . "|" . $uid . "|" . $expires;
     return hash_hmac("sha256", $payload, document_pdf_token_secret());
 }
@@ -296,15 +296,15 @@ function document_pdf_token_valid(
     string $token,
     int $expires,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_token_valid
-     * Responsabilidade: Implementa a responsabilidade “document pdf token valid” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf_file`.
-     * Dependências chamadas: `time`, `hash_equals`, `document_pdf_token`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($expires < time() || $token === "") {
         return false;
     }
@@ -315,15 +315,15 @@ function document_pdf_token_valid(
 }
 function document_pdf_row_timestamp(array $row): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_row_timestamp
-     * Responsabilidade: Implementa a responsabilidade “document pdf row timestamp” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_expired_row`.
-     * Dependências chamadas: `preg_match`, `strtotime`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         !empty($row["generated_unix"]) &&
         preg_match('/^-?\d+$/', (string) $row["generated_unix"])
@@ -343,29 +343,29 @@ function document_pdf_row_timestamp(array $row): int
 
 function document_pdf_expired_row(array $row): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_expired_row
-     * Responsabilidade: Implementa a responsabilidade “document pdf expired row” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf_file`.
-     * Dependências chamadas: `document_pdf_row_timestamp`, `document_pdf_ttl_seconds`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return document_pdf_row_timestamp($row) + document_pdf_ttl_seconds() <
         time();
 }
 function document_pdf_delete_pair(string $fileName, int $cid): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_delete_pair
-     * Responsabilidade: Valida e executa a mutação “document pdf delete pair”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf_file`.
-     * Dependências chamadas: `document_pdf_absolute_path`, `is_file`, `unlink`, `error_log`, `->getMessage`, `has_cfg`, `q`, `basename`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $path = document_pdf_absolute_path($fileName);
         if (is_file($path)) {
@@ -398,15 +398,15 @@ function document_pdf_public_url(
     ?string $token = null,
     ?int $expires = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_public_url
-     * Responsabilidade: Implementa a responsabilidade “document pdf public url” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `base_path`, `rawurlencode`, `basename`, `http_build_query`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $url = (base_path() ?: "") . "/pdfs/" . rawurlencode(basename($fileName));
     $qs = [];
     if ($expires !== null && $expires > 0) {
@@ -420,16 +420,16 @@ function document_pdf_public_url(
 
 function document_pdf_absolute_path(string $fileName): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_absolute_path
-     * Responsabilidade: Implementa a responsabilidade “document pdf absolute path” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_delete_pair`, `page_document_pdf_file`.
-     * Dependências chamadas: `basename`, `document_pdf_file_name_valid`, `RuntimeException`, `document_pdf_dir`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $fileName = basename($fileName);
     if (!document_pdf_file_name_valid($fileName)) {
         throw new RuntimeException("Nome de PDF inválido.");
@@ -438,15 +438,15 @@ function document_pdf_absolute_path(string $fileName): string
 }
 function document_pdf_text_width(string $text, float $fontSize = 12.0): float
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_text_width
-     * Responsabilidade: Implementa a responsabilidade “document pdf text width” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_wrap_text`, `document_pdf_identifier_footer_stream`, `document_pdf_build_simple`.
-     * Dependências chamadas: `mb_strlen`, `preg_match_all`, `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $len = mb_strlen($text, "UTF-8");
     if ($len <= 0) {
         return 0.0;
@@ -457,15 +457,15 @@ function document_pdf_text_width(string $text, float $fontSize = 12.0): float
 }
 function document_pdf_html_blocks(string $html): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_html_blocks
-     * Responsabilidade: Monta a representação de interface associada a “document pdf html blocks” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_build_simple`.
-     * Dependências chamadas: `trim`, `preg_replace`, `preg_match_all`, `strtolower`, `preg_match`, `html_entity_decode`, `strip_tags`, `preg_split`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $html = trim($html);
     if ($html === "") {
         return [
@@ -591,15 +591,15 @@ function document_pdf_wrap_text(
     float $maxWidth,
     float $fontSize = 12.0,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_wrap_text
-     * Responsabilidade: Implementa a responsabilidade “document pdf wrap text” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_build_simple`.
-     * Dependências chamadas: `preg_split`, `trim`, `document_pdf_text_width`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $lines = [];
     $paras = preg_split('/\n+/u', $text) ?: [$text];
     foreach ($paras as $para) {
@@ -650,15 +650,15 @@ function document_pdf_wrap_text(
 }
 function document_pdf_escape(string $text): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_escape
-     * Responsabilidade: Implementa a responsabilidade “document pdf escape” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_identifier_footer_stream`, `document_pdf_build_simple`.
-     * Dependências chamadas: `iconv`, `preg_replace`, `str_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $bytes = @iconv("UTF-8", "Windows-1252//TRANSLIT//IGNORE", $text);
     if ($bytes === false) {
         $bytes = preg_replace('/[^\x20-\x7E]/', "?", $text) ?? $text;
@@ -676,15 +676,15 @@ function document_pdf_identifier_footer_stream(
     float $marginRight,
     float $marginBottom,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_identifier_footer_stream
-     * Responsabilidade: Implementa a responsabilidade “document pdf identifier footer stream” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_build_simple`.
-     * Dependências chamadas: `document_identifier_display`, `document_pdf_text_width`, `max`, `sprintf`, `document_pdf_escape`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $id = document_identifier_display($identifier);
     if ($id === "") {
         return "";
@@ -704,15 +704,15 @@ function document_pdf_identifier_footer_stream(
 }
 function document_pdf_build_simple(string $html, array $meta = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_build_simple
-     * Responsabilidade: Implementa a responsabilidade “document pdf build simple” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_create_file`.
-     * Dependências chamadas: `document_identifier_display`, `document_pdf_html_blocks`, `max`, `min`, `document_pdf_wrap_text`, `document_pdf_text_width`, `document_pdf_identifier_footer_stream`, `sprintf`, `document_pdf_escape`, `count`, `strlen`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $pageW = 595.276;
     $pageH = 841.89;
     $marginTop = 85.039;
@@ -873,15 +873,15 @@ function document_pdf_register_file(
     string $name,
     int $generatedAt,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_register_file
-     * Responsabilidade: Valida e executa a mutação “document pdf register file”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_create_file`.
-     * Dependências chamadas: `is_file`, `hash_file`, `str_repeat`, `max`, `filesize`, `q`, `document_identifier_display`, `document_pdf_public_path`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $cid = (int) ($c["clinic_id"] ?? 0);
         $hash = is_file($path) ? (hash_file("sha256", $path) ?: "") : "";
@@ -910,16 +910,16 @@ function document_pdf_register_file(
 }
 function document_pdf_create_file(array $c, array $doc): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_create_file
-     * Responsabilidade: Valida e executa a mutação “document pdf create file”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `document_pdf_cleanup`, `document_pdf_dir`, `is_dir`, `is_writable`, `RuntimeException`, `time`, `document_pdf_file_name`, `is_file`, `document_pdf_catalog_row`, `document_pdf_build_simple`, `document_body_to_html`, `bin2hex` e mais 12.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $cid = (int) ($c["clinic_id"] ?? 0);
     document_pdf_cleanup($cid);
     $dir = document_pdf_dir($cid);
@@ -990,15 +990,15 @@ function document_pdf_create_file(array $c, array $doc): string
 }
 function document_pdf_catalog_row(string $fileName): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_catalog_row
-     * Responsabilidade: Implementa a responsabilidade “document pdf catalog row” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_pdf_create_file`, `page_document_pdf_file`.
-     * Dependências chamadas: `document_pdf_file_name_valid`, `one`, `error_log`, `->getMessage`, `document_pdf_dir`, `is_file`, `json_decode`, `file_get_contents`, `is_array`, `document_pdf_public_path`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!document_pdf_file_name_valid($fileName)) {
         return null;
     }
@@ -1036,16 +1036,16 @@ function document_pdf_catalog_row(string $fileName): ?array
 }
 function document_pdf_send_file(string $path, string $downloadName): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — document_pdf_send_file
-     * Responsabilidade: Implementa a responsabilidade “document pdf send file” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_document_pdf_file`.
-     * Dependências chamadas: `is_file`, `RuntimeException`, `ob_get_level`, `ob_end_clean`, `headers_sent`, `header`, `str_replace`, `basename`, `filesize`, `readfile`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!is_file($path)) {
         throw new RuntimeException("PDF não encontrado.");
     }
@@ -1068,17 +1068,17 @@ function document_pdf_send_file(string $path, string $downloadName): void
 }
 function page_document_pdf_file(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_document_pdf_file
-     * Responsabilidade: Coordena a rota e renderiza a tela “page document pdf file”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `ProntooHttpError`, `basename`, `document_pdf_file_name_valid`, `document_pdf_absolute_path`, `is_file`, `document_pdf_catalog_row`, `document_pdf_expired_row`, `document_pdf_delete_pair`, `document_pdf_token_valid`, `fetch_document_for_current_user`, `document_type_options` e mais 5.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         throw new ProntooHttpError(
@@ -1161,18 +1161,18 @@ function page_document_pdf_file(): void
 
 function page_document_pdf(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_document_pdf
-     * Responsabilidade: Coordena a rota e renderiza a tela “page document pdf”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Documents/DocumentPdf.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `ProntooHttpError`, `fetch_document_for_current_user`, `http_response_code`, `page`, `function_exists`, `RuntimeException`, `document_type_options`, `audit`, `headers_sent`, `header`, `document_print_document_shell_html`.
-     * Classes ou serviços instanciados: `ProntooHttpError`, `RuntimeException`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         throw new ProntooHttpError(

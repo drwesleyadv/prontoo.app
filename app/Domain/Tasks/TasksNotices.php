@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function notice_target_sql(array $c, string $alias = "n"): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notice_target_sql
-     * Responsabilidade: Implementa a responsabilidade “notice target sql” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `unread_notifications_count`, `page_notices`, `notification_button_light`, `floating_pending_cards_html`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "");
     $uid = (int) ($c["user"]["id"] ?? 0);
     $p = [$role, $uid];
@@ -27,15 +27,15 @@ function notice_target_sql(array $c, string $alias = "n"): array
 }
 function notice_target_label(array $n, array $users = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notice_target_label
-     * Responsabilidade: Monta a representação de interface associada a “notice target label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ctx`, `role_label_for`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scope = (string) ($n["target_scope"] ?? "all");
     if ($scope === "role") {
         $cx = ctx();
@@ -53,15 +53,15 @@ function notice_target_label(array $n, array $users = []): string
 }
 function notice_recipient_phrase(array $n, array $users = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notice_recipient_phrase
-     * Responsabilidade: Implementa a responsabilidade “notice recipient phrase” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_notices`.
-     * Dependências chamadas: `ctx`, `role_label_for`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scope = (string) ($n["target_scope"] ?? "all");
     if ($scope === "all") {
         return "toda clínica";
@@ -81,15 +81,15 @@ function notice_recipient_phrase(array $n, array $users = []): string
 }
 function notice_recipient_people(int $cid, array $notice, array $team): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notice_recipient_people
-     * Responsabilidade: Implementa a responsabilidade “notice recipient people” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `notice_recipient_pills`.
-     * Dependências chamadas: `team_user_ids_for_roles`, `array_keys`, `array_values`, `array_unique`, `array_filter`, `array_map`, `scoped_user_map`, `implode`, `array_fill`, `count`, `array_merge`, `q` e mais 5.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scope = (string) ($notice["target_scope"] ?? "all");
     $ids = [];
     if ($scope === "user") {
@@ -109,7 +109,7 @@ function notice_recipient_people(int $cid, array $notice, array $team): array
     if (!$ids) {
         return [];
     }
-    $missing = array_values(array_filter($ids, /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($id) => !isset($team[$id])));
+    $missing = array_values(array_filter($ids,  fn($id) => !isset($team[$id])));
     if ($missing) {
         foreach (scoped_user_map($cid, $missing, "id,name") as $id => $u) {
             if (!isset($team[(int) $id])) {
@@ -144,21 +144,21 @@ function notice_recipient_people(int $cid, array $notice, array $team): array
     }
     usort(
         $people,
-        /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `strnatcasecmp`. Efeitos: transformação local sem efeito externo detectado. */ fn($a, $b) => strnatcasecmp((string) $a["name"], (string) $b["name"]),
+         fn($a, $b) => strnatcasecmp((string) $a["name"], (string) $b["name"]),
     );
     return $people;
 }
 function notice_recipient_pills(int $cid, array $notice, array $team): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notice_recipient_pills
-     * Responsabilidade: Implementa a responsabilidade “notice recipient pills” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_notices`.
-     * Dependências chamadas: `notice_recipient_people`, `icon`, `count`, `array_slice`, `first_name`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $people = notice_recipient_people($cid, $notice, $team);
     if (!$people) {
         return '<span class="notice-recipient-pills"><span class="notice-recipient-pill is-unread">' .
@@ -202,15 +202,15 @@ function task_event(
     ?string $toStatus = null,
     ?string $note = null,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — task_event
-     * Responsabilidade: Implementa a responsabilidade “task event” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_workflow_task`, `page_tasks`.
-     * Dependências chamadas: `q`, `mb_substr`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         if ($cid <= 0 || $taskId <= 0 || $eventKey === "") {
             return;
@@ -240,16 +240,16 @@ function notify_task_personal_assignment(
     ?int $createdBy = null,
     string $source = "manual",
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — notify_task_personal_assignment
-     * Responsabilidade: Implementa a responsabilidade “notify task personal assignment” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_workflow_task`, `page_tasks`.
-     * Dependências chamadas: `clinic_user_exists`, `trim`, `q`, `db_last_insert_id`, `counter_inc`, `clinic_metric_inc`, `audit`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     try {
         if ($cid <= 0 || $taskId <= 0 || $targetUserId <= 0) {
             return;
@@ -294,15 +294,15 @@ function notify_task_personal_assignment(
 }
 function workflow_valid_role(int $cid, ?string $role): ?string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_valid_role
-     * Responsabilidade: Implementa a responsabilidade “workflow valid role” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `workflow_care_notice`.
-     * Dependências chamadas: `trim`, `array_key_exists`, `clinic_role_options`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = trim((string) $role);
     if ($role === "") {
         return null;
@@ -323,15 +323,15 @@ function workflow_valid_role(int $cid, ?string $role): ?string
 }
 function workflow_notice_body(string $body, string $action = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_notice_body
-     * Responsabilidade: Implementa a responsabilidade “workflow notice body” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `workflow_care_notice`.
-     * Dependências chamadas: `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $body = trim($body);
     $action = trim($action);
     if ($action !== "") {
@@ -354,17 +354,17 @@ function workflow_care_notice(
     int $requiresAck = 1,
     string $action = "",
 ): ?int {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_care_notice
-     * Responsabilidade: Implementa a responsabilidade “workflow care notice” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `workflow_task_notice`.
-     * Dependências chamadas: `trim`, `in_array`, `workflow_valid_role`, `clinic_user_exists`, `team_user_ids_for_roles`, `role_label_for`, `mb_substr`, `workflow_notice_body`, `val`, `q`, `db_last_insert_id`, `counter_inc` e mais 4.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     try {
         if ($cid <= 0 || trim($title) === "" || trim($body) === "") {
             return null;
@@ -463,15 +463,15 @@ function workflow_task_notice(
     string $sourceEntity,
     string $sourceEntityId,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_task_notice
-     * Responsabilidade: Implementa a responsabilidade “workflow task notice” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_workflow_task`.
-     * Dependências chamadas: `trim`, `workflow_care_notice`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $body = trim($description);
     if ($appointmentId) {
         $body .= "\n\nConsulta vinculada: #" . (int) $appointmentId . ".";
@@ -513,15 +513,15 @@ function workflow_appointment_payment_pending(
     int $cid,
     int $appointmentId,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_appointment_payment_pending
-     * Responsabilidade: Implementa a responsabilidade “workflow appointment payment pending” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `workflow_on_appointment_finished`, `workflow_on_task_completed`.
-     * Dependências chamadas: `one`, `in_array`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         if ($cid <= 0 || $appointmentId <= 0) {
             return false;
@@ -552,16 +552,16 @@ function workflow_on_task_started(
     int $startedBy,
     string $role,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_on_task_started
-     * Responsabilidade: Implementa a responsabilidade “workflow on task started” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_tasks`.
-     * Dependências chamadas: `q`, `audit`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     try {
         $cid = (int) ($task["clinic_id"] ?? 0);
         $appt = (int) ($task["appointment_id"] ?? 0);
@@ -602,16 +602,16 @@ function workflow_on_appointment_finished(
     ?int $finishedBy = null,
     string $source = "atendimento",
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_on_appointment_finished
-     * Responsabilidade: Implementa a responsabilidade “workflow on appointment finished” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `page_patient`, `workflow_on_task_completed`.
-     * Dependências chamadas: `one`, `patient_display_name`, `q`, `->rowCount`, `workflow_appointment_payment_pending`, `create_workflow_task`, `audit`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     try {
         if ($cid <= 0 || $appointmentId <= 0) {
             return;
@@ -670,15 +670,15 @@ function workflow_on_appointment_finished(
 }
 function unread_notifications_count(array $c): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — unread_notifications_count
-     * Responsabilidade: Implementa a responsabilidade “unread notifications count” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `notification_button`, `page_recepcao_painel`.
-     * Dependências chamadas: `notice_target_sql`, `val`, `array_merge`, `error_log`, `->getMessage`, `min`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return 0;
     }
@@ -705,15 +705,15 @@ function unread_notifications_count(array $c): int
 }
 function notification_button(array $c): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notification_button
-     * Responsabilidade: Implementa a responsabilidade “notification button” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `unread_notifications_count`, `href`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -727,15 +727,15 @@ function notification_button(array $c): string
 }
 function team_user_ids_for_roles(int $cid, array $roles): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — team_user_ids_for_roles
-     * Responsabilidade: Implementa a responsabilidade “team user ids for roles” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `audit_visibility_filter`, `notice_recipient_people`, `workflow_care_notice`.
-     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `implode`, `array_fill`, `count`, `q`, `array_merge`, `->fetchAll`, `int_ids`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $roles = array_values(array_unique(array_filter($roles)));
     if (!$roles) {
         return [];
@@ -749,15 +749,15 @@ function team_user_ids_for_roles(int $cid, array $roles): array
 }
 function first_team_user_for_role(int $cid, string $role): ?int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — first_team_user_for_role
-     * Responsabilidade: Implementa a responsabilidade “first team user for role” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `val`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $id = (int) val(
             "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code=? AND active=1 ORDER BY id ASC LIMIT 1",
@@ -783,17 +783,17 @@ function create_workflow_task(
     ?string $targetRole = null,
     bool $strict = false,
 ): ?int {
-    /*
-     * GUIA DE MANUTENÇÃO — create_workflow_task
-     * Responsabilidade: Valida e executa a mutação “create workflow task”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `maestro_create_action`, `workflow_on_appointment_finished`, `workflow_on_patient_arrived`, `workflow_on_task_completed`.
-     * Dependências chamadas: `in_array`, `array_key_exists`, `clinic_role_options`, `clinic_user_exists`, `clinic_patient_exists`, `one`, `val`, `db_tx`, `q`, `db_last_insert_id`, `task_event`, `counter_inc` e mais 6.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     try {
         $targetScope =
             $targetScope !== ""
@@ -867,16 +867,16 @@ function create_workflow_task(
             $sourceEntity,
             $sourceEntityId,
         ): int {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:677
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: `q`, `db_last_insert_id`.
-             * Estado externo lido: `$_SESSION`.
-             * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão.
-             * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-             */
+            
+
+
+
+
+
+
+
+
+
             q(
                 "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,status,due_at,created_by,created_at) VALUES (?,?,?,?,?,?, 'aberta', ?, ?, NOW())",
                 [
@@ -966,15 +966,15 @@ function workflow_on_patient_arrived(
     int $appointmentId,
     int $patientLinkId,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_on_patient_arrived
-     * Responsabilidade: Implementa a responsabilidade “workflow on patient arrived” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `patient_display_name`, `create_workflow_task`, `date`, `strtotime`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $name = patient_display_name($patientLinkId, $cid);
     create_workflow_task(
         $cid,
@@ -996,16 +996,16 @@ function workflow_on_task_completed(
     int $completedBy,
     string $role,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — workflow_on_task_completed
-     * Responsabilidade: Implementa a responsabilidade “workflow on task completed” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_tasks`.
-     * Dependências chamadas: `patient_display_name`, `q`, `val`, `create_workflow_task`, `workflow_on_appointment_finished`, `workflow_appointment_payment_pending`, `audit`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     $cid = (int) ($task["clinic_id"] ?? 0);
     if ($cid <= 0) {
         return;
@@ -1084,15 +1084,15 @@ function workflow_on_task_completed(
 }
 function task_nav_counts(array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — task_nav_counts
-     * Responsabilidade: Implementa a responsabilidade “task nav counts” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_tasks`.
-     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $zero = [
         "open" => 0,
         "today" => 0,
@@ -1161,18 +1161,18 @@ function task_nav_counts(array $c): array
 }
 function page_admin_global_notices(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_admin_global_notices
-     * Responsabilidade: Coordena a rota e renderiza a tela “page admin global notices”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `q`, `audit`, `flash`, `redirect`, `trim`, `in_array`, `app_local_to_db_utc`, `counter_inc`, `db_last_insert_id`, `action_summary_label`, `csrf_field` e mais 18.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     require_can("admin_global_notices");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = $_POST["act"] ?? "create";
@@ -1352,18 +1352,18 @@ function page_admin_global_notices(): void
 }
 function page_tasks(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_tasks
-     * Responsabilidade: Coordena a rota e renderiza a tela “page tasks”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `clinic_role_options`, `team_options`, `in_array`, `trim`, `first_name`, `role_label_for`, `one`, `flash`, `redirect`, `q`, `->rowCount` e mais 45.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("tasks");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -1372,15 +1372,15 @@ function page_tasks(): void
     $roleOptions = clinic_role_options($cid, true);
     $users = team_options($cid);
     $canStartTask = function (array $task) use ($uid, $role): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1134
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if (
             !in_array(
                 (string) ($task["status"] ?? "aberta"),
@@ -1416,15 +1416,15 @@ function page_tasks(): void
         return false;
     };
     $destinationLabel = function (array $task) use ($cid, $users): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1169
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `trim`, `first_name`, `role_label_for`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $assigned = trim((string) ($task["assigned_name"] ?? ""));
         if ($assigned !== "") {
             return "Responsável: " . first_name($assigned);
@@ -1977,27 +1977,27 @@ function page_tasks(): void
     }
     $counts = task_nav_counts($c);
     $activeClass = function (string $v) use ($view, $qTerm): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1721
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return $qTerm === "" && $v === $view ? " active" : "";
     };
     $qs = function (string $v): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1724
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return ["view" => $v];
     };
     $taskFoundChip =
@@ -2163,15 +2163,15 @@ function page_tasks(): void
         }
     }
     $dueLabel = function (array $r) use ($now, $today): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1889
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`, `dt_br`, `strtotime`, `max`, `floor`, `date`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $status = (string) $r["status"];
         $due = (string) ($r["due_at"] ?? "");
         if (
@@ -2209,15 +2209,15 @@ function page_tasks(): void
         return ["Prazo: " . dt_br($due), "neutral", "event"];
     };
     $priorityLabel = function (array $r) use ($now, $today): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1926
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`, `strtotime`, `substr`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if (
             !in_array(
                 (string) $r["status"],
@@ -2251,15 +2251,15 @@ function page_tasks(): void
         $canStartTask,
         $destinationLabel,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Tasks/TasksNotices.php:1949
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `trim`, `in_array`, `csrf_field`, `icon`, `href`, `preg_replace`, `e`, `dt_br`, `first_name`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         [$dueTxt, $dueClass, $dueIcon] = $dueLabel($r);
         [$prioTxt, $prioClass] = $priorityLabel($r);
         $patient = trim((string) ($r["patient_name"] ?? ""));
@@ -2528,16 +2528,16 @@ function page_tasks(): void
 }
 function readonly_support_alerts_ensure_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — readonly_support_alerts_ensure_schema
-     * Responsabilidade: Opera a etapa “readonly support alerts ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `readonly_support_notice_screen`, `page_notices`.
-     * Dependências chamadas: `has_cfg`, `db_table_exists`, `RuntimeException`, `db_column_exists`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $validated = false;
     if ($validated || !has_cfg()) {
         return;
@@ -2559,15 +2559,15 @@ function readonly_support_alerts_ensure_schema(): void
 
 function readonly_support_notice_screen(array $c, string $view = "sent"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — readonly_support_notice_screen
-     * Responsabilidade: Implementa a responsabilidade “readonly support notice screen” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_notices`.
-     * Dependências chamadas: `readonly_support_alerts_ensure_schema`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `action_summary_label`, `csrf_field`, `form_row`, `input`, `textarea`, `icon`, `e` e mais 3.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     readonly_support_alerts_ensure_schema();
     $cid = (int) ($c["clinic_id"] ?? 0);
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -2634,18 +2634,18 @@ function readonly_support_notice_screen(array $c, string $view = "sent"): string
 }
 function page_notices(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_notices
-     * Responsabilidade: Coordena a rota e renderiza a tela “page notices”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Tasks/TasksNotices.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `preg_replace`, `in_array`, `readonly_support_alerts_ensure_schema`, `trim`, `flash`, `redirect`, `q`, `mb_substr`, `db_last_insert_id`, `audit`, `notice_target_sql` e mais 30.
-     * Estado externo lido: `$_GET`, `$_POST`, `$_SERVER`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("notices");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];

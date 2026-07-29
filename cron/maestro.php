@@ -12,15 +12,15 @@ require dirname(__DIR__) . "/app/prontoo.php";
 prontoo_load_full_runtime_modules();
 function prontoo_cron_preflight_marker_path(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_cron_preflight_marker_path
-     * Responsabilidade: Orquestra a execução de “prontoo cron preflight marker path” e delega etapas específicas às dependências do módulo.
-     * Local arquitetural: cron/maestro.php (rotinas agendadas e Maestro).
-     * Chamadores detectados: `prontoo_cron_preflight_once`.
-     * Dependências chamadas: `defined`, `storage_path`, `is_dir`, `mkdir`, `hash`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $rev = defined("PRONTOO_SCHEMA_REV")
         ? (string) PRONTOO_SCHEMA_REV
         : "sem_revisao";
@@ -38,15 +38,15 @@ function prontoo_cron_preflight_marker_path(): string
 }
 function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_cron_preflight_report_path
-     * Responsabilidade: Orquestra a execução de “prontoo cron preflight report path” e delega etapas específicas às dependências do módulo.
-     * Local arquitetural: cron/maestro.php (rotinas agendadas e Maestro).
-     * Chamadores detectados: `prontoo_cron_preflight_once`.
-     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `preg_replace`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dir = storage_path("logs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
@@ -56,32 +56,32 @@ function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 }
 function prontoo_cron_auth_permission_reset_revision(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_cron_auth_permission_reset_revision
-     * Responsabilidade: Orquestra a execução de “prontoo cron auth permission reset revision” e delega etapas específicas às dependências do módulo.
-     * Local arquitetural: cron/maestro.php (rotinas agendadas e Maestro).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `defined`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     return defined("PRONTOO_SCHEMA_REV")
         ? (string) PRONTOO_SCHEMA_REV
         : "auth_permission_reset";
 }
 function prontoo_cron_preflight_once(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_cron_preflight_once
-     * Responsabilidade: Orquestra a execução de “prontoo cron preflight once” e delega etapas específicas às dependências do módulo.
-     * Local arquitetural: cron/maestro.php (rotinas agendadas e Maestro).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `prontoo_cron_preflight_marker_path`, `is_file`, `getenv`, `basename`, `microtime`, `prontoo_php_runtime_ok`, `prontoo_php_runtime_message`, `extension_loaded`, `prontoo_memory_limit_label`, `prontoo_memory_limit_meets`, `disk_free_space`, `app_root` e mais 27.
-     * Efeitos colaterais: acessa a camada de persistência; produz conteúdo de saída; acessa o sistema de arquivos.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $marker = prontoo_cron_preflight_marker_path();
     if (is_file($marker) && getenv("PRONTOO_CRON_PREFLIGHT_FORCE") !== "1") {
         return ["ran" => false, "ok" => true, "marker" => basename($marker)];
@@ -96,15 +96,15 @@ function prontoo_cron_preflight_once(): array
         string $message,
         string $level = "error",
     ) use (&$checks, &$fail, &$warn): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@cron/maestro.php:55
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de rotinas agendadas e Maestro.
-         * Local arquitetural: cron/maestro.php (rotinas agendadas e Maestro).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $checks[] = [
             "key" => $key,
             "ok" => $ok,

@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function db_runtime_notice_once(string $key, string $message): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_runtime_notice_once
-     * Responsabilidade: Opera a etapa “db runtime notice once” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `db_assert_mysql_runtime`.
-     * Dependências chamadas: `preg_replace`, `strtolower`, `defined`, `function_exists`, `storage_path`, `dirname`, `is_file`, `error_log`, `is_dir`, `mkdir`, `is_writable`, `file_put_contents` e mais 2.
-     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     static $requestNotices = [];
     $key = preg_replace('/[^a-z0-9_-]+/i', '_', strtolower($key)) ?: "notice";
     if (isset($requestNotices[$key])) {
@@ -47,32 +47,32 @@ function db_runtime_notice_once(string $key, string $message): void
 
 function db_mysql_version(PDO $connection): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_mysql_version
-     * Responsabilidade: Opera a etapa “db mysql version” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `db_assert_mysql_runtime`.
-     * Dependências chamadas: `->query`, `->fetchColumn`, `trim`.
-     * Efeitos colaterais: acessa a camada de persistência.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $value = $connection->query("SELECT VERSION()")?->fetchColumn();
     return trim((string) $value);
 }
 
 function db_assert_mysql_runtime(PDO $connection): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_assert_mysql_runtime
-     * Responsabilidade: Avalia ou impõe a regra “db assert mysql runtime”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `pdo`, `install_open_database`, `pdo_metric`.
-     * Dependências chamadas: `db_mysql_version`, `stripos`, `RuntimeException`, `preg_match`, `defined`, `version_compare`, `->query`, `->fetchColumn`, `db_runtime_notice_once`, `->getMessage`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa a camada de persistência; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $rawVersion = db_mysql_version($connection);
     if ($rawVersion === "" || stripos($rawVersion, "mariadb") !== false) {
         throw new RuntimeException("O Prontoo requer MySQL compatível com a instalação limpa.");
@@ -93,8 +93,8 @@ function db_assert_mysql_runtime(PDO $connection): void
         $strict = $connection
             ->query("SELECT @@SESSION.innodb_strict_mode")
             ?->fetchColumn();
-        // Estado apenas diagnóstico: o contrato integral do schema é validado
-        // independentemente de innodb_strict_mode e não deve poluir o runtime.log.
+        
+        
         $GLOBALS["PRONTOO_INNODB_STRICT_MODE"] = (string) $strict === "1";
     } catch (Throwable $error) {
         db_runtime_notice_once(
@@ -107,15 +107,15 @@ function db_assert_mysql_runtime(PDO $connection): void
 
 function db_session_sql_modes(PDO $connection): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_session_sql_modes
-     * Responsabilidade: Opera a etapa “db session sql modes” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `db_apply_mysql_session_contract`.
-     * Dependências chamadas: `->query`, `->fetchColumn`, `explode`, `strtoupper`, `trim`, `array_keys`.
-     * Efeitos colaterais: acessa a camada de persistência.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $raw = (string) ($connection
         ->query("SELECT @@SESSION.sql_mode")
         ?->fetchColumn() ?? "");
@@ -131,15 +131,15 @@ function db_session_sql_modes(PDO $connection): array
 
 function db_session_sql_mode_is_safe(array $modes): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_session_sql_mode_is_safe
-     * Responsabilidade: Avalia ou impõe a regra “db session sql mode is safe”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `db_apply_mysql_session_contract`.
-     * Dependências chamadas: `array_fill_keys`, `array_map`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $set = array_fill_keys(array_map("strtoupper", $modes), true);
     $strict = isset($set["STRICT_ALL_TABLES"]) ||
         isset($set["STRICT_TRANS_TABLES"]);
@@ -153,16 +153,16 @@ function db_apply_mysql_session_contract(
     PDO $connection,
     bool $strictMode = true,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — db_apply_mysql_session_contract
-     * Responsabilidade: Opera a etapa “db apply mysql session contract” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `pdo`, `install_open_database`, `pdo_metric`.
-     * Dependências chamadas: `->exec`, `db_session_sql_modes`, `in_array`, `->quote`, `implode`, `is_array`, `db_session_sql_mode_is_safe`, `error_log`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $connection->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
     $connection->exec("SET time_zone = '+00:00'");
 
@@ -218,16 +218,16 @@ function db_apply_mysql_session_contract(
 
 function pdo(): PDO
 {
-    /*
-     * GUIA DE MANUTENÇÃO — pdo
-     * Responsabilidade: Implementa a responsabilidade “pdo” dentro do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `page_signup`, `lock_person_user_identity`, `page_profile`, `page_onboarding`, `q`, `db_begin_transaction`, `db_commit`, `db_rollback` e mais 26.
-     * Dependências chamadas: `cfg`, `array_key_exists`, `RuntimeException`, `trim`, `defined`, `constant`, `PDO`, `db_assert_mysql_runtime`, `db_apply_mysql_session_contract`.
-     * Classes ou serviços instanciados: `RuntimeException`, `PDO`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $connection;
     if ($connection instanceof PDO) {
         return $connection;
@@ -274,16 +274,16 @@ function db_query_metric_record(
     bool $success,
     ?Throwable $error = null,
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — db_query_metric_record
-     * Responsabilidade: Valida e executa a mutação “db query metric record”, preservando as invariantes do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `q`.
-     * Dependências chamadas: `max`, `preg_match`, `preg_replace`, `trim`, `is_string`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $GLOBALS["PRONTOO_QUERY_COUNT"] =
         (int) ($GLOBALS["PRONTOO_QUERY_COUNT"] ?? 0) + 1;
     $GLOBALS["PRONTOO_QUERY_TOTAL_MS"] =
@@ -310,15 +310,15 @@ function db_query_metric_record(
 
 function db_retryable_conflict(Throwable $error): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_retryable_conflict
-     * Responsabilidade: Opera a etapa “db retryable conflict” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `q`, `db_tx`.
-     * Dependências chamadas: `->getCode`, `strtolower`, `->getMessage`, `str_contains`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $code = (string) $error->getCode();
     $message = strtolower($error->getMessage());
     return $code === "40001" ||
@@ -331,15 +331,15 @@ function db_retryable_conflict(Throwable $error): bool
 
 function db_retry_delay_us(int $attempt): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_retry_delay_us
-     * Responsabilidade: Opera a etapa “db retry delay us” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `q`, `db_tx`.
-     * Dependências chamadas: `min`, `max`, `random_int`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $base = min(300000, 40000 + max(0, $attempt) * 65000);
     try {
         return $base + random_int(0, 20000);
@@ -351,15 +351,15 @@ function db_retry_delay_us(int $attempt): int
 
 function db_log_query_failure(Throwable $error, string $sql): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_log_query_failure
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “db log query failure” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `q`, `run_schema_sql`.
-     * Dependências chamadas: `function_exists`, `privacy_sanitize_error_message`, `mb_substr`, `->getMessage`, `preg_replace`, `trim`, `error_log`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $message = function_exists("privacy_sanitize_error_message")
         ? privacy_sanitize_error_message($error, 220)
         : mb_substr($error->getMessage(), 0, 220);
@@ -369,16 +369,16 @@ function db_log_query_failure(Throwable $error, string $sql): void
 
 function db_reject_runtime_ddl(string $sql): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_reject_runtime_ddl
-     * Responsabilidade: Opera a etapa “db reject runtime ddl” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `q`, `closure@tools/install-security-check.php:44`.
-     * Dependências chamadas: `preg_match`, `class_exists`, `.Core.Database.SchemaMutationLock::isActive`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!preg_match("/^\s*(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i", $sql)) {
         return;
     }
@@ -394,17 +394,17 @@ function db_reject_runtime_ddl(string $sql): void
 
 function q(string $sql, array $params = []): PDOStatement
 {
-    /*
-     * GUIA DE MANUTENÇÃO — q
-     * Responsabilidade: Implementa a responsabilidade “q” dentro do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `admin_scope_guard_groups`, `admin_global_sequence_series_30d`, `admin_maestro_health_pill_html`, `page_admin_deleted`, `page_admin_errors`, `page_admin_painel`, `page_admin_people`, `admin_clinic_detail_page` e mais 228.
-     * Dependências chamadas: `db_reject_runtime_ddl`, `pdo`, `->inTransaction`, `db_begin_transaction`, `db_commit`, `db_rollback`, `microtime`, `count`, `function_exists`, `sql_write_scope_guard`, `class_exists`, `.Core.Integrity.PiIntegrity::prepareRuntimeQuery`, `.Core.Integrity.PiIntegrity::beforeQuery`, `->prepare`, `->execute` e mais 10.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa a camada de persistência; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     db_reject_runtime_ddl($sql);
     $connection = pdo();
     $autoIntegrityTransaction =
@@ -512,15 +512,15 @@ function q(string $sql, array $params = []): PDOStatement
 
 function one(string $sql, array $params = []): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — one
-     * Responsabilidade: Implementa a responsabilidade “one” dentro do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `admin_scope_guard_stats`, `page_admin_deleted`, `page_admin_painel`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_alerts`, `login_last_credential_from_devices`, `page_login` e mais 115.
-     * Dependências chamadas: `q`, `->fetch`, `->closeCursor`, `is_array`.
-     * Efeitos colaterais: acessa a camada de persistência.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $statement = q($sql, $params);
     $row = $statement->fetch();
     $statement->closeCursor();
@@ -529,15 +529,15 @@ function one(string $sql, array $params = []): ?array
 
 function val(string $sql, array $params = []): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — val
-     * Responsabilidade: Implementa a responsabilidade “val” dentro do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `platform_backend_selftest`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_security`, `onboarding_tip_dismissed` e mais 84.
-     * Dependências chamadas: `q`, `->fetchColumn`, `->closeCursor`.
-     * Efeitos colaterais: acessa a camada de persistência.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $statement = q($sql, $params);
     $value = $statement->fetchColumn();
     $statement->closeCursor();
@@ -546,30 +546,30 @@ function val(string $sql, array $params = []): mixed
 
 function db_last_insert_id(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_last_insert_id
-     * Responsabilidade: Valida e executa a mutação “db last insert id”, preservando as invariantes do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `page_admin_alerts`, `page_signup`, `upsert_person`, `save_person_flexible`, `save_person_by_document`, `page_appointments`, `clinic_subscription_register_claim`, `create_document_draft_from_template` e mais 31.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     return (int) ($GLOBALS["PRONTOO_LAST_INSERT_ID"] ?? 0);
 }
 
 function db_temp_space_error(Throwable $error): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_temp_space_error
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “db temp space error”.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `log_runtime_error`.
-     * Dependências chamadas: `->getMessage`, `str_contains`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $message = $error->getMessage();
     return str_contains($message, "Errcode: 28") ||
         str_contains($message, "No space left on device") ||
@@ -578,15 +578,15 @@ function db_temp_space_error(Throwable $error): bool
 
 function db_prepare_write_transaction(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_prepare_write_transaction
-     * Responsabilidade: Valida e executa a mutação “db prepare write transaction”, preservando as invariantes do módulo de acesso, contrato e instalação do banco de dados.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `db_begin_transaction`.
-     * Dependências chamadas: `class_exists`, `.Core.Integrity.PiIntegrity::prepareForWriteTransaction`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
         \Prontoo\Core\Integrity\PiIntegrity::prepareForWriteTransaction();
     }
@@ -594,15 +594,15 @@ function db_prepare_write_transaction(): void
 
 function db_begin_transaction(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_begin_transaction
-     * Responsabilidade: Opera a etapa “db begin transaction” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `page_signup`, `page_profile`, `page_onboarding`, `db_tx`, `page_appointments`, `clinic_subscription_register_claim`, `maestro_run_rule_scoped`, `sync_user_roles_for_clinic` e mais 3.
-     * Dependências chamadas: `pdo`, `->inTransaction`, `db_prepare_write_transaction`, `->beginTransaction`, `class_exists`, `.Core.Integrity.PiIntegrity::markTransactionStart`.
-     * Efeitos colaterais: participa de transação.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $connection = pdo();
     if ($connection->inTransaction()) {
         return;
@@ -616,15 +616,15 @@ function db_begin_transaction(): void
 
 function db_commit(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_commit
-     * Responsabilidade: Opera a etapa “db commit” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `page_signup`, `page_profile`, `page_onboarding`, `db_tx`, `page_appointments`, `clinic_subscription_register_claim`, `maestro_run_rule_scoped`, `sync_user_roles_for_clinic` e mais 3.
-     * Dependências chamadas: `pdo`, `->inTransaction`, `class_exists`, `.Core.Integrity.PiIntegrity::flushFastEvents`, `->commit`, `.Core.Integrity.PiIntegrity::markTransactionCommitted`, `->rollBack`, `.Core.Integrity.PiIntegrity::discardTransactionEvents`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção; participa de transação.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $connection = pdo();
     if (!$connection->inTransaction()) {
         return;
@@ -650,15 +650,15 @@ function db_commit(): void
 
 function db_rollback(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_rollback
-     * Responsabilidade: Opera a etapa “db rollback” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `page_signup`, `page_profile`, `page_onboarding`, `db_tx`, `page_appointments`, `clinic_subscription_register_claim`, `maestro_run_rule_scoped`, `sync_user_roles_for_clinic` e mais 3.
-     * Dependências chamadas: `pdo`, `->inTransaction`, `->rollBack`, `class_exists`, `.Core.Integrity.PiIntegrity::discardTransactionEvents`.
-     * Efeitos colaterais: participa de transação.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $connection = pdo();
     if (!$connection->inTransaction()) {
         return;
@@ -671,16 +671,16 @@ function db_rollback(): void
 
 function db_tx(callable $callback): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_tx
-     * Responsabilidade: Opera a etapa “db tx” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `audit`, `document_assign_identifier`, `confirm_document_issue`, `financial_link_drawer_user`, `financial_cancel_appointment_revenue`, `financial_admin_receive_expected_revenue`, `financial_create_movement`, `financial_keep_closed` e mais 9.
-     * Dependências chamadas: `pdo`, `->inTransaction`, `db_begin_transaction`, `db_commit`, `db_rollback`, `db_retryable_conflict`, `usleep`, `db_retry_delay_us`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $connection = pdo();
     if ($connection->inTransaction()) {
         return $callback();
@@ -710,45 +710,45 @@ function db_tx(callable $callback): mixed
 
 function prontoo_schema_file(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_file
-     * Responsabilidade: Opera a etapa “prontoo schema file” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_promote_release_contract`, `prontoo_schema_sql`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return __DIR__ . "/schema.sql";
 }
 
 function prontoo_operational_schema_contract_file(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_operational_schema_contract_file
-     * Responsabilidade: Opera a etapa “prontoo operational schema contract file” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_operational_schema_contract`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return __DIR__ . "/operational-schema.contract.json";
 }
 
 function prontoo_operational_schema_contract(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_operational_schema_contract
-     * Responsabilidade: Opera a etapa “prontoo operational schema contract” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_expected_table_names`.
-     * Dependências chamadas: `is_array`, `prontoo_operational_schema_contract_file`, `is_file`, `file_get_contents`, `is_string`, `trim`, `RuntimeException`, `json_decode`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $cached = $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] ?? null;
     if (is_array($cached)) {
         return $cached;
@@ -781,16 +781,16 @@ function prontoo_operational_schema_contract(): array
 
 function prontoo_schema_expected_table_names(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_expected_table_names
-     * Responsabilidade: Monta a representação de interface associada a “prontoo schema expected table names” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_statements`.
-     * Dependências chamadas: `prontoo_operational_schema_contract`, `array_keys`, `trim`, `array_values`, `array_unique`, `sort`, `count`, `RuntimeException`, `preg_match`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $contract = prontoo_operational_schema_contract();
     $tables = array_keys((array) ($contract["tables"] ?? []));
     foreach (["redesigned_tables", "new_support_tables"] as $key) {
@@ -822,58 +822,58 @@ function prontoo_schema_expected_table_names(): array
 
 function prontoo_schema_release_contract_file(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_release_contract_file
-     * Responsabilidade: Opera a etapa “prontoo schema release contract file” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_promote_release_contract`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return __DIR__ . "/schema.r6.contract";
 }
 
 function prontoo_schema_release_contract_hash(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_release_contract_hash
-     * Responsabilidade: Opera a etapa “prontoo schema release contract hash” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_promote_release_contract`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return "673cb62f7b4ac872682d7a2eef6de3565b52ab72f880628a6d951ad2af52ace0";
 }
 
 function prontoo_schema_previous_contract_hash(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_previous_contract_hash
-     * Responsabilidade: Opera a etapa “prontoo schema previous contract hash” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_promote_release_contract`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return "1624a19febf4162ab0957a55897da9327fbc7f469ff5da9b047c3dbc226df50d";
 }
 
 function prontoo_schema_clear_caches(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_clear_caches
-     * Responsabilidade: Opera a etapa “prontoo schema clear caches” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_promote_release_contract`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     unset(
         $GLOBALS["PRONTOO_SCHEMA_SQL_CACHE"],
         $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"],
@@ -885,16 +885,16 @@ function prontoo_schema_clear_caches(): void
 
 function prontoo_schema_promote_release_contract(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_promote_release_contract
-     * Responsabilidade: Opera a etapa “prontoo schema promote release contract” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `prontoo_schema_file`, `prontoo_schema_release_contract_file`, `prontoo_schema_release_contract_hash`, `is_file`, `hash_file`, `is_string`, `hash_equals`, `prontoo_schema_clear_caches`, `prontoo_fs_unlink`, `prontoo_schema_previous_contract_hash`, `RuntimeException`, `prontoo_fs_read` e mais 8.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $target = prontoo_schema_file();
     $payloadFile = prontoo_schema_release_contract_file();
     $expectedHash = prontoo_schema_release_contract_hash();
@@ -952,17 +952,17 @@ function prontoo_schema_promote_release_contract(): void
 
 function prontoo_schema_sql(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_sql
-     * Responsabilidade: Opera a etapa “prontoo schema sql” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_statements`, `prontoo_schema_contract_hash`.
-     * Dependências chamadas: `is_string`, `file_get_contents`, `prontoo_schema_file`, `trim`, `RuntimeException`, `str_replace`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $cached = $GLOBALS["PRONTOO_SCHEMA_SQL_CACHE"] ?? null;
     if (is_string($cached)) {
         return $cached;
@@ -980,15 +980,15 @@ function prontoo_schema_sql(): string
 
 function schema_split_sql(string $sql): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_split_sql
-     * Responsabilidade: Opera a etapa “schema split sql” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_statements`.
-     * Dependências chamadas: `strlen`, `in_array`, `trim`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $statements = [];
     $buffer = "";
     $quote = null;
@@ -1042,17 +1042,17 @@ function schema_split_sql(string $sql): array
 
 function prontoo_schema_statements(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_statements
-     * Responsabilidade: Opera a etapa “prontoo schema statements” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_definition_map`, `install_fresh_schema`.
-     * Dependências chamadas: `is_array`, `schema_split_sql`, `prontoo_schema_sql`, `preg_match`, `RuntimeException`, `strtolower`, `array_keys`, `sort`, `prontoo_schema_expected_table_names`, `array_values`, `array_diff`, `count` e mais 3.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $statements = $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"] ?? null;
     if (is_array($statements)) {
         return $statements;
@@ -1110,15 +1110,15 @@ function prontoo_schema_statements(): array
 
 function schema_split_definitions(string $body): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_split_definitions
-     * Responsabilidade: Opera a etapa “schema split definitions” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `schema_assert_mysql_constraint_compatibility`, `prontoo_schema_definition_map`.
-     * Dependências chamadas: `strlen`, `in_array`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $definitions = [];
     $buffer = "";
     $quote = null;
@@ -1170,16 +1170,16 @@ function schema_split_definitions(string $body): array
 
 function schema_assert_mysql_constraint_compatibility(array $statements): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_assert_mysql_constraint_compatibility
-     * Responsabilidade: Avalia ou impõe a regra “schema assert mysql constraint compatibility”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_statements`.
-     * Dependências chamadas: `preg_match`, `RuntimeException`, `schema_split_definitions`, `preg_match_all`, `array_unique`, `explode`, `trim`, `array_values`, `array_keys`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     foreach ($statements as $statement) {
         if (
             !preg_match(
@@ -1286,17 +1286,17 @@ function schema_assert_mysql_constraint_compatibility(array $statements): void
 
 function prontoo_schema_definition_map(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_definition_map
-     * Responsabilidade: Transforma e normaliza “prontoo schema definition map” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_schema_table_names`, `prontoo_schema_columns`, `prontoo_schema_constraint_names`, `schema_validate_complete`.
-     * Dependências chamadas: `is_array`, `prontoo_schema_statements`, `preg_match`, `RuntimeException`, `schema_split_definitions`, `array_values`, `array_unique`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $map = $GLOBALS["PRONTOO_SCHEMA_DEFINITION_MAP_CACHE"] ?? null;
     if (is_array($map)) {
         return $map;
@@ -1366,29 +1366,29 @@ function prontoo_schema_definition_map(): array
 
 function prontoo_schema_table_names(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_table_names
-     * Responsabilidade: Monta a representação de interface associada a “prontoo schema table names” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `allowed_db_table`, `prontoo_install`, `closure@app/Install/Installer.php:872`.
-     * Dependências chamadas: `array_keys`, `prontoo_schema_definition_map`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return array_keys(prontoo_schema_definition_map());
 }
 
 function prontoo_schema_columns(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_columns
-     * Responsabilidade: Opera a etapa “prontoo schema columns” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `prontoo_schema_definition_map`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $result = [];
     foreach (prontoo_schema_definition_map() as $table => $definition) {
         $result[$table] = $definition["columns"];
@@ -1398,15 +1398,15 @@ function prontoo_schema_columns(): array
 
 function prontoo_schema_constraint_names(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_constraint_names
-     * Responsabilidade: Opera a etapa “prontoo schema constraint names” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `prontoo_schema_definition_map`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $result = [];
     foreach (prontoo_schema_definition_map() as $table => $definition) {
         $result[$table] = $definition["objects"];
@@ -1416,31 +1416,31 @@ function prontoo_schema_constraint_names(): array
 
 function prontoo_schema_contract_hash(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_schema_contract_hash
-     * Responsabilidade: Opera a etapa “prontoo schema contract hash” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `schema_mark_ready`, `schema_seed_meta`, `ensure_runtime_schema_minimum`.
-     * Dependências chamadas: `hash`, `prontoo_schema_sql`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return hash("sha256", prontoo_schema_sql());
 }
 
 function allowed_db_table(string $table): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — allowed_db_table
-     * Responsabilidade: Avalia ou impõe a regra “allowed db table”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `fetch_map`, `count_for_clinics`, `require_same_clinic_entity`.
-     * Dependências chamadas: `is_array`, `array_fill_keys`, `prontoo_schema_table_names`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $allowed = $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"] ?? null;
     if (!is_array($allowed)) {
         $allowed = array_fill_keys(prontoo_schema_table_names(), true);
@@ -1454,16 +1454,16 @@ function allowed_db_table(string $table): string
 
 function safe_db_columns(string $columns): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — safe_db_columns
-     * Responsabilidade: Opera a etapa “safe db columns” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `fetch_map`, `scoped_patient_map`, `scoped_user_map`, `require_same_clinic_entity`.
-     * Dependências chamadas: `array_map`, `explode`, `trim`, `in_array`, `RuntimeException`, `preg_match`, `implode`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $items = array_map("trim", explode(",", trim($columns)));
     if ($items === [] || in_array("", $items, true)) {
         throw new RuntimeException("Seleção de colunas inválida.");
@@ -1483,16 +1483,16 @@ function safe_db_columns(string $columns): string
 
 function db_ident(string $name): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_ident
-     * Responsabilidade: Opera a etapa “db ident” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `schema_cleanup_failed_install`.
-     * Dependências chamadas: `preg_match`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
         throw new RuntimeException("Identificador de banco inválido.");
     }
@@ -1501,15 +1501,15 @@ function db_ident(string $name): string
 
 function db_schema_error_is_missing_table(Throwable $error): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_schema_error_is_missing_table
-     * Responsabilidade: Avalia ou impõe a regra “db schema error is missing table”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `audit_rows_light`, `clinic_visual`, `closure@app/Domain/Clinic/ClinicConfig.php:836`, `clinic_profession`, `closure@app/Domain/Clinic/ClinicConfig.php:1159`.
-     * Dependências chamadas: `->getMessage`, `str_contains`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $message = $error->getMessage();
     return str_contains($message, "doesn't exist") ||
         str_contains($message, "Base table or view not found") ||
@@ -1518,17 +1518,17 @@ function db_schema_error_is_missing_table(Throwable $error): bool
 
 function run_schema_sql(string $sql): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — run_schema_sql
-     * Responsabilidade: Opera a etapa “run schema sql” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `install_fresh_schema`.
-     * Dependências chamadas: `class_exists`, `.Core.Database.SchemaMutationLock::isActive`, `RuntimeException`, `preg_match`, `pdo`, `->exec`, `.Core.Integrity.PiIntegrity::proveSchemaOperation`, `->getMessage`, `db_log_query_failure`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     if (
         !class_exists("\\Prontoo\\Core\\Database\\SchemaMutationLock") ||
         !\Prontoo\Core\Database\SchemaMutationLock::isActive()
@@ -1565,15 +1565,15 @@ if (!preg_match("/^\s*CREATE\s+TABLE\b/i", $sql)) {
 
 function db_table_exists(string $table): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_table_exists
-     * Responsabilidade: Monta a representação de interface associada a “db table exists” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `admin_global_sequence_series_30d`, `admin_alerts_ensure_schema`, `onboarding_tips_ensure_schema`, `login_last_credential_from_devices`, `db_assert_tables`, `agenda_notes_ensure_schema`, `financial_daily_closing_ensure_schema`, `maestro_global_physical_rollback` e mais 10.
-     * Dependências chamadas: `pdo`, `->prepare`, `->execute`, `->fetchColumn`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     static $existing = [];
     if (isset($existing[$table])) {
         return true;
@@ -1591,15 +1591,15 @@ function db_table_exists(string $table): bool
 
 function db_column_exists(string $table, string $column): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_column_exists
-     * Responsabilidade: Opera a etapa “db column exists” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `admin_maestro_health_pill_html`, `admin_alerts_ensure_schema`, `agenda_notes_ensure_schema`, `maestro_ensure_schema`, `readonly_support_alerts_ensure_schema`, `prontoo_cron_preflight_once`.
-     * Dependências chamadas: `pdo`, `->prepare`, `->execute`, `->fetchColumn`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     static $existing = [];
     $key = $table . "|" . $column;
     if (isset($existing[$key])) {
@@ -1618,15 +1618,15 @@ function db_column_exists(string $table, string $column): bool
 
 function db_index_exists(string $table, string $index): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_index_exists
-     * Responsabilidade: Opera a etapa “db index exists” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `pdo`, `->prepare`, `->execute`, `->fetchColumn`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     static $existing = [];
     $key = $table . "|" . $index;
     if (isset($existing[$key])) {
@@ -1645,30 +1645,30 @@ function db_index_exists(string $table, string $index): bool
 
 function schema_lock_file(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_lock_file
-     * Responsabilidade: Opera a etapa “schema lock file” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `schema_mark_ready`, `install_fresh_schema`, `ensure_runtime_schema_minimum`, `prontoo_install`, `closure@app/Install/Installer.php:872`.
-     * Dependências chamadas: `storage_path`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     return storage_path("schema.ready");
 }
 
 function schema_mark_ready(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_mark_ready
-     * Responsabilidade: Opera a etapa “schema mark ready” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `install_fresh_schema`.
-     * Dependências chamadas: `json_encode`, `defined`, `prontoo_schema_contract_hash`, `gmdate`, `file_put_contents`, `schema_lock_file`, `RuntimeException`, `prontoo_fs_chmod`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $payload = json_encode(
         [
             "revision" => defined("PRONTOO_SCHEMA_REV")
@@ -1692,18 +1692,18 @@ function schema_mark_ready(): void
 
 function schema_validate_complete(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_validate_complete
-     * Responsabilidade: Avalia ou impõe a regra “schema validate complete”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `install_fresh_schema`.
-     * Dependências chamadas: `prontoo_schema_definition_map`, `strtolower`, `trim`, `pdo`, `->query`, `->fetchAll`, `array_diff_key`, `array_keys`, `RuntimeException`, `implode`, `array_slice`, `class_exists` e mais 1.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $expected = prontoo_schema_definition_map();
-    $normalize = static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de acesso, contrato e instalação do banco de dados. Dependências diretas: `strtolower`, `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn(mixed $value): string => strtolower(
+    $normalize = static  fn(mixed $value): string => strtolower(
         trim((string) $value),
     );
 
@@ -1797,16 +1797,16 @@ function schema_validate_complete(): void
 
 function schema_seed_meta(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_seed_meta
-     * Responsabilidade: Opera a etapa “schema seed meta” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `install_fresh_schema`.
-     * Dependências chamadas: `defined`, `pdo`, `->prepare`, `prontoo_schema_contract_hash`, `bin2hex`, `random_bytes`, `->execute`, `time`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $revision = defined("PRONTOO_SCHEMA_REV")
         ? PRONTOO_SCHEMA_REV
         : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
@@ -1827,15 +1827,15 @@ function schema_seed_meta(): void
 
 function schema_cleanup_failed_install(array $tables): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_cleanup_failed_install
-     * Responsabilidade: Opera a etapa “schema cleanup failed install” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `install_fresh_schema`, `prontoo_install`, `closure@app/Install/Installer.php:872`.
-     * Dependências chamadas: `.Core.Database.SchemaMutationLock::assertActive`, `pdo`, `->exec`, `array_reverse`, `db_ident`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
         \Prontoo\Core\Database\SchemaMutationLock::assertActive();
 $connection = pdo();
     $connection->exec("SET FOREIGN_KEY_CHECKS=0");
@@ -1850,17 +1850,17 @@ $connection = pdo();
 
 function install_fresh_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — install_fresh_schema
-     * Responsabilidade: Opera a etapa “install fresh schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_install`, `closure@app/Install/Installer.php:803`, `closure@tools/schema-check.php:224`.
-     * Dependências chamadas: `.Core.Database.SchemaMutationLock::assertActive`, `pdo`, `->query`, `->fetchColumn`, `RuntimeException`, `prontoo_schema_statements`, `preg_match`, `run_schema_sql`, `schema_seed_meta`, `schema_validate_complete`, `schema_mark_ready`, `schema_cleanup_failed_install` e mais 2.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
         \Prontoo\Core\Database\SchemaMutationLock::assertActive();
 $connection = pdo();
     $tableCount = (int) $connection
@@ -1902,32 +1902,32 @@ $connection = pdo();
 
 function schema_apply_pending_release_migrations(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — schema_apply_pending_release_migrations
-     * Responsabilidade: Opera a etapa “schema apply pending release migrations” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `ensure_runtime_schema_minimum`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
-    // A revisão 1.7.20.6 é exclusivamente de instalação limpa.
-    // Nenhuma transformação in-place de dados operacionais é permitida.
+    
+
+
+
+
+
+
+
+
+    
+    
     return;
 }
 
 function ensure_runtime_schema_minimum(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ensure_runtime_schema_minimum
-     * Responsabilidade: Opera a etapa “ensure runtime schema minimum” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `prontoo_run_runtime_maintenance_cycle`, `person_common_profile_schema_ready`, `prontoo_cron_preflight_once`.
-     * Dependências chamadas: `has_cfg`, `schema_apply_pending_release_migrations`, `defined`, `val`, `hash_equals`, `RuntimeException`, `prontoo_schema_contract_hash`, `json_decode`, `prontoo_fs_read`, `schema_lock_file`, `is_array`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $validated = false;
     if ($validated || !has_cfg()) {
         return;
@@ -1971,16 +1971,16 @@ function ensure_runtime_schema_minimum(): void
 
 function db_assert_tables(array $tables, string $domain): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_assert_tables
-     * Responsabilidade: Avalia ou impõe a regra “db assert tables”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `ensure_lead_events_schema`, `ensure_financial_operational_schema`.
-     * Dependências chamadas: `db_table_exists`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     foreach ($tables as $table) {
         if (!db_table_exists((string) $table)) {
             throw new RuntimeException("Schema {$domain} incompleto.");
@@ -1990,29 +1990,29 @@ function db_assert_tables(array $tables, string $domain): void
 
 function ensure_lead_events_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ensure_lead_events_schema
-     * Responsabilidade: Opera a etapa “ensure lead events schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `lead_find_by_phone`, `lead_event_create`, `page_leads`, `patient_reception_history_items`.
-     * Dependências chamadas: `db_assert_tables`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     db_assert_tables(["pi_leads", "pi_lead_events"], "de interessados");
 }
 
 function ensure_financial_operational_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ensure_financial_operational_schema
-     * Responsabilidade: Opera a etapa “ensure financial operational schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Database/DatabaseSchema.php (acesso, contrato e instalação do banco de dados).
-     * Chamadores detectados: `financial_account_balances`, `page_financial`, `page_patient`.
-     * Dependências chamadas: `db_assert_tables`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     db_assert_tables(
         [
             "pi_financial_accounts",

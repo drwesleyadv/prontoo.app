@@ -15,15 +15,15 @@ final readonly class ActionMiddleware
         private AuthorizationService $authorization,
         private ActionProofPort $proofs,
     ) {
-        /*
-         * GUIA DE MANUTENÇÃO — Presentation.Http.ActionMiddleware::__construct
-         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
-         * Local arquitetural: app/Presentation/Http/ActionMiddleware.php (adaptação HTTP e apresentação).
-         * Chamadores detectados: `Runtime.LayeredKernel::actionMiddleware`.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
     }
 
     public function enforce(
@@ -32,17 +32,17 @@ final readonly class ActionMiddleware
         array $post,
         array $context,
     ): void {
-        /*
-         * GUIA DE MANUTENÇÃO — Presentation.Http.ActionMiddleware::enforce
-         * Responsabilidade: Implementa a responsabilidade “enforce” dentro do módulo de adaptação HTTP e apresentação.
-         * Local arquitetural: app/Presentation/Http/ActionMiddleware.php (adaptação HTTP e apresentação).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `->evaluate`, `->write`.
-         * Classes ou serviços instanciados: `.ProntooHttpError`.
-         * Estado externo lido: `$GLOBALS`.
-         * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
+
         $decision = $this->authorization->evaluate($route, $method, $post, $context);
         if ($decision->skipped) {
             return;
@@ -76,28 +76,28 @@ final readonly class ActionMiddleware
 
     public static function logicSelfTest(): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Presentation.Http.ActionMiddleware::logicSelfTest
-         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
-         * Local arquitetural: app/Presentation/Http/ActionMiddleware.php (adaptação HTTP e apresentação).
-         * Chamadores detectados: `Runtime.LayeredKernel::logicSelfTest`.
-         * Dependências chamadas: `grants`, `in_array`, `write`, `self`, `AuthorizationService`, `->enforce`, `array_keys`, `array_filter`, `count`.
-         * Classes ou serviços instanciados: `self`, `AuthorizationService`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         $provider = new class implements CapabilityProvider {
             public function grants(ActionContract $contract, string $capability, array $context): bool
             {
-                /*
-                 * GUIA DE MANUTENÇÃO — Presentation.Http.anonymous@58::grants
-                 * Responsabilidade: Implementa a responsabilidade “grants” dentro do módulo de adaptação HTTP e apresentação.
-                 * Local arquitetural: app/Presentation/Http/ActionMiddleware.php (adaptação HTTP e apresentação).
-                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-                 * Dependências chamadas: `in_array`.
-                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-                 */
+                
+
+
+
+
+
+
+
+
                 return in_array($capability, (array) ($context['grants'] ?? []), true);
             }
         };
@@ -107,15 +107,15 @@ final readonly class ActionMiddleware
 
             public function write(string $route, array $context, Decision $decision): bool
             {
-                /*
-                 * GUIA DE MANUTENÇÃO — Presentation.Http.anonymous@64::write
-                 * Responsabilidade: Valida e executa a mutação “write”, preservando as invariantes do módulo de adaptação HTTP e apresentação.
-                 * Local arquitetural: app/Presentation/Http/ActionMiddleware.php (adaptação HTTP e apresentação).
-                 * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-                 * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-                 * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-                 * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-                 */
+                
+
+
+
+
+
+
+
+
                 $this->writes++;
                 return $this->result;
             }
@@ -154,7 +154,7 @@ final readonly class ActionMiddleware
         $middleware->enforce('patient', 'GET', [], $context);
         $cases['read_skips_proof'] = $proofs->writes === $before;
 
-        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de adaptação HTTP e apresentação. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static  fn(bool $ok): bool => !$ok));
         return [
             'ok' => $failed === [],
             'passed' => count($cases) - count($failed),

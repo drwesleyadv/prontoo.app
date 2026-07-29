@@ -3,15 +3,15 @@ declare(strict_types=1);
 if (!function_exists("admin_choice_card")) {
     function admin_choice_card(): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — admin_choice_card
-         * Responsabilidade: Monta a representação de interface associada a “admin choice card” sem alterar o contrato visual externo.
-         * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `e`, `icon`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return '<button class="clinic-choice credential-choice admin-choice" type="submit" name="act" value="choose_admin"><span class="credential-icon app-brandmark-inline" data-app-brandmark><img class="auth-brandmark-favicon app-brandmark-img" src="/public/assets/app-icon-' .
             e(PRONTOO_ASSET_REV) .
             '.png" alt="" aria-hidden="true"></span><span class="credential-main"><span class="credential-role">Desenvolvedor</span><span class="credential-context"><span>Painel do Desenvolvedor</span><small>Gerenciamento técnico da plataforma</small></span></span><span class="credential-enter">' .
@@ -21,16 +21,16 @@ if (!function_exists("admin_choice_card")) {
 }
 function onboarding_tips_ensure_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tips_ensure_schema
-     * Responsabilidade: Opera a etapa “onboarding tips ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `onboarding_tip_dismissed`, `onboarding_tip_dismiss`.
-     * Dependências chamadas: `has_cfg`, `db_table_exists`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $validated = false;
     if ($validated || !has_cfg()) {
         return;
@@ -45,15 +45,15 @@ function onboarding_tips_ensure_schema(): void
 
 function onboarding_tip_module_routes(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_module_routes
-     * Responsabilidade: Implementa a responsabilidade “onboarding tip module routes” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `onboarding_tip_html`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "painel",
         "operations",
@@ -74,15 +74,15 @@ function onboarding_tip_module_routes(): array
 }
 function onboarding_tip_key(array $c, string $route): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_key
-     * Responsabilidade: Implementa a responsabilidade “onboarding tip key” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `onboarding_tip_dismissed`, `onboarding_tip_html`.
-     * Dependências chamadas: `max`, `mb_substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "usuario");
     $clinicId = max(0, (int) ($c["clinic_id"] ?? 0));
     return mb_substr(
@@ -93,15 +93,15 @@ function onboarding_tip_key(array $c, string $route): string
 }
 function onboarding_tip_dismissed(array $c, string $route): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_dismissed
-     * Responsabilidade: Implementa a responsabilidade “onboarding tip dismissed” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `onboarding_tip_html`.
-     * Dependências chamadas: `onboarding_tip_key`, `onboarding_tips_ensure_schema`, `val`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $uid = (int) ($c["user"]["id"] ?? 0);
     if ($uid <= 0) {
         return true;
@@ -120,18 +120,18 @@ function onboarding_tip_dismissed(array $c, string $route): bool
 }
 function onboarding_tip_dismiss(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_dismiss
-     * Responsabilidade: Implementa a responsabilidade “onboarding tip dismiss” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `prontoo_run`.
-     * Dependências chamadas: `need_login`, `mb_substr`, `trim`, `onboarding_tips_ensure_schema`, `q`, `error_log`, `->getMessage`, `base_path`, `str_starts_with`, `header`, `redirect`, `route`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 3: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     $uid = (int) ($c["user"]["id"] ?? 0);
     $key = mb_substr(trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
@@ -156,15 +156,15 @@ function onboarding_tip_dismiss(): void
 }
 function onboarding_tip_copy(array $c, string $route): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_copy
-     * Responsabilidade: Implementa a responsabilidade “onboarding tip copy” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `onboarding_tip_html`.
-     * Dependências chamadas: `role_label_for`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
     $role = (string) ($c["role"] ?? "");
     $roleName = role_label_for($role, (int) ($c["clinic_id"] ?? 0));
     $tips = [
@@ -268,16 +268,16 @@ function onboarding_tip_copy(array $c, string $route): ?array
 }
 function onboarding_tip_html(array $c, string $route): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_tip_html
-     * Responsabilidade: Monta a representação de interface associada a “onboarding tip html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `in_array`, `onboarding_tip_module_routes`, `onboarding_tip_dismissed`, `onboarding_tip_copy`, `onboarding_tip_key`, `href`, `icon`, `e`, `csrf_field`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!$c || ($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -316,15 +316,15 @@ function onboarding_tip_html(array $c, string $route): string
 }
 function valid_cpf(string $cpf): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — valid_cpf
-     * Responsabilidade: Implementa a responsabilidade “valid cpf” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`, `page_signup`, `upsert_person`, `save_person_flexible`, `page_person_lookup`, `page_settings`, `page_counterparty_lookup`, `financial_creditor_upsert_from_post` e mais 14.
-     * Dependências chamadas: `only_digits`, `strlen`, `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cpf = only_digits($cpf);
     if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
         return false;
@@ -343,29 +343,29 @@ function valid_cpf(string $cpf): bool
 }
 function valid_cnpj(string $cnpj): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — valid_cnpj
-     * Responsabilidade: Implementa a responsabilidade “valid cnpj” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_signup`, `save_person_by_document`, `page_settings`, `page_counterparty_lookup`, `financial_creditor_upsert_from_post`, `posted_identity_document_error`.
-     * Dependências chamadas: `only_digits`, `strlen`, `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cnpj = only_digits($cnpj);
     if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) {
         return false;
     }
     $calc = function (int $len) use ($cnpj): int {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Auth/AuthOnboarding.php:264
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de autenticação, sessão e entrada de usuários.
-         * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $weights =
             $len === 12
                 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
@@ -381,31 +381,31 @@ function valid_cnpj(string $cnpj): bool
 }
 function db_birth_date_input(null|string|int $birth): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — db_birth_date_input
-     * Responsabilidade: Opera a etapa “db birth date input” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_person_lookup`, `page_profile`, `person_autosuggest_datalist`.
-     * Dependências chamadas: `function_exists`, `app_date_input_from_storage`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return function_exists("app_date_input_from_storage")
         ? app_date_input_from_storage($birth)
         : (string) $birth;
 }
 function valid_birth_date(null|string|int $birth): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — valid_birth_date
-     * Responsabilidade: Implementa a responsabilidade “valid birth date” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_signup`, `upsert_person`, `save_person_flexible`, `lead_prepare_person_for_patient`, `page_leads`, `patient_identity_complete`, `patient_invoice_registration_missing_fields`, `page_patients` e mais 3.
-     * Dependências chamadas: `trim`, `preg_match`, `gmdate`, `checkdate`, `DateTimeImmutable`, `DateTimeZone`, `->modify`, `->setTime`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $raw = trim((string) $birth);
     if ($raw === "") {
         return false;
@@ -429,28 +429,28 @@ function valid_birth_date(null|string|int $birth): bool
 }
 function login_last_credential_key(int $uid): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_last_credential_key
-     * Responsabilidade: Implementa a responsabilidade “login last credential key” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_last_credential_remember`, `login_last_credential_from_meta`.
-     * Dependências chamadas: `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "last_login_credential_user_" . max(0, $uid);
 }
 function login_last_credential_normalize(mixed $raw): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_last_credential_normalize
-     * Responsabilidade: Transforma e normaliza “login last credential normalize” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_last_credential_from_meta`, `login_last_credential_from_devices`.
-     * Dependências chamadas: `is_string`, `trim`, `json_decode`, `is_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (is_string($raw)) {
         $raw = trim($raw);
         if ($raw === "") {
@@ -479,7 +479,7 @@ function login_last_credential_remember(
     string $scope,
     ?int $clinicRoleId = null,
 ): void {
-    /* Guia de manutenção: Persiste somente a credencial estável, sem timestamp mutável nem invalidação ampla de cache a cada login. */
+    
     if ($uid <= 0 || !has_cfg()) {
         return;
     }
@@ -527,15 +527,15 @@ function login_last_credential_remember(
 }
 function login_last_credential_from_meta(int $uid): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_last_credential_from_meta
-     * Responsabilidade: Implementa a responsabilidade “login last credential from meta” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_resolve_user_credential`.
-     * Dependências chamadas: `has_cfg`, `login_last_credential_normalize`, `meta_get`, `login_last_credential_key`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($uid <= 0 || !has_cfg()) {
         return null;
     }
@@ -550,15 +550,15 @@ function login_last_credential_from_meta(int $uid): ?array
 }
 function login_last_credential_from_devices(int $uid): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_last_credential_from_devices
-     * Responsabilidade: Implementa a responsabilidade “login last credential from devices” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_resolve_user_credential`.
-     * Dependências chamadas: `has_cfg`, `function_exists`, `db_table_exists`, `one`, `login_last_credential_normalize`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return null;
 }
 function login_credential_match(
@@ -567,15 +567,15 @@ function login_credential_match(
     array $choices,
     ?array $credential,
 ): ?array {
-    /*
-     * GUIA DE MANUTENÇÃO — login_credential_match
-     * Responsabilidade: Implementa a responsabilidade “login credential match” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_resolve_user_credential`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$credential) {
         return null;
     }
@@ -607,15 +607,15 @@ function login_resolve_user_credential(
     bool $isAdmin,
     array $choices,
 ): ?array {
-    /*
-     * GUIA DE MANUTENÇÃO — login_resolve_user_credential
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “login resolve user credential” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `login_credential_match`, `login_last_credential_from_meta`, `login_last_credential_from_devices`, `count`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $fromMeta = login_credential_match(
         $uid,
         $isAdmin,
@@ -647,18 +647,18 @@ function login_apply_resolved_credential(
     ?string $verifiedUserGeneration = null,
     bool $redirectAfterLogin = true,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — login_apply_resolved_credential
-     * Responsabilidade: Implementa a responsabilidade “login apply resolved credential” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `session_harden_after_login`, `developer_first_login_clear_json_cache`, `mark_login_success`, `login_last_credential_remember`, `device_session_remember_after_login`, `audit`, `redirect`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: lê ou altera a sessão; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $scope = (string) ($credential["scope"] ?? "clinic");
     session_harden_after_login($uid, $verifiedUserGeneration);
     $_SESSION["uid"] = $uid;
@@ -725,16 +725,16 @@ function developer_first_login_clear_json_cache(
     bool $knownDeveloper = false,
 ): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — developer_first_login_clear_json_cache
-     * Responsabilidade: Gerencia o cache ou a memoização de “developer first login clear json cache”, reduzindo I/O sem substituir a fonte canônica.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_apply_resolved_credential`.
-     * Dependências chamadas: `function_exists`, `val`, `server_json_cache_clear_all_json_files`, `q`, `time`, `audit`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (
         $uid <= 0 ||
         !function_exists("server_json_cache_clear_all_json_files")
@@ -805,7 +805,7 @@ function developer_first_login_clear_json_cache(
         }
     }
 }
-/* Guia de manutenção: Limpa integralmente o estado temporário de MFA para impedir reaproveitamento entre tentativas. */
+
 function mfa_pending_login_clear(): void
 {
     unset(
@@ -815,7 +815,7 @@ function mfa_pending_login_clear(): void
         $_SESSION["mfa_pending_verified"],
     );
 }
-/* Guia de manutenção: Cria sessão pré-autenticada curta para o desafio MFA de qualquer usuário cadastrado. */
+
 function mfa_begin_pending_login(int $uid, array $credential): void
 {
     session_regenerate_id(true);
@@ -833,7 +833,7 @@ function mfa_begin_pending_login(int $uid, array $credential): void
         $_SESSION["mfa_pending_verified"],
     );
 }
-/* Guia de manutenção: Revalida usuário, prazo e geração antes de aceitar o estado pré-autenticado. */
+
 function mfa_pending_login_user(): ?array
 {
     $pending = $_SESSION["pending_mfa_login"] ?? null;
@@ -866,7 +866,7 @@ function mfa_pending_login_user(): ?array
     }
     return $user;
 }
-/* Guia de manutenção: Converte desafio MFA aprovado em sessão autenticada usando credencial revalidada. */
+
 function mfa_complete_pending_login(bool $redirectAfterLogin = true): string
 {
     $user = mfa_pending_login_user();
@@ -925,7 +925,7 @@ function mfa_complete_pending_login(bool $redirectAfterLogin = true): string
         $redirectAfterLogin,
     );
 }
-/* Guia de manutenção: Limita tentativas MFA simultaneamente por usuário e endereço de origem. */
+
 function mfa_attempt_limited(int $uid, string $purpose): bool
 {
     return security_rate_limit(
@@ -939,7 +939,7 @@ function mfa_attempt_limited(int $uid, string $purpose): bool
             300,
         );
 }
-/* Guia de manutenção: Apresenta somente o cadastro obrigatório inicial; a validação recorrente acontece na própria tela de login. */
+
 function page_mfa(): void
 {
     $user = mfa_pending_login_user();
@@ -1071,7 +1071,7 @@ function page_mfa(): void
         return;
     }
 }
-/* Guia de manutenção: Exige nova senha e MFA para elevar sessão clínica ao Painel do Desenvolvedor. */
+
 function page_global_reauth(): void
 {
     $c = need_login();
@@ -1188,17 +1188,17 @@ function page_global_reauth(): void
 }
 function page_login(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_login
-     * Responsabilidade: Coordena a rota e renderiza a tela “page login”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ctx`, `redirect`, `only_digits`, `max`, `login_lock`, `login_session_wait`, `login_session_forget`, `valid_cpf`, `flash`, `login_session_remember`, `audit`, `one` e mais 19.
-     * Estado externo lido: `$_SESSION`, `$_POST`, `$_SERVER`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
     $wantsJson =
         function_exists("prontoo_route_wants_json") &&
@@ -1677,23 +1677,23 @@ function page_login(): void
 }
 function login_key(string $cpf): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_key
-     * Responsabilidade: Implementa a responsabilidade “login key” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `login_lock`, `login_fail`, `login_clear`.
-     * Dependências chamadas: `secret_key`, `hash_hmac`.
-     * Estado externo lido: `$_SERVER`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $secret = secret_key();
     return [
         hash_hmac("sha256", $cpf . "|subject", $secret),
         hash_hmac("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "|ip", $secret),
     ];
 }
-/* Guia de manutenção: Deriva buckets por credencial, usuário e origem para conter ataques distribuídos. */
+
 function login_bucket_keys(string $cpf): array
 {
     [$subject, $ip] = login_key($cpf);
@@ -1710,7 +1710,7 @@ function login_bucket_keys(string $cpf): array
         ],
     ];
 }
-/* Guia de manutenção: Remove controles de login antigos oportunisticamente para limitar crescimento da tabela. */
+
 function login_locks_cleanup_maybe(): void
 {
     if (random_int(1, 64) !== 1) {
@@ -1726,15 +1726,15 @@ function login_locks_cleanup_maybe(): void
 }
 function login_lock(string $cpf): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_lock
-     * Responsabilidade: Implementa a responsabilidade “login lock” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `login_key`, `time`, `one`, `max`, `error_log`, `->getMessage`, `login_session_wait`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         [$pair, $subject, $ip] = login_bucket_keys($cpf);
         $now = time();
@@ -1761,7 +1761,7 @@ function login_lock(string $cpf): int
 }
 function login_fail(string $cpf): int
 {
-    /* Guia de manutenção: Aplica os três buckets distribuídos em um único UPSERT, preservando limiares, exponencial e falha fechada. */
+    
     $seconds = 60;
     try {
         [$pair, $subject, $ip] = login_bucket_keys($cpf);
@@ -1818,15 +1818,15 @@ function login_fail(string $cpf): int
 }
 function login_clear(string $cpf): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_clear
-     * Responsabilidade: Implementa a responsabilidade “login clear” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `login_key`, `q`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         [$pair, $subject] = login_bucket_keys($cpf);
         q(
@@ -1839,7 +1839,7 @@ function login_clear(string $cpf): void
 }
 function mark_login_success(int $uid): void
 {
-    /* Guia de manutenção: Registra o sucesso no usuário sem consultas de timezone antes do redirecionamento; o próximo request aplica o fuso pelo contexto validado. */
+    
     try {
         q(
             "UPDATE pi_users SET failed_login_count=0, locked_until=NULL, last_login_at=NOW() WHERE id=?",
@@ -1854,46 +1854,46 @@ function login_session_remember(
     int $wait,
     string $message = "CPF ou senha não conferem.",
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — login_session_remember
-     * Responsabilidade: Implementa a responsabilidade “login session remember” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `time`, `max`.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: lê ou altera a sessão.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $_SESSION["login_last_cpf"] = $cpf;
     $_SESSION["login_wait_until"] = time() + max(0, $wait);
     $_SESSION["login_lock_message"] = $message;
 }
 function login_session_wait(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_session_wait
-     * Responsabilidade: Implementa a responsabilidade “login session wait” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`, `login_lock`.
-     * Dependências chamadas: `max`, `time`.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: lê ou altera a sessão.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     return max(0, (int) ($_SESSION["login_wait_until"] ?? 0) - time());
 }
 function login_session_forget(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — login_session_forget
-     * Responsabilidade: Implementa a responsabilidade “login session forget” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: lê ou altera a sessão.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     unset(
         $_SESSION["login_wait_until"],
         $_SESSION["login_last_cpf"],
@@ -1902,15 +1902,15 @@ function login_session_forget(): void
 }
 function seconds_label(int $s): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — seconds_label
-     * Responsabilidade: Monta a representação de interface associada a “seconds label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_login`.
-     * Dependências chamadas: `max`, `floor`, `str_pad`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $s = max(0, $s);
     $m = floor($s / 60);
     $r = $s % 60;
@@ -1920,19 +1920,19 @@ function seconds_label(int $s): string
 }
 function page_signup(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_signup
-     * Responsabilidade: Coordena a rota e renderiza a tela “page signup”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ctx`, `redirect`, `function_exists`, `clinic_signup_blocked`, `page`, `e`, `href`, `flash`, `only_digits`, `security_rate_limit`, `security_client_bucket`, `security_ip_bucket` e mais 53.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_SERVER`, `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     $currentCtx = ctx();
     if ($currentCtx) {
         redirect(
@@ -2341,16 +2341,16 @@ function page_signup(): void
 }
 function upsert_person(string $name, string $cpf, string $birth): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — upsert_person
-     * Responsabilidade: Implementa a responsabilidade “upsert person” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_signup`, `lead_prepare_person_for_patient`, `page_patients`, `save_team_member`, `prontoo_install`.
-     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `val`, `person_identity_immutable_values`, `app_date_input_from_storage`, `one`, `q`, `implode`, `person_signature_refresh_verified` e mais 2.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     $name = trim($name);
     $cpf = only_digits($cpf);
     if ($name === "") {
@@ -2417,16 +2417,16 @@ function upsert_person(string $name, string $cpf, string $birth): int
 }
 function lock_person_user_identity(int $personId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lock_person_user_identity
-     * Responsabilidade: Implementa a responsabilidade “lock person user identity” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_signup`, `save_team_member`.
-     * Dependências chamadas: `pdo`, `->inTransaction`, `RuntimeException`, `one`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($personId <= 0 || !pdo()->inTransaction()) {
         throw new RuntimeException(
             "Não foi possível iniciar a gravação segura do usuário.",
@@ -2447,16 +2447,16 @@ function save_person_flexible(
     ?string $cpf = null,
     ?string $birth = null,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — save_person_flexible
-     * Responsabilidade: Valida e executa a mutação “save person flexible”, preservando as invariantes do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `save_person_by_document`, `financial_creditor_upsert_from_post`, `page_leads`.
-     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `session_clinic_scope_id`, `val`, `person_identity_immutable_values`, `one`, `app_date_input_from_storage`, `q`, `implode` e mais 3.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     $name = trim($name);
     $cpf = only_digits((string) ($cpf ?? ""));
     $birth = trim((string) ($birth ?? "")) ?: null;
@@ -2550,15 +2550,15 @@ function save_person_flexible(
 }
 function phone_br(?string $phone): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — phone_br
-     * Responsabilidade: Implementa a responsabilidade “phone br” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `admin_clinic_detail_page`, `page_signup`, `page_onboarding`, `page_settings`, `financial_creditor_directory_card`, `page_lead_lookup`, `page_leads`, `patient_legal_guardian_card` e mais 9.
-     * Dependências chamadas: `only_digits`, `substr`, `strlen`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $d = only_digits((string) ($phone ?? ""));
     if ($d === "") {
         return "";
@@ -2584,16 +2584,16 @@ function phone_br(?string $phone): string
 }
 function page_person_lookup(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_person_lookup
-     * Responsabilidade: Coordena a rota e renderiza a tela “page person lookup”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `only_digits`, `headers_sent`, `header`, `security_rate_limit`, `security_client_bucket`, `security_ip_bucket`, `valid_cpf`, `security_value_bucket`, `http_response_code`, `json_encode`, `one`, `has_session_user` e mais 3.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
     $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
@@ -2697,17 +2697,17 @@ function page_person_lookup(): void
 }
 function page_logout(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_logout
-     * Responsabilidade: Invalida a raiz canônica da autenticação e encerra a sessão local; os demais artefatos derivados falham fechados no próximo uso.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `redirect`, `user_auth_generation_rotate`, `maestro_defer_audit_event`, `audit`, `secure_session_destroy`, `header`, `href`.
-     * Estado externo lido: `$_SERVER`, `$_SESSION`.
-     * Efeitos colaterais: lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: A geração do usuário é a raiz da cascata; não reintroduza limpeza física ampla de cache ou varredura de dispositivos no caminho crítico.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         redirect("login");
     }
@@ -2751,19 +2751,19 @@ function page_logout(): void
 }
 function page_profile(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_profile
-     * Responsabilidade: Coordena a rota e renderiza a tela “page profile”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `redirect`, `one`, `trim`, `mb_strlen`, `RuntimeException`, `filter_var`, `val`, `db_begin_transaction`, `q`, `audit`, `db_commit` e mais 28.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_POST`, `$_SERVER`, `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 3: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     $uid = (int) ($c["user"]["id"] ?? 0);
     if ($uid <= 0) {
@@ -3543,15 +3543,15 @@ function page_profile(): void
         string $subtitle,
         bool $active,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Auth/AuthOnboarding.php:1865
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de autenticação, sessão e entrada de usuários.
-         * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `icon`, `csrf_field`, `e`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $state = $active
             ? '<span class="account-env-status">' .
                 icon("check_circle") .
@@ -3583,15 +3583,15 @@ function page_profile(): void
         &$envActiveCards,
         &$envOtherCards,
     ): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Auth/AuthOnboarding.php:1899
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de autenticação, sessão e entrada de usuários.
-         * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if ($active) {
             $envActiveCards .= $html;
         } else {
@@ -3660,33 +3660,33 @@ function page_profile(): void
 }
 function page_switch(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_switch
-     * Responsabilidade: Coordena a rota e renderiza a tela “page switch”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `redirect`.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
     need_login();
     redirect("profile");
 }
 function page_onboarding(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_onboarding
-     * Responsabilidade: Coordena a rota e renderiza a tela “page onboarding”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `is_responsible_doctor`, `redirect`, `function_exists`, `ensure_clinic_trial_active`, `one`, `seed_clinic_roles`, `array_fill_keys`, `array_keys`, `db_begin_transaction`, `strtoupper`, `trim` e mais 43.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_SERVER`, `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (!is_responsible_doctor($c)) {
         redirect("appointments");
@@ -3964,15 +3964,15 @@ function person_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_person_suggestions",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — person_autosuggest_datalist
-     * Responsabilidade: Implementa a responsabilidade “person autosuggest datalist” dentro do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `page_leads`, `page_patients`, `page_users`.
-     * Dependências chamadas: `q`, `->fetchAll`, `e`, `trim`, `mask`, `date_br`, `db_birth_date_input`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $rows = q(
         "SELECT DISTINCT p.id,p.full_name,p.cpf,p.birth_date FROM pi_persons p JOIN (SELECT person_id FROM pi_patients WHERE clinic_id=? AND person_id IS NOT NULL UNION SELECT person_id FROM pi_leads WHERE clinic_id=? AND person_id IS NOT NULL) x ON x.person_id=p.id WHERE p.full_name<>'' ORDER BY p.full_name ASC LIMIT 500",
         [$cid, $cid],
@@ -4007,16 +4007,16 @@ function save_person_by_document(
     string $doc,
     ?string $birth = null,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — save_person_by_document
-     * Responsabilidade: Valida e executa a mutação “save person by document”, preservando as invariantes do módulo de autenticação, sessão e entrada de usuários.
-     * Local arquitetural: app/Auth/AuthOnboarding.php (autenticação, sessão e entrada de usuários).
-     * Chamadores detectados: `financial_counterparty_light`, `financial_creditor_upsert_from_post`.
-     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `strlen`, `save_person_flexible`, `valid_cnpj`, `val`, `q`, `db_last_insert_id`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     $name = trim($name);
     $doc = only_digits($doc);
     if ($name === "") {

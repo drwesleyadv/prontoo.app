@@ -3,15 +3,15 @@
 const BR_LANDING_ORIGIN = "https://prontoo.app";
 function br_landing_release_metadata(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — br_landing_release_metadata
-     * Responsabilidade: Implementa a responsabilidade “br landing release metadata” dentro do módulo de site público e landing page.
-     * Local arquitetural: br/runtime-core.php (site público e landing page).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `is_array`, `dirname`, `is_file`, `file_get_contents`, `is_string`, `json_decode`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $metadata = null;
     if (is_array($metadata)) {
         return $metadata;
@@ -42,44 +42,44 @@ $brLandingRequestStartedAt = microtime(true);
 
 function br_h(string $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — br_h
-     * Responsabilidade: Implementa a responsabilidade “br h” dentro do módulo de site público e landing page.
-     * Local arquitetural: br/runtime-core.php (site público e landing page).
-     * Chamadores detectados: `br_landing_send_asset`.
-     * Dependências chamadas: `htmlspecialchars`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return htmlspecialchars($value, ENT_QUOTES, "UTF-8");
 }
 
 function br_landing_url(string $path = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — br_landing_url
-     * Responsabilidade: Implementa a responsabilidade “br landing url” dentro do módulo de site público e landing page.
-     * Local arquitetural: br/runtime-core.php (site público e landing page).
-     * Chamadores detectados: `br_landing_send_asset`.
-     * Dependências chamadas: `rtrim`, `ltrim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return rtrim(BR_LANDING_ORIGIN, "/") . "/" . ltrim($path, "/");
 }
 
 function br_landing_send_asset(string $asset): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — br_landing_send_asset
-     * Responsabilidade: Implementa a responsabilidade “br landing send asset” dentro do módulo de site público e landing page.
-     * Local arquitetural: br/runtime-core.php (site público e landing page).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `strtolower`, `trim`, `gmdate`, `headers_sent`, `header`, `br_landing_url`, `br_h`, `http_response_code`.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     $asset = strtolower(trim($asset));
     $today = gmdate("Y-m-d");
 

@@ -2,28 +2,28 @@
 declare(strict_types=1);
 function page_home(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_home
-     * Responsabilidade: Coordena a rota e renderiza a tela “page home”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `redirect`.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
     redirect("login");
 }
 function page_medico_painel(array $c): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_medico_painel
-     * Responsabilidade: Coordena a rota e renderiza a tela “page medico painel”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_painel`.
-     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `q`, `->fetchAll`, `count`, `is_done_appointment`, `delay_minutes_from_appointment`, `round`, `val`, `appointment_patient_names`, `app_storage_timestamp`, `app_time_br` e mais 12.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     [$todayStart, $todayEnd] = app_local_day_utc_range(
@@ -128,15 +128,15 @@ function page_medico_painel(array $c): void
 }
 function page_recepcao_painel(array $c): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_recepcao_painel
-     * Responsabilidade: Coordena a rota e renderiza a tela “page recepcao painel”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_painel`.
-     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `q`, `->fetchAll`, `appointment_patient_names`, `int_ids`, `fetch_map`, `array_values`, `array_unique`, `array_merge`, `count`, `time` e mais 20.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     $role = (string) ($c["role"] ?? "recepcionista");
@@ -264,15 +264,15 @@ function page_recepcao_painel(array $c): void
         "</b><span>Avisos</span></p></div>" .
         "</div>";
     $statusLabel = function (array $a) use ($role): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Pages/Dashboards.php:239
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de composição geral do runtime.
-         * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `appointment_journey_meta`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $m = appointment_journey_meta($a, $role);
         return [
             $m["label"],
@@ -288,15 +288,15 @@ function page_recepcao_painel(array $c): void
         $statusLabel,
         $role,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Pages/Dashboards.php:249
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de composição geral do runtime.
-         * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `app_time_br`, `trim`, `first_name`, `href`, `appointment_journey_compact_html`, `e`, `icon`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $startTs = app_storage_timestamp($a["start_at"]);
         $endTs = app_storage_timestamp($a["end_at"]);
         $pid = (int) ($a["patient_link_id"] ?? 0);
@@ -477,7 +477,7 @@ function page_recepcao_painel(array $c): void
                 "Bloqueio</span></a>",
         ];
     }
-    usort($agenda, /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de composição geral do runtime. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($a, $b) => $a["ts"] <=> $b["ts"]);
+    usort($agenda,  fn($a, $b) => $a["ts"] <=> $b["ts"]);
     $agendaHtml = "";
     $shown = 0;
     foreach ($agenda as $row) {
@@ -531,15 +531,15 @@ function page_recepcao_painel(array $c): void
 }
 function page_triagem_painel(array $c): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_triagem_painel
-     * Responsabilidade: Coordena a rota e renderiza a tela “page triagem painel”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_painel`.
-     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`, `q`, `->fetchAll`, `appointment_patient_names`, `int_ids`, `fetch_map`, `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_is_terminal` e mais 14.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     [$todayStart, $todayEnd] = app_local_day_utc_range(
@@ -587,15 +587,15 @@ function page_triagem_painel(array $c): void
         $names,
         $users,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Pages/Dashboards.php:532
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de composição geral do runtime.
-         * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `trim`, `appointment_journey_meta`, `appointment_journey_compact_html`, `href`, `e`, `app_time_br`, `first_name`, `icon`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $ts = app_storage_timestamp($a["start_at"]);
         $pid = (int) ($a["patient_link_id"] ?? 0);
         $doctor = $users[(int) ($a["doctor_user_id"] ?? 0)]["name"] ?? "";
@@ -709,15 +709,15 @@ function page_triagem_painel(array $c): void
 }
 function manager_metric_val(string $sql, array $params = []): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_metric_val
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “manager metric val”.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return (int) (val($sql, $params) ?? 0);
     } catch (Throwable $e) {
@@ -727,15 +727,15 @@ function manager_metric_val(string $sql, array $params = []): int
 }
 function manager_metric_row(string $sql, array $params = []): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_metric_row
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “manager metric row”.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `one`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return one($sql, $params) ?: [];
     } catch (Throwable $e) {
@@ -745,15 +745,15 @@ function manager_metric_row(string $sql, array $params = []): array
 }
 function manager_count_business_days(string $from, string $to): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_count_business_days
-     * Responsabilidade: Implementa a responsabilidade “manager count business days” dentro do módulo de composição geral do runtime.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `strtotime`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $start = strtotime($from . " 00:00:00");
     $end = strtotime($to . " 00:00:00");
     if (!$start || !$end || $end < $start) {
@@ -770,15 +770,15 @@ function manager_count_business_days(string $from, string $to): int
 }
 function manager_percent_label(float $v): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_percent_label
-     * Responsabilidade: Monta a representação de interface associada a “manager percent label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `number_format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return number_format($v, 1, ",", ".") . "%";
 }
 function manager_dashboard_card(
@@ -788,15 +788,15 @@ function manager_dashboard_card(
     string $note = "",
     string $class = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_dashboard_card
-     * Responsabilidade: Monta a representação de interface associada a “manager dashboard card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<article class="stat-card manager-stat ' .
         e($class) .
         '">' .
@@ -816,15 +816,15 @@ function manager_action_card(
     string $route,
     string $label = "Abrir",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — manager_action_card
-     * Responsabilidade: Monta a representação de interface associada a “manager action card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_gerente_painel`.
-     * Dependências chamadas: `icon`, `e`, `href`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $inner =
         icon($iconName) .
         "<div><strong>" .
@@ -844,15 +844,15 @@ function manager_action_card(
 }
 function page_gerente_painel(array $c): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_gerente_painel
-     * Responsabilidade: Coordena a rota e renderiza a tela “page gerente painel”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: `page_painel`.
-     * Dependências chamadas: `date`, `strtotime`, `app_local_day_utc_range`, `app_today_in_timezone`, `manager_metric_row`, `max`, `count`, `doctors`, `round`, `min`, `manager_metric_val`, `lead_active_stage_sql` e mais 17.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cid = (int) $c["clinic_id"];
     $month = app_month_in_timezone($cid, $c);
     [$monthStart, $nextMonth] = app_local_month_utc_range($month, $cid, $c);
@@ -1178,15 +1178,15 @@ function page_gerente_painel(array $c): void
 }
 function page_painel(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_painel
-     * Responsabilidade: Coordena a rota e renderiza a tela “page painel”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Pages/Dashboards.php (composição geral do runtime).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `page_medico_painel`, `page_recepcao_painel`, `page_triagem_painel`, `has_effective_role`, `page_gerente_painel`, `app_local_day_utc_range`, `app_today_in_timezone`, `val`, `page`, `page_head`, `card` e mais 2.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; produz conteúdo de saída.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
     $c = require_can("painel");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];

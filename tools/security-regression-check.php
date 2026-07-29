@@ -9,26 +9,26 @@ $GLOBALS["prontoo_test_mfa_mode"] = "absent";
 $GLOBALS["prontoo_test_mfa_record"] = null;
 $GLOBALS["prontoo_test_has_cfg"] = true;
 
-/* Guia de manutenção: Resolve caminhos exclusivamente dentro do diretório temporário desta prova regressiva. */
+
 function storage_path(string $suffix = ""): string
 {
     $root = (string) $GLOBALS["testStorageRoot"];
     return $suffix === "" ? $root : $root . "/" . ltrim($suffix, "/");
 }
 
-/* Guia de manutenção: Fornece segredo determinístico somente ao runtime isolado da prova regressiva. */
+
 function cfg(): array
 {
     return ["secret" => str_repeat("s", 48)];
 }
 
-/* Guia de manutenção: Simula instalação configurada somente durante a prova regressiva isolada. */
+
 function has_cfg(): bool
 {
     return (bool) $GLOBALS["prontoo_test_has_cfg"];
 }
 
-/* Guia de manutenção: Simula as leituras mínimas de persistência exigidas pelos cenários MFA sem acessar banco real. */
+
 function val(string $sql, array $params = []): mixed
 {
     if (str_contains($sql, "meta_key='app_secret'")) {
@@ -52,7 +52,7 @@ function val(string $sql, array $params = []): mixed
     return null;
 }
 
-/* Guia de manutenção: Cria marcadores de negação de acesso apenas dentro do armazenamento temporário da prova. */
+
 function security_storage_deny_file(string $dir): void
 {
     if (!is_dir($dir)) {
@@ -62,7 +62,7 @@ function security_storage_deny_file(string $dir): void
     file_put_contents($dir . "/index.html", "");
 }
 
-/* Guia de manutenção: Interrompe a certificação no primeiro comportamento de segurança divergente. */
+
 function security_regression_assert(bool $condition, string $message): void
 {
     if (!$condition) {

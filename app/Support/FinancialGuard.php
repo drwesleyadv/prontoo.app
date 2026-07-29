@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function financial_movement_write_guard(string $sql, array $params): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — financial_movement_write_guard
-     * Responsabilidade: Impede de forma central qualquer reescrita ou exclusão de movimento pertencente a um dia financeiro já consolidado.
-     * Local arquitetural: app/Support/FinancialGuard.php (serviços transversais de suporte).
-     * Chamadores detectados: `q`.
-     * Dependências chamadas: `preg_match`, `substr_count`, `array_slice`, `q`, `one`, `app_db_utc_to_local`, `app_date_input_from_storage`.
-     * Efeitos colaterais: consulta dados persistidos; pode interromper a mutação antes da execução.
-     * Cuidado 1: A seleção usa exatamente o predicado da mutação para não depender de o chamador lembrar de aplicar o bloqueio.
-     */
+    
+
+
+
+
+
+
+
+
     static $inside = false;
     if ($inside) {
         return;
@@ -97,15 +97,15 @@ function financial_movement_write_guard(string $sql, array $params): void
 }
 function financial_cashier_requires_attention_light(array $c): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — financial_cashier_requires_attention_light
-     * Responsabilidade: Implementa a responsabilidade “financial cashier requires attention light” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/FinancialGuard.php (serviços transversais de suporte).
-     * Chamadores detectados: `prontoo_run`.
-     * Dependências chamadas: `clinic_read_only_db`, `val`, `app_today_in_timezone`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return false;
     }
