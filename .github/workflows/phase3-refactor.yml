@@ -57,8 +57,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/phase3-apply.php')
+          source = path.read_text()
+          old = """    if (substr_count($source, $old) !== 1) {
+                  throw new RuntimeException('Trecho divergente: ' . $relative);
+              }
+              file_put_contents($file, str_replace($old, $new, $source));"""
+          new = """    $position = strpos($source, $old);
+              if ($position === false) {
+                  throw new RuntimeException('Trecho divergente: ' . $relative);
+              }
+              file_put_contents($file, substr_replace($source, $new, $position, strlen($old)));"""
+          if source.count(old) != 1:
+              raise SystemExit('Helper de substituição divergente')
+          path.write_text(source.replace(old, new))
+          PY
           php tools/phase3-apply.php
-          git rm tools/phase3-apply.php
+          git rm -f tools/phase3-apply.php
       - name: Reconcile manifest
         shell: bash
         run: |
