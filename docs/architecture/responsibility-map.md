@@ -50,6 +50,12 @@ Este documento orienta a localização de código e estabelece os limites usados
 
 `app/Application/Patients/PatientReadPort.php` define a fronteira de leitura. `app/Application/Patients/PatientReadService.php` coordena elegibilidade cadastral e normalização de responsáveis legais. `app/Infrastructure/Patients/PdoPatientReadRepository.php` concentra o SQL com isolamento explícito por consultório.
 
+## Extrações concluídas na Fase 4
+
+### Comando de criação de aba do paciente
+
+`app/Application/Patients/PatientTabCommandPort.php` define a porta de escrita. `app/Application/Patients/PatientTabCommandService.php` valida e normaliza o resultado do comando. `app/Infrastructure/Patients/PdoPatientTabCommandRepository.php` concentra duplicidade, ordenação, inserção e transação com filtros explícitos por consultório e paciente.
+
 ## Inventário inicial de funções puras
 
 | Grupo | Funções compatíveis |

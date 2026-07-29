@@ -1,3 +1,8 @@
+Prontoo 1.7.29.5 — Fase 4: comandos transacionais
+
+- Criação de abas migrada para comando transacional e idempotente.
+- Sem alteração de banco, schema, permissões, interface ou comportamento público.
+- Suíte arquitetural e regressiva ampliada.
 Prontoo 1.7.29.4 — Fase 3: consultas e casos de uso
 
 - Cria porta de leitura de pacientes e caso de uso independente de persistência.

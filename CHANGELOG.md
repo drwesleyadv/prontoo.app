@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.29.5 — Fase 4: comandos transacionais
+
+- Criação de abas do paciente migrada para porta, caso de uso e adaptador PDO.
+- Transação participa do contexto existente ou abre unidade própria com rollback seguro.
+- Duplicidade e ordenação são decididas sob bloqueio pessimista e repetição retorna resultado idempotente.
+- Fachada, mensagens, auditoria, rotas, permissões, banco, schema e interface permanecem equivalentes.
+- Testes de caracterização ampliados para a Fase 4.
+
 ## 1.7.29.4 — Fase 3: consultas e casos de uso
 
 - cria uma porta de leitura de pacientes na camada de aplicação;

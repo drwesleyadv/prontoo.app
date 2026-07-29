@@ -3195,27 +3195,18 @@ function page_patient(): void
                 flash("Informe o nome da nova aba.", "bad");
                 redirect("patient", ["id" => $id]);
             }
-            $exists =
-                (int) (val(
-                    "SELECT id FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND label=? AND active=1 LIMIT 1",
-                    [$cid, $id, $label],
-                ) ?:
-                0);
-            if ($exists > 0) {
+            $command = prontoo_create_patient_tab_command(
+                $cid,
+                $id,
+                $label,
+                $iconName,
+                (int) $c["user"]["id"],
+            );
+            if ((string) ($command["status"] ?? "") === "duplicate") {
                 flash("Este paciente já possui uma aba com esse nome.", "bad");
                 redirect("patient", ["id" => $id]);
             }
-            $next =
-                (int) (val(
-                    "SELECT COALESCE(MAX(sort_order),0)+10 FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=?",
-                    [$cid, $id],
-                ) ?:
-                10);
-            q(
-                "INSERT INTO pi_patient_tabs (clinic_id,patient_link_id,label,icon_name,sort_order,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
-                [$cid, $id, $label, $iconName, $next, (int) $c["user"]["id"]],
-            );
-            $tabId = db_last_insert_id();
+            $tabId = (int) ($command["id"] ?? 0);
             audit("aba_paciente_criada", "paciente", $id, [
                 "patient_name" => (string) $p["full_name"],
                 "titulo" => $label,
