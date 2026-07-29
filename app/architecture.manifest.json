@@ -1,10 +1,10 @@
 {
-    "version": "1.7.29.2",
+    "version": "1.7.29.3",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 17,
+    "native_files_min": 20,
     "transitional_files_max": 80,
     "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_file_count_must_not_increase",
     "layers": {
@@ -91,8 +91,8 @@
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
     "generated_at": "2026-07-29T20:42:18+00:00",
-    "updated_at": "2026-07-29T20:42:18+00:00",
-    "baseline_source": "1.7.29.1",
+    "updated_at": "2026-07-29T21:15:51+00:00",
+    "baseline_source": "1.7.29.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
     "documentation_check": "tools/documentation-check.php",
@@ -106,5 +106,7 @@
         ],
         "characterization_check": "tools/architecture-check.php",
         "public_facades_preserved": true
-    }
+    },
+    "phase_two_policy": "sql_in_infrastructure_html_in_presentation_legacy_facades_preserved",
+    "phase_two_characterization": "tools/architecture-check.php"
 }

@@ -23,14 +23,3 @@ namespace Prontoo\Infrastructure\Patients {
     }
 }
 
-namespace {
-    function prontoo_patient_tab_active_rows(int $clinicId, int $patientId): array
-    {
-        return \Prontoo\Infrastructure\Patients\PatientTabReadRepository::activeTabs($clinicId, $patientId);
-    }
-
-    function prontoo_patient_tab_label_by_id(int $tabId): string
-    {
-        return \Prontoo\Infrastructure\Patients\PatientTabReadRepository::labelById($tabId);
-    }
-}

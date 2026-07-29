@@ -37,14 +37,3 @@ namespace Prontoo\Presentation\Patients {
     }
 }
 
-namespace {
-    function prontoo_patient_tab_icon_picker(array $options, string $current): string
-    {
-        return \Prontoo\Presentation\Patients\PatientTabView::iconPicker(
-            $options,
-            $current,
-            static fn(string $value): string => e($value),
-            static fn(string $name): string => icon($name),
-        );
-    }
-}

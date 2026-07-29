@@ -231,22 +231,7 @@ function onboarding_tip_html(array $c, string $route): string
     $params = $_GET;
     unset($params["r"]);
     $return = href($route, $params);
-    return '<section class="onboarding-tip-card" role="note"><div class="onboarding-tip-main"><div class="onboarding-tip-head"><span class="onboarding-tip-icon">' .
-        icon((string) $tip["icon"]) .
-        "</span><strong>" .
-        e($tip["title"]) .
-        '</strong></div><p class="onboarding-tip-body">' .
-        e($tip["body"]) .
-        '</p></div><form method="post" action="' .
-        e($return) .
-        '" class="onboarding-tip-action">' .
-        csrf_field() .
-        '<input type="hidden" name="act" value="onboarding_tip_dismiss"><input type="hidden" name="tip_key" value="' .
-        e($key) .
-        '"><input type="hidden" name="return_to" value="' .
-        e($return) .
-        '"><button type="submit" class="ghost small onboarding-tip-button">Entendi</button></form></section>';
-}
+    return prontoo_onboarding_tip_render($tip, $key, $return, csrf_field());}
 function valid_cpf(string $cpf): bool
 {
     return \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf(only_digits($cpf));

@@ -31,20 +31,3 @@ namespace Prontoo\Presentation\Auth {
     }
 }
 
-namespace {
-    function prontoo_onboarding_tip_render(
-        array $tip,
-        string $key,
-        string $return,
-        string $csrfField,
-    ): string {
-        return \Prontoo\Presentation\Auth\OnboardingTipView::render(
-            $tip,
-            $key,
-            $return,
-            $csrfField,
-            static fn(string $value): string => e($value),
-            static fn(string $name): string => icon($name),
-        );
-    }
-}

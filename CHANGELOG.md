@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.7.29.3 — Fase 2: apresentação e leitura
+
+- move a leitura das abas do paciente para infraestrutura;
+- move o seletor de ícones das abas para apresentação;
+- move a renderização da dica de onboarding para apresentação;
+- mantém as funções globais existentes como fachadas compatíveis;
+- preserva o carregamento seletivo por rota;
+- adiciona snapshots HTML e contratos de fronteira;
+- não altera banco, schema, interface, permissões ou regras de negócio.
 ## 1.7.29.2 — Fase 1 de enxugamento estrutural
 
 - compacta blocos de linhas vazias sem alterar tokens executáveis;

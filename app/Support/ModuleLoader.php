@@ -101,6 +101,7 @@ function prontoo_runtime_core_modules(): array
         'Domain/Permissions/UsersPermissions.php',
         'Ui/Components.php',
         'Ui/PublicWeb.php',
+        'Presentation/Auth/OnboardingTipView.php',
         'Auth/AuthOnboarding.php',
         'Runtime/Runner.php',
     ];
@@ -110,6 +111,8 @@ function prontoo_full_runtime_modules(): array
 {
 
     return array_values(array_unique(array_merge(prontoo_runtime_core_modules(), [
+        'Infrastructure/Patients/PatientTabReadRepository.php',
+        'Presentation/Patients/PatientTabView.php',
         'Domain/Patients/Patients.php',
         'Domain/Appointments/Appointments.php',
         'Domain/Leads/Leads.php',
@@ -162,7 +165,11 @@ function prontoo_route_module_groups(string $route): array
 {
 
     $commonClinic = ['dashboards' => ['Pages/Dashboards.php']];
-    $patients = ['patients' => ['Domain/Patients/Patients.php']];
+    $patients = ['patients' => [
+        'Infrastructure/Patients/PatientTabReadRepository.php',
+        'Presentation/Patients/PatientTabView.php',
+        'Domain/Patients/Patients.php',
+    ]];
     $leads = ['leads' => ['Domain/Leads/Leads.php']];
     $tasks = ['tasks' => ['Domain/Tasks/TasksNotices.php']];
     $financial = ['financial' => ['Domain/Financial/Financial.php']];
