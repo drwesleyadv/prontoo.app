@@ -56,6 +56,12 @@ Este documento orienta a localização de código e estabelece os limites usados
 
 `app/Application/Patients/PatientTabCommandPort.php` define a porta de escrita. `app/Application/Patients/PatientTabCommandService.php` valida e normaliza o resultado do comando. `app/Infrastructure/Patients/PdoPatientTabCommandRepository.php` concentra duplicidade, ordenação, inserção e transação com filtros explícitos por consultório e paciente.
 
+## Extrações concluídas na Fase 5
+
+### Recebimento financeiro do paciente
+
+`app/Application/Financial/PatientRevenueReceiptPort.php` e `PatientRevenueReceiptService.php` tornam autorização e resultado explícitos. `app/Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php` concentra bloqueios, movimento e atualizações na mesma transação. A ficha do paciente permanece como adaptador HTTP compatível.
+
 ## Inventário inicial de funções puras
 
 | Grupo | Funções compatíveis |

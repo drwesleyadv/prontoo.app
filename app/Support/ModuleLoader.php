@@ -125,6 +125,9 @@ function prontoo_full_runtime_modules(): array
         'Domain/Documents/Documents.php',
         'Domain/Documents/DocumentPdf.php',
         'Domain/Tasks/TasksNotices.php',
+        'Application/Financial/PatientRevenueReceiptPort.php',
+        'Application/Financial/PatientRevenueReceiptService.php',
+        'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php',
         'Domain/Financial/Financial.php',
         'Domain/Maestro/Maestro.php',
         'Admin/AdminPages.php',
@@ -184,7 +187,12 @@ function prontoo_route_module_groups(string $route): array
     ]];
     $leads = ['leads' => ['Domain/Leads/Leads.php']];
     $tasks = ['tasks' => ['Domain/Tasks/TasksNotices.php']];
-    $financial = ['financial' => ['Domain/Financial/Financial.php']];
+    $financial = ['financial' => [
+        'Application/Financial/PatientRevenueReceiptPort.php',
+        'Application/Financial/PatientRevenueReceiptService.php',
+        'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php',
+        'Domain/Financial/Financial.php',
+    ]];
     $appointments = ['appointments' => ['Domain/Appointments/Appointments.php']];
     $documents = ['documents' => ['Domain/Documents/Documents.php', 'Domain/Documents/DocumentPdf.php']];
     $audit = ['audit' => ['Domain/Audit/AuditActivity.php']];
