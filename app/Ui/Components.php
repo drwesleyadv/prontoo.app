@@ -2,42 +2,42 @@
 declare(strict_types=1);
 function e(mixed $v): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — e
-     * Responsabilidade: Implementa a responsabilidade “e” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `admin_scope_evidence_html`, `stat_link_card`, `admin_choice_card`, `admin_quick_links`, `admin_global_compact_pill`, `admin_metric_line_chart`, `admin_metric_dual_area_chart`, `admin_metric_bar_chart` e mais 155.
-     * Dependências chamadas: `htmlspecialchars`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return htmlspecialchars((string) $v, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
 }
 function first_name(?string $name): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — first_name
-     * Responsabilidade: Implementa a responsabilidade “first name” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `admin_scope_evidence_html`, `page_admin_deleted`, `admin_alert_contact_label`, `agenda_conflict_message`, `agenda_crown_label_for_view`, `agenda_note_card_html`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3790` e mais 30.
-     * Dependências chamadas: `preg_split`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $p = preg_split("/\s+/", trim((string) $name));
     return $p[0] ?: "Sistema";
 }
 function icon(string $name): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — icon
-     * Responsabilidade: Implementa a responsabilidade “icon” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `stat_link_card`, `admin_choice_card`, `admin_quick_links`, `admin_global_compact_pill`, `admin_global_ops_finance_html`, `admin_metric_line_chart`, `admin_metric_dual_area_chart`, `admin_metric_bar_chart` e mais 123.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     static $aliases = [
         "auto_awesome" => "auto_awesome",
         "finance_mode" => "payments",
@@ -67,28 +67,28 @@ function icon(string $name): string
 }
 function pix_symbol(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — pix_symbol
-     * Responsabilidade: Implementa a responsabilidade “pix symbol” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `clinic_subscription_cta`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<span class="pix-brand pix-brand-mask" aria-hidden="true"></span>';
 }
 function reception_cash_state_icon(?array $context = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — reception_cash_state_icon
-     * Responsabilidade: Implementa a responsabilidade “reception cash state icon” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `role_actions`, `role_actions_effective`, `page`, `page_operation_specs`, `page_head_icon_name`.
-     * Dependências chamadas: `is_array`, `function_exists`, `ctx`, `has_effective_role`, `financial_current_open_session`, `one`, `financial_today`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         $c = $context;
         if (!is_array($c) || !$c) {
@@ -127,15 +127,15 @@ function reception_cash_state_icon(?array $context = null): string
 }
 function n(mixed $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — n
-     * Responsabilidade: Implementa a responsabilidade “n” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `stat_link_card`, `admin_global_perf_charts_html`, `page_admin_maintenance`, `admin_performance_rows_html`, `page_admin_performance`, `page_appointments`, `document_stage_strip`, `financial_admin_daily_conference_panel` e mais 2.
-     * Dependências chamadas: `is_int`, `is_string`, `preg_match`, `number_format`, `is_float`, `is_numeric`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         is_int($value) ||
         (is_string($value) && preg_match('/^-?\d+$/', $value))
@@ -150,15 +150,15 @@ function n(mixed $value): string
 }
 function money_br(int|float|string|null $cents): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — money_br
-     * Responsabilidade: Implementa a responsabilidade “money br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `admin_global_ops_finance_html`, `page_admin_painel`, `page_admin_clinics`, `page_signup`, `procedure_option_label`, `procedure_select_html`, `audit_money_text`, `activity_money_from_ctx` e mais 35.
-     * Dependências chamadas: `round`, `abs`, `number_format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = (int) round((float) ($cents ?? 0));
     $sign = $value < 0 ? "-" : "";
     $value = abs($value);
@@ -166,15 +166,15 @@ function money_br(int|float|string|null $cents): string
 }
 function prontoo_months_br(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_months_br
-     * Responsabilidade: Implementa a responsabilidade “prontoo months br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `patient_reception_story_time`, `app_datetime_br`, `date_extenso_br`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         1 => "Janeiro",
         2 => "Fevereiro",
@@ -192,15 +192,15 @@ function prontoo_months_br(): array
 }
 function date_br(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — date_br
-     * Responsabilidade: Implementa a responsabilidade “date br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `admin_clinic_detail_page`, `page_admin_clinics`, `person_autosuggest_datalist`, `agenda_note_form_html`, `page_appointments`, `clinic_subscription_status_card`, `document_issue_context`, `financial_cashier_page` e mais 13.
-     * Dependências chamadas: `trim`, `preg_match`, `app_date_br`, `strtotime`, `gmdate`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return "—";
@@ -216,16 +216,16 @@ function date_br(null|string|int $value): string
 }
 function date_extenso_br(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — date_extenso_br
-     * Responsabilidade: Implementa a responsabilidade “date extenso br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `document_issue_context`.
-     * Dependências chamadas: `trim`, `preg_match`, `DateTimeImmutable::createFromFormat`, `DateTimeZone`, `app_db_utc_to_local`, `prontoo_months_br`, `->format`.
-     * Classes ou serviços instanciados: `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return "—";
@@ -249,54 +249,54 @@ function date_extenso_br(null|string|int $value): string
 }
 function dt_br(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — dt_br
-     * Responsabilidade: Implementa a responsabilidade “dt br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `admin_scope_guard_timeline_item`, `page_admin_deleted`, `page_admin_errors`, `admin_clinic_detail_page`, `page_admin_security`, `agenda_period_label`, `audit_appointment_target`, `audit_due_text` e mais 30.
-     * Dependências chamadas: `app_datetime_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_datetime_br($value);
 }
 function dt_notice_br(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — dt_notice_br
-     * Responsabilidade: Implementa a responsabilidade “dt notice br” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_alerts`, `lead_history_html`, `page_admin_global_notices`, `readonly_support_notice_screen`, `page_notices`.
-     * Dependências chamadas: `dt_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return dt_br($value);
 }
 function dt_card_full_br(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — dt_card_full_br
-     * Responsabilidade: Monta a representação de interface associada a “dt card full br” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `patient_profile_overview`, `page_patient`.
-     * Dependências chamadas: `dt_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return dt_br($value);
 }
 function notification_button_light(array $c): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — notification_button_light
-     * Responsabilidade: Implementa a responsabilidade “notification button light” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `db_table_exists`, `function_exists`, `notice_target_sql`, `array_merge`, `val`, `href`, `icon`, `min`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -336,15 +336,15 @@ function notification_button_light(array $c): string
 }
 function shared_goal_cmdbar_html(?array $c = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — shared_goal_cmdbar_html
-     * Responsabilidade: Monta a representação de interface associada a “shared goal cmdbar html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `is_array`, `function_exists`, `ctx`, `db_table_exists`, `date`, `one`, `in_array`, `strtotime`, `val`, `round`, `max`, `min` e mais 4.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         if (!is_array($c) || !$c) {
             if (function_exists("ctx")) {
@@ -424,15 +424,15 @@ function shared_goal_cmdbar_html(?array $c = null): string
 }
 function city_state_label(?string $city, ?string $uf): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — city_state_label
-     * Responsabilidade: Monta a representação de interface associada a “city state label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `document_issue_context`, `patient_profile_overview`, `page_patient`.
-     * Dependências chamadas: `trim`, `strtoupper`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $city = trim((string) ($city ?? ""));
     $uf = strtoupper(trim((string) ($uf ?? "")));
     if ($city === "" && $uf === "") {
@@ -448,15 +448,15 @@ function city_state_label(?string $city, ?string $uf): string
 }
 function cmdbar_access_schema_ready(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_access_schema_ready
-     * Responsabilidade: Opera a etapa “cmdbar access schema ready” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `cmdbar_access_touch`, `cmdbar_access_recency`.
-     * Dependências chamadas: `function_exists`, `has_cfg`, `db_table_exists`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $ready = null;
     if ($ready !== null) {
         return $ready;
@@ -473,15 +473,15 @@ function cmdbar_access_schema_ready(): bool
 
 function cmdbar_context_key(array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_context_key
-     * Responsabilidade: Implementa a responsabilidade “cmdbar context key” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `cmdbar_access_touch`, `cmdbar_access_recency`.
-     * Dependências chamadas: `max`, `substr`, `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $uid = (int) ($c["user"]["id"] ?? 0);
     $scope = (string) ($c["scope"] ?? "clinic") === "global" ? "global" : "clinic";
     $clinic = (int) ($c["clinic_id"] ?? 0);
@@ -501,15 +501,15 @@ function cmdbar_parent_key(
     array $actions,
     bool $global = false,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_parent_key
-     * Responsabilidade: Implementa a responsabilidade “cmdbar parent key” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `cmdbar_order_items`, `page`.
-     * Dependências chamadas: `function_exists`, `admin_nav_parent`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
     if ($global && function_exists("admin_nav_parent")) {
         $parent = admin_nav_parent($route);
         if (isset($actions[$parent])) {
@@ -563,16 +563,16 @@ function cmdbar_parent_key(
 }
 function cmdbar_access_touch(array $c, string $actionKey): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_access_touch
-     * Responsabilidade: Implementa a responsabilidade “cmdbar access touch” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `cmdbar_order_items`.
-     * Dependências chamadas: `cmdbar_context_key`, `cmdbar_access_schema_ready`, `q`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($actionKey === "") {
         return;
     }
@@ -591,15 +591,15 @@ function cmdbar_access_touch(array $c, string $actionKey): void
 }
 function cmdbar_access_recency(array $c, array $keys): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_access_recency
-     * Responsabilidade: Implementa a responsabilidade “cmdbar access recency” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `cmdbar_context_key`, `cmdbar_access_schema_ready`, `implode`, `array_fill`, `count`, `array_merge`, `q`, `->fetchAll` e mais 3.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $keys = array_values(
         array_unique(array_filter(array_map("strval", $keys))),
     );
@@ -634,15 +634,15 @@ function cmdbar_order_items(
     array $c,
     bool $global = false,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_order_items
-     * Responsabilidade: Implementa a responsabilidade “cmdbar order items” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `cmdbar_parent_key`, `cmdbar_access_touch`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $active = cmdbar_parent_key($current, $items, $global);
     if ($active !== "") {
         cmdbar_access_touch($c, $active);
@@ -654,28 +654,28 @@ function cmdbar_label_html(
     bool $active,
     string $extra = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — cmdbar_label_html
-     * Responsabilidade: Monta a representação de interface associada a “cmdbar label html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return $active ? "<span>" . e($label) . "</span>" . $extra : "";
 }
 function floating_pending_task_access_sql(array $c, string $alias = "t"): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — floating_pending_task_access_sql
-     * Responsabilidade: Implementa a responsabilidade “floating pending task access sql” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `floating_pending_cards_html`.
-     * Dependências chamadas: `function_exists`, `has_effective_role`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $uid = (int) ($c["user"]["id"] ?? 0);
     $role = (string) ($c["role"] ?? "");
     $a = $alias !== "" ? $alias . "." : "";
@@ -712,15 +712,15 @@ function floating_pending_task_access_sql(array $c, string $alias = "t"): array
 }
 function floating_pending_count(string $sql, array $params = []): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — floating_pending_count
-     * Responsabilidade: Implementa a responsabilidade “floating pending count” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `floating_pending_cards_html`.
-     * Dependências chamadas: `val`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return (int) (val($sql, $params) ?: 0);
     } catch (Throwable $e) {
@@ -730,15 +730,15 @@ function floating_pending_count(string $sql, array $params = []): int
 }
 function floating_pending_cards_html(array $c, string $current): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — floating_pending_cards_html
-     * Responsabilidade: Monta a representação de interface associada a “floating pending cards html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `function_exists`, `has_cfg`, `db_table_exists`, `floating_pending_task_access_sql`, `array_merge`, `floating_pending_count`, `app_local_day_utc_range`, `app_today_in_timezone`, `href`, `notice_target_sql`, `error_log`, `->getMessage` e mais 5.
-     * Efeitos colaterais: consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
     }
@@ -901,16 +901,16 @@ function floating_pending_cards_html(array $c, string $current): string
 }
 function page(string $title, string $body, array $opts = []): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page
-     * Responsabilidade: Implementa a responsabilidade “page” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_operations`, `page_admin_deleted`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `page_admin_integrity`, `page_admin_maintenance`, `page_admin_painel` e mais 38.
-     * Dependências chamadas: `route`, `ctx`, `function_exists`, `audit_patient_name_by_link`, `audit`, `clinic_visual`, `rawurlencode`, `in_array`, `trim`, `icon`, `e`, `defined` e mais 29.
-     * Estado externo lido: `$_SERVER`, `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     $public = $opts["public"] ?? false;
     $current = route();
     $c = $public ? [] : ctx();
@@ -1361,15 +1361,15 @@ function page(string $title, string $body, array $opts = []): void
 }
 function context_parent_for_route(string $route, array $c): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — context_parent_for_route
-     * Responsabilidade: Implementa a responsabilidade “context parent for route” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_operation_specs`.
-     * Dependências chamadas: `function_exists`, `admin_nav_parent`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") === "global") {
         if (function_exists("admin_nav_parent")) {
             return admin_nav_parent($route);
@@ -1422,16 +1422,16 @@ function operation_current_match(
     array $params,
     string $current,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — operation_current_match
-     * Responsabilidade: Implementa a responsabilidade “operation current match” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `operation_link_html`, `operation_menu_html`.
-     * Dependências chamadas: `trim`, `in_array`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($route !== $current) {
         return false;
     }
@@ -1504,15 +1504,15 @@ function operation_link_html(
     string $current,
     array $params = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — operation_link_html
-     * Responsabilidade: Monta a representação de interface associada a “operation link html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `operation_menu_html`, `page_operations_html`.
-     * Dependências chamadas: `function_exists`, `prontoo_icon_for_route_label`, `operation_current_match`, `href`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (function_exists("prontoo_icon_for_route_label")) {
         $iconName = prontoo_icon_for_route_label(
             $route,
@@ -1539,16 +1539,16 @@ function operation_link_html(
 }
 function page_operation_specs(string $current, array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_operation_specs
-     * Responsabilidade: Coordena a rota e renderiza a tela “page operation specs”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_operations_html`.
-     * Dependências chamadas: `context_parent_for_route`, `in_array`, `function_exists`, `reception_cash_state_icon`, `preg_match`, `has_effective_role`, `array_values`, `array_filter`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!$c) {
         return [];
     }
@@ -1682,7 +1682,7 @@ function page_operation_specs(string $current, array $c): array
         $ops = array_values(
             array_filter(
                 $ops,
-                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de componentes e composição visual. Dependências diretas: `in_array`. Efeitos: transformação local sem efeito externo detectado. */ fn($op) => !in_array(
+                static  fn($op) => !in_array(
                     (string) $op[0],
                     [
                         "leads",
@@ -1702,7 +1702,7 @@ function page_operation_specs(string $current, array $c): array
         $ops = array_values(
             array_filter(
                 $ops,
-                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de componentes e composição visual. Dependências diretas: `in_array`. Efeitos: transformação local sem efeito externo detectado. */ fn($op) => !in_array(
+                static  fn($op) => !in_array(
                     (string) $op[0],
                     [
                         "procedures",
@@ -1725,15 +1725,15 @@ function operation_menu_html(
     array $items,
     string $current,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — operation_menu_html
-     * Responsabilidade: Monta a representação de interface associada a “operation menu html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_operations_html`.
-     * Dependências chamadas: `is_array`, `count`, `json_encode`, `function_exists`, `can`, `operation_current_match`, `operation_link_html`, `icon`, `e`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $links = "";
     $active = false;
     $seen = [];
@@ -1780,15 +1780,15 @@ function operation_menu_html(
 }
 function page_operations_html(string $current, array $c): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_operations_html
-     * Responsabilidade: Coordena a rota e renderiza a tela “page operations html”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_head`.
-     * Dependências chamadas: `page_operation_specs`, `is_array`, `count`, `operation_menu_html`, `json_encode`, `function_exists`, `can`, `operation_link_html`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $specs = page_operation_specs($current, $c);
     if (!$specs) {
         return "";
@@ -1835,16 +1835,16 @@ function page_operations_html(string $current, array $c): string
 }
 function page_head_icon_name(string $title = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_head_icon_name
-     * Responsabilidade: Coordena a rota e renderiza a tela “page head icon name”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_head`.
-     * Dependências chamadas: `route`, `function_exists`, `str_starts_with`, `admin_nav_parent`, `prontoo_icon_for_route_label`, `ctx`, `role_icon`, `reception_cash_state_icon`, `actions`, `mb_strtolower`, `str_contains`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $current = route();
     $params = $_GET;
     if ($current === "admin_painel") {
@@ -1969,15 +1969,15 @@ function page_head_icon_name(string $title = ""): string
 }
 function page_head(string $title, string $sub = "", string $action = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_head
-     * Responsabilidade: Coordena a rota e renderiza a tela “page head”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_operations`, `page_admin_deleted`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `page_admin_integrity`, `page_admin_maintenance`, `page_admin_painel` e mais 33.
-     * Dependências chamadas: `page_head_icon_name`, `ctx`, `function_exists`, `page_operations_html`, `route`, `icon`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ico = page_head_icon_name($title);
     $c = ctx();
     if (($c["scope"] ?? "") === "global") {
@@ -2007,15 +2007,15 @@ function page_head(string $title, string $sub = "", string $action = ""): string
 }
 function action_icon_for(string $label): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — action_icon_for
-     * Responsabilidade: Implementa a responsabilidade “action icon for” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `action_summary_label`.
-     * Dependências chamadas: `mb_strtolower`, `function_exists`, `prontoo_icon_for_route_label`, `str_contains`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $l = mb_strtolower($label);
     if (function_exists("prontoo_icon_for_route_label")) {
         $byLabel = prontoo_icon_for_route_label("", $label, [], "");
@@ -2072,15 +2072,15 @@ function action_icon_for(string $label): string
 }
 function action_summary_label(string $label, string $iconName = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — action_summary_label
-     * Responsabilidade: Monta a representação de interface associada a “action summary label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_health`, `page_admin_errors`, `page_admin_painel`, `subscription_payment_proof_view_link`, `page_creditors`, `page_leads`, `patient_legal_guardian_card`, `page_patients` e mais 7.
-     * Dependências chamadas: `icon`, `action_icon_for`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return icon($iconName !== "" ? $iconName : action_icon_for($label)) .
         "<span>" .
         e($label) .
@@ -2088,28 +2088,28 @@ function action_summary_label(string $label, string $iconName = ""): string
 }
 function card(string $html, string $class = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — card
-     * Responsabilidade: Monta a representação de interface associada a “card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_operations`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `page_admin_integrity`, `page_admin_maintenance`, `page_admin_painel`, `page_admin_people` e mais 39.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<section class="card ' . $class . '">' . $html . "</section>";
 }
 function ds_class(string ...$classes): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ds_class
-     * Responsabilidade: Implementa a responsabilidade “ds class” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `ds_card_class`, `ds_search_card_class`, `ds_filter_list_class`, `ds_filter_chip_class`.
-     * Dependências chamadas: `preg_split`, `trim`, `implode`, `array_keys`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $out = [];
     foreach ($classes as $class) {
         foreach (preg_split("/\s+/", trim($class)) ?: [] as $part) {
@@ -2122,56 +2122,56 @@ function ds_class(string ...$classes): string
 }
 function ds_card_class(string $additionalClass = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ds_card_class
-     * Responsabilidade: Monta a representação de interface associada a “ds card class” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ds_class`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ds_class("card", $additionalClass);
 }
 function ds_search_card_class(string $additionalClass = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ds_search_card_class
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “ds search card class” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ds_class`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ds_class("ds-search-card", $additionalClass);
 }
 function ds_filter_list_class(string $additionalClass = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ds_filter_list_class
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “ds filter list class” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ds_class`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ds_class("ds-filter-list-block", $additionalClass);
 }
 function ds_filter_chip_class(
     string $additionalClass = "",
     bool $active = false,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — ds_filter_chip_class
-     * Responsabilidade: Transforma e normaliza “ds filter chip class” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `ds_class`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ds_class(
         "ds-filter-chip",
         $additionalClass,
@@ -2184,15 +2184,15 @@ function stat_card(
     string $iconName,
     string $note = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — stat_card
-     * Responsabilidade: Monta a representação de interface associada a “stat card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_health`, `page_admin_painel`, `page_admin_clinics`, `page_admin_security`, `page_admin_performance`, `page_maestro`.
-     * Dependências chamadas: `icon`, `n`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<article class="stat-card">' .
         icon($iconName) .
         "<div><b>" .
@@ -2205,15 +2205,15 @@ function stat_card(
 }
 function form_row(string $label, string $input): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — form_row
-     * Responsabilidade: Monta a representação de interface associada a “form row” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_errors`, `page_admin_maintenance`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_alerts`, `page_login`, `page_signup`, `page_profile` e mais 38.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<label class="field"><span>' .
         e($label) .
         "</span>" .
@@ -2226,15 +2226,15 @@ function input(
     mixed $value = "",
     string $extra = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — input
-     * Responsabilidade: Implementa a responsabilidade “input” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_maintenance`, `admin_clinic_detail_page`, `page_admin_clinics`, `page_admin_alerts`, `page_login`, `page_signup`, `page_profile`, `page_onboarding` e mais 36.
-     * Dependências chamadas: `trim`, `preg_match`, `preg_split`, `stripos`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $extra = trim($extra);
     if (
         $type === "text" &&
@@ -2268,15 +2268,15 @@ function input(
 }
 function textarea(string $name, mixed $value = "", string $extra = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — textarea
-     * Responsabilidade: Implementa a responsabilidade “textarea” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_errors`, `page_admin_maintenance`, `page_admin_alerts`, `agenda_note_form_html`, `page_procedures`, `page_creditors`, `page_leads`, `patient_guardian_form_html` e mais 7.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<textarea name="' .
         e($name) .
         '" ' .
@@ -2291,15 +2291,15 @@ function select_html(
     mixed $selected = null,
     string $extra = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — select_html
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “select html” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_maestro`, `select_label`.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $h = '<select name="' . e($name) . '" ' . $extra . ">";
     foreach ($options as $k => $v) {
         $h .=
@@ -2320,28 +2320,28 @@ function select_label(
     mixed $sel = null,
     string $extra = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — select_label
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “select label” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_maintenance`, `admin_clinic_detail_page`, `page_admin_alerts`, `page_signup`, `agenda_note_form_html`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`, `closure@app/Domain/Appointments/Appointments.php:3850` e mais 21.
-     * Dependências chamadas: `form_row`, `select_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return form_row($label, select_html($name, $opts, $sel, $extra));
 }
 function form_submit_icon(string $label): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — form_submit_icon
-     * Responsabilidade: Monta a representação de interface associada a “form submit icon” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `document_template_author_form`, `page_creditors`, `page_patients`, `form_actions`.
-     * Dependências chamadas: `mb_strtolower`, `str_contains`, `function_exists`, `prontoo_icon_for_route_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $l = mb_strtolower($label);
     if (str_contains($l, "salvar")) {
         return "save";
@@ -2401,15 +2401,15 @@ function form_submit_icon(string $label): string
 }
 function cancel_button(string $label = "Cancelar"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cancel_button
-     * Responsabilidade: Implementa a responsabilidade “cancel button” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `form_actions`.
-     * Dependências chamadas: `icon`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<button type="button" class="ghost" data-close-panel>' .
         icon("close") .
         "<span>" .
@@ -2418,15 +2418,15 @@ function cancel_button(string $label = "Cancelar"): string
 }
 function form_actions(string $submitLabel, string $class = "primary"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — form_actions
-     * Responsabilidade: Monta a representação de interface associada a “form actions” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_clinics`, `page_admin_alerts`, `document_template_author_form`, `financial_cashier_page`, `financial_admin_drawers_panel`, `financial_admin_locations_panel`, `financial_admin_operations_panel`, `financial_admin_page` e mais 6.
-     * Dependências chamadas: `cancel_button`, `e`, `icon`, `form_submit_icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<div class="form-actions">' .
         cancel_button() .
         '<button type="submit" class="' .
@@ -2443,15 +2443,15 @@ function action_panel(
     string $variant = "primary",
     string $hint = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — action_panel
-     * Responsabilidade: Implementa a responsabilidade “action panel” dentro do módulo de componentes e composição visual.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `e`, `action_summary_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<details class="action-panel"><summary class="' .
         e($variant) .
         ' small cmdlike">' .
@@ -2463,15 +2463,15 @@ function action_panel(
 }
 function timeline(?array $items, string $empty = "Nada por enquanto."): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — timeline
-     * Responsabilidade: Monta a representação de interface associada a “timeline” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Ui/Components.php (componentes e composição visual).
-     * Chamadores detectados: `page_admin_deleted`, `page_admin_health`, `page_admin_diagnostics`, `page_admin_errors`, `page_admin_integrity`, `page_admin_maintenance`, `page_admin_painel`, `page_admin_people` e mais 9.
-     * Dependências chamadas: `e`, `is_array`, `icon`, `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$items) {
         return '<div class="empty">' . e($empty) . "</div>";
     }

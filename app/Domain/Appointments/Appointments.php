@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function work_weekday_labels(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — work_weekday_labels
-     * Responsabilidade: Implementa a responsabilidade “work weekday labels” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `default_work_hours_rows`, `save_user_work_hours`, `work_hours_form_html`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         1 => "Segunda",
         2 => "Terça",
@@ -23,15 +23,15 @@ function work_weekday_labels(): array
 }
 function normalize_work_time(?string $v, string $fallback = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_work_time
-     * Responsabilidade: Transforma e normaliza “normalize work time” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `save_user_work_hours`.
-     * Dependências chamadas: `trim`, `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $v = trim((string) $v);
     if (preg_match('/^\d{2}:\d{2}$/', $v)) {
         return $v . ":00";
@@ -43,29 +43,29 @@ function normalize_work_time(?string $v, string $fallback = ""): string
 }
 function work_time_short(?string $v): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — work_time_short
-     * Responsabilidade: Implementa a responsabilidade “work time short” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `work_hours_form_html`, `doctor_work_ranges_for_day`.
-     * Dependências chamadas: `preg_match`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $v = (string) $v;
     return preg_match("/^\d{2}:\d{2}/", $v) ? substr($v, 0, 5) : "";
 }
 function default_work_hours_rows(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — default_work_hours_rows
-     * Responsabilidade: Implementa a responsabilidade “default work hours rows” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `user_work_hours`.
-     * Dependências chamadas: `work_weekday_labels`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $out = [];
     foreach (work_weekday_labels() as $wd => $label) {
         $out[$wd] = [
@@ -79,29 +79,29 @@ function default_work_hours_rows(): array
 }
 function user_work_hours(int $cid, int $uid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — user_work_hours
-     * Responsabilidade: Implementa a responsabilidade “user work hours” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `work_hours_form_html`, `doctor_work_ranges_for_day`.
-     * Dependências chamadas: `default_work_hours_rows`, `q`, `->fetchAll`, `array_key_exists`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $defaults = default_work_hours_rows();
     if ($cid <= 0 || $uid <= 0) {
         return $defaults;
     }
     $loader = function () use ($cid, $uid, $defaults): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:50
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `q`, `->fetchAll`, `array_key_exists`, `error_log`, `->getMessage`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $hours = $defaults;
         try {
             $rows = q(
@@ -138,17 +138,17 @@ function user_work_hours(int $cid, int $uid): array
 }
 function save_user_work_hours(int $cid, int $uid, array $data): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — save_user_work_hours
-     * Responsabilidade: Valida e executa a mutação “save user work hours”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_users`, `page_user`.
-     * Dependências chamadas: `require_user_in_clinic`, `work_weekday_labels`, `normalize_work_time`, `strtotime`, `RuntimeException`, `q`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $uid <= 0) {
         return;
     }
@@ -193,15 +193,15 @@ function save_user_work_hours(int $cid, int $uid, array $data): void
 }
 function work_hours_form_html(int $cid, int $uid = 0): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — work_hours_form_html
-     * Responsabilidade: Monta a representação de interface associada a “work hours form html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_users`, `page_user`.
-     * Dependências chamadas: `user_work_hours`, `icon`, `work_weekday_labels`, `e`, `work_time_short`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $hours = user_work_hours($cid, $uid);
     $h =
         '<details class="work-hours-panel" open><summary>' .
@@ -235,16 +235,16 @@ function work_hours_form_html(int $cid, int $uid = 0): string
 }
 function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — doctor_work_ranges_for_day
-     * Responsabilidade: Implementa a responsabilidade “doctor work ranges for day” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `doctor_work_hours_label`, `appointment_within_doctor_hours`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:4397`.
-     * Dependências chamadas: `preg_match`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->setTimezone`, `->format`, `user_work_hours`, `work_time_short`, `->getTimestamp`.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (
         $cid <= 0 ||
         $doctorId <= 0 ||
@@ -254,16 +254,16 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
     }
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:172
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `DateTimeImmutable`, `->setTimezone`, `->format`.
-         * Classes ou serviços instanciados: `DateTimeImmutable`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         return new DateTimeImmutable("@" . $ts)
             ->setTimezone($zone)
             ->format("H:i");
@@ -291,15 +291,15 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
 }
 function doctor_work_hours_label(int $cid, int $doctorId, string $day): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — doctor_work_hours_label
-     * Responsabilidade: Monta a representação de interface associada a “doctor work hours label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `doctor_work_hours_conflict_message`.
-     * Dependências chamadas: `doctor_work_ranges_for_day`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ranges = doctor_work_ranges_for_day($cid, $doctorId, $day);
     if (!$ranges) {
         return "Sem expediente cadastrado para este dia.";
@@ -316,15 +316,15 @@ function appointment_within_doctor_hours(
     string $startAt,
     string $endAt,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_within_doctor_hours
-     * Responsabilidade: Implementa a responsabilidade “appointment within doctor hours” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `doctor_work_hours_conflict_message`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`, `->getTimestamp`, `doctor_work_ranges_for_day`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ls = app_db_utc_to_local($startAt, $cid);
     $le = app_db_utc_to_local($endAt, $cid);
     if (!$ls || !$le || $le <= $ls) {
@@ -346,15 +346,15 @@ function doctor_work_hours_conflict_message(
     string $startAt,
     string $endAt,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — doctor_work_hours_conflict_message
-     * Responsabilidade: Implementa a responsabilidade “doctor work hours conflict message” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `appointment_within_doctor_hours`, `substr`, `doctor_work_hours_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (appointment_within_doctor_hours($cid, $doctorId, $startAt, $endAt)) {
         return "";
     }
@@ -368,15 +368,15 @@ function agenda_validate_period_message(
     string $operation,
     int $cid = 0,
 ): ?string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_validate_period_message
-     * Responsabilidade: Avalia ou impõe a regra “agenda validate period message”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_conflict_message`.
-     * Dependências chamadas: `app_parse_db_utc`, `app_db_utc_to_local`, `->getTimestamp`, `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $sUtc = app_parse_db_utc($startAt);
     $eUtc = app_parse_db_utc($endAt);
     $sLoc = app_db_utc_to_local($startAt, $cid);
@@ -395,15 +395,15 @@ function agenda_validate_period_message(
 }
 function appointment_status_code(array $appointment): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_status_code
-     * Responsabilidade: Implementa a responsabilidade “appointment status code” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_is_cancelled`, `is_done_appointment`, `appointment_is_terminal`, `appointment_journey_hard_guard_message`, `appointment_journey_view_model`, `appointment_journey_view_code`, `appointment_journey_role_actions`, `page_appointments` e mais 8.
-     * Dependências chamadas: `mb_strtolower`, `trim`, `str_replace`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $status = mb_strtolower(trim((string) ($appointment["status"] ?? "")));
     $status = str_replace([" ", "-"], "_", $status);
     $allowed = [
@@ -464,28 +464,28 @@ function appointment_status_code(array $appointment): string
 
 function appointment_is_cancelled(array $a): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_is_cancelled
-     * Responsabilidade: Avalia ou impõe a regra “appointment is cancelled”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `appointment_status_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return appointment_status_code($a) === "cancelado";
 }
 function is_done_appointment(array $a): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — is_done_appointment
-     * Responsabilidade: Avalia ou impõe a regra “is done appointment”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_medico_painel`.
-     * Dependências chamadas: `in_array`, `appointment_status_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return in_array(
         appointment_status_code($a),
         ["atendimento_concluido", "finalizado"],
@@ -494,15 +494,15 @@ function is_done_appointment(array $a): bool
 }
 function appointment_is_terminal(array $a): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_is_terminal
-     * Responsabilidade: Avalia ou impõe a regra “appointment is terminal”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_triagem_painel`.
-     * Dependências chamadas: `in_array`, `appointment_status_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return in_array(
         appointment_status_code($a),
         ["finalizado", "cancelado", "nao_compareceu", "reagendado"],
@@ -516,15 +516,15 @@ function appointment_journey_hard_guard_message(
     int $uid = 0,
     ?int $nowTs = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_hard_guard_message
-     * Responsabilidade: Avalia ou impõe a regra “appointment journey hard guard message”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_can`, `appointment_journey_role_actions`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`.
-     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_journey_role_matches`, `mb_strtolower`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $nowTs = $nowTs ?? time();
     $code = appointment_status_code($a);
     $startTs = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
@@ -720,15 +720,15 @@ function appointment_journey_can(
     int $uid = 0,
     ?int $nowTs = null,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_can
-     * Responsabilidade: Avalia ou impõe a regra “appointment journey can”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `appointment_journey_hard_guard_message`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return appointment_journey_hard_guard_message(
         $a,
         $action,
@@ -742,25 +742,25 @@ function appointment_journey_elapsed_label(
     string $code,
     int $nowTs,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_elapsed_label
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey elapsed label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_view_model`.
-     * Dependências chamadas: `app_storage_timestamp`, `in_array`, `floor`, `max`, `format_minutes`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $pick = function (array $keys) use ($a): int {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:561
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         foreach ($keys as $k) {
             $ts = app_storage_timestamp((string) ($a[$k] ?? ""));
             if ($ts > 0) {
@@ -810,15 +810,15 @@ function appointment_journey_elapsed_label(
 }
 function appointment_journey_steps(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_steps
-     * Responsabilidade: Implementa a responsabilidade “appointment journey steps” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_view_model`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         ["key" => "agendamento", "label" => "Agendamento", "icon" => "event"],
         ["key" => "chegada", "label" => "Chegada", "icon" => "how_to_reg"],
@@ -836,15 +836,15 @@ function appointment_journey_view_model(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_view_model
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey view model” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_meta`, `appointment_journey_compact_html`, `appointment_journey_card_html`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`.
-     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`, `appointment_journey_steps`, `appointment_journey_elapsed_label`, `appointment_journey_role_actions`, `appointment_journey_role_hint`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $nowTs = $nowTs ?? time();
     $technical = appointment_status_code($a);
     $code = $technical;
@@ -1011,28 +1011,28 @@ function appointment_journey_meta(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_meta
-     * Responsabilidade: Implementa a responsabilidade “appointment journey meta” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3458`, `patient_directory_card`, `page_medico_painel`, `page_recepcao_painel`, `closure@app/Pages/Dashboards.php:239`, `page_triagem_painel`, `closure@app/Pages/Dashboards.php:532`.
-     * Dependências chamadas: `appointment_journey_view_model`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return appointment_journey_view_model($a, $role, $nowTs);
 }
 function appointment_journey_view_code(array $a, ?int $nowTs = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_view_code
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey view code” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_role_hint`, `appointment_journey_role_actions`.
-     * Dependências chamadas: `time`, `appointment_status_code`, `app_storage_timestamp`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $nowTs = $nowTs ?? time();
     $code = appointment_status_code($a);
     $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
@@ -1047,16 +1047,16 @@ function appointment_journey_view_code(array $a, ?int $nowTs = null): string
 }
 function appointment_journey_role_matches(string $role, string $expected): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_role_matches
-     * Responsabilidade: Implementa a responsabilidade “appointment journey role matches” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_hard_guard_message`, `appointment_journey_role_actions`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`, `financial_appointment_operational_chip_html`, `page_patient`.
-     * Dependências chamadas: `str_replace`, `mb_strtolower`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
-    $normalize = static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `str_replace`, `mb_strtolower`, `trim`. Efeitos: transformação local sem efeito externo detectado. */ fn(string $value): string => str_replace(
+    
+
+
+
+
+
+
+
+
+    $normalize = static  fn(string $value): string => str_replace(
         ["-", " "],
         "_",
         mb_strtolower(trim($value), "UTF-8"),
@@ -1069,15 +1069,15 @@ function appointment_journey_role_hint(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_role_hint
-     * Responsabilidade: Implementa a responsabilidade “appointment journey role hint” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_view_model`.
-     * Dependências chamadas: `appointment_journey_view_code`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $vmCode = appointment_journey_view_code($a, $nowTs);
     $role = (string) $role;
     $map = [
@@ -1128,15 +1128,15 @@ function appointment_journey_role_actions(
     ?int $nowTs = null,
     int $uid = 0,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_role_actions
-     * Responsabilidade: Implementa a responsabilidade “appointment journey role actions” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_view_model`, `appointment_journey_quick_actions_html`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`.
-     * Dependências chamadas: `time`, `appointment_status_code`, `appointment_journey_view_code`, `app_storage_timestamp`, `appointment_journey_role_matches`, `in_array`, `appointment_journey_hard_guard_message`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $nowTs = $nowTs ?? time();
     $role = (string) $role;
     $technical = appointment_status_code($a);
@@ -1151,15 +1151,15 @@ function appointment_journey_role_actions(
         string $title = "",
         bool $danger = false,
     ) use (&$actions): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:881
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $actions[] = [
             "act" => $act,
             "label" => $label,
@@ -1282,15 +1282,15 @@ function appointment_journey_quick_actions_html(
     string $actionUrl = "",
     int $uid = 0,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_quick_actions_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey quick actions html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_compact_html`, `appointment_journey_card_html`.
-     * Dependências chamadas: `appointment_journey_role_actions`, `e`, `csrf_field`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $returnHidden = (string) ($returnHidden ?? "");
     $actions = appointment_journey_role_actions($a, $role, null, $uid);
     if (!$actions) {
@@ -1343,15 +1343,15 @@ function appointment_journey_quick_actions_html(
 }
 function appointment_journey_steps_html(array $vm): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_steps_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey steps html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_compact_html`, `appointment_journey_card_html`.
-     * Dependências chamadas: `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $html = '<span class="journey-ux-rail" aria-label="Jornada do paciente">';
     foreach ($vm["steps"] ?? [] as $step) {
         $state = (string) ($step["state"] ?? "upcoming");
@@ -1373,15 +1373,15 @@ function appointment_journey_fact_html(
     string $label,
     string $value,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_fact_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey fact html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_compact_html`, `appointment_journey_card_html`.
-     * Dependências chamadas: `trim`, `icon`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = trim($value);
     if ($value === "") {
         $value = "—";
@@ -1400,15 +1400,15 @@ function appointment_journey_compact_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_compact_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey compact html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_measure_html`, `patient_directory_card`, `page_recepcao_painel`, `closure@app/Pages/Dashboards.php:249`, `page_triagem_painel`, `closure@app/Pages/Dashboards.php:532`.
-     * Dependências chamadas: `appointment_journey_view_model`, `trim`, `appointment_journey_quick_actions_html`, `appointment_journey_fact_html`, `e`, `appointment_journey_steps_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
     $elapsed = trim((string) ($vm["elapsed"] ?? ""));
@@ -1453,15 +1453,15 @@ function appointment_journey_card_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_card_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey card html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `appointment_journey_view_model`, `trim`, `appointment_journey_quick_actions_html`, `appointment_journey_fact_html`, `e`, `icon`, `appointment_journey_steps_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
     $elapsed = trim((string) ($vm["elapsed"] ?? ""));
@@ -1511,15 +1511,15 @@ function appointment_journey_measure_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_journey_measure_html
-     * Responsabilidade: Monta a representação de interface associada a “appointment journey measure html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3790`.
-     * Dependências chamadas: `appointment_journey_compact_html`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return appointment_journey_compact_html(
         $a,
         $role,
@@ -1529,15 +1529,15 @@ function appointment_journey_measure_html(
 }
 function delay_minutes_from_appointment(array $a): ?int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — delay_minutes_from_appointment
-     * Responsabilidade: Implementa a responsabilidade “delay minutes from appointment” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_medico_painel`.
-     * Dependências chamadas: `app_storage_timestamp`, `max`, `floor`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scheduled = app_storage_timestamp($a["start_at"] ?? "");
     $started = app_storage_timestamp($a["consultation_started_at"] ?? "");
     if (!$scheduled || !$started) {
@@ -1547,15 +1547,15 @@ function delay_minutes_from_appointment(array $a): ?int
 }
 function format_minutes(?int $minutes): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — format_minutes
-     * Responsabilidade: Transforma e normaliza “format minutes” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_journey_elapsed_label`, `document_context_select_options`, `document_issue_context`, `page_patient`, `page_medico_painel`.
-     * Dependências chamadas: `intdiv`, `str_pad`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($minutes === null) {
         return "—";
     }
@@ -1568,15 +1568,15 @@ function format_minutes(?int $minutes): string
 }
 function appointment_patient_names(array $appointments, ?int $cid = null): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_patient_names
-     * Responsabilidade: Implementa a responsabilidade “appointment patient names” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_medico_painel`, `page_recepcao_painel`, `page_triagem_painel`.
-     * Dependências chamadas: `int_ids`, `scoped_patient_map`, `fetch_map`, `array_values`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ids = int_ids($appointments, "patient_link_id");
     $patients = $cid
         ? scoped_patient_map($cid, $ids, "id,person_id")
@@ -1597,28 +1597,28 @@ function appointment_patient_names(array $appointments, ?int $cid = null): array
 }
 function procedure_options(int $cid, bool $activeOnly = true): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — procedure_options
-     * Responsabilidade: Implementa a responsabilidade “procedure options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `procedure_select_html`, `page_appointments`, `document_context_select_options`, `page_procedures`.
-     * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0) {
         return [];
     }
     $loader = function () use ($cid, $activeOnly): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:1248
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `q`, `->fetchAll`, `error_log`, `->getMessage`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $where = "clinic_id=?";
         $params = [$cid];
         if ($activeOnly) {
@@ -1647,15 +1647,15 @@ function procedure_options(int $cid, bool $activeOnly = true): array
 }
 function procedure_option_label(array $p): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — procedure_option_label
-     * Responsabilidade: Monta a representação de interface associada a “procedure option label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `procedure_select_html`.
-     * Dependências chamadas: `trim`, `money_br`, `implode`, `array_filter`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $parts = [trim((string) $p["title"])];
     $dur = (int) ($p["duration_minutes"] ?? 0);
     if ($dur > 0) {
@@ -1677,15 +1677,15 @@ function procedure_select_html(
     string $selected = "",
     bool $registeredOnly = false,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — procedure_select_html
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “procedure select html” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`.
-     * Dependências chamadas: `procedure_options`, `e`, `trim`, `money_br`, `procedure_option_label`, `form_row`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $procedures = procedure_options($cid, true);
     $custom = !$registeredOnly && $selected !== "";
     $placeholder =
@@ -1761,16 +1761,16 @@ function procedure_select_html(
 }
 function procedure_reason_from_post(int $cid, string $field = "reason"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — procedure_reason_from_post
-     * Responsabilidade: Implementa a responsabilidade “procedure reason from post” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `trim`, `str_starts_with`, `substr`, `one`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $v = trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
         $id = (int) substr($v, 10);
@@ -1786,15 +1786,15 @@ function procedure_reason_from_post(int $cid, string $field = "reason"): string
 }
 function doctors(int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — doctors
-     * Responsabilidade: Implementa a responsabilidade “doctors” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `page_gerente_painel`.
-     * Dependências chamadas: `q`, `->fetchAll`, `fetch_map`, `int_ids`, `asort`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $links = q(
         "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code='medico' AND active=1 ORDER BY id ASC LIMIT 80",
         [$cid],
@@ -1816,54 +1816,54 @@ function doctors(int $cid): array
 }
 function normalize_db_datetime(string $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_db_datetime
-     * Responsabilidade: Transforma e normaliza “normalize db datetime” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `app_local_to_db_utc`, `ctx`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_local_to_db_utc($value, (int) (ctx()["clinic_id"] ?? 0));
 }
 function agenda_period_label(string $startAt, string $endAt): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_period_label
-     * Responsabilidade: Monta a representação de interface associada a “agenda period label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_conflict_message`.
-     * Dependências chamadas: `dt_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return dt_br($startAt) . " até " . dt_br($endAt);
 }
 function datetime_local_value(?string $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — datetime_local_value
-     * Responsabilidade: Implementa a responsabilidade “datetime local value” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`, `closure@app/Domain/Appointments/Appointments.php:3850`.
-     * Dependências chamadas: `app_db_utc_to_local_input`, `ctx`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_db_utc_to_local_input($value, (int) (ctx()["clinic_id"] ?? 0));
 }
 function agenda_doctor_name(int $cid, ?int $doctorId): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_doctor_name
-     * Responsabilidade: Implementa a responsabilidade “agenda doctor name” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_conflict_message`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3850`.
-     * Dependências chamadas: `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$doctorId) {
         return "todo o consultório";
     }
@@ -1884,15 +1884,15 @@ function agenda_conflict_message(
     int $ignoreAppointmentId = 0,
     int $ignoreBlockId = 0,
 ): ?string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_conflict_message
-     * Responsabilidade: Implementa a responsabilidade “agenda conflict message” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `agenda_validate_period_message`, `agenda_doctor_name`, `agenda_period_label`, `pdo`, `->inTransaction`, `one`, `first_name`, `trim`, `app_time_br`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $doctorId = $doctorId && $doctorId > 0 ? $doctorId : null;
     if (
         $msg = agenda_validate_period_message(
@@ -2013,15 +2013,15 @@ function agenda_conflict_message(
 }
 function agenda_day_short_label(string $day): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_day_short_label
-     * Responsabilidade: Monta a representação de interface associada a “agenda day short label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_crown_label_for_view`.
-     * Dependências chamadas: `strtotime`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
         return $day;
@@ -2046,15 +2046,15 @@ function agenda_day_short_label(string $day): string
 }
 function agenda_month_name_br(string $day): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_month_name_br
-     * Responsabilidade: Implementa a responsabilidade “agenda month name br” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_week_range_label`, `agenda_crown_label_for_view`.
-     * Dependências chamadas: `strtotime`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
         return $day;
@@ -2077,15 +2077,15 @@ function agenda_month_name_br(string $day): string
 }
 function agenda_day_week_start(string $day): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_day_week_start
-     * Responsabilidade: Implementa a responsabilidade “agenda day week start” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_week_range_label`.
-     * Dependências chamadas: `strtotime`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
         return $day;
@@ -2097,15 +2097,15 @@ function agenda_day_week_start(string $day): string
 }
 function agenda_week_range_label(string $day): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_week_range_label
-     * Responsabilidade: Monta a representação de interface associada a “agenda week range label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_crown_label_for_view`.
-     * Dependências chamadas: `agenda_day_week_start`, `date`, `strtotime`, `agenda_month_name_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $start = agenda_day_week_start($day);
     $end = date("Y-m-d", strtotime($start . " +6 days"));
     $startTs = strtotime($start . " 12:00:00");
@@ -2138,15 +2138,15 @@ function agenda_crown_label_for_view(
     string $day,
     string $doctorName,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_crown_label_for_view
-     * Responsabilidade: Monta a representação de interface associada a “agenda crown label for view” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `first_name`, `agenda_week_range_label`, `agenda_month_name_br`, `agenda_day_short_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $name = first_name($doctorName);
     return match ($view) {
         "semanal" => agenda_week_range_label($day) . " de " . $name,
@@ -2156,15 +2156,15 @@ function agenda_crown_label_for_view(
 }
 function agenda_iso_local_value(string $day, string $hm): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_iso_local_value
-     * Responsabilidade: Implementa a responsabilidade “agenda iso local value” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_normalize_local_input`.
-     * Dependências chamadas: `preg_match`, `date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
         $day = date("Y-m-d");
     }
@@ -2178,15 +2178,15 @@ function agenda_normalize_local_input(
     string $fallbackDay,
     string $fallbackHm = "08:00",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_normalize_local_input
-     * Responsabilidade: Transforma e normaliza “agenda normalize local input” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `trim`, `preg_match`, `str_replace`, `substr`, `agenda_iso_local_value`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = trim($value);
     if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $value)) {
         return $value;
@@ -2203,15 +2203,15 @@ function agenda_local_input_add_minutes(
     string $value,
     int $minutes = 30,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_local_input_add_minutes
-     * Responsabilidade: Implementa a responsabilidade “agenda local input add minutes” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `DateTimeImmutable::createFromFormat`, `->modify`, `->format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dt = DateTimeImmutable::createFromFormat("Y-m-d\TH:i", $value);
     if (!$dt) {
         return $value;
@@ -2224,30 +2224,30 @@ function agenda_safe_day_from_local_input(
     string $value,
     string $fallbackDay,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_safe_day_from_local_input
-     * Responsabilidade: Implementa a responsabilidade “agenda safe day from local input” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `preg_match`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return preg_match("/^\d{4}-\d{2}-\d{2}T/", $value)
         ? substr($value, 0, 10)
         : $fallbackDay;
 }
 function agenda_notes_ensure_schema(int $cid = 0): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_notes_ensure_schema
-     * Responsabilidade: Opera a etapa “agenda notes ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_note_visible_for_day`, `page_appointments`.
-     * Dependências chamadas: `function_exists`, `has_cfg`, `db_table_exists`, `db_column_exists`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $ready = null;
     if ($ready !== null) {
         return $ready;
@@ -2267,15 +2267,15 @@ function agenda_notes_ensure_schema(int $cid = 0): bool
 
 function agenda_note_role_codes(array $c): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_note_role_codes
-     * Responsabilidade: Implementa a responsabilidade “agenda note role codes” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_note_visible_for_user`, `agenda_note_visible_for_day`.
-     * Dependências chamadas: `in_array`, `array_unshift`, `array_values`, `array_unique`, `array_filter`, `array_map`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $roles = (array) ($c["effective_roles"] ?? []);
     $active = (string) ($c["role"] ?? "");
     if ($active !== "" && !in_array($active, $roles, true)) {
@@ -2288,15 +2288,15 @@ function agenda_note_role_codes(array $c): array
 }
 function agenda_note_visible_for_user(array $note, array $c): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_note_visible_for_user
-     * Responsabilidade: Implementa a responsabilidade “agenda note visible for user” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `in_array`, `agenda_note_role_codes`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scope = (string) ($note["target_scope"] ?? "clinic");
     if ($scope === "clinic" || $scope === "all") {
         return true;
@@ -2310,15 +2310,15 @@ function agenda_note_visible_for_user(array $note, array $c): bool
 }
 function agenda_note_visible_for_day(int $cid, string $day, array $c): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_note_visible_for_day
-     * Responsabilidade: Implementa a responsabilidade “agenda note visible for day” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `preg_match`, `agenda_notes_ensure_schema`, `agenda_note_role_codes`, `implode`, `array_fill`, `count`, `array_merge`, `q`, `->fetchAll`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         $cid <= 0 ||
         !preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ||
@@ -2347,16 +2347,16 @@ function agenda_note_visible_for_day(int $cid, string $day, array $c): ?array
 }
 function agenda_note_card_html(?array $note, ?array $c = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_note_card_html
-     * Responsabilidade: Monta a representação de interface associada a “agenda note card html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `trim`, `is_array`, `function_exists`, `ctx`, `first_name`, `csrf_field`, `e`, `icon`, `nl2br`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!$note) {
         return "";
     }
@@ -2412,16 +2412,16 @@ function agenda_note_form_html(
     array $c,
     array $roleOptions,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — agenda_note_form_html
-     * Responsabilidade: Monta a representação de interface associada a “agenda note form html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `role_label_for`, `clinic_role_options`, `href`, `e`, `icon`, `date_br`, `select_label`, `csrf_field`, `form_row`, `input`, `textarea`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $activeRole = (string) ($c["role"] ?? "");
     $activeRoleLabel =
         $activeRole !== "" ? role_label_for($activeRole, $cid) : "meu cargo";
@@ -2491,19 +2491,19 @@ function agenda_note_form_html(
 }
 function page_appointments(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_appointments
-     * Responsabilidade: Coordena a rota e renderiza a tela “page appointments”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `agenda_notes_ensure_schema`, `doctors`, `patient_options`, `procedure_options`, `app_today_in_timezone`, `preg_match`, `count`, `array_key_first`, `redirect`, `e`, `one` e mais 95.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Estado externo lido: `$_GET`, `$_SERVER`, `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("appointments");
     $cid = (int) $c["clinic_id"];
     agenda_notes_ensure_schema($cid);
@@ -2534,15 +2534,15 @@ function page_appointments(): void
         $day,
         $viewDoctor,
     ): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:1916
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $d = $d ?: $day;
         $doctor = $doctor ?? $viewDoctor;
         $params = ["d" => $d];
@@ -2555,15 +2555,15 @@ function page_appointments(): void
         ?string $targetDay = null,
         ?int $targetDoctor = null,
     ) use ($returnParams): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:1928
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `redirect`.
-         * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
-         * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-         */
+        
+
+
+
+
+
+
+
+
         redirect("appointments", $returnParams($targetDay, $targetDoctor));
     };
     $role = (string) ($c["role"] ?? "");
@@ -2589,15 +2589,15 @@ function page_appointments(): void
             $postDoctor,
             $redirectBack,
         ): void {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:1952
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-             */
+            
+
+
+
+
+
+
+
+
             $redirectBack($postDay, $postDoctor);
         };
         if ($act === "agenda_note_delete") {
@@ -3690,15 +3690,15 @@ function page_appointments(): void
         ?int $doctor = null,
         ?string $view = null,
     ) use ($day, $agendaDoctor, $role, $agendaView): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3022
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $params = ["d" => $d ?: $day];
         $doctor = $doctor ?? $agendaDoctor;
         if ($role !== "medico" && $doctor > 0) {
@@ -4102,15 +4102,15 @@ function page_appointments(): void
     );
     $nowTs = time();
     $isDone = function (array $a): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3429
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`, `appointment_status_code`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return in_array(
             appointment_status_code($a),
             ["atendimento_concluido", "finalizado"],
@@ -4118,27 +4118,27 @@ function page_appointments(): void
         );
     };
     $isStarted = function (array $a) use ($isDone): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3436
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `appointment_status_code`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return !$isDone($a) && appointment_status_code($a) === "em_atendimento";
     };
     $isArrived = function (array $a) use ($isDone, $isStarted): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3439
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`, `appointment_status_code`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return !$isDone($a) &&
             !$isStarted($a) &&
             in_array(
@@ -4148,15 +4148,15 @@ function page_appointments(): void
             );
     };
     $isLate = function (array $a) use ($nowTs): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3448
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `in_array`, `appointment_status_code`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $start = app_storage_timestamp($a["start_at"] ?? "") ?: 0;
         return in_array(
             appointment_status_code($a),
@@ -4167,28 +4167,28 @@ function page_appointments(): void
             $start < $nowTs;
     };
     $statusMeta = function (array $a) use ($role): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3458
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `appointment_journey_meta`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $m = appointment_journey_meta($a, $role);
         return [$m["label"], $m["class"], $m["icon"]];
     };
     $patientName = function (array $a) use ($patientLinks, $persons): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3462
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $pid = (int) ($a["patient_link_id"] ?? 0);
         $pl = $patientLinks[$pid] ?? [];
         $ps = $persons[(int) ($pl["person_id"] ?? 0)] ?? [];
@@ -4206,15 +4206,15 @@ function page_appointments(): void
         $statusMeta,
         $patientName,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3468
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `appointment_journey_role_actions`, `csrf_field`, `e`, `icon`, `appointment_journey_view_model`, `href`, `appointment_journey_hard_guard_message`, `select_label`, `role_label_for`, `procedure_select_html`, `form_row`, `input` e mais 3.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $pid = (int) ($r["patient_link_id"] ?? 0);
         $id = (int) ($r["id"] ?? 0);
         $journeyActions = appointment_journey_role_actions(
@@ -4534,15 +4534,15 @@ function page_appointments(): void
         $returnHidden,
         $cid,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3790
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `trim`, `app_time_br`, `first_name`, `function_exists`, `financial_appointment_operational_chip_html`, `e`, `icon`, `appointment_journey_measure_html`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $startTs = app_storage_timestamp($r["start_at"]);
         $endTs = app_storage_timestamp($r["end_at"]);
         [$label, $class, $ico] = $statusMeta($r);
@@ -4603,15 +4603,15 @@ function page_appointments(): void
         $creators,
         $cid,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:3850
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_storage_timestamp`, `first_name`, `agenda_doctor_name`, `app_time_br`, `csrf_field`, `select_label`, `form_row`, `input`, `datetime_local_value`, `icon`, `e`, `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $startTs = app_storage_timestamp($b["start_at"]);
         $endTs = app_storage_timestamp($b["end_at"]);
         $blockDoctor = !empty($b["doctor_user_id"])
@@ -4791,15 +4791,15 @@ function page_appointments(): void
         }
     }
     $localTs = function (string $dt) use ($cid): int {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4037
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_db_utc_to_local`, `->getTimestamp`, `strtotime`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $d = app_db_utc_to_local($dt, $cid);
         return $d ? $d->getTimestamp() : (strtotime($dt) ?: 0);
     };
@@ -4810,16 +4810,16 @@ function page_appointments(): void
             : [];
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4047
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `DateTimeImmutable`, `->setTimezone`, `->format`.
-         * Classes ou serviços instanciados: `DateTimeImmutable`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         return new DateTimeImmutable("@" . $ts)
             ->setTimezone($zone)
             ->format("H:i");
@@ -4893,15 +4893,15 @@ function page_appointments(): void
         string $label,
         string $kind,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4115
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `e`, `icon`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return '<article class="agenda-floating-card agenda-floating-card-' .
             e($kind) .
             '" aria-label="' .
@@ -5195,16 +5195,16 @@ function page_appointments(): void
         $localTs,
         $fmtLocal,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4397
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `doctor_work_ranges_for_day`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->getTimestamp`, `count`, `max`, `ceil`, `in_array`, `e`, `href`, `min` e mais 4.
-         * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         $ranges =
             $agendaDoctor > 0
                 ? doctor_work_ranges_for_day($cid, $agendaDoctor, $renderDay)
@@ -5266,15 +5266,15 @@ function page_appointments(): void
             $patientLinksMap,
             $personsMap,
         ): string {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4471
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-             * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-             */
+            
+
+
+
+
+
+
+
+
             $pid = (int) ($a["patient_link_id"] ?? 0);
             $pl = $patientLinksMap[$pid] ?? [];
             $ps = $personsMap[(int) ($pl["person_id"] ?? 0)] ?? [];
@@ -5403,15 +5403,15 @@ function page_appointments(): void
             "</div></section>";
     };
     $groupByDay = function (array $items) use ($cid): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Appointments/Appointments.php:4602
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `app_db_utc_to_local`, `->format`, `substr`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $out = [];
         foreach ($items as $it) {
             $dt = app_db_utc_to_local((string) ($it["start_at"] ?? ""), $cid);
@@ -5613,16 +5613,16 @@ function appointment_procedure_id_from_post(
     int $cid,
     string $field = "reason",
 ): ?int {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_procedure_id_from_post
-     * Responsabilidade: Implementa a responsabilidade “appointment procedure id from post” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `trim`, `str_starts_with`, `substr`, `one`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $v = trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
         $id = (int) substr($v, 10);
@@ -5641,15 +5641,15 @@ function appointment_procedure_price_cents(
     ?int $procedureId,
     int $fallback = 0,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_procedure_price_cents
-     * Responsabilidade: Implementa a responsabilidade “appointment procedure price cents” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `appointment_payment_post_context`.
-     * Dependências chamadas: `max`, `val`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$procedureId) {
         return max(0, $fallback);
     }
@@ -5666,16 +5666,16 @@ function appointment_payment_post_context(
     ?int $procedureId,
     int $fallbackAmount = 0,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_payment_post_context
-     * Responsabilidade: Implementa a responsabilidade “appointment payment post context” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `appointment_procedure_price_cents`, `normalize_payment_method`, `function_exists`, `financial_office_destination_belongs`, `financial_location_belongs`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $paid = isset($_POST["payment_confirmed"]);
     if (!$paid) {
         return [false, "", 0, 0, null];
@@ -5734,15 +5734,15 @@ function appointment_min_duration_message(
     string $startAt,
     string $endAt,
 ): ?string {
-    /*
-     * GUIA DE MANUTENÇÃO — appointment_min_duration_message
-     * Responsabilidade: Implementa a responsabilidade “appointment min duration message” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Appointments/Appointments.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `one`, `max`, `strtotime`, `trim`, `date`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$procedureId) {
         return null;
     }

@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function clinical_profession_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinical_profession_options
-     * Responsabilidade: Implementa a responsabilidade “clinical profession options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `normalize_profession`, `profession_select_fields`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "Médico(a)" => "Médico(a)",
         "Cirurgião-dentista / Dentista" => "Cirurgião-dentista / Dentista",
@@ -27,15 +27,15 @@ function clinical_profession_options(): array
 }
 function normalize_profession(string $profession): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_profession
-     * Responsabilidade: Transforma e normaliza “normalize profession” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `clinic_visual_from_values`, `profession_select_fields`, `clinic_profession`, `closure@app/Domain/Clinic/ClinicConfig.php:1159`, `page_settings`.
-     * Dependências chamadas: `trim`, `preg_replace`, `clinical_profession_options`, `mb_strtolower`, `mb_substr`, `strip_tags`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $profession = trim(preg_replace("/\s+/", " ", $profession) ?? "");
     if ($profession === "") {
         return "Médico(a)";
@@ -55,15 +55,15 @@ function normalize_profession(string $profession): string
 }
 function clinic_icon_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_icon_options
-     * Responsabilidade: Implementa a responsabilidade “clinic icon options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `normalize_clinic_icon`, `profession_default_icon`, `clinic_icon_picker`.
-     * Dependências chamadas: `function_exists`, `patient_health_icon_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $base = [
         "medical_services" => [
             "label" => "Medicina / clínica geral",
@@ -195,15 +195,15 @@ function clinic_icon_options(): array
 }
 function patient_health_icon_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_health_icon_options
-     * Responsabilidade: Implementa a responsabilidade “patient health icon options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_icon_options`, `normalize_patient_tab_icon`, `patient_tab_icon_picker`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "clinical_notes" => "Prontuário clínico",
         "medical_services" => "Serviço médico",
@@ -274,15 +274,15 @@ function patient_health_icon_options(): array
 }
 function clinic_accent_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_accent_options
-     * Responsabilidade: Implementa a responsabilidade “clinic accent options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `normalize_accent_color`, `clinic_visual_from_values`, `clinic_color_picker`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         PRONTOO_DEFAULT_ACCENT_COLOR => [
             "label" => "Verde Prontoo",
@@ -484,15 +484,15 @@ function clinic_accent_options(): array
 }
 function normalize_clinic_icon(?string $icon): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_clinic_icon
-     * Responsabilidade: Transforma e normaliza “normalize clinic icon” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `clinic_favicon_href`, `clinic_visual_from_values`, `clinic_icon_picker`, `page_settings`.
-     * Dependências chamadas: `preg_replace`, `array_key_exists`, `clinic_icon_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
     return array_key_exists($icon, clinic_icon_options())
         ? $icon
@@ -500,15 +500,15 @@ function normalize_clinic_icon(?string $icon): string
 }
 function normalize_accent_color(?string $color): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_accent_color
-     * Responsabilidade: Transforma e normaliza “normalize accent color” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `clinic_favicon_href`, `clinic_theme_tokens`, `clinic_visual_from_values`, `clinic_color_picker`, `page_settings`.
-     * Dependências chamadas: `strtolower`, `trim`, `array_key_exists`, `clinic_accent_options`, `preg_match`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $color = strtolower(trim((string) $color));
     if (array_key_exists($color, clinic_accent_options())) {
         return $color;
@@ -520,15 +520,15 @@ function normalize_accent_color(?string $color): string
 }
 function profession_default_icon(string $profession): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — profession_default_icon
-     * Responsabilidade: Implementa a responsabilidade “profession default icon” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_visual_from_values`.
-     * Dependências chamadas: `clinic_icon_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     foreach (clinic_icon_options() as $icon => $meta) {
         if (($meta["profession"] ?? "") === $profession) {
             return $icon;
@@ -538,28 +538,28 @@ function profession_default_icon(string $profession): string
 }
 function profession_default_color(string $profession): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — profession_default_color
-     * Responsabilidade: Implementa a responsabilidade “profession default color” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_visual_from_values`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "#334155";
 }
 function clinic_favicon_symbol_svg(string $icon, string $fill): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_favicon_symbol_svg
-     * Responsabilidade: Implementa a responsabilidade “clinic favicon symbol svg” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_favicon_href`.
-     * Dependências chamadas: `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $fill = e($fill);
     return match ($icon) {
         "stethoscope"
@@ -642,15 +642,15 @@ function clinic_favicon_symbol_svg(string $icon, string $fill): string
 }
 function clinic_favicon_href(string $icon, string $color): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_favicon_href
-     * Responsabilidade: Implementa a responsabilidade “clinic favicon href” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_visual_from_values`.
-     * Dependências chamadas: `normalize_clinic_icon`, `normalize_accent_color`, `clinic_favicon_symbol_svg`, `e`, `base64_encode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $icon = normalize_clinic_icon($icon);
     $color = normalize_accent_color($color);
     $fill = "#ffffff";
@@ -665,15 +665,15 @@ function clinic_favicon_href(string $icon, string $color): string
 }
 function clinic_hex_rgb(string $hex): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_hex_rgb
-     * Responsabilidade: Implementa a responsabilidade “clinic hex rgb” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_mix_hex`, `clinic_luminance`, `clinic_theme_tokens`.
-     * Dependências chamadas: `ltrim`, `trim`, `strlen`, `preg_match`, `hexdec`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $hex = ltrim(trim($hex), "#");
     if (strlen($hex) === 3) {
         $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
@@ -689,15 +689,15 @@ function clinic_hex_rgb(string $hex): array
 }
 function clinic_rgb_hex(array $rgb): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_rgb_hex
-     * Responsabilidade: Implementa a responsabilidade “clinic rgb hex” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_mix_hex`.
-     * Dependências chamadas: `sprintf`, `max`, `min`, `round`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return sprintf(
         "#%02x%02x%02x",
         max(0, min(255, (int) round($rgb[0] ?? 0))),
@@ -707,15 +707,15 @@ function clinic_rgb_hex(array $rgb): string
 }
 function clinic_mix_hex(string $a, string $b, float $aWeight): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_mix_hex
-     * Responsabilidade: Implementa a responsabilidade “clinic mix hex” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_theme_tokens`.
-     * Dependências chamadas: `clinic_hex_rgb`, `max`, `min`, `clinic_rgb_hex`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ra = clinic_hex_rgb($a);
     $rb = clinic_hex_rgb($b);
     $w = max(0, min(1, $aWeight));
@@ -727,15 +727,15 @@ function clinic_mix_hex(string $a, string $b, float $aWeight): string
 }
 function clinic_luminance(string $hex): float
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_luminance
-     * Responsabilidade: Implementa a responsabilidade “clinic luminance” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_contrast_ratio`.
-     * Dependências chamadas: `clinic_hex_rgb`, `pow`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $rgb = clinic_hex_rgb($hex);
     $vals = [];
     foreach ($rgb as $v) {
@@ -746,45 +746,45 @@ function clinic_luminance(string $hex): float
 }
 function clinic_contrast_ratio(string $a, string $b): float
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_contrast_ratio
-     * Responsabilidade: Implementa a responsabilidade “clinic contrast ratio” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_contrast_text`, `clinic_theme_tokens`.
-     * Dependências chamadas: `clinic_luminance`, `max`, `min`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $la = clinic_luminance($a) + 0.05;
     $lb = clinic_luminance($b) + 0.05;
     return max($la, $lb) / min($la, $lb);
 }
 function clinic_contrast_text(string $bg): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_contrast_text
-     * Responsabilidade: Implementa a responsabilidade “clinic contrast text” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_theme_tokens`.
-     * Dependências chamadas: `clinic_contrast_ratio`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $white = clinic_contrast_ratio($bg, "#ffffff");
     $ink = clinic_contrast_ratio($bg, "#17181c");
     return $white >= $ink ? "#ffffff" : "#17181c";
 }
 function clinic_theme_tokens(string $color, array $palette = []): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_theme_tokens
-     * Responsabilidade: Implementa a responsabilidade “clinic theme tokens” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_visual_from_values`.
-     * Dependências chamadas: `normalize_accent_color`, `clinic_hex_rgb`, `clinic_mix_hex`, `clinic_contrast_ratio`, `clinic_contrast_text`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $base = normalize_accent_color($color);
     $rgb = clinic_hex_rgb($base);
     $strong = $palette["dark"] ?? clinic_mix_hex($base, "#000000", 0.82);
@@ -964,15 +964,15 @@ function clinic_visual_from_values(
     ?string $color = null,
     ?string $profession = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_visual_from_values
-     * Responsabilidade: Implementa a responsabilidade “clinic visual from values” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `clinic_visual`, `closure@app/Domain/Clinic/ClinicConfig.php:836`, `page_settings`.
-     * Dependências chamadas: `normalize_profession`, `normalize_clinic_icon`, `profession_default_icon`, `normalize_accent_color`, `profession_default_color`, `clinic_accent_options`, `clinic_theme_tokens`, `clinic_favicon_href`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $profession = normalize_profession((string) ($profession ?: "Médico(a)"));
     $icon = normalize_clinic_icon(
         $icon ?: profession_default_icon($profession),
@@ -995,15 +995,15 @@ function clinic_visual_from_values(
 }
 function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_visual
-     * Responsabilidade: Implementa a responsabilidade “clinic visual” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page`.
-     * Dependências chamadas: `clinic_visual_from_values`, `has_cfg`, `one`, `db_schema_error_is_missing_table`, `stripos`, `->getMessage`, `error_log`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $ctx = $ctx ?: [];
     if ($ctx && ($ctx["scope"] ?? "") === "clinic") {
         return clinic_visual_from_values(
@@ -1014,15 +1014,15 @@ function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
     }
     if ($clinicId && $clinicId > 0 && has_cfg()) {
         $loader = function () use ($clinicId): array {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:836
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-             * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: `one`, `clinic_visual_from_values`, `db_schema_error_is_missing_table`, `stripos`, `->getMessage`, `error_log`.
-             * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-             * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-             */
+            
+
+
+
+
+
+
+
+
             try {
                 $row = one(
                     "SELECT clinic_icon,accent_color,responsible_profession FROM pi_clinics WHERE id=?",
@@ -1060,15 +1060,15 @@ function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
 }
 function clinic_icon_picker(string $current): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_icon_picker
-     * Responsabilidade: Implementa a responsabilidade “clinic icon picker” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `page_settings`.
-     * Dependências chamadas: `normalize_clinic_icon`, `clinic_icon_options`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $current = normalize_clinic_icon($current);
     $html =
         '<div class="visual-option-grid clinic-icon-grid clinic-icon-grid-symbols" role="radiogroup" aria-label="Ícone do consultório">';
@@ -1092,15 +1092,15 @@ function clinic_icon_picker(string $current): string
 }
 function clinic_color_picker(string $current): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_color_picker
-     * Responsabilidade: Implementa a responsabilidade “clinic color picker” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `page_settings`.
-     * Dependências chamadas: `normalize_accent_color`, `clinic_accent_options`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $current = normalize_accent_color($current);
     $html =
         '<div class="color-swatch-grid clinic-color-grid clinic-color-grid-tones" role="radiogroup" aria-label="Cor de destaque">';
@@ -1133,15 +1133,15 @@ function clinic_color_picker(string $current): string
 }
 function role_icon_sets(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — role_icon_sets
-     * Responsabilidade: Implementa a responsabilidade “role icon sets” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `role_icon_options`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "recepcionista" => [
             "support_agent" => "Atendimento ao paciente",
@@ -1194,15 +1194,15 @@ function role_icon_sets(): array
 }
 function role_icon_options(?string $role = null): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — role_icon_options
-     * Responsabilidade: Implementa a responsabilidade “role icon options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `role_icon_picker`, `clinic_role_sector_fields`, `clinic_role_icons`, `closure@app/Domain/Clinic/ClinicConfig.php:1422`, `page_settings`.
-     * Dependências chamadas: `role_icon_sets`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $sets = role_icon_sets();
     if ($role !== null && isset($sets[$role])) {
         return $sets[$role];
@@ -1220,15 +1220,15 @@ function role_icon_picker(
     string $current,
     string $role = "",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — role_icon_picker
-     * Responsabilidade: Implementa a responsabilidade “role icon picker” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_role_sector_fields`.
-     * Dependências chamadas: `role_icon_options`, `default_role_icon`, `array_key_first`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $opts = role_icon_options($role ?: null);
     $current = isset($opts[$current]) ? $current : default_role_icon($role);
     if (!isset($opts[$current])) {
@@ -1257,15 +1257,15 @@ function role_icon_picker(
 }
 function default_role_icon(string $role): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — default_role_icon
-     * Responsabilidade: Implementa a responsabilidade “default role icon” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `role_icon_picker`, `clinic_role_sector_fields`, `seed_clinic_roles`, `closure@app/Domain/Clinic/ClinicConfig.php:1352`, `clinic_role_icons`, `closure@app/Domain/Clinic/ClinicConfig.php:1422`, `role_icon_for` e mais 2.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return match ($role) {
         "recepcionista" => "support_agent",
         "assistente" => "clinical_notes",
@@ -1276,15 +1276,15 @@ function default_role_icon(string $role): string
 }
 function clinic_role_label_fields(int $cid): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_role_label_fields
-     * Responsabilidade: Monta a representação de interface associada a “clinic role label fields” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `seed_clinic_roles`, `clinic_roles`, `trim`, `form_row`, `input`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     seed_clinic_roles($cid);
     $labels = clinic_roles($cid, false);
     $defs = [
@@ -1319,15 +1319,15 @@ function clinic_role_label_fields(int $cid): string
 }
 function clinic_role_sector_fields(int $cid): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_role_sector_fields
-     * Responsabilidade: Implementa a responsabilidade “clinic role sector fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_settings`.
-     * Dependências chamadas: `seed_clinic_roles`, `clinic_roles`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `role_icon_options`, `trim`, `default_role_icon`, `array_key_first`, `e`, `icon` e mais 3.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     seed_clinic_roles($cid);
     $labels = clinic_roles($cid, false);
     $icons = [];
@@ -1401,15 +1401,15 @@ function clinic_role_sector_fields(int $cid): string
 }
 function profession_select_fields(array $cl = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — profession_select_fields
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “profession select fields” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `page_settings`.
-     * Dependências chamadas: `normalize_profession`, `select_label`, `clinical_profession_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $current = normalize_profession(
         (string) ($cl["responsible_profession"] ?? "Médico(a)"),
     );
@@ -1423,28 +1423,28 @@ function profession_select_fields(array $cl = []): string
 }
 function clinic_profession(int $clinicId): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_profession
-     * Responsabilidade: Implementa a responsabilidade “clinic profession” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `val`, `trim`, `normalize_profession`, `db_schema_error_is_missing_table`, `stripos`, `->getMessage`, `error_log`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId <= 0) {
         return "Profissional";
     }
     $loader = function () use ($clinicId): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1159
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `val`, `trim`, `normalize_profession`, `db_schema_error_is_missing_table`, `stripos`, `->getMessage`, `error_log`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
         try {
             $value = val(
                 "SELECT responsible_profession FROM pi_clinics WHERE id=?",
@@ -1476,28 +1476,28 @@ function clinic_profession(int $clinicId): string
 }
 function admin_model_clinic_meta_key(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_meta_key
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic meta key” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "admin_global_exempt_clinic_id";
 }
 function admin_model_clinic_id(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_id
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic id” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `platform_backend_selftest`, `page_admin_health`, `page_admin_integrity`.
-     * Dependências chamadas: `.Core.Tenant.TenantRegistry::modelClinicId`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return \Prontoo\Core\Tenant\TenantRegistry::modelClinicId();
     } catch (Throwable $e) {
@@ -1506,28 +1506,28 @@ function admin_model_clinic_id(): int
 }
 function clinic_is_global_admin_owned(int $clinicId): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_is_global_admin_owned
-     * Responsabilidade: Avalia ou impõe a regra “clinic is global admin owned”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_clinics`.
-     * Dependências chamadas: `safe_val`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId <= 0) {
         return false;
     }
     $loader = function () use ($clinicId): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1206
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `safe_val`, `error_log`, `->getMessage`.
-         * Efeitos colaterais: consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         try {
             return (int) safe_val(
                 "SELECT COUNT(*) FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.id=? AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1)",
@@ -1552,41 +1552,41 @@ function clinic_is_global_admin_owned(int $clinicId): bool
 }
 function ensure_global_admin_clinic_exempt(int $clinicId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — ensure_global_admin_clinic_exempt
-     * Responsabilidade: Implementa a responsabilidade “ensure global admin clinic exempt” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return;
 }
 function admin_model_clinic_set(int $clinicId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_set
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic set” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return;
 }
 function admin_model_clinic_exclude_sql(string $column = "clinic_id"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_exclude_sql
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic exclude sql” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `admin_scope_guard_stats`, `admin_scope_guard_groups`, `platform_backend_selftest`, `admin_global_ops_finance_html`, `page_admin_health`, `page_admin_integrity`, `page_admin_painel`, `page_admin_clinics`.
-     * Dependências chamadas: `.Core.Metrics.GlobalMetricScope::modelClinicSql`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicSql($column);
     } catch (Throwable $e) {
@@ -1595,15 +1595,15 @@ function admin_model_clinic_exclude_sql(string $column = "clinic_id"): string
 }
 function admin_model_clinic_exclude_where(string $column = "clinic_id"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_exclude_where
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic exclude where” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `platform_backend_selftest`, `page_admin_health`, `page_admin_integrity`.
-     * Dependências chamadas: `.Core.Metrics.GlobalMetricScope::modelClinicWhere`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicWhere(
             $column,
@@ -1614,28 +1614,28 @@ function admin_model_clinic_exclude_where(string $column = "clinic_id"): string
 }
 function admin_model_clinic_count_note(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — admin_model_clinic_count_note
-     * Responsabilidade: Implementa a responsabilidade “admin model clinic count note” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_admin_health`, `page_admin_integrity`.
-     * Dependências chamadas: `.Core.Metrics.GlobalMetricScope::countNote`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return \Prontoo\Core\Metrics\GlobalMetricScope::countNote();
 }
 function open_incidents_count(): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — open_incidents_count
-     * Responsabilidade: Valida e executa a mutação “open incidents count”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `cached_val`.
-     * Efeitos colaterais: consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return (int) cached_val(
             "kpi_errors_open",
@@ -1648,15 +1648,15 @@ function open_incidents_count(): int
 }
 function clinic_metric_inc(?int $clinicId, string $metric, int $by = 1): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_metric_inc
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “clinic metric inc”.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`, `financial_notify_drawer_locked`, `financial_notify_opening_authorization_request`, `page_leads`, `maestro_create_action`, `page_patients`, `page_patient`, `save_team_member` e mais 5.
-     * Dependências chamadas: `q`, `counter_key`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$clinicId) {
         return;
     }
@@ -1671,15 +1671,15 @@ function clinic_metric_inc(?int $clinicId, string $metric, int $by = 1): void
 }
 function clinic_read_only_db(int $cid): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_read_only_db
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “clinic read only db” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `financial_ensure_default_accounts`, `financial_ensure_admin_safe`, `financial_cashier_requires_attention`, `maestro_run_rule_scoped`, `financial_cashier_requires_attention_light`.
-     * Dependências chamadas: `array_key_exists`, `one`, `trim`, `function_exists`, `subscription_paid_is_active`, `app_date_only_end_timestamp`, `time`, `subscription_trial_is_active`, `app_storage_timestamp`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $cache = [];
     if ($cid <= 0) {
         return false;
@@ -1725,16 +1725,16 @@ function clinic_read_only_db(int $cid): bool
 }
 function clinic_context_required(?array $ctx = null): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_context_required
-     * Responsabilidade: Implementa a responsabilidade “clinic context required” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `clinic_id_required`.
-     * Dependências chamadas: `ctx`, `ProntooHttpError`.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $ctx = $ctx ?: ctx();
     if (
         !$ctx ||
@@ -1750,39 +1750,39 @@ function clinic_context_required(?array $ctx = null): array
 }
 function clinic_id_required(?array $ctx = null): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_id_required
-     * Responsabilidade: Implementa a responsabilidade “clinic id required” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`.
-     * Dependências chamadas: `clinic_context_required`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ctx = clinic_context_required($ctx);
     return (int) $ctx["clinic_id"];
 }
 function seed_clinic_roles(int $clinicId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — seed_clinic_roles
-     * Responsabilidade: Implementa a responsabilidade “seed clinic roles” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `clinic_role_label_fields`, `clinic_role_sector_fields`, `clinic_roles`, `closure@app/Domain/Clinic/ClinicConfig.php:1377`, `clinic_role_icons`, `closure@app/Domain/Clinic/ClinicConfig.php:1422` e mais 2.
-     * Dependências chamadas: `with_read_only_guard_disabled`, `in_array`, `q`, `default_role_icon`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     with_read_only_guard_disabled(static function () use ($clinicId): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1352
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `in_array`, `q`, `default_role_icon`.
-         * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
         $position = 1;
         foreach (PRONTOO_ROLES as $code => $label) {
             $enabled = in_array($code, ["medico", "gerente"], true) ? 1 : 0;
@@ -1804,28 +1804,28 @@ function seed_clinic_roles(int $clinicId): void
 
 function clinic_roles(int $clinicId, bool $enabledOnly = false): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_roles
-     * Responsabilidade: Implementa a responsabilidade “clinic roles” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `clinic_role_label_fields`, `clinic_role_sector_fields`, `clinic_role_options`, `role_label_for`.
-     * Dependências chamadas: `q`, `->fetchAll`, `seed_clinic_roles`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId <= 0) {
         return $enabledOnly ? [] : PRONTOO_ROLES;
     }
     $loader = function () use ($clinicId, $enabledOnly): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1377
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `q`, `->fetchAll`, `seed_clinic_roles`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $rows = q(
             "SELECT role_code,label,enabled FROM pi_clinic_roles WHERE clinic_id=? ORDER BY sort_order, role_code",
             [$clinicId],
@@ -1863,15 +1863,15 @@ function clinic_roles(int $clinicId, bool $enabledOnly = false): array
 }
 function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_role_icons
-     * Responsabilidade: Implementa a responsabilidade “clinic role icons” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `role_icon_for`.
-     * Dependências chamadas: `array_keys`, `default_role_icon`, `seed_clinic_roles`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `role_icon_options`, `trim`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key` e mais 1.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $fallback = [];
     foreach (array_keys(PRONTOO_ROLES) as $role) {
         $fallback[$role] = default_role_icon($role);
@@ -1880,15 +1880,15 @@ function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
         return $enabledOnly ? [] : $fallback;
     }
     $loader = function () use ($clinicId, $enabledOnly, $fallback): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1422
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `seed_clinic_roles`, `q`, `->fetchAll`, `error_log`, `->getMessage`, `role_icon_options`, `trim`, `default_role_icon`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         seed_clinic_roles($clinicId);
         try {
             $rows = q(
@@ -1932,28 +1932,28 @@ function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
 }
 function clinic_role_options(int $clinicId, bool $enabledOnly = true): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_role_options
-     * Responsabilidade: Implementa a responsabilidade “clinic role options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `agenda_note_form_html`, `page_appointments`, `maestro_save_rule`, `page_maestro`, `maestro_create_action`, `workflow_valid_role`, `create_workflow_task`, `page_tasks`.
-     * Dependências chamadas: `clinic_roles`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return clinic_roles($clinicId, $enabledOnly);
 }
 function role_label_for(string $role, ?int $clinicId = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — role_label_for
-     * Responsabilidade: Monta a representação de interface associada a “role label for” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `onboarding_tip_copy`, `page_profile`, `agenda_note_form_html`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3468`, `activity_environment_label`, `audit_enrich_context`, `audit` e mais 20.
-     * Dependências chamadas: `clinic_roles`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId && $clinicId > 0) {
         $roles = clinic_roles($clinicId, false);
         if (isset($roles[$role])) {
@@ -1964,15 +1964,15 @@ function role_label_for(string $role, ?int $clinicId = null): string
 }
 function role_icon_for(string $role, ?int $clinicId = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — role_icon_for
-     * Responsabilidade: Implementa a responsabilidade “role icon for” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `role_icon`.
-     * Dependências chamadas: `clinic_role_icons`, `default_role_icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($clinicId && $clinicId > 0) {
         $icons = clinic_role_icons($clinicId, false);
         if (isset($icons[$role])) {
@@ -1983,15 +1983,15 @@ function role_icon_for(string $role, ?int $clinicId = null): string
 }
 function is_responsible_doctor(array $c): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — is_responsible_doctor
-     * Responsabilidade: Avalia ou impõe a regra “is responsible doctor”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_onboarding`, `onboarding_pending`.
-     * Dependências chamadas: `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (($c["scope"] ?? "") !== "clinic") {
         return false;
     }
@@ -2002,15 +2002,15 @@ function is_responsible_doctor(array $c): bool
 }
 function onboarding_pending(?array $c = null): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — onboarding_pending
-     * Responsabilidade: Implementa a responsabilidade “onboarding pending” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `prontoo_run`.
-     * Dependências chamadas: `ctx`, `is_responsible_doctor`, `val`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $c ??= ctx();
     if (!$c || ($c["scope"] ?? "") !== "clinic" || !is_responsible_doctor($c)) {
         return false;
@@ -2021,15 +2021,15 @@ function onboarding_pending(?array $c = null): bool
 }
 function br_states(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — br_states
-     * Responsabilidade: Implementa a responsabilidade “br states” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `clinic_location_fields`, `page_settings`, `patient_address_fields`, `patient_location_from_post`, `person_common_profile_fields_html`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "AC" => "Acre",
         "AL" => "Alagoas",
@@ -2062,30 +2062,30 @@ function br_states(): array
 }
 function valid_timezone(string $tz): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — valid_timezone
-     * Responsabilidade: Implementa a responsabilidade “valid timezone” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `ctx`.
-     * Dependências chamadas: `in_array`, `timezone_identifiers_list`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return in_array($tz, timezone_identifiers_list(), true)
         ? $tz
         : "America/Cuiaba";
 }
 function timezone_from_location(string $uf, string $city = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — timezone_from_location
-     * Responsabilidade: Implementa a responsabilidade “timezone from location” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `clinic_location_fields`, `page_settings`.
-     * Dependências chamadas: `strtoupper`, `trim`, `mb_strtolower`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $uf = strtoupper(trim($uf));
     $cityNorm = mb_strtolower(trim($city));
     $exceptions = [
@@ -2115,15 +2115,15 @@ function timezone_from_location(string $uf, string $city = ""): string
 }
 function clinic_location_fields(array $cl = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_location_fields
-     * Responsabilidade: Implementa a responsabilidade “clinic location fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_signup`, `page_onboarding`, `page_settings`.
-     * Dependências chamadas: `timezone_from_location`, `e`, `br_states`, `form_row`, `input`, `select_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $uf = (string) ($cl["address_state"] ?? "MT");
     $city = (string) ($cl["address_city"] ?? "");
     $cityIbge = (string) ($cl["address_city_ibge"] ?? "");
@@ -2173,28 +2173,28 @@ function clinic_location_fields(array $cl = []): string
 }
 function role_icon(string $r, ?int $clinicId = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — role_icon
-     * Responsabilidade: Implementa a responsabilidade “role icon” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_profile`, `clinic_choice_card`, `page_permissions`, `page`, `page_head_icon_name`.
-     * Dependências chamadas: `role_icon_for`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return role_icon_for($r, $clinicId) ?: "badge";
 }
 function clinic_choice_card(array $r): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_choice_card
-     * Responsabilidade: Monta a representação de interface associada a “clinic choice card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `trim`, `role_label_for`, `function_exists`, `role_icon`, `icon`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $place = trim(
         (string) ($r["address_city"] ?? "") .
             (!empty($r["address_state"]) ? " / " . $r["address_state"] : ""),
@@ -2221,25 +2221,25 @@ function clinic_choice_card(array $r): string
 }
 function clinic_options_global(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_options_global
-     * Responsabilidade: Implementa a responsabilidade “clinic options global” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `q`, `->fetchAll`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `server_json_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $loader = function (): array {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Clinic/ClinicConfig.php:1656
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `q`, `->fetchAll`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $rows = q(
             "SELECT id,display_name FROM pi_clinics ORDER BY id DESC LIMIT 500",
         )->fetchAll();
@@ -2266,15 +2266,15 @@ function clinic_usage_icon(
     string $label,
     string $short,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_usage_icon
-     * Responsabilidade: Implementa a responsabilidade “clinic usage icon” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Clinic/ClinicConfig.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return '<span class="usage-cell" title="' .
         e($label . " nos últimos 30 dias: " . $value) .
         '" aria-label="' .

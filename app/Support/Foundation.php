@@ -3,28 +3,28 @@ declare(strict_types=1);
 @date_default_timezone_set("UTC");
 function app_root(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_root
-     * Responsabilidade: Implementa a responsabilidade “app root” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_diagnostics`, `page_admin_security`, `subscription_payment_proof_absolute_path`, `document_pdf_public_router_dir`, `install_pdf_dir`, `install_technical_report`, `cfg_file`, `runtime_self_check` e mais 3.
-     * Dependências chamadas: `defined`, `dirname`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return defined("PRONTOO_ROOT") ? PRONTOO_ROOT : dirname(__DIR__, 2);
 }
 function cfg_file(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cfg_file
-     * Responsabilidade: Implementa a responsabilidade “cfg file” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `install_environment_checks`, `install_technical_report`, `prontoo_install`, `has_cfg`, `cfg`.
-     * Dependências chamadas: `trim`, `getenv`, `str_starts_with`, `app_root`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $env = trim((string) (getenv("PRONTOO_CONFIG_PATH") ?: ""));
     if ($env !== "" && str_starts_with($env, "/")) {
         return $env;
@@ -33,41 +33,41 @@ function cfg_file(): string
 }
 function has_cfg(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — has_cfg
-     * Responsabilidade: Avalia ou impõe a regra “has cfg”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `admin_maestro_health_pill_html`, `admin_alerts_ensure_schema`, `onboarding_tips_ensure_schema`, `login_last_credential_remember`, `login_last_credential_from_meta`, `login_last_credential_from_devices`, `ensure_runtime_schema_minimum`, `agenda_notes_ensure_schema` e mais 39.
-     * Dependências chamadas: `is_file`, `cfg_file`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return is_file(cfg_file());
 }
 function now(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — now
-     * Responsabilidade: Implementa a responsabilidade “now” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `document_template_status_after_save`, `document_issue_context`, `financial_sync_appointment`, `billing_state`.
-     * Dependências chamadas: `time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return (string) time();
 }
 function app_timezone_safe(string $tz): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_timezone_safe
-     * Responsabilidade: Implementa a responsabilidade “app timezone safe” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `app_global_admin_timezone`, `app_timezone_offset_string`, `app_timezone_offset_minutes`, `app_apply_request_timezone`, `app_context_timezone`, `page`.
-     * Dependências chamadas: `trim`, `in_array`, `timezone_identifiers_list`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $tz = trim($tz);
     return in_array($tz, timezone_identifiers_list(), true)
         ? $tz
@@ -75,16 +75,16 @@ function app_timezone_safe(string $tz): string
 }
 function app_global_admin_timezone(int $userId = 0): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_global_admin_timezone
-     * Responsabilidade: Implementa a responsabilidade “app global admin timezone” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `mark_login_success`, `ctx`.
-     * Dependências chamadas: `has_cfg`, `function_exists`, `val`, `app_timezone_safe`, `error_log`, `->getMessage`.
-     * Estado externo lido: `$_SESSION`, `$GLOBALS`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; lê ou altera a sessão; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $userId = $userId > 0 ? $userId : (int) ($_SESSION["uid"] ?? 0);
     if ($userId > 0 && has_cfg() && function_exists("val")) {
         try {
@@ -126,15 +126,15 @@ function app_global_admin_timezone(int $userId = 0): string
 }
 function app_force_utc_runtime(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_force_utc_runtime
-     * Responsabilidade: Implementa a responsabilidade “app force utc runtime” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `app_apply_request_timezone`.
-     * Dependências chamadas: `date_default_timezone_set`, `function_exists`, `has_cfg`, `pdo`, `->exec`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     @date_default_timezone_set("UTC");
     if (function_exists("pdo") && has_cfg()) {
         try {
@@ -146,16 +146,16 @@ function app_force_utc_runtime(): void
 }
 function app_timezone_offset_string(string $tz, ?int $timestamp = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_timezone_offset_string
-     * Responsabilidade: Implementa a responsabilidade “app timezone offset string” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `DateTimeZone`, `app_timezone_safe`, `DateTimeImmutable`, `time`, `->getOffset`, `abs`, `sprintf`, `intdiv`.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $zone = new DateTimeZone(app_timezone_safe($tz));
     $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
     $offset = $zone->getOffset($dt);
@@ -170,47 +170,47 @@ function app_timezone_offset_string(string $tz, ?int $timestamp = null): string
 }
 function app_timezone_offset_minutes(string $tz, ?int $timestamp = null): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_timezone_offset_minutes
-     * Responsabilidade: Implementa a responsabilidade “app timezone offset minutes” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `DateTimeZone`, `app_timezone_safe`, `DateTimeImmutable`, `time`, `floor`, `->getOffset`.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $zone = new DateTimeZone(app_timezone_safe($tz));
     $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
     return (int) floor($zone->getOffset($dt) / 60);
 }
 function app_apply_request_timezone(string $tz): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_apply_request_timezone
-     * Responsabilidade: Implementa a responsabilidade “app apply request timezone” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `mark_login_success`, `ctx`, `server_json_cache_apply_context_session`.
-     * Dependências chamadas: `app_timezone_safe`, `app_force_utc_runtime`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = app_timezone_safe($tz);
     app_force_utc_runtime();
 }
 function app_context_timezone(?array $context = null, int $clinicId = 0): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_context_timezone
-     * Responsabilidade: Implementa a responsabilidade “app context timezone” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `doctor_work_ranges_for_day`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:4397`, `audit_activity_day_name`, `financial_dashboard_numbers`, `financial_default_drawer_unlock_local`, `financial_schedule_drawer_unlock`, `patient_week_utc_range` e mais 4.
-     * Dependências chamadas: `is_array`, `trim`, `app_timezone_safe`, `function_exists`, `has_cfg`, `val`, `error_log`, `->getMessage`, `ctx`.
-     * Estado externo lido: `$GLOBALS`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (
         is_array($context) &&
         trim((string) ($context["timezone"] ?? "")) !== ""
@@ -257,32 +257,32 @@ function app_context_timezone(?array $context = null, int $clinicId = 0): string
 }
 function app_now_utc(): DateTimeImmutable
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_now_utc
-     * Responsabilidade: Implementa a responsabilidade “app now utc” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `financial_drawer_auto_unlock_row_if_due`, `app_now_in_timezone`.
-     * Dependências chamadas: `DateTimeImmutable`, `DateTimeZone`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     return new DateTimeImmutable("now", new DateTimeZone("UTC"));
 }
 function app_now_in_timezone(
     int $clinicId = 0,
     ?array $context = null,
 ): DateTimeImmutable {
-    /*
-     * GUIA DE MANUTENÇÃO — app_now_in_timezone
-     * Responsabilidade: Implementa a responsabilidade “app now in timezone” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `financial_default_drawer_unlock_local`, `app_today_in_timezone`, `app_datetime_br`.
-     * Dependências chamadas: `app_now_utc`, `->setTimezone`, `DateTimeZone`, `app_context_timezone`.
-     * Classes ou serviços instanciados: `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     return app_now_utc()->setTimezone(
         new DateTimeZone(app_context_timezone($context, $clinicId)),
     );
@@ -291,15 +291,15 @@ function app_today_in_timezone(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_today_in_timezone
-     * Responsabilidade: Implementa a responsabilidade “app today in timezone” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_appointments`, `audit_period_options`, `audit_period_clause`, `page_audit`, `financial_dashboard_numbers`, `financial_today`, `page_leads`, `patient_week_utc_range` e mais 12.
-     * Dependências chamadas: `app_now_in_timezone`, `->format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_now_in_timezone($clinicId, $context)->format("Y-m-d");
 }
 function app_month_in_timezone(
@@ -307,15 +307,15 @@ function app_month_in_timezone(
     ?array $context = null,
     ?DateTimeImmutable $nowUtc = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_month_in_timezone
-     * Responsabilidade: Resolve a chave mensal no fuso do consultório, sem depender do UTC global do processo.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: metas financeiras, cmdBar compartilhada, painel do gerente e certificação matemática do CI.
-     * Dependências chamadas: `app_now_utc`, `app_context_timezone`, `DateTimeZone`.
-     * Efeitos colaterais: pode consultar o fuso do consultório quando o contexto não o fornece.
-     * Cuidado 1: O argumento temporal opcional existe para testes determinísticos de virada de mês.
-     */
+    
+
+
+
+
+
+
+
+
     $nowUtc ??= app_now_utc();
     return $nowUtc
         ->setTimezone(
@@ -328,15 +328,15 @@ function app_local_month_utc_range(
     int $clinicId = 0,
     ?array $context = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — app_local_month_utc_range
-     * Responsabilidade: Converte um mês civil do consultório no intervalo UTC semiaberto usado pelas consultas persistentes.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: métricas e metas mensais.
-     * Dependências chamadas: `preg_match`, `app_month_in_timezone`, `app_context_timezone`, `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: pode consultar o fuso do consultório quando o contexto não o fornece.
-     * Cuidado 1: Use sempre o intervalo [início, próximo mês) para evitar sobreposição.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) !== 1 ||
         !checkdate((int) $parts[2], 1, (int) $parts[1])
@@ -354,16 +354,16 @@ function app_local_month_utc_range(
 }
 function app_parse_db_utc(null|string|int $value): ?DateTimeImmutable
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_parse_db_utc
-     * Responsabilidade: Transforma e normaliza “app parse db utc” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `agenda_validate_period_message`, `financial_drawer_auto_unlock_row_if_due`, `patient_appointment_duration_label`, `patient_appointment_elapsed_until_now_label`, `patient_appointment_not_started_label`, `app_db_utc_to_local`.
-     * Dependências chamadas: `trim`, `preg_match`, `DateTimeImmutable`, `DateTimeZone`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return null;
@@ -382,16 +382,16 @@ function app_db_utc_to_local(
     int $clinicId = 0,
     ?array $context = null,
 ): ?DateTimeImmutable {
-    /*
-     * GUIA DE MANUTENÇÃO — app_db_utc_to_local
-     * Responsabilidade: Opera a etapa “app db utc to local” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `admin_maestro_health_time_label`, `appointment_within_doctor_hours`, `agenda_validate_period_message`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:4037`, `closure@app/Domain/Appointments/Appointments.php:4602`, `patient_reception_story_time`, `patient_appointment_not_started_label` e mais 9.
-     * Dependências chamadas: `app_parse_db_utc`, `->setTimezone`, `DateTimeZone`, `app_context_timezone`.
-     * Classes ou serviços instanciados: `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $dt = app_parse_db_utc($value);
     if (!$dt) {
         return null;
@@ -405,16 +405,16 @@ function app_local_to_db_utc(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_local_to_db_utc
-     * Responsabilidade: Opera a etapa “app local to db utc” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `normalize_db_datetime`, `page_leads`, `closure@app/Domain/Leads/Leads.php:462`, `page_admin_global_notices`, `page_tasks`.
-     * Dependências chamadas: `trim`, `class_exists`, `.Core.Temporal.PiTime::fromLocalToUtcTimestamp`, `preg_match`, `DateTimeImmutable`, `DateTimeZone`, `app_context_timezone`, `->setTimezone`, `->getTimestamp`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return "";
@@ -441,15 +441,15 @@ function app_storage_timestamp(
     null|string|int $value,
     bool $endOfDay = false,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — app_storage_timestamp
-     * Responsabilidade: Implementa a responsabilidade “app storage timestamp” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_painel`, `appointment_journey_hard_guard_message`, `appointment_journey_elapsed_label`, `closure@app/Domain/Appointments/Appointments.php:561`, `appointment_journey_view_model`, `appointment_journey_view_code`, `appointment_journey_role_actions`, `delay_minutes_from_appointment` e mais 22.
-     * Dependências chamadas: `trim`, `preg_match`, `strtotime`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return 0;
@@ -468,15 +468,15 @@ function app_storage_timestamp(
 }
 function app_date_input_from_storage(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_date_input_from_storage
-     * Responsabilidade: Implementa a responsabilidade “app date input from storage” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `admin_clinic_detail_page`, `db_birth_date_input`, `upsert_person`, `save_person_flexible`, `page_counterparty_lookup`, `financial_drawer_daily_totals_map`, `page_lead_patient_lookup`, `patient_autosuggest_datalist` e mais 6.
-     * Dependências chamadas: `trim`, `preg_match`, `gmdate`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
         return "";
@@ -493,15 +493,15 @@ function app_db_utc_to_local_input(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_db_utc_to_local_input
-     * Responsabilidade: Opera a etapa “app db utc to local input” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `datetime_local_value`, `page_lead_lookup`, `page_leads`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("Y-m-d\TH:i") : "";
 }
@@ -510,16 +510,16 @@ function app_local_day_utc_range(
     int $clinicId = 0,
     ?array $context = null,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — app_local_day_utc_range
-     * Responsabilidade: Implementa a responsabilidade “app local day utc range” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_appointments`, `audit_period_clause`, `financial_dashboard_numbers`, `financial_daily_consolidation_state`, `financial_admin_daily_consolidation_html`, `financial_cashier_pending_receipts_html`, `financial_admin_daily_ledger_timeline`, `financial_admin_daily_conference_panel` e mais 14.
-     * Dependências chamadas: `preg_match`, `app_today_in_timezone`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->modify`, `->setTimezone`, `->getTimestamp`.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
         $day = app_today_in_timezone($clinicId, $context);
     }
@@ -536,15 +536,15 @@ function app_date_only_end_timestamp(
     int $clinicId = 0,
     ?array $context = null,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — app_date_only_end_timestamp
-     * Responsabilidade: Implementa a responsabilidade “app date only end timestamp” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `clinic_read_only_db`, `subscription_paid_is_active`, `billing_state`.
-     * Dependências chamadas: `app_date_input_from_storage`, `preg_match`, `checkdate`, `app_local_day_utc_range`, `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ymd = app_date_input_from_storage($value);
     if ($ymd === "" || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) {
         return 0;
@@ -560,15 +560,15 @@ function app_time_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_time_br
-     * Responsabilidade: Implementa a responsabilidade “app time br” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `agenda_conflict_message`, `page_appointments`, `closure@app/Domain/Appointments/Appointments.php:3790`, `closure@app/Domain/Appointments/Appointments.php:3850`, `closure@app/Domain/Appointments/Appointments.php:4397`, `financial_cashier_pending_receipts_html`, `financial_admin_drawers_panel`, `financial_admin_daily_ledger_timeline` e mais 8.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("H:i") : "--:--";
 }
@@ -577,15 +577,15 @@ function app_date_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_date_br
-     * Responsabilidade: Implementa a responsabilidade “app date br” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `financial_creditor_directory_card`, `patient_directory_card`, `page_patient_suggest`, `date_br`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("d/m/Y") : "—";
 }
@@ -594,15 +594,15 @@ function app_datetime_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_datetime_br
-     * Responsabilidade: Implementa a responsabilidade “app datetime br” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `activity_time_direct`, `dt_br`.
-     * Dependências chamadas: `app_db_utc_to_local`, `trim`, `prontoo_months_br`, `->format`, `app_now_in_timezone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     if (!$dt) {
         return trim((string) ($value ?? "")) ?: "—";
@@ -619,15 +619,15 @@ function app_datetime_br(
 }
 function patient_display_name(int $patientLinkId, ?int $cid = null): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_display_name
-     * Responsabilidade: Implementa a responsabilidade “patient display name” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_appointments`, `maestro_fetch_candidates`, `workflow_on_appointment_finished`, `workflow_on_patient_arrived`, `workflow_on_task_completed`.
-     * Dependências chamadas: `function_exists`, `trim`, `audit_patient_name_by_link`, `val`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         if (function_exists("audit_patient_name_by_link")) {
             $name = trim((string) audit_patient_name_by_link($patientLinkId, $cid));
@@ -653,28 +653,28 @@ function patient_display_name(int $patientLinkId, ?int $cid = null): string
 }
 function maintenance_active(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — maintenance_active
-     * Responsabilidade: Implementa a responsabilidade “maintenance active” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `prontoo_run`.
-     * Dependências chamadas: `has_cfg`, `function_exists`, `meta_get`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return has_cfg() && function_exists("meta_get") && meta_get("maintenance_active", "0") === "1";
 }
 function page_maintenance_notice(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_maintenance_notice
-     * Responsabilidade: Coordena a rota e renderiza a tela “page maintenance notice”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `prontoo_run`.
-     * Dependências chamadas: `function_exists`, `meta_get`, `page`, `e`, `href`.
-     * Efeitos colaterais: produz conteúdo de saída.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $message = function_exists("meta_get")
         ? meta_get(
             "maintenance_message",
@@ -693,28 +693,28 @@ function page_maintenance_notice(): void
 }
 function only_digits(string $s): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — only_digits
-     * Responsabilidade: Implementa a responsabilidade “only digits” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `valid_cpf`, `valid_cnpj`, `page_login`, `page_signup`, `upsert_person`, `save_person_flexible`, `phone_br`, `page_person_lookup` e mais 40.
-     * Dependências chamadas: `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return preg_replace("/\D+/", "", $s) ?? "";
 }
 function cpf_br(?string $cpf): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cpf_br
-     * Responsabilidade: Implementa a responsabilidade “cpf br” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `admin_clinic_detail_page`, `page_person_lookup`, `document_issue_context`.
-     * Dependências chamadas: `only_digits`, `strlen`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $d = only_digits((string) ($cpf ?? ""));
     return strlen($d) === 11
         ? substr($d, 0, 3) .
@@ -728,15 +728,15 @@ function cpf_br(?string $cpf): string
 }
 function app_config_string(string $key, string $default = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_config_string
-     * Responsabilidade: Implementa a responsabilidade “app config string” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `document_pdf_token_secret`, `app_is_production`, `app_canonical_host`.
-     * Dependências chamadas: `function_exists`, `has_cfg`, `cfg`, `is_scalar`, `trim`, `error_log`, `->getMessage`, `getenv`, `strtoupper`, `is_string`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         if (function_exists("cfg") && has_cfg()) {
             $c = cfg();
@@ -752,15 +752,15 @@ function app_config_string(string $key, string $default = ""): string
 }
 function app_is_production(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_is_production
-     * Responsabilidade: Avalia ou impõe a regra “app is production”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `app_enforce_canonical_host`, `request_host`, `app_debug`.
-     * Dependências chamadas: `has_cfg`, `strtolower`, `app_config_string`, `getenv`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $defaultEnv = has_cfg() ? "production" : "development";
     $env = strtolower(
         app_config_string(
@@ -775,15 +775,15 @@ function app_is_production(): bool
 
 function app_canonical_host(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_canonical_host
-     * Responsabilidade: Implementa a responsabilidade “app canonical host” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `app_enforce_canonical_host`, `request_host`.
-     * Dependências chamadas: `app_config_string`, `defined`, `strtolower`, `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $host = app_config_string(
         "canonical_host",
         defined("PRONTOO_CANONICAL_HOST")
@@ -802,32 +802,32 @@ function app_canonical_host(): string
 }
 function request_host_raw(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — request_host_raw
-     * Responsabilidade: Implementa a responsabilidade “request host raw” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `app_enforce_canonical_host`, `request_host`.
-     * Dependências chamadas: `preg_replace`.
-     * Estado externo lido: `$_SERVER`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $host = (string) ($_SERVER["HTTP_HOST"] ?? "localhost");
     $host = preg_replace("/[^a-zA-Z0-9\.\-:\[\]]/", "", $host) ?: "localhost";
     return $host;
 }
 function app_enforce_canonical_host(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_enforce_canonical_host
-     * Responsabilidade: Implementa a responsabilidade “app enforce canonical host” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `guard_request`.
-     * Dependências chamadas: `app_is_production`, `app_canonical_host`, `strtolower`, `preg_replace`, `request_host_raw`, `in_array`, `ProntooHttpError`.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (PHP_SAPI === "cli" || !app_is_production()) {
         return;
     }
@@ -852,16 +852,16 @@ function app_enforce_canonical_host(): void
 
 function is_https(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — is_https
-     * Responsabilidade: Avalia ou impõe a regra “is https”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `base_url`.
-     * Dependências chamadas: `function_exists`, `security_https_active`.
-     * Estado externo lido: `$_SERVER`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (function_exists("security_https_active")) {
         return security_https_active();
     }
@@ -870,15 +870,15 @@ function is_https(): bool
 }
 function request_host(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — request_host
-     * Responsabilidade: Implementa a responsabilidade “request host” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `base_url`.
-     * Dependências chamadas: `app_is_production`, `app_canonical_host`, `request_host_raw`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $canonical = app_is_production() ? app_canonical_host() : "";
     if ($canonical !== "") {
         return $canonical;
@@ -887,31 +887,31 @@ function request_host(): string
 }
 function base_path(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — base_path
-     * Responsabilidade: Implementa a responsabilidade “base path” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `onboarding_tip_dismiss`, `document_pdf_public_url`, `base_url`, `href`.
-     * Dependências chamadas: `rtrim`, `str_replace`.
-     * Estado externo lido: `$_SERVER`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $script = (string) ($_SERVER["SCRIPT_NAME"] ?? "/");
     $dir = rtrim(str_replace(["install.php", "index.php"], "", $script), "/");
     return $dir ?: "";
 }
 function base_url(string $suffix = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — base_url
-     * Responsabilidade: Implementa a responsabilidade “base url” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `is_https`, `request_host`, `base_path`, `ltrim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return (is_https() ? "https://" : "http://") .
         request_host() .
         base_path() .
@@ -920,30 +920,30 @@ function base_url(string $suffix = ""): string
 }
 function href(string $route, array $params = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — href
-     * Responsabilidade: Implementa a responsabilidade “href” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `stat_link_card`, `admin_quick_links`, `admin_global_compact_pill`, `page_admin_health`, `page_admin_maintenance`, `page_admin_painel`, `admin_clinic_detail_page`, `page_admin_clinics` e mais 73.
-     * Dependências chamadas: `base_path`, `http_build_query`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return (base_path() ?: "") .
         "/?" .
         http_build_query(["r" => $route] + $params);
 }
 function redirect(string $route, array $params = []): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — redirect
-     * Responsabilidade: Implementa a responsabilidade “redirect” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_deleted`, `page_admin_errors`, `page_admin_onboarding`, `page_admin_maintenance`, `page_admin_settings`, `page_admin_painel`, `page_admin_users`, `page_admin_stats` e mais 37.
-     * Dependências chamadas: `headers_sent`, `header`, `href`.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
     if (!headers_sent()) {
         header("Location: " . href($route, $params));
     }
@@ -951,30 +951,30 @@ function redirect(string $route, array $params = []): void
 }
 function route(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — route
-     * Responsabilidade: Implementa a responsabilidade “route” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `onboarding_tip_dismiss`, `financial_cash_exception_debug`, `financial_cash_debug_request_active`, `prontoo_run`, `log_runtime_error`, `check_csrf`, `device_session_remember_after_login`, `device_session_update_current_context` e mais 11.
-     * Dependências chamadas: `preg_replace`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     return preg_replace("/[^a-z0-9_\-]/i", "", $_GET["r"] ?? "login") ?:
         "login";
 }
 function app_debug(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_debug
-     * Responsabilidade: Implementa a responsabilidade “app debug” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_diagnostics`, `financial_cash_debug_details_enabled`, `app_fail`.
-     * Dependências chamadas: `app_is_production`, `getenv`, `has_cfg`, `cfg`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         app_is_production() &&
         (string) getenv("PRONTOO_ALLOW_PRODUCTION_DEBUG") !== "1"
@@ -993,15 +993,15 @@ function app_public_error_message(
     Throwable $error,
     string $fallback = "Não foi possível concluir esta ação.",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — app_public_error_message
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “app public error message”.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_profile`, `page_settings`, `page_documents`, `page_creditors`, `financial_admin_page`, `page_patient`, `page_user`.
-     * Dependências chamadas: `trim`, `->getMessage`, `preg_match`, `mb_substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $message = trim($error->getMessage());
     if ($message === "" || $error instanceof PDOException) {
         return $fallback;
@@ -1019,15 +1019,15 @@ function app_public_error_message(
 
 function app_fail(Throwable $e, int $status = 500): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — app_fail
-     * Responsabilidade: Implementa a responsabilidade “app fail” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `prontoo_install`, `prontoo_run`.
-     * Dependências chamadas: `error_log`, `function_exists`, `privacy_sanitize_error_message`, `->getMessage`, `privacy_log_file_label`, `->getFile`, `basename`, `->getLine`, `log_runtime_error`, `headers_sent`, `http_response_code`, `header` e mais 6.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
     $status = $e instanceof ProntooHttpError ? $e->status : $status;
     $http = $e instanceof ProntooHttpError;
     if (!$http || $status >= 500) {
@@ -1087,28 +1087,28 @@ function app_fail(Throwable $e, int $status = 500): void
 }
 function runtime_self_check(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — runtime_self_check
-     * Responsabilidade: Avalia ou impõe a regra “runtime self check”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `prontoo_install`, `prontoo_run_runtime_maintenance_cycle`.
-     * Dependências chamadas: `.Core.Install.RuntimeContract::assert`, `app_root`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     \Prontoo\Core\Install\RuntimeContract::assert(app_root(), PRONTOO_VERSION);
 }
 function cfg(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cfg
-     * Responsabilidade: Implementa a responsabilidade “cfg” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `pdo_metric`.
-     * Dependências chamadas: `has_cfg`, `cfg_file`, `is_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $c = null;
     if ($c !== null) {
         return $c;
@@ -1118,28 +1118,28 @@ function cfg(): array
 }
 function storage_path(string $path = ""): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — storage_path
-     * Responsabilidade: Implementa a responsabilidade “storage path” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `platform_storage_status`, `db_runtime_notice_once`, `schema_lock_file`, `subscription_payment_proof_storage`, `subscription_payment_proof_absolute_path`, `document_pdf_storage_dir`, `document_pdf_cleanup_due`, `maestro_cron_run` e mais 18.
-     * Dependências chamadas: `app_root`, `ltrim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_root() . "/ssd" . ($path ? "/" . ltrim($path, "/") : "");
 }
 function cache_path(string $key): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cache_path
-     * Responsabilidade: Gerencia o cache ou a memoização de “cache path”, reduzindo I/O sem substituir a fonte canônica.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `cache_get`, `cache_set`.
-     * Dependências chamadas: `storage_path`, `is_dir`, `mkdir`, `preg_replace`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $dir = storage_path("cache");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
@@ -1151,15 +1151,15 @@ function cache_path(string $key): string
 }
 function cache_get(string $key, int $ttl): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cache_get
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “cache get” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `cache_remember`, `cached_val`, `log_runtime_error`, `security_rate_limit`.
-     * Dependências chamadas: `cache_path`, `is_file`, `time`, `filemtime`, `file_get_contents`, `json_decode`, `is_array`, `array_key_exists`.
-     * Efeitos colaterais: acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $f = cache_path($key);
     if (!is_file($f) || time() - filemtime($f) > $ttl) {
         return null;
@@ -1173,15 +1173,15 @@ function cache_get(string $key, int $ttl): mixed
 }
 function cache_set(string $key, mixed $value): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cache_set
-     * Responsabilidade: Gerencia o cache ou a memoização de “cache set”, reduzindo I/O sem substituir a fonte canônica.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `cache_remember`, `cached_val`, `log_runtime_error`, `security_rate_limit`.
-     * Dependências chamadas: `file_put_contents`, `cache_path`, `json_encode`, `time`.
-     * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     @file_put_contents(
         cache_path($key),
         json_encode(["t" => time(), "v" => $value], JSON_UNESCAPED_UNICODE),
@@ -1191,15 +1191,15 @@ function cache_set(string $key, mixed $value): mixed
 }
 function cache_remember(string $key, int $ttl, callable $fn): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cache_remember
-     * Responsabilidade: Gerencia o cache ou a memoização de “cache remember”, reduzindo I/O sem substituir a fonte canônica.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `platform_backend_selftest`.
-     * Dependências chamadas: `error_log`, `->getMessage`, `cache_get`, `cache_set`.
-     * Efeitos colaterais: lê, grava ou invalida cache; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
-     */
+    
+
+
+
+
+
+
+
+
     if ($ttl <= 0) {
         try {
             return $fn();
@@ -1221,15 +1221,15 @@ function cache_remember(string $key, int $ttl, callable $fn): mixed
 }
 function cached_val(string $key, int $ttl, string $sql, array $p = []): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — cached_val
-     * Responsabilidade: Implementa a responsabilidade “cached val” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `platform_backend_selftest`, `page_admin_health`, `page_admin_integrity`, `open_incidents_count`, `count_recent_or_counter`.
-     * Dependências chamadas: `max`, `val`, `hash`, `json_encode`, `function_exists`, `server_json_cache_read_allowed`, `server_json_cache_remember`, `cache_get`, `cache_set`.
-     * Efeitos colaterais: acessa a camada de persistência; produz conteúdo de saída; lê, grava ou invalida cache.
-     * Cuidado 1: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
-     */
+    
+
+
+
+
+
+
+
+
     $ttl = max(0, $ttl);
     if ($ttl <= 0) {
         return val($sql, $p);
@@ -1255,7 +1255,7 @@ function cached_val(string $key, int $ttl, string $sql, array $p = []): mixed
             "warm",
             $ck,
             $ttl,
-            /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de serviços transversais de suporte. Dependências diretas: `val`. Efeitos: acessa a camada de persistência. */ fn() => val($sql, $p),
+             fn() => val($sql, $p),
             ["sql"],
         );
     }
@@ -1267,41 +1267,41 @@ function cached_val(string $key, int $ttl, string $sql, array $p = []): mixed
 }
 function bounded_limit(int $n, int $max = PRONTOO_HOT_LIST_LIMIT): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — bounded_limit
-     * Responsabilidade: Implementa a responsabilidade “bounded limit” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `max`, `min`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return max(1, min($max, $n));
 }
 function counter_key(string $name): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — counter_key
-     * Responsabilidade: Implementa a responsabilidade “counter key” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `clinic_metric_inc`, `counter_inc`, `counter_get`.
-     * Dependências chamadas: `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return preg_replace("/[^a-z0-9_\-\.]/i", "_", $name) ?: "counter";
 }
 function counter_inc(string $name, int $by = 1): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — counter_inc
-     * Responsabilidade: Implementa a responsabilidade “counter inc” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_signup`, `page_appointments`, `financial_notify_drawer_locked`, `financial_notify_opening_authorization_request`, `page_leads`, `maestro_create_action`, `page_patients`, `page_patient` e mais 7.
-     * Dependências chamadas: `q`, `counter_key`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         q(
             "INSERT INTO pi_platform_counters (counter_key,counter_value,updated_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE counter_value=counter_value+VALUES(counter_value), updated_at=NOW()",
@@ -1313,15 +1313,15 @@ function counter_inc(string $name, int $by = 1): void
 }
 function counter_get(string $name, int $fallback = 0): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — counter_get
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “counter get” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `val`, `counter_key`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return (int) (val(
             "SELECT counter_value FROM pi_platform_counters WHERE counter_key=?",
@@ -1334,15 +1334,15 @@ function counter_get(string $name, int $fallback = 0): int
 }
 function prontoo_login_selftest_light(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — prontoo_login_selftest_light
-     * Responsabilidade: Implementa a responsabilidade “prontoo login selftest light” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_login_autotest`.
-     * Dependências chamadas: `pdo`, `->query`, `->fetchColumn`, `hash`, `->getMessage`, `db_table_exists`, `function_exists`, `storage_path`, `app_root`, `disk_free_space`, `is_dir`, `is_writable`.
-     * Efeitos colaterais: acessa a camada de persistência.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ok = true;
     $checks = ["mode" => "login_light", "version" => PRONTOO_VERSION];
     try {
@@ -1383,16 +1383,16 @@ function prontoo_login_selftest_light(): array
 }
 function page_login_autotest(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_login_autotest
-     * Responsabilidade: Coordena a rota e renderiza a tela “page login autotest”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `headers_sent`, `header`, `security_rate_limit`, `security_client_bucket`, `http_response_code`, `json_encode`, `prontoo_login_selftest_light`, `device_session_auto_login`, `ctx`, `href`, `function_exists`, `platform_login_loaded_audit` e mais 3.
-     * Efeitos colaterais: controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     * Cuidado 2: Mantenha o evento de auditoria depois da confirmação da operação para não registrar uma ação que falhou.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -1449,15 +1449,15 @@ function person_signature_value(
     string $name,
     ?string $date,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — person_signature_value
-     * Responsabilidade: Implementa a responsabilidade “person signature value” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `upsert_person`, `save_person_flexible`, `lead_prepare_person_for_patient`, `person_signature_sync`.
-     * Dependências chamadas: `only_digits`, `mb_strtolower`, `trim`, `hash_hmac`, `secret_key`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $base =
         only_digits($identity) .
         "|" .
@@ -1468,16 +1468,16 @@ function person_signature_value(
 }
 function person_signature_sync(int $personId, bool $verify = false): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — person_signature_sync
-     * Responsabilidade: Implementa a responsabilidade “person signature sync” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `person_signature_refresh`, `person_signature_refresh_verified`.
-     * Dependências chamadas: `one`, `RuntimeException`, `person_signature_value`, `trim`, `hash_equals`, `q`, `val`, `error_log`, `->getMessage`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($personId <= 0) {
         return;
     }
@@ -1524,28 +1524,28 @@ function person_signature_sync(int $personId, bool $verify = false): void
 }
 function person_signature_refresh(int $personId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — person_signature_refresh
-     * Responsabilidade: Implementa a responsabilidade “person signature refresh” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `person_signature_sync`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     person_signature_sync($personId, false);
 }
 function person_signature_refresh_verified(int $personId): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — person_signature_refresh_verified
-     * Responsabilidade: Implementa a responsabilidade “person signature refresh verified” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `upsert_person`, `save_person_flexible`, `page_user`.
-     * Dependências chamadas: `person_signature_sync`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     person_signature_sync($personId, true);
 }
 function person_identity_immutable_values(
@@ -1554,16 +1554,16 @@ function person_identity_immutable_values(
     ?string $birthInput = null,
     bool $requireMissing = false,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — person_identity_immutable_values
-     * Responsabilidade: Implementa a responsabilidade “person identity immutable values” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `upsert_person`, `save_person_flexible`, `lead_prepare_person_for_patient`, `page_patient`.
-     * Dependências chamadas: `one`, `only_digits`, `trim`, `app_date_input_from_storage`, `RuntimeException`, `valid_cpf`, `valid_birth_date`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $current =
         $personId > 0
             ? (one("SELECT cpf,birth_date FROM pi_persons WHERE id=?", [
@@ -1614,15 +1614,15 @@ function count_recent_or_counter(
     array $p = [],
     int $ttl = PRONTOO_DASHBOARD_COUNTER_TTL,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — count_recent_or_counter
-     * Responsabilidade: Implementa a responsabilidade “count recent or counter” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `cached_val`, `max`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     try {
         return (int) cached_val("counter_" . $counter, max(0, $ttl), $sql, $p);
     } catch (Throwable $e) {
@@ -1634,15 +1634,15 @@ function count_recent_or_counter(
 }
 function meta_cache_ttl(string $key): int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — meta_cache_ttl
-     * Responsabilidade: Gerencia o cache ou a memoização de “meta cache ttl”, reduzindo I/O sem substituir a fonte canônica.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `meta_get`.
-     * Dependências chamadas: `str_starts_with`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (
         $key === "auth_generation" ||
         str_starts_with($key, "auth_user_") ||
@@ -1660,25 +1660,25 @@ function meta_cache_ttl(string $key): int
 }
 function meta_get(string $key, mixed $default = null): mixed
 {
-    /*
-     * GUIA DE MANUTENÇÃO — meta_get
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “meta get” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `login_last_credential_from_meta`, `default_monthly_price_cents`, `default_trial_days`, `subscription_pix_key`, `maintenance_active`, `page_maintenance_notice`, `clinic_signup_blocked` e mais 2.
-     * Dependências chamadas: `val`, `error_log`, `->getMessage`, `function_exists`, `server_json_cache_remember`, `server_json_cache_safe_key`, `meta_cache_ttl`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $loader = function () use ($key, $default): mixed {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Support/Foundation.php:1002
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
-         * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `val`, `error_log`, `->getMessage`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         try {
             $value = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [$key]);
             return $value === null ? $default : $value;
@@ -1700,15 +1700,15 @@ function meta_get(string $key, mixed $default = null): mixed
 }
 function meta_set(string $key, mixed $value): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — meta_set
-     * Responsabilidade: Implementa a responsabilidade “meta set” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `page_admin_clinics`, `login_last_credential_remember`, `default_trial_days`.
-     * Dependências chamadas: `q`, `function_exists`, `str_starts_with`, `server_json_cache_clear_categories`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
     q(
         "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value), updated_at=NOW()",
         [$key, (string) $value],
@@ -1731,15 +1731,15 @@ function meta_set(string $key, mixed $value): void
 }
 function clinic_signup_blocked(): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_signup_blocked
-     * Responsabilidade: Implementa a responsabilidade “clinic signup blocked” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_admin_maintenance`, `page_login`, `page_signup`, `page`.
-     * Dependências chamadas: `function_exists`, `has_cfg`, `meta_get`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!function_exists("has_cfg") || !has_cfg()) {
         return false;
     }
@@ -1747,17 +1747,17 @@ function clinic_signup_blocked(): bool
 }
 function log_runtime_error(Throwable $e, int $status = 500): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — log_runtime_error
-     * Responsabilidade: Registra, consulta ou apresenta evidências técnicas relacionadas a “log runtime error”.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `app_fail`.
-     * Dependências chamadas: `function_exists`, `privacy_sanitize_error_message`, `mb_substr`, `->getMessage`, `privacy_log_file_label`, `->getFile`, `basename`, `storage_path`, `is_dir`, `mkdir`, `security_storage_deny_file`, `date` e mais 12.
-     * Estado externo lido: `$_SERVER`, `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; acessa o sistema de arquivos; lê, grava ou invalida cache; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: O cache é derivado: preserve TTL, chave por escopo e invalidação por tags; nunca o trate como fonte de verdade.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $message = function_exists("privacy_sanitize_error_message")
         ? privacy_sanitize_error_message($e, 900)
         : mb_substr($e->getMessage(), 0, 900);
@@ -1833,40 +1833,40 @@ function log_runtime_error(Throwable $e, int $status = 500): void
 }
 function person_common_profile_schema_ready(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — person_common_profile_schema_ready
-     * Responsabilidade: Opera a etapa “person common profile schema ready” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `financial_creditor_upsert_from_post`, `page_creditors`, `person_common_profile_update`.
-     * Dependências chamadas: `ensure_runtime_schema_minimum`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     ensure_runtime_schema_minimum();
 }
 function person_common_profile_from_array(
     array $data,
     string $prefix = "",
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — person_common_profile_from_array
-     * Responsabilidade: Implementa a responsabilidade “person common profile from array” dentro do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `financial_creditor_upsert_from_post`, `save_team_member`, `page_user`.
-     * Dependências chamadas: `trim`, `only_digits`, `strlen`, `in_array`, `phone_br`, `strtoupper`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $k = function (string $name) use ($data, $prefix) {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Support/Foundation.php:1130
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
-         * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return trim((string) ($data[$prefix . $name] ?? ""));
     };
     $doc = only_digits($k("legal_document"));
@@ -1899,16 +1899,16 @@ function person_common_profile_from_array(
 }
 function person_common_profile_update(int $personId, array $profile): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — person_common_profile_update
-     * Responsabilidade: Valida e executa a mutação “person common profile update”, preservando as invariantes do módulo de serviços transversais de suporte.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `financial_creditor_upsert_from_post`, `save_team_member`, `page_user`.
-     * Dependências chamadas: `person_common_profile_schema_ready`, `array_key_exists`, `filter_var`, `q`, `implode`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($personId <= 0) {
         return;
     }
@@ -1966,25 +1966,25 @@ function person_common_profile_fields_html(
     bool $includeEmail = true,
     bool $includePhone = true,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — person_common_profile_fields_html
-     * Responsabilidade: Monta a representação de interface associada a “person common profile fields html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-     * Chamadores detectados: `page_creditors`, `page_users`, `page_user`.
-     * Dependências chamadas: `e`, `function_exists`, `br_states`, `form_row`, `input`, `select_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $get = function (string $k, string $def = "") use ($p) {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Support/Foundation.php:1220
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de serviços transversais de suporte.
-         * Local arquitetural: app/Support/Foundation.php (serviços transversais de suporte).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return (string) ($p[$k] ?? $def);
     };
     $uf = $get("address_state");

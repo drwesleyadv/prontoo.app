@@ -14,29 +14,29 @@ final class TenantIntegrity
         "pi_user_devices",
     ];
     private function __construct() {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Database.TenantIntegrity::__construct
-         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
-         * Local arquitetural: app/Core/Database/TenantIntegrity.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
     }
     public static function assertRegistryMatchesSchema(
         bool $strict = false,
     ): void {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Database.TenantIntegrity::assertRegistryMatchesSchema
-         * Responsabilidade: Implementa a responsabilidade “assert registry matches schema” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Database/TenantIntegrity.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Install.RuntimeContract::assert`.
-         * Dependências chamadas: `function_exists`, `->query`, `->fetchAll`, `error_log`, `->getMessage`, `strtolower`, `self::rowValue`, `str_starts_with`, `substr`, `array_values`, `array_unique`, `array_keys` e mais 6.
-         * Classes ou serviços instanciados: `.RuntimeException`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria; pode interromper o fluxo por exceção.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
+
         if (!function_exists("pdo")) {
             return;
         }
@@ -117,15 +117,15 @@ final class TenantIntegrity
         array $registered,
         array $unknown,
     ): void {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Database.TenantIntegrity::writeDiagnostic
-         * Responsabilidade: Implementa a responsabilidade “write diagnostic” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Database/TenantIntegrity.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Database.TenantIntegrity::assertRegistryMatchesSchema`.
-         * Dependências chamadas: `function_exists`, `date`, `defined`, `array_values`, `array_diff`, `file_put_contents`, `json_encode`, `chmod`.
-         * Efeitos colaterais: produz conteúdo de saída; acessa o sistema de arquivos.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
         if (!function_exists("storage_path")) {
             return;
         }
@@ -156,15 +156,15 @@ final class TenantIntegrity
         array $keys,
         int $numericIndex,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Database.TenantIntegrity::rowValue
-         * Responsabilidade: Implementa a responsabilidade “row value” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Database/TenantIntegrity.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Database.TenantIntegrity::assertRegistryMatchesSchema`.
-         * Dependências chamadas: `strtolower`, `strtoupper`, `array_key_exists`, `trim`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
         foreach ($keys as $key) {
             foreach ([$key, strtolower($key), strtoupper($key)] as $candidate) {
                 if (

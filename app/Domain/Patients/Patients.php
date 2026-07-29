@@ -2,15 +2,15 @@
 declare(strict_types=1);
 function patient_cpf_br(string $cpf): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_cpf_br
-     * Responsabilidade: Implementa a responsabilidade “patient cpf br” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_lookup_payload`.
-     * Dependências chamadas: `function_exists`, `only_digits`, `preg_replace`, `strlen`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $d = function_exists("only_digits")
         ? only_digits($cpf)
         : preg_replace("/\D+/", "", $cpf);
@@ -26,15 +26,15 @@ function patient_cpf_br(string $cpf): string
 }
 function normalize_patient_tab_icon(?string $icon): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_patient_tab_icon
-     * Responsabilidade: Transforma e normaliza “normalize patient tab icon” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_extra_tabs`, `patient_tab_icon_picker`, `page_patient`.
-     * Dependências chamadas: `preg_replace`, `array_key_exists`, `patient_health_icon_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
     return array_key_exists($icon, patient_health_icon_options())
         ? $icon
@@ -42,57 +42,57 @@ function normalize_patient_tab_icon(?string $icon): string
 }
 function patient_tab_label_clean(string $label): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_label_clean
-     * Responsabilidade: Monta a representação de interface associada a “patient tab label clean” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_extra_tabs`, `patient_record_type_label`, `page_patient`.
-     * Dependências chamadas: `trim`, `preg_replace`, `strip_tags`, `mb_substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $label = trim(preg_replace("/\s+/u", " ", strip_tags($label)) ?? "");
     $label = mb_substr($label, 0, 60, "UTF-8");
     return $label;
 }
 function patient_tab_record_type(int $tabId): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_record_type
-     * Responsabilidade: Valida e executa a mutação “patient tab record type”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_extra_tabs`.
-     * Dependências chamadas: `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "tab_" . max(0, $tabId);
 }
 function patient_tab_key(int $tabId): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_key
-     * Responsabilidade: Implementa a responsabilidade “patient tab key” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_extra_tabs`.
-     * Dependências chamadas: `max`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "extra" . max(0, $tabId);
 }
 function patient_tabs_ensure_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tabs_ensure_schema
-     * Responsabilidade: Opera a etapa “patient tabs ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_extra_tabs`, `page_patient`.
-     * Dependências chamadas: `db_table_exists`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $validated = false;
     if ($validated) {
         return;
@@ -107,15 +107,15 @@ function patient_tabs_ensure_schema(): void
 
 function patient_extra_tabs(int $cid, int $patientId): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_extra_tabs
-     * Responsabilidade: Implementa a responsabilidade “patient extra tabs” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `patient_tabs_ensure_schema`, `q`, `->fetchAll`, `patient_tab_label_clean`, `normalize_patient_tab_icon`, `patient_tab_record_type`, `patient_tab_key`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     patient_tabs_ensure_schema();
     $rows = q(
         "SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY sort_order ASC,id ASC",
@@ -135,15 +135,15 @@ function patient_extra_tabs(int $cid, int $patientId): array
 }
 function patient_tab_map_by_type(array $tabs): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_map_by_type
-     * Responsabilidade: Transforma e normaliza “patient tab map by type” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $out = [];
     foreach ($tabs as $t) {
         $out[(string) $t["record_type"]] = $t;
@@ -152,15 +152,15 @@ function patient_tab_map_by_type(array $tabs): array
 }
 function patient_tab_record_options(array $tabs): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_record_options
-     * Responsabilidade: Valida e executa a mutação “patient tab record options”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $out = [];
     foreach ($tabs as $t) {
         $out[(string) $t["record_type"]] = $t["label"];
@@ -169,15 +169,15 @@ function patient_tab_record_options(array $tabs): array
 }
 function patient_record_type_label(string $type): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_record_type_label
-     * Responsabilidade: Valida e executa a mutação “patient record type label”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_context_select_options`, `document_issue_context`.
-     * Dependências chamadas: `trim`, `str_starts_with`, `substr`, `safe_val`, `patient_tab_label_clean`, `error_log`, `->getMessage`, `str_replace`, `mb_convert_case`.
-     * Efeitos colaterais: consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $type = trim($type);
     $base = [
         "note" => "Nota",
@@ -225,15 +225,15 @@ function patient_record_type_label(string $type): string
 }
 function patient_tab_icon_picker(string $current = "clinical_notes"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_tab_icon_picker
-     * Responsabilidade: Implementa a responsabilidade “patient tab icon picker” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `normalize_patient_tab_icon`, `patient_health_icon_options`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $current = normalize_patient_tab_icon($current);
     $html =
         '<div class="visual-option-grid patient-health-icon-grid patient-tab-icon-symbol-grid" role="radiogroup" aria-label="Ícone da aba">';
@@ -260,16 +260,16 @@ function patient_tab_icon_picker(string $current = "clinical_notes"): string
 }
 function patient_guardians_ensure_schema(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_guardians_ensure_schema
-     * Responsabilidade: Opera a etapa “patient guardians ensure schema” do contrato de banco e instalação, restrita às janelas autorizadas.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_legal_guardians`, `patient_has_legal_guardian`, `page_patients`, `page_patient`.
-     * Dependências chamadas: `db_table_exists`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     static $validated = false;
     if ($validated) {
         return;
@@ -284,15 +284,15 @@ function patient_guardians_ensure_schema(): void
 
 function patient_guardian_relationship_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_guardian_relationship_options
-     * Responsabilidade: Implementa a responsabilidade “patient guardian relationship options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`, `normalize_guardian_relationship`, `patient_guardian_form_html`, `patient_legal_guardian_card`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "mae" => "Mãe",
         "pai" => "Pai",
@@ -305,15 +305,15 @@ function patient_guardian_relationship_options(): array
 }
 function normalize_guardian_relationship(string $v): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — normalize_guardian_relationship
-     * Responsabilidade: Transforma e normaliza “normalize guardian relationship” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_legal_guardians`, `patient_guardian_form_html`, `page_patient`.
-     * Dependências chamadas: `preg_replace`, `strtolower`, `trim`, `array_key_exists`, `patient_guardian_relationship_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $v = preg_replace("/[^a-z0-9_]+/i", "", strtolower(trim($v))) ?: "";
     return array_key_exists($v, patient_guardian_relationship_options())
         ? $v
@@ -321,16 +321,16 @@ function normalize_guardian_relationship(string $v): string
 }
 function patient_age_years(null|string|int $birth): ?int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_age_years
-     * Responsabilidade: Implementa a responsabilidade “patient age years” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_is_minor`, `patient_directory_card`, `patient_profile_overview`, `page_patient_suggest`, `page_patients`.
-     * Dependências chamadas: `trim`, `preg_match`, `DateTimeImmutable`, `->setTimezone`, `DateTimeZone`, `->diff`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $birth = trim((string) ($birth ?? ""));
     if ($birth === "") {
         return null;
@@ -352,44 +352,44 @@ function patient_age_years(null|string|int $birth): ?int
 }
 function patient_is_minor(array $p): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_is_minor
-     * Responsabilidade: Avalia ou impõe a regra “patient is minor”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_profile_status`, `patient_sensitive_block_reason`, `patient_legal_guardian_card`, `page_patient`.
-     * Dependências chamadas: `patient_age_years`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $age = patient_age_years($p["birth_date"] ?? null);
     return $age !== null && $age < 18;
 }
 function patient_identity_complete(array $p): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_identity_complete
-     * Responsabilidade: Implementa a responsabilidade “patient identity complete” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_profile_status`, `patient_sensitive_block_reason`.
-     * Dependências chamadas: `trim`, `valid_cpf`, `only_digits`, `valid_birth_date`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return trim((string) ($p["full_name"] ?? "")) !== "" &&
         valid_cpf(only_digits((string) ($p["cpf"] ?? ""))) &&
         valid_birth_date((string) ($p["birth_date"] ?? ""));
 }
 function patient_invoice_registration_missing_fields(array $p): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_invoice_registration_missing_fields
-     * Responsabilidade: Implementa a responsabilidade “patient invoice registration missing fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_invoice_registration_complete`, `patient_invoice_registration_alert_message`.
-     * Dependências chamadas: `trim`, `valid_cpf`, `only_digits`, `valid_birth_date`, `filter_var`, `strlen`, `array_values`, `array_unique`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $missing = [];
     if (trim((string) ($p["full_name"] ?? "")) === "") {
         $missing[] = "nome completo";
@@ -429,28 +429,28 @@ function patient_invoice_registration_missing_fields(array $p): array
 }
 function patient_invoice_registration_complete(array $p): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_invoice_registration_complete
-     * Responsabilidade: Implementa a responsabilidade “patient invoice registration complete” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_registration_block_reason`, `patient_profile_status`, `patient_sensitive_block_reason`.
-     * Dependências chamadas: `patient_invoice_registration_missing_fields`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return patient_invoice_registration_missing_fields($p) === [];
 }
 function patient_invoice_registration_alert_message(array $p): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_invoice_registration_alert_message
-     * Responsabilidade: Implementa a responsabilidade “patient invoice registration alert message” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_registration_block_reason`, `patient_profile_status`, `patient_sensitive_block_reason`.
-     * Dependências chamadas: `patient_invoice_registration_missing_fields`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $missing = patient_invoice_registration_missing_fields($p);
     return "Atualização cadastral obrigatória antes de agendar a próxima consulta" .
         ($missing ? ": informe " . implode(", ", $missing) . "." : ".");
@@ -459,15 +459,15 @@ function patient_appointment_registration_block_reason(
     int $cid,
     int $patientId,
 ): ?string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_registration_block_reason
-     * Responsabilidade: Implementa a responsabilidade “patient appointment registration block reason” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `one`, `patient_invoice_registration_complete`, `patient_invoice_registration_alert_message`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return null;
     }
@@ -485,15 +485,15 @@ function patient_appointment_registration_block_reason(
 }
 function patient_legal_guardians(int $cid, int $patientId): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_legal_guardians
-     * Responsabilidade: Implementa a responsabilidade “patient legal guardians” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_primary_legal_guardian`, `page_patient`.
-     * Dependências chamadas: `patient_guardians_ensure_schema`, `q`, `->fetchAll`, `only_digits`, `normalize_guardian_relationship`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return [];
     }
@@ -515,29 +515,29 @@ function patient_legal_guardians(int $cid, int $patientId): array
 }
 function patient_primary_legal_guardian(int $cid, int $patientId): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_primary_legal_guardian
-     * Responsabilidade: Implementa a responsabilidade “patient primary legal guardian” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`.
-     * Dependências chamadas: `patient_legal_guardians`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $g = patient_legal_guardians($cid, $patientId);
     return $g[0] ?? null;
 }
 function patient_has_legal_guardian(int $cid, int $patientId): bool
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_has_legal_guardian
-     * Responsabilidade: Avalia ou impõe a regra “patient has legal guardian”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_sensitive_block_reason`, `page_patient`.
-     * Dependências chamadas: `patient_guardians_ensure_schema`, `val`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return false;
     }
@@ -549,15 +549,15 @@ function patient_has_legal_guardian(int $cid, int $patientId): bool
 }
 function patient_profile_status(array $p, array $guardians): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_profile_status
-     * Responsabilidade: Implementa a responsabilidade “patient profile status” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_legal_guardian_card`, `patient_directory_status`, `page_patient`.
-     * Dependências chamadas: `patient_identity_complete`, `patient_invoice_registration_complete`, `patient_invoice_registration_alert_message`, `patient_is_minor`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!patient_identity_complete($p)) {
         return [
             "level" => "bad",
@@ -605,15 +605,15 @@ function patient_profile_status(array $p, array $guardians): array
 }
 function patient_sensitive_block_reason(int $cid, int $patientId): ?string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_sensitive_block_reason
-     * Responsabilidade: Implementa a responsabilidade “patient sensitive block reason” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `create_document_draft_from_template`, `save_document_draft`, `page_patient`.
-     * Dependências chamadas: `one`, `patient_identity_complete`, `patient_invoice_registration_complete`, `patient_invoice_registration_alert_message`, `patient_is_minor`, `patient_has_legal_guardian`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return null;
     }
@@ -640,15 +640,15 @@ function patient_guardian_form_html(
     array $guardian = [],
     string $submit = "Salvar responsável legal",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_guardian_form_html
-     * Responsabilidade: Monta a representação de interface associada a “patient guardian form html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_legal_guardian_card`.
-     * Dependências chamadas: `normalize_guardian_relationship`, `csrf_field`, `form_row`, `input`, `mask`, `select_label`, `patient_guardian_relationship_options`, `textarea`, `form_actions`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $gid = (int) ($guardian["id"] ?? 0);
     $rel = normalize_guardian_relationship(
         (string) ($guardian["relationship"] ?? "mae"),
@@ -729,15 +729,15 @@ function patient_legal_guardian_card(
     array $guardians,
     bool $canManage = true,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_legal_guardian_card
-     * Responsabilidade: Monta a representação de interface associada a “patient legal guardian card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `patient_is_minor`, `patient_profile_status`, `patient_guardian_relationship_options`, `icon`, `e`, `mask`, `phone_br`, `action_summary_label`, `patient_guardian_form_html`, `csrf_field`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $minor = patient_is_minor($p);
     if (!$minor && !$guardians) {
         return "";
@@ -824,16 +824,16 @@ function patient_legal_guardian_card(
 }
 function require_patient_in_clinic(int $cid, int $patientId): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — require_patient_in_clinic
-     * Responsabilidade: Avalia ou impõe a regra “require patient in clinic”, falhando de forma controlada quando a pré-condição não é satisfeita.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_resolve_patient_appointment`.
-     * Dependências chamadas: `require_same_clinic_entity`, `ProntooHttpError`.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Efeitos colaterais: pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $row = require_same_clinic_entity(
         $cid,
         "pi_patients",
@@ -850,15 +850,15 @@ function require_patient_in_clinic(int $cid, int $patientId): array
 }
 function patient_location_defaults(int $cid, array $p = []): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_location_defaults
-     * Responsabilidade: Implementa a responsabilidade “patient location defaults” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_address_fields`.
-     * Dependências chamadas: `trim`, `one`, `strtoupper`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $uf = trim((string) ($p["address_state"] ?? ""));
     $city = trim((string) ($p["address_city"] ?? ""));
     $ibge = trim((string) ($p["address_city_ibge"] ?? ""));
@@ -888,15 +888,15 @@ function patient_location_defaults(int $cid, array $p = []): array
 }
 function patient_zip_input(array $p = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_zip_input
-     * Responsabilidade: Implementa a responsabilidade “patient zip input” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_address_fields`.
-     * Dependências chamadas: `form_row`, `input`, `mask_cep`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return form_row(
         "CEP",
         input(
@@ -909,15 +909,15 @@ function patient_zip_input(array $p = []): string
 }
 function patient_address_fields(int $cid, array $p = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_address_fields
-     * Responsabilidade: Implementa a responsabilidade “patient address fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_location_fields`, `page_patients`, `page_patient`.
-     * Dependências chamadas: `patient_location_defaults`, `e`, `br_states`, `patient_zip_input`, `form_row`, `input`, `select_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $loc = patient_location_defaults($cid, $p);
     $uf = (string) $loc["address_state"];
     $city = (string) $loc["address_city"];
@@ -995,30 +995,30 @@ function patient_address_fields(int $cid, array $p = []): string
 }
 function patient_location_fields(int $cid, array $p = []): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_location_fields
-     * Responsabilidade: Implementa a responsabilidade “patient location fields” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `patient_address_fields`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return patient_address_fields($cid, $p);
 }
 function patient_location_from_post(int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_location_from_post
-     * Responsabilidade: Implementa a responsabilidade “patient location from post” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`, `page_patient`.
-     * Dependências chamadas: `only_digits`, `trim`, `strtoupper`, `strlen`, `RuntimeException`, `br_states`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: consome dados da requisição HTTP; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $zip = only_digits((string) ($_POST["address_zip"] ?? ""));
     $street = trim((string) ($_POST["address"] ?? ""));
     $number = trim((string) ($_POST["address_number"] ?? ""));
@@ -1058,15 +1058,15 @@ function patient_location_from_post(int $cid): array
 }
 function mask_cep(string $cep): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — mask_cep
-     * Responsabilidade: Implementa a responsabilidade “mask cep” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_issue_context`, `patient_zip_input`, `page_patient`.
-     * Dependências chamadas: `only_digits`, `strlen`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $d = only_digits($cep);
     if (strlen($d) !== 8) {
         return $cep;
@@ -1075,17 +1075,17 @@ function mask_cep(string $cep): string
 }
 function patient_invoice_contact_from_post(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_invoice_contact_from_post
-     * Responsabilidade: Implementa a responsabilidade “patient invoice contact from post” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`, `page_patient`.
-     * Dependências chamadas: `trim`, `phone_br`, `filter_var`, `RuntimeException`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: consome dados da requisição HTTP; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $email = trim((string) ($_POST["email"] ?? ""));
     $phone = phone_br((string) ($_POST["phone"] ?? ""));
     if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -1103,15 +1103,15 @@ function clinic_patient_exists(
     int $patientId,
     bool $activeOnly = true,
 ): bool {
-    /*
-     * GUIA DE MANUTENÇÃO — clinic_patient_exists
-     * Responsabilidade: Implementa a responsabilidade “clinic patient exists” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_can_access`, `create_workflow_task`.
-     * Dependências chamadas: `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return false;
     }
@@ -1123,15 +1123,15 @@ function clinic_patient_exists(
 }
 function patient_options(int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_options
-     * Responsabilidade: Implementa a responsabilidade “patient options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_appointments`.
-     * Dependências chamadas: `q`, `->fetchAll`, `fetch_map`, `int_ids`, `asort`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     static $memo = [];
     if (isset($memo[$cid])) {
         return $memo[$cid];
@@ -1157,16 +1157,16 @@ function patient_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_patient_suggestions",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_autosuggest_datalist
-     * Responsabilidade: Implementa a responsabilidade “patient autosuggest datalist” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`, `financial_admin_operations_panel`.
-     * Dependências chamadas: `max`, `min`, `e`, `q`, `->fetchAll`, `date_br`, `mask`, `app_date_input_from_storage`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $limit = max(0, min(80, (int) ($_GET["patient_preload"] ?? 0)));
     if ($limit <= 0) {
         return '<datalist id="' . e($id) . '"></datalist>';
@@ -1206,15 +1206,15 @@ function patient_lookup_field(
     string $hiddenValue = "",
     string $inputName = "patient_search",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_lookup_field
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “patient lookup field” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `document_context_binding_fields`, `financial_admin_operations_panel`.
-     * Dependências chamadas: `one`, `date_br`, `e`, `href`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $display = "";
     $pid = (int) $hiddenValue;
     if ($pid > 0) {
@@ -1244,16 +1244,16 @@ function patient_lookup_field(
 }
 function posted_patient_search_value(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — posted_patient_search_value
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “posted patient search value” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`, `financial_admin_save_receipt`.
-     * Dependências chamadas: `is_string`, `str_starts_with`, `trim`.
-     * Estado externo lido: `$_POST`.
-     * Efeitos colaterais: consome dados da requisição HTTP.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "patient_search")) {
             return trim((string) $v);
@@ -1266,15 +1266,15 @@ function resolve_patient_lookup_id(
     int $postedId,
     string $search = "",
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — resolve_patient_lookup_id
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “resolve patient lookup id” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_documents`, `financial_admin_save_receipt`.
-     * Dependências chamadas: `val`, `trim`, `mb_strtolower`, `q`, `->fetchAll`, `date_br`, `only_digits`, `str_starts_with`, `count`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if ($postedId > 0) {
         $ok = (int) val(
             "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
@@ -1332,15 +1332,15 @@ function resolve_patient_lookup_id(
 }
 function patient_identity_by_cpf(string $cpf, int $cid): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_identity_by_cpf
-     * Responsabilidade: Implementa a responsabilidade “patient identity by cpf” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_lookup_payload`, `page_patients`.
-     * Dependências chamadas: `only_digits`, `valid_cpf`, `one`, `error_log`, `->getMessage`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cpf = only_digits($cpf);
     if (!valid_cpf($cpf)) {
         return null;
@@ -1371,15 +1371,15 @@ function patient_identity_by_cpf(string $cpf, int $cid): ?array
 }
 function patient_lookup_payload(int $cid, string $cpf): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_lookup_payload
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “patient lookup payload” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient_lookup`.
-     * Dependências chamadas: `only_digits`, `valid_cpf`, `patient_identity_by_cpf`, `one`, `error_log`, `->getMessage`, `function_exists`, `app_date_input_from_storage`, `preg_match`, `substr`, `trim`, `href` e mais 1.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cpf = only_digits($cpf);
     if (!valid_cpf($cpf)) {
         return [
@@ -1445,16 +1445,16 @@ function patient_lookup_payload(int $cid, string $cpf): array
 }
 function page_patient_lookup(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_patient_lookup
-     * Responsabilidade: Coordena a rota e renderiza a tela “page patient lookup”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `headers_sent`, `header`, `ctx`, `http_response_code`, `json_encode`, `can`, `only_digits`, `patient_lookup_payload`, `error_log`, `->getMessage`, `->getFile`, `->getLine`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -1560,15 +1560,15 @@ function page_patient_lookup(): void
 }
 function patient_directory_filter_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_filter_options
-     * Responsabilidade: Transforma e normaliza “patient directory filter options” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_directory_filter_where`, `patient_directory_order_sql`, `page_patients`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "today" => "Hoje",
         "week" => "Essa semana",
@@ -1578,28 +1578,28 @@ function patient_directory_filter_options(): array
 }
 function patient_directory_filter_default(): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_filter_default
-     * Responsabilidade: Transforma e normaliza “patient directory filter default” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_directory_filter_where`, `patient_directory_order_sql`, `page_patients`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return "today";
 }
 function patient_directory_filter_icons(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_filter_icons
-     * Responsabilidade: Transforma e normaliza “patient directory filter icons” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "today" => "today",
         "week" => "calendar_month",
@@ -1609,29 +1609,29 @@ function patient_directory_filter_icons(): array
 }
 function patient_directory_cancel_statuses(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_cancel_statuses
-     * Responsabilidade: Implementa a responsabilidade “patient directory cancel statuses” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ["cancelado", "nao_compareceu"];
 }
 function patient_week_utc_range(int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_week_utc_range
-     * Responsabilidade: Implementa a responsabilidade “patient week utc range” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_directory_filter_where`, `page_patients`.
-     * Dependências chamadas: `app_today_in_timezone`, `DateTimeZone`, `app_context_timezone`, `DateTimeImmutable`, `->format`, `->modify`, `->setTimezone`, `->getTimestamp`.
-     * Classes ou serviços instanciados: `DateTimeZone`, `DateTimeImmutable`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $today = app_today_in_timezone($cid);
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $dt = new DateTimeImmutable($today . " 00:00:00", $zone);
@@ -1645,15 +1645,15 @@ function patient_week_utc_range(int $cid): array
 }
 function patient_today_utc_range(int $cid): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_today_utc_range
-     * Responsabilidade: Implementa a responsabilidade “patient today utc range” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_directory_filter_where`, `patient_directory_select_metrics_sql`, `page_patients`.
-     * Dependências chamadas: `app_local_day_utc_range`, `app_today_in_timezone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return app_local_day_utc_range(app_today_in_timezone($cid), $cid);
 }
 function patient_directory_filter_where(
@@ -1662,15 +1662,15 @@ function patient_directory_filter_where(
     string $patientAlias = "pp",
     string $personAlias = "p",
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_filter_where
-     * Responsabilidade: Transforma e normaliza “patient directory filter where” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`.
-     * Dependências chamadas: `array_key_exists`, `patient_directory_filter_options`, `patient_directory_filter_default`, `patient_today_utc_range`, `patient_week_utc_range`.
-     * Efeitos colaterais: consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $filter = array_key_exists($filter, patient_directory_filter_options())
         ? $filter
         : patient_directory_filter_default();
@@ -1697,15 +1697,15 @@ function patient_directory_filter_where(
 }
 function patient_directory_select_metrics_sql(int $cid): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_select_metrics_sql
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “patient directory select metrics sql” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient_suggest`, `page_patients`.
-     * Dependências chamadas: `patient_today_utc_range`.
-     * Efeitos colaterais: consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     [$todayStart, $todayEnd] = patient_today_utc_range($cid);
     return ",(SELECT MIN(pa.start_at) FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.start_at>=" .
         (int) $todayStart .
@@ -1731,15 +1731,15 @@ function patient_directory_select_metrics_sql(int $cid): string
 }
 function patient_directory_order_sql(string $filter): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_order_sql
-     * Responsabilidade: Implementa a responsabilidade “patient directory order sql” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`.
-     * Dependências chamadas: `array_key_exists`, `patient_directory_filter_options`, `patient_directory_filter_default`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $filter = array_key_exists($filter, patient_directory_filter_options())
         ? $filter
         : patient_directory_filter_default();
@@ -1754,15 +1754,15 @@ function patient_directory_order_sql(string $filter): string
 }
 function patient_directory_status(array $r): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_status
-     * Responsabilidade: Implementa a responsabilidade “patient directory status” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_directory_card`, `page_patient_suggest`.
-     * Dependências chamadas: `patient_profile_status`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $guardians = (int) ($r["guardian_count"] ?? 0) > 0 ? [["id" => 1]] : [];
     $status = patient_profile_status($r, $guardians);
     $level = in_array(
@@ -1780,15 +1780,15 @@ function patient_directory_status(array $r): array
 }
 function patient_directory_card(array $r, int $cid = 0): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_directory_card
-     * Responsabilidade: Monta a representação de interface associada a “patient directory card” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patients`.
-     * Dependências chamadas: `date_br`, `patient_age_years`, `mask`, `trim`, `phone_br`, `patient_directory_status`, `app_time_br`, `ctx`, `appointment_journey_meta`, `icon`, `e`, `appointment_journey_compact_html` e mais 4.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $name = (string) ($r["full_name"] ?? "Paciente #" . ($r["id"] ?? ""));
     $birth = (string) ($r["birth_date"] ?? "");
     $birthLabel = $birth !== "" ? date_br($birth) : "Nascimento não informado";
@@ -1940,15 +1940,15 @@ function patient_profile_overview(
     int $totalConsultations,
     string $firstConsultationLabel,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_profile_overview
-     * Responsabilidade: Implementa a responsabilidade “patient profile overview” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `trim`, `patient_age_years`, `date_br`, `mask`, `phone_br`, `city_state_label`, `dt_card_full_br`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $name = trim((string) ($p["full_name"] ?? "Paciente"));
     $birth = trim((string) ($p["birth_date"] ?? ""));
     $age = patient_age_years($birth);
@@ -2042,16 +2042,16 @@ function patient_profile_overview(
 }
 function patient_reception_story_time(null|string|int $value): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_reception_story_time
-     * Responsabilidade: Implementa a responsabilidade “patient reception story time” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_reception_story_title`.
-     * Dependências chamadas: `trim`, `function_exists`, `app_db_utc_to_local`, `preg_match`, `DateTimeImmutable`, `->setTimezone`, `DateTimeZone`, `date_default_timezone_get`, `prontoo_months_br`, `->format`.
-     * Classes ou serviços instanciados: `DateTimeImmutable`, `DateTimeZone`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
+
     $raw = trim((string) ($value ?? ""));
     if ($raw === "") {
         return "data não informada";
@@ -2101,15 +2101,15 @@ function patient_reception_story_title(
     string $who,
     null|string|int $createdAt,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_reception_story_title
-     * Responsabilidade: Implementa a responsabilidade “patient reception story title” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_reception_history_items`.
-     * Dependências chamadas: `trim`, `patient_reception_story_time`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $who = trim($who);
     if ($who === "") {
         $who = "Recepção";
@@ -2122,15 +2122,15 @@ function patient_reception_story_title(
 }
 function patient_reception_meta_chips_html(array $parts): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_reception_meta_chips_html
-     * Responsabilidade: Monta a representação de interface associada a “patient reception meta chips html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_reception_history_items`.
-     * Dependências chamadas: `is_array`, `trim`, `preg_replace`, `strtolower`, `e`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $icons = [
         "Telefone" => "call",
         "Origem" => "conversion_path",
@@ -2183,15 +2183,15 @@ function patient_reception_history_items(
     int $patientId,
     array $p,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_reception_history_items
-     * Responsabilidade: Implementa a responsabilidade “patient reception history items” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `function_exists`, `ensure_lead_events_schema`, `substr`, `only_digits`, `q`, `implode`, `->fetchAll`, `error_log`, `->getMessage`, `int_ids`, `array_fill`, `count` e mais 8.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $patientId <= 0) {
         return [];
     }
@@ -2362,15 +2362,15 @@ function patient_reception_history_items(
 }
 function patient_reception_history_panel(array $items): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_reception_history_panel
-     * Responsabilidade: Implementa a responsabilidade “patient reception history panel” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `count`, `timeline`, `icon`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $count = count($items);
     return '<section class="patient-panel patient-panel-atendimentos" role="tabpanel"><div class="patient-section-title"><div><h2>Atendimentos</h2><p>Histórico de ocorrências registradas pela recepção antes ou durante o vínculo com o paciente.</p></div><span>' .
         (int) $count .
@@ -2384,17 +2384,17 @@ function patient_reception_history_panel(array $items): string
 }
 function page_patient_suggest(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_patient_suggest
-     * Responsabilidade: Coordena a rota e renderiza a tela “page patient suggest”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `need_login`, `ProntooHttpError`, `can`, `trim`, `headers_sent`, `header`, `json_encode`, `max`, `min`, `only_digits`, `str_replace`, `patient_directory_select_metrics_sql` e mais 11.
-     * Classes ou serviços instanciados: `ProntooHttpError`.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; pode interromper o fluxo por exceção.
-     * Cuidado 1: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
         throw new ProntooHttpError(
@@ -2488,18 +2488,18 @@ function page_patient_suggest(): void
 }
 function page_patients(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_patients
-     * Responsabilidade: Coordena a rota e renderiza a tela “page patients”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `patient_guardians_ensure_schema`, `only_digits`, `trim`, `valid_cpf`, `valid_birth_date`, `patient_identity_by_cpf`, `app_date_input_from_storage`, `flash`, `redirect`, `val`, `one` e mais 39.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("patients");
     $cid = (int) $c["clinic_id"];
     patient_guardians_ensure_schema();
@@ -2930,15 +2930,15 @@ function patient_appointment_duration_label(
     null|string|int $startAt,
     null|string|int $endAt,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_duration_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment duration label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_real_duration_label`.
-     * Dependências chamadas: `app_parse_db_utc`, `max`, `round`, `->getTimestamp`, `intdiv`, `sprintf`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $s = app_parse_db_utc($startAt);
     $e = app_parse_db_utc($endAt);
     if (!$s || !$e || $e <= $s) {
@@ -2958,15 +2958,15 @@ function patient_appointment_duration_label(
 function patient_appointment_elapsed_until_now_label(
     null|string|int $startAt,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_elapsed_until_now_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment elapsed until now label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_real_duration_label`.
-     * Dependências chamadas: `app_parse_db_utc`, `max`, `floor`, `time`, `->getTimestamp`, `intdiv`, `sprintf`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $s = app_parse_db_utc($startAt);
     if (!$s) {
         return "—";
@@ -2981,15 +2981,15 @@ function patient_appointment_elapsed_until_now_label(
 }
 function patient_appointment_code(array $a): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_code
-     * Responsabilidade: Implementa a responsabilidade “patient appointment code” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_not_started_label`, `patient_appointment_real_duration_label`, `patient_appointment_status_title`, `patient_appointment_icon`, `patient_appointment_status_class`, `patient_appointment_real_end_label`, `patient_default_document_appointment`.
-     * Dependências chamadas: `function_exists`, `appointment_status_code`, `mb_strtolower`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return function_exists("appointment_status_code")
         ? appointment_status_code($a)
         : mb_strtolower(trim((string) ($a["status"] ?? "")));
@@ -2999,15 +2999,15 @@ function patient_appointment_not_started_label(
     int $cid = 0,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_not_started_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment not started label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_real_duration_label`, `patient_appointment_real_start_label`, `patient_appointment_real_end_label`.
-     * Dependências chamadas: `app_db_utc_to_local`, `app_parse_db_utc`, `patient_appointment_code`, `->getTimestamp`, `time`, `in_array`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scheduled =
         $cid > 0
             ? app_db_utc_to_local($a["start_at"] ?? null, $cid, $context)
@@ -3041,15 +3041,15 @@ function patient_appointment_real_duration_label(
     int $cid = 0,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_real_duration_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment real duration label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_first_line`, `patient_appointment_first_line_html`.
-     * Dependências chamadas: `patient_appointment_duration_label`, `patient_appointment_code`, `patient_appointment_elapsed_until_now_label`, `patient_appointment_not_started_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $started = $a["consultation_started_at"] ?? null;
     $finished = $a["consultation_finished_at"] ?? null;
     if (!empty($started) && !empty($finished)) {
@@ -3069,15 +3069,15 @@ function patient_appointment_real_duration_label(
 }
 function patient_appointment_status_title(array $a): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_status_title
-     * Responsabilidade: Implementa a responsabilidade “patient appointment status title” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `patient_appointment_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $code = patient_appointment_code($a);
     return match ($code) {
         "atendimento_concluido", "finalizado" => "Consulta realizada",
@@ -3094,15 +3094,15 @@ function patient_appointment_status_title(array $a): string
 }
 function patient_appointment_icon(array $a): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_icon
-     * Responsabilidade: Implementa a responsabilidade “patient appointment icon” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `patient_appointment_code`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $code = patient_appointment_code($a);
     return match ($code) {
         "atendimento_concluido", "finalizado" => "event_available",
@@ -3117,15 +3117,15 @@ function patient_appointment_icon(array $a): string
 }
 function patient_appointment_status_class(array $a): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_status_class
-     * Responsabilidade: Implementa a responsabilidade “patient appointment status class” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `patient_appointment_code`, `preg_replace`, `str_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $code = patient_appointment_code($a);
     $safe = preg_replace('/[^a-z0-9_\t -]/i', "", $code) ?: "agendado";
     return "patient-appointment-didactic patient-appointment-status-" .
@@ -3133,15 +3133,15 @@ function patient_appointment_status_class(array $a): string
 }
 function patient_document_type_human_label(?string $typeKey): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_document_type_human_label
-     * Responsabilidade: Monta a representação de interface associada a “patient document type human label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_docs_label`.
-     * Dependências chamadas: `mb_strtolower`, `trim`, `function_exists`, `document_type_options`, `error_log`, `->getMessage`, `mb_convert_case`, `str_replace`.
-     * Efeitos colaterais: gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $key = mb_strtolower(trim((string) $typeKey));
     if ($key === "") {
         return "Documento";
@@ -3181,20 +3181,20 @@ function patient_appointment_docs_by_appointment(
     int $cid,
     array $appointmentIds,
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_docs_by_appointment
-     * Responsabilidade: Implementa a responsabilidade “patient appointment docs by appointment” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `array_values`, `array_unique`, `array_filter`, `array_map`, `function_exists`, `db_table_exists`, `implode`, `array_fill`, `count`, `array_merge`, `q`, `->fetchAll` e mais 2.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ids = array_values(
         array_unique(
             array_filter(
                 array_map("intval", $appointmentIds),
-                static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn($v) => $v > 0,
+                static  fn($v) => $v > 0,
             ),
         ),
     );
@@ -3228,15 +3228,15 @@ function patient_appointment_docs_by_appointment(
 }
 function patient_appointment_docs_label(array $docs): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_docs_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment docs label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `trim`, `patient_document_type_human_label`, `function_exists`, `document_status_label`, `ucfirst`, `str_replace`, `mb_substr`, `count`, `array_merge`, `array_slice`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$docs) {
         return "Documentos gerados: não houve geração de documentos nesta consulta.";
     }
@@ -3270,15 +3270,15 @@ function patient_appointment_real_start_label(
     int $cid,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_real_start_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment real start label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_first_line`, `patient_appointment_first_line_html`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`, `patient_appointment_not_started_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $started = app_db_utc_to_local(
         $a["consultation_started_at"] ?? null,
         $cid,
@@ -3294,15 +3294,15 @@ function patient_appointment_real_end_label(
     int $cid,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_real_end_label
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment real end label” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_first_line`, `patient_appointment_first_line_html`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`, `patient_appointment_code`, `patient_appointment_not_started_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $started = app_db_utc_to_local(
         $a["consultation_started_at"] ?? null,
         $cid,
@@ -3329,15 +3329,15 @@ function patient_appointment_first_line(
     int $cid,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_first_line
-     * Responsabilidade: Implementa a responsabilidade “patient appointment first line” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`, `patient_appointment_real_start_label`, `patient_appointment_real_end_label`, `patient_appointment_real_duration_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scheduled = app_db_utc_to_local($a["start_at"] ?? null, $cid, $context);
     $date = $scheduled ? $scheduled->format("d/m/Y") : "—";
     return "Data do Agendamento: " .
@@ -3354,15 +3354,15 @@ function patient_appointment_first_line_html(
     int $cid,
     array $context = [],
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_first_line_html
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment first line html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `patient_appointment_timeline_items`.
-     * Dependências chamadas: `app_db_utc_to_local`, `->format`, `patient_appointment_real_start_label`, `patient_appointment_real_end_label`, `patient_appointment_real_duration_label`, `e`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $scheduled = app_db_utc_to_local($a["start_at"] ?? null, $cid, $context);
     $chips = [
         ["Data do Agendamento", $scheduled ? $scheduled->format("d/m/Y") : "—"],
@@ -3392,15 +3392,15 @@ function patient_appointment_first_line_html(
 }
 function patient_appointment_options_from_rows(array $appts): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_options_from_rows
-     * Responsabilidade: Implementa a responsabilidade “patient appointment options from rows” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `dt_br`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $opts = ["" => "Sem vínculo com agendamento"];
     foreach ($appts as $a) {
         $id = (int) ($a["id"] ?? 0);
@@ -3419,15 +3419,15 @@ function patient_appointment_options_from_rows(array $appts): array
 }
 function patient_default_document_appointment(array $appts): ?int
 {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_default_document_appointment
-     * Responsabilidade: Implementa a responsabilidade “patient default document appointment” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `patient_appointment_code`, `app_storage_timestamp`, `strtotime`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     foreach ($appts as $a) {
         $code = patient_appointment_code($a);
         if (
@@ -3455,15 +3455,15 @@ function patient_appointment_timeline_items(
     array $appointments,
     array $context = [],
 ): array {
-    /*
-     * GUIA DE MANUTENÇÃO — patient_appointment_timeline_items
-     * Responsabilidade: Monta a representação de interface associada a “patient appointment timeline items” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_patient`.
-     * Dependências chamadas: `patient_appointment_docs_by_appointment`, `trim`, `patient_appointment_icon`, `patient_appointment_status_class`, `patient_appointment_first_line`, `patient_appointment_first_line_html`, `patient_appointment_status_title`, `patient_appointment_docs_label`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $ids = [];
     foreach ($appointments as $a) {
         $ids[] = (int) ($a["id"] ?? 0);
@@ -3494,18 +3494,18 @@ function patient_appointment_timeline_items(
 }
 function page_patient(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_patient
-     * Responsabilidade: Coordena a rota e renderiza a tela “page patient”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `patient_tabs_ensure_schema`, `patient_guardians_ensure_schema`, `one`, `http_response_code`, `page`, `href`, `icon`, `in_array`, `can`, `patient_legal_guardians`, `patient_profile_status` e mais 85.
-     * Estado externo lido: `$_GET`, `$_SERVER`, `$_POST`, `$_SESSION`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; lê ou altera a sessão; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("patients");
     $cid = (int) $c["clinic_id"];
     $id = (int) ($_GET["id"] ?? 0);
@@ -4814,15 +4814,15 @@ function page_patient(): void
         $extraTypeOptions,
         $role,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Patients/Patients.php:4002
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Patients/Patients.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `array_key_exists`, `array_key_first`, `csrf_field`, `select_label`, `form_row`, `input`, `textarea`, `form_actions`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if (!$extraTypeOptions) {
             return '<div class="empty">Crie uma aba extra para este paciente antes de registrar anotações clínicas. Cada aba criada passa a aparecer como Tipo da anotação.</div>';
         }

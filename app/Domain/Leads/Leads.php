@@ -2,28 +2,28 @@
 declare(strict_types=1);
 function lead_phone_digits(string $phone): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_phone_digits
-     * Responsabilidade: Implementa a responsabilidade “lead phone digits” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `lead_find_by_phone`, `lead_patient_by_phone`, `page_lead_lookup`, `page_leads`.
-     * Dependências chamadas: `substr`, `only_digits`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return substr(only_digits($phone), 0, 11);
 }
 function lead_cpf_br(string $cpf): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_cpf_br
-     * Responsabilidade: Implementa a responsabilidade “lead cpf br” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_lead_patient_lookup`.
-     * Dependências chamadas: `only_digits`, `strlen`, `substr`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $d = only_digits($cpf);
     if (strlen($d) !== 11) {
         return $cpf;
@@ -38,15 +38,15 @@ function lead_cpf_br(string $cpf): string
 }
 function lead_stage_options(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_stage_options
-     * Responsabilidade: Implementa a responsabilidade “lead stage options” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `lead_stage_normalize`, `page_leads`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "em_aberto" => "Em Aberto",
         "aguarda_retorno" => "Aguarda retorno",
@@ -56,15 +56,15 @@ function lead_stage_options(): array
 }
 function lead_stage_icons(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_stage_icons
-     * Responsabilidade: Implementa a responsabilidade “lead stage icons” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_leads`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return [
         "em_aberto" => "chat_bubble",
         "aguarda_retorno" => "schedule",
@@ -74,15 +74,15 @@ function lead_stage_icons(): array
 }
 function lead_stage_normalize(?string $stage): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_stage_normalize
-     * Responsabilidade: Transforma e normaliza “lead stage normalize” para um formato canônico utilizado pelo restante da aplicação.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `lead_event_create`, `page_lead_lookup`, `page_leads`, `closure@app/Domain/Leads/Leads.php:458`.
-     * Dependências chamadas: `trim`, `array_key_exists`, `lead_stage_options`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $candidate = trim((string) $stage);
     return array_key_exists($candidate, lead_stage_options())
         ? $candidate
@@ -91,31 +91,31 @@ function lead_stage_normalize(?string $stage): string
 
 function lead_active_stages(): array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_active_stages
-     * Responsabilidade: Implementa a responsabilidade “lead active stages” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `lead_active_stage_sql`.
-     * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return ["em_aberto", "aguarda_retorno"];
 }
 function lead_active_stage_sql(string $column = "stage"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_active_stage_sql
-     * Responsabilidade: Implementa a responsabilidade “lead active stage sql” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `admin_global_ops_finance_html`, `lead_find_by_phone`, `page_leads`, `page_recepcao_painel`, `page_gerente_painel`.
-     * Dependências chamadas: `preg_replace`, `array_map`, `str_replace`, `lead_active_stages`, `lead_stage_sql_case`, `implode`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $column = preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
     $active = array_map(
-        static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de domínio e regras de negócio. Dependências diretas: `str_replace`. Efeitos: transformação local sem efeito externo detectado. */ fn($s) => "'" . str_replace("'", "''", $s) . "'",
+        static  fn($s) => "'" . str_replace("'", "''", $s) . "'",
         lead_active_stages(),
     );
     return "(" .
@@ -126,15 +126,15 @@ function lead_active_stage_sql(string $column = "stage"): string
 }
 function lead_stage_sql_case(string $column = "stage"): string
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_stage_sql_case
-     * Responsabilidade: Implementa a responsabilidade “lead stage sql case” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `lead_active_stage_sql`, `page_leads`.
-     * Dependências chamadas: `preg_replace`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     return preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
 }
 
@@ -143,15 +143,15 @@ function lead_find_by_phone(
     string $phoneDigits,
     int $excludeId = 0,
 ): ?array {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_find_by_phone
-     * Responsabilidade: Localiza, carrega ou resolve os dados de “lead find by phone” para consumo pelas camadas superiores.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_lead_lookup`, `page_leads`.
-     * Dependências chamadas: `lead_phone_digits`, `ensure_lead_events_schema`, `one`, `lead_active_stage_sql`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
     $phoneDigits = lead_phone_digits($phoneDigits);
     if ($cid <= 0 || $phoneDigits === "") {
         return null;
@@ -185,16 +185,16 @@ function lead_event_create(
     string $body,
     string $eventType = "contato",
 ): void {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_event_create
-     * Responsabilidade: Valida e executa a mutação “lead event create”, preservando as invariantes do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_leads`.
-     * Dependências chamadas: `ensure_lead_events_schema`, `preg_replace`, `trim`, `lead_stage_normalize`, `q`.
-     * Efeitos colaterais: acessa a camada de persistência; pode gravar ou remover dados.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-     */
+    
+
+
+
+
+
+
+
+
+
     if ($cid <= 0 || $leadId <= 0) {
         return;
     }
@@ -232,16 +232,16 @@ function lead_prepare_person_for_patient(
     array $data,
     int $cid,
 ): int {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_prepare_person_for_patient
-     * Responsabilidade: Implementa a responsabilidade “lead prepare person for patient” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_leads`.
-     * Dependências chamadas: `trim`, `only_digits`, `RuntimeException`, `valid_cpf`, `valid_birth_date`, `val`, `person_identity_immutable_values`, `person_signature_value`, `q`, `upsert_person`.
-     * Classes ou serviços instanciados: `RuntimeException`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; pode interromper o fluxo por exceção.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     */
+    
+
+
+
+
+
+
+
+
+
     $leadId = (int) ($lead["id"] ?? 0);
     $name = trim((string) ($data["name"] ?? ($lead["name"] ?? "")));
     $cpf = only_digits((string) ($data["cpf"] ?? ""));
@@ -308,15 +308,15 @@ function lead_prepare_person_for_patient(
 }
 function lead_patient_by_cpf(int $cid, string $cpf): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_patient_by_cpf
-     * Responsabilidade: Implementa a responsabilidade “lead patient by cpf” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_leads`.
-     * Dependências chamadas: `only_digits`, `valid_cpf`, `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $cpf = only_digits($cpf);
     if ($cid <= 0 || !valid_cpf($cpf)) {
         return null;
@@ -329,15 +329,15 @@ function lead_patient_by_cpf(int $cid, string $cpf): ?array
 }
 function lead_patient_by_phone(int $cid, string $phoneDigits): ?array
 {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_patient_by_phone
-     * Responsabilidade: Implementa a responsabilidade “lead patient by phone” dentro do módulo de domínio e regras de negócio.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_lead_lookup`, `page_leads`.
-     * Dependências chamadas: `lead_phone_digits`, `strlen`, `one`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $phoneDigits = lead_phone_digits($phoneDigits);
     if ($cid <= 0 || strlen($phoneDigits) < 10) {
         return null;
@@ -353,15 +353,15 @@ function lead_history_html(
     array $users,
     array $stageLabels,
 ): string {
-    /*
-     * GUIA DE MANUTENÇÃO — lead_history_html
-     * Responsabilidade: Monta a representação de interface associada a “lead history html” sem alterar o contrato visual externo.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: `page_leads`.
-     * Dependências chamadas: `icon`, `first_name`, `dt_notice_br`, `trim`, `e`, `mb_substr`, `mb_strlen`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     if (!$items) {
         return '<div class="lead-history lead-history-compact empty-history"><span>' .
             icon("history") .
@@ -395,17 +395,17 @@ function lead_history_html(
 }
 function page_lead_lookup(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_lead_lookup
-     * Responsabilidade: Coordena a rota e renderiza a tela “page lead lookup”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `headers_sent`, `header`, `security_rate_limit`, `security_client_bucket`, `http_response_code`, `json_encode`, `lead_phone_digits`, `strlen`, `lead_find_by_phone`, `lead_patient_by_phone`, `href` e mais 3.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
     if (!headers_sent()) {
@@ -504,17 +504,17 @@ function page_lead_lookup(): void
 }
 function page_lead_patient_lookup(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_lead_patient_lookup
-     * Responsabilidade: Coordena a rota e renderiza a tela “page lead patient lookup”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `headers_sent`, `header`, `security_rate_limit`, `security_client_bucket`, `http_response_code`, `json_encode`, `only_digits`, `valid_cpf`, `one`, `href`, `lead_cpf_br` e mais 1.
-     * Estado externo lido: `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída.
-     * Cuidado 1: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 2: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
     if (!headers_sent()) {
@@ -607,18 +607,18 @@ function page_lead_patient_lookup(): void
 }
 function page_leads(): void
 {
-    /*
-     * GUIA DE MANUTENÇÃO — page_leads
-     * Responsabilidade: Coordena a rota e renderiza a tela “page leads”, reunindo validação, leitura de dados e resposta HTTP.
-     * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `require_can`, `ensure_lead_events_schema`, `lead_stage_options`, `lead_stage_normalize`, `preg_replace`, `trim`, `app_local_to_db_utc`, `one`, `flash`, `redirect`, `only_digits`, `lead_patient_by_cpf` e mais 54.
-     * Estado externo lido: `$_SERVER`, `$_POST`, `$_GET`.
-     * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos; pode gravar ou remover dados; consome dados da requisição HTTP; controla cabeçalhos, redirecionamento ou resposta HTTP; produz conteúdo de saída; gera trilha de auditoria ou telemetria.
-     * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-     * Cuidado 2: Qualquer nova ação protegida precisa de contrato exato no `ActionCatalog`; ações ausentes devem continuar falhando fechadas.
-     * Cuidado 3: Não produza saída antes de cabeçalhos ou redirecionamentos e preserve a validação CSRF nos POSTs.
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -631,28 +631,28 @@ function page_leads(): void
     ];
     $stageLabels = $stageOptions;
     $stageClass = function (string $stage): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Leads/Leads.php:458
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `lead_stage_normalize`, `preg_replace`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $stage = lead_stage_normalize($stage);
         return preg_replace("/[^a-z0-9_-]+/i", "-", $stage) ?: "em_aberto";
     };
     $leadTime = function (?string $v) use ($cid, $c): string {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@app/Domain/Leads/Leads.php:462
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de domínio e regras de negócio.
-         * Local arquitetural: app/Domain/Leads/Leads.php (domínio e regras de negócio).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `trim`, `app_local_to_db_utc`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $v = trim((string) $v);
         if ($v === "") {
             return "";

@@ -22,32 +22,32 @@ $GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema
 if (!function_exists('cfg')) {
     function cfg(): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — cfg
-         * Responsabilidade: Implementa a responsabilidade “cfg” dentro do módulo de ferramentas de certificação e manutenção.
-         * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: `pdo`, `app_config_string`, `app_debug`, `secret_key`, `pdo_metric`.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Estado externo lido: `$GLOBALS`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
+
         return (array) ($GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] ?? []);
     }
 }
 if (!function_exists('storage_path')) {
     function storage_path(string $path = ''): string
     {
-        /*
-         * GUIA DE MANUTENÇÃO — storage_path
-         * Responsabilidade: Implementa a responsabilidade “storage path” dentro do módulo de ferramentas de certificação e manutenção.
-         * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: `platform_storage_status`, `db_runtime_notice_once`, `schema_lock_file`, `subscription_payment_proof_storage`, `subscription_payment_proof_absolute_path`, `document_pdf_storage_dir`, `document_pdf_cleanup_due`, `maestro_cron_run` e mais 18.
-         * Dependências chamadas: `rtrim`, `sys_get_temp_dir`, `ltrim`.
-         * Estado externo lido: `$GLOBALS`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
+
         $base = rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
         return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
@@ -55,30 +55,30 @@ if (!function_exists('storage_path')) {
 if (!function_exists('prontoo_fs_chmod')) {
     function prontoo_fs_chmod(string $path, int $mode, bool $required = true): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — prontoo_fs_chmod
-         * Responsabilidade: Implementa a responsabilidade “prontoo fs chmod” dentro do módulo de ferramentas de certificação e manutenção.
-         * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: `prontoo_schema_promote_release_contract`, `schema_mark_ready`, `install_write_failure_log`, `prontoo_install`.
-         * Dependências chamadas: `file_exists`, `chmod`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return !file_exists($path) || @chmod($path, $mode);
     }
 }
 if (!function_exists('prontoo_fs_unlink')) {
     function prontoo_fs_unlink(string $path, bool $required = true): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — prontoo_fs_unlink
-         * Responsabilidade: Implementa a responsabilidade “prontoo fs unlink” dentro do módulo de ferramentas de certificação e manutenção.
-         * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: `prontoo_schema_promote_release_contract`, `install_fresh_schema`, `install_environment_checks`, `prontoo_install`, `closure@app/Install/Installer.php:872`.
-         * Dependências chamadas: `file_exists`, `unlink`.
-         * Efeitos colaterais: acessa o sistema de arquivos.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return !file_exists($path) || @unlink($path);
     }
 }
@@ -159,15 +159,15 @@ foreach ($blocks as $table => $block) {
     }
 }
 $normalize = static function (string $block): string {
-    /*
-     * GUIA DE MANUTENÇÃO — closure@tools/schema-check.php:117
-     * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de ferramentas de certificação e manutenção.
-     * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-     * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-     * Dependências chamadas: `preg_replace`, `trim`.
-     * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-     * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-     */
+    
+
+
+
+
+
+
+
+
     $block = preg_replace(
         '/`Seq` bigint UNSIGNED (?:DEFAULT NULL|NOT NULL DEFAULT \(UUID_SHORT\(\)\))/',
         '`Seq` <native-seq>',
@@ -232,15 +232,15 @@ if ($dsn !== '') {
     }
     $mysqlVersion = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
     $dropAll = static function (PDO $connection): void {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@tools/schema-check.php:181
-         * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de ferramentas de certificação e manutenção.
-         * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `->query`, `->fetchAll`, `->exec`, `str_replace`.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-         */
+        
+
+
+
+
+
+
+
+
         $tables = $connection->query(
             "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
         )->fetchAll(PDO::FETCH_COLUMN);
@@ -284,15 +284,15 @@ if ($dsn !== '') {
     prontoo_schema_clear_caches();
     Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
         static function (): void {
-            /*
-             * GUIA DE MANUTENÇÃO — closure@tools/schema-check.php:224
-             * Responsabilidade: Executa uma etapa anônima e localizada do fluxo do módulo de ferramentas de certificação e manutenção.
-             * Local arquitetural: tools/schema-check.php (ferramentas de certificação e manutenção).
-             * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-             * Dependências chamadas: `install_fresh_schema`.
-             * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-             * Cuidado 1: O `schema.sql` é congelado em runtime; mudanças estruturais só podem ocorrer na instalação local ou no CI autorizado.
-             */
+            
+
+
+
+
+
+
+
+
             install_fresh_schema();
         },
     );

@@ -66,15 +66,15 @@ if (!InstallAccess::isInstallerExecutionAllowed()) {
 $opened = false;
 try {
     $opened = SchemaMutationLock::runForInstaller(static function (): bool {
-        /*
-         * GUIA DE MANUTENÇÃO — closure@tools/install-security-check.php:62
-         * Responsabilidade: Confirma que a janela estrutural só abre no contexto integral da certificação e que o nonce interno é válido durante o callback.
-         * Local arquitetural: tools/install-security-check.php (ferramentas de certificação e manutenção).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: `SchemaMutationLock::isActive`, `db_reject_runtime_ddl`.
-         * Efeitos colaterais: executa somente uma prova controlada, sem persistir estrutura ou dados.
-         * Cuidado 1: Mantenha esta closure única para preservar o inventário documental da baseline.
-         */
+        
+
+
+
+
+
+
+
+
         if (!SchemaMutationLock::isActive()) {
             return false;
         }
@@ -175,8 +175,7 @@ if (str_contains($htaccess, 'HTTP:X-Forwarded-Proto') ||
 }
 foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     $httpsRuntimeSource = (string) file_get_contents($root . '/' . $httpsRuntimeFile);
-    if (!str_contains($httpsRuntimeSource, 'PRONTOO_HTTPS_RUNTIME_GUARD') ||
-        !str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
+    if (!str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
         !str_contains($httpsRuntimeSource, 'true, 308') ||
         !str_contains($httpsRuntimeSource, 'security_https_active()') ||
         str_contains($httpsRuntimeSource, 'HTTP_X_FORWARDED_PROTO')) {
@@ -285,8 +284,7 @@ if (!str_contains($teamSecuritySource, '!$alreadyLinked') ||
     $errors[] = 'cross_clinic_credential_reuse_policy';
 }
 $documentSecuritySource = (string) file_get_contents($root . '/app/Domain/Documents/Documents.php');
-if (!str_contains($documentSecuritySource, 'PRONTOO_DOCUMENT_HTML_ATTRIBUTE_ALLOWLIST') ||
-    !str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3')) {
+if (!str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3')) {
     $errors[] = 'document_html_attribute_allowlist_policy';
 }
 
@@ -299,7 +297,7 @@ if (!str_contains($foundationSource, 'app_root() . "/ssd"') || str_contains($fou
     $errors[] = 'ssd_storage_path_policy';
 }
 $prontooSource = (string) file_get_contents($root . '/app/prontoo.php');
-foreach (['PRONTOO_SSD_PERSISTENCE_POLICY', 'PRONTOO_SSD_ROOT', 'PRONTOO_PDF_ROOT', 'PRONTOO_IMAGE_UPLOAD_ROOT'] as $requiredPersistenceMarker) {
+foreach (['PRONTOO_SSD_ROOT', 'PRONTOO_PDF_ROOT', 'PRONTOO_IMAGE_UPLOAD_ROOT'] as $requiredPersistenceMarker) {
     if (!str_contains($prontooSource, $requiredPersistenceMarker)) {
         $errors[] = 'ssd_migration_marker:' . $requiredPersistenceMarker;
     }

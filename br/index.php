@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__) . "/app/Support/SecurityPrivacy.php";
 if (PHP_SAPI !== "cli") {
-    // PRONTOO_HTTPS_RUNTIME_GUARD
+    
     $brSecure = security_https_active();
     $brHost = strtolower(trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $brHost = preg_replace('/:\d+$/', '', $brHost) ?? "";
@@ -19,7 +19,7 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.7.27.6";
+const BR_LANDING_VERSION_FALLBACK = "1.7.29.1";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-telemetry.php";
 require __DIR__ . "/runtime-data.php";

@@ -11,15 +11,15 @@ final class ScopeProof
     public const UNPROVED = "unproved";
 
     private function __construct() {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::__construct
-         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
     }
 
     public static function whereStatus(
@@ -28,15 +28,15 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::whereStatus
-         * Responsabilidade: Implementa a responsabilidade “where status” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`, `Core.Invariant.Tenant.ScopeProof::logicSelfTest`.
-         * Dependências chamadas: `SqlExpression::whereExpression`, `self::booleanStatus`, `strtolower`, `array_values`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $where = SqlExpression::whereExpression($sql);
         if ($where === null) {
             return self::UNPROVED;
@@ -58,15 +58,15 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::insertStatus
-         * Responsabilidade: Implementa a responsabilidade “insert status” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Tenant.ScopeProof::logicSelfTest`.
-         * Dependências chamadas: `SqlExpression::insertColumnValues`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $complete = false;
         $values = SqlExpression::insertColumnValues(
             $sql,
@@ -95,15 +95,15 @@ final class ScopeProof
 
     public static function insertColumnPresent(string $sql, string $scopeColumn): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::insertColumnPresent
-         * Responsabilidade: Implementa a responsabilidade “insert column present” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
-         * Dependências chamadas: `preg_match`, `in_array`, `strtolower`, `array_map`, `SqlExpression::identifier`, `explode`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return preg_match(
             '/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?[a-z0-9_]+`?\s*\(([^)]*)\)/is',
             $sql,
@@ -112,7 +112,7 @@ final class ScopeProof
             in_array(
                 strtolower($scopeColumn),
                 array_map(
-                    static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: `SqlExpression::identifier`. Efeitos: transformação local sem efeito externo detectado. */ fn(string $column): string => SqlExpression::identifier($column),
+                    static  fn(string $column): string => SqlExpression::identifier($column),
                     explode(",", (string) $match[1]),
                 ),
                 true,
@@ -121,29 +121,29 @@ final class ScopeProof
 
     public static function updateChangesScope(string $sql, string $scopeColumn): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::updateChangesScope
-         * Responsabilidade: Implementa a responsabilidade “update changes scope” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`, `Core.Invariant.Tenant.ScopeProof::logicSelfTest`.
-         * Dependências chamadas: `array_key_exists`, `strtolower`, `SqlExpression::assignments`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         return array_key_exists(strtolower($scopeColumn), SqlExpression::assignments($sql));
     }
 
     public static function duplicatePreservesScope(string $sql, string $scopeColumn): bool
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::duplicatePreservesScope
-         * Responsabilidade: Implementa a responsabilidade “duplicate preserves scope” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::guard`.
-         * Dependências chamadas: `SqlExpression::assignments`, `strtolower`, `preg_replace`, `in_array`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $assignments = SqlExpression::assignments($sql);
         $key = strtolower($scopeColumn);
         if (!isset($assignments[$key])) {
@@ -167,15 +167,15 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::booleanStatus
-         * Responsabilidade: Implementa a responsabilidade “boolean status” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Tenant.ScopeProof::whereStatus`.
-         * Dependências chamadas: `SqlExpression::trimExpression`, `SqlExpression::outerParenthesesWrap`, `substr`, `SqlExpression::splitBooleanTopLevel`, `count`, `self::booleanStatus`, `array_filter`, `self::atomicStatus`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         [$expression, $baseOffset] = SqlExpression::trimExpression(
             $expression,
             $baseOffset,
@@ -202,10 +202,10 @@ final class ScopeProof
                     $params,
                 );
             }
-            if (count(array_filter($statuses, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(string $status): bool => $status === self::ACTIVE)) === count($statuses)) {
+            if (count(array_filter($statuses, static  fn(string $status): bool => $status === self::ACTIVE)) === count($statuses)) {
                 return self::ACTIVE;
             }
-            if (count(array_filter($statuses, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(string $status): bool => $status === self::MISMATCH)) === count($statuses)) {
+            if (count(array_filter($statuses, static  fn(string $status): bool => $status === self::MISMATCH)) === count($statuses)) {
                 return self::MISMATCH;
             }
             return self::UNPROVED;
@@ -249,15 +249,15 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::atomicStatus
-         * Responsabilidade: Implementa a responsabilidade “atomic status” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Tenant.ScopeProof::booleanStatus`.
-         * Dependências chamadas: `preg_quote`, `preg_match_all`, `SqlExpression::tokenValue`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         $column = preg_quote($scopeColumn, "/");
         $columnExpression = "(?<![a-z0-9_])(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?" . $column . "`?(?![a-z0-9_])";
         $patterns = [
@@ -297,15 +297,15 @@ final class ScopeProof
 
     public static function logicSelfTest(): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Tenant.ScopeProof::logicSelfTest
-         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
-         * Local arquitetural: app/Core/Invariant/Tenant/ScopeProof.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`.
-         * Dependências chamadas: `self::whereStatus`, `SqlExpression::parseInsert`, `is_array`, `self::insertStatus`, `self::updateChangesScope`, `array_keys`, `array_filter`, `count`.
-         * Efeitos colaterais: pode gravar ou remover dados.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
         $clinicId = 17;
         $cases = [];
         $cases["nested_or_inside_scoped_and"] = self::whereStatus(
@@ -347,7 +347,7 @@ final class ScopeProof
             "UPDATE pi_tasks SET clinic_id=? WHERE id=? AND clinic_id=?",
             "clinic_id",
         );
-        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static  fn(bool $ok): bool => !$ok));
         return [
             "ok" => $failed === [],
             "passed" => count($cases) - count($failed),

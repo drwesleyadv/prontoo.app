@@ -10,15 +10,15 @@ final class AppointmentWorkflow
     private static ?StateMachine $machine = null;
 
     private function __construct() {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Workflow.AppointmentWorkflow::__construct
-         * Responsabilidade: Inicializa ou restringe a criação da instância responsável por este serviço, estabelecendo as dependências necessárias antes do uso.
-         * Local arquitetural: app/Core/Invariant/Workflow/AppointmentWorkflow.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: nenhuma dependência direta detectada estaticamente.
-         * Dependências chamadas: nenhuma dependência direta detectada estaticamente.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
     }
 
     public static function assertWrite(
@@ -29,15 +29,15 @@ final class AppointmentWorkflow
         ?array $insert,
         int $clinicId,
     ): array {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Workflow.AppointmentWorkflow::assertWrite
-         * Responsabilidade: Implementa a responsabilidade “assert write” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Workflow/AppointmentWorkflow.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Context.AppointmentContextInvariant::assertWrite`.
-         * Dependências chamadas: `self::machine`, `in_array`, `is_array`, `SqlExpression::insertColumnValues`, `self::deny`, `->normalize`, `->acceptsInitial`, `Canonical::hash`, `count`, `SqlExpression::assignments`, `SqlExpression::tokenValue`, `->knows` e mais 13.
-         * Efeitos colaterais: acessa a camada de persistência; consulta dados persistidos.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
         if ($table !== "pi_appointments" || $clinicId <= 0) {
             return ["checked" => false, "transitions" => 0, "proofs" => []];
         }
@@ -121,7 +121,7 @@ final class AppointmentWorkflow
         $ids = array_values(array_filter(array_map(
             "intval",
             SqlExpression::whereEqualityValues($sql, "id", $params, $idsComplete),
-        ), static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(int $id): bool => $id > 0));
+        ), static  fn(int $id): bool => $id > 0));
         if (!$idsComplete || $ids === []) {
             self::deny("appointment_transition_target_unproved", $sql);
         }
@@ -149,16 +149,16 @@ final class AppointmentWorkflow
 
     private static function machine(): StateMachine
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Workflow.AppointmentWorkflow::machine
-         * Responsabilidade: Implementa a responsabilidade “machine” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Workflow/AppointmentWorkflow.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`, `Core.Invariant.Workflow.AppointmentWorkflow::logicSelfTest`.
-         * Dependências chamadas: `StateMachine`.
-         * Classes ou serviços instanciados: `StateMachine`.
-         * Efeitos colaterais: nenhum efeito externo evidente na análise estática.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         if (self::$machine instanceof StateMachine) {
             return self::$machine;
         }
@@ -213,16 +213,16 @@ final class AppointmentWorkflow
 
     private static function deny(string $key, string $sql): never
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Workflow.AppointmentWorkflow::deny
-         * Responsabilidade: Implementa a responsabilidade “deny” dentro do módulo de núcleo de invariantes e decisões canônicas.
-         * Local arquitetural: app/Core/Invariant/Workflow/AppointmentWorkflow.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Workflow.AppointmentWorkflow::assertWrite`.
-         * Dependências chamadas: `function_exists`.
-         * Classes ou serviços instanciados: `.ProntooHttpError`.
-         * Efeitos colaterais: pode interromper o fluxo por exceção.
-         * Cuidado 1: Ao modificar esta rotina, revise os chamadores e preserve tipos, valores de retorno e comportamento de falha.
-         */
+        
+
+
+
+
+
+
+
+
+
         if (function_exists("record_scope_violation")) {
             \record_scope_violation(
                 $key,
@@ -238,15 +238,15 @@ final class AppointmentWorkflow
 
     public static function logicSelfTest(): array
     {
-        /*
-         * GUIA DE MANUTENÇÃO — Core.Invariant.Workflow.AppointmentWorkflow::logicSelfTest
-         * Responsabilidade: Executa verificações regressivas embutidas para confirmar que os contratos lógicos deste componente permanecem válidos.
-         * Local arquitetural: app/Core/Invariant/Workflow/AppointmentWorkflow.php (núcleo de invariantes e decisões canônicas).
-         * Chamadores detectados: `Core.Invariant.Mutation.MutationInvariant::logicSelfTest`.
-         * Dependências chamadas: `self::machine`, `SqlExpression::whereAllowedValues`, `->acceptsInitial`, `->canTransition`, `array_keys`, `array_filter`, `count`.
-         * Efeitos colaterais: pode gravar ou remover dados.
-         * Cuidado 1: Ao alterar a gravação, mantenha o escopo `clinic_id`, a atomicidade e a auditoria exigida pelo Guardião.
-         */
+        
+
+
+
+
+
+
+
+
         $machine = self::machine();
         $sourceComplete = true;
         $sourceSet = SqlExpression::whereAllowedValues(
@@ -271,7 +271,7 @@ final class AppointmentWorkflow
             "source_predicate_set_proved" => $sourceComplete && $sourceSet === ["agendado", "confirmado"],
             "unbounded_or_source_denied" => !$unsafeComplete,
         ];
-        $failed = array_keys(array_filter($cases, static /* Guia de manutenção: Executa uma transformação curta usada como callback no módulo de núcleo de invariantes e decisões canônicas. Dependências diretas: nenhuma dependência direta detectada estaticamente. Efeitos: transformação local sem efeito externo detectado. */ fn(bool $ok): bool => !$ok));
+        $failed = array_keys(array_filter($cases, static  fn(bool $ok): bool => !$ok));
         return [
             "ok" => $failed === [],
             "passed" => count($cases) - count($failed),
