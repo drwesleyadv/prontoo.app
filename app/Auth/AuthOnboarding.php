@@ -231,7 +231,8 @@ function onboarding_tip_html(array $c, string $route): string
     $params = $_GET;
     unset($params["r"]);
     $return = href($route, $params);
-    return prontoo_onboarding_tip_render($tip, $key, $return, csrf_field());}
+    return prontoo_onboarding_tip_render($tip, $key, $return, csrf_field());
+}
 function valid_cpf(string $cpf): bool
 {
     return \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf(only_digits($cpf));
