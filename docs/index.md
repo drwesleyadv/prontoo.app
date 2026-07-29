@@ -11,6 +11,7 @@
 - [Mapa de responsabilidades](architecture/responsibility-map.md)
 - [Fase 1 — enxugamento estrutural](architecture/phase-1-refactoring.md)
 - [Fase 2 — apresentação e leitura](architecture/phase-2-presentation-boundaries.md)
+- [Fase 3 — consultas e casos de uso](architecture/phase-3-read-use-cases.md)
 
 ## Decisões arquiteturais
 

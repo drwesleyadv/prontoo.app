@@ -603,3 +603,37 @@ function prontoo_onboarding_tip_render(
         static fn(string $name): string => icon($name),
     );
 }
+function prontoo_patient_read_service(): \Prontoo\Application\Patients\PatientReadService
+{
+    static $service = null;
+    if (!$service instanceof \Prontoo\Application\Patients\PatientReadService) {
+        $service = new \Prontoo\Application\Patients\PatientReadService(
+            new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository(),
+        );
+    }
+    return $service;
+}
+function prontoo_patient_appointment_registration_block_reason(
+    int $clinicId,
+    int $patientId,
+): ?string {
+    return prontoo_patient_read_service()->appointmentRegistrationBlockReason(
+        $clinicId,
+        $patientId,
+        static fn(array $patient): bool => patient_invoice_registration_complete($patient),
+        static fn(array $patient): string => patient_invoice_registration_alert_message($patient),
+    );
+}
+function prontoo_patient_legal_guardians(int $clinicId, int $patientId): array
+{
+    return prontoo_patient_read_service()->legalGuardians(
+        $clinicId,
+        $patientId,
+        static fn(string $cpf): string => only_digits($cpf),
+        static fn(string $relationship): string => normalize_guardian_relationship($relationship),
+    );
+}
+function prontoo_patient_has_legal_guardian(int $clinicId, int $patientId): bool
+{
+    return prontoo_patient_read_service()->hasLegalGuardian($clinicId, $patientId);
+}

@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.29.4 — Fase 3: consultas e casos de uso
+
+- cria uma porta de leitura de pacientes na camada de aplicação;
+- introduz caso de uso para elegibilidade cadastral e responsáveis legais;
+- move as consultas correspondentes para adaptador PDO com isolamento por consultório;
+- mantém as funções globais existentes como fachadas compatíveis;
+- adiciona testes de comportamento, direção de dependências e ausência de SQL na aplicação;
+- não altera banco, schema, interface, permissões ou regras de negócio.
 ## 1.7.29.3 — Fase 2: apresentação e leitura
 
 - move a leitura das abas do paciente para infraestrutura;

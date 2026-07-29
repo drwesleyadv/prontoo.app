@@ -222,43 +222,15 @@ function patient_appointment_registration_block_reason(
     int $cid,
     int $patientId,
 ): ?string {
-
-    if ($cid <= 0 || $patientId <= 0) {
-        return null;
-    }
-    $p = one(
-        "SELECT pp.id,pp.clinic_id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,p.full_name,p.cpf,p.birth_date FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1 LIMIT 1",
-        [$patientId, $cid],
-    );
-    if (!$p) {
-        return "Paciente não encontrado no consultório atual.";
-    }
-    if (patient_invoice_registration_complete($p)) {
-        return null;
-    }
-    return patient_invoice_registration_alert_message($p);
+    return prontoo_patient_appointment_registration_block_reason($cid, $patientId);
 }
 function patient_legal_guardians(int $cid, int $patientId): array
 {
-
     if ($cid <= 0 || $patientId <= 0) {
         return [];
     }
     patient_guardians_ensure_schema();
-    $rows = q(
-        "SELECT id,full_name,cpf,relationship,phone,email,document_note,notes,is_primary,created_at,updated_at FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY is_primary DESC, id ASC",
-        [$cid, $patientId],
-    )->fetchAll();
-    foreach ($rows as &$r) {
-        $r["id"] = (int) $r["id"];
-        $r["cpf"] = only_digits((string) ($r["cpf"] ?? ""));
-        $r["relationship"] = normalize_guardian_relationship(
-            (string) ($r["relationship"] ?? "outro"),
-        );
-        $r["is_primary"] = (int) ($r["is_primary"] ?? 0);
-    }
-    unset($r);
-    return $rows;
+    return prontoo_patient_legal_guardians($cid, $patientId);
 }
 function patient_primary_legal_guardian(int $cid, int $patientId): ?array
 {
@@ -268,15 +240,11 @@ function patient_primary_legal_guardian(int $cid, int $patientId): ?array
 }
 function patient_has_legal_guardian(int $cid, int $patientId): bool
 {
-
     if ($cid <= 0 || $patientId <= 0) {
         return false;
     }
     patient_guardians_ensure_schema();
-    return (int) (val(
-        "SELECT COUNT(*) FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1",
-        [$cid, $patientId],
-    ) ?? 0) > 0;
+    return prontoo_patient_has_legal_guardian($cid, $patientId);
 }
 function patient_profile_status(array $p, array $guardians): array
 {
