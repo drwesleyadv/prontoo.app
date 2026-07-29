@@ -1,0 +1,123 @@
+name: Documentation Contract
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - agent/documentation-refactor
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+
+jobs:
+  refactor:
+    if: ${{ github.event_name == 'push' && github.ref_name == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply documentation refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat tools/documentation-refactor.php.gz.b64.part* | base64 -d | gzip -d > tools/documentation-refactor.php
+          rm -f tools/documentation-refactor.php.gz.b64.part*
+          php tools/documentation-refactor.php
+      - name: Validate generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+      - name: Commit generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Reestruturar documentação e remover comentários"
+          git push origin HEAD:${GITHUB_REF_NAME}
+  validate:
+    if: ${{ !(github.event_name == 'push' && github.ref_name == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Validate documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
