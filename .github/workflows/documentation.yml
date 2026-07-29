@@ -52,6 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cp .github/workflows/architecture.yml /tmp/architecture-original.yml
           cat tools/documentation-refactor.php.gz.b64.part* | base64 -d | gzip -d > tools/documentation-refactor.php
           python3 <<'PY'
           from pathlib import Path
@@ -65,6 +66,17 @@ jobs:
           PY
           rm -f tools/documentation-refactor.php.gz.b64.part*
           php tools/documentation-refactor.php
+          generated_bytes="$(stat -c%s .github/workflows/architecture.yml)"
+          original_bytes="$(stat -c%s /tmp/architecture-original.yml)"
+          cp /tmp/architecture-original.yml .github/workflows/architecture.yml
+          GENERATED_ARCHITECTURE_BYTES="$generated_bytes" ORIGINAL_ARCHITECTURE_BYTES="$original_bytes" php -r '
+          $path = "app/update.manifest.json";
+          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+          $workflow = ".github/workflows/architecture.yml";
+          $manifest["files"][$workflow] = hash_file("sha256", $workflow);
+          $manifest["total_uncompressed_bytes"] = (int) $manifest["total_uncompressed_bytes"] - (int) getenv("GENERATED_ARCHITECTURE_BYTES") + (int) getenv("ORIGINAL_ARCHITECTURE_BYTES");
+          file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
+          '
       - name: Validate generated state
         shell: bash
         run: |
