@@ -1,0 +1,116 @@
+name: Phase 5 Refactor
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  apply:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply phase 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat tools/phase5_apply.part00 tools/phase5_apply.part01 tools/phase5_apply.part02 tools/phase5_apply.part03 tools/phase5_apply.part04 | base64 -d | gzip -d > /tmp/phase5_apply.py
+          python3 /tmp/phase5_apply.py
+          git rm -f tools/phase5_apply.part00 tools/phase5_apply.part01 tools/phase5_apply.part02 tools/phase5_apply.part03 tools/phase5_apply.part04 .github/workflows/phase5-refactor.yml
+      - name: Reconcile manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          root = Path('.')
+          path = root / 'app/update.manifest.json'
+          manifest = json.loads(path.read_text())
+          files = {}
+          total = 0
+          for item in root.rglob('*'):
+              if not item.is_file() or item.is_symlink():
+                  continue
+              rel = item.as_posix()
+              if rel == 'app/update.manifest.json' or rel.startswith(('.git/', 'ssd/', 'vendor/', 'node_modules/')):
+                  continue
+              data = item.read_bytes()
+              files[rel] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = dict(sorted(files.items()))
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+          PY
+      - name: Validate generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+      - name: Commit phase 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Executar Fase 5 de endurecimento financeiro"
+          git push origin HEAD:${GITHUB_HEAD_REF}
