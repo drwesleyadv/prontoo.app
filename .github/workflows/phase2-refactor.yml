@@ -4,6 +4,7 @@ on:
   pull_request:
     types:
       - opened
+      - synchronize
     branches:
       - main
 
@@ -23,6 +24,7 @@ env:
 
 jobs:
   apply:
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -55,6 +57,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/phase2-apply.php')
+          source = path.read_text()
+          source = source.replace("'$1' . $version . '$2'", "'${1}' . $version . '${2}'")
+          path.write_text(source)
+          PY
           php tools/phase2-apply.php
           git rm tools/phase2-apply.php
       - name: Reconcile manifest
