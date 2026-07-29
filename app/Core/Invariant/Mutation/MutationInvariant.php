@@ -14,27 +14,11 @@ use Prontoo\Core\Tenant\TenantRegistry;
 final class MutationInvariant
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function guard(string $sql, array $params = []): void
     {
-        
-
-
-
-
-
-
-
 
         $operation = SqlExpression::operation($sql);
         if ($operation === null) {
@@ -185,15 +169,6 @@ final class MutationInvariant
         string $sql,
         int $clinicId,
     ): void {
-        
-
-
-
-
-
-
-
-
 
         if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
             return;
@@ -225,15 +200,6 @@ final class MutationInvariant
         int $status = 500,
         string $publicMessage = "Proteção de isolamento: operação bloqueada por não preservar as invariantes do consultório ativo.",
     ): never {
-        
-
-
-
-
-
-
-
-
 
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);
@@ -248,14 +214,6 @@ final class MutationInvariant
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
 
         $scope = ScopeProof::logicSelfTest();
         $contexts = ContextInvariantRegistry::logicSelfTest();
@@ -271,14 +229,6 @@ final class MutationInvariant
                 "INSERT IGNORE INTO pi_tasks (clinic_id,title) VALUES (?,?)",
             )),
             "id_boundary" => (function (): bool {
-                
-
-
-
-
-
-
-
 
                 $complete = true;
                 $values = SqlExpression::whereEqualityValues(

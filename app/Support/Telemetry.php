@@ -2,15 +2,6 @@
 declare(strict_types=1);
 function pdo_metric(): PDO
 {
-    
-
-
-
-
-
-
-
-
 
     static $pdo = null;
     if ($pdo instanceof PDO) {
@@ -39,27 +30,11 @@ function pdo_metric(): PDO
 }
 function telemetry_storage_dir(): string
 {
-    
-
-
-
-
-
-
-
 
     return storage_path("telemetry");
 }
 function maestro_deferred_storage_dir(): string
 {
-    
-
-
-
-
-
-
-
 
     return storage_path("maestro-deferred");
 }
@@ -74,14 +49,6 @@ function maestro_deferred_storage_dirs(string $type = "audit"): array
 }
 function maestro_deferred_canonicalize(mixed $value): mixed
 {
-    
-
-
-
-
-
-
-
 
     if (!is_array($value)) {
         return $value;
@@ -97,14 +64,6 @@ function maestro_deferred_canonicalize(mixed $value): mixed
 }
 function maestro_deferred_sign(array $envelope): string
 {
-    
-
-
-
-
-
-
-
 
     static $key = null;
     if (!is_string($key) || $key === "") {
@@ -176,14 +135,6 @@ function maestro_deferred_spool_write(
 }
 function maestro_deferred_enqueue(string $type, array $payload): ?string
 {
-    
-
-
-
-
-
-
-
 
     if (!has_cfg() || !in_array($type, ["audit", "telemetry"], true)) {
         return null;
@@ -230,15 +181,6 @@ function maestro_defer_audit_event(
     array $context,
     ?int $actorUserId = null,
 ): bool {
-    
-
-
-
-
-
-
-
-
 
     $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
     $userAgent = mb_substr(
@@ -277,14 +219,6 @@ function maestro_defer_telemetry_event(
     array $event,
     bool $includePageMetric,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $queued = maestro_deferred_enqueue("telemetry", [
         "event" => $event,
@@ -299,14 +233,6 @@ function maestro_defer_telemetry_event(
 }
 function maestro_deferred_envelope_valid(array $envelope): bool
 {
-    
-
-
-
-
-
-
-
 
     $signature = strtolower(trim((string) ($envelope["signature"] ?? "")));
     if (
@@ -336,14 +262,6 @@ function maestro_deferred_envelope_valid(array $envelope): bool
 }
 function maestro_process_deferred_audit(array $envelope): bool
 {
-    
-
-
-
-
-
-
-
 
     if (
         !function_exists("audit") ||
@@ -397,14 +315,6 @@ function maestro_process_deferred_audit(array $envelope): bool
 }
 function maestro_process_deferred_telemetry(array $envelope): bool
 {
-    
-
-
-
-
-
-
-
 
     $payload = (array) ($envelope["payload"] ?? []);
     $event = isset($payload["event"]) && is_array($payload["event"])
@@ -429,14 +339,6 @@ function maestro_process_deferred_work(
     int $budgetMs = 5000,
     int $limit = 500,
 ): array {
-    
-
-
-
-
-
-
-
 
     $started = microtime(true);
     $budgetMs = max(250, min(30000, $budgetMs));
@@ -669,42 +571,17 @@ function maestro_process_deferred_work(
 }
 function telemetry_page_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return telemetry_storage_dir() . "/page-load.json";
 }
 function telemetry_cuiaba_tz(): DateTimeZone
 {
-    
-
-
-
-
-
-
-
-
 
     static $tz = null;
     return $tz ?: ($tz = new DateTimeZone("America/Cuiaba"));
 }
 function telemetry_prepare_storage(): bool
 {
-    
-
-
-
-
-
-
-
 
     try {
         $dir = telemetry_storage_dir();
@@ -729,14 +606,6 @@ function telemetry_prepare_storage(): bool
 }
 function telemetry_read_events(): array
 {
-    
-
-
-
-
-
-
-
 
     static $requestCache = null;
     if (is_array($requestCache)) {
@@ -763,14 +632,6 @@ function telemetry_read_events(): array
 }
 function telemetry_sanitize_events(array $events, int $nowTs): array
 {
-    
-
-
-
-
-
-
-
 
     $cut = $nowTs - 25 * 3600;
     $out = [];
@@ -804,15 +665,6 @@ function telemetry_sanitize_events(array $events, int $nowTs): array
 }
 function telemetry_append_page_metric(array $event): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
         return false;
@@ -919,82 +771,34 @@ function telemetry_append_page_metric(array $event): bool
 }
 function telemetry_route_perf_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return telemetry_storage_dir() . "/route-performance.json";
 }
 function telemetry_route_perf_bucket_seconds(): int
 {
-    
-
-
-
-
-
-
-
 
     return 300;
 }
 function telemetry_route_perf_bucket_start(int $ts): int
 {
-    
-
-
-
-
-
-
-
 
     $size = telemetry_route_perf_bucket_seconds();
     return $ts - ($ts % $size);
 }
 function telemetry_route_perf_safe_route(string $route): string
 {
-    
-
-
-
-
-
-
-
 
     $route = preg_replace("/[^a-z0-9_\-]/i", "", trim($route)) ?: "unknown";
     return substr($route, 0, 80);
 }
 function telemetry_release_safe(string $release): string
 {
-    
-
-
-
-
-
-
-
 
     $release = preg_replace("/[^a-z0-9._\-]/i", "", trim($release)) ?: "unknown";
     return substr($release, 0, 48);
 }
 function telemetry_previous_release(): string
 {
-    
-
-
-
-
-
-
-
 
     return telemetry_release_safe(
         defined("PRONTOO_PREVIOUS_VERSION")
@@ -1004,14 +808,6 @@ function telemetry_previous_release(): string
 }
 function telemetry_route_perf_empty_row(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "count" => 0,
@@ -1043,14 +839,6 @@ function telemetry_route_perf_add_event(
     int $moduleBytes = 0,
     int $moduleFiles = 0,
 ): array {
-    
-
-
-
-
-
-
-
 
     $row = array_replace(telemetry_route_perf_empty_row(), $row);
     $row["count"] = (int) $row["count"] + 1;
@@ -1084,14 +872,6 @@ function telemetry_route_perf_add_event(
 }
 function telemetry_cache_empty_row(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "requests" => 0,
@@ -1113,14 +893,6 @@ function telemetry_cache_empty_row(): array
 }
 function telemetry_cache_add_metrics(array $row, array $metrics): array
 {
-    
-
-
-
-
-
-
-
 
     $row = array_replace(telemetry_cache_empty_row(), $row);
     $row["requests"] = (int) $row["requests"] + 1;
@@ -1139,15 +911,6 @@ function telemetry_cache_add_metrics(array $row, array $metrics): array
 }
 function telemetry_append_route_performance_metric(array $event): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
         return false;
@@ -1414,14 +1177,6 @@ function telemetry_append_route_performance_metric(array $event): bool
 }
 function telemetry_route_perf_snapshot(): array
 {
-    
-
-
-
-
-
-
-
 
     static $snapshot = null;
     if (is_array($snapshot)) {
@@ -1439,14 +1194,6 @@ function telemetry_route_perf_snapshot(): array
 }
 function telemetry_cache_performance_summary(int $hours = 24): array
 {
-    
-
-
-
-
-
-
-
 
     $hours = max(1, min(168, $hours));
     $cut = time() - $hours * 3600;
@@ -1485,14 +1232,6 @@ function telemetry_cache_performance_summary(int $hours = 24): array
         }
     }
     $format = static function (array $row, string $category = "total"): array {
-        
-
-
-
-
-
-
-
 
         $lookups = max(0, (int) ($row["lookups"] ?? 0));
         $memoryHits = max(0, (int) ($row["memory_hits"] ?? 0));
@@ -1526,14 +1265,6 @@ function telemetry_cache_performance_summary(int $hours = 24): array
 }
 function telemetry_release_performance_summary(int $hours = 24): array
 {
-    
-
-
-
-
-
-
-
 
     $hours = max(1, min(168, $hours));
     $cut = time() - $hours * 3600;
@@ -1643,14 +1374,6 @@ function telemetry_release_performance_summary(int $hours = 24): array
 }
 function telemetry_route_performance_summary(int $hours = 24): array
 {
-    
-
-
-
-
-
-
-
 
     $hours = max(1, min(168, $hours));
     $jsonSnapshot = telemetry_route_perf_snapshot();
@@ -1855,14 +1578,6 @@ function telemetry_route_performance_summary(int $hours = 24): array
         $totalMs += (float) $r["total_ms"];
     }
     usort($rows, static function ($a, $b) {
-        
-
-
-
-
-
-
-
 
         $cmp = $b["avg_ms"] <=> $a["avg_ms"];
         if ($cmp !== 0) {
@@ -1881,15 +1596,6 @@ function telemetry_route_performance_summary(int $hours = 24): array
 
 function telemetry_route_count_last_days(string $route, int $days = 7): int
 {
-    
-
-
-
-
-
-
-
-
 
     $route = telemetry_route_perf_safe_route($route);
     $days = max(1, min(35, $days));
@@ -1963,15 +1669,6 @@ function telemetry_route_count_last_days(string $route, int $days = 7): int
 
 function telemetry_route_requests_series_30d(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $tz = telemetry_cuiaba_tz();
     $today = new DateTimeImmutable("today", $tz);
@@ -2045,14 +1742,6 @@ function telemetry_route_requests_series_30d(): array
 }
 function request_metric_fatal_error(?array $err): ?string
 {
-    
-
-
-
-
-
-
-
 
     if (!$err) {
         return null;
@@ -2070,15 +1759,6 @@ function request_metric_fatal_error(?array $err): ?string
 }
 function request_metric_route_name(): string
 {
-    
-
-
-
-
-
-
-
-
 
     try {
         return function_exists("route")
@@ -2090,15 +1770,6 @@ function request_metric_route_name(): string
 }
 function prontoo_request_metric_shutdown(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $busy = false;
     if (PHP_SAPI === "cli") {

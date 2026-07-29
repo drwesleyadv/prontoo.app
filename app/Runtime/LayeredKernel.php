@@ -15,14 +15,6 @@ final class LayeredKernel
     private static ?ActionMiddleware $actions = null;
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -32,29 +24,12 @@ final class LayeredKernel
         array $post,
         array $context,
     ): void {
-        
-
-
-
-
-
-
-
 
         self::actionMiddleware()->enforce($route, $method, $post, $context);
     }
 
     public static function actionMiddleware(): ActionMiddleware
     {
-        
-
-
-
-
-
-
-
-
 
         return self::$actions ??= new ActionMiddleware(
             new AuthorizationService(new RuntimeCapabilityProvider()),
@@ -64,14 +39,6 @@ final class LayeredKernel
 
     public static function logicSelfTest(?string $root = null): array
     {
-        
-
-
-
-
-
-
-
 
         $authorization = AuthorizationService::logicSelfTest();
         $credentials = RuntimeCapabilityProvider::logicSelfTest();

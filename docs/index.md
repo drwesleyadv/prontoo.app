@@ -8,6 +8,8 @@
 - [C4 — contexto](architecture/c4-context.md)
 - [C4 — contêineres](architecture/c4-containers.md)
 - [Fluxos de dados](architecture/data-flow.md)
+- [Mapa de responsabilidades](architecture/responsibility-map.md)
+- [Fase 1 — enxugamento estrutural](architecture/phase-1-refactoring.md)
 
 ## Decisões arquiteturais
 
@@ -51,6 +53,7 @@
 - [Estratégia de testes](testing/strategy.md)
 - [Suíte regressiva](testing/regression-suite.md)
 - [Testes de propriedades](testing/property-tests.md)
+- [Baseline de caracterização](testing/characterization-baseline.md)
 
 ## Referência
 

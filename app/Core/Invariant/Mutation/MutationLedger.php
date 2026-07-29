@@ -10,28 +10,11 @@ final class MutationLedger
     private static array $proofs = [];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function record(array $evidence): string
     {
-        
-
-
-
-
-
-
-
-
 
         if (self::$chain === null) {
             self::$chain = Canonical::hash("mutation_genesis", [
@@ -54,14 +37,6 @@ final class MutationLedger
 
     public static function snapshot(): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             "policy" => Canonical::POLICY_VERSION,
@@ -73,15 +48,6 @@ final class MutationLedger
 
     public static function reset(): void
     {
-        
-
-
-
-
-
-
-
-
 
         self::$chain = null;
         self::$proofs = [];

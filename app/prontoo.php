@@ -121,53 +121,21 @@ if (!function_exists("mb_substr")) {
         ?int $l = null,
         ?string $e = null,
     ): string {
-        
-
-
-
-
-
-
-
 
         return $l === null ? substr($s, $a) : substr($s, $a, $l);
     }
     function mb_strlen(string $s, ?string $e = null): int
     {
-        
-
-
-
-
-
-
-
 
         return strlen($s);
     }
     function mb_strtolower(string $s, ?string $e = null): string
     {
-        
-
-
-
-
-
-
-
 
         return strtolower($s);
     }
     function mb_convert_case(string $s, int $mode, ?string $e = null): string
     {
-        
-
-
-
-
-
-
-
 
         return $mode === MB_CASE_TITLE ? ucwords(strtolower($s)) : $s;
     }
@@ -175,14 +143,6 @@ if (!function_exists("mb_substr")) {
 if (!function_exists("h")) {
     function h($v): string
     {
-        
-
-
-
-
-
-
-
 
         return htmlspecialchars(
             (string) $v,
@@ -191,18 +151,10 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.29.1";
+const PRONTOO_VERSION_FALLBACK = "1.7.29.2";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
-    
-
-
-
-
-
-
-
 
     static $metadata = null;
     if (is_array($metadata)) {
@@ -237,14 +189,6 @@ define("PRONTOO_RELEASE", $prontooRelease);
 define("PRONTOO_ASSET_REV", $prontooAssetRevision);
 function prontoo_version_contract_status(): array
 {
-    
-
-
-
-
-
-
-
 
     static $status = null;
     if (is_array($status)) {
@@ -352,14 +296,6 @@ if (PHP_SAPI !== "cli") {
 }
 function prontoo_configure_runtime_error_log(): void
 {
-    
-
-
-
-
-
-
-
 
     if (PHP_SAPI === "cli") {
         return;
@@ -427,14 +363,6 @@ class ProntooHttpError extends RuntimeException
 {
     public function __construct(public int $status, string $message)
     {
-        
-
-
-
-
-
-
-
 
         parent::__construct($message);
     }

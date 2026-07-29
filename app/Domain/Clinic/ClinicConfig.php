@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function clinical_profession_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "Médico(a)" => "Médico(a)",
@@ -27,14 +19,6 @@ function clinical_profession_options(): array
 }
 function normalize_profession(string $profession): string
 {
-    
-
-
-
-
-
-
-
 
     $profession = trim(preg_replace("/\s+/", " ", $profession) ?? "");
     if ($profession === "") {
@@ -55,14 +39,6 @@ function normalize_profession(string $profession): string
 }
 function clinic_icon_options(): array
 {
-    
-
-
-
-
-
-
-
 
     $base = [
         "medical_services" => [
@@ -195,14 +171,6 @@ function clinic_icon_options(): array
 }
 function patient_health_icon_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "clinical_notes" => "Prontuário clínico",
@@ -274,14 +242,6 @@ function patient_health_icon_options(): array
 }
 function clinic_accent_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         PRONTOO_DEFAULT_ACCENT_COLOR => [
@@ -484,14 +444,6 @@ function clinic_accent_options(): array
 }
 function normalize_clinic_icon(?string $icon): string
 {
-    
-
-
-
-
-
-
-
 
     $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
     return array_key_exists($icon, clinic_icon_options())
@@ -500,14 +452,6 @@ function normalize_clinic_icon(?string $icon): string
 }
 function normalize_accent_color(?string $color): string
 {
-    
-
-
-
-
-
-
-
 
     $color = strtolower(trim((string) $color));
     if (array_key_exists($color, clinic_accent_options())) {
@@ -520,14 +464,6 @@ function normalize_accent_color(?string $color): string
 }
 function profession_default_icon(string $profession): string
 {
-    
-
-
-
-
-
-
-
 
     foreach (clinic_icon_options() as $icon => $meta) {
         if (($meta["profession"] ?? "") === $profession) {
@@ -538,27 +474,11 @@ function profession_default_icon(string $profession): string
 }
 function profession_default_color(string $profession): string
 {
-    
-
-
-
-
-
-
-
 
     return "#334155";
 }
 function clinic_favicon_symbol_svg(string $icon, string $fill): string
 {
-    
-
-
-
-
-
-
-
 
     $fill = e($fill);
     return match ($icon) {
@@ -642,14 +562,6 @@ function clinic_favicon_symbol_svg(string $icon, string $fill): string
 }
 function clinic_favicon_href(string $icon, string $color): string
 {
-    
-
-
-
-
-
-
-
 
     $icon = normalize_clinic_icon($icon);
     $color = normalize_accent_color($color);
@@ -665,14 +577,6 @@ function clinic_favicon_href(string $icon, string $color): string
 }
 function clinic_hex_rgb(string $hex): array
 {
-    
-
-
-
-
-
-
-
 
     $hex = ltrim(trim($hex), "#");
     if (strlen($hex) === 3) {
@@ -689,14 +593,6 @@ function clinic_hex_rgb(string $hex): array
 }
 function clinic_rgb_hex(array $rgb): string
 {
-    
-
-
-
-
-
-
-
 
     return sprintf(
         "#%02x%02x%02x",
@@ -707,14 +603,6 @@ function clinic_rgb_hex(array $rgb): string
 }
 function clinic_mix_hex(string $a, string $b, float $aWeight): string
 {
-    
-
-
-
-
-
-
-
 
     $ra = clinic_hex_rgb($a);
     $rb = clinic_hex_rgb($b);
@@ -727,14 +615,6 @@ function clinic_mix_hex(string $a, string $b, float $aWeight): string
 }
 function clinic_luminance(string $hex): float
 {
-    
-
-
-
-
-
-
-
 
     $rgb = clinic_hex_rgb($hex);
     $vals = [];
@@ -746,14 +626,6 @@ function clinic_luminance(string $hex): float
 }
 function clinic_contrast_ratio(string $a, string $b): float
 {
-    
-
-
-
-
-
-
-
 
     $la = clinic_luminance($a) + 0.05;
     $lb = clinic_luminance($b) + 0.05;
@@ -761,14 +633,6 @@ function clinic_contrast_ratio(string $a, string $b): float
 }
 function clinic_contrast_text(string $bg): string
 {
-    
-
-
-
-
-
-
-
 
     $white = clinic_contrast_ratio($bg, "#ffffff");
     $ink = clinic_contrast_ratio($bg, "#17181c");
@@ -776,14 +640,6 @@ function clinic_contrast_text(string $bg): string
 }
 function clinic_theme_tokens(string $color, array $palette = []): array
 {
-    
-
-
-
-
-
-
-
 
     $base = normalize_accent_color($color);
     $rgb = clinic_hex_rgb($base);
@@ -964,14 +820,6 @@ function clinic_visual_from_values(
     ?string $color = null,
     ?string $profession = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     $profession = normalize_profession((string) ($profession ?: "Médico(a)"));
     $icon = normalize_clinic_icon(
@@ -995,14 +843,6 @@ function clinic_visual_from_values(
 }
 function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
 {
-    
-
-
-
-
-
-
-
 
     $ctx = $ctx ?: [];
     if ($ctx && ($ctx["scope"] ?? "") === "clinic") {
@@ -1014,14 +854,6 @@ function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
     }
     if ($clinicId && $clinicId > 0 && has_cfg()) {
         $loader = function () use ($clinicId): array {
-            
-
-
-
-
-
-
-
 
             try {
                 $row = one(
@@ -1060,14 +892,6 @@ function clinic_visual(?int $clinicId = null, ?array $ctx = null): array
 }
 function clinic_icon_picker(string $current): string
 {
-    
-
-
-
-
-
-
-
 
     $current = normalize_clinic_icon($current);
     $html =
@@ -1092,14 +916,6 @@ function clinic_icon_picker(string $current): string
 }
 function clinic_color_picker(string $current): string
 {
-    
-
-
-
-
-
-
-
 
     $current = normalize_accent_color($current);
     $html =
@@ -1133,14 +949,6 @@ function clinic_color_picker(string $current): string
 }
 function role_icon_sets(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "recepcionista" => [
@@ -1194,14 +1002,6 @@ function role_icon_sets(): array
 }
 function role_icon_options(?string $role = null): array
 {
-    
-
-
-
-
-
-
-
 
     $sets = role_icon_sets();
     if ($role !== null && isset($sets[$role])) {
@@ -1220,14 +1020,6 @@ function role_icon_picker(
     string $current,
     string $role = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $opts = role_icon_options($role ?: null);
     $current = isset($opts[$current]) ? $current : default_role_icon($role);
@@ -1257,14 +1049,6 @@ function role_icon_picker(
 }
 function default_role_icon(string $role): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($role) {
         "recepcionista" => "support_agent",
@@ -1276,14 +1060,6 @@ function default_role_icon(string $role): string
 }
 function clinic_role_label_fields(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     seed_clinic_roles($cid);
     $labels = clinic_roles($cid, false);
@@ -1319,14 +1095,6 @@ function clinic_role_label_fields(int $cid): string
 }
 function clinic_role_sector_fields(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     seed_clinic_roles($cid);
     $labels = clinic_roles($cid, false);
@@ -1401,14 +1169,6 @@ function clinic_role_sector_fields(int $cid): string
 }
 function profession_select_fields(array $cl = []): string
 {
-    
-
-
-
-
-
-
-
 
     $current = normalize_profession(
         (string) ($cl["responsible_profession"] ?? "Médico(a)"),
@@ -1423,27 +1183,11 @@ function profession_select_fields(array $cl = []): string
 }
 function clinic_profession(int $clinicId): string
 {
-    
-
-
-
-
-
-
-
 
     if ($clinicId <= 0) {
         return "Profissional";
     }
     $loader = function () use ($clinicId): string {
-        
-
-
-
-
-
-
-
 
         try {
             $value = val(
@@ -1476,27 +1220,11 @@ function clinic_profession(int $clinicId): string
 }
 function admin_model_clinic_meta_key(): string
 {
-    
-
-
-
-
-
-
-
 
     return "admin_global_exempt_clinic_id";
 }
 function admin_model_clinic_id(): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         return \Prontoo\Core\Tenant\TenantRegistry::modelClinicId();
@@ -1506,27 +1234,11 @@ function admin_model_clinic_id(): int
 }
 function clinic_is_global_admin_owned(int $clinicId): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($clinicId <= 0) {
         return false;
     }
     $loader = function () use ($clinicId): bool {
-        
-
-
-
-
-
-
-
 
         try {
             return (int) safe_val(
@@ -1552,40 +1264,16 @@ function clinic_is_global_admin_owned(int $clinicId): bool
 }
 function ensure_global_admin_clinic_exempt(int $clinicId): void
 {
-    
-
-
-
-
-
-
-
 
     return;
 }
 function admin_model_clinic_set(int $clinicId): void
 {
-    
-
-
-
-
-
-
-
 
     return;
 }
 function admin_model_clinic_exclude_sql(string $column = "clinic_id"): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicSql($column);
@@ -1595,14 +1283,6 @@ function admin_model_clinic_exclude_sql(string $column = "clinic_id"): string
 }
 function admin_model_clinic_exclude_where(string $column = "clinic_id"): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicWhere(
@@ -1614,27 +1294,11 @@ function admin_model_clinic_exclude_where(string $column = "clinic_id"): string
 }
 function admin_model_clinic_count_note(): string
 {
-    
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Metrics\GlobalMetricScope::countNote();
 }
 function open_incidents_count(): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) cached_val(
@@ -1648,14 +1312,6 @@ function open_incidents_count(): int
 }
 function clinic_metric_inc(?int $clinicId, string $metric, int $by = 1): void
 {
-    
-
-
-
-
-
-
-
 
     if (!$clinicId) {
         return;
@@ -1671,14 +1327,6 @@ function clinic_metric_inc(?int $clinicId, string $metric, int $by = 1): void
 }
 function clinic_read_only_db(int $cid): bool
 {
-    
-
-
-
-
-
-
-
 
     static $cache = [];
     if ($cid <= 0) {
@@ -1725,15 +1373,6 @@ function clinic_read_only_db(int $cid): bool
 }
 function clinic_context_required(?array $ctx = null): array
 {
-    
-
-
-
-
-
-
-
-
 
     $ctx = $ctx ?: ctx();
     if (
@@ -1750,38 +1389,14 @@ function clinic_context_required(?array $ctx = null): array
 }
 function clinic_id_required(?array $ctx = null): int
 {
-    
-
-
-
-
-
-
-
 
     $ctx = clinic_context_required($ctx);
     return (int) $ctx["clinic_id"];
 }
 function seed_clinic_roles(int $clinicId): void
 {
-    
-
-
-
-
-
-
-
 
     with_read_only_guard_disabled(static function () use ($clinicId): void {
-        
-
-
-
-
-
-
-
 
         $position = 1;
         foreach (PRONTOO_ROLES as $code => $label) {
@@ -1804,27 +1419,11 @@ function seed_clinic_roles(int $clinicId): void
 
 function clinic_roles(int $clinicId, bool $enabledOnly = false): array
 {
-    
-
-
-
-
-
-
-
 
     if ($clinicId <= 0) {
         return $enabledOnly ? [] : PRONTOO_ROLES;
     }
     $loader = function () use ($clinicId, $enabledOnly): array {
-        
-
-
-
-
-
-
-
 
         $rows = q(
             "SELECT role_code,label,enabled FROM pi_clinic_roles WHERE clinic_id=? ORDER BY sort_order, role_code",
@@ -1863,14 +1462,6 @@ function clinic_roles(int $clinicId, bool $enabledOnly = false): array
 }
 function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
 {
-    
-
-
-
-
-
-
-
 
     $fallback = [];
     foreach (array_keys(PRONTOO_ROLES) as $role) {
@@ -1880,14 +1471,6 @@ function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
         return $enabledOnly ? [] : $fallback;
     }
     $loader = function () use ($clinicId, $enabledOnly, $fallback): array {
-        
-
-
-
-
-
-
-
 
         seed_clinic_roles($clinicId);
         try {
@@ -1932,27 +1515,11 @@ function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
 }
 function clinic_role_options(int $clinicId, bool $enabledOnly = true): array
 {
-    
-
-
-
-
-
-
-
 
     return clinic_roles($clinicId, $enabledOnly);
 }
 function role_label_for(string $role, ?int $clinicId = null): string
 {
-    
-
-
-
-
-
-
-
 
     if ($clinicId && $clinicId > 0) {
         $roles = clinic_roles($clinicId, false);
@@ -1964,14 +1531,6 @@ function role_label_for(string $role, ?int $clinicId = null): string
 }
 function role_icon_for(string $role, ?int $clinicId = null): string
 {
-    
-
-
-
-
-
-
-
 
     if ($clinicId && $clinicId > 0) {
         $icons = clinic_role_icons($clinicId, false);
@@ -1983,14 +1542,6 @@ function role_icon_for(string $role, ?int $clinicId = null): string
 }
 function is_responsible_doctor(array $c): bool
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return false;
@@ -2002,14 +1553,6 @@ function is_responsible_doctor(array $c): bool
 }
 function onboarding_pending(?array $c = null): bool
 {
-    
-
-
-
-
-
-
-
 
     $c ??= ctx();
     if (!$c || ($c["scope"] ?? "") !== "clinic" || !is_responsible_doctor($c)) {
@@ -2021,14 +1564,6 @@ function onboarding_pending(?array $c = null): bool
 }
 function br_states(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "AC" => "Acre",
@@ -2062,14 +1597,6 @@ function br_states(): array
 }
 function valid_timezone(string $tz): string
 {
-    
-
-
-
-
-
-
-
 
     return in_array($tz, timezone_identifiers_list(), true)
         ? $tz
@@ -2077,14 +1604,6 @@ function valid_timezone(string $tz): string
 }
 function timezone_from_location(string $uf, string $city = ""): string
 {
-    
-
-
-
-
-
-
-
 
     $uf = strtoupper(trim($uf));
     $cityNorm = mb_strtolower(trim($city));
@@ -2115,14 +1634,6 @@ function timezone_from_location(string $uf, string $city = ""): string
 }
 function clinic_location_fields(array $cl = []): string
 {
-    
-
-
-
-
-
-
-
 
     $uf = (string) ($cl["address_state"] ?? "MT");
     $city = (string) ($cl["address_city"] ?? "");
@@ -2173,27 +1684,11 @@ function clinic_location_fields(array $cl = []): string
 }
 function role_icon(string $r, ?int $clinicId = null): string
 {
-    
-
-
-
-
-
-
-
 
     return role_icon_for($r, $clinicId) ?: "badge";
 }
 function clinic_choice_card(array $r): string
 {
-    
-
-
-
-
-
-
-
 
     $place = trim(
         (string) ($r["address_city"] ?? "") .
@@ -2221,24 +1716,8 @@ function clinic_choice_card(array $r): string
 }
 function clinic_options_global(): array
 {
-    
-
-
-
-
-
-
-
 
     $loader = function (): array {
-        
-
-
-
-
-
-
-
 
         $rows = q(
             "SELECT id,display_name FROM pi_clinics ORDER BY id DESC LIMIT 500",
@@ -2266,14 +1745,6 @@ function clinic_usage_icon(
     string $label,
     string $short,
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<span class="usage-cell" title="' .
         e($label . " nos últimos 30 dias: " . $value) .

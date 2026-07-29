@@ -3,14 +3,6 @@
 const BR_LANDING_ORIGIN = "https://prontoo.app";
 function br_landing_release_metadata(): array
 {
-    
-
-
-
-
-
-
-
 
     static $metadata = null;
     if (is_array($metadata)) {
@@ -42,43 +34,18 @@ $brLandingRequestStartedAt = microtime(true);
 
 function br_h(string $value): string
 {
-    
-
-
-
-
-
-
-
 
     return htmlspecialchars($value, ENT_QUOTES, "UTF-8");
 }
 
 function br_landing_url(string $path = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return rtrim(BR_LANDING_ORIGIN, "/") . "/" . ltrim($path, "/");
 }
 
 function br_landing_send_asset(string $asset): void
 {
-    
-
-
-
-
-
-
-
-
 
     $asset = strtolower(trim($asset));
     $today = gmdate("Y-m-d");

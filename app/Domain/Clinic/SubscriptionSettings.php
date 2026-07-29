@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function default_monthly_price_cents(): int
 {
-    
-
-
-
-
-
-
-
 
     $v = meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
     $c = (int) $v;
@@ -17,14 +9,6 @@ function default_monthly_price_cents(): int
 }
 function default_trial_days(): int
 {
-    
-
-
-
-
-
-
-
 
     $v = meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
     $days = (int) $v;
@@ -51,14 +35,6 @@ function default_trial_days(): int
 }
 function trial_period_label(int $days): string
 {
-    
-
-
-
-
-
-
-
 
     if ($days === 90) {
         return "três meses";
@@ -79,29 +55,12 @@ function trial_period_label(int $days): string
 }
 function subscription_pix_key(): string
 {
-    
-
-
-
-
-
-
-
 
     $key = trim((string) meta_get("subscription_pix_key", "pix@prontoo.app"));
     return $key !== "" ? $key : "pix@prontoo.app";
 }
 function normalize_subscription_pix_key(string $key): string
 {
-    
-
-
-
-
-
-
-
-
 
     $key = trim($key);
     if ($key === "") {
@@ -118,14 +77,6 @@ function subscription_time_ts(
     null|string|int $value,
     bool $endOfDay = false,
 ): int {
-    
-
-
-
-
-
-
-
 
     return app_storage_timestamp($value, $endOfDay);
 }
@@ -133,14 +84,6 @@ function subscription_trial_end_from_start(
     null|string|int $start = null,
     ?int $days = null,
 ): int {
-    
-
-
-
-
-
-
-
 
     $days = $days ?? default_trial_days();
     if ($days <= 0) {
@@ -157,14 +100,6 @@ function subscription_trial_end_from_start(
 }
 function subscription_trial_is_active(null|string|int $trialEnd): bool
 {
-    
-
-
-
-
-
-
-
 
     $ts = subscription_time_ts($trialEnd, true);
     return $ts <= 0 || $ts >= time();
@@ -174,14 +109,6 @@ function subscription_paid_is_active(
     int $clinicId = 0,
     ?array $context = null,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $ts = app_date_only_end_timestamp($paidUntil, $clinicId, $context);
     return $ts > 0 && $ts >= time();
@@ -190,27 +117,11 @@ function ensure_clinic_trial_active(
     int $clinicId,
     bool $onlyIfOnboardingPending = true,
 ): void {
-    
-
-
-
-
-
-
-
 
     if ($clinicId <= 0 || !has_cfg()) {
         return;
     }
     $fn = function () use ($clinicId, $onlyIfOnboardingPending): void {
-        
-
-
-
-
-
-
-
 
         $cl = one(
             "SELECT id,onboarding_done,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics WHERE id=? LIMIT 1",
@@ -267,14 +178,6 @@ function ensure_clinic_trial_active(
 }
 function clinic_subscription_kind(array $cl): string
 {
-    
-
-
-
-
-
-
-
 
     $status = (string) ($cl["subscription_status"] ?? "trial");
     $paid = $cl["paid_until"] ?? null;
@@ -303,14 +206,6 @@ function clinic_subscription_kind(array $cl): string
 }
 function clinic_subscription_action_label(string $kind): string
 {
-    
-
-
-
-
-
-
-
 
     return $kind === "trial"
         ? "Realizar assinatura"
@@ -320,14 +215,6 @@ function clinic_subscription_action_label(string $kind): string
 }
 function clinic_subscription_status_card(array $cl): string
 {
-    
-
-
-
-
-
-
-
 
     $kind = clinic_subscription_kind($cl);
     $price =
@@ -398,15 +285,6 @@ function clinic_subscription_status_card(array $cl): string
 }
 function subscription_payment_proof_guard(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (
         security_rate_limit(security_client_bucket("payment_proof"), 8, 3600) ||
@@ -426,15 +304,6 @@ function subscription_payment_proof_validate_image(
     string $tmp,
     string $mime,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $info = @getimagesize($tmp);
     if (!$info || empty($info[0]) || empty($info[1])) {
@@ -459,14 +328,6 @@ function subscription_payment_proof_reencode_image(
     string $dest,
     string $mime,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if (!function_exists("imagejpeg")) {
         return false;
@@ -493,15 +354,6 @@ function subscription_payment_proof_reencode_image(
 }
 function subscription_payment_proof_validate_pdf(string $tmp): void
 {
-    
-
-
-
-
-
-
-
-
 
     $fh = @fopen($tmp, "rb");
     if (!$fh) {
@@ -515,15 +367,6 @@ function subscription_payment_proof_validate_pdf(string $tmp): void
 }
 function subscription_payment_proof_storage(int $cid, bool $image = false): array
 {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         throw new RuntimeException("Consultório inválido para o comprovante.");
@@ -550,16 +393,6 @@ function subscription_payment_proof_storage(int $cid, bool $image = false): arra
 
 function subscription_payment_proof_upload(int $cid, int $uid): ?string
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (
         empty($_FILES["payment_proof"]) ||
@@ -665,14 +498,6 @@ function subscription_payment_proof_upload(int $cid, int $uid): ?string
 }
 function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 {
-    
-
-
-
-
-
-
-
 
     $proofPath = trim((string) $proofPath);
     if ($proofPath === "") {
@@ -713,14 +538,6 @@ function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 }
 function subscription_payment_delete_proof(?string $proofPath): bool
 {
-    
-
-
-
-
-
-
-
 
     $full = subscription_payment_proof_absolute_path($proofPath);
     if ($full === null) {
@@ -740,14 +557,6 @@ function subscription_payment_delete_proof(?string $proofPath): bool
 }
 function subscription_payment_proof_view_link(array $payment): string
 {
-    
-
-
-
-
-
-
-
 
     if (trim((string) ($payment["proof_path"] ?? "")) === "") {
         return "";
@@ -760,17 +569,6 @@ function subscription_payment_proof_view_link(array $payment): string
 }
 function page_admin_payment_proof(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_painel");
     $pid = (int) ($_GET["payment_id"] ?? 0);
@@ -827,14 +625,6 @@ function page_admin_payment_proof(): void
 }
 function clinic_subscription_pending_payment(int $cid): ?array
 {
-    
-
-
-
-
-
-
-
 
     try {
         $row = one(
@@ -849,40 +639,16 @@ function clinic_subscription_pending_payment(int $cid): ?array
 }
 function subscription_payment_is_proof_review(array $payment): bool
 {
-    
-
-
-
-
-
-
-
 
     return trim((string) ($payment["proof_path"] ?? "")) !== "";
 }
 function subscription_trust_release_until(): string
 {
-    
-
-
-
-
-
-
-
 
     return date("Y-m-d", strtotime("+" . PRONTOO_TRUST_RELEASE_DAYS . " days"));
 }
 function subscription_renewal_until(array $cl): string
 {
-    
-
-
-
-
-
-
-
 
     $base = trim((string) ($cl["paid_until"] ?? ""));
     $baseTs = $base !== "" ? strtotime($base . " 23:59:59") : 0;
@@ -894,14 +660,6 @@ function subscription_renewal_until(array $cl): string
 }
 function later_date(?string $a, ?string $b): string
 {
-    
-
-
-
-
-
-
-
 
     $a = trim((string) $a);
     $b = trim((string) $b);
@@ -923,14 +681,6 @@ function later_date(?string $a, ?string $b): string
 }
 function clinic_subscription_cta(array $cl, string $tab = "assinatura"): string
 {
-    
-
-
-
-
-
-
-
 
     if ($tab !== "assinatura") {
         return "";
@@ -1093,14 +843,6 @@ function clinic_subscription_rejected_notice(
     int $cid,
     bool $proofRejected = false,
 ): void {
-    
-
-
-
-
-
-
-
 
     try {
         $cl =
@@ -1135,17 +877,6 @@ function clinic_subscription_register_claim(
     int $uid,
     array $cl,
 ): string {
-    
-
-
-
-
-
-
-
-
-
-
 
     if (clinic_subscription_pending_payment($cid)) {
         throw new RuntimeException(
@@ -1266,14 +997,6 @@ function clinic_subscription_register_claim(
 }
 function clinic_settings_nav(string $tab): string
 {
-    
-
-
-
-
-
-
-
 
     $tabs = [
         "perfil" => ["Identificação", "home_health"],
@@ -1299,18 +1022,6 @@ function clinic_settings_nav(string $tab): string
 }
 function page_settings(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("settings");
     $cid = (int) $c["clinic_id"];

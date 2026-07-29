@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Core\Integrity;
 
-
 final class PiIntegrity
 {
     public const POLICY_VERSION = 'pi-action-ledger-v1';
@@ -19,55 +18,23 @@ final class PiIntegrity
     private static int $transactionPreparedEvents = 0;
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function activePrefix(): string
     {
-        
-
-
-
-
-
-
-
 
         return self::TABLE_PREFIX;
     }
 
     public static function physicalTableName(string $logicalTable): string
     {
-        
-
-
-
-
-
-
-
 
         return trim($logicalTable, "` \t\n\r\0\x0B");
     }
 
     public static function rewriteSqlForRuntime(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteTemporalFunctions($sql)
@@ -76,14 +43,6 @@ final class PiIntegrity
 
     public static function prepareRuntimeQuery(string $sql, array $params): array
     {
-        
-
-
-
-
-
-
-
 
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::prepareRuntimeQuery($sql, $params)
@@ -92,14 +51,6 @@ final class PiIntegrity
 
     public static function rewriteSchemaSql(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return class_exists('Prontoo\\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteSchemaSql($sql)
@@ -108,14 +59,6 @@ final class PiIntegrity
 
     public static function bootIndexAutotest(int $budgetMs = 450): void
     {
-        
-
-
-
-
-
-
-
 
         if (!self::canUseDatabase()) {
             return;
@@ -129,43 +72,18 @@ final class PiIntegrity
 
     public static function bootIndexLightcheck(int $budgetMs = 80): void
     {
-        
-
-
-
-
-
-
-
 
         return;
     }
 
     public static function ensureGlobalSequence(int $budgetMs = 1800): void
     {
-        
 
-
-
-
-
-
-
-
-        
         return;
     }
 
     public static function runMaestroCycle(int $budgetMs = 120000): array
     {
-        
-
-
-
-
-
-
-
 
         self::flushFastEvents();
         return [
@@ -183,14 +101,6 @@ final class PiIntegrity
 
     public static function beforeQuery(string $sql, array $params): array
     {
-        
-
-
-
-
-
-
-
 
         if (self::$inside || !self::canUseDatabase()) {
             return [];
@@ -216,14 +126,6 @@ final class PiIntegrity
         ?\Throwable $error,
         array $before = [],
     ): void {
-        
-
-
-
-
-
-
-
 
         if (self::$inside || !self::canUseDatabase()) {
             return;
@@ -256,16 +158,6 @@ final class PiIntegrity
         bool|string|null $success = null,
         ?string $error = null,
     ): void {
-        
-
-
-
-
-
-
-
-
-
 
         if (is_bool($table)) {
             $legacySql = $operation;
@@ -313,14 +205,6 @@ final class PiIntegrity
         bool $success,
         ?string $error = null,
     ): void {
-        
-
-
-
-
-
-
-
 
         self::queueEvent(
             'file_' . self::cleanToken($operation, 'operation'),
@@ -338,14 +222,6 @@ final class PiIntegrity
 
     public static function prepareForWriteTransaction(): void
     {
-        
-
-
-
-
-
-
-
 
         if (!self::canUseDatabase()) {
             return;
@@ -355,28 +231,12 @@ final class PiIntegrity
 
     public static function markTransactionStart(): void
     {
-        
-
-
-
-
-
-
-
 
         self::$transactionMarks[] = count(self::$events);
     }
 
     public static function markTransactionCommitted(): void
     {
-        
-
-
-
-
-
-
-
 
         array_pop(self::$transactionMarks);
         if (self::$transactionPreparedEvents > 0) {
@@ -392,14 +252,6 @@ final class PiIntegrity
 
     public static function discardTransactionEvents(): void
     {
-        
-
-
-
-
-
-
-
 
         $mark = array_pop(self::$transactionMarks);
         if (is_int($mark) && $mark >= 0) {
@@ -410,14 +262,6 @@ final class PiIntegrity
 
     public static function processDeferredEvents(int $budgetMs = 120000, int $batchSize = 120): array
     {
-        
-
-
-
-
-
-
-
 
         self::flushFastEvents();
         return [
@@ -433,44 +277,18 @@ final class PiIntegrity
 
     public static function flushFastEvents(): void
     {
-        
-
-
-
-
-
-
-
-
-
 
         self::flushEvents(false);
     }
 
     public static function flushTransactionEvents(): void
     {
-        
-
-
-
-
-
-
-
 
         self::flushEvents(true);
     }
 
     private static function flushEvents(bool $transactional): void
     {
-        
-
-
-
-
-
-
-
 
         if (!self::canUseDatabase() || self::$inside || self::$events === []) {
             return;
@@ -599,14 +417,6 @@ final class PiIntegrity
 
     public static function rowHash(array $row): string
     {
-        
-
-
-
-
-
-
-
 
         ksort($row);
         return hash_hmac('sha256', self::canonicalJson($row), self::secret());
@@ -614,14 +424,6 @@ final class PiIntegrity
 
     public static function canonicalJson(mixed $value): string
     {
-        
-
-
-
-
-
-
-
 
         return json_encode(
             self::canonicalize($value),
@@ -641,14 +443,6 @@ final class PiIntegrity
         int $elapsedMs,
         ?string $error,
     ): void {
-        
-
-
-
-
-
-
-
 
         if (!self::canUseDatabase()) {
             return;
@@ -670,14 +464,6 @@ final class PiIntegrity
 
     private static function registerShutdown(): void
     {
-        
-
-
-
-
-
-
-
 
         if (self::$shutdownRegistered) {
             return;
@@ -688,15 +474,6 @@ final class PiIntegrity
 
     private static function ensureSystemTables(): void
     {
-        
-
-
-
-
-
-
-
-
 
         foreach (['pi_action_ledger', 'pi_integrity_alerts'] as $table) {
             if (!self::tableExists($table)) {
@@ -707,14 +484,6 @@ final class PiIntegrity
 
     private static function tableExists(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         $stmt = self::pdo()->prepare(
             'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
@@ -725,43 +494,18 @@ final class PiIntegrity
 
     private static function canUseDatabase(): bool
     {
-        
-
-
-
-
-
-
-
 
         return function_exists('has_cfg') && \has_cfg() && function_exists('pdo');
     }
 
     private static function pdo(): \PDO
     {
-        
-
-
-
-
-
-
-
 
         return \pdo();
     }
 
     private static function sessionInt(string $key): ?int
     {
-        
-
-
-
-
-
-
-
-
 
         $value = (int) ($_SESSION[$key] ?? 0);
         return $value > 0 ? $value : null;
@@ -769,14 +513,6 @@ final class PiIntegrity
 
     private static function isInternalTable(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return in_array(strtolower($table), [
             'pi_action_ledger',
@@ -794,14 +530,6 @@ final class PiIntegrity
 
     private static function targetTableFromSql(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         $patterns = [
             '/^\s*INSERT\s+(?:IGNORE\s+)?INTO\s+`?([a-z0-9_]+)`?/i',
@@ -819,14 +547,6 @@ final class PiIntegrity
 
     private static function queryKind(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return preg_match('/^\s*([a-z]+)/i', $sql, $match)
             ? strtolower((string) $match[1])
@@ -835,28 +555,12 @@ final class PiIntegrity
 
     private static function normalizeSql(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return strtolower(trim(preg_replace('/\s+/', ' ', $sql) ?? $sql));
     }
 
     private static function recordPkForEvent(string $kind, string $table): ?string
     {
-        
-
-
-
-
-
-
-
 
         if (!in_array($kind, ['insert', 'replace'], true)) {
             return null;
@@ -871,14 +575,6 @@ final class PiIntegrity
 
     private static function canonicalize(mixed $value): mixed
     {
-        
-
-
-
-
-
-
-
 
         if (!is_array($value)) {
             return $value;
@@ -894,14 +590,6 @@ final class PiIntegrity
 
     private static function secret(): string
     {
-        
-
-
-
-
-
-
-
 
         try {
             return function_exists('secret_key')
@@ -914,14 +602,6 @@ final class PiIntegrity
 
     private static function logOnce(string $stage, \Throwable $error): void
     {
-        
-
-
-
-
-
-
-
 
         static $logged = [];
         $key = $stage . '|' . $error->getMessage();
@@ -934,14 +614,6 @@ final class PiIntegrity
 
     private static function requestId(): string
     {
-        
-
-
-
-
-
-
-
 
         if (self::$requestId !== null) {
             return self::$requestId;
@@ -955,14 +627,6 @@ final class PiIntegrity
 
     private static function cleanToken(string $value, string $fallback): string
     {
-        
-
-
-
-
-
-
-
 
         return preg_replace('/[^a-z0-9_-]+/i', '_', trim($value)) ?: $fallback;
     }

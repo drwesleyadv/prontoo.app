@@ -7,11 +7,6 @@ use Prontoo\Core\Invariant\Canonical;
 
 final readonly class ActionContract
 {
-    
-
-
-
-
 
     public function __construct(
         public string $route,
@@ -25,15 +20,6 @@ final readonly class ActionContract
         public string $source,
         public array $producers = [],
     ) {
-        
-
-
-
-
-
-
-
-
 
         if ($route === '' || $action === '') {
             throw new \InvalidArgumentException('Rota e ação são obrigatórias no contrato.');
@@ -56,28 +42,12 @@ final readonly class ActionContract
 
     public function hash(): string
     {
-        
-
-
-
-
-
-
-
 
         return Canonical::hash('action_contract', $this->evidence());
     }
 
     public function evidence(): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             'route' => $this->route,

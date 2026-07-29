@@ -2,30 +2,11 @@
 declare(strict_types=1);
 function has_session_user(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     return !empty($_SESSION["uid"]);
 }
 function boot_security(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (function_exists("security_disable_runtime_error_display")) {
         security_disable_runtime_error_display();
@@ -155,16 +136,6 @@ function boot_security(): void
 }
 function headers_secure(bool $public = false): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $img = "'self' data:";
     $style = "'self' 'unsafe-inline' https://fonts.googleapis.com";
@@ -207,14 +178,6 @@ function posted_identity_document_error(
     array $data,
     string $prefix = "",
 ): ?string {
-    
-
-
-
-
-
-
-
 
     foreach ($data as $key => $value) {
         $name = $prefix === "" ? (string) $key : $prefix . "." . (string) $key;
@@ -276,15 +239,6 @@ function posted_identity_document_error(
 }
 function enforce_posted_identity_documents(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return;
@@ -298,15 +252,6 @@ function enforce_posted_identity_documents(): void
 }
 function guard_request(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (function_exists("app_enforce_canonical_host")) {
         app_enforce_canonical_host();
@@ -366,14 +311,6 @@ function security_rate_limit(
     int $limit,
     int $windowSeconds,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $bucket = preg_replace("/[^a-zA-Z0-9_\-]/", "_", $bucket) ?: "rate";
     $limit = max(1, $limit);
@@ -439,15 +376,6 @@ function security_rate_limit(
 }
 function security_client_bucket(string $prefix): string
 {
-    
-
-
-
-
-
-
-
-
 
     return $prefix .
         "_" .
@@ -460,15 +388,6 @@ function security_client_bucket(string $prefix): string
 }
 function security_ip_bucket(string $prefix): string
 {
-    
-
-
-
-
-
-
-
-
 
     return $prefix .
         "_ip_" .
@@ -476,27 +395,11 @@ function security_ip_bucket(string $prefix): string
 }
 function security_value_bucket(string $prefix, string $value): string
 {
-    
-
-
-
-
-
-
-
 
     return $prefix . "_" . hash("sha256", $value);
 }
 function safe_val(string $sql, array $p = [], mixed $fallback = 0): mixed
 {
-    
-
-
-
-
-
-
-
 
     try {
         return val($sql, $p) ?? $fallback;
@@ -507,15 +410,6 @@ function safe_val(string $sql, array $p = [], mixed $fallback = 0): mixed
 }
 function csrf(): string
 {
-    
-
-
-
-
-
-
-
-
 
     if (empty($_SESSION["csrf"])) {
         $_SESSION["csrf"] = bin2hex(random_bytes(32));
@@ -524,29 +418,11 @@ function csrf(): string
 }
 function csrf_field(): string
 {
-    
-
-
-
-
-
-
-
 
     return '<input type="hidden" name="csrf" value="' . e(csrf()) . '">';
 }
 function check_csrf(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (
         ($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST" &&
@@ -561,15 +437,6 @@ function check_csrf(): void
 }
 function flash(?string $m = null, string $type = "ok"): ?array
 {
-    
-
-
-
-
-
-
-
-
 
     if ($m !== null) {
         $_SESSION["flash"] = [$type, $m];
@@ -581,14 +448,6 @@ function flash(?string $m = null, string $type = "ok"): ?array
 }
 function password_common_rejected(string $s): bool
 {
-    
-
-
-
-
-
-
-
 
     $v = strtolower(trim($s));
     $common = [
@@ -619,14 +478,6 @@ function password_common_rejected(string $s): bool
 }
 function password_ok(string $s): bool
 {
-    
-
-
-
-
-
-
-
 
     $length = mb_strlen($s);
     return $length >= 8 &&
@@ -635,14 +486,6 @@ function password_ok(string $s): bool
 }
 function password_hash_secure(string $password): string
 {
-    
-
-
-
-
-
-
-
 
     if (defined("PASSWORD_ARGON2ID")) {
         return password_hash($password, PASSWORD_ARGON2ID, [
@@ -1163,14 +1006,6 @@ function mfa_otpauth_uri(string $account, string $secret): string
 }
 function auth_generation_current(): string
 {
-    
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return "bootstrap";
@@ -1256,15 +1091,6 @@ function session_harden_after_login(
     ?string $verifiedUserGeneration = null,
 ): void
 {
-    
-
-
-
-
-
-
-
-
 
     $mfaVerified = !empty($_SESSION["mfa_verified_at"]);
     $privilegedVerified = !empty($_SESSION["privileged_auth_at"]);
@@ -1296,16 +1122,6 @@ function session_harden_after_login(
 }
 function security_session_generation_enforce(int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if ($uid <= 0 || !has_cfg()) {
         return;
@@ -1349,67 +1165,26 @@ function security_session_generation_enforce(int $uid): void
 }
 function device_cookie_name(): string
 {
-    
-
-
-
-
-
-
-
 
     return "PRONTOO_DEVICE";
 }
 function device_session_lifetime_seconds(): int
 {
-    
-
-
-
-
-
-
-
 
     return 86400;
 }
 function device_session_cookie_ttl_seconds(): int
 {
-    
-
-
-
-
-
-
-
 
     return 2592000;
 }
 function device_hash_is_valid(string $hash): bool
 {
-    
-
-
-
-
-
-
-
 
     return (bool) preg_match('/^[a-f0-9]{64}$/', $hash);
 }
 function device_secure_cookie(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     return function_exists("security_https_active")
         ? security_https_active()
@@ -1418,20 +1193,11 @@ function device_secure_cookie(): bool
 }
 function device_cookie_set(string $value, int $expires): void
 {
-    
-
-
-
-
-
-
-
 
     if (headers_sent()) {
         return;
     }
-    
-    
+
     setcookie(device_cookie_name(), "", [
         "expires" => time() - 42000,
         "path" => "/",
@@ -1443,15 +1209,6 @@ function device_cookie_set(string $value, int $expires): void
 }
 function device_cookie_clear(): void
 {
-    
-
-
-
-
-
-
-
-
 
     device_cookie_set("", time() - 42000);
     unset($_COOKIE[device_cookie_name()]);
@@ -1488,28 +1245,11 @@ function security_retire_persistent_devices_for_user(int $uid): void
 }
 function device_token_hash(string $token): string
 {
-    
-
-
-
-
-
-
-
 
     return hash_hmac("sha256", $token, secret_key());
 }
 function device_fallback_hash(): string
 {
-    
-
-
-
-
-
-
-
-
 
     return hash_hmac(
         "sha256",
@@ -1524,30 +1264,12 @@ function device_fallback_hash(): string
 }
 function device_client_hash_from_post(): string
 {
-    
-
-
-
-
-
-
-
-
 
     $hash = strtolower(trim((string) ($_POST["device_hash"] ?? "")));
     return device_hash_is_valid($hash) ? $hash : device_fallback_hash();
 }
 function device_login_payload_from_post(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $meta = trim((string) ($_POST["device_meta"] ?? ""));
     if ($meta !== "" && json_decode($meta, true) === null) {
@@ -1572,41 +1294,16 @@ function device_login_payload_from_post(): array
 }
 function device_login_fields(): string
 {
-    
-
-
-
-
-
-
-
 
     return '<input type="hidden" name="device_hash" value="" data-device-hash><input type="hidden" name="device_label" value="" data-device-label><input type="hidden" name="device_platform" value="" data-device-platform><input type="hidden" name="device_meta" value="" data-device-meta>';
 }
 function device_cookie_pack(int $uid, string $deviceHash, string $token): string
 {
-    
-
-
-
-
-
-
-
 
     return $uid . "." . $deviceHash . "." . $token;
 }
 function device_cookie_unpack(): ?array
 {
-    
-
-
-
-
-
-
-
-
 
     $raw = (string) ($_COOKIE[device_cookie_name()] ?? "");
     if ($raw === "") {
@@ -1632,14 +1329,6 @@ function device_session_context_payload(
     string $scope,
     ?int $clinicRoleId = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     $scope = $scope === "global" ? "global" : "clinic";
     $clinicId = null;
@@ -1666,15 +1355,6 @@ function device_session_remember_after_login(
     ?int $clinicRoleId = null,
     ?array $payload = null,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     security_retire_persistent_devices_for_user($uid);
 }
@@ -1682,75 +1362,28 @@ function device_session_update_current_context(
     string $scope,
     ?int $clinicRoleId = null,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     security_clear_legacy_device_cookie();
 }
 function device_session_enforce_current(int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     security_clear_legacy_device_cookie();
 }
 function device_session_auto_login(): bool
 {
-    
-
-
-
-
-
-
-
-
-
 
     security_clear_legacy_device_cookie();
     return false;
 }
 function device_session_revoke_current(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $uid = (int) ($_SESSION["uid"] ?? 0);
     security_retire_persistent_devices_for_user($uid);
 }
 function secure_session_destroy(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $_SESSION = [];
     if (ini_get("session.use_cookies")) {
@@ -1782,79 +1415,31 @@ function security_global_scope_verified(int $uid): bool
 }
 function session_clinic_scope_id(): int
 {
-    
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Tenant\TenantRegistry::sessionClinicId();
 }
 function session_clinic_role_code(): string
 {
-    
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Tenant\TenantRegistry::sessionRoleCode();
 }
 function tenant_scoped_tables(): array
 {
-    
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Tenant\TenantRegistry::scopedTables();
 }
 function tenant_table_is_scoped(string $table): bool
 {
-    
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Tenant\TenantRegistry::isScoped($table);
 }
 function sql_fingerprint(string $sql): string
 {
-    
-
-
-
-
-
-
-
 
     return hash("sha256", preg_replace("/\s+/", " ", trim($sql)));
 }
 function scope_violation_detail_decode(mixed $details): array
 {
-    
-
-
-
-
-
-
-
 
     $raw = trim((string) $details);
     if ($raw === "") {
@@ -1876,14 +1461,6 @@ function scope_violation_detail_decode(mixed $details): array
 }
 function scope_violation_detail_summary(mixed $details): string
 {
-    
-
-
-
-
-
-
-
 
     $payload = scope_violation_detail_decode($details);
     $summary = trim((string) ($payload["reason"] ?? ""));
@@ -1901,14 +1478,6 @@ function scope_violation_detail_summary(mixed $details): string
 }
 function scope_violation_safe_reason(string $detail): string
 {
-    
-
-
-
-
-
-
-
 
     $detail = preg_replace('/#\d+\b/', "#?", $detail) ?? $detail;
     $detail = preg_replace('/\b(?:usuário|registro)\s+\d+\b/iu', '$1 ?', $detail) ?? $detail;
@@ -1917,14 +1486,6 @@ function scope_violation_safe_reason(string $detail): string
 }
 function scope_violation_sql_shape(string $sql): string
 {
-    
-
-
-
-
-
-
-
 
     $shape = preg_replace('/\/\*.*?\*\//s', " ", $sql) ?? $sql;
     $shape = preg_replace('/--[^\r\n]*/', " ", $shape) ?? $shape;
@@ -1939,15 +1500,6 @@ function scope_violation_sql_shape(string $sql): string
 }
 function scope_violation_evidence_payload(string $sql, string $detail): string
 {
-    
-
-
-
-
-
-
-
-
 
     $operation = preg_match('/^\s*(UPDATE|DELETE|INSERT|REPLACE)\b/i', $sql, $m)
         ? strtoupper((string) $m[1])
@@ -1999,15 +1551,6 @@ function record_scope_violation(
     string $sql,
     string $detail = "",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $cid = scope_guard_active_clinic_id();
     if ($cid <= 0) {
@@ -2060,15 +1603,6 @@ function record_scope_violation(
 }
 function read_only_post_allowed(string $route): bool
 {
-    
-
-
-
-
-
-
-
-
 
     return \Prontoo\Core\Readonly\ReadonlyPolicy::postAllowed(
         $route,
@@ -2077,15 +1611,6 @@ function read_only_post_allowed(string $route): bool
 }
 function read_only_write_allowed(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return true;
@@ -2097,15 +1622,6 @@ function read_only_write_allowed(): bool
 }
 function read_only_allowed_write_tables_for_request(): array
 {
-    
-
-
-
-
-
-
-
-
 
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return ["*"];
@@ -2118,15 +1634,6 @@ function read_only_allowed_write_tables_for_request(): array
 }
 function read_only_write_allowed_for_sql(string $sql): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
         return true;
@@ -2140,15 +1647,6 @@ function read_only_write_allowed_for_sql(string $sql): bool
 }
 function with_read_only_guard_disabled(callable $fn): mixed
 {
-    
-
-
-
-
-
-
-
-
 
     $had = array_key_exists("PRONTOO_READONLY_GUARD_DISABLED", $GLOBALS);
     $prev = $GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"] ?? null;
@@ -2165,16 +1663,6 @@ function with_read_only_guard_disabled(callable $fn): mixed
 }
 function with_scope_guard_disabled(callable $fn): mixed
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (
         (int) ($GLOBALS["PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID"] ?? 0) > 0
@@ -2198,15 +1686,6 @@ function with_scope_guard_disabled(callable $fn): mixed
 }
 function scope_guard_expected_clinic_id(): int
 {
-    
-
-
-
-
-
-
-
-
 
     return max(
         0,
@@ -2215,30 +1694,12 @@ function scope_guard_expected_clinic_id(): int
 }
 function scope_guard_active_clinic_id(): int
 {
-    
-
-
-
-
-
-
-
 
     $expected = scope_guard_expected_clinic_id();
     return $expected > 0 ? $expected : session_clinic_scope_id();
 }
 function with_scope_guard_clinic(int $clinicId, callable $fn): mixed
 {
-    
-
-
-
-
-
-
-
-
-
 
     if ($clinicId <= 0) {
         throw new InvalidArgumentException(
@@ -2273,15 +1734,6 @@ function with_scope_guard_clinic(int $clinicId, callable $fn): mixed
 }
 function scope_guard_context_selftest(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $hadExpected = array_key_exists(
         "PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID",
@@ -2367,14 +1819,6 @@ function scope_guard_context_selftest(): array
 }
 function sql_table_hit(string $norm, string $table): bool
 {
-    
-
-
-
-
-
-
-
 
     $tl = strtolower($table);
     return (bool) preg_match("/\b" . preg_quote($tl, "/") . "\b/", $norm) ||
@@ -2382,15 +1826,6 @@ function sql_table_hit(string $norm, string $table): bool
 }
 function sql_write_scope_guard(string $sql, array $params = []): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_SYSTEM"])) {
         return;
@@ -2435,15 +1870,6 @@ function require_same_clinic_entity(
     int $id,
     string $cols = "id",
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $table = allowed_db_table($table);
     if (!tenant_table_is_scoped($table)) {
@@ -2479,14 +1905,6 @@ function require_same_clinic_entity(
 }
 function prontoo_icon_matrix(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "context" => [
@@ -2596,14 +2014,6 @@ function prontoo_icon_matrix(): array
 }
 function prontoo_icon_for(string $key, string $fallback = "monitoring"): string
 {
-    
-
-
-
-
-
-
-
 
     $key = mb_strtolower(trim($key));
     if ($key === "") {
@@ -2623,14 +2033,6 @@ function prontoo_icon_for_route_label(
     array $params = [],
     string $fallback = "monitoring",
 ): string {
-    
-
-
-
-
-
-
-
 
     $route = trim($route);
     $labelKey = mb_strtolower(trim($label));
@@ -2692,14 +2094,6 @@ function prontoo_icon_for_route_label(
 }
 function actions(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "painel" => [
@@ -2786,14 +2180,6 @@ function actions(): array
 }
 function role_actions(string $role): array
 {
-    
-
-
-
-
-
-
-
 
     $all = actions();
     if (isset($all["patients"])) {
@@ -2852,14 +2238,6 @@ function role_actions(string $role): array
 }
 function role_rank(string $role): int
 {
-    
-
-
-
-
-
-
-
 
     $rank = [
         "recepcionista" => 10,
@@ -2871,14 +2249,6 @@ function role_rank(string $role): int
 }
 function primary_role_from_codes(array $roles): string
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(array_unique(array_map("strval", $roles)));
     usort($roles, static  fn($a, $b) => role_rank($b) <=> role_rank($a));
@@ -2886,14 +2256,6 @@ function primary_role_from_codes(array $roles): string
 }
 function has_effective_role(array $c, string $role): bool
 {
-    
-
-
-
-
-
-
-
 
     return in_array(
         $role,
@@ -2906,14 +2268,6 @@ function has_effective_role(array $c, string $role): bool
 }
 function role_actions_effective(array $roles): array
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
@@ -2967,14 +2321,6 @@ function role_actions_effective(array $roles): array
 }
 function effective_allowed_modules_for_roles(int $cid, array $roles): array
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
@@ -2999,14 +2345,6 @@ function effective_allowed_modules_for_roles(int $cid, array $roles): array
 }
 function default_permissions(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "recepcionista" => [
@@ -3043,26 +2381,8 @@ function default_permissions(): array
 }
 function seed_permissions(int $clinicId): void
 {
-    
-
-
-
-
-
-
-
-
 
     with_read_only_guard_disabled(function () use ($clinicId): void {
-        
-
-
-
-
-
-
-
-
 
         foreach (default_permissions() as $role => $keys) {
             foreach (actions() as $key => $a) {
@@ -3094,14 +2414,6 @@ function secret_key(): string
 }
 function billing_state(array $clinic): array
 {
-    
-
-
-
-
-
-
-
 
     $started = $clinic["trial_started_at"] ?: $clinic["created_at"] ?? now();
     $startedTs = app_storage_timestamp($started);
@@ -3159,14 +2471,6 @@ function billing_state(array $clinic): array
 }
 function billing_notice(array $c): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -3220,16 +2524,6 @@ function billing_notice(array $c): string
 }
 function enforce_read_only(array $c, string $route): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return;
@@ -3255,15 +2549,6 @@ function enforce_read_only(array $c, string $route): void
 }
 function enforce_action_integrity(array $c, string $route): void
 {
-    
-
-
-
-
-
-
-
-
 
     \Prontoo\Core\Integrity\ActionProof::enforce(
         $route,
@@ -3274,15 +2559,6 @@ function enforce_action_integrity(array $c, string $route): void
 }
 function ctx(): array
 {
-    
-
-
-
-
-
-
-
-
 
     static $c = null;
     if ($c !== null) {
@@ -3362,14 +2638,6 @@ function ctx(): array
         $ucHint,
         $roleHint,
     ): array {
-        
-
-
-
-
-
-
-
 
         $ctx = function_exists("server_json_cache_sanitize_context")
             ? server_json_cache_sanitize_context($ctx)
@@ -3587,14 +2855,6 @@ function ctx(): array
 }
 function need_login(): array
 {
-    
-
-
-
-
-
-
-
 
     $c = ctx();
     if (!$c) {
@@ -3604,14 +2864,6 @@ function need_login(): array
 }
 function can(string $action): bool
 {
-    
-
-
-
-
-
-
-
 
     $c = ctx();
     if (!$c) {
@@ -3638,16 +2890,6 @@ function can(string $action): bool
 }
 function secure_relogin_after_forbidden_action(string $action): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $uid = $_SESSION["uid"] ?? null;
     try {
@@ -3676,14 +2918,6 @@ function secure_relogin_after_forbidden_action(string $action): void
 }
 function require_can(string $action): array
 {
-    
-
-
-
-
-
-
-
 
     $c = need_login();
     if (!can($action)) {

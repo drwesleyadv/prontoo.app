@@ -3,14 +3,6 @@ declare(strict_types=1);
 const PRONTOO_FINANCIAL_MAX_CENTS = 2147483647;
 function parse_money_cents(string $v): int
 {
-    
-
-
-
-
-
-
-
 
     $v = trim(str_replace("\u{00A0}", " ", $v));
     if ($v === "") {
@@ -57,14 +49,6 @@ function financial_assert_amount_cents(
     int $value,
     string $label = "Valor",
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($value < 0 || $value > PRONTOO_FINANCIAL_MAX_CENTS) {
         throw new RuntimeException(
@@ -77,14 +61,6 @@ function financial_assert_balance_cents(
     int $value,
     string $label = "Saldo",
 ): int {
-    
-
-
-
-
-
-
-
 
     if (
         $value < -PRONTOO_FINANCIAL_MAX_CENTS ||
@@ -101,14 +77,6 @@ function financial_checked_add(
     int $right,
     string $label = "Saldo",
 ): int {
-    
-
-
-
-
-
-
-
 
     return financial_assert_balance_cents($left + $right, $label);
 }
@@ -118,14 +86,6 @@ function financial_movement_delta_for_location(
     ?int $to,
     int $locationId,
 ): int {
-    
-
-
-
-
-
-
-
 
     financial_assert_amount_cents($amount);
     return ($to === $locationId ? $amount : 0) -
@@ -136,14 +96,6 @@ function financial_validate_movement_topology(
     ?int $from,
     ?int $to,
 ): void {
-    
-
-
-
-
-
-
-
 
     $from = ($from ?? 0) > 0 ? $from : null;
     $to = ($to ?? 0) > 0 ? $to : null;
@@ -168,28 +120,12 @@ function financial_closing_equation(
     int $transferred,
     int $difference,
 ): bool {
-    
-
-
-
-
-
-
-
 
     return $declared === $kept + $transferred &&
         $difference === $declared - $expected;
 }
 function payment_methods_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "pix" => "PIX",
@@ -204,14 +140,6 @@ function payment_methods_options(): array
 }
 function payment_method_type_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "pix" => "PIX",
@@ -226,28 +154,12 @@ function payment_method_type_options(): array
 }
 function normalize_payment_method(string $v): string
 {
-    
-
-
-
-
-
-
-
 
     $v = strtolower(trim($v));
     return array_key_exists($v, payment_methods_options()) ? $v : "";
 }
 function financial_goal_base_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "efetivada" => "Receita Efetivada",
@@ -256,28 +168,12 @@ function financial_goal_base_options(): array
 }
 function financial_goal_base_label(string $base): string
 {
-    
-
-
-
-
-
-
-
 
     $opts = financial_goal_base_options();
     return $opts[$base] ?? $opts["efetivada"];
 }
 function financial_expense_category_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "administrativa" => "Despesas administrativas",
@@ -294,14 +190,6 @@ function financial_expense_category_options(): array
 }
 function financial_account_type_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "conta_corrente" => "Conta corrente",
@@ -313,14 +201,6 @@ function financial_account_type_options(): array
 }
 function financial_seed_payment_methods(int $cid, int $uid = 0): void
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         return;
@@ -359,14 +239,6 @@ function financial_payment_method_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
-    
-
-
-
-
-
-
-
 
     financial_seed_payment_methods($cid);
     $out = $withEmpty ? ["" => "Não informada"] : [];
@@ -387,15 +259,6 @@ function financial_payment_method_options(
 }
 function financial_payment_method_from_post(int $cid): array
 {
-    
-
-
-
-
-
-
-
-
 
     $id = (int) ($_POST["payment_method_id"] ?? 0);
     if ($id > 0) {
@@ -417,15 +280,6 @@ function appointment_payment_destination_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $out = $withEmpty ? ["" => "Selecione o destino"] : [];
     if ($cid <= 0) {
@@ -467,14 +321,6 @@ function appointment_payment_destination_options(
 }
 function appointment_payment_existing_destination(int $cid, array $appt): int
 {
-    
-
-
-
-
-
-
-
 
     $appointmentId = (int) ($appt["id"] ?? 0);
     if ($cid <= 0 || $appointmentId <= 0) {
@@ -492,14 +338,6 @@ function appointment_payment_existing_destination(int $cid, array $appt): int
 }
 function appointment_payment_form_html(int $cid, array $appt = []): string
 {
-    
-
-
-
-
-
-
-
 
     $amount = (int) ($appt["payment_amount_cents"] ?? 0);
     if ($amount <= 0 && !empty($appt["procedure_id"])) {
@@ -564,14 +402,6 @@ function financial_sync_appointment(
     int $userId,
     int $paymentDestinationLocationId = 0,
 ): void {
-    
-
-
-
-
-
-
-
 
     $a = one(
         "SELECT id,patient_link_id,procedure_id,start_at,reason,payment_amount_cents,payment_method,payment_status,payment_confirmed_at,revenue_id FROM pi_appointments WHERE id=? AND clinic_id=?",
@@ -675,25 +505,9 @@ function financial_sync_appointment(
 }
 function monthly_goal_status(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $month = app_month_in_timezone($cid);
     $loader = static function () use ($cid, $month): array {
-        
-
-
-
-
-
-
-
 
         [$start, $next] = app_local_month_utc_range($month, $cid);
         $goal = one(
@@ -749,14 +563,6 @@ function monthly_goal_status(int $cid): array
 }
 function monthly_goal_card(array $c, string $variant = "compact"): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -785,14 +591,6 @@ function monthly_goal_card(array $c, string $variant = "compact"): string
 }
 function page_goal_status(): void
 {
-    
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
@@ -817,14 +615,6 @@ function page_goal_status(): void
 }
 function page_operations(): void
 {
-    
-
-
-
-
-
-
-
 
     $c = require_can("operations");
     $items = [
@@ -882,14 +672,6 @@ function counterparty_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_counterparty_suggestions",
 ): string {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name ASC LIMIT 800",
@@ -926,14 +708,6 @@ function counterparty_lookup_field(
     string $hiddenValue = "",
     string $inputName = "counterparty_search",
 ): string {
-    
-
-
-
-
-
-
-
 
     $display = "";
     $id = (int) $hiddenValue;
@@ -963,15 +737,6 @@ function counterparty_lookup_field(
 }
 function posted_counterparty_search_value(): string
 {
-    
-
-
-
-
-
-
-
-
 
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "counterparty_search")) {
@@ -985,14 +750,6 @@ function resolve_counterparty_lookup_id(
     int $postedId,
     string $search = "",
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($postedId > 0) {
         $ok = (int) val(
@@ -1051,16 +808,6 @@ function resolve_counterparty_lookup_id(
 }
 function page_counterparty_lookup(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = require_can("financial");
     $cid = (int) $c["clinic_id"];
@@ -1158,16 +905,6 @@ function page_counterparty_lookup(): void
 }
 function page_counterparty_suggest(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = require_can("financial");
     $cid = (int) $c["clinic_id"];
@@ -1217,14 +954,6 @@ function page_counterparty_suggest(): void
 }
 function counterparty_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT fc.id,p.full_name FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name LIMIT 300",
@@ -1238,14 +967,6 @@ function counterparty_options(int $cid): array
 }
 function financial_account_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY name LIMIT 200",
@@ -1259,14 +980,6 @@ function financial_account_options(int $cid): array
 }
 function financial_date_or_null(string $date, bool $end = false): ?string
 {
-    
-
-
-
-
-
-
-
 
     $date = trim($date);
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
@@ -1278,14 +991,6 @@ function financial_account_label_options(
     int $cid,
     string $empty = "Escolha a conta",
 ): array {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
@@ -1299,15 +1004,6 @@ function financial_account_label_options(
 }
 function financial_ensure_default_accounts(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || clinic_read_only_db($cid)) {
         return;
@@ -1340,14 +1036,6 @@ function financial_ensure_default_accounts(int $cid, int $uid): void
 }
 function financial_account_icon(array $account): string
 {
-    
-
-
-
-
-
-
-
 
     return ($account["account_type"] ?? "") === "caixa_interno"
         ? "payments"
@@ -1355,14 +1043,6 @@ function financial_account_icon(array $account): string
 }
 function financial_account_belongs(int $cid, int $accountId): bool
 {
-    
-
-
-
-
-
-
-
 
     return $accountId > 0 &&
         (int) (val(
@@ -1378,14 +1058,6 @@ function financial_counterparty_light(
     string $doc = "",
     string $notes = "",
 ): int {
-    
-
-
-
-
-
-
-
 
     $name = trim(preg_split("/\s+·\s+/", trim($name), 2)[0] ?? $name);
     $doc = only_digits($doc);
@@ -1435,15 +1107,6 @@ function financial_counterparty_light(
 }
 function financial_counterparty_from_post(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
-
 
     $id = resolve_counterparty_lookup_id(
         $cid,
@@ -1463,14 +1126,6 @@ function financial_counterparty_from_post(int $cid, int $uid): int
 }
 function financial_account_balances(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     ensure_financial_operational_schema();
     $rows = q(
@@ -1482,14 +1137,6 @@ function financial_account_balances(int $cid): array
         $ids[] = (int) $r["id"];
     }
     $map = function (string $sql) use ($cid): array {
-        
-
-
-
-
-
-
-
 
         $out = [];
         foreach (q($sql, [$cid])->fetchAll() as $r) {
@@ -1533,15 +1180,6 @@ function financial_account_balances(int $cid): array
 }
 function financial_dashboard_numbers(int $cid): array
 {
-    
-
-
-
-
-
-
-
-
 
     $today = app_today_in_timezone($cid);
     [$todayStart, $todayEnd] = app_local_day_utc_range($today, $cid);
@@ -1610,14 +1248,6 @@ function financial_dashboard_numbers(int $cid): array
 }
 function financial_recent_operations_timeline(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $from = date("Y-m-d H:i:s", strtotime("-7 days"));
     try {
@@ -1683,14 +1313,6 @@ function financial_status_pill(
     ?string $date = null,
     string $type = "revenue",
 ): string {
-    
-
-
-
-
-
-
-
 
     $label = match ($status) {
         "efetivada" => "Recebida",
@@ -1711,14 +1333,6 @@ function financial_status_pill(
 }
 function financial_report_line(string $label, int $value): string
 {
-    
-
-
-
-
-
-
-
 
     return '<article class="finance-row mini"><span>' .
         e($label) .
@@ -1728,14 +1342,6 @@ function financial_report_line(string $label, int $value): string
 }
 function financial_location_type_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "pos" => "Gaveta",
@@ -1745,14 +1351,6 @@ function financial_location_type_options(): array
 }
 function financial_location_type_label(string $type): string
 {
-    
-
-
-
-
-
-
-
 
     $o = financial_location_type_options();
     return $o[$type] ?? "Local financeiro";
@@ -1762,67 +1360,27 @@ function financial_money_input(
     string $value = "",
     string $extra = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return input($name, "text", $value, 'inputmode="decimal" ' . $extra);
 }
 function financial_cashier_roles(): array
 {
-    
-
-
-
-
-
-
-
 
     return ["recepcionista"];
 }
 function financial_is_cashier(array $c): bool
 {
-    
-
-
-
-
-
-
-
 
     return ($c["scope"] ?? "") === "clinic" &&
         in_array((string) ($c["role"] ?? ""), financial_cashier_roles(), true);
 }
 function financial_today(int $cid = 0): string
 {
-    
-
-
-
-
-
-
-
 
     return app_today_in_timezone($cid);
 }
 function financial_human_session_status(string $status): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($status) {
         "open" => "Aberta",
@@ -1837,14 +1395,6 @@ function financial_human_session_status(string $status): string
 }
 function financial_human_movement_type(string $type): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($type) {
         "receipt" => "Recebi",
@@ -1860,14 +1410,6 @@ function financial_human_movement_type(string $type): string
 }
 function financial_human_movement_status(string $status): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($status) {
         "confirmed" => "Confirmado",
@@ -1881,14 +1423,6 @@ function financial_human_movement_status(string $status): string
 }
 function financial_movement_icon(string $type): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($type) {
         "receipt" => "add_card",
@@ -1903,28 +1437,11 @@ function financial_movement_icon(string $type): string
 }
 function financial_operational_schema_ready(): void
 {
-    
-
-
-
-
-
-
-
 
     return;
 }
 function financial_ensure_admin_safe(int $cid, int $uid = 0): int
 {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         return 0;
@@ -1950,14 +1467,6 @@ function financial_ensure_admin_safe(int $cid, int $uid = 0): int
 }
 function financial_ensure_cashier_location(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
 
     return financial_cashier_location_for_user($cid, $uid);
 }
@@ -1966,15 +1475,6 @@ function financial_ensure_bank_location(
     int $accountId,
     int $uid = 0,
 ): int {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $accountId <= 0) {
         return 0;
@@ -2011,14 +1511,6 @@ function financial_ensure_bank_location(
 }
 function financial_cashier_user_options(int $cid, bool $withEmpty = true): array
 {
-    
-
-
-
-
-
-
-
 
     $out = $withEmpty ? ["" => "Escolha o colaborador"] : [];
     if ($cid <= 0) {
@@ -2037,14 +1529,6 @@ function financial_drawer_location_options(
     int $cid,
     bool $withEmpty = true,
 ): array {
-    
-
-
-
-
-
-
-
 
     $out = $withEmpty ? ["" => "Escolha a gaveta"] : [];
     if ($cid <= 0) {
@@ -2061,14 +1545,6 @@ function financial_drawer_location_options(
 }
 function financial_cashier_assigned_locations(int $cid, int $uid): array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return [];
@@ -2087,44 +1563,18 @@ function financial_cashier_assigned_locations(int $cid, int $uid): array
 }
 function financial_cashier_location_for_user(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
 
     $rows = financial_cashier_assigned_locations($cid, $uid);
     return $rows ? (int) $rows[0]["id"] : 0;
 }
 function financial_cashier_drawer_name(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     $rows = financial_cashier_assigned_locations($cid, $uid);
     return $rows ? (string) $rows[0]["name"] : "";
 }
 function financial_create_drawer(int $cid, int $uid, string $name): int
 {
-    
-
-
-
-
-
-
-
-
-
 
     $name = trim($name);
     if ($cid <= 0) {
@@ -2163,16 +1613,6 @@ function financial_rename_drawer(
     int $adminUid,
     string $name,
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     $name = trim($name);
     if ($cid <= 0 || $drawerId <= 0) {
@@ -2220,16 +1660,6 @@ function financial_link_drawer_user(
     int $cashierUid,
     int $adminUid,
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $drawerId <= 0 || $cashierUid <= 0) {
         throw new RuntimeException(
@@ -2252,14 +1682,6 @@ function financial_link_drawer_user(
         );
     }
     db_tx(function () use ($cid, $drawerId, $cashierUid, $adminUid): void {
-        
-
-
-
-
-
-
-
 
         q(
             "UPDATE pi_financial_location_users SET active=0, updated_at=NOW() WHERE clinic_id=? AND user_id=? AND active=1",
@@ -2281,16 +1703,6 @@ function financial_unlink_drawer_user(
     int $linkId,
     int $adminUid,
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $linkId <= 0) {
         throw new RuntimeException("Vínculo inválido.");
@@ -2317,16 +1729,6 @@ function financial_deactivate_drawer(
     int $drawerId,
     int $adminUid,
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $drawerId <= 0) {
         throw new RuntimeException("Gaveta inválida.");
@@ -2356,14 +1758,6 @@ function financial_deactivate_drawer(
 }
 function financial_drawer_row(int $cid, int $drawerId): ?array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $drawerId <= 0) {
         return null;
@@ -2375,14 +1769,6 @@ function financial_drawer_row(int $cid, int $drawerId): ?array
 }
 function financial_drawer_auto_unlock_if_due(int $cid, int $drawerId): ?array
 {
-    
-
-
-
-
-
-
-
 
     $d = financial_drawer_row($cid, $drawerId);
     if (!$d) {
@@ -2392,15 +1778,6 @@ function financial_drawer_auto_unlock_if_due(int $cid, int $drawerId): ?array
 }
 function financial_drawer_auto_unlock_row_if_due(int $cid, array $d): array
 {
-    
-
-
-
-
-
-
-
-
 
     $drawerId = (int) ($d["id"] ?? 0);
     if ($cid <= 0 || $drawerId <= 0) {
@@ -2443,14 +1820,6 @@ function financial_drawer_auto_unlock_row_if_due(int $cid, array $d): array
 }
 function financial_drawer_lock_label(array $drawer, int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $status = (string) ($drawer["drawer_lock_status"] ?? "unlocked");
     if ($status !== "locked") {
@@ -2464,15 +1833,6 @@ function financial_drawer_lock_label(array $drawer, int $cid): string
 }
 function financial_drawer_guard_can_use(int $cid, int $drawerId): void
 {
-    
-
-
-
-
-
-
-
-
 
     $d = financial_drawer_auto_unlock_if_due($cid, $drawerId);
     if (!$d) {
@@ -2499,14 +1859,6 @@ function financial_notify_drawer_locked(
     int $sessionId,
     int $uid,
 ): void {
-    
-
-
-
-
-
-
-
 
     try {
         $drawer = financial_drawer_row($cid, $drawerId);
@@ -2543,15 +1895,6 @@ function financial_drawer_lock_after_close(
     int $sessionId,
     int $uid,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $drawerId <= 0) {
         return;
@@ -2620,15 +1963,6 @@ function financial_default_drawer_unlock_local(
     ?array $drawer = null,
 ): string
 {
-    
-
-
-
-
-
-
-
-
 
     $d = $drawer ?: financial_drawer_row($cid, $drawerId);
     $locked =
@@ -2650,16 +1984,6 @@ function financial_schedule_drawer_unlock(
     string $unlockLocal,
     string $notes = "",
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     $d = financial_drawer_row($cid, $drawerId);
     if (!$d) {
@@ -2711,14 +2035,6 @@ function financial_drawer_open_session(
     int $locationId,
     int $excludeUid = 0,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $locationId <= 0) {
         return null;
@@ -2739,14 +2055,6 @@ function financial_latest_drawer_session(
     string $maxDate = "",
     int $ignoreSessionId = 0,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $locationId <= 0) {
         return null;
@@ -2772,14 +2080,6 @@ function financial_drawer_previous_balance(
     string $businessDate = "",
     int $ignoreSessionId = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     $businessDate = $businessDate ?: financial_today($cid);
     $last = financial_latest_drawer_session(
@@ -2798,14 +2098,6 @@ function financial_drawer_pending_previous_review(
     int $locationId,
     string $today = "",
 ): ?array {
-    
-
-
-
-
-
-
-
 
     $today = $today ?: financial_today($cid);
     if ($cid <= 0 || $locationId <= 0) {
@@ -2818,14 +2110,6 @@ function financial_drawer_pending_previous_review(
 }
 function financial_drawer_balance(int $cid, int $locationId): int
 {
-    
-
-
-
-
-
-
-
 
     $open = financial_drawer_open_session($cid, $locationId, 0);
     if ($open) {
@@ -2838,14 +2122,6 @@ function financial_drawer_balance_snapshot(
     int $cid,
     array $locationIds,
 ): array {
-    
-
-
-
-
-
-
-
 
     static $requestCache = [];
     $locationIds = array_values(
@@ -2932,14 +2208,6 @@ function financial_drawer_daily_totals(
     int $locationId,
     string $date,
 ): array {
-    
-
-
-
-
-
-
-
 
     $map = financial_drawer_daily_totals_map($cid, [$locationId], [$date]);
     return $map[$locationId . "|" . $date] ??
@@ -2947,14 +2215,6 @@ function financial_drawer_daily_totals(
 }
 function financial_drawer_daily_totals_empty(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "sessions" => 0,
@@ -2974,14 +2234,6 @@ function financial_drawer_daily_totals_map(
     array $locationIds,
     array $dates,
 ): array {
-    
-
-
-
-
-
-
-
 
     $locationIds = array_values(
         array_unique(
@@ -3070,14 +2322,6 @@ function financial_drawer_daily_totals_map(
 }
 function financial_location_belongs(int $cid, int $locationId): bool
 {
-    
-
-
-
-
-
-
-
 
     return $locationId > 0 &&
         (int) (val(
@@ -3088,14 +2332,6 @@ function financial_location_belongs(int $cid, int $locationId): bool
 }
 function financial_admin_location_belongs(int $cid, int $locationId): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($locationId <= 0) {
         return false;
@@ -3108,14 +2344,6 @@ function financial_admin_location_belongs(int $cid, int $locationId): bool
 }
 function financial_admin_location_select_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $rows = q(
@@ -3134,15 +2362,6 @@ function financial_admin_location_select_options(int $cid): array
 }
 function financial_daily_closing_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated) {
@@ -3160,14 +2379,6 @@ function financial_day_is_consolidated(
     int $cid,
     string $businessDate = "",
 ): bool {
-    
-
-
-
-
-
-
-
 
     try {
         financial_daily_closing_ensure_schema();
@@ -3184,14 +2395,6 @@ function financial_day_is_consolidated(
 }
 function financial_daily_metrics(int $cid, string $businessDate): array
 {
-    
-
-
-
-
-
-
-
 
     [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
     $activeAppointment =
@@ -3254,14 +2457,6 @@ function financial_daily_reconciliation(
     int $uid = 0,
     bool $prepareLegacy = false,
 ): array {
-    
-
-
-
-
-
-
-
 
     $issues = [];
     $sessions = q(
@@ -3375,14 +2570,6 @@ function financial_daily_consolidation_state(
     int $cid,
     string $businessDate = "",
 ): array {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     financial_daily_closing_ensure_schema();
@@ -3464,14 +2651,6 @@ function financial_daily_consolidation_state(
 }
 function financial_daily_consolidation_blockers_html(array $state): string
 {
-    
-
-
-
-
-
-
-
 
     $blockers = $state["blockers"] ?? [];
     if (!$blockers) {
@@ -3490,14 +2669,6 @@ function financial_daily_consolidation_blockers_html(array $state): string
 }
 function financial_patient_pending_revenue_count(int $cid, int $patientId): int
 {
-    
-
-
-
-
-
-
-
 
     if ($patientId <= 0) {
         return 0;
@@ -3513,14 +2684,6 @@ function financial_pending_revenue_belongs_to_patient(
     int $revenueId,
     int $patientId,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if ($revenueId <= 0 || $patientId <= 0) {
         return false;
@@ -3537,16 +2700,6 @@ function financial_cancel_appointment_revenue(
     int $uid,
     string $reason = "",
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $appointmentId <= 0) {
         return;
@@ -3557,15 +2710,6 @@ function financial_cancel_appointment_revenue(
         "Atendimento cancelado ou ausência registrada; cobrança prevista cancelada pela regra operacional.";
     try {
         db_tx(function () use ($cid, $appointmentId, $uid, $reason): void {
-            
-
-
-
-
-
-
-
-
 
             $rev = one(
                 "SELECT id,status FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=? FOR UPDATE",
@@ -3606,17 +2750,6 @@ function financial_admin_receive_expected_revenue(
     int $destinationLocationId,
     string $notes = "",
 ): int {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $method = normalize_payment_method($method);
@@ -3636,16 +2769,6 @@ function financial_admin_receive_expected_revenue(
         $destinationLocationId,
         $notes,
     ): int {
-        
-
-
-
-
-
-
-
-
-
 
         $rev = one(
             "SELECT r.*,a.status appointment_status,a.start_at,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.id=? AND r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu','reagendado') FOR UPDATE",
@@ -3746,14 +2869,6 @@ function financial_session_position_cents(
     array $session,
     int $excludeMovementId = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($session["clinic_id"] ?? 0);
     $sessionId = (int) ($session["id"] ?? 0);
@@ -3789,14 +2904,6 @@ function financial_location_potential_balance(
     int $locationId,
     int $excludeMovementId = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     $params = [$locationId, $cid, $locationId, $cid];
     $excludeTo = "";
@@ -3838,14 +2945,6 @@ function financial_validate_movement_invariants(
     string $status,
     int $excludeMovementId = 0,
 ): void {
-    
-
-
-
-
-
-
-
 
     financial_assert_amount_cents($amount);
     if ($cid <= 0 || $amount <= 0) {
@@ -3987,14 +3086,6 @@ function financial_update_existing_movement(
     string $notes,
     string $status,
 ): void {
-    
-
-
-
-
-
-
-
 
     db_tx(function () use (
         $cid,
@@ -4010,14 +3101,6 @@ function financial_update_existing_movement(
         $notes,
         $status,
     ): void {
-        
-
-
-
-
-
-
-
 
         $existing = one(
             "SELECT id FROM pi_financial_movements WHERE id=? AND clinic_id=? FOR UPDATE",
@@ -4072,16 +3155,6 @@ function financial_create_movement(
     string $sourceEntity = "",
     int $sourceId = 0,
 ): int {
-    
-
-
-
-
-
-
-
-
-
 
     return (int) db_tx(function () use (
         $cid,
@@ -4098,16 +3171,6 @@ function financial_create_movement(
         $sourceEntity,
         $sourceId,
     ): int {
-        
-
-
-
-
-
-
-
-
-
 
         financial_operational_schema_ready();
         financial_validate_movement_invariants(
@@ -4146,14 +3209,6 @@ function financial_create_movement(
 }
 function financial_session_for_date(int $cid, int $uid, string $date): ?array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     return one(
@@ -4163,14 +3218,6 @@ function financial_session_for_date(int $cid, int $uid, string $date): ?array
 }
 function financial_latest_session(int $cid, int $uid): ?array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     return one(
@@ -4183,14 +3230,6 @@ function financial_previous_drawer_balance(
     int $uid,
     string $beforeDate = "",
 ): int {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $loc = financial_cashier_location_for_user($cid, $uid);
@@ -4210,14 +3249,6 @@ function financial_expected_opening_balance(
     int $locationId = 0,
     int $ignoreSessionId = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     $businessDate = $businessDate ?: financial_today($cid);
     $locationId =
@@ -4236,14 +3267,6 @@ function financial_expected_opening_balance(
 }
 function financial_cashier_name(int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     $name = trim(
         (string) (val("SELECT name FROM pi_users WHERE id=? LIMIT 1", [$uid]) ?:
@@ -4259,15 +3282,6 @@ function financial_notify_opening_authorization_request(
     int $informed,
     int $createdBy,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     try {
         $cashier = financial_cashier_name($cashierUid);
@@ -4335,15 +3349,6 @@ function financial_request_opening_authorization(
     int $informed,
     ?array $existing = null,
 ): int {
-    
-
-
-
-
-
-
-
-
 
     $diff = financial_checked_add(
         $informed,
@@ -4428,14 +3433,6 @@ function financial_unclosed_previous_session(
     int $uid,
     string $today = "",
 ): ?array {
-    
-
-
-
-
-
-
-
 
     $today = $today ?: financial_today($cid);
     financial_operational_schema_ready();
@@ -4446,17 +3443,6 @@ function financial_unclosed_previous_session(
 }
 function financial_keep_closed(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     if ($cid <= 0 || $uid <= 0) {
@@ -4464,16 +3450,6 @@ function financial_keep_closed(int $cid, int $uid): int
     }
     $today = financial_today($cid);
     return (int) db_tx(function () use ($cid, $uid, $today) {
-        
-
-
-
-
-
-
-
-
-
 
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
         $loc = financial_cashier_location_for_user($cid, $uid);
@@ -4543,17 +3519,6 @@ function financial_keep_closed(int $cid, int $uid): int
 }
 function financial_open_session(int $cid, int $uid, int $openingBalance): int
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     if ($cid <= 0 || $uid <= 0) {
@@ -4570,16 +3535,6 @@ function financial_open_session(int $cid, int $uid, int $openingBalance): int
         &$authorizationRequested,
         &$authorizationMessage,
     ) {
-        
-
-
-
-
-
-
-
-
-
 
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
         $loc = financial_cashier_location_for_user($cid, $uid);
@@ -4711,14 +3666,6 @@ function financial_open_session(int $cid, int $uid, int $openingBalance): int
 }
 function financial_session_movement_totals(int $cid, int $sessionId): array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $rows = q(
@@ -4740,14 +3687,6 @@ function financial_session_movement_totals(int $cid, int $sessionId): array
 }
 function financial_session_expected(array $session): int
 {
-    
-
-
-
-
-
-
-
 
     return financial_session_position_cents($session);
 }
@@ -4762,14 +3701,6 @@ function financial_record_cash_difference(
     string $notes = "",
     bool $linkSession = true,
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($difference === 0) {
         return 0;
@@ -4798,14 +3729,6 @@ function financial_ensure_closing_adjustment(
     int $uid,
     string $status,
 ): void {
-    
-
-
-
-
-
-
-
 
     $difference = (int) ($session["difference_cents"] ?? 0);
     if ($difference === 0) {
@@ -4836,14 +3759,6 @@ function financial_ensure_closing_adjustment(
 }
 function financial_current_open_session(int $cid, int $uid): ?array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     return one(
@@ -4853,15 +3768,6 @@ function financial_current_open_session(int $cid, int $uid): ?array
 }
 function financial_require_open_session(int $cid, int $uid): array
 {
-    
-
-
-
-
-
-
-
-
 
     $s = financial_current_open_session($cid, $uid);
     if (!$s) {
@@ -4886,17 +3792,6 @@ function financial_close_session(
     int $withdrawalDestinationId = 0,
     string $notes = "",
 ): void {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     db_tx(function () use (
@@ -4908,16 +3803,6 @@ function financial_close_session(
         $withdrawalDestinationId,
         $notes,
     ): void {
-        
-
-
-
-
-
-
-
-
-
 
         $s = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
@@ -5024,17 +3909,6 @@ function financial_review_opening_request(
     string $decision,
     string $notes = "",
 ): void {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     db_tx(function () use (
@@ -5044,16 +3918,6 @@ function financial_review_opening_request(
         $decision,
         $notes,
     ): void {
-        
-
-
-
-
-
-
-
-
-
 
         $s = one(
             "SELECT s.*,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.id=? AND s.clinic_id=? AND s.status='opening_pending_review' FOR UPDATE",
@@ -5167,17 +4031,6 @@ function financial_review_session(
     string $notes = "",
     string $drawerUnlockLocal = "",
 ): void {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     db_tx(function () use (
@@ -5188,16 +4041,6 @@ function financial_review_session(
         $notes,
         $drawerUnlockLocal,
     ): void {
-        
-
-
-
-
-
-
-
-
-
 
         $s = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND status='closed_pending_review' FOR UPDATE",
@@ -5310,14 +4153,6 @@ function financial_review_session(
 }
 function financial_assert_session_reconciled(array $session): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($session["clinic_id"] ?? 0);
     $sessionId = (int) ($session["id"] ?? 0);
@@ -5427,14 +4262,6 @@ function financial_assert_session_reconciled(array $session): void
 }
 function financial_location_movement_balance(int $cid, int $locationId): int
 {
-    
-
-
-
-
-
-
-
 
     $balances = financial_location_movement_balances($cid, [$locationId]);
     return (int) ($balances[$locationId] ?? 0);
@@ -5443,14 +4270,6 @@ function financial_location_movement_balances(
     int $cid,
     array $locationIds,
 ): array {
-    
-
-
-
-
-
-
-
 
     static $requestCache = [];
     $locationIds = array_values(
@@ -5493,29 +4312,12 @@ function financial_location_movement_balances(
 }
 function financial_pos_balance_for_user(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
 
     $loc = financial_cashier_location_for_user($cid, $uid);
     return $loc > 0 ? financial_drawer_balance($cid, $loc) : 0;
 }
 function financial_global_position(int $cid): array
 {
-    
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $safe = financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
@@ -5609,14 +4411,6 @@ function financial_global_position(int $cid): array
 }
 function financial_cashier_requires_attention(array $c): bool
 {
-    
-
-
-
-
-
-
-
 
     if (!financial_is_cashier($c)) {
         return false;
@@ -5648,16 +4442,6 @@ function financial_register_appointment_payment_movement(
     bool $paid,
     int $paymentDestinationLocationId = 0,
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $existing = one(
@@ -5755,14 +4539,6 @@ function financial_revenue_id_for_appointment(
     int $appointmentId,
     int $uid = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $appointmentId <= 0) {
         return 0;
@@ -5790,14 +4566,6 @@ function financial_revenue_id_for_appointment(
 }
 function financial_appointment_payment_state(array $a): array
 {
-    
-
-
-
-
-
-
-
 
     $amount = (int) ($a["payment_amount_cents"] ?? 0);
     $status = mb_strtolower(trim((string) ($a["payment_status"] ?? "")));
@@ -5853,14 +4621,6 @@ function financial_appointment_operational_chip_html(
     array $a,
     string $role = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $st = financial_appointment_payment_state($a);
     $amount = (int) ($st["amount"] ?? 0);
@@ -5907,14 +4667,6 @@ function financial_daily_drawer_closure_state(
     int $cid,
     string $businessDate = "",
 ): array {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $businessDate = $businessDate ?: financial_today($cid);
@@ -5977,14 +4729,6 @@ function financial_daily_drawer_closure_state(
 }
 function financial_daily_drawer_closure_blocking_html(array $state): string
 {
-    
-
-
-
-
-
-
-
 
     $rows = $state["blocking_rows"] ?? [];
     if (!$rows) {
@@ -6010,14 +4754,6 @@ function financial_daily_drawer_closure_blocking_html(array $state): string
 }
 function financial_admin_daily_consolidation_html(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $today = financial_today($cid);
@@ -6085,14 +4821,6 @@ function financial_admin_daily_consolidation_html(int $cid): string
 }
 function financial_cashier_pending_receipts_html(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $today = financial_today($cid);
@@ -6134,14 +4862,6 @@ function financial_cashier_pending_receipts_html(int $cid): string
 }
 function financial_location_select_options(int $cid, string $type = ""): array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $params = [$cid];
@@ -6165,14 +4885,6 @@ function financial_location_select_options(int $cid, string $type = ""): array
 }
 function financial_cashier_receipt_method_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "dinheiro" => "Dinheiro",
@@ -6187,14 +4899,6 @@ function financial_cashier_receipt_method_options(): array
 }
 function financial_office_destination_options(int $cid, int $uid = 0): array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     financial_ensure_admin_safe($cid, $uid);
@@ -6230,14 +4934,6 @@ function financial_office_destination_options(int $cid, int $uid = 0): array
 }
 function financial_office_destination_belongs(int $cid, int $locationId): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $locationId <= 0) {
         return false;
@@ -6250,14 +4946,6 @@ function financial_office_destination_belongs(int $cid, int $locationId): bool
 }
 function financial_expected_appointment_revenue_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $rows = q(
@@ -6304,17 +4992,6 @@ function financial_receive_expected_appointment_revenue(
     int $destinationLocationId = 0,
     string $notes = "",
 ): int {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $method = normalize_payment_method($method);
@@ -6331,16 +5008,6 @@ function financial_receive_expected_appointment_revenue(
         $notes,
         $s,
     ): int {
-        
-
-
-
-
-
-
-
-
-
 
         $session = one(
             "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
@@ -6463,14 +5130,6 @@ function financial_receive_expected_appointment_revenue(
 }
 function financial_tabs_html(array $tabs, string $active): string
 {
-    
-
-
-
-
-
-
-
 
     $h =
         '<nav class="finance-admin-primary-nav" aria-label="Financeiro do Consultório">';
@@ -6493,15 +5152,6 @@ function financial_cash_exception_debug(
     array $c,
     string $act = "",
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $lines = [];
     $lines[] = "PRONTOO_CAIXA_DEBUG";
@@ -6546,14 +5196,6 @@ function financial_cash_exception_debug(
 }
 function financial_cash_debug_details_enabled(): bool
 {
-    
-
-
-
-
-
-
-
 
     return function_exists("app_debug") && app_debug();
 }
@@ -6562,15 +5204,6 @@ function financial_cash_store_debug(
     array $c,
     string $act = "",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $debug = financial_cash_exception_debug($e, $c, $act);
     $_SESSION["financial_cash_debug_error"] = $debug;
@@ -6581,15 +5214,6 @@ function financial_cash_store_debug(
 }
 function financial_cash_debug_error_html(): string
 {
-    
-
-
-
-
-
-
-
-
 
     $debug = (string) ($_SESSION["financial_cash_debug_error"] ?? "");
     $when = (string) ($_SESSION["financial_cash_error_at"] ?? "");
@@ -6621,15 +5245,6 @@ function financial_cash_debug_error_html(): string
 }
 function financial_cash_debug_request_active(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if ((string) ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         return false;
@@ -6657,14 +5272,6 @@ function financial_cashier_pagehead_link(
     bool $enabled,
     string $active,
 ): string {
-    
-
-
-
-
-
-
-
 
     $cls =
         "ghost small finance-cash-action cash-action-" .
@@ -6692,14 +5299,6 @@ function financial_cashier_pagehead_actions(
     bool $canClose,
     string $active = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<nav class="finance-pagehead-nav finance-cash-pagehead-actions" aria-label="Ações da Gaveta do Atendimento">' .
         financial_cashier_pagehead_link(
@@ -6738,14 +5337,6 @@ function financial_cashier_drawer_summary(
     int $fallbackOpening = 0,
     ?array $drawer = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $source = $prev ?: $session;
     $isOpen = $source && (string) ($source["status"] ?? "") === "open";
@@ -6825,15 +5416,6 @@ function financial_cashier_drawer_summary(
 }
 function financial_cash_debug_failure_page(Throwable $e): void
 {
-    
-
-
-
-
-
-
-
-
 
     $ctx = [];
     $ctxErr = null;
@@ -6889,16 +5471,6 @@ function financial_cash_debug_failure_page(Throwable $e): void
 }
 function financial_cashier_page(array $c): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -7495,15 +6067,6 @@ function financial_cashier_page(array $c): void
 }
 function financial_admin_drawers_panel(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
-
 
     $drawerOptions = financial_drawer_location_options($cid, true);
     $cashierOptions = financial_cashier_user_options($cid, true);
@@ -7797,14 +6360,6 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
 }
 function financial_admin_daily_ledger_timeline(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $day = financial_today($cid);
     [$startUtc, $endUtc] = app_local_day_utc_range($day, $cid);
@@ -7878,14 +6433,6 @@ function financial_admin_daily_ledger_timeline(int $cid): string
 }
 function financial_admin_reviews_panel(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     $openRows = q(
         "SELECT s.id,s.status,s.business_date,s.opening_balance_cents,s.expected_closing_cents,u.name user_name,l.name location_name FROM pi_cash_sessions s JOIN pi_users u ON u.id=s.user_id LEFT JOIN pi_financial_locations l ON l.id=s.location_id AND l.clinic_id=s.clinic_id WHERE s.clinic_id=? AND s.status IN ('opening_pending_review','opening_rejected') ORDER BY FIELD(s.status,'opening_pending_review','opening_rejected'), s.business_date DESC,s.id DESC LIMIT 80",
@@ -8044,14 +6591,6 @@ function financial_admin_reviews_panel(int $cid, int $uid): string
 }
 function financial_location_account_id(int $cid, int $locationId): ?int
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $locationId <= 0) {
         return null;
@@ -8069,14 +6608,6 @@ function financial_location_account_id(int $cid, int $locationId): ?int
 }
 function financial_admin_balance_kpis_html(array $pos): string
 {
-    
-
-
-
-
-
-
-
 
     return '<div class="kpis finance-kpis finance-balance-kpis" aria-label="Saldos financeiros do consultório"><article class="finance-balance-card finance-balance-total">' .
         icon("savings") .
@@ -8098,14 +6629,6 @@ function financial_admin_balance_kpis_html(array $pos): string
 }
 function financial_admin_locations_panel(int $cid, int $uid, array $pos): string
 {
-    
-
-
-
-
-
-
-
 
     $safe = (int) $pos["safe_id"];
     $safeCard = card(
@@ -8223,14 +6746,6 @@ function financial_admin_locations_panel(int $cid, int $uid, array $pos): string
 }
 function financial_admin_movements_panel(int $cid, int $limit = 180): string
 {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT m.movement_type,m.title,m.created_at,m.amount_cents,m.status,lf.name from_name,lt.name to_name,u.name user_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lf ON lf.id=m.from_location_id AND lf.clinic_id=m.clinic_id LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id LEFT JOIN pi_users u ON u.id=m.created_by WHERE m.clinic_id=? ORDER BY m.created_at DESC,m.id DESC LIMIT " .
@@ -8277,14 +6792,6 @@ function financial_daily_drawer_partials_html(
     int $uid,
     array $state,
 ): string {
-    
-
-
-
-
-
-
-
 
     $rows = $state["rows"] ?? [];
     if (!$rows) {
@@ -8392,14 +6899,6 @@ function financial_daily_drawer_partials_html(
 }
 function financial_admin_daily_conference_panel(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $today = financial_today($cid);
@@ -8502,31 +7001,10 @@ function financial_admin_daily_conference_panel(int $cid, int $uid): string
 }
 function financial_admin_daily_consolidate(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     financial_daily_closing_ensure_schema();
     db_tx(function () use ($cid, $uid): void {
-        
-
-
-
-
-
-
-
-
-
 
         $today = financial_today($cid);
         q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
@@ -8597,17 +7075,6 @@ function financial_admin_daily_consolidate(int $cid, int $uid): void
 }
 function financial_admin_save_receipt(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $patientId = function_exists("resolve_patient_lookup_id")
         ? resolve_patient_lookup_id(
@@ -8725,17 +7192,6 @@ function financial_admin_save_receipt(int $cid, int $uid): void
 }
 function financial_admin_save_payment(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $creditorId = (int) ($_POST["counterparty_id"] ?? 0);
     $cred =
@@ -8812,16 +7268,6 @@ function financial_admin_save_payment(int $cid, int $uid): void
 }
 function financial_admin_save_transfer(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $from = (int) ($_POST["from_location_id"] ?? 0);
     $to = (int) ($_POST["to_location_id"] ?? 0);
@@ -8872,15 +7318,6 @@ function financial_admin_save_transfer(int $cid, int $uid): void
 }
 function financial_admin_operations_panel(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
-
 
     $locations = financial_admin_location_select_options($cid);
     $pendingOptions = financial_expected_appointment_revenue_options($cid);
@@ -9138,18 +7575,6 @@ function financial_admin_operations_panel(int $cid, int $uid): string
 }
 function financial_creditor_upsert_from_post(int $cid, int $uid): int
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     person_common_profile_schema_ready();
     $name = trim((string) ($_POST["creditor_name"] ?? ""));
@@ -9194,14 +7619,6 @@ function financial_creditor_upsert_from_post(int $cid, int $uid): int
 }
 function financial_creditor_directory_card(array $r, int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $name = (string) ($r["full_name"] ?? "Credor #" . ($r["id"] ?? ""));
     $doc = only_digits(
@@ -9310,18 +7727,6 @@ function financial_creditor_directory_card(array $r, int $cid): string
 }
 function page_creditors(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("patients");
     if (!has_effective_role($c, "gerente")) {
@@ -9577,14 +7982,6 @@ function page_creditors(): void
 }
 function financial_admin_attention_panel(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     financial_operational_schema_ready();
     $today = financial_today($cid);
@@ -9662,14 +8059,6 @@ function financial_admin_attention_panel(int $cid): string
 }
 function financial_admin_conferences_panel(int $cid, int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     $pending = card(
         "<h2>" .
@@ -9685,18 +8074,6 @@ function financial_admin_conferences_panel(int $cid, int $uid): string
 }
 function financial_admin_page(array $c): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -10012,15 +8389,6 @@ function financial_admin_page(array $c): void
 }
 function page_financial(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $c = require_can("financial");
     ensure_financial_operational_schema();

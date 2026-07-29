@@ -5,27 +5,11 @@ namespace Prontoo\Core\Invariant;
 final class SqlExpression
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function operation(string $sql): ?string
     {
-        
-
-
-
-
-
-
-
 
         if (!preg_match('/^\s*(UPDATE|DELETE|INSERT|REPLACE)\b/i', $sql, $match)) {
             return null;
@@ -35,14 +19,6 @@ final class SqlExpression
 
     public static function targetTable(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         $patterns = [
             '/^\s*(?:INSERT|REPLACE)\s+(?:(?:LOW_PRIORITY|DELAYED|HIGH_PRIORITY|IGNORE)\s+)*INTO\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?([a-z0-9_]+)`?/i',
@@ -59,28 +35,12 @@ final class SqlExpression
 
     public static function topLevelKeywordPosition(string $sql, string $keyword, int $start = 0): ?int
     {
-        
-
-
-
-
-
-
-
 
         return self::topLevelPhrasePosition($sql, $keyword, $start);
     }
 
     public static function topLevelPhrasePosition(string $sql, string $phrase, int $start = 0): ?int
     {
-        
-
-
-
-
-
-
-
 
         $phrase = strtolower(trim(preg_replace('/\s+/', ' ', $phrase) ?? $phrase));
         if ($phrase === "") {
@@ -135,14 +95,6 @@ final class SqlExpression
 
     public static function splitTopLevelWithOffsets(string $expression, string $delimiter = ","): array
     {
-        
-
-
-
-
-
-
-
 
         $parts = [];
         $start = 0;
@@ -186,14 +138,6 @@ final class SqlExpression
 
     public static function splitBooleanTopLevel(string $expression, string $operator): array
     {
-        
-
-
-
-
-
-
-
 
         $operator = strtolower(trim($operator));
         $parts = [];
@@ -249,14 +193,6 @@ final class SqlExpression
 
     public static function trimExpression(string $expression, int $baseOffset): array
     {
-        
-
-
-
-
-
-
-
 
         $left = strlen($expression) - strlen(ltrim($expression));
         return [trim($expression), $baseOffset + $left];
@@ -264,14 +200,6 @@ final class SqlExpression
 
     public static function outerParenthesesWrap(string $expression): bool
     {
-        
-
-
-
-
-
-
-
 
         $expression = trim($expression);
         $length = strlen($expression);
@@ -306,14 +234,6 @@ final class SqlExpression
 
     public static function placeholderIndexBefore(string $sql, int $offset): int
     {
-        
-
-
-
-
-
-
-
 
         $count = 0;
         $quote = null;
@@ -350,14 +270,6 @@ final class SqlExpression
         array $params,
         ?bool &$known = null,
     ): mixed {
-        
-
-
-
-
-
-
-
 
         $token = trim($token);
         $known = true;
@@ -390,14 +302,6 @@ final class SqlExpression
 
     public static function parseInsert(string $sql): ?array
     {
-        
-
-
-
-
-
-
-
 
         if (!preg_match(
             '/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?([a-z0-9_]+)`?\s*\(([^)]*)\)\s*values\b/is',
@@ -437,14 +341,6 @@ final class SqlExpression
 
     private static function valueTuples(string $sql, int $start, int $end): array
     {
-        
-
-
-
-
-
-
-
 
         $rows = [];
         $depth = 0;
@@ -500,14 +396,6 @@ final class SqlExpression
 
     public static function assignments(string $sql): array
     {
-        
-
-
-
-
-
-
-
 
         $operation = self::operation($sql);
         $setPosition = $operation === "UPDATE"
@@ -542,14 +430,6 @@ final class SqlExpression
 
     public static function whereExpression(string $sql): ?array
     {
-        
-
-
-
-
-
-
-
 
         $where = self::topLevelKeywordPosition($sql, "where");
         if ($where === null) {
@@ -565,14 +445,6 @@ final class SqlExpression
         array $params,
         ?bool &$complete = null,
     ): array {
-        
-
-
-
-
-
-
-
 
         $complete = true;
         $where = self::whereExpression($sql);
@@ -632,14 +504,6 @@ final class SqlExpression
         array $params,
         ?bool &$complete = null,
     ): array {
-        
-
-
-
-
-
-
-
 
         $complete = true;
         $where = self::whereExpression($sql);
@@ -669,14 +533,6 @@ final class SqlExpression
         string $column,
         array $params,
     ): ?array {
-        
-
-
-
-
-
-
-
 
         [$expression, $baseOffset] = self::trimExpression($expression, $baseOffset);
         while (self::outerParenthesesWrap($expression)) {
@@ -752,14 +608,6 @@ final class SqlExpression
         string $column,
         array $params,
     ): ?array {
-        
-
-
-
-
-
-
-
 
         $columnPattern = '(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?' . preg_quote($column, '/') . '`?';
         $valuePattern = '(\\?|[-+]?\\d+|\\\'[^\\\']*\\\'|"[^"]*")';
@@ -815,14 +663,6 @@ final class SqlExpression
 
     private static function canonicalComparable(mixed $value): string
     {
-        
-
-
-
-
-
-
-
 
         if ($value === null) {
             return "null";
@@ -843,14 +683,6 @@ final class SqlExpression
         string $column,
         ?bool &$complete = null,
     ): array {
-        
-
-
-
-
-
-
-
 
         $complete = true;
         $index = array_search(strtolower($column), array_map('strtolower', $parsed["columns"] ?? []), true);
@@ -880,14 +712,6 @@ final class SqlExpression
 
     public static function identifier(string $raw): string
     {
-        
-
-
-
-
-
-
-
 
         $raw = strtolower(trim($raw));
         $raw = trim($raw, "` \t\n\r\0\x0B");
@@ -896,14 +720,6 @@ final class SqlExpression
 
     public static function isDirectValueToken(string $token): bool
     {
-        
-
-
-
-
-
-
-
 
         $token = trim($token);
         return $token === "?" ||

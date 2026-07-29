@@ -22,15 +22,6 @@ $GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema
 if (!function_exists('cfg')) {
     function cfg(): array
     {
-        
-
-
-
-
-
-
-
-
 
         return (array) ($GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] ?? []);
     }
@@ -38,15 +29,6 @@ if (!function_exists('cfg')) {
 if (!function_exists('storage_path')) {
     function storage_path(string $path = ''): string
     {
-        
-
-
-
-
-
-
-
-
 
         $base = rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
         return $path === '' ? $base : $base . '/' . ltrim($path, '/');
@@ -55,14 +37,6 @@ if (!function_exists('storage_path')) {
 if (!function_exists('prontoo_fs_chmod')) {
     function prontoo_fs_chmod(string $path, int $mode, bool $required = true): bool
     {
-        
-
-
-
-
-
-
-
 
         return !file_exists($path) || @chmod($path, $mode);
     }
@@ -70,14 +44,6 @@ if (!function_exists('prontoo_fs_chmod')) {
 if (!function_exists('prontoo_fs_unlink')) {
     function prontoo_fs_unlink(string $path, bool $required = true): bool
     {
-        
-
-
-
-
-
-
-
 
         return !file_exists($path) || @unlink($path);
     }
@@ -159,14 +125,6 @@ foreach ($blocks as $table => $block) {
     }
 }
 $normalize = static function (string $block): string {
-    
-
-
-
-
-
-
-
 
     $block = preg_replace(
         '/`Seq` bigint UNSIGNED (?:DEFAULT NULL|NOT NULL DEFAULT \(UUID_SHORT\(\)\))/',
@@ -232,14 +190,6 @@ if ($dsn !== '') {
     }
     $mysqlVersion = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
     $dropAll = static function (PDO $connection): void {
-        
-
-
-
-
-
-
-
 
         $tables = $connection->query(
             "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
@@ -284,14 +234,6 @@ if ($dsn !== '') {
     prontoo_schema_clear_caches();
     Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
         static function (): void {
-            
-
-
-
-
-
-
-
 
             install_fresh_schema();
         },

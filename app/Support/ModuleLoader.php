@@ -5,29 +5,12 @@ use Prontoo\Core\Architecture\LayerMap;
 
 function prontoo_module_file(string $relative): string
 {
-    
-
-
-
-
-
-
-
 
     return __DIR__ . '/../' . ltrim($relative, '/');
 }
 
 function prontoo_module_layer(string $relative): string
 {
-    
-
-
-
-
-
-
-
-
 
     $layer = LayerMap::layerFor('app/' . ltrim($relative, '/'));
     if ($layer === null) {
@@ -38,16 +21,6 @@ function prontoo_module_layer(string $relative): string
 
 function prontoo_require_module(string $relative): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $file = prontoo_module_file($relative);
     if (!is_file($file)) {
@@ -79,14 +52,6 @@ function prontoo_require_module(string $relative): void
 
 function prontoo_require_modules(array $files): void
 {
-    
-
-
-
-
-
-
-
 
     foreach ($files as $file) {
         prontoo_require_module((string) $file);
@@ -95,29 +60,12 @@ function prontoo_require_modules(array $files): void
 
 function prontoo_runtime_specialization_policy(): string
 {
-    
-
-
-
-
-
-
-
 
     return 'pi-v3-php-layered-runtime-route-loaded';
 }
 
 function prontoo_boot_requested_route(): string
 {
-    
-
-
-
-
-
-
-
-
 
     $route = $_GET['r'] ?? 'login';
     return preg_replace('/[^a-z0-9_\-]/i', '', (string) $route) ?: 'login';
@@ -125,43 +73,18 @@ function prontoo_boot_requested_route(): string
 
 function prontoo_public_light_routes(): array
 {
-    
-
-
-
-
-
-
-
 
     return ['login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
 }
 
 function prontoo_use_light_boot(): bool
 {
-    
-
-
-
-
-
-
-
 
     return (string) getenv('PRONTOO_DISABLE_LIGHT_BOOT') !== '1';
 }
 
 function prontoo_runtime_core_modules(): array
 {
-    
-
-
-
-
-
-
-
-
 
     return [
         'Support/Runtime.php',
@@ -185,14 +108,6 @@ function prontoo_runtime_core_modules(): array
 
 function prontoo_full_runtime_modules(): array
 {
-    
-
-
-
-
-
-
-
 
     return array_values(array_unique(array_merge(prontoo_runtime_core_modules(), [
         'Domain/Patients/Patients.php',
@@ -210,14 +125,6 @@ function prontoo_full_runtime_modules(): array
 
 function prontoo_load_runtime_core_modules(): void
 {
-    
-
-
-
-
-
-
-
 
     static $done = false;
     if ($done) {
@@ -229,14 +136,6 @@ function prontoo_load_runtime_core_modules(): void
 
 function prontoo_load_full_runtime_modules(): void
 {
-    
-
-
-
-
-
-
-
 
     static $done = false;
     if ($done) {
@@ -248,14 +147,6 @@ function prontoo_load_full_runtime_modules(): void
 
 function prontoo_load_route_modules(string $route): void
 {
-    
-
-
-
-
-
-
-
 
     static $loaded = [];
     foreach (prontoo_route_module_groups($route) as $group => $files) {
@@ -269,14 +160,6 @@ function prontoo_load_route_modules(string $route): void
 
 function prontoo_route_module_groups(string $route): array
 {
-    
-
-
-
-
-
-
-
 
     $commonClinic = ['dashboards' => ['Pages/Dashboards.php']];
     $patients = ['patients' => ['Domain/Patients/Patients.php']];
@@ -329,14 +212,6 @@ function prontoo_route_module_groups(string $route): array
 
 function prontoo_runtime_layer_coverage(): array
 {
-    
-
-
-
-
-
-
-
 
     $modules = prontoo_full_runtime_modules();
     $layers = [];
@@ -355,14 +230,6 @@ function prontoo_runtime_layer_coverage(): array
 
 function prontoo_load_financial_guard_module(): void
 {
-    
-
-
-
-
-
-
-
 
     static $done = false;
     if ($done) {

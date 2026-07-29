@@ -2,27 +2,11 @@
 declare(strict_types=1);
 function lead_phone_digits(string $phone): string
 {
-    
-
-
-
-
-
-
-
 
     return substr(only_digits($phone), 0, 11);
 }
 function lead_cpf_br(string $cpf): string
 {
-    
-
-
-
-
-
-
-
 
     $d = only_digits($cpf);
     if (strlen($d) !== 11) {
@@ -38,14 +22,6 @@ function lead_cpf_br(string $cpf): string
 }
 function lead_stage_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "em_aberto" => "Em Aberto",
@@ -56,14 +32,6 @@ function lead_stage_options(): array
 }
 function lead_stage_icons(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "em_aberto" => "chat_bubble",
@@ -74,14 +42,6 @@ function lead_stage_icons(): array
 }
 function lead_stage_normalize(?string $stage): string
 {
-    
-
-
-
-
-
-
-
 
     $candidate = trim((string) $stage);
     return array_key_exists($candidate, lead_stage_options())
@@ -91,27 +51,11 @@ function lead_stage_normalize(?string $stage): string
 
 function lead_active_stages(): array
 {
-    
-
-
-
-
-
-
-
 
     return ["em_aberto", "aguarda_retorno"];
 }
 function lead_active_stage_sql(string $column = "stage"): string
 {
-    
-
-
-
-
-
-
-
 
     $column = preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
     $active = array_map(
@@ -126,14 +70,6 @@ function lead_active_stage_sql(string $column = "stage"): string
 }
 function lead_stage_sql_case(string $column = "stage"): string
 {
-    
-
-
-
-
-
-
-
 
     return preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
 }
@@ -143,14 +79,6 @@ function lead_find_by_phone(
     string $phoneDigits,
     int $excludeId = 0,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     $phoneDigits = lead_phone_digits($phoneDigits);
     if ($cid <= 0 || $phoneDigits === "") {
@@ -185,15 +113,6 @@ function lead_event_create(
     string $body,
     string $eventType = "contato",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $leadId <= 0) {
         return;
@@ -232,15 +151,6 @@ function lead_prepare_person_for_patient(
     array $data,
     int $cid,
 ): int {
-    
-
-
-
-
-
-
-
-
 
     $leadId = (int) ($lead["id"] ?? 0);
     $name = trim((string) ($data["name"] ?? ($lead["name"] ?? "")));
@@ -308,14 +218,6 @@ function lead_prepare_person_for_patient(
 }
 function lead_patient_by_cpf(int $cid, string $cpf): ?array
 {
-    
-
-
-
-
-
-
-
 
     $cpf = only_digits($cpf);
     if ($cid <= 0 || !valid_cpf($cpf)) {
@@ -329,14 +231,6 @@ function lead_patient_by_cpf(int $cid, string $cpf): ?array
 }
 function lead_patient_by_phone(int $cid, string $phoneDigits): ?array
 {
-    
-
-
-
-
-
-
-
 
     $phoneDigits = lead_phone_digits($phoneDigits);
     if ($cid <= 0 || strlen($phoneDigits) < 10) {
@@ -353,14 +247,6 @@ function lead_history_html(
     array $users,
     array $stageLabels,
 ): string {
-    
-
-
-
-
-
-
-
 
     if (!$items) {
         return '<div class="lead-history lead-history-compact empty-history"><span>' .
@@ -395,16 +281,6 @@ function lead_history_html(
 }
 function page_lead_lookup(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
@@ -504,16 +380,6 @@ function page_lead_lookup(): void
 }
 function page_lead_patient_lookup(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
@@ -607,17 +473,6 @@ function page_lead_patient_lookup(): void
 }
 function page_leads(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("leads");
     $cid = (int) $c["clinic_id"];
@@ -631,27 +486,11 @@ function page_leads(): void
     ];
     $stageLabels = $stageOptions;
     $stageClass = function (string $stage): string {
-        
-
-
-
-
-
-
-
 
         $stage = lead_stage_normalize($stage);
         return preg_replace("/[^a-z0-9_-]+/i", "-", $stage) ?: "em_aberto";
     };
     $leadTime = function (?string $v) use ($cid, $c): string {
-        
-
-
-
-
-
-
-
 
         $v = trim((string) $v);
         if ($v === "") {

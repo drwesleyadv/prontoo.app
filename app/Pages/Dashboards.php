@@ -2,27 +2,11 @@
 declare(strict_types=1);
 function page_home(): void
 {
-    
-
-
-
-
-
-
-
 
     redirect("login");
 }
 function page_medico_painel(array $c): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -128,14 +112,6 @@ function page_medico_painel(array $c): void
 }
 function page_recepcao_painel(array $c): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -264,14 +240,6 @@ function page_recepcao_painel(array $c): void
         "</b><span>Avisos</span></p></div>" .
         "</div>";
     $statusLabel = function (array $a) use ($role): array {
-        
-
-
-
-
-
-
-
 
         $m = appointment_journey_meta($a, $role);
         return [
@@ -288,14 +256,6 @@ function page_recepcao_painel(array $c): void
         $statusLabel,
         $role,
     ): string {
-        
-
-
-
-
-
-
-
 
         $startTs = app_storage_timestamp($a["start_at"]);
         $endTs = app_storage_timestamp($a["end_at"]);
@@ -531,14 +491,6 @@ function page_recepcao_painel(array $c): void
 }
 function page_triagem_painel(array $c): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -587,14 +539,6 @@ function page_triagem_painel(array $c): void
         $names,
         $users,
     ): string {
-        
-
-
-
-
-
-
-
 
         $ts = app_storage_timestamp($a["start_at"]);
         $pid = (int) ($a["patient_link_id"] ?? 0);
@@ -709,14 +653,6 @@ function page_triagem_painel(array $c): void
 }
 function manager_metric_val(string $sql, array $params = []): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) (val($sql, $params) ?? 0);
@@ -727,14 +663,6 @@ function manager_metric_val(string $sql, array $params = []): int
 }
 function manager_metric_row(string $sql, array $params = []): array
 {
-    
-
-
-
-
-
-
-
 
     try {
         return one($sql, $params) ?: [];
@@ -745,14 +673,6 @@ function manager_metric_row(string $sql, array $params = []): array
 }
 function manager_count_business_days(string $from, string $to): int
 {
-    
-
-
-
-
-
-
-
 
     $start = strtotime($from . " 00:00:00");
     $end = strtotime($to . " 00:00:00");
@@ -770,14 +690,6 @@ function manager_count_business_days(string $from, string $to): int
 }
 function manager_percent_label(float $v): string
 {
-    
-
-
-
-
-
-
-
 
     return number_format($v, 1, ",", ".") . "%";
 }
@@ -788,14 +700,6 @@ function manager_dashboard_card(
     string $note = "",
     string $class = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<article class="stat-card manager-stat ' .
         e($class) .
@@ -816,14 +720,6 @@ function manager_action_card(
     string $route,
     string $label = "Abrir",
 ): string {
-    
-
-
-
-
-
-
-
 
     $inner =
         icon($iconName) .
@@ -844,14 +740,6 @@ function manager_action_card(
 }
 function page_gerente_painel(array $c): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $month = app_month_in_timezone($cid, $c);
@@ -1178,14 +1066,6 @@ function page_gerente_painel(array $c): void
 }
 function page_painel(): void
 {
-    
-
-
-
-
-
-
-
 
     $c = require_can("painel");
     $cid = (int) $c["clinic_id"];

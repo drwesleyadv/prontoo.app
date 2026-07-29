@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function financial_movement_write_guard(string $sql, array $params): void
 {
-    
-
-
-
-
-
-
-
 
     static $inside = false;
     if ($inside) {
@@ -97,14 +89,6 @@ function financial_movement_write_guard(string $sql, array $params): void
 }
 function financial_cashier_requires_attention_light(array $c): bool
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return false;

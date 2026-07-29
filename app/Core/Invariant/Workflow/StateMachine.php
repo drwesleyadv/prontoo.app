@@ -9,27 +9,11 @@ final readonly class StateMachine
         private array $aliases = [],
         private array $initialStates = [],
     ) {
-        
-
-
-
-
-
-
-
 
     }
 
     public function normalize(string $state): string
     {
-        
-
-
-
-
-
-
-
 
         $state = strtolower(trim($state));
         return (string) ($this->aliases[$state] ?? $state);
@@ -37,28 +21,12 @@ final readonly class StateMachine
 
     public function acceptsInitial(string $state): bool
     {
-        
-
-
-
-
-
-
-
 
         return in_array($this->normalize($state), $this->initialStates, true);
     }
 
     public function knows(string $state): bool
     {
-        
-
-
-
-
-
-
-
 
         $state = $this->normalize($state);
         return in_array($state, $this->initialStates, true) || array_key_exists($state, $this->transitions);
@@ -66,14 +34,6 @@ final readonly class StateMachine
 
     public function canTransition(string $from, string $to): bool
     {
-        
-
-
-
-
-
-
-
 
         $from = $this->normalize($from);
         $to = $this->normalize($to);
@@ -85,14 +45,6 @@ final readonly class StateMachine
 
     public function allowedFrom(string $state): array
     {
-        
-
-
-
-
-
-
-
 
         return array_values($this->transitions[$this->normalize($state)] ?? []);
     }

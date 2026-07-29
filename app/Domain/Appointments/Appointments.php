@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function work_weekday_labels(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         1 => "Segunda",
@@ -23,14 +15,6 @@ function work_weekday_labels(): array
 }
 function normalize_work_time(?string $v, string $fallback = ""): string
 {
-    
-
-
-
-
-
-
-
 
     $v = trim((string) $v);
     if (preg_match('/^\d{2}:\d{2}$/', $v)) {
@@ -43,28 +27,12 @@ function normalize_work_time(?string $v, string $fallback = ""): string
 }
 function work_time_short(?string $v): string
 {
-    
-
-
-
-
-
-
-
 
     $v = (string) $v;
     return preg_match("/^\d{2}:\d{2}/", $v) ? substr($v, 0, 5) : "";
 }
 function default_work_hours_rows(): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach (work_weekday_labels() as $wd => $label) {
@@ -79,28 +47,12 @@ function default_work_hours_rows(): array
 }
 function user_work_hours(int $cid, int $uid): array
 {
-    
-
-
-
-
-
-
-
 
     $defaults = default_work_hours_rows();
     if ($cid <= 0 || $uid <= 0) {
         return $defaults;
     }
     $loader = function () use ($cid, $uid, $defaults): array {
-        
-
-
-
-
-
-
-
 
         $hours = $defaults;
         try {
@@ -138,16 +90,6 @@ function user_work_hours(int $cid, int $uid): array
 }
 function save_user_work_hours(int $cid, int $uid, array $data): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return;
@@ -193,14 +135,6 @@ function save_user_work_hours(int $cid, int $uid, array $data): void
 }
 function work_hours_form_html(int $cid, int $uid = 0): string
 {
-    
-
-
-
-
-
-
-
 
     $hours = user_work_hours($cid, $uid);
     $h =
@@ -235,15 +169,6 @@ function work_hours_form_html(int $cid, int $uid = 0): string
 }
 function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
 {
-    
-
-
-
-
-
-
-
-
 
     if (
         $cid <= 0 ||
@@ -254,15 +179,6 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
     }
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
-        
-
-
-
-
-
-
-
-
 
         return new DateTimeImmutable("@" . $ts)
             ->setTimezone($zone)
@@ -291,14 +207,6 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
 }
 function doctor_work_hours_label(int $cid, int $doctorId, string $day): string
 {
-    
-
-
-
-
-
-
-
 
     $ranges = doctor_work_ranges_for_day($cid, $doctorId, $day);
     if (!$ranges) {
@@ -316,14 +224,6 @@ function appointment_within_doctor_hours(
     string $startAt,
     string $endAt,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $ls = app_db_utc_to_local($startAt, $cid);
     $le = app_db_utc_to_local($endAt, $cid);
@@ -346,14 +246,6 @@ function doctor_work_hours_conflict_message(
     string $startAt,
     string $endAt,
 ): string {
-    
-
-
-
-
-
-
-
 
     if (appointment_within_doctor_hours($cid, $doctorId, $startAt, $endAt)) {
         return "";
@@ -368,14 +260,6 @@ function agenda_validate_period_message(
     string $operation,
     int $cid = 0,
 ): ?string {
-    
-
-
-
-
-
-
-
 
     $sUtc = app_parse_db_utc($startAt);
     $eUtc = app_parse_db_utc($endAt);
@@ -395,14 +279,6 @@ function agenda_validate_period_message(
 }
 function appointment_status_code(array $appointment): string
 {
-    
-
-
-
-
-
-
-
 
     $status = mb_strtolower(trim((string) ($appointment["status"] ?? "")));
     $status = str_replace([" ", "-"], "_", $status);
@@ -464,27 +340,11 @@ function appointment_status_code(array $appointment): string
 
 function appointment_is_cancelled(array $a): bool
 {
-    
-
-
-
-
-
-
-
 
     return appointment_status_code($a) === "cancelado";
 }
 function is_done_appointment(array $a): bool
 {
-    
-
-
-
-
-
-
-
 
     return in_array(
         appointment_status_code($a),
@@ -494,14 +354,6 @@ function is_done_appointment(array $a): bool
 }
 function appointment_is_terminal(array $a): bool
 {
-    
-
-
-
-
-
-
-
 
     return in_array(
         appointment_status_code($a),
@@ -516,14 +368,6 @@ function appointment_journey_hard_guard_message(
     int $uid = 0,
     ?int $nowTs = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $nowTs = $nowTs ?? time();
     $code = appointment_status_code($a);
@@ -720,14 +564,6 @@ function appointment_journey_can(
     int $uid = 0,
     ?int $nowTs = null,
 ): bool {
-    
-
-
-
-
-
-
-
 
     return appointment_journey_hard_guard_message(
         $a,
@@ -742,24 +578,8 @@ function appointment_journey_elapsed_label(
     string $code,
     int $nowTs,
 ): string {
-    
-
-
-
-
-
-
-
 
     $pick = function (array $keys) use ($a): int {
-        
-
-
-
-
-
-
-
 
         foreach ($keys as $k) {
             $ts = app_storage_timestamp((string) ($a[$k] ?? ""));
@@ -810,14 +630,6 @@ function appointment_journey_elapsed_label(
 }
 function appointment_journey_steps(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         ["key" => "agendamento", "label" => "Agendamento", "icon" => "event"],
@@ -836,14 +648,6 @@ function appointment_journey_view_model(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     $nowTs = $nowTs ?? time();
     $technical = appointment_status_code($a);
@@ -1011,27 +815,11 @@ function appointment_journey_meta(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     return appointment_journey_view_model($a, $role, $nowTs);
 }
 function appointment_journey_view_code(array $a, ?int $nowTs = null): string
 {
-    
-
-
-
-
-
-
-
 
     $nowTs = $nowTs ?? time();
     $code = appointment_status_code($a);
@@ -1047,14 +835,6 @@ function appointment_journey_view_code(array $a, ?int $nowTs = null): string
 }
 function appointment_journey_role_matches(string $role, string $expected): bool
 {
-    
-
-
-
-
-
-
-
 
     $normalize = static  fn(string $value): string => str_replace(
         ["-", " "],
@@ -1069,14 +849,6 @@ function appointment_journey_role_hint(
     string $role = "",
     ?int $nowTs = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     $vmCode = appointment_journey_view_code($a, $nowTs);
     $role = (string) $role;
@@ -1128,14 +900,6 @@ function appointment_journey_role_actions(
     ?int $nowTs = null,
     int $uid = 0,
 ): array {
-    
-
-
-
-
-
-
-
 
     $nowTs = $nowTs ?? time();
     $role = (string) $role;
@@ -1151,14 +915,6 @@ function appointment_journey_role_actions(
         string $title = "",
         bool $danger = false,
     ) use (&$actions): void {
-        
-
-
-
-
-
-
-
 
         $actions[] = [
             "act" => $act,
@@ -1282,14 +1038,6 @@ function appointment_journey_quick_actions_html(
     string $actionUrl = "",
     int $uid = 0,
 ): string {
-    
-
-
-
-
-
-
-
 
     $returnHidden = (string) ($returnHidden ?? "");
     $actions = appointment_journey_role_actions($a, $role, null, $uid);
@@ -1343,14 +1091,6 @@ function appointment_journey_quick_actions_html(
 }
 function appointment_journey_steps_html(array $vm): string
 {
-    
-
-
-
-
-
-
-
 
     $html = '<span class="journey-ux-rail" aria-label="Jornada do paciente">';
     foreach ($vm["steps"] ?? [] as $step) {
@@ -1373,14 +1113,6 @@ function appointment_journey_fact_html(
     string $label,
     string $value,
 ): string {
-    
-
-
-
-
-
-
-
 
     $value = trim($value);
     if ($value === "") {
@@ -1400,14 +1132,6 @@ function appointment_journey_compact_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
@@ -1453,14 +1177,6 @@ function appointment_journey_card_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
@@ -1511,14 +1227,6 @@ function appointment_journey_measure_html(
     ?string $returnHidden = "",
     string $actionUrl = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return appointment_journey_compact_html(
         $a,
@@ -1529,14 +1237,6 @@ function appointment_journey_measure_html(
 }
 function delay_minutes_from_appointment(array $a): ?int
 {
-    
-
-
-
-
-
-
-
 
     $scheduled = app_storage_timestamp($a["start_at"] ?? "");
     $started = app_storage_timestamp($a["consultation_started_at"] ?? "");
@@ -1547,14 +1247,6 @@ function delay_minutes_from_appointment(array $a): ?int
 }
 function format_minutes(?int $minutes): string
 {
-    
-
-
-
-
-
-
-
 
     if ($minutes === null) {
         return "—";
@@ -1568,14 +1260,6 @@ function format_minutes(?int $minutes): string
 }
 function appointment_patient_names(array $appointments, ?int $cid = null): array
 {
-    
-
-
-
-
-
-
-
 
     $ids = int_ids($appointments, "patient_link_id");
     $patients = $cid
@@ -1597,27 +1281,11 @@ function appointment_patient_names(array $appointments, ?int $cid = null): array
 }
 function procedure_options(int $cid, bool $activeOnly = true): array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         return [];
     }
     $loader = function () use ($cid, $activeOnly): array {
-        
-
-
-
-
-
-
-
 
         $where = "clinic_id=?";
         $params = [$cid];
@@ -1647,14 +1315,6 @@ function procedure_options(int $cid, bool $activeOnly = true): array
 }
 function procedure_option_label(array $p): string
 {
-    
-
-
-
-
-
-
-
 
     $parts = [trim((string) $p["title"])];
     $dur = (int) ($p["duration_minutes"] ?? 0);
@@ -1677,14 +1337,6 @@ function procedure_select_html(
     string $selected = "",
     bool $registeredOnly = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     $procedures = procedure_options($cid, true);
     $custom = !$registeredOnly && $selected !== "";
@@ -1761,15 +1413,6 @@ function procedure_select_html(
 }
 function procedure_reason_from_post(int $cid, string $field = "reason"): string
 {
-    
-
-
-
-
-
-
-
-
 
     $v = trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
@@ -1786,14 +1429,6 @@ function procedure_reason_from_post(int $cid, string $field = "reason"): string
 }
 function doctors(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $links = q(
         "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code='medico' AND active=1 ORDER BY id ASC LIMIT 80",
@@ -1816,53 +1451,21 @@ function doctors(int $cid): array
 }
 function normalize_db_datetime(string $value): string
 {
-    
-
-
-
-
-
-
-
 
     return app_local_to_db_utc($value, (int) (ctx()["clinic_id"] ?? 0));
 }
 function agenda_period_label(string $startAt, string $endAt): string
 {
-    
-
-
-
-
-
-
-
 
     return dt_br($startAt) . " até " . dt_br($endAt);
 }
 function datetime_local_value(?string $value): string
 {
-    
-
-
-
-
-
-
-
 
     return app_db_utc_to_local_input($value, (int) (ctx()["clinic_id"] ?? 0));
 }
 function agenda_doctor_name(int $cid, ?int $doctorId): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$doctorId) {
         return "todo o consultório";
@@ -1884,14 +1487,6 @@ function agenda_conflict_message(
     int $ignoreAppointmentId = 0,
     int $ignoreBlockId = 0,
 ): ?string {
-    
-
-
-
-
-
-
-
 
     $doctorId = $doctorId && $doctorId > 0 ? $doctorId : null;
     if (
@@ -2013,14 +1608,6 @@ function agenda_conflict_message(
 }
 function agenda_day_short_label(string $day): string
 {
-    
-
-
-
-
-
-
-
 
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
@@ -2046,14 +1633,6 @@ function agenda_day_short_label(string $day): string
 }
 function agenda_month_name_br(string $day): string
 {
-    
-
-
-
-
-
-
-
 
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
@@ -2077,14 +1656,6 @@ function agenda_month_name_br(string $day): string
 }
 function agenda_day_week_start(string $day): string
 {
-    
-
-
-
-
-
-
-
 
     $ts = strtotime($day . " 12:00:00");
     if (!$ts) {
@@ -2097,14 +1668,6 @@ function agenda_day_week_start(string $day): string
 }
 function agenda_week_range_label(string $day): string
 {
-    
-
-
-
-
-
-
-
 
     $start = agenda_day_week_start($day);
     $end = date("Y-m-d", strtotime($start . " +6 days"));
@@ -2138,14 +1701,6 @@ function agenda_crown_label_for_view(
     string $day,
     string $doctorName,
 ): string {
-    
-
-
-
-
-
-
-
 
     $name = first_name($doctorName);
     return match ($view) {
@@ -2156,14 +1711,6 @@ function agenda_crown_label_for_view(
 }
 function agenda_iso_local_value(string $day, string $hm): string
 {
-    
-
-
-
-
-
-
-
 
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
         $day = date("Y-m-d");
@@ -2178,14 +1725,6 @@ function agenda_normalize_local_input(
     string $fallbackDay,
     string $fallbackHm = "08:00",
 ): string {
-    
-
-
-
-
-
-
-
 
     $value = trim($value);
     if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $value)) {
@@ -2203,14 +1742,6 @@ function agenda_local_input_add_minutes(
     string $value,
     int $minutes = 30,
 ): string {
-    
-
-
-
-
-
-
-
 
     $dt = DateTimeImmutable::createFromFormat("Y-m-d\TH:i", $value);
     if (!$dt) {
@@ -2224,14 +1755,6 @@ function agenda_safe_day_from_local_input(
     string $value,
     string $fallbackDay,
 ): string {
-    
-
-
-
-
-
-
-
 
     return preg_match("/^\d{4}-\d{2}-\d{2}T/", $value)
         ? substr($value, 0, 10)
@@ -2239,14 +1762,6 @@ function agenda_safe_day_from_local_input(
 }
 function agenda_notes_ensure_schema(int $cid = 0): bool
 {
-    
-
-
-
-
-
-
-
 
     static $ready = null;
     if ($ready !== null) {
@@ -2267,14 +1782,6 @@ function agenda_notes_ensure_schema(int $cid = 0): bool
 
 function agenda_note_role_codes(array $c): array
 {
-    
-
-
-
-
-
-
-
 
     $roles = (array) ($c["effective_roles"] ?? []);
     $active = (string) ($c["role"] ?? "");
@@ -2288,14 +1795,6 @@ function agenda_note_role_codes(array $c): array
 }
 function agenda_note_visible_for_user(array $note, array $c): bool
 {
-    
-
-
-
-
-
-
-
 
     $scope = (string) ($note["target_scope"] ?? "clinic");
     if ($scope === "clinic" || $scope === "all") {
@@ -2310,14 +1809,6 @@ function agenda_note_visible_for_user(array $note, array $c): bool
 }
 function agenda_note_visible_for_day(int $cid, string $day, array $c): ?array
 {
-    
-
-
-
-
-
-
-
 
     if (
         $cid <= 0 ||
@@ -2347,15 +1838,6 @@ function agenda_note_visible_for_day(int $cid, string $day, array $c): ?array
 }
 function agenda_note_card_html(?array $note, ?array $c = null): string
 {
-    
-
-
-
-
-
-
-
-
 
     if (!$note) {
         return "";
@@ -2412,15 +1894,6 @@ function agenda_note_form_html(
     array $c,
     array $roleOptions,
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $activeRole = (string) ($c["role"] ?? "");
     $activeRoleLabel =
@@ -2491,18 +1964,6 @@ function agenda_note_form_html(
 }
 function page_appointments(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("appointments");
     $cid = (int) $c["clinic_id"];
@@ -2534,14 +1995,6 @@ function page_appointments(): void
         $day,
         $viewDoctor,
     ): array {
-        
-
-
-
-
-
-
-
 
         $d = $d ?: $day;
         $doctor = $doctor ?? $viewDoctor;
@@ -2555,14 +2008,6 @@ function page_appointments(): void
         ?string $targetDay = null,
         ?int $targetDoctor = null,
     ) use ($returnParams): void {
-        
-
-
-
-
-
-
-
 
         redirect("appointments", $returnParams($targetDay, $targetDoctor));
     };
@@ -2589,14 +2034,6 @@ function page_appointments(): void
             $postDoctor,
             $redirectBack,
         ): void {
-            
-
-
-
-
-
-
-
 
             $redirectBack($postDay, $postDoctor);
         };
@@ -3690,14 +3127,6 @@ function page_appointments(): void
         ?int $doctor = null,
         ?string $view = null,
     ) use ($day, $agendaDoctor, $role, $agendaView): array {
-        
-
-
-
-
-
-
-
 
         $params = ["d" => $d ?: $day];
         $doctor = $doctor ?? $agendaDoctor;
@@ -4102,14 +3531,6 @@ function page_appointments(): void
     );
     $nowTs = time();
     $isDone = function (array $a): bool {
-        
-
-
-
-
-
-
-
 
         return in_array(
             appointment_status_code($a),
@@ -4118,26 +3539,10 @@ function page_appointments(): void
         );
     };
     $isStarted = function (array $a) use ($isDone): bool {
-        
-
-
-
-
-
-
-
 
         return !$isDone($a) && appointment_status_code($a) === "em_atendimento";
     };
     $isArrived = function (array $a) use ($isDone, $isStarted): bool {
-        
-
-
-
-
-
-
-
 
         return !$isDone($a) &&
             !$isStarted($a) &&
@@ -4148,14 +3553,6 @@ function page_appointments(): void
             );
     };
     $isLate = function (array $a) use ($nowTs): bool {
-        
-
-
-
-
-
-
-
 
         $start = app_storage_timestamp($a["start_at"] ?? "") ?: 0;
         return in_array(
@@ -4167,27 +3564,11 @@ function page_appointments(): void
             $start < $nowTs;
     };
     $statusMeta = function (array $a) use ($role): array {
-        
-
-
-
-
-
-
-
 
         $m = appointment_journey_meta($a, $role);
         return [$m["label"], $m["class"], $m["icon"]];
     };
     $patientName = function (array $a) use ($patientLinks, $persons): string {
-        
-
-
-
-
-
-
-
 
         $pid = (int) ($a["patient_link_id"] ?? 0);
         $pl = $patientLinks[$pid] ?? [];
@@ -4206,14 +3587,6 @@ function page_appointments(): void
         $statusMeta,
         $patientName,
     ): string {
-        
-
-
-
-
-
-
-
 
         $pid = (int) ($r["patient_link_id"] ?? 0);
         $id = (int) ($r["id"] ?? 0);
@@ -4534,14 +3907,6 @@ function page_appointments(): void
         $returnHidden,
         $cid,
     ): string {
-        
-
-
-
-
-
-
-
 
         $startTs = app_storage_timestamp($r["start_at"]);
         $endTs = app_storage_timestamp($r["end_at"]);
@@ -4603,14 +3968,6 @@ function page_appointments(): void
         $creators,
         $cid,
     ): string {
-        
-
-
-
-
-
-
-
 
         $startTs = app_storage_timestamp($b["start_at"]);
         $endTs = app_storage_timestamp($b["end_at"]);
@@ -4791,14 +4148,6 @@ function page_appointments(): void
         }
     }
     $localTs = function (string $dt) use ($cid): int {
-        
-
-
-
-
-
-
-
 
         $d = app_db_utc_to_local($dt, $cid);
         return $d ? $d->getTimestamp() : (strtotime($dt) ?: 0);
@@ -4810,15 +4159,6 @@ function page_appointments(): void
             : [];
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
-        
-
-
-
-
-
-
-
-
 
         return new DateTimeImmutable("@" . $ts)
             ->setTimezone($zone)
@@ -4893,14 +4233,6 @@ function page_appointments(): void
         string $label,
         string $kind,
     ): string {
-        
-
-
-
-
-
-
-
 
         return '<article class="agenda-floating-card agenda-floating-card-' .
             e($kind) .
@@ -5195,15 +4527,6 @@ function page_appointments(): void
         $localTs,
         $fmtLocal,
     ): string {
-        
-
-
-
-
-
-
-
-
 
         $ranges =
             $agendaDoctor > 0
@@ -5266,14 +4589,6 @@ function page_appointments(): void
             $patientLinksMap,
             $personsMap,
         ): string {
-            
-
-
-
-
-
-
-
 
             $pid = (int) ($a["patient_link_id"] ?? 0);
             $pl = $patientLinksMap[$pid] ?? [];
@@ -5403,14 +4718,6 @@ function page_appointments(): void
             "</div></section>";
     };
     $groupByDay = function (array $items) use ($cid): array {
-        
-
-
-
-
-
-
-
 
         $out = [];
         foreach ($items as $it) {
@@ -5613,15 +4920,6 @@ function appointment_procedure_id_from_post(
     int $cid,
     string $field = "reason",
 ): ?int {
-    
-
-
-
-
-
-
-
-
 
     $v = trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
@@ -5641,14 +4939,6 @@ function appointment_procedure_price_cents(
     ?int $procedureId,
     int $fallback = 0,
 ): int {
-    
-
-
-
-
-
-
-
 
     if (!$procedureId) {
         return max(0, $fallback);
@@ -5666,15 +4956,6 @@ function appointment_payment_post_context(
     ?int $procedureId,
     int $fallbackAmount = 0,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $paid = isset($_POST["payment_confirmed"]);
     if (!$paid) {
@@ -5734,14 +5015,6 @@ function appointment_min_duration_message(
     string $startAt,
     string $endAt,
 ): ?string {
-    
-
-
-
-
-
-
-
 
     if (!$procedureId) {
         return null;

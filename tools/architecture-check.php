@@ -13,14 +13,6 @@ if (!class_exists('ProntooHttpError')) {
     {
         public function __construct(public int $status, string $message)
         {
-            
-
-
-
-
-
-
-
 
             parent::__construct($message);
         }
@@ -465,6 +457,122 @@ $operationalUi = [
     'failed' => $operationalUiFailures,
 ];
 
+require_once $root . '/app/Domain/Identity/IdentityDocumentValidator.php';
+require_once $root . '/app/Domain/Patients/PatientPure.php';
+
+$phaseOneFailures = [];
+$phaseOneAssert = static function (bool $condition, string $name) use (&$phaseOneFailures): void {
+    if (!$condition) {
+        $phaseOneFailures[] = $name;
+    }
+};
+$phaseOneAssert(
+    \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224725'),
+    'cpf_valid',
+);
+$phaseOneAssert(
+    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('11111111111'),
+    'cpf_repeated_rejected',
+);
+$phaseOneAssert(
+    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224724'),
+    'cpf_invalid',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000181'),
+    'cnpj_valid',
+);
+$phaseOneAssert(
+    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000180'),
+    'cnpj_invalid',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2000-01-01'),
+    'birth_valid',
+);
+$phaseOneAssert(
+    !\Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2000-02-31'),
+    'birth_invalid',
+);
+$phaseOneAssert(
+    !\Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2999-01-01'),
+    'birth_future',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::cpfBr('52998224725', '52998224725') === '529.982.247-25',
+    'patient_cpf_format',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::cpfBr('ABC', '') === 'ABC',
+    'patient_cpf_fallback',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::cleanTabLabel(' <b> Histórico   clínico </b> ') === 'Histórico clínico',
+    'patient_tab_label',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::tabRecordType(-1) === 'tab_0',
+    'patient_tab_record_type',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::tabKey(7) === 'extra7',
+    'patient_tab_key',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::normalizeGuardianRelationship('MAE') === 'mae',
+    'guardian_relationship_known',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::normalizeGuardianRelationship('desconhecido') === 'outro',
+    'guardian_relationship_fallback',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::ageYears('') === null,
+    'patient_age_empty',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::ageYears('2999-01-01') === null,
+    'patient_age_future',
+);
+$phaseOneAssert(
+    \Prontoo\Domain\Patients\PatientPure::isMinor(['birth_date' => gmdate('Y-m-d', strtotime('-10 years'))]),
+    'patient_minor',
+);
+foreach ([
+    $root . '/app/Domain/Identity/IdentityDocumentValidator.php',
+    $root . '/app/Domain/Patients/PatientPure.php',
+] as $pureFile) {
+    $pureSource = (string) file_get_contents($pureFile);
+    foreach (['$_GET', '$_POST', '$_SESSION', 'PDO', 'header(', ' q(', ' one('] as $forbidden) {
+        if (str_contains($pureSource, $forbidden)) {
+            $phaseOneFailures[] = basename($pureFile) . ':forbidden:' . $forbidden;
+        }
+    }
+}
+foreach ([
+    $root . '/app/Auth/AuthOnboarding.php' => [
+        'IdentityDocumentValidator::cpf',
+        'IdentityDocumentValidator::cnpj',
+        'IdentityDocumentValidator::birthDate',
+    ],
+    $root . '/app/Domain/Patients/Patients.php' => [
+        'PatientPure::cpfBr',
+        'PatientPure::cleanTabLabel',
+        'PatientPure::guardianRelationshipOptions',
+        'PatientPure::ageYears',
+    ],
+] as $facadeFile => $requiredDelegations) {
+    $facadeSource = (string) file_get_contents($facadeFile);
+    foreach ($requiredDelegations as $requiredDelegation) {
+        if (!str_contains($facadeSource, $requiredDelegation)) {
+            $phaseOneFailures[] = basename($facadeFile) . ':missing:' . $requiredDelegation;
+        }
+    }
+}
+$phaseOneCharacterization = [
+    'ok' => $phaseOneFailures === [],
+    'failed' => $phaseOneFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -473,7 +581,8 @@ $result = [
         !empty($logoutCascade['ok']) &&
         !empty($loginPerformance['ok']) &&
         !empty($inlineMfa['ok']) &&
-        !empty($operationalUi['ok']),
+        !empty($operationalUi['ok']) &&
+        !empty($phaseOneCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -481,6 +590,7 @@ $result = [
     'login_performance' => $loginPerformance,
     'inline_mfa' => $inlineMfa,
     'operational_ui' => $operationalUi,
+    'phase_one_characterization' => $phaseOneCharacterization,
 ];
 
 echo json_encode(

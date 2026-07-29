@@ -11,14 +11,6 @@ final class ScopeProof
     public const UNPROVED = "unproved";
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -28,14 +20,6 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         $where = SqlExpression::whereExpression($sql);
         if ($where === null) {
@@ -58,14 +42,6 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         $complete = false;
         $values = SqlExpression::insertColumnValues(
@@ -95,14 +71,6 @@ final class ScopeProof
 
     public static function insertColumnPresent(string $sql, string $scopeColumn): bool
     {
-        
-
-
-
-
-
-
-
 
         return preg_match(
             '/^\s*(?:insert|replace)\s+(?:(?:low_priority|delayed|high_priority|ignore)\s+)*into\s+(?:`?[a-z0-9_]+`?\s*\.\s*)?`?[a-z0-9_]+`?\s*\(([^)]*)\)/is',
@@ -121,28 +89,12 @@ final class ScopeProof
 
     public static function updateChangesScope(string $sql, string $scopeColumn): bool
     {
-        
-
-
-
-
-
-
-
 
         return array_key_exists(strtolower($scopeColumn), SqlExpression::assignments($sql));
     }
 
     public static function duplicatePreservesScope(string $sql, string $scopeColumn): bool
     {
-        
-
-
-
-
-
-
-
 
         $assignments = SqlExpression::assignments($sql);
         $key = strtolower($scopeColumn);
@@ -167,14 +119,6 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         [$expression, $baseOffset] = SqlExpression::trimExpression(
             $expression,
@@ -249,14 +193,6 @@ final class ScopeProof
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         $column = preg_quote($scopeColumn, "/");
         $columnExpression = "(?<![a-z0-9_])(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?" . $column . "`?(?![a-z0-9_])";
@@ -297,14 +233,6 @@ final class ScopeProof
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
 
         $clinicId = 17;
         $cases = [];

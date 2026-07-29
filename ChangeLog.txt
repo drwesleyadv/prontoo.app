@@ -1,3 +1,10 @@
+Prontoo 1.7.29.2 — Fase 1 de enxugamento estrutural
+
+- Compacta blocos de linhas vazias em arquivos PHP.
+- Mapeia responsabilidades e identifica funções puras.
+- Extrai validadores de identidade e utilidades de pacientes.
+- Adiciona testes de caracterização.
+- Preserva banco, schema, interface, permissões e comportamento.
 Prontoo 1.7.29.1 — documentação como código e supressão integral de comentários
 
 - Remove todos os comentários dos arquivos de código versionados, preservando strings e comportamento executável.

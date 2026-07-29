@@ -3,14 +3,6 @@ declare(strict_types=1);
 
 function security_ip_in_cidr(string $ip, string $cidr): bool
 {
-    
-
-
-
-
-
-
-
 
     $cidr = trim($cidr);
     if ($ip === "" || $cidr === "") {
@@ -32,15 +24,6 @@ function security_ip_in_cidr(string $ip, string $cidr): bool
 }
 function security_trusted_proxy_request(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     $remote = trim((string) ($_SERVER["REMOTE_ADDR"] ?? ""));
     if ($remote === "") {
@@ -67,15 +50,6 @@ function security_trusted_proxy_request(): bool
 }
 function security_https_active(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     $https = strtolower((string) ($_SERVER["HTTPS"] ?? ""));
     if ($https !== "" && $https !== "off") {
@@ -99,14 +73,6 @@ function security_https_active(): bool
 
 function security_disable_runtime_error_display(): void
 {
-    
-
-
-
-
-
-
-
 
     ini_set("log_errors", "1");
     if (PHP_SAPI !== "cli" && has_cfg()) {
@@ -118,14 +84,6 @@ function security_disable_runtime_error_display(): void
 
 function privacy_sanitize_text(string $text, int $limit = 900): string
 {
-    
-
-
-
-
-
-
-
 
     $text = str_replace("\0", "", $text);
     $text =
@@ -140,14 +98,6 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
         preg_replace_callback(
             "/\b\d{3}\.?\d{3}\.?\d{3}\-?\d{2}\b/u",
             static function (array $m): string {
-                
-
-
-
-
-
-
-
 
                 $d = preg_replace("/\D+/", "", $m[0]) ?? "";
                 return strlen($d) === 11
@@ -160,14 +110,6 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
         preg_replace_callback(
             "/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}\-?\d{2}\b/u",
             static function (array $m): string {
-                
-
-
-
-
-
-
-
 
                 $d = preg_replace("/\D+/", "", $m[0]) ?? "";
                 return strlen($d) === 14
@@ -190,28 +132,12 @@ function privacy_sanitize_text(string $text, int $limit = 900): string
 
 function privacy_sanitize_error_message(Throwable $e, int $limit = 900): string
 {
-    
-
-
-
-
-
-
-
 
     return privacy_sanitize_text($e->getMessage(), $limit);
 }
 
 function privacy_log_file_label(string $file): string
 {
-    
-
-
-
-
-
-
-
 
     $file = str_replace("\\", "/", $file);
     $root = defined("PRONTOO_ROOT") ? str_replace("\\", "/", PRONTOO_ROOT) : "";
@@ -223,14 +149,6 @@ function privacy_log_file_label(string $file): string
 
 function security_storage_deny_file(string $dir): void
 {
-    
-
-
-
-
-
-
-
 
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);

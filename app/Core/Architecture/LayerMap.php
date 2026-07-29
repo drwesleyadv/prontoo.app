@@ -18,6 +18,8 @@ final class LayerMap
         'app/Core/Database/SchemaMutationLock.php',
         'app/Core/Database/SchemaHardening.php',
         'app/Domain/Authorization/',
+        'app/Domain/Identity/',
+        'app/Domain/Patients/PatientPure.php',
         'app/Application/',
         'app/Infrastructure/',
         'app/Presentation/',
@@ -28,27 +30,11 @@ final class LayerMap
     ];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function layerFor(string $relativePath): ?string
     {
-        
-
-
-
-
-
-
-
 
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
         if ($path === '' || !str_ends_with(strtolower($path), '.php')) {
@@ -95,14 +81,6 @@ final class LayerMap
 
     public static function isNativePath(string $relativePath): bool
     {
-        
-
-
-
-
-
-
-
 
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
         if ($path === 'app/Runtime/LayeredKernel.php') {
@@ -118,44 +96,19 @@ final class LayerMap
 
     public static function isEnvironmentPhpPath(string $relativePath): bool
     {
-        
-
-
-
-
-
-
-
 
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
         return in_array($path, self::ENVIRONMENT_PHP_PATHS, true);
     }
 
-    
     public static function environmentPhpPaths(): array
     {
-        
-
-
-
-
-
-
-
 
         return self::ENVIRONMENT_PHP_PATHS;
     }
 
     public static function layerFromNamespace(string $namespace): ?string
     {
-        
-
-
-
-
-
-
-
 
         $namespace = ltrim($namespace, '\\');
         return match (true) {
@@ -172,14 +125,6 @@ final class LayerMap
 
     public static function dependencyAllowed(string $from, string $to): bool
     {
-        
-
-
-
-
-
-
-
 
         $allowed = [
             self::CORE => [self::CORE],
@@ -199,18 +144,8 @@ final class LayerMap
         return in_array($to, $allowed[$from] ?? [], true);
     }
 
-    
     public static function phpFiles(string $root): array
     {
-        
-
-
-
-
-
-
-
-
 
         $root = rtrim(str_replace('\\', '/', $root), '/');
         if (!is_dir($root)) {

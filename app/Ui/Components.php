@@ -2,41 +2,17 @@
 declare(strict_types=1);
 function e(mixed $v): string
 {
-    
-
-
-
-
-
-
-
 
     return htmlspecialchars((string) $v, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
 }
 function first_name(?string $name): string
 {
-    
-
-
-
-
-
-
-
 
     $p = preg_split("/\s+/", trim((string) $name));
     return $p[0] ?: "Sistema";
 }
 function icon(string $name): string
 {
-    
-
-
-
-
-
-
-
 
     static $aliases = [
         "auto_awesome" => "auto_awesome",
@@ -67,27 +43,11 @@ function icon(string $name): string
 }
 function pix_symbol(): string
 {
-    
-
-
-
-
-
-
-
 
     return '<span class="pix-brand pix-brand-mask" aria-hidden="true"></span>';
 }
 function reception_cash_state_icon(?array $context = null): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         $c = $context;
@@ -127,14 +87,6 @@ function reception_cash_state_icon(?array $context = null): string
 }
 function n(mixed $value): string
 {
-    
-
-
-
-
-
-
-
 
     if (
         is_int($value) ||
@@ -150,14 +102,6 @@ function n(mixed $value): string
 }
 function money_br(int|float|string|null $cents): string
 {
-    
-
-
-
-
-
-
-
 
     $value = (int) round((float) ($cents ?? 0));
     $sign = $value < 0 ? "-" : "";
@@ -166,14 +110,6 @@ function money_br(int|float|string|null $cents): string
 }
 function prontoo_months_br(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         1 => "Janeiro",
@@ -192,14 +128,6 @@ function prontoo_months_br(): array
 }
 function date_br(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -216,15 +144,6 @@ function date_br(null|string|int $value): string
 }
 function date_extenso_br(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -249,53 +168,21 @@ function date_extenso_br(null|string|int $value): string
 }
 function dt_br(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
 
     return app_datetime_br($value);
 }
 function dt_notice_br(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
 
     return dt_br($value);
 }
 function dt_card_full_br(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
 
     return dt_br($value);
 }
 function notification_button_light(array $c): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -336,14 +223,6 @@ function notification_button_light(array $c): string
 }
 function shared_goal_cmdbar_html(?array $c = null): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         if (!is_array($c) || !$c) {
@@ -424,14 +303,6 @@ function shared_goal_cmdbar_html(?array $c = null): string
 }
 function city_state_label(?string $city, ?string $uf): string
 {
-    
-
-
-
-
-
-
-
 
     $city = trim((string) ($city ?? ""));
     $uf = strtoupper(trim((string) ($uf ?? "")));
@@ -448,14 +319,6 @@ function city_state_label(?string $city, ?string $uf): string
 }
 function cmdbar_access_schema_ready(): bool
 {
-    
-
-
-
-
-
-
-
 
     static $ready = null;
     if ($ready !== null) {
@@ -473,14 +336,6 @@ function cmdbar_access_schema_ready(): bool
 
 function cmdbar_context_key(array $c): array
 {
-    
-
-
-
-
-
-
-
 
     $uid = (int) ($c["user"]["id"] ?? 0);
     $scope = (string) ($c["scope"] ?? "clinic") === "global" ? "global" : "clinic";
@@ -501,14 +356,6 @@ function cmdbar_parent_key(
     array $actions,
     bool $global = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     if ($global && function_exists("admin_nav_parent")) {
         $parent = admin_nav_parent($route);
@@ -563,15 +410,6 @@ function cmdbar_parent_key(
 }
 function cmdbar_access_touch(array $c, string $actionKey): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($actionKey === "") {
         return;
@@ -591,14 +429,6 @@ function cmdbar_access_touch(array $c, string $actionKey): void
 }
 function cmdbar_access_recency(array $c, array $keys): array
 {
-    
-
-
-
-
-
-
-
 
     $keys = array_values(
         array_unique(array_filter(array_map("strval", $keys))),
@@ -634,14 +464,6 @@ function cmdbar_order_items(
     array $c,
     bool $global = false,
 ): array {
-    
-
-
-
-
-
-
-
 
     $active = cmdbar_parent_key($current, $items, $global);
     if ($active !== "") {
@@ -654,27 +476,11 @@ function cmdbar_label_html(
     bool $active,
     string $extra = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return $active ? "<span>" . e($label) . "</span>" . $extra : "";
 }
 function floating_pending_task_access_sql(array $c, string $alias = "t"): array
 {
-    
-
-
-
-
-
-
-
 
     $uid = (int) ($c["user"]["id"] ?? 0);
     $role = (string) ($c["role"] ?? "");
@@ -712,14 +518,6 @@ function floating_pending_task_access_sql(array $c, string $alias = "t"): array
 }
 function floating_pending_count(string $sql, array $params = []): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) (val($sql, $params) ?: 0);
@@ -730,14 +528,6 @@ function floating_pending_count(string $sql, array $params = []): int
 }
 function floating_pending_cards_html(array $c, string $current): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -901,15 +691,6 @@ function floating_pending_cards_html(array $c, string $current): string
 }
 function page(string $title, string $body, array $opts = []): void
 {
-    
-
-
-
-
-
-
-
-
 
     $public = $opts["public"] ?? false;
     $current = route();
@@ -1361,14 +1142,6 @@ function page(string $title, string $body, array $opts = []): void
 }
 function context_parent_for_route(string $route, array $c): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") === "global") {
         if (function_exists("admin_nav_parent")) {
@@ -1422,15 +1195,6 @@ function operation_current_match(
     array $params,
     string $current,
 ): bool {
-    
-
-
-
-
-
-
-
-
 
     if ($route !== $current) {
         return false;
@@ -1504,14 +1268,6 @@ function operation_link_html(
     string $current,
     array $params = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     if (function_exists("prontoo_icon_for_route_label")) {
         $iconName = prontoo_icon_for_route_label(
@@ -1539,15 +1295,6 @@ function operation_link_html(
 }
 function page_operation_specs(string $current, array $c): array
 {
-    
-
-
-
-
-
-
-
-
 
     if (!$c) {
         return [];
@@ -1725,14 +1472,6 @@ function operation_menu_html(
     array $items,
     string $current,
 ): string {
-    
-
-
-
-
-
-
-
 
     $links = "";
     $active = false;
@@ -1780,14 +1519,6 @@ function operation_menu_html(
 }
 function page_operations_html(string $current, array $c): string
 {
-    
-
-
-
-
-
-
-
 
     $specs = page_operation_specs($current, $c);
     if (!$specs) {
@@ -1835,15 +1566,6 @@ function page_operations_html(string $current, array $c): string
 }
 function page_head_icon_name(string $title = ""): string
 {
-    
-
-
-
-
-
-
-
-
 
     $current = route();
     $params = $_GET;
@@ -1969,14 +1691,6 @@ function page_head_icon_name(string $title = ""): string
 }
 function page_head(string $title, string $sub = "", string $action = ""): string
 {
-    
-
-
-
-
-
-
-
 
     $ico = page_head_icon_name($title);
     $c = ctx();
@@ -2007,14 +1721,6 @@ function page_head(string $title, string $sub = "", string $action = ""): string
 }
 function action_icon_for(string $label): string
 {
-    
-
-
-
-
-
-
-
 
     $l = mb_strtolower($label);
     if (function_exists("prontoo_icon_for_route_label")) {
@@ -2072,14 +1778,6 @@ function action_icon_for(string $label): string
 }
 function action_summary_label(string $label, string $iconName = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return icon($iconName !== "" ? $iconName : action_icon_for($label)) .
         "<span>" .
@@ -2088,27 +1786,11 @@ function action_summary_label(string $label, string $iconName = ""): string
 }
 function card(string $html, string $class = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return '<section class="card ' . $class . '">' . $html . "</section>";
 }
 function ds_class(string ...$classes): string
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach ($classes as $class) {
@@ -2122,40 +1804,16 @@ function ds_class(string ...$classes): string
 }
 function ds_card_class(string $additionalClass = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return ds_class("card", $additionalClass);
 }
 function ds_search_card_class(string $additionalClass = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return ds_class("ds-search-card", $additionalClass);
 }
 function ds_filter_list_class(string $additionalClass = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return ds_class("ds-filter-list-block", $additionalClass);
 }
@@ -2163,14 +1821,6 @@ function ds_filter_chip_class(
     string $additionalClass = "",
     bool $active = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     return ds_class(
         "ds-filter-chip",
@@ -2184,14 +1834,6 @@ function stat_card(
     string $iconName,
     string $note = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<article class="stat-card">' .
         icon($iconName) .
@@ -2205,14 +1847,6 @@ function stat_card(
 }
 function form_row(string $label, string $input): string
 {
-    
-
-
-
-
-
-
-
 
     return '<label class="field"><span>' .
         e($label) .
@@ -2226,14 +1860,6 @@ function input(
     mixed $value = "",
     string $extra = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $extra = trim($extra);
     if (
@@ -2268,14 +1894,6 @@ function input(
 }
 function textarea(string $name, mixed $value = "", string $extra = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return '<textarea name="' .
         e($name) .
@@ -2291,14 +1909,6 @@ function select_html(
     mixed $selected = null,
     string $extra = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $h = '<select name="' . e($name) . '" ' . $extra . ">";
     foreach ($options as $k => $v) {
@@ -2320,27 +1930,11 @@ function select_label(
     mixed $sel = null,
     string $extra = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return form_row($label, select_html($name, $opts, $sel, $extra));
 }
 function form_submit_icon(string $label): string
 {
-    
-
-
-
-
-
-
-
 
     $l = mb_strtolower($label);
     if (str_contains($l, "salvar")) {
@@ -2401,14 +1995,6 @@ function form_submit_icon(string $label): string
 }
 function cancel_button(string $label = "Cancelar"): string
 {
-    
-
-
-
-
-
-
-
 
     return '<button type="button" class="ghost" data-close-panel>' .
         icon("close") .
@@ -2418,14 +2004,6 @@ function cancel_button(string $label = "Cancelar"): string
 }
 function form_actions(string $submitLabel, string $class = "primary"): string
 {
-    
-
-
-
-
-
-
-
 
     return '<div class="form-actions">' .
         cancel_button() .
@@ -2443,14 +2021,6 @@ function action_panel(
     string $variant = "primary",
     string $hint = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<details class="action-panel"><summary class="' .
         e($variant) .
@@ -2463,14 +2033,6 @@ function action_panel(
 }
 function timeline(?array $items, string $empty = "Nada por enquanto."): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$items) {
         return '<div class="empty">' . e($empty) . "</div>";

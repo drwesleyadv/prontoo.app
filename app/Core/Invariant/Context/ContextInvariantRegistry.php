@@ -5,14 +5,6 @@ namespace Prontoo\Core\Invariant\Context;
 final class ContextInvariantRegistry
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -24,14 +16,6 @@ final class ContextInvariantRegistry
         ?array $insert,
         int $clinicId,
     ): array {
-        
-
-
-
-
-
-
-
 
         if (AppointmentContextInvariant::supports($table)) {
             return AppointmentContextInvariant::assertWrite(
@@ -76,14 +60,6 @@ final class ContextInvariantRegistry
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
 
         $cases = [
             "appointments" => AppointmentContextInvariant::supports("pi_appointments"),

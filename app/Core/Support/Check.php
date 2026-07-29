@@ -4,27 +4,10 @@ namespace Prontoo\Core\Support;
 final class Check
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function positiveInt(mixed $value, string $field): int
     {
-        
-
-
-
-
-
-
-
-
 
         $int = filter_var($value, FILTER_VALIDATE_INT, [
             "options" => ["min_range" => 1],
@@ -38,15 +21,6 @@ final class Check
     }
     public static function nonNegativeInt(mixed $value, string $field): int
     {
-        
-
-
-
-
-
-
-
-
 
         $int = filter_var($value, FILTER_VALIDATE_INT, [
             "options" => ["min_range" => 0],
@@ -62,15 +36,6 @@ final class Check
         string $value,
         string $field = "identificador",
     ): string {
-        
-
-
-
-
-
-
-
-
 
         $value = trim($value);
         if (!preg_match('/^[A-Za-z0-9_]+$/', $value)) {
@@ -80,15 +45,6 @@ final class Check
     }
     public static function scopedColumn(string $value): string
     {
-        
-
-
-
-
-
-
-
-
 
         $value = trim($value);
         if (!preg_match('/^[A-Za-z0-9_`\.]+$/', $value)) {
@@ -98,27 +54,11 @@ final class Check
     }
     public static function normalizedSql(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return strtolower(preg_replace("/\s+/", " ", trim($sql)) ?? "");
     }
     public static function writeOperation(string $sql): ?string
     {
-        
-
-
-
-
-
-
-
 
         if (
             !preg_match(
@@ -133,27 +73,11 @@ final class Check
     }
     public static function sqlFingerprint(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         return hash("sha256", preg_replace("/\s+/", " ", trim($sql)) ?? "");
     }
     public static function tableHit(string $normalizedSql, string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         self::identifier($table, "tabela");
         $table = strtolower($table);
@@ -165,14 +89,6 @@ final class Check
     }
     public static function clampText(string $text, int $max): string
     {
-        
-
-
-
-
-
-
-
 
         $max = max(1, $max);
         if (function_exists("mb_substr")) {

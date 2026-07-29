@@ -12,15 +12,6 @@ final class PdoActionProofStore implements ActionProofPort
 {
     public function write(string $route, array $context, Decision $decision): bool
     {
-        
-
-
-
-
-
-
-
-
 
         if (!function_exists('pdo')) {
             error_log('[Prontoo layered action ledger] PDO indisponível.');

@@ -9,31 +9,14 @@ final class ArchitectureVerifier
 {
     private const POLICY = 'php-layered-invariants-v2';
 
-    
     private static array $cache = [];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function report(string $root, bool $strictActions = false): array
     {
-        
-
-
-
-
-
-
-
 
         $root = rtrim(str_replace('\\', '/', $root), '/');
         $cacheKey = $root . '|' . ($strictActions ? 'strict' : 'runtime');
@@ -197,15 +180,6 @@ final class ArchitectureVerifier
 
     public static function assert(string $root, bool $strictActions = false): void
     {
-        
-
-
-
-
-
-
-
-
 
         $report = self::report($root, $strictActions);
         if (empty($report['ok'])) {
@@ -222,14 +196,6 @@ final class ArchitectureVerifier
         string $fromLayer,
         array &$errors,
     ): void {
-        
-
-
-
-
-
-
-
 
         $content = (string) @file_get_contents($root . '/' . $relative);
         if ($content === '') {
@@ -255,14 +221,6 @@ final class ArchitectureVerifier
         string $layer,
         array &$errors,
     ): void {
-        
-
-
-
-
-
-
-
 
         if (!LayerMap::isNativePath($relative)) {
             return;
@@ -286,14 +244,6 @@ final class ArchitectureVerifier
         int $transitionalFiles,
         array &$errors,
     ): void {
-        
-
-
-
-
-
-
-
 
         $file = $root . '/app/architecture.manifest.json';
         $raw = is_file($file) ? @file_get_contents($file) : false;
@@ -321,14 +271,6 @@ final class ArchitectureVerifier
 
     private static function inspectRemovedLegacy(string $root, array &$errors, array &$warnings): void
     {
-        
-
-
-
-
-
-
-
 
         foreach ([
             'app/Core/Invariant/ActionCapabilityCatalog.php',
@@ -357,17 +299,8 @@ final class ArchitectureVerifier
         }
     }
 
-    
     private static function discoverActionTokens(string $content): array
     {
-        
-
-
-
-
-
-
-
 
         $tokens = [];
         $patterns = [
