@@ -48,10 +48,7 @@ function patient_extra_tabs(int $cid, int $patientId): array
 {
 
     patient_tabs_ensure_schema();
-    $rows = q(
-        "SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY sort_order ASC,id ASC",
-        [$cid, $patientId],
-    )->fetchAll();
+    $rows = prontoo_patient_tab_active_rows($cid, $patientId);
     foreach ($rows as &$r) {
         $r["id"] = (int) $r["id"];
         $r["label"] = patient_tab_label_clean((string) ($r["label"] ?? ""));
@@ -107,11 +104,7 @@ function patient_record_type_label(string $type): string
         $id = (int) substr($type, 4);
         if ($id > 0) {
             try {
-                $label = (string) safe_val(
-                    "SELECT label FROM pi_patient_tabs WHERE id=? LIMIT 1",
-                    [$id],
-                    "",
-                );
+                $label = prontoo_patient_tab_label_by_id($id);
                 if (trim($label) !== "") {
                     return patient_tab_label_clean($label);
                 }
@@ -132,30 +125,8 @@ function patient_record_type_label(string $type): string
 }
 function patient_tab_icon_picker(string $current = "clinical_notes"): string
 {
-
     $current = normalize_patient_tab_icon($current);
-    $html =
-        '<div class="visual-option-grid patient-health-icon-grid patient-tab-icon-symbol-grid" role="radiogroup" aria-label="Ícone da aba">';
-    foreach (patient_health_icon_options() as $key => $label) {
-        $checked = $key === $current ? " checked" : "";
-        $html .=
-            '<label class="visual-option patient-health-icon-choice patient-health-icon-only" title="' .
-            e($label) .
-            '" aria-label="' .
-            e($label) .
-            '"><input type="radio" name="tab_icon" value="' .
-            e($key) .
-            '"' .
-            $checked .
-            ' aria-label="' .
-            e($label) .
-            '"><span class="patient-tab-icon-symbol">' .
-            icon($key) .
-            '</span><span class="sr-only">' .
-            e($label) .
-            "</span></label>";
-    }
-    return $html . "</div>";
+    return prontoo_patient_tab_icon_picker(patient_health_icon_options(), $current);
 }
 function patient_guardians_ensure_schema(): void
 {

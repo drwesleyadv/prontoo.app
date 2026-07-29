@@ -571,3 +571,35 @@ function prontoo_run(bool $installMode = false): void
         app_fail($e);
     }
 }
+function prontoo_patient_tab_active_rows(int $clinicId, int $patientId): array
+{
+    return \Prontoo\Infrastructure\Patients\PatientTabReadRepository::activeTabs($clinicId, $patientId);
+}
+function prontoo_patient_tab_label_by_id(int $tabId): string
+{
+    return \Prontoo\Infrastructure\Patients\PatientTabReadRepository::labelById($tabId);
+}
+function prontoo_patient_tab_icon_picker(array $options, string $current): string
+{
+    return \Prontoo\Presentation\Patients\PatientTabView::iconPicker(
+        $options,
+        $current,
+        static fn(string $value): string => e($value),
+        static fn(string $name): string => icon($name),
+    );
+}
+function prontoo_onboarding_tip_render(
+    array $tip,
+    string $key,
+    string $return,
+    string $csrfField,
+): string {
+    return \Prontoo\Presentation\Auth\OnboardingTipView::render(
+        $tip,
+        $key,
+        $return,
+        $csrfField,
+        static fn(string $value): string => e($value),
+        static fn(string $name): string => icon($name),
+    );
+}

@@ -10,6 +10,7 @@
 - [Fluxos de dados](architecture/data-flow.md)
 - [Mapa de responsabilidades](architecture/responsibility-map.md)
 - [Fase 1 — enxugamento estrutural](architecture/phase-1-refactoring.md)
+- [Fase 2 — apresentação e leitura](architecture/phase-2-presentation-boundaries.md)
 
 ## Decisões arquiteturais
 

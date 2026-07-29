@@ -22,4 +22,4 @@ Os arquivos legados permanecem como fachadas. Chamadores existentes continuam us
 
 ## Próxima etapa
 
-Separar apresentação e leitura de dados, começando por um fluxo de baixo risco e preservando o carregamento seletivo por rota.
+Concluída na Fase 2: apresentação e leitura das abas do paciente e apresentação da dica de onboarding foram separadas preservando as fachadas.

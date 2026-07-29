@@ -573,6 +573,127 @@ $phaseOneCharacterization = [
     'ok' => $phaseOneFailures === [],
     'failed' => $phaseOneFailures,
 ];
+
+require_once $root . '/app/Infrastructure/Patients/PatientTabReadRepository.php';
+require_once $root . '/app/Presentation/Patients/PatientTabView.php';
+require_once $root . '/app/Presentation/Auth/OnboardingTipView.php';
+
+$phaseTwoFailures = [];
+$phaseTwoAssert = static function (bool $condition, string $name) use (&$phaseTwoFailures): void {
+    if (!$condition) {
+        $phaseTwoFailures[] = $name;
+    }
+};
+$phaseTwoEscape = static fn(string $value): string => htmlspecialchars(
+    $value,
+    ENT_QUOTES | ENT_SUBSTITUTE,
+    'UTF-8',
+);
+$phaseTwoIcon = static fn(string $name): string => '<i>' . $phaseTwoEscape($name) . '</i>';
+
+$phaseTwoPicker = \Prontoo\Presentation\Patients\PatientTabView::iconPicker(
+    ['clinical_notes' => 'Nota & alerta'],
+    'clinical_notes',
+    $phaseTwoEscape,
+    $phaseTwoIcon,
+);
+$phaseTwoAssert(
+    $phaseTwoPicker === '<div class="visual-option-grid patient-health-icon-grid patient-tab-icon-symbol-grid" role="radiogroup" aria-label="Ícone da aba"><label class="visual-option patient-health-icon-choice patient-health-icon-only" title="Nota &amp; alerta" aria-label="Nota &amp; alerta"><input type="radio" name="tab_icon" value="clinical_notes" checked aria-label="Nota &amp; alerta"><span class="patient-tab-icon-symbol"><i>clinical_notes</i></span><span class="sr-only">Nota &amp; alerta</span></label></div>',
+    'patient_tab_view_snapshot',
+);
+
+$phaseTwoTip = \Prontoo\Presentation\Auth\OnboardingTipView::render(
+    [
+        'icon' => 'patient_list',
+        'title' => 'Título & teste',
+        'body' => 'Corpo <seguro>',
+    ],
+    'patients:role:"',
+    '/?r=patients&x="',
+    '<input type="hidden" name="_csrf" value="token">',
+    $phaseTwoEscape,
+    $phaseTwoIcon,
+);
+$phaseTwoAssert(
+    $phaseTwoTip === '<section class="onboarding-tip-card" role="note"><div class="onboarding-tip-main"><div class="onboarding-tip-head"><span class="onboarding-tip-icon"><i>patient_list</i></span><strong>Título &amp; teste</strong></div><p class="onboarding-tip-body">Corpo &lt;seguro&gt;</p></div><form method="post" action="/?r=patients&amp;x=&quot;" class="onboarding-tip-action"><input type="hidden" name="_csrf" value="token"><input type="hidden" name="act" value="onboarding_tip_dismiss"><input type="hidden" name="tip_key" value="patients:role:&quot;"><input type="hidden" name="return_to" value="/?r=patients&amp;x=&quot;"><button type="submit" class="ghost small onboarding-tip-button">Entendi</button></form></section>',
+    'onboarding_tip_view_snapshot',
+);
+
+$phaseTwoSources = [
+    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'auth_facade' => (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PatientTabReadRepository.php'),
+    'patient_view' => (string) file_get_contents($root . '/app/Presentation/Patients/PatientTabView.php'),
+    'onboarding_view' => (string) file_get_contents($root . '/app/Presentation/Auth/OnboardingTipView.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+];
+foreach ([
+    'patients_facade' => [
+        'prontoo_patient_tab_active_rows($cid, $patientId)',
+        'prontoo_patient_tab_label_by_id($id)',
+        'prontoo_patient_tab_icon_picker(patient_health_icon_options(), $current)',
+    ],
+    'auth_facade' => [
+        'prontoo_onboarding_tip_render($tip, $key, $return, csrf_field())',
+    ],
+    'repository' => [
+        'SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs',
+        'SELECT label FROM pi_patient_tabs WHERE id=? LIMIT 1',
+    ],
+    'loader' => [
+        "'Infrastructure/Patients/PatientTabReadRepository.php'",
+        "'Presentation/Patients/PatientTabView.php'",
+        "'Presentation/Auth/OnboardingTipView.php'",
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($phaseTwoSources[$sourceKey], $requiredToken)) {
+            $phaseTwoFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'patients_facade' => [
+        'SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs',
+        '<div class="visual-option-grid patient-health-icon-grid',
+    ],
+    'auth_facade' => [
+        '<section class="onboarding-tip-card"',
+    ],
+    'repository' => [
+        '<section',
+        '<div class=',
+        '$_GET',
+        '$_POST',
+        '$_SESSION',
+    ],
+    'patient_view' => [
+        'SELECT ',
+        ' q(',
+        ' one(',
+        '$_GET',
+        '$_POST',
+        '$_SESSION',
+    ],
+    'onboarding_view' => [
+        'SELECT ',
+        ' q(',
+        ' one(',
+        '$_GET',
+        '$_POST',
+        '$_SESSION',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($phaseTwoSources[$sourceKey], $forbiddenToken)) {
+            $phaseTwoFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$phaseTwoCharacterization = [
+    'ok' => $phaseTwoFailures === [],
+    'failed' => $phaseTwoFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -582,7 +703,8 @@ $result = [
         !empty($loginPerformance['ok']) &&
         !empty($inlineMfa['ok']) &&
         !empty($operationalUi['ok']) &&
-        !empty($phaseOneCharacterization['ok']),
+        !empty($phaseOneCharacterization['ok']) &&
+        !empty($phaseTwoCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -591,6 +713,7 @@ $result = [
     'inline_mfa' => $inlineMfa,
     'operational_ui' => $operationalUi,
     'phase_one_characterization' => $phaseOneCharacterization,
+    'phase_two_characterization' => $phaseTwoCharacterization,
 ];
 
 echo json_encode(

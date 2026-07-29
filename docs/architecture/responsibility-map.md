@@ -10,7 +10,8 @@ Este documento orienta a localização de código e estabelece os limites usados
 | caso de uso e coordenação | `app/Application` |
 | regra de negócio, normalização e validação pura | `app/Domain` |
 | SQL, PDO, arquivos e serviços externos | `app/Infrastructure` |
-| HTML reutilizável e componentes | `app/Ui` |
+| HTML específico de fluxo e presenters | `app/Presentation` |
+| componentes visuais genéricos | `app/Ui` |
 | ligação entre camadas | composição e runtime |
 
 ## Arquivos prioritários
@@ -32,6 +33,16 @@ Este documento orienta a localização de código e estabelece os limites usados
 ### Pacientes
 
 `app/Domain/Patients/PatientPure.php` concentra formatação de CPF, limpeza e chaves de abas, vínculos de responsáveis, cálculo de idade e classificação de menoridade. As funções globais existentes continuam disponíveis.
+
+## Extrações concluídas na Fase 2
+
+### Abas do paciente
+
+`app/Infrastructure/Patients/PatientTabReadRepository.php` concentra as consultas de leitura. `app/Presentation/Patients/PatientTabView.php` concentra o seletor visual. `Patients.php` mantém as funções globais como fachadas.
+
+### Dica de onboarding
+
+`app/Presentation/Auth/OnboardingTipView.php` concentra a renderização do componente. `AuthOnboarding.php` permanece responsável pelas condições de exibição e prepara o modelo de apresentação.
 
 ## Inventário inicial de funções puras
 
