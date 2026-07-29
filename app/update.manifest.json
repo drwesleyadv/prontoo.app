@@ -206,7 +206,7 @@
         "tools/install-security-check.php": "f27d402848a9f95a3d04eb50f4001f95c5ea293d6b265467d7001c4085db109d",
         "tools/schema-check.php": "b997e03d827c61f3ee19d3661b5ecaad07e31f6502c57669a466f8ce45c0e014",
         "tools/security-regression-check.php": "23255babb7d8a984b5e84a773828295aa198aafac079e9de2aba01c36c4bfbf2",
-        "version.json": "a47b5c1adc39709d2c29169b6164d001b8dd220fa65a2f2fa1af62a2262c509e"
+        "version.json": "18dd5db19687fec7bc0cec984c4c3d303161ec3a30e8ff1ee6566008c5fe9ef8"
     },
     "removed_files": [
         "ARCHITECTURE.md",
@@ -229,7 +229,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.27.6",
-    "updated_at": "2026-07-29T20:05:16+00:00",
+    "updated_at": "2026-07-29T20:05:39+00:00",
     "notes": "Remove comentários de código e institui documentação como código com arquitetura, ADRs, domínios, segurança, operação, banco e testes.",
     "deployment_sync_id": "github-documentation-refactor-1-7-29-1",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
