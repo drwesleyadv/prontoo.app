@@ -58,6 +58,20 @@ jobs:
         run: |
           set -euo pipefail
           cat tools/phase4_apply.part00 tools/phase4_apply.part01 tools/phase4_apply.part02 tools/phase4_apply.part03 tools/phase4_apply.part04 | base64 -d | gzip -d > /tmp/phase4_apply.py
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/phase4_apply.py')
+          source = path.read_text()
+          source = source.replace(
+              "replace_once('CHANGELOG.md', '# Changelog\\n\\n', '# Changelog\\n\\n' + changelog_entry)",
+              "replace_once('CHANGELOG.md', '# Histórico de versões\\n\\n', '# Histórico de versões\\n\\n' + changelog_entry)",
+          )
+          source = source.replace(
+              "replace_once('ChangeLog.txt', 'CHANGELOG PRONTOO\\n\\n', 'CHANGELOG PRONTOO\\n\\n' + new_version + ' - Fase 4: comandos transacionais\\n- Criação de abas migrada para comando transacional e idempotente.\\n- Sem alteração de banco, schema, permissões, interface ou comportamento público.\\n- Suíte arquitetural e regressiva ampliada.\\n\\n')",
+              "replace_once('ChangeLog.txt', 'Prontoo 1.7.29.4 — Fase 3: consultas e casos de uso\\n\\n', 'Prontoo ' + new_version + ' — Fase 4: comandos transacionais\\n\\n- Criação de abas migrada para comando transacional e idempotente.\\n- Sem alteração de banco, schema, permissões, interface ou comportamento público.\\n- Suíte arquitetural e regressiva ampliada.\\nProntoo 1.7.29.4 — Fase 3: consultas e casos de uso\\n\\n')",
+          )
+          path.write_text(source)
+          PY
           python3 /tmp/phase4_apply.py
           git rm -f tools/phase4_apply.part00 tools/phase4_apply.part01 tools/phase4_apply.part02 tools/phase4_apply.part03 tools/phase4_apply.part04 tools/phase4_apply.py.gz.b64 .github/workflows/phase4-refactor.yml
       - name: Reconcile manifest
