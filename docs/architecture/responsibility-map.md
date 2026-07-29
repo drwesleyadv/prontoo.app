@@ -44,6 +44,12 @@ Este documento orienta a localização de código e estabelece os limites usados
 
 `app/Presentation/Auth/OnboardingTipView.php` concentra a renderização do componente. `AuthOnboarding.php` permanece responsável pelas condições de exibição e prepara o modelo de apresentação.
 
+## Extrações concluídas na Fase 3
+
+### Leituras cadastrais do paciente
+
+`app/Application/Patients/PatientReadPort.php` define a fronteira de leitura. `app/Application/Patients/PatientReadService.php` coordena elegibilidade cadastral e normalização de responsáveis legais. `app/Infrastructure/Patients/PdoPatientReadRepository.php` concentra o SQL com isolamento explícito por consultório.
+
 ## Inventário inicial de funções puras
 
 | Grupo | Funções compatíveis |

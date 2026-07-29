@@ -1,3 +1,10 @@
+Prontoo 1.7.29.4 — Fase 3: consultas e casos de uso
+
+- Cria porta de leitura de pacientes e caso de uso independente de persistência.
+- Move consultas cadastrais e de responsáveis legais para adaptador PDO.
+- Mantém assinaturas públicas, mensagens, ordenação e comportamento.
+- Adiciona testes de caracterização e direção das dependências.
+- Preserva banco, schema, interface e permissões.
 Prontoo 1.7.29.3 — Fase 2: apresentação e leitura
 
 - Separa o SQL de leitura das abas do paciente.

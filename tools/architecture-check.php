@@ -694,6 +694,163 @@ $phaseTwoCharacterization = [
     'ok' => $phaseTwoFailures === [],
     'failed' => $phaseTwoFailures,
 ];
+
+require_once $root . '/app/Application/Patients/PatientReadPort.php';
+require_once $root . '/app/Application/Patients/PatientReadService.php';
+require_once $root . '/app/Infrastructure/Patients/PdoPatientReadRepository.php';
+
+$phaseThreeFailures = [];
+$phaseThreeAssert = static function (bool $condition, string $name) use (&$phaseThreeFailures): void {
+    if (!$condition) {
+        $phaseThreeFailures[] = $name;
+    }
+};
+$phaseThreePort = new class implements \Prontoo\Application\Patients\PatientReadPort {
+    public ?array $patient = null;
+    public array $guardians = [];
+    public bool $hasGuardian = false;
+
+    public function appointmentRegistration(int $clinicId, int $patientId): ?array
+    {
+        return $this->patient;
+    }
+
+    public function activeLegalGuardians(int $clinicId, int $patientId): array
+    {
+        return $this->guardians;
+    }
+
+    public function hasActiveLegalGuardian(int $clinicId, int $patientId): bool
+    {
+        return $this->hasGuardian;
+    }
+};
+$phaseThreeService = new \Prontoo\Application\Patients\PatientReadService($phaseThreePort);
+$phaseThreeComplete = static fn(array $patient): bool => (string) ($patient['state'] ?? '') === 'complete';
+$phaseThreeAlert = static fn(array $patient): string => 'alert:' . (string) ($patient['state'] ?? '');
+$phaseThreeDigits = static fn(string $value): string => (string) preg_replace('/\D+/', '', $value);
+$phaseThreeRelationship = static fn(string $value): string => strtolower($value) === 'mae' ? 'mae' : 'outro';
+
+$phaseThreeAssert(
+    $phaseThreeService->appointmentRegistrationBlockReason(0, 1, $phaseThreeComplete, $phaseThreeAlert) === null,
+    'appointment_registration_invalid_scope',
+);
+$phaseThreeAssert(
+    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === 'Paciente não encontrado no consultório atual.',
+    'appointment_registration_not_found',
+);
+$phaseThreePort->patient = ['state' => 'complete'];
+$phaseThreeAssert(
+    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === null,
+    'appointment_registration_complete',
+);
+$phaseThreePort->patient = ['state' => 'incomplete'];
+$phaseThreeAssert(
+    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === 'alert:incomplete',
+    'appointment_registration_incomplete',
+);
+$phaseThreeAssert(
+    $phaseThreeService->legalGuardians(0, 2, $phaseThreeDigits, $phaseThreeRelationship) === [],
+    'legal_guardians_invalid_scope',
+);
+$phaseThreePort->guardians = [[
+    'id' => '7',
+    'full_name' => 'Responsável',
+    'cpf' => '529.982.247-25',
+    'relationship' => 'MAE',
+    'is_primary' => '1',
+]];
+$phaseThreeGuardians = $phaseThreeService->legalGuardians(
+    1,
+    2,
+    $phaseThreeDigits,
+    $phaseThreeRelationship,
+);
+$phaseThreeAssert(
+    count($phaseThreeGuardians) === 1 &&
+    ($phaseThreeGuardians[0]['id'] ?? null) === 7 &&
+    ($phaseThreeGuardians[0]['cpf'] ?? null) === '52998224725' &&
+    ($phaseThreeGuardians[0]['relationship'] ?? null) === 'mae' &&
+    ($phaseThreeGuardians[0]['is_primary'] ?? null) === 1,
+    'legal_guardians_normalization',
+);
+$phaseThreeAssert(
+    !$phaseThreeService->hasLegalGuardian(0, 2),
+    'legal_guardian_invalid_scope',
+);
+$phaseThreePort->hasGuardian = true;
+$phaseThreeAssert(
+    $phaseThreeService->hasLegalGuardian(1, 2),
+    'legal_guardian_exists',
+);
+
+$phaseThreeSources = [
+    'port' => (string) file_get_contents($root . '/app/Application/Patients/PatientReadPort.php'),
+    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientReadService.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientReadRepository.php'),
+    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+];
+foreach ([
+    'port' => [
+        'appointmentRegistration(int $clinicId, int $patientId): ?array',
+        'activeLegalGuardians(int $clinicId, int $patientId): array',
+        'hasActiveLegalGuardian(int $clinicId, int $patientId): bool',
+    ],
+    'service' => [
+        '$this->port->appointmentRegistration($clinicId, $patientId)',
+        '$this->port->activeLegalGuardians($clinicId, $patientId)',
+        '$this->port->hasActiveLegalGuardian($clinicId, $patientId)',
+    ],
+    'repository' => [
+        'WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1 LIMIT 1',
+        'WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY is_primary DESC, id ASC',
+        'SELECT COUNT(*) FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1',
+    ],
+    'patients_facade' => [
+        'prontoo_patient_appointment_registration_block_reason($cid, $patientId)',
+        'prontoo_patient_legal_guardians($cid, $patientId)',
+        'prontoo_patient_has_legal_guardian($cid, $patientId)',
+    ],
+    'runner' => [
+        'new \\Prontoo\\Infrastructure\\Patients\\PdoPatientReadRepository()',
+        'appointmentRegistrationBlockReason(',
+        'legalGuardians(',
+        'hasLegalGuardian(',
+    ],
+    'loader' => [
+        "'Application/Patients/PatientReadPort.php'",
+        "'Application/Patients/PatientReadService.php'",
+        "'Infrastructure/Patients/PdoPatientReadRepository.php'",
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($phaseThreeSources[$sourceKey], $requiredToken)) {
+            $phaseThreeFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION', '<div', '<section'],
+    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION', '<div', '<section'],
+    'repository' => ['<div', '<section', '$_GET', '$_POST', '$_SESSION'],
+    'patients_facade' => [
+        'SELECT pp.id,pp.clinic_id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,p.full_name,p.cpf,p.birth_date FROM pi_patients',
+        'SELECT id,full_name,cpf,relationship,phone,email,document_note,notes,is_primary,created_at,updated_at FROM pi_patient_guardians',
+        'SELECT COUNT(*) FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($phaseThreeSources[$sourceKey], $forbiddenToken)) {
+            $phaseThreeFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$phaseThreeCharacterization = [
+    'ok' => $phaseThreeFailures === [],
+    'failed' => $phaseThreeFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -704,7 +861,8 @@ $result = [
         !empty($inlineMfa['ok']) &&
         !empty($operationalUi['ok']) &&
         !empty($phaseOneCharacterization['ok']) &&
-        !empty($phaseTwoCharacterization['ok']),
+        !empty($phaseTwoCharacterization['ok']) &&
+        !empty($phaseThreeCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -714,6 +872,7 @@ $result = [
     'operational_ui' => $operationalUi,
     'phase_one_characterization' => $phaseOneCharacterization,
     'phase_two_characterization' => $phaseTwoCharacterization,
+    'phase_three_characterization' => $phaseThreeCharacterization,
 ];
 
 echo json_encode(
