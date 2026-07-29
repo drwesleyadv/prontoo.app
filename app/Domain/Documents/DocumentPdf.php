@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function document_pdf_link(int $docId, string $class = "ghost small"): string
 {
-    
-
-
-
-
-
-
-
 
     return '<a class="' .
         e($class) .
@@ -21,14 +13,6 @@ function document_pdf_link(int $docId, string $class = "ghost small"): string
 }
 function document_pdf_public_router_dir(): string
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path("pdfs");
     if (!is_dir($dir)) {
@@ -41,14 +25,6 @@ function document_pdf_public_router_dir(): string
 }
 function document_pdf_storage_dir(): string
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path("pdfs");
     if (!is_dir($dir)) {
@@ -61,14 +37,6 @@ function document_pdf_storage_dir(): string
 }
 function document_pdf_dir(int $cid = 0): string
 {
-    
-
-
-
-
-
-
-
 
     document_pdf_public_router_dir();
     $dir = document_pdf_storage_dir();
@@ -76,14 +44,6 @@ function document_pdf_dir(int $cid = 0): string
 }
 function document_pdf_cleanup(?int $cid = null): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         $ttl = document_pdf_ttl_seconds();
@@ -130,14 +90,6 @@ function document_pdf_cleanup(?int $cid = null): void
 
 function document_pdf_cleanup_due(): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         $flag = storage_path("cache/document_pdf_cleanup.flag");
@@ -156,14 +108,6 @@ function document_pdf_cleanup_due(): void
 }
 function document_pdf_safe_code(array $doc): string
 {
-    
-
-
-
-
-
-
-
 
     $code = document_identifier_display($doc["document_identifier"] ?? "");
     if ($code === "") {
@@ -177,14 +121,6 @@ function document_pdf_file_name(
     ?int $generatedAt = null,
     int $clinicId = 0,
 ): string {
-    
-
-
-
-
-
-
-
 
     $ts = max(0, (int) ($generatedAt ?? time()));
     $docId = max(0, (int) ($doc["id"] ?? 0));
@@ -203,14 +139,6 @@ function document_pdf_file_name(
 }
 function document_pdf_file_name_valid(string $file): bool
 {
-    
-
-
-
-
-
-
-
 
     return (bool) preg_match(
         '/^[A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf$/',
@@ -219,27 +147,11 @@ function document_pdf_file_name_valid(string $file): bool
 }
 function document_pdf_public_path(string $fileName): string
 {
-    
-
-
-
-
-
-
-
 
     return "/pdfs/" . basename($fileName);
 }
 function document_pdf_ttl_seconds(): int
 {
-    
-
-
-
-
-
-
-
 
     return max(
         300,
@@ -250,14 +162,6 @@ function document_pdf_ttl_seconds(): int
 }
 function document_pdf_token_secret(): string
 {
-    
-
-
-
-
-
-
-
 
     $seed =
         app_config_string("app_key", "") ?:
@@ -277,14 +181,6 @@ function document_pdf_token(
     int $uid,
     int $expires,
 ): string {
-    
-
-
-
-
-
-
-
 
     $payload = basename($fileName) . "|" . $cid . "|" . $uid . "|" . $expires;
     return hash_hmac("sha256", $payload, document_pdf_token_secret());
@@ -296,14 +192,6 @@ function document_pdf_token_valid(
     string $token,
     int $expires,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if ($expires < time() || $token === "") {
         return false;
@@ -315,14 +203,6 @@ function document_pdf_token_valid(
 }
 function document_pdf_row_timestamp(array $row): int
 {
-    
-
-
-
-
-
-
-
 
     if (
         !empty($row["generated_unix"]) &&
@@ -343,28 +223,12 @@ function document_pdf_row_timestamp(array $row): int
 
 function document_pdf_expired_row(array $row): bool
 {
-    
-
-
-
-
-
-
-
 
     return document_pdf_row_timestamp($row) + document_pdf_ttl_seconds() <
         time();
 }
 function document_pdf_delete_pair(string $fileName, int $cid): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         $path = document_pdf_absolute_path($fileName);
@@ -398,14 +262,6 @@ function document_pdf_public_url(
     ?string $token = null,
     ?int $expires = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $url = (base_path() ?: "") . "/pdfs/" . rawurlencode(basename($fileName));
     $qs = [];
@@ -420,15 +276,6 @@ function document_pdf_public_url(
 
 function document_pdf_absolute_path(string $fileName): string
 {
-    
-
-
-
-
-
-
-
-
 
     $fileName = basename($fileName);
     if (!document_pdf_file_name_valid($fileName)) {
@@ -438,14 +285,6 @@ function document_pdf_absolute_path(string $fileName): string
 }
 function document_pdf_text_width(string $text, float $fontSize = 12.0): float
 {
-    
-
-
-
-
-
-
-
 
     $len = mb_strlen($text, "UTF-8");
     if ($len <= 0) {
@@ -457,14 +296,6 @@ function document_pdf_text_width(string $text, float $fontSize = 12.0): float
 }
 function document_pdf_html_blocks(string $html): array
 {
-    
-
-
-
-
-
-
-
 
     $html = trim($html);
     if ($html === "") {
@@ -591,14 +422,6 @@ function document_pdf_wrap_text(
     float $maxWidth,
     float $fontSize = 12.0,
 ): array {
-    
-
-
-
-
-
-
-
 
     $lines = [];
     $paras = preg_split('/\n+/u', $text) ?: [$text];
@@ -650,14 +473,6 @@ function document_pdf_wrap_text(
 }
 function document_pdf_escape(string $text): string
 {
-    
-
-
-
-
-
-
-
 
     $bytes = @iconv("UTF-8", "Windows-1252//TRANSLIT//IGNORE", $text);
     if ($bytes === false) {
@@ -676,14 +491,6 @@ function document_pdf_identifier_footer_stream(
     float $marginRight,
     float $marginBottom,
 ): string {
-    
-
-
-
-
-
-
-
 
     $id = document_identifier_display($identifier);
     if ($id === "") {
@@ -704,14 +511,6 @@ function document_pdf_identifier_footer_stream(
 }
 function document_pdf_build_simple(string $html, array $meta = []): string
 {
-    
-
-
-
-
-
-
-
 
     $pageW = 595.276;
     $pageH = 841.89;
@@ -873,14 +672,6 @@ function document_pdf_register_file(
     string $name,
     int $generatedAt,
 ): void {
-    
-
-
-
-
-
-
-
 
     try {
         $cid = (int) ($c["clinic_id"] ?? 0);
@@ -910,15 +701,6 @@ function document_pdf_register_file(
 }
 function document_pdf_create_file(array $c, array $doc): string
 {
-    
-
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     document_pdf_cleanup($cid);
@@ -990,14 +772,6 @@ function document_pdf_create_file(array $c, array $doc): string
 }
 function document_pdf_catalog_row(string $fileName): ?array
 {
-    
-
-
-
-
-
-
-
 
     if (!document_pdf_file_name_valid($fileName)) {
         return null;
@@ -1036,15 +810,6 @@ function document_pdf_catalog_row(string $fileName): ?array
 }
 function document_pdf_send_file(string $path, string $downloadName): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!is_file($path)) {
         throw new RuntimeException("PDF não encontrado.");
@@ -1068,16 +833,6 @@ function document_pdf_send_file(string $path, string $downloadName): void
 }
 function page_document_pdf_file(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
@@ -1161,17 +916,6 @@ function page_document_pdf_file(): void
 
 function page_document_pdf(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {

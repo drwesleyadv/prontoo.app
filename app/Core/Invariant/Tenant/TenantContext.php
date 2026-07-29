@@ -7,28 +7,11 @@ use Prontoo\Core\Tenant\TenantRegistry;
 final class TenantContext
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function resolve(): array
     {
-        
-
-
-
-
-
-
-
-
 
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"])) {
             return ["bypass" => true, "reason" => "guard_disabled", "clinic_id" => 0];
@@ -60,15 +43,6 @@ final class TenantContext
 
     private static function globalOrAdminContext(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return false;
@@ -82,15 +56,6 @@ final class TenantContext
 
     private static function sessionUserIsGlobalAdmin(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         $uid = (int) ($_SESSION["uid"] ?? 0);
         if ($uid <= 0 || !function_exists("user_is_global_admin")) {

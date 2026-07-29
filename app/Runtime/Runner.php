@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function prontoo_route_map(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "home",
@@ -77,14 +69,6 @@ function prontoo_route_map(): array
 }
 function prontoo_public_runtime_routes(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "login",
@@ -97,14 +81,6 @@ function prontoo_public_runtime_routes(): array
 }
 function prontoo_json_runtime_routes(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "patient_lookup",
@@ -119,15 +95,6 @@ function prontoo_json_runtime_routes(): array
 }
 function prontoo_route_wants_json(string $route): bool
 {
-    
-
-
-
-
-
-
-
-
 
     $accept = strtolower((string) ($_SERVER["HTTP_ACCEPT"] ?? ""));
     return in_array($route, prontoo_json_runtime_routes(), true) ||
@@ -135,14 +102,6 @@ function prontoo_route_wants_json(string $route): bool
 }
 function prontoo_json_response(array $payload, int $status = 200): void
 {
-    
-
-
-
-
-
-
-
 
     if (!headers_sent()) {
         http_response_code($status);
@@ -157,14 +116,6 @@ function prontoo_json_failure_message(
     int $status,
     Throwable $e,
 ): string {
-    
-
-
-
-
-
-
-
 
     if ($status < 500) {
         return $e->getMessage();
@@ -190,15 +141,6 @@ function prontoo_json_failure_message(
 }
 function prontoo_route_is_public_light(string $route): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (in_array($route, ["login", "login_autotest", "mfa", "logout"], true)) {
         return true;
@@ -211,14 +153,6 @@ function prontoo_route_is_public_light(string $route): bool
 }
 function prontoo_schema_boot_marker_path(): string
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path("cache");
     if (!is_dir($dir)) {
@@ -236,14 +170,6 @@ function prontoo_schema_boot_marker_path(): string
 }
 function prontoo_schema_boot_marker_valid(int $ttlSeconds = 0): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($ttlSeconds <= 0) {
         $ttlSeconds = defined("PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS")
@@ -263,14 +189,6 @@ function prontoo_schema_boot_marker_valid(int $ttlSeconds = 0): bool
 }
 function prontoo_schema_boot_mark_ok(string $mode): void
 {
-    
-
-
-
-
-
-
-
 
     $payload = json_encode(
         [
@@ -288,15 +206,6 @@ function prontoo_schema_boot_mark_ok(string $mode): void
 }
 function prontoo_boot_database_for_route(string $route): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return;
@@ -330,14 +239,6 @@ function prontoo_run_runtime_maintenance_cycle(
     string $mode = "route_deep",
     int $uid = 0,
 ): array {
-    
-
-
-
-
-
-
-
 
     $startedAt = microtime(true);
     $result = ["ok" => false, "mode" => $mode, "uid" => $uid, "steps" => []];
@@ -412,14 +313,6 @@ function prontoo_run_runtime_maintenance_cycle(
 
 function prontoo_login_post_password_maintenance(int $uid): array
 {
-    
-
-
-
-
-
-
-
 
     static $done = false;
     if ($done) {
@@ -481,14 +374,6 @@ function prontoo_login_post_password_maintenance(int $uid): array
 }
 function prontoo_flush_integrity_before_render(): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         if (function_exists("pdo") && has_cfg()) {
@@ -511,17 +396,6 @@ function prontoo_flush_integrity_before_render(): void
 }
 function prontoo_run(bool $installMode = false): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     try {
         boot_security();

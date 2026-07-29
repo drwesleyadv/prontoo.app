@@ -10,14 +10,6 @@ use Prontoo\Domain\Authorization\ActionContract;
 final readonly class AuthorizationService
 {
     public function __construct(private CapabilityProvider $capabilities) {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -27,14 +19,6 @@ final readonly class AuthorizationService
         array $post,
         array $context,
     ): Decision {
-        
-
-
-
-
-
-
-
 
         $route = Canonical::token($route, 'login');
         $method = strtoupper(trim($method));
@@ -99,14 +83,6 @@ final readonly class AuthorizationService
 
     private function assertScope(ActionContract $contract, array $context): ?Decision
     {
-        
-
-
-
-
-
-
-
 
         if ($contract->scope === 'public') {
             return null;
@@ -162,14 +138,6 @@ final readonly class AuthorizationService
         array $granted,
         array $missing,
     ): array {
-        
-
-
-
-
-
-
-
 
         return [
             'policy' => Canonical::POLICY_VERSION,
@@ -191,14 +159,6 @@ final readonly class AuthorizationService
 
     private static function primaryModule(ActionContract $contract): ?string
     {
-        
-
-
-
-
-
-
-
 
         [$module] = self::splitCapability($contract->primary);
         return $module !== '' ? $module : null;
@@ -206,14 +166,6 @@ final readonly class AuthorizationService
 
     private static function primaryOperation(ActionContract $contract): string
     {
-        
-
-
-
-
-
-
-
 
         [, $operation] = self::splitCapability($contract->primary);
         return $operation !== '' ? $operation : 'execute';
@@ -221,14 +173,6 @@ final readonly class AuthorizationService
 
     private static function splitCapability(string $capability): array
     {
-        
-
-
-
-
-
-
-
 
         $parts = explode(':', $capability, 2);
         return [
@@ -239,27 +183,10 @@ final readonly class AuthorizationService
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
-
 
         $provider = new class implements CapabilityProvider {
             public function grants(ActionContract $contract, string $capability, array $context): bool
             {
-                
-
-
-
-
-
-
-
 
                 return in_array($capability, (array) ($context['grants'] ?? []), true) ||
                     ($capability === 'session:self' && (int) ($context['user']['id'] ?? 0) > 0) ||

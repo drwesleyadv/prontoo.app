@@ -3,14 +3,6 @@ declare(strict_types=1);
 
 function server_json_cache_enabled(): bool
 {
-    
-
-
-
-
-
-
-
 
     if (defined("PRONTOO_SERVER_JSON_CACHE") && !PRONTOO_SERVER_JSON_CACHE) {
         return false;
@@ -23,15 +15,6 @@ function server_json_cache_metric_add(
     string $metric,
     int|float $value = 1,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
     $metric = preg_replace("/[^a-z0-9_\-]/i", "_", $metric) ?: "unknown";
@@ -58,14 +41,6 @@ function server_json_cache_metric_add(
 
 function server_json_cache_metric_result(string $category, string $result): void
 {
-    
-
-
-
-
-
-
-
 
     server_json_cache_metric_add($category, "lookups");
     server_json_cache_metric_add($category, $result);
@@ -73,15 +48,6 @@ function server_json_cache_metric_result(string $category, string $result): void
 
 function server_json_cache_metrics_snapshot(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $metrics = $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"] ?? [];
     if (!is_array($metrics)) {
@@ -99,14 +65,6 @@ function server_json_cache_metrics_snapshot(): array
 
 function server_json_cache_root(): string
 {
-    
-
-
-
-
-
-
-
 
     static $resolved = null;
     if (is_string($resolved)) {
@@ -129,14 +87,6 @@ function server_json_cache_root(): string
 
 function server_json_cache_category_dir(string $category): string
 {
-    
-
-
-
-
-
-
-
 
     static $resolved = [];
     $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
@@ -155,25 +105,15 @@ function server_json_cache_category_dir(string $category): string
 
 function server_json_cache_ttl(string $category): int
 {
-    
-
-
-
-
-
-
-
 
     return match ($category) {
         
         "hot", "agenda", "recepcao", "financial", "gavetas" => 20,
         "warm", "kpi", "cards", "dashboard" => 45,
 
-        
         "context" => 60,
         "cmdbar", "permissions" => 120,
 
-        
         "clinic", "catalog", "work_hours", "templates" => 300,
         "lookup", "auxiliary" => 300,
         "meta" => 60,
@@ -184,14 +124,6 @@ function server_json_cache_ttl(string $category): int
 
 function server_json_cache_safe_key(string $namespace, mixed $keyParts): string
 {
-    
-
-
-
-
-
-
-
 
     $namespace = preg_replace("/[^a-z0-9_\-]/i", "_", $namespace) ?: "cache";
     $payload = is_string($keyParts)
@@ -205,14 +137,6 @@ function server_json_cache_safe_key(string $namespace, mixed $keyParts): string
 
 function server_json_cache_file(string $category, string $key): string
 {
-    
-
-
-
-
-
-
-
 
     $key = preg_replace("/[^a-z0-9_\-\.]/i", "_", $key) ?: "cache";
     return server_json_cache_category_dir($category) . "/" . $key . ".json";
@@ -220,15 +144,6 @@ function server_json_cache_file(string $category, string $key): string
 
 function server_json_cache_request_is_read(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (PHP_SAPI === "cli") {
         return false;
@@ -238,14 +153,6 @@ function server_json_cache_request_is_read(): bool
 
 function server_json_cache_read_allowed(): bool
 {
-    
-
-
-
-
-
-
-
 
     return server_json_cache_enabled() &&
         function_exists("storage_path") &&
@@ -254,30 +161,12 @@ function server_json_cache_read_allowed(): bool
 
 function server_json_cache_write_allowed(): bool
 {
-    
 
-
-
-
-
-
-
-
-    
     return server_json_cache_read_allowed();
 }
 
 function server_json_cache_memory_get(string $file, bool &$found): mixed
 {
-    
-
-
-
-
-
-
-
-
 
     $memory = $GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"] ?? [];
     if (is_array($memory) && array_key_exists($file, $memory)) {
@@ -290,15 +179,6 @@ function server_json_cache_memory_get(string $file, bool &$found): mixed
 
 function server_json_cache_memory_set(string $file, mixed $value): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"]) ||
         !is_array($GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"])) {
@@ -309,15 +189,6 @@ function server_json_cache_memory_set(string $file, mixed $value): void
 
 function server_json_cache_memory_forget_prefix(string $prefix): void
 {
-    
-
-
-
-
-
-
-
-
 
     $memory = $GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"] ?? [];
     if (!is_array($memory)) {
@@ -335,14 +206,6 @@ function server_json_cache_get(
     string $key,
     ?int $ttlSeconds = null,
 ): mixed {
-    
-
-
-
-
-
-
-
 
     if (!server_json_cache_read_allowed()) {
         server_json_cache_metric_add($category, "bypasses");
@@ -408,14 +271,6 @@ function server_json_cache_set(
     ?int $ttlSeconds = null,
     array $tags = [],
 ): mixed {
-    
-
-
-
-
-
-
-
 
     if (!server_json_cache_write_allowed()) {
         return $value;
@@ -476,15 +331,6 @@ function server_json_cache_remember(
     callable $loader,
     array $tags = [],
 ): mixed {
-    
-
-
-
-
-
-
-
-
 
     $cached = server_json_cache_get($category, $key, $ttlSeconds);
     if ($cached !== null) {
@@ -495,7 +341,6 @@ function server_json_cache_remember(
         return $loader();
     }
 
-    
     $file = server_json_cache_file($category, $key);
     $lock = @fopen($file . ".lock", "c");
     $locked = false;
@@ -547,14 +392,6 @@ function server_json_cache_remember(
 
 function server_json_cache_rrmdir(string $dir): void
 {
-    
-
-
-
-
-
-
-
 
     if (!is_dir($dir)) {
         return;
@@ -578,14 +415,6 @@ function server_json_cache_rrmdir(string $dir): void
 
 function server_json_cache_clear_categories(array $categories): void
 {
-    
-
-
-
-
-
-
-
 
     $categories = array_values(array_unique(array_map("strval", $categories)));
     if ($categories) {
@@ -602,14 +431,6 @@ function server_json_cache_clear_categories(array $categories): void
 
 function server_json_cache_all_categories(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "hot", "agenda", "recepcao", "financial", "gavetas",
@@ -621,30 +442,12 @@ function server_json_cache_all_categories(): array
 
 function server_json_cache_clear_all_runtime(): void
 {
-    
-
-
-
-
-
-
-
 
     server_json_cache_clear_categories(server_json_cache_all_categories());
 }
 
 function server_json_cache_clear_all_json_files(): int
 {
-    
-
-
-
-
-
-
-
-
-
 
     $root = storage_path("cache");
     if (!is_dir($root)) {
@@ -653,15 +456,6 @@ function server_json_cache_clear_all_json_files(): int
     }
     $deleted = 0;
     $walk = static function (string $directory) use (&$walk, &$deleted): void {
-        
-
-
-
-
-
-
-
-
 
         $items = @scandir($directory);
         if (!is_array($items)) {
@@ -701,25 +495,14 @@ function server_json_cache_clear_all_json_files(): int
 
 function server_json_cache_write_categories(string $route, string $act): array
 {
-    
-
-
-
-
-
-
-
 
     $route = strtolower(trim($route));
     $act = strtolower(trim($act));
 
-    
-    
     if ($route === "logout") {
         return [];
     }
 
-    
     $categories = [
         "hot", "agenda", "recepcao", "financial", "gavetas",
         "warm", "kpi", "cards", "dashboard",
@@ -762,14 +545,6 @@ function server_json_cache_invalidate_for_write(
     string $route = "",
     string $act = "",
 ): void {
-    
-
-
-
-
-
-
-
 
     server_json_cache_clear_categories(
         server_json_cache_write_categories($route, $act),
@@ -778,30 +553,12 @@ function server_json_cache_invalidate_for_write(
 
 function server_json_cache_register_deferred_invalidation(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!empty($GLOBALS["PRONTOO_CACHE_INVALIDATE_SHUTDOWN_REGISTERED"])) {
         return;
     }
     $GLOBALS["PRONTOO_CACHE_INVALIDATE_SHUTDOWN_REGISTERED"] = true;
     register_shutdown_function(static function (): void {
-        
-
-
-
-
-
-
-
-
 
         $pending = $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] ?? [];
         if (is_array($pending) && $pending) {
@@ -814,15 +571,6 @@ function server_json_cache_schedule_invalidation_for_write(
     string $route = "",
     string $act = "",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $categories = server_json_cache_write_categories($route, $act);
     $pending = $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] ?? [];
@@ -839,14 +587,6 @@ function server_json_cache_context_key(
     int $ucId,
     string $role,
 ): string {
-    
-
-
-
-
-
-
-
 
     return server_json_cache_safe_key("ctx", [
         "uid" => $uid,
@@ -863,14 +603,6 @@ function server_json_cache_context_key(
 
 function server_json_cache_sanitize_context(array $ctx): array
 {
-    
-
-
-
-
-
-
-
 
     if (isset($ctx["user"]) && is_array($ctx["user"])) {
         unset(
@@ -884,15 +616,6 @@ function server_json_cache_sanitize_context(array $ctx): array
 
 function server_json_cache_apply_context_session(array $ctx): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (($ctx["scope"] ?? "") === "global") {
         $_SESSION["scope"] = "global";

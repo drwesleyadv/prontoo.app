@@ -15,27 +15,11 @@ final class AppointmentContextInvariant
     ];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function supports(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return in_array($table, self::TABLES, true);
     }
@@ -48,14 +32,6 @@ final class AppointmentContextInvariant
         ?array $insert,
         int $clinicId,
     ): array {
-        
-
-
-
-
-
-
-
 
         $workflow = AppointmentWorkflow::assertWrite(
             $table,

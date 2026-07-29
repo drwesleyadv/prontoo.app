@@ -7,27 +7,11 @@ final class Canonical
     public const POLICY_VERSION = "layer3-php-layered-invariants-v1";
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function value(mixed $value): mixed
     {
-        
-
-
-
-
-
-
-
 
         if (is_array($value)) {
             if (array_is_list($value)) {
@@ -57,14 +41,6 @@ final class Canonical
 
     public static function json(mixed $value): string
     {
-        
-
-
-
-
-
-
-
 
         try {
             return json_encode(
@@ -81,14 +57,6 @@ final class Canonical
 
     public static function hash(string $domain, mixed $value): string
     {
-        
-
-
-
-
-
-
-
 
         $domain = preg_replace("/[^a-z0-9_.:-]/i", "_", trim($domain)) ?: "proof";
         return hash(
@@ -99,14 +67,6 @@ final class Canonical
 
     public static function token(string $value, string $fallback = "unknown"): string
     {
-        
-
-
-
-
-
-
-
 
         return preg_replace("/[^a-z0-9_\-]/i", "", trim($value)) ?: $fallback;
     }

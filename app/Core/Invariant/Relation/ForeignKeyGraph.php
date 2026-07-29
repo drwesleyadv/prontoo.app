@@ -11,14 +11,6 @@ final class ForeignKeyGraph
     private static array $relations = [];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -30,14 +22,6 @@ final class ForeignKeyGraph
         ?array $insert,
         int $clinicId,
     ): array {
-        
-
-
-
-
-
-
-
 
         if ($clinicId <= 0 || !TenantRegistry::isScoped($table)) {
             return ["checked" => false, "edges" => 0, "proofs" => []];
@@ -145,14 +129,6 @@ final class ForeignKeyGraph
 
     private static function relationsFor(string $table): array
     {
-        
-
-
-
-
-
-
-
 
         $table = self::identifier($table);
         if ($table === "") {
@@ -189,14 +165,6 @@ final class ForeignKeyGraph
 
     private static function loadRelations(string $table): array
     {
-        
-
-
-
-
-
-
-
 
         try {
             $statement = \pdo()->prepare(
@@ -239,14 +207,6 @@ final class ForeignKeyGraph
         mixed $value,
         int $clinicId,
     ): ?int {
-        
-
-
-
-
-
-
-
 
         $table = self::identifier($table);
         $column = self::identifier($column);
@@ -273,14 +233,6 @@ final class ForeignKeyGraph
 
     private static function identifier(string $value): string
     {
-        
-
-
-
-
-
-
-
 
         $value = strtolower(trim($value));
         return preg_match('/^[a-z0-9_]+$/', $value) ? $value : "";
@@ -288,15 +240,6 @@ final class ForeignKeyGraph
 
     private static function deny(string $key, string $sql, string $detail): never
     {
-        
-
-
-
-
-
-
-
-
 
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);

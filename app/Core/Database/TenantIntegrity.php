@@ -14,28 +14,11 @@ final class TenantIntegrity
         "pi_user_devices",
     ];
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function assertRegistryMatchesSchema(
         bool $strict = false,
     ): void {
-        
-
-
-
-
-
-
-
-
 
         if (!function_exists("pdo")) {
             return;
@@ -117,14 +100,6 @@ final class TenantIntegrity
         array $registered,
         array $unknown,
     ): void {
-        
-
-
-
-
-
-
-
 
         if (!function_exists("storage_path")) {
             return;
@@ -156,14 +131,6 @@ final class TenantIntegrity
         array $keys,
         int $numericIndex,
     ): string {
-        
-
-
-
-
-
-
-
 
         foreach ($keys as $key) {
             foreach ([$key, strtolower($key), strtoupper($key)] as $candidate) {

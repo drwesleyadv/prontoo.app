@@ -14,14 +14,6 @@ final readonly class Decision
         public array $evidence,
         public string $proofHash,
     ) {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -32,14 +24,6 @@ final readonly class Decision
         string $reason,
         array $evidence = [],
     ): self {
-        
-
-
-
-
-
-
-
 
         return self::make(true, false, $scope, $module, $operation, $reason, $evidence);
     }
@@ -51,28 +35,12 @@ final readonly class Decision
         string $reason,
         array $evidence = [],
     ): self {
-        
-
-
-
-
-
-
-
 
         return self::make(false, false, $scope, $module, $operation, $reason, $evidence);
     }
 
     public static function skip(string $reason, array $evidence = []): self
     {
-        
-
-
-
-
-
-
-
 
         return self::make(true, true, "none", null, "view", $reason, $evidence);
     }
@@ -86,15 +54,6 @@ final readonly class Decision
         string $reason,
         array $evidence,
     ): self {
-        
-
-
-
-
-
-
-
-
 
         $payload = [
             "allowed" => $allowed,
@@ -119,14 +78,6 @@ final readonly class Decision
 
     public function toArray(): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             "allowed" => $this->allowed,

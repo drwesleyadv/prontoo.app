@@ -66,14 +66,6 @@ if (!InstallAccess::isInstallerExecutionAllowed()) {
 $opened = false;
 try {
     $opened = SchemaMutationLock::runForInstaller(static function (): bool {
-        
-
-
-
-
-
-
-
 
         if (!SchemaMutationLock::isActive()) {
             return false;

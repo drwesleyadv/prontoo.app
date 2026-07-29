@@ -11,41 +11,17 @@ final class DocumentContextInvariant
     ];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function supports(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return in_array($table, self::TABLES, true);
     }
 
     public static function assertWrite(string $table): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             "context" => "documents",

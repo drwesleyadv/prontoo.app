@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.7.29.2 — Fase 1 de enxugamento estrutural
+
+- compacta blocos de linhas vazias sem alterar tokens executáveis;
+- cria mapa de responsabilidades e inventário inicial de funções puras;
+- extrai validadores de identidade e utilidades puras de pacientes;
+- preserva as funções globais existentes como fachadas compatíveis;
+- adiciona testes de caracterização ao contrato arquitetural;
+- não altera banco, schema, interface, permissões ou regras de negócio.
+
 Este arquivo registra mudanças relevantes para desenvolvedores e operadores. O histórico detalhado anterior permanece em `ChangeLog.txt`.
 
 ## 1.7.29.1 — documentação como código

@@ -1,16 +1,10 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/../Domain/Identity/IdentityDocumentValidator.php';
+
 if (!function_exists("admin_choice_card")) {
     function admin_choice_card(): string
     {
-        
-
-
-
-
-
-
-
 
         return '<button class="clinic-choice credential-choice admin-choice" type="submit" name="act" value="choose_admin"><span class="credential-icon app-brandmark-inline" data-app-brandmark><img class="auth-brandmark-favicon app-brandmark-img" src="/public/assets/app-icon-' .
             e(PRONTOO_ASSET_REV) .
@@ -21,15 +15,6 @@ if (!function_exists("admin_choice_card")) {
 }
 function onboarding_tips_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated || !has_cfg()) {
@@ -45,14 +30,6 @@ function onboarding_tips_ensure_schema(): void
 
 function onboarding_tip_module_routes(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "painel",
@@ -74,14 +51,6 @@ function onboarding_tip_module_routes(): array
 }
 function onboarding_tip_key(array $c, string $route): string
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "usuario");
     $clinicId = max(0, (int) ($c["clinic_id"] ?? 0));
@@ -93,14 +62,6 @@ function onboarding_tip_key(array $c, string $route): string
 }
 function onboarding_tip_dismissed(array $c, string $route): bool
 {
-    
-
-
-
-
-
-
-
 
     $uid = (int) ($c["user"]["id"] ?? 0);
     if ($uid <= 0) {
@@ -120,17 +81,6 @@ function onboarding_tip_dismissed(array $c, string $route): bool
 }
 function onboarding_tip_dismiss(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -156,14 +106,6 @@ function onboarding_tip_dismiss(): void
 }
 function onboarding_tip_copy(array $c, string $route): ?array
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "");
     $roleName = role_label_for($role, (int) ($c["clinic_id"] ?? 0));
@@ -268,15 +210,6 @@ function onboarding_tip_copy(array $c, string $route): ?array
 }
 function onboarding_tip_html(array $c, string $route): string
 {
-    
-
-
-
-
-
-
-
-
 
     if (!$c || ($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -316,79 +249,14 @@ function onboarding_tip_html(array $c, string $route): string
 }
 function valid_cpf(string $cpf): bool
 {
-    
-
-
-
-
-
-
-
-
-    $cpf = only_digits($cpf);
-    if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
-        return false;
-    }
-    for ($t = 9; $t < 11; $t++) {
-        $sum = 0;
-        for ($i = 0; $i < $t; $i++) {
-            $sum += (int) $cpf[$i] * ($t + 1 - $i);
-        }
-        $d = ((10 * $sum) % 11) % 10;
-        if ((int) $cpf[$t] !== $d) {
-            return false;
-        }
-    }
-    return true;
+    return \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf(only_digits($cpf));
 }
 function valid_cnpj(string $cnpj): bool
 {
-    
-
-
-
-
-
-
-
-
-    $cnpj = only_digits($cnpj);
-    if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) {
-        return false;
-    }
-    $calc = function (int $len) use ($cnpj): int {
-        
-
-
-
-
-
-
-
-
-        $weights =
-            $len === 12
-                ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-                : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-        $sum = 0;
-        for ($i = 0; $i < $len; $i++) {
-            $sum += (int) $cnpj[$i] * $weights[$i];
-        }
-        $r = $sum % 11;
-        return $r < 2 ? 0 : 11 - $r;
-    };
-    return (int) $cnpj[12] === $calc(12) && (int) $cnpj[13] === $calc(13);
+    return \Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj(only_digits($cnpj));
 }
 function db_birth_date_input(null|string|int $birth): string
 {
-    
-
-
-
-
-
-
-
 
     return function_exists("app_date_input_from_storage")
         ? app_date_input_from_storage($birth)
@@ -396,60 +264,15 @@ function db_birth_date_input(null|string|int $birth): string
 }
 function valid_birth_date(null|string|int $birth): bool
 {
-    
-
-
-
-
-
-
-
-
-
-    $raw = trim((string) $birth);
-    if ($raw === "") {
-        return false;
-    }
-    $ymd = preg_match('/^-?\d+$/', $raw)
-        ? gmdate("Y-m-d", (int) $raw)
-        : $raw;
-    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) {
-        return false;
-    }
-    $year = (int) $m[1];
-    $month = (int) $m[2];
-    $day = (int) $m[3];
-    if (!checkdate($month, $day, $year)) {
-        return false;
-    }
-    $date = new DateTimeImmutable($ymd . " 12:00:00", new DateTimeZone("UTC"));
-    $today = new DateTimeImmutable(gmdate("Y-m-d") . " 23:59:59", new DateTimeZone("UTC"));
-    $oldest = $today->modify("-120 years")->setTime(0, 0, 0);
-    return $date <= $today && $date >= $oldest;
+    return \Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate($birth);
 }
 function login_last_credential_key(int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     return "last_login_credential_user_" . max(0, $uid);
 }
 function login_last_credential_normalize(mixed $raw): ?array
 {
-    
-
-
-
-
-
-
-
 
     if (is_string($raw)) {
         $raw = trim($raw);
@@ -527,14 +350,6 @@ function login_last_credential_remember(
 }
 function login_last_credential_from_meta(int $uid): ?array
 {
-    
-
-
-
-
-
-
-
 
     if ($uid <= 0 || !has_cfg()) {
         return null;
@@ -550,14 +365,6 @@ function login_last_credential_from_meta(int $uid): ?array
 }
 function login_last_credential_from_devices(int $uid): ?array
 {
-    
-
-
-
-
-
-
-
 
     return null;
 }
@@ -567,14 +374,6 @@ function login_credential_match(
     array $choices,
     ?array $credential,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     if (!$credential) {
         return null;
@@ -607,14 +406,6 @@ function login_resolve_user_credential(
     bool $isAdmin,
     array $choices,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     $fromMeta = login_credential_match(
         $uid,
@@ -647,17 +438,6 @@ function login_apply_resolved_credential(
     ?string $verifiedUserGeneration = null,
     bool $redirectAfterLogin = true,
 ): string {
-    
-
-
-
-
-
-
-
-
-
-
 
     $scope = (string) ($credential["scope"] ?? "clinic");
     session_harden_after_login($uid, $verifiedUserGeneration);
@@ -725,15 +505,6 @@ function developer_first_login_clear_json_cache(
     bool $knownDeveloper = false,
 ): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (
         $uid <= 0 ||
@@ -1188,16 +959,6 @@ function page_global_reauth(): void
 }
 function page_login(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
     $wantsJson =
@@ -1677,15 +1438,6 @@ function page_login(): void
 }
 function login_key(string $cpf): array
 {
-    
-
-
-
-
-
-
-
-
 
     $secret = secret_key();
     return [
@@ -1726,14 +1478,6 @@ function login_locks_cleanup_maybe(): void
 }
 function login_lock(string $cpf): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         [$pair, $subject, $ip] = login_bucket_keys($cpf);
@@ -1818,14 +1562,6 @@ function login_fail(string $cpf): int
 }
 function login_clear(string $cpf): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         [$pair, $subject] = login_bucket_keys($cpf);
@@ -1854,15 +1590,6 @@ function login_session_remember(
     int $wait,
     string $message = "CPF ou senha não conferem.",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $_SESSION["login_last_cpf"] = $cpf;
     $_SESSION["login_wait_until"] = time() + max(0, $wait);
@@ -1870,29 +1597,11 @@ function login_session_remember(
 }
 function login_session_wait(): int
 {
-    
-
-
-
-
-
-
-
-
 
     return max(0, (int) ($_SESSION["login_wait_until"] ?? 0) - time());
 }
 function login_session_forget(): void
 {
-    
-
-
-
-
-
-
-
-
 
     unset(
         $_SESSION["login_wait_until"],
@@ -1902,14 +1611,6 @@ function login_session_forget(): void
 }
 function seconds_label(int $s): string
 {
-    
-
-
-
-
-
-
-
 
     $s = max(0, $s);
     $m = floor($s / 60);
@@ -1920,18 +1621,6 @@ function seconds_label(int $s): string
 }
 function page_signup(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $currentCtx = ctx();
     if ($currentCtx) {
@@ -2341,15 +2030,6 @@ function page_signup(): void
 }
 function upsert_person(string $name, string $cpf, string $birth): int
 {
-    
-
-
-
-
-
-
-
-
 
     $name = trim($name);
     $cpf = only_digits($cpf);
@@ -2417,15 +2097,6 @@ function upsert_person(string $name, string $cpf, string $birth): int
 }
 function lock_person_user_identity(int $personId): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($personId <= 0 || !pdo()->inTransaction()) {
         throw new RuntimeException(
@@ -2447,15 +2118,6 @@ function save_person_flexible(
     ?string $cpf = null,
     ?string $birth = null,
 ): int {
-    
-
-
-
-
-
-
-
-
 
     $name = trim($name);
     $cpf = only_digits((string) ($cpf ?? ""));
@@ -2550,14 +2212,6 @@ function save_person_flexible(
 }
 function phone_br(?string $phone): string
 {
-    
-
-
-
-
-
-
-
 
     $d = only_digits((string) ($phone ?? ""));
     if ($d === "") {
@@ -2584,15 +2238,6 @@ function phone_br(?string $phone): string
 }
 function page_person_lookup(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
     if (!headers_sent()) {
@@ -2697,16 +2342,6 @@ function page_person_lookup(): void
 }
 function page_logout(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
         redirect("login");
@@ -2751,18 +2386,6 @@ function page_logout(): void
 }
 function page_profile(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -3543,14 +3166,6 @@ function page_profile(): void
         string $subtitle,
         bool $active,
     ): string {
-        
-
-
-
-
-
-
-
 
         $state = $active
             ? '<span class="account-env-status">' .
@@ -3583,14 +3198,6 @@ function page_profile(): void
         &$envActiveCards,
         &$envOtherCards,
     ): void {
-        
-
-
-
-
-
-
-
 
         if ($active) {
             $envActiveCards .= $html;
@@ -3660,32 +3267,12 @@ function page_profile(): void
 }
 function page_switch(): void
 {
-    
-
-
-
-
-
-
-
 
     need_login();
     redirect("profile");
 }
 function page_onboarding(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (!is_responsible_doctor($c)) {
@@ -3964,14 +3551,6 @@ function person_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_person_suggestions",
 ): string {
-    
-
-
-
-
-
-
-
 
     $rows = q(
         "SELECT DISTINCT p.id,p.full_name,p.cpf,p.birth_date FROM pi_persons p JOIN (SELECT person_id FROM pi_patients WHERE clinic_id=? AND person_id IS NOT NULL UNION SELECT person_id FROM pi_leads WHERE clinic_id=? AND person_id IS NOT NULL) x ON x.person_id=p.id WHERE p.full_name<>'' ORDER BY p.full_name ASC LIMIT 500",
@@ -4007,15 +3586,6 @@ function save_person_by_document(
     string $doc,
     ?string $birth = null,
 ): int {
-    
-
-
-
-
-
-
-
-
 
     $name = trim($name);
     $doc = only_digits($doc);

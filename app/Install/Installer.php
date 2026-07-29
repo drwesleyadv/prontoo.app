@@ -2,15 +2,6 @@
 declare(strict_types=1);
 function install_value(string $v, int $max = 255): string
 {
-    
-
-
-
-
-
-
-
-
 
     $v = trim($v);
     if ($v === "" || strlen($v) > $max || preg_match('/[\x00-\x1F\x7F]/', $v)) {
@@ -20,14 +11,6 @@ function install_value(string $v, int $max = 255): string
 }
 function install_pdf_dir(): string
 {
-    
-
-
-
-
-
-
-
 
     if (function_exists("document_pdf_dir")) {
         return document_pdf_dir();
@@ -36,14 +19,6 @@ function install_pdf_dir(): string
 }
 function install_state(): string
 {
-    
-
-
-
-
-
-
-
 
     $cfg = has_cfg();
     $lock = is_file(storage_path("install.lock"));
@@ -60,14 +35,6 @@ function install_state(): string
 }
 function install_environment_checks(bool $touchPaths = false): array
 {
-    
-
-
-
-
-
-
-
 
     $checks = [];
     $add = static function (
@@ -77,14 +44,6 @@ function install_environment_checks(bool $touchPaths = false): array
         string $message,
         string $level = "error",
     ) use (&$checks): void {
-        
-
-
-
-
-
-
-
 
         $checks[] = [
             "key" => $key,
@@ -162,14 +121,6 @@ function install_environment_checks(bool $touchPaths = false): array
 }
 function install_environment_has_blocker(array $checks): bool
 {
-    
-
-
-
-
-
-
-
 
     foreach ($checks as $check) {
         if (($check["level"] ?? "error") === "error" && empty($check["ok"])) {
@@ -180,27 +131,11 @@ function install_environment_has_blocker(array $checks): bool
 }
 function install_yesno(bool $value): string
 {
-    
-
-
-
-
-
-
-
 
     return $value ? "sim" : "não";
 }
 function install_compact_text(string $value, int $limit = 1800): string
 {
-    
-
-
-
-
-
-
-
 
     $value = preg_replace("/\s+/", " ", trim($value)) ?? trim($value);
     if (strlen($value) <= $limit) {
@@ -210,28 +145,12 @@ function install_compact_text(string $value, int $limit = 1800): string
 }
 function install_path_mode(string $path): string
 {
-    
-
-
-
-
-
-
-
 
     $perms = prontoo_fs_fileperms($path);
     return $perms === false ? "n/d" : substr(sprintf("%o", $perms), -4);
 }
 function install_path_report(string $label, string $path): array
 {
-    
-
-
-
-
-
-
-
 
     $parent = dirname($path);
     return [
@@ -251,14 +170,6 @@ function install_path_report(string $label, string $path): array
 }
 function install_throwable_lines(Throwable $e): array
 {
-    
-
-
-
-
-
-
-
 
     $lines = [];
     $i = 0;
@@ -294,27 +205,11 @@ function install_throwable_lines(Throwable $e): array
 }
 function install_mysql_dsn(string $host, string $db): string
 {
-    
-
-
-
-
-
-
-
 
     return "mysql:host=" . $host . ";dbname=" . $db . ";charset=utf8mb4";
 }
 function install_pdo_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -324,15 +219,6 @@ function install_pdo_options(): array
 }
 function install_open_database(array $context, bool $strictMode = false): PDO
 {
-    
-
-
-
-
-
-
-
-
 
     $pdo = new PDO(
         install_mysql_dsn(
@@ -349,14 +235,6 @@ function install_open_database(array $context, bool $strictMode = false): PDO
 }
 function install_database_error_code(Throwable $e): int
 {
-    
-
-
-
-
-
-
-
 
     if (
         $e instanceof PDOException &&
@@ -369,14 +247,6 @@ function install_database_error_code(Throwable $e): int
 }
 function install_database_error_message(Throwable $e): string
 {
-    
-
-
-
-
-
-
-
 
     return match (install_database_error_code($e)) {
         1045
@@ -394,14 +264,6 @@ function install_database_error_message(Throwable $e): string
 }
 function install_database_hint_lines(Throwable $e, array $context = []): array
 {
-    
-
-
-
-
-
-
-
 
     $code = install_database_error_code($e);
     $lines = [];
@@ -426,14 +288,6 @@ function install_database_hint_lines(Throwable $e, array $context = []): array
 }
 function install_database_probe_lines(array $context): array
 {
-    
-
-
-
-
-
-
-
 
     $lines = [];
     $host = (string) ($context["db_host"] ?? "");
@@ -509,15 +363,6 @@ function install_technical_report(
     array $context = [],
     array $checks = [],
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $lines = [];
     $lines[] = "PRONTOO INSTALL DIAGNOSTIC";
@@ -651,14 +496,6 @@ function install_technical_report(
 }
 function install_write_failure_log(string $report): void
 {
-    
-
-
-
-
-
-
-
 
     $file = storage_path("install-error-" . gmdate("Ymd-His") . ".log");
     prontoo_fs_write($file, $report . "\n");
@@ -666,14 +503,6 @@ function install_write_failure_log(string $report): void
 }
 function install_checks_html(array $checks): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$checks) {
         return "";
@@ -705,15 +534,6 @@ function install_checks_html(array $checks): string
 }
 function install_prepare_writable_paths(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $checks = install_environment_checks(true);
     if (install_environment_has_blocker($checks)) {
@@ -734,14 +554,6 @@ function install_prepare_writable_paths(): void
 }
 function install_safe_failure_message(Throwable $e): string
 {
-    
-
-
-
-
-
-
-
 
     $msg = trim($e->getMessage());
     if ($msg === "") {
@@ -783,14 +595,6 @@ function install_safe_failure_message(Throwable $e): string
 }
 function install_head(string $title): string
 {
-    
-
-
-
-
-
-
-
 
     return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>' .
         e($title) .
@@ -812,14 +616,6 @@ function install_head(string $title): string
 }
 function install_tail(): string
 {
-    
-
-
-
-
-
-
-
 
     return "</main></body></html>";
 }
@@ -829,14 +625,6 @@ function install_error(
     ?Throwable $e = null,
     array $context = [],
 ): void {
-    
-
-
-
-
-
-
-
 
     $report =
         $e instanceof Throwable || $context || $checks
@@ -860,14 +648,6 @@ function install_error(
 }
 function install_state_page(string $state): void
 {
-    
-
-
-
-
-
-
-
 
     echo install_head("Instalar Prontoo");
     if ($state === "installed") {
@@ -881,14 +661,6 @@ function install_state_page(string $state): void
 }
 function install_form(array $checks): void
 {
-    
-
-
-
-
-
-
-
 
     $disabled = install_environment_has_blocker($checks)
         ? ' disabled aria-disabled="true"'
@@ -936,18 +708,6 @@ function install_form(array $checks): void
 }
 function prontoo_install(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     try {
         \Prontoo\Core\Install\InstallAccess::assertInstallerEntry();
@@ -1071,14 +831,6 @@ function prontoo_install(): void
             prontoo_fs_chmod(cfg_file(), 0640);
             \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
                 static function (): void {
-                    
-
-
-
-
-
-
-
 
                     install_fresh_schema();
                 },
@@ -1149,15 +901,6 @@ function prontoo_install(): void
                     try {
                         \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
                             static function (): void {
-                                
-
-
-
-
-
-
-
-
 
                                 $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
                                 try {

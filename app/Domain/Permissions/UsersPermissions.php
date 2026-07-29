@@ -2,15 +2,6 @@
 declare(strict_types=1);
 function require_user_in_clinic(int $cid, int $uid, array $roles = []): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($uid <= 0) {
         throw new ProntooHttpError(
@@ -32,15 +23,6 @@ function require_user_in_clinic(int $cid, int $uid, array $roles = []): void
 }
 function save_team_member(int $cid, array $data): ?int
 {
-    
-
-
-
-
-
-
-
-
 
     $name = trim((string) ($data["team_name"] ?? ""));
     $cpf = only_digits((string) ($data["team_cpf"] ?? ""));
@@ -137,14 +119,6 @@ function save_team_member(int $cid, array $data): ?int
 }
 function clinic_user_exists(int $cid, int $uid, array $roles = []): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return false;
@@ -163,14 +137,6 @@ function clinic_user_exists(int $cid, int $uid, array $roles = []): bool
 }
 function person_has_other_clinic_links(int $personId, int $cid): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($personId <= 0 || $cid <= 0) {
         return false;
@@ -188,14 +154,6 @@ function person_has_other_clinic_links(int $personId, int $cid): bool
 }
 function user_name_by_id(?int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$uid) {
         return "O sistema";
@@ -210,27 +168,11 @@ function user_name_by_id(?int $uid): string
 }
 function single_active_role_cleanup_for_user(int $uid, ?int $cid = null): void
 {
-    
-
-
-
-
-
-
-
 
     return;
 }
 function clinic_minimum_roles_violation_message(): string
 {
-    
-
-
-
-
-
-
-
 
     return "Esta alteração não é possível: todo consultório precisa manter pelo menos um Profissional e um Administrativo ativos.";
 }
@@ -239,14 +181,6 @@ function clinic_active_role_count(
     string $role,
     ?int $excludingUserId = null,
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $role === "") {
         return 0;
@@ -270,15 +204,6 @@ function clinic_assert_minimum_roles_after_change(
     int $targetUserId,
     array $targetRoles,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         throw new RuntimeException(clinic_minimum_roles_violation_message());
@@ -298,29 +223,11 @@ function clinic_assert_minimum_roles_after_change(
 }
 function clinic_assert_can_deactivate_user_roles(int $cid, int $uid): void
 {
-    
-
-
-
-
-
-
-
 
     clinic_assert_minimum_roles_after_change($cid, $uid, []);
 }
 function clinic_auto_assign_missing_managers(int $limit = 200): int
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (!function_exists("has_cfg") || !has_cfg()) {
         return 0;
@@ -409,27 +316,11 @@ function clinic_auto_assign_missing_managers(int $limit = 200): int
 }
 function active_clinic_roles_for_user(int $uid): array
 {
-    
-
-
-
-
-
-
-
 
     if ($uid <= 0) {
         return [];
     }
     $loader = function () use ($uid): array {
-        
-
-
-
-
-
-
-
 
         single_active_role_cleanup_for_user($uid, null);
         if (function_exists("clinic_enable_roles_from_active_user_links")) {
@@ -453,14 +344,6 @@ function active_clinic_roles_for_user(int $uid): array
 }
 function user_is_global_admin(int $uid): bool
 {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) val(
@@ -474,14 +357,6 @@ function user_is_global_admin(int $uid): bool
 }
 function manageable_team_roles(?int $clinicId = null): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "recepcionista" => role_label_for("recepcionista", $clinicId),
@@ -492,28 +367,11 @@ function manageable_team_roles(?int $clinicId = null): array
 }
 function can_manage_team_role(string $role): bool
 {
-    
-
-
-
-
-
-
-
 
     return isset(manageable_team_roles()[$role]);
 }
 function selected_team_roles(array $data, ?int $cid = null): array
 {
-    
-
-
-
-
-
-
-
-
 
     $raw =
         $data["team_roles"] ??
@@ -548,15 +406,6 @@ function clinic_restore_default_permissions_for_role(
     int $cid,
     string $role,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $role === "" || !isset(PRONTOO_ROLES[$role])) {
         return;
@@ -612,16 +461,6 @@ function clinic_enable_roles_for_assignment(
     array $roles,
     string $reason = "assignment",
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         return;
@@ -684,14 +523,6 @@ function clinic_enable_roles_for_assignment(
 }
 function clinic_enable_roles_from_active_user_links(int $uid): void
 {
-    
-
-
-
-
-
-
-
 
     if ($uid <= 0) {
         return;
@@ -726,16 +557,6 @@ function sync_user_roles_for_clinic(
     array $roles,
     bool $propagate = true,
 ): array {
-    
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         throw new RuntimeException("Colaborador ou consultório não informado.");
@@ -802,14 +623,6 @@ function sync_user_roles_for_clinic(
 }
 function active_role_codes_for_user_in_clinic(int $cid, int $uid): array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return [];
@@ -825,14 +638,6 @@ function preferred_active_role_link_for_user(
     int $uid,
     ?int $preferRoleId = null,
 ): ?array {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return null;
@@ -857,17 +662,6 @@ function propagate_user_role_permissions(
     int $uid,
     string $reason = "roles_updated",
 ): void {
-    
-
-
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $uid <= 0) {
         return;
@@ -939,14 +733,6 @@ function propagate_user_role_permissions(
 }
 function role_labels_from_codes(array $codes, ?int $cid = null): array
 {
-    
-
-
-
-
-
-
-
 
     $labels = [];
     foreach ($codes as $code) {
@@ -956,14 +742,6 @@ function role_labels_from_codes(array $codes, ?int $cid = null): array
 }
 function role_badges_html(array $codes, ?int $cid = null): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$codes) {
         return '<span class="muted">Sem cargo ativo</span>';
@@ -982,14 +760,6 @@ function role_checkbox_group(
     array $options,
     array $selected,
 ): string {
-    
-
-
-
-
-
-
-
 
     $field = str_ends_with($name, "[]") ? $name : $name . "[]";
     $h =
@@ -1012,14 +782,6 @@ function role_checkbox_group(
 }
 function team_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $links = q(
         "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND active=1 ORDER BY id ASC LIMIT 200",
@@ -1042,14 +804,6 @@ function team_options(int $cid): array
 }
 function clinic_role_user_ids(int $cid, array $roles): array
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(array_filter(array_unique($roles)));
     if (!$roles) {
@@ -1068,14 +822,6 @@ function clinic_role_user_ids(int $cid, array $roles): array
 }
 function permission_operations(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "view" => "Visualizar",
@@ -1086,14 +832,6 @@ function permission_operations(): array
 }
 function permission_module_defs(): array
 {
-    
-
-
-
-
-
-
-
 
     $acts = actions();
     $spec = [
@@ -1179,14 +917,6 @@ function permission_module_defs(): array
 }
 function permission_operation_supported(string $module, string $op): bool
 {
-    
-
-
-
-
-
-
-
 
     $defs = permission_module_defs();
     return isset($defs[$module]) &&
@@ -1196,14 +926,6 @@ function permission_module_available_for_role(
     string $role,
     string $module,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $acts = actions();
     return isset($acts[$module]) &&
@@ -1214,28 +936,12 @@ function permission_operation_configurable(
     string $module,
     string $op,
 ): bool {
-    
-
-
-
-
-
-
-
 
     return permission_module_available_for_role($role, $module) &&
         permission_operation_supported($module, $op);
 }
 function permission_default_ops_for_role(string $role, string $module): array
 {
-    
-
-
-
-
-
-
-
 
     $isManager = $role === "gerente";
     return match ($module) {
@@ -1292,14 +998,6 @@ function permission_default_for(
     string $op,
     int $cid,
 ): bool {
-    
-
-
-
-
-
-
-
 
     foreach (collaborator_permission_matrix_base($role, $cid) as $row) {
         if (($row["key"] ?? "") === $module) {
@@ -1310,14 +1008,6 @@ function permission_default_for(
 }
 function permission_rules_for_role(string $role, int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     static $requestCache = [];
     $requestKey = $cid . "|" . $role;
@@ -1325,14 +1015,6 @@ function permission_rules_for_role(string $role, int $cid): array
         return $requestCache[$requestKey];
     }
     $loader = function () use ($role, $cid): array {
-        
-
-
-
-
-
-
-
 
         $stored = [];
         try {
@@ -1397,16 +1079,6 @@ function permission_rules_for_role(string $role, int $cid): array
 }
 function persist_permission_rules(int $cid, string $role, array $posted): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $mods = permission_module_defs();
     $ops = permission_operations();
@@ -1449,15 +1121,6 @@ function persist_permission_rules(int $cid, string $role, array $posted): void
 }
 function collaborator_permission_matrix_base(string $role, int $cid): array
 {
-    
-
-
-
-
-
-
-
-
 
     $requestKey = $cid . "|" . $role;
     if (
@@ -1507,14 +1170,6 @@ function collaborator_permission_matrix_base(string $role, int $cid): array
 }
 function collaborator_permission_matrix(string $role, int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $rules = permission_rules_for_role($role, $cid);
     $defs = permission_module_defs();
@@ -1532,27 +1187,11 @@ function collaborator_permission_matrix(string $role, int $cid): array
 }
 function collaborator_permission_table(string $role, int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     return collaborator_permission_summary([$role], $cid);
 }
 function collaborator_permission_summary(array $roles, int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(
         array_unique(array_filter(array_map("strval", $roles))),
@@ -1609,17 +1248,6 @@ function collaborator_permission_summary(array $roles, int $cid): string
 }
 function page_users(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("users");
     $cid = (int) $c["clinic_id"];
@@ -2072,18 +1700,6 @@ function page_users(): void
 }
 function page_user(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("users");
     $cid = (int) $c["clinic_id"];
@@ -2301,17 +1917,6 @@ function page_user(): void
 }
 function page_permissions(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("permissions");
     $cid = (int) $c["clinic_id"];

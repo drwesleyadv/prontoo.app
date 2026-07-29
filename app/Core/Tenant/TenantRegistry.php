@@ -51,67 +51,26 @@ final class TenantRegistry
         "pi_maestro_executions" => "clinic_id",
     ];
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function scopedTables(): array
     {
-        
-
-
-
-
-
-
-
 
         return self::SCOPED_TABLES;
     }
     public static function isScoped(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return array_key_exists(strtolower($table), self::SCOPED_TABLES);
     }
     public static function scopeColumn(string $table): ?string
     {
-        
-
-
-
-
-
-
-
 
         $table = strtolower($table);
         return self::SCOPED_TABLES[$table] ?? null;
     }
     public static function sessionClinicId(): int
     {
-        
-
-
-
-
-
-
-
-
 
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return 0;
@@ -123,15 +82,6 @@ final class TenantRegistry
     }
     public static function sessionRoleCode(): string
     {
-        
-
-
-
-
-
-
-
-
 
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return "";
@@ -145,28 +95,12 @@ final class TenantRegistry
     }
     private static function globalAdminExemptSubquery(): string
     {
-        
-
-
-
-
-
-
-
 
         return "SELECT c.id FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.subscription_status='exempt' AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1)";
     }
     public static function excludeModelClinicSql(
         string $column = "clinic_id",
     ): string {
-        
-
-
-
-
-
-
-
 
         $column = Check::scopedColumn($column);
         return " AND " .
@@ -178,28 +112,12 @@ final class TenantRegistry
     public static function excludeModelClinicWhere(
         string $column = "clinic_id",
     ): string {
-        
-
-
-
-
-
-
-
 
         $column = Check::scopedColumn($column);
         return $column . " NOT IN (" . self::globalAdminExemptSubquery() . ")";
     }
     public static function modelClinicId(): int
     {
-        
-
-
-
-
-
-
-
 
         if (self::$modelClinicCache !== null) {
             return self::$modelClinicCache;
@@ -215,14 +133,6 @@ final class TenantRegistry
     }
     public static function resetModelClinicCache(): void
     {
-        
-
-
-
-
-
-
-
 
         self::$modelClinicCache = null;
     }

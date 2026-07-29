@@ -6,39 +6,15 @@ final class PiTime
     public const POLICY_VERSION = "pi-time-unix-utc-v2.3";
     private const FALLBACK_TZ = "America/Cuiaba";
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function now(): int
     {
-        
-
-
-
-
-
-
-
 
         return time();
     }
     public static function todayUtcNoon(): int
     {
-        
-
-
-
-
-
-
-
 
         return (int) \gmmktime(
             12,
@@ -51,14 +27,6 @@ final class PiTime
     }
     public static function isTemporalColumn(string $column): bool
     {
-        
-
-
-
-
-
-
-
 
         $c = strtolower(trim($column, "` \t\n\r\0\x0B"));
         if ($c === "" || $c === "Seq") {
@@ -118,14 +86,6 @@ final class PiTime
     }
     public static function isDateOnlyColumn(string $column): bool
     {
-        
-
-
-
-
-
-
-
 
         $c = strtolower(trim($column, "` \t\n\r\0\x0B"));
         return $c === "birth_date" ||
@@ -137,14 +97,6 @@ final class PiTime
         string $column,
         string $definition,
     ): string {
-        
-
-
-
-
-
-
-
 
         if (
             !self::isTemporalColumn($column) &&
@@ -178,14 +130,6 @@ final class PiTime
         string $column,
         string $definition,
     ): string {
-        
-
-
-
-
-
-
-
 
         if (
             !self::isTemporalColumn($column) &&
@@ -209,28 +153,12 @@ final class PiTime
     }
     public static function rewriteSchemaSql(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         $sql = self::rewriteTemporalFunctions($sql);
         $sql =
             preg_replace_callback(
                 "/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?[A-Za-z0-9_]+`?\s*\((.*)\)\s*ENGINE\s*=\s*InnoDB/isU",
                 function (array $m): string {
-                    
-
-
-
-
-
-
-
 
                     $full = $m[0];
                     $inside = $m[1];
@@ -238,14 +166,6 @@ final class PiTime
                         preg_replace_callback(
                             '/(^|,)(\s*)`?([A-Za-z0-9_]+)`?\s+([^,\n]+(?:\([^\)]*\)[^,\n]*)?)/m',
                             function (array $cm): string {
-                                
-
-
-
-
-
-
-
 
                                 $prefix = $cm[1] . $cm[2];
                                 $col = $cm[3];
@@ -292,14 +212,6 @@ final class PiTime
             preg_replace_callback(
                 '/(ALTER\s+TABLE\s+`?[A-Za-z0-9_]+`?\s+ADD\s+COLUMN\s+)`?([A-Za-z0-9_]+)`?\s+(.+)$/is',
                 function (array $m): string {
-                    
-
-
-
-
-
-
-
 
                     $prefix = $m[1];
                     $col = $m[2];
@@ -321,14 +233,6 @@ final class PiTime
         string $sql,
         array $params,
     ): array {
-        
-
-
-
-
-
-
-
 
         $sql = self::rewriteTemporalFunctions($sql);
         [$sql, $params] = self::expandDynamicIntervals($sql, $params);
@@ -337,14 +241,6 @@ final class PiTime
     }
     public static function rewriteTemporalFunctions(string $sql): string
     {
-        
-
-
-
-
-
-
-
 
         $now = (string) self::now();
         $todayYmd = self::contextToday();
@@ -354,14 +250,6 @@ final class PiTime
             $sql,
             "/DATE_(ADD|SUB)\s*\(\s*CURDATE\s*\(\s*\)\s*,\s*INTERVAL\s+([0-9]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
             static function (array $m) use ($todayYmd): string {
-                
-
-
-
-
-
-
-
 
                 $amount = (strtoupper($m[1]) === "ADD" ? 1 : -1) * (int) $m[2];
                 return (string) self::adjustCurdateInterval(
@@ -387,14 +275,6 @@ final class PiTime
             preg_replace_callback(
                 "/DATE_FORMAT\s*\(\s*([A-Za-z0-9_`.]+)\s*,/i",
                 function (array $m): string {
-                    
-
-
-
-
-
-
-
 
                     $expr = trim($m[1]);
                     if (stripos($expr, "FROM_UNIXTIME") !== false) {
@@ -408,14 +288,6 @@ final class PiTime
             preg_replace_callback(
                 "/\bDATE\s*\(\s*([A-Za-z0-9_`.]+)\s*\)/i",
                 function (array $m): string {
-                    
-
-
-
-
-
-
-
 
                     $expr = trim($m[1]);
                     if (stripos($expr, "FROM_UNIXTIME") !== false) {
@@ -449,14 +321,6 @@ final class PiTime
             preg_replace_callback(
                 "/DATE_(ADD|SUB)\s*\(\s*([0-9]+)\s*,\s*INTERVAL\s+([A-Za-z0-9_`.]+)\s+(MINUTE|HOUR|DAY|MONTH|YEAR)\s*\)/i",
                 function (array $m): string {
-                    
-
-
-
-
-
-
-
 
                     $factor = self::intervalSeconds(1, strtoupper($m[4]));
                     $sign = strtoupper($m[1]) === "ADD" ? "+" : "-";
@@ -478,14 +342,6 @@ final class PiTime
         string $sql,
         array $params,
     ): array {
-        
-
-
-
-
-
-
-
 
         if (!$params || array_keys($params) !== range(0, count($params) - 1)) {
             return [$sql, $params];
@@ -523,14 +379,6 @@ final class PiTime
         string $sql,
         array $params,
     ): array {
-        
-
-
-
-
-
-
-
 
         if (!$params) {
             return $params;
@@ -560,14 +408,6 @@ final class PiTime
         string $sql,
         int $count,
     ): array {
-        
-
-
-
-
-
-
-
 
         $cols = [];
         if (
@@ -634,15 +474,6 @@ final class PiTime
         mixed $value,
         bool $dateOnly = false,
     ): mixed {
-        
-
-
-
-
-
-
-
-
 
         if ($value === null || $value === "") {
             return $value;
@@ -674,14 +505,6 @@ final class PiTime
     }
     public static function dateOnlyToTimestamp(string $ymd): int
     {
-        
-
-
-
-
-
-
-
 
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $ymd)) {
             return 0;
@@ -698,15 +521,6 @@ final class PiTime
         mixed $value,
         ?string $tz = null,
     ): ?\DateTimeImmutable {
-        
-
-
-
-
-
-
-
-
 
         if ($value === null || $value === "") {
             return null;
@@ -738,14 +552,6 @@ final class PiTime
         ?string $value,
         bool $dateOnly = false,
     ): string {
-        
-
-
-
-
-
-
-
 
         $v = self::toStorage($value, $dateOnly);
         return $v === null || $v === "" ? "" : (string) $v;
@@ -755,14 +561,6 @@ final class PiTime
         string $table,
         string|int $id,
     ): void {
-        
-
-
-
-
-
-
-
 
         try {
             $table = self::cleanIdent($table);
@@ -806,14 +604,6 @@ final class PiTime
     }
     private static function singlePrimaryKey(\PDO $pdo, string $table): ?string
     {
-        
-
-
-
-
-
-
-
 
         $st = $pdo->prepare(
             "SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_key='PRI' ORDER BY ordinal_position",
@@ -824,14 +614,6 @@ final class PiTime
     }
     private static function columns(\PDO $pdo, string $table): array
     {
-        
-
-
-
-
-
-
-
 
         $st = $pdo->prepare(
             "SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? ORDER BY ordinal_position",
@@ -843,14 +625,6 @@ final class PiTime
     }
     public static function countTemporalViolations(?\PDO $pdo = null): array
     {
-        
-
-
-
-
-
-
-
 
         $out = [
             "datetime_columns" => 0,
@@ -898,14 +672,6 @@ final class PiTime
         string $pattern,
         callable $callback,
     ): string {
-        
-
-
-
-
-
-
-
 
         $parts = preg_split(
             "/('(?:''|[^'])*'|\"(?:\\\\.|[^\"])*\")/",
@@ -927,14 +693,6 @@ final class PiTime
         string $sql,
         array $patterns,
     ): string {
-        
-
-
-
-
-
-
-
 
         $parts = preg_split(
             "/('(?:''|[^'])*'|\"(?:\\\\.|[^\"])*\")/",
@@ -958,15 +716,6 @@ final class PiTime
     }
     private static function contextToday(): string
     {
-        
-
-
-
-
-
-
-
-
 
         return (new \DateTimeImmutable(
             "now",
@@ -975,15 +724,6 @@ final class PiTime
     }
     private static function contextDayRange(string $ymd): array
     {
-        
-
-
-
-
-
-
-
-
 
         $zone = new \DateTimeZone(self::contextTimezone());
         $start = new \DateTimeImmutable($ymd . " 00:00:00", $zone);
@@ -999,15 +739,6 @@ final class PiTime
         int $amount,
         string $unit,
     ): int {
-        
-
-
-
-
-
-
-
-
 
         if (in_array($unit, ["MONTH", "YEAR"], true)) {
             return self::adjustTimestamp(
@@ -1030,15 +761,6 @@ final class PiTime
     }
     private static function adjustTimestamp(int $base, int $amount, string $unit): int
     {
-        
-
-
-
-
-
-
-
-
 
         $unit = strtoupper($unit);
         if ($amount === 0) {
@@ -1073,14 +795,6 @@ final class PiTime
     }
     private static function intervalSeconds(int $n, string $unit): int
     {
-        
-
-
-
-
-
-
-
 
         return match ($unit) {
             "MINUTE" => $n * 60,
@@ -1093,14 +807,6 @@ final class PiTime
     }
     private static function looksTemporalValue(mixed $v): bool
     {
-        
-
-
-
-
-
-
-
 
         if (!is_string($v)) {
             return false;
@@ -1114,43 +820,18 @@ final class PiTime
     }
     private static function looksDateOnlyValue(mixed $v): bool
     {
-        
-
-
-
-
-
-
-
 
         return is_string($v) &&
             (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($v));
     }
     private static function keySuggestsDate(string $key): bool
     {
-        
-
-
-
-
-
-
-
 
         return str_ends_with(strtolower($key), "date") ||
             strtolower($key) === "birth_date";
     }
     private static function contextTimezone(): string
     {
-        
-
-
-
-
-
-
-
-
 
         return self::safeTimezone(
             (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? self::FALLBACK_TZ),
@@ -1158,14 +839,6 @@ final class PiTime
     }
     private static function safeTimezone(string $tz): string
     {
-        
-
-
-
-
-
-
-
 
         $tz = trim($tz);
         return in_array($tz, \timezone_identifiers_list(), true)
@@ -1174,15 +847,6 @@ final class PiTime
     }
     private static function cleanIdent(string $name): string
     {
-        
-
-
-
-
-
-
-
-
 
         $name = trim($name, "` \t\n\r\0\x0B");
         if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {

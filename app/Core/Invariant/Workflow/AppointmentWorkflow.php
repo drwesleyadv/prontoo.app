@@ -10,14 +10,6 @@ final class AppointmentWorkflow
     private static ?StateMachine $machine = null;
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -29,14 +21,6 @@ final class AppointmentWorkflow
         ?array $insert,
         int $clinicId,
     ): array {
-        
-
-
-
-
-
-
-
 
         if ($table !== "pi_appointments" || $clinicId <= 0) {
             return ["checked" => false, "transitions" => 0, "proofs" => []];
@@ -149,15 +133,6 @@ final class AppointmentWorkflow
 
     private static function machine(): StateMachine
     {
-        
-
-
-
-
-
-
-
-
 
         if (self::$machine instanceof StateMachine) {
             return self::$machine;
@@ -213,15 +188,6 @@ final class AppointmentWorkflow
 
     private static function deny(string $key, string $sql): never
     {
-        
-
-
-
-
-
-
-
-
 
         if (function_exists("record_scope_violation")) {
             \record_scope_violation(
@@ -238,14 +204,6 @@ final class AppointmentWorkflow
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
 
         $machine = self::machine();
         $sourceComplete = true;

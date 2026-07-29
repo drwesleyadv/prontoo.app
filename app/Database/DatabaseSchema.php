@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function db_runtime_notice_once(string $key, string $message): void
 {
-    
-
-
-
-
-
-
-
 
     static $requestNotices = [];
     $key = preg_replace('/[^a-z0-9_-]+/i', '_', strtolower($key)) ?: "notice";
@@ -44,17 +36,8 @@ function db_runtime_notice_once(string $key, string $message): void
     }
 }
 
-
 function db_mysql_version(PDO $connection): string
 {
-    
-
-
-
-
-
-
-
 
     $value = $connection->query("SELECT VERSION()")?->fetchColumn();
     return trim((string) $value);
@@ -62,16 +45,6 @@ function db_mysql_version(PDO $connection): string
 
 function db_assert_mysql_runtime(PDO $connection): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $rawVersion = db_mysql_version($connection);
     if ($rawVersion === "" || stripos($rawVersion, "mariadb") !== false) {
@@ -93,8 +66,7 @@ function db_assert_mysql_runtime(PDO $connection): void
         $strict = $connection
             ->query("SELECT @@SESSION.innodb_strict_mode")
             ?->fetchColumn();
-        
-        
+
         $GLOBALS["PRONTOO_INNODB_STRICT_MODE"] = (string) $strict === "1";
     } catch (Throwable $error) {
         db_runtime_notice_once(
@@ -107,14 +79,6 @@ function db_assert_mysql_runtime(PDO $connection): void
 
 function db_session_sql_modes(PDO $connection): array
 {
-    
-
-
-
-
-
-
-
 
     $raw = (string) ($connection
         ->query("SELECT @@SESSION.sql_mode")
@@ -131,14 +95,6 @@ function db_session_sql_modes(PDO $connection): array
 
 function db_session_sql_mode_is_safe(array $modes): bool
 {
-    
-
-
-
-
-
-
-
 
     $set = array_fill_keys(array_map("strtoupper", $modes), true);
     $strict = isset($set["STRICT_ALL_TABLES"]) ||
@@ -153,15 +109,6 @@ function db_apply_mysql_session_contract(
     PDO $connection,
     bool $strictMode = true,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $connection->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
     $connection->exec("SET time_zone = '+00:00'");
@@ -218,15 +165,6 @@ function db_apply_mysql_session_contract(
 
 function pdo(): PDO
 {
-    
-
-
-
-
-
-
-
-
 
     static $connection;
     if ($connection instanceof PDO) {
@@ -274,15 +212,6 @@ function db_query_metric_record(
     bool $success,
     ?Throwable $error = null,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $GLOBALS["PRONTOO_QUERY_COUNT"] =
         (int) ($GLOBALS["PRONTOO_QUERY_COUNT"] ?? 0) + 1;
@@ -310,14 +239,6 @@ function db_query_metric_record(
 
 function db_retryable_conflict(Throwable $error): bool
 {
-    
-
-
-
-
-
-
-
 
     $code = (string) $error->getCode();
     $message = strtolower($error->getMessage());
@@ -331,14 +252,6 @@ function db_retryable_conflict(Throwable $error): bool
 
 function db_retry_delay_us(int $attempt): int
 {
-    
-
-
-
-
-
-
-
 
     $base = min(300000, 40000 + max(0, $attempt) * 65000);
     try {
@@ -351,14 +264,6 @@ function db_retry_delay_us(int $attempt): int
 
 function db_log_query_failure(Throwable $error, string $sql): void
 {
-    
-
-
-
-
-
-
-
 
     $message = function_exists("privacy_sanitize_error_message")
         ? privacy_sanitize_error_message($error, 220)
@@ -369,15 +274,6 @@ function db_log_query_failure(Throwable $error, string $sql): void
 
 function db_reject_runtime_ddl(string $sql): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!preg_match("/^\s*(CREATE|ALTER|DROP|TRUNCATE|RENAME)\b/i", $sql)) {
         return;
@@ -394,16 +290,6 @@ function db_reject_runtime_ddl(string $sql): void
 
 function q(string $sql, array $params = []): PDOStatement
 {
-    
-
-
-
-
-
-
-
-
-
 
     db_reject_runtime_ddl($sql);
     $connection = pdo();
@@ -512,14 +398,6 @@ function q(string $sql, array $params = []): PDOStatement
 
 function one(string $sql, array $params = []): ?array
 {
-    
-
-
-
-
-
-
-
 
     $statement = q($sql, $params);
     $row = $statement->fetch();
@@ -529,14 +407,6 @@ function one(string $sql, array $params = []): ?array
 
 function val(string $sql, array $params = []): mixed
 {
-    
-
-
-
-
-
-
-
 
     $statement = q($sql, $params);
     $value = $statement->fetchColumn();
@@ -546,29 +416,12 @@ function val(string $sql, array $params = []): mixed
 
 function db_last_insert_id(): int
 {
-    
-
-
-
-
-
-
-
-
 
     return (int) ($GLOBALS["PRONTOO_LAST_INSERT_ID"] ?? 0);
 }
 
 function db_temp_space_error(Throwable $error): bool
 {
-    
-
-
-
-
-
-
-
 
     $message = $error->getMessage();
     return str_contains($message, "Errcode: 28") ||
@@ -578,14 +431,6 @@ function db_temp_space_error(Throwable $error): bool
 
 function db_prepare_write_transaction(): void
 {
-    
-
-
-
-
-
-
-
 
     if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
         \Prontoo\Core\Integrity\PiIntegrity::prepareForWriteTransaction();
@@ -594,14 +439,6 @@ function db_prepare_write_transaction(): void
 
 function db_begin_transaction(): void
 {
-    
-
-
-
-
-
-
-
 
     $connection = pdo();
     if ($connection->inTransaction()) {
@@ -616,14 +453,6 @@ function db_begin_transaction(): void
 
 function db_commit(): void
 {
-    
-
-
-
-
-
-
-
 
     $connection = pdo();
     if (!$connection->inTransaction()) {
@@ -650,14 +479,6 @@ function db_commit(): void
 
 function db_rollback(): void
 {
-    
-
-
-
-
-
-
-
 
     $connection = pdo();
     if (!$connection->inTransaction()) {
@@ -671,15 +492,6 @@ function db_rollback(): void
 
 function db_tx(callable $callback): mixed
 {
-    
-
-
-
-
-
-
-
-
 
     $connection = pdo();
     if ($connection->inTransaction()) {
@@ -710,44 +522,18 @@ function db_tx(callable $callback): mixed
 
 function prontoo_schema_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return __DIR__ . "/schema.sql";
 }
 
 function prontoo_operational_schema_contract_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return __DIR__ . "/operational-schema.contract.json";
 }
 
 function prontoo_operational_schema_contract(): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $cached = $GLOBALS["PRONTOO_OPERATIONAL_SCHEMA_CONTRACT_CACHE"] ?? null;
     if (is_array($cached)) {
@@ -781,15 +567,6 @@ function prontoo_operational_schema_contract(): array
 
 function prontoo_schema_expected_table_names(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $contract = prontoo_operational_schema_contract();
     $tables = array_keys((array) ($contract["tables"] ?? []));
@@ -822,57 +599,24 @@ function prontoo_schema_expected_table_names(): array
 
 function prontoo_schema_release_contract_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return __DIR__ . "/schema.r6.contract";
 }
 
 function prontoo_schema_release_contract_hash(): string
 {
-    
-
-
-
-
-
-
-
 
     return "673cb62f7b4ac872682d7a2eef6de3565b52ab72f880628a6d951ad2af52ace0";
 }
 
 function prontoo_schema_previous_contract_hash(): string
 {
-    
-
-
-
-
-
-
-
 
     return "1624a19febf4162ab0957a55897da9327fbc7f469ff5da9b047c3dbc226df50d";
 }
 
 function prontoo_schema_clear_caches(): void
 {
-    
-
-
-
-
-
-
-
-
 
     unset(
         $GLOBALS["PRONTOO_SCHEMA_SQL_CACHE"],
@@ -885,15 +629,6 @@ function prontoo_schema_clear_caches(): void
 
 function prontoo_schema_promote_release_contract(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $target = prontoo_schema_file();
     $payloadFile = prontoo_schema_release_contract_file();
@@ -952,16 +687,6 @@ function prontoo_schema_promote_release_contract(): void
 
 function prontoo_schema_sql(): string
 {
-    
-
-
-
-
-
-
-
-
-
 
     $cached = $GLOBALS["PRONTOO_SCHEMA_SQL_CACHE"] ?? null;
     if (is_string($cached)) {
@@ -980,14 +705,6 @@ function prontoo_schema_sql(): string
 
 function schema_split_sql(string $sql): array
 {
-    
-
-
-
-
-
-
-
 
     $statements = [];
     $buffer = "";
@@ -1042,16 +759,6 @@ function schema_split_sql(string $sql): array
 
 function prontoo_schema_statements(): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $statements = $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"] ?? null;
     if (is_array($statements)) {
@@ -1110,14 +817,6 @@ function prontoo_schema_statements(): array
 
 function schema_split_definitions(string $body): array
 {
-    
-
-
-
-
-
-
-
 
     $definitions = [];
     $buffer = "";
@@ -1170,15 +869,6 @@ function schema_split_definitions(string $body): array
 
 function schema_assert_mysql_constraint_compatibility(array $statements): void
 {
-    
-
-
-
-
-
-
-
-
 
     foreach ($statements as $statement) {
         if (
@@ -1286,16 +976,6 @@ function schema_assert_mysql_constraint_compatibility(array $statements): void
 
 function prontoo_schema_definition_map(): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $map = $GLOBALS["PRONTOO_SCHEMA_DEFINITION_MAP_CACHE"] ?? null;
     if (is_array($map)) {
@@ -1366,28 +1046,12 @@ function prontoo_schema_definition_map(): array
 
 function prontoo_schema_table_names(): array
 {
-    
-
-
-
-
-
-
-
 
     return array_keys(prontoo_schema_definition_map());
 }
 
 function prontoo_schema_columns(): array
 {
-    
-
-
-
-
-
-
-
 
     $result = [];
     foreach (prontoo_schema_definition_map() as $table => $definition) {
@@ -1398,14 +1062,6 @@ function prontoo_schema_columns(): array
 
 function prontoo_schema_constraint_names(): array
 {
-    
-
-
-
-
-
-
-
 
     $result = [];
     foreach (prontoo_schema_definition_map() as $table => $definition) {
@@ -1416,30 +1072,12 @@ function prontoo_schema_constraint_names(): array
 
 function prontoo_schema_contract_hash(): string
 {
-    
-
-
-
-
-
-
-
 
     return hash("sha256", prontoo_schema_sql());
 }
 
 function allowed_db_table(string $table): string
 {
-    
-
-
-
-
-
-
-
-
-
 
     $allowed = $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"] ?? null;
     if (!is_array($allowed)) {
@@ -1454,15 +1092,6 @@ function allowed_db_table(string $table): string
 
 function safe_db_columns(string $columns): string
 {
-    
-
-
-
-
-
-
-
-
 
     $items = array_map("trim", explode(",", trim($columns)));
     if ($items === [] || in_array("", $items, true)) {
@@ -1483,15 +1112,6 @@ function safe_db_columns(string $columns): string
 
 function db_ident(string $name): string
 {
-    
-
-
-
-
-
-
-
-
 
     if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
         throw new RuntimeException("Identificador de banco inválido.");
@@ -1501,14 +1121,6 @@ function db_ident(string $name): string
 
 function db_schema_error_is_missing_table(Throwable $error): bool
 {
-    
-
-
-
-
-
-
-
 
     $message = $error->getMessage();
     return str_contains($message, "doesn't exist") ||
@@ -1518,16 +1130,6 @@ function db_schema_error_is_missing_table(Throwable $error): bool
 
 function run_schema_sql(string $sql): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     if (
         !class_exists("\\Prontoo\\Core\\Database\\SchemaMutationLock") ||
@@ -1565,14 +1167,6 @@ if (!preg_match("/^\s*CREATE\s+TABLE\b/i", $sql)) {
 
 function db_table_exists(string $table): bool
 {
-    
-
-
-
-
-
-
-
 
     static $existing = [];
     if (isset($existing[$table])) {
@@ -1591,14 +1185,6 @@ function db_table_exists(string $table): bool
 
 function db_column_exists(string $table, string $column): bool
 {
-    
-
-
-
-
-
-
-
 
     static $existing = [];
     $key = $table . "|" . $column;
@@ -1618,14 +1204,6 @@ function db_column_exists(string $table, string $column): bool
 
 function db_index_exists(string $table, string $index): bool
 {
-    
-
-
-
-
-
-
-
 
     static $existing = [];
     $key = $table . "|" . $index;
@@ -1645,29 +1223,12 @@ function db_index_exists(string $table, string $index): bool
 
 function schema_lock_file(): string
 {
-    
-
-
-
-
-
-
-
 
     return storage_path("schema.ready");
 }
 
 function schema_mark_ready(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $payload = json_encode(
         [
@@ -1692,15 +1253,6 @@ function schema_mark_ready(): void
 
 function schema_validate_complete(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $expected = prontoo_schema_definition_map();
     $normalize = static  fn(mixed $value): string => strtolower(
@@ -1797,15 +1349,6 @@ function schema_validate_complete(): void
 
 function schema_seed_meta(): void
 {
-    
-
-
-
-
-
-
-
-
 
     $revision = defined("PRONTOO_SCHEMA_REV")
         ? PRONTOO_SCHEMA_REV
@@ -1827,14 +1370,6 @@ function schema_seed_meta(): void
 
 function schema_cleanup_failed_install(array $tables): void
 {
-    
-
-
-
-
-
-
-
 
         \Prontoo\Core\Database\SchemaMutationLock::assertActive();
 $connection = pdo();
@@ -1850,16 +1385,6 @@ $connection = pdo();
 
 function install_fresh_schema(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
         \Prontoo\Core\Database\SchemaMutationLock::assertActive();
 $connection = pdo();
@@ -1902,31 +1427,12 @@ $connection = pdo();
 
 function schema_apply_pending_release_migrations(): void
 {
-    
 
-
-
-
-
-
-
-
-    
-    
     return;
 }
 
 function ensure_runtime_schema_minimum(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated || !has_cfg()) {
@@ -1971,15 +1477,6 @@ function ensure_runtime_schema_minimum(): void
 
 function db_assert_tables(array $tables, string $domain): void
 {
-    
-
-
-
-
-
-
-
-
 
     foreach ($tables as $table) {
         if (!db_table_exists((string) $table)) {
@@ -1990,28 +1487,12 @@ function db_assert_tables(array $tables, string $domain): void
 
 function ensure_lead_events_schema(): void
 {
-    
-
-
-
-
-
-
-
 
     db_assert_tables(["pi_leads", "pi_lead_events"], "de interessados");
 }
 
 function ensure_financial_operational_schema(): void
 {
-    
-
-
-
-
-
-
-
 
     db_assert_tables(
         [

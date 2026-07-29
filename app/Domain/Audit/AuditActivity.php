@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function mask(mixed $v): mixed
 {
-    
-
-
-
-
-
-
-
 
     if (is_array($v)) {
         $o = [];
@@ -44,14 +36,6 @@ function mask(mixed $v): mixed
 }
 function mask_document_value(mixed $v): string
 {
-    
-
-
-
-
-
-
-
 
     $d = only_digits((string) $v);
     if (strlen($d) === 11) {
@@ -64,14 +48,6 @@ function mask_document_value(mixed $v): string
 }
 function pt_list(array $items): string
 {
-    
-
-
-
-
-
-
-
 
     $items = array_values(
         array_filter(
@@ -93,14 +69,6 @@ function pt_list(array $items): string
 }
 function audit_change_body(array $fields): string
 {
-    
-
-
-
-
-
-
-
 
     $fields = array_values(
         array_unique(
@@ -120,14 +88,6 @@ function audit_change_body(array $fields): string
 }
 function audit_value_present(mixed $v): bool
 {
-    
-
-
-
-
-
-
-
 
     if (is_array($v)) {
         return !empty($v);
@@ -136,14 +96,6 @@ function audit_value_present(mixed $v): bool
 }
 function audit_field_list(array $ctx, array $labels, array $forced = []): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach ($forced as $label) {
@@ -165,14 +117,6 @@ function audit_registered_body(
     array $fields,
     string $empty = "Nenhum dado adicional foi informado.",
 ): string {
-    
-
-
-
-
-
-
-
 
     $fields = array_values(
         array_unique(
@@ -192,14 +136,6 @@ function audit_registered_body(
 }
 function audit_status_body(array $ctx, string $label = "status"): string
 {
-    
-
-
-
-
-
-
-
 
     $status = (string) ($ctx["status"] ?? ($ctx["novo_status"] ?? ""));
     return $status !== ""
@@ -208,14 +144,6 @@ function audit_status_body(array $ctx, string $label = "status"): string
 }
 function audit_patient_name(array $ctx, mixed $entityId = null): string
 {
-    
-
-
-
-
-
-
-
 
     $name = trim(
         (string) ($ctx["patient_name"] ??
@@ -234,14 +162,6 @@ function audit_person_target(
     array $ctx,
     string $nameKey = "target_name",
 ): string {
-    
-
-
-
-
-
-
-
 
     $name = trim(
         (string) ($ctx[$nameKey] ?? ($ctx["nome"] ?? ($ctx["name"] ?? ""))),
@@ -250,69 +170,29 @@ function audit_person_target(
 }
 function audit_patient_record_target(array $ctx, mixed $entityId = null): string
 {
-    
-
-
-
-
-
-
-
 
     return "o prontuário de " . audit_patient_name($ctx, $entityId);
 }
 function audit_clinic_target(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $name = trim((string) ($ctx["clinic_name"] ?? ($ctx["consultorio"] ?? "")));
     return $name !== "" ? "Consultório " . $name : "Consultório";
 }
 function audit_task_target(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $title = trim((string) ($ctx["task_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Tarefa “" . $title . "”" : "Tarefa";
 }
 function audit_notice_target(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $title = trim((string) ($ctx["notice_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Aviso “" . $title . "”" : "Aviso";
 }
 function audit_appointment_target(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $patient = audit_patient_name($ctx, $ctx["patient_link_id"] ?? null);
     $start = trim((string) ($ctx["start_at"] ?? ""));
@@ -321,14 +201,6 @@ function audit_appointment_target(array $ctx): string
 }
 function audit_ctx_pick(array $ctx, array $keys): string
 {
-    
-
-
-
-
-
-
-
 
     foreach ($keys as $key) {
         if (array_key_exists((string) $key, $ctx)) {
@@ -344,14 +216,6 @@ function audit_money_text(
     array $ctx,
     array $keys = ["valor", "amount", "amount_cents", "target_cents"],
 ): string {
-    
-
-
-
-
-
-
-
 
     foreach ($keys as $key) {
         if (!array_key_exists((string) $key, $ctx)) {
@@ -374,14 +238,6 @@ function audit_money_text(
 }
 function audit_status_text(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $s = audit_ctx_pick($ctx, ["status", "novo_status", "stage", "active"]);
     if ($s === "") {
@@ -397,28 +253,12 @@ function audit_status_text(array $ctx): string
 }
 function audit_due_text(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $v = audit_ctx_pick($ctx, ["due_at", "vencimento", "expected_at"]);
     return $v !== "" ? dt_br($v) : "";
 }
 function audit_target_scope_label(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $dest = audit_ctx_pick($ctx, ["destino", "target_scope"]);
     if ($dest === "clinic") {
@@ -443,28 +283,12 @@ function audit_target_scope_label(array $ctx): string
 }
 function audit_finance_base_label_from_ctx(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $base = audit_ctx_pick($ctx, ["base", "base_metric"]);
     return $base !== "" ? financial_goal_base_label($base) : "";
 }
 function audit_account_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     return audit_ctx_pick($ctx, [
         "account_name",
@@ -476,14 +300,6 @@ function audit_account_name(array $ctx): string
 }
 function audit_counterparty_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     return audit_ctx_pick($ctx, [
         "counterparty_name",
@@ -495,14 +311,6 @@ function audit_counterparty_name(array $ctx): string
 }
 function audit_financial_title(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     return audit_ctx_pick($ctx, ["titulo", "title", "name", "descricao"]);
 }
@@ -512,27 +320,11 @@ function audit_body_for_event(
     mixed $entityId,
     array $ctx,
 ): string {
-    
-
-
-
-
-
-
-
 
     return activity_direct_body($event, $entity, $entityId, $ctx);
 }
 function audit_context_array(array $row): array
 {
-    
-
-
-
-
-
-
-
 
     $raw = (string) ($row["context_json"] ?? "");
     if ($raw === "") {
@@ -543,14 +335,6 @@ function audit_context_array(array $row): array
 }
 function audit_integrity_base(array $r): string
 {
-    
-
-
-
-
-
-
-
 
     return implode("|", [
         (string) ($r["clinic_id"] ?? ""),
@@ -564,14 +348,6 @@ function audit_integrity_base(array $r): string
 }
 function verify_audit_row(array $r): bool
 {
-    
-
-
-
-
-
-
-
 
     $hash = trim((string) ($r["integrity_hash"] ?? ""));
     try {
@@ -591,14 +367,6 @@ function verify_audit_row(array $r): bool
 }
 function audit_chain_integrity_status(int $limit = 240): array
 {
-    
-
-
-
-
-
-
-
 
     $limit = max(2, min(1000, $limit));
     try {
@@ -628,27 +396,11 @@ function audit_chain_integrity_status(int $limit = 240): array
 }
 function audit_select_sql(): string
 {
-    
-
-
-
-
-
-
-
 
     return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.proof_json,a.policy_version,a.created_at FROM pi_audit a";
 }
 function int_ids(array $rows, string $key): array
 {
-    
-
-
-
-
-
-
-
 
     $ids = [];
     foreach ($rows as $r) {
@@ -661,14 +413,6 @@ function int_ids(array $rows, string $key): array
 }
 function fetch_map(string $table, array $ids, string $cols = "id"): array
 {
-    
-
-
-
-
-
-
-
 
     $table = allowed_db_table($table);
     $cols = safe_db_columns($cols);
@@ -679,14 +423,6 @@ function fetch_map(string $table, array $ids, string $cols = "id"): array
     $ids = array_slice($ids, 0, 300);
     $scopeCid = session_clinic_scope_id();
     $loader = function () use ($table, $ids, $cols, $scopeCid): array {
-        
-
-
-
-
-
-
-
 
         $ph = implode(",", array_fill(0, count($ids), "?"));
         if ($scopeCid > 0 && tenant_table_is_scoped($table)) {
@@ -734,14 +470,6 @@ function scoped_patient_map(
     array $ids,
     string $cols = "id,person_id",
 ): array {
-    
-
-
-
-
-
-
-
 
     $cols = safe_db_columns($cols);
     $ids = array_values(array_unique(array_map("intval", $ids)));
@@ -764,14 +492,6 @@ function scoped_patient_map(
 }
 function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
 {
-    
-
-
-
-
-
-
-
 
     $cols = safe_db_columns($cols);
     $ids = array_values(array_unique(array_map("intval", $ids)));
@@ -794,14 +514,6 @@ function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
 }
 function audit_where_sql(string $where): string
 {
-    
-
-
-
-
-
-
-
 
     return trim($where) === "1=1" ? "1=1" : $where;
 }
@@ -811,14 +523,6 @@ function audit_rows_light(
     int $limit = 80,
     int $offset = 0,
 ): array {
-    
-
-
-
-
-
-
-
 
     $limit = max(1, min(120, $limit));
     $offset = max(0, $offset);
@@ -839,14 +543,6 @@ function audit_rows_light(
 }
 function activity_axis_for_event(string $event): array
 {
-    
-
-
-
-
-
-
-
 
     $map = [
         "janela_aberta" => ["Consultar", "read", "visibility"],
@@ -1015,14 +711,6 @@ function activity_axis_for_event(string $event): array
 }
 function activity_module_label(?string $entity): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "clinica" => "Consultório",
@@ -1057,14 +745,6 @@ function activity_time_direct(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $raw = trim((string) ($value ?? ""));
     if ($raw === "") {
@@ -1096,14 +776,6 @@ function activity_time_direct(
 }
 function activity_text_value(mixed $v): string
 {
-    
-
-
-
-
-
-
-
 
     if (is_array($v)) {
         return trim(implode(", ", array_filter(array_map("strval", $v))));
@@ -1112,28 +784,12 @@ function activity_text_value(mixed $v): string
 }
 function activity_clean_name(string $value, string $fallback = ""): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim(preg_replace("/\s+/", " ", $value));
     return $value !== "" ? $value : $fallback;
 }
 function activity_money_from_ctx(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     foreach (
         ["valor", "amount_cents", "amount", "target_cents", "price_cents"]
@@ -1147,14 +803,6 @@ function activity_money_from_ctx(array $ctx): string
 }
 function activity_date_from_ctx(array $ctx, array $keys): string
 {
-    
-
-
-
-
-
-
-
 
     foreach ($keys as $k) {
         $v = activity_text_value($ctx[$k] ?? "");
@@ -1166,14 +814,6 @@ function activity_date_from_ctx(array $ctx, array $keys): string
 }
 function activity_status_from_ctx(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $s = activity_text_value(
         $ctx["status"] ?? ($ctx["novo_status"] ?? ($ctx["active"] ?? "")),
@@ -1194,14 +834,6 @@ function activity_status_from_ctx(array $ctx): string
 }
 function activity_display_label(string $label): string
 {
-    
-
-
-
-
-
-
-
 
     $label = trim($label);
     if ($label === "") {
@@ -1263,14 +895,6 @@ function activity_changed_fields(
     ?string $entity,
     array $ctx,
 ): array {
-    
-
-
-
-
-
-
-
 
     $labels = [
         "nome" => "Nome",
@@ -1415,14 +1039,6 @@ function activity_changed_fields(
 }
 function activity_patient_name(array $ctx, mixed $entityId = null): string
 {
-    
-
-
-
-
-
-
-
 
     return activity_clean_name(audit_patient_name($ctx, $entityId), "paciente");
 }
@@ -1430,14 +1046,6 @@ function activity_title_from_ctx(
     array $ctx,
     string $fallback = "registro",
 ): string {
-    
-
-
-
-
-
-
-
 
     return activity_clean_name(
         activity_text_value(
@@ -1451,14 +1059,6 @@ function activity_person_from_ctx(
     array $ctx,
     string $fallback = "colaborador",
 ): string {
-    
-
-
-
-
-
-
-
 
     $n = activity_text_value(
         $ctx["target_name"] ?? ($ctx["nome"] ?? ($ctx["name"] ?? "")),
@@ -1470,14 +1070,6 @@ function activity_person_from_ctx(
 }
 function activity_target_scope_human(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $scope = activity_text_value(
         $ctx["destino"] ?? ($ctx["target_scope"] ?? ""),
@@ -1501,14 +1093,6 @@ function activity_target_scope_human(array $ctx): string
 }
 function activity_financial_label(array $ctx, string $fallback): string
 {
-    
-
-
-
-
-
-
-
 
     $title = activity_title_from_ctx($ctx, "");
     if ($title !== "") {
@@ -1519,14 +1103,6 @@ function activity_financial_label(array $ctx, string $fallback): string
 }
 function activity_environment_label(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $label = activity_text_value(
         $ctx["environment_label"] ??
@@ -1571,14 +1147,6 @@ function activity_human_sentence(
     array $ctx,
     ?int $uid,
 ): string {
-    
-
-
-
-
-
-
-
 
     $who = audit_actor_name($ctx, $uid);
     $patient = activity_patient_name($ctx, $entityId);
@@ -1819,14 +1387,6 @@ function activity_human_sentence(
 }
 function activity_action_verb(string $event): string
 {
-    
-
-
-
-
-
-
-
 
     [$axis] = activity_axis_for_event($event);
     return [
@@ -1842,14 +1402,6 @@ function activity_direct_target(
     mixed $entityId,
     array $ctx,
 ): string {
-    
-
-
-
-
-
-
-
 
     $patient = activity_patient_name($ctx, $entityId);
     $title = activity_title_from_ctx($ctx, "");
@@ -1906,14 +1458,6 @@ function activity_direct_title(
     array $ctx,
     ?int $uid,
 ): string {
-    
-
-
-
-
-
-
-
 
     return activity_human_sentence($event, $entity, $entityId, $ctx, $uid);
 }
@@ -1922,14 +1466,6 @@ function activity_context_details(
     ?string $entity,
     array $ctx,
 ): array {
-    
-
-
-
-
-
-
-
 
     $details = [];
     $money = activity_money_from_ctx($ctx);
@@ -2037,14 +1573,6 @@ function activity_direct_body(
     mixed $entityId,
     array $ctx,
 ): string {
-    
-
-
-
-
-
-
-
 
     [$axis] = activity_axis_for_event($event);
     if ($axis === "Consultar") {
@@ -2089,40 +1617,16 @@ function activity_meta_text(
     ?string $entity,
     string $currentMeta = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return trim($currentMeta);
 }
 function activity_fallback_body(string $event, ?string $entity): string
 {
-    
-
-
-
-
-
-
-
 
     return activity_direct_body($event, $entity, null, []);
 }
 function audit_items(array $rows, bool $global = false): array
 {
-    
-
-
-
-
-
-
-
 
     $items = [];
     foreach ($rows as $r) {
@@ -2172,15 +1676,6 @@ function count_for_clinics(
     array $clinicIds,
     string $where = "1=1",
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $table = allowed_db_table($table);
     if (!preg_match('/^[A-Za-z0-9_ =?<>()\.\-\']+$/', $where)) {
@@ -2195,14 +1690,6 @@ function count_for_clinics(
     sort($clinicIds, SORT_NUMERIC);
     $clinicIds = array_slice($clinicIds, 0, 300);
     $loader = function () use ($table, $clinicIds, $where): array {
-        
-
-
-
-
-
-
-
 
         $out = array_fill_keys($clinicIds, 0);
         $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
@@ -2239,14 +1726,6 @@ function count_for_clinics(
 }
 function clinic_recent_metrics(array $clinicIds, int $days = 30): array
 {
-    
-
-
-
-
-
-
-
 
     $clinicIds = array_values(
         array_unique(array_filter(array_map("intval", $clinicIds))),
@@ -2258,14 +1737,6 @@ function clinic_recent_metrics(array $clinicIds, int $days = 30): array
     $days = max(1, min(366, $days));
     $from = date("Y-m-d", strtotime("-" . $days . " days"));
     $loader = function () use ($clinicIds, $from): array {
-        
-
-
-
-
-
-
-
 
         $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
         try {
@@ -2302,14 +1773,6 @@ function clinic_recent_metrics(array $clinicIds, int $days = 30): array
 }
 function audit_patient_name_by_link(int $patientId, ?int $cid = null): string
 {
-    
-
-
-
-
-
-
-
 
     if ($patientId <= 0) {
         return "";
@@ -2338,14 +1801,6 @@ function audit_patient_name_by_link(int $patientId, ?int $cid = null): string
 }
 function audit_user_name_lookup(int $uid, ?int $cid = null): string
 {
-    
-
-
-
-
-
-
-
 
     static $cache = [];
     if ($uid <= 0) {
@@ -2356,14 +1811,6 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
         return $cache[$memoryKey];
     }
     $loader = static function () use ($uid, $cid): string {
-        
-
-
-
-
-
-
-
 
         try {
             $u = $cid
@@ -2390,14 +1837,6 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
 }
 function audit_clinic_name_lookup(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     static $cache = [];
     if ($cid <= 0) {
@@ -2407,14 +1846,6 @@ function audit_clinic_name_lookup(int $cid): string
         return $cache[$cid];
     }
     $loader = static function () use ($cid): string {
-        
-
-
-
-
-
-
-
 
         try {
             $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
@@ -2444,14 +1875,6 @@ function audit_enrich_context(
     array $context,
     ?int $cid = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     $id = (int) $entityId;
     if (empty($context["clinic_name"]) && $cid) {
@@ -2817,14 +2240,6 @@ function audit_enrich_context(
 }
 function audit_should_write(string $event): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($event === "janela_aberta" && !PRONTOO_AUDIT_PAGE_VIEWS) {
         return false;
@@ -2890,15 +2305,6 @@ function audit(
     array $context = [],
     ?array $trustedOrigin = null,
 ): bool {
-    
-
-
-
-
-
-
-
-
 
     if (!has_cfg() || !audit_should_write($event)) {
         return false;
@@ -2911,15 +2317,6 @@ function audit(
             $context,
             $trustedOrigin,
         ): void {
-            
-
-
-
-
-
-
-
-
 
             $origin = audit_trusted_origin_resolve(
                 $context,
@@ -3052,28 +2449,12 @@ function audit(
 }
 function audit_actor_name(array $ctx, ?int $uid): string
 {
-    
-
-
-
-
-
-
-
 
     $actor = trim((string) ($ctx["actor_name"] ?? ""));
     return $actor !== "" ? first_name($actor) : user_name_by_id($uid);
 }
 function audit_document_type_text(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $label = trim((string) ($ctx["document_type_label"] ?? ""));
     if ($label === "") {
@@ -3090,14 +2471,6 @@ function audit_document_type_text(array $ctx): string
 }
 function audit_document_article(string $label): string
 {
-    
-
-
-
-
-
-
-
 
     $l = mb_strtolower(trim($label));
     foreach (["receita", "declaração", "solicitação", "orientação"] as $fem) {
@@ -3112,14 +2485,6 @@ function audit_document_activity_sentence(
     string $action,
     array $ctx,
 ): string {
-    
-
-
-
-
-
-
-
 
     $doc = audit_document_type_text($ctx);
     $patient = trim((string) ($ctx["patient_name"] ?? ""));
@@ -3132,14 +2497,6 @@ function audit_document_activity_sentence(
 }
 function audit_model_title(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $t = trim(
         (string) ($ctx["template_title"] ??
@@ -3152,14 +2509,6 @@ function audit_model_activity_sentence(
     string $action,
     array $ctx,
 ): string {
-    
-
-
-
-
-
-
-
 
     $model = audit_model_title($ctx);
     return match ($action) {
@@ -3172,14 +2521,6 @@ function audit_model_activity_sentence(
 }
 function audit_direct_events(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "janela_aberta",
@@ -3259,14 +2600,6 @@ function audit_direct_events(): array
 }
 function audit_task_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $t = trim(
         (string) ($ctx["task_title"] ??
@@ -3280,14 +2613,6 @@ function audit_task_sentence(
     array $ctx,
     string $suffix = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $task = audit_task_name($ctx);
     $txt = $who . " " . $verb . " tarefa " . $task;
@@ -3305,14 +2630,6 @@ function audit_task_sentence(
 }
 function audit_notice_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $t = trim(
         (string) ($ctx["notice_title"] ??
@@ -3322,14 +2639,6 @@ function audit_notice_name(array $ctx): string
 }
 function audit_lead_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $t = trim(
         (string) ($ctx["target_name"] ??
@@ -3343,14 +2652,6 @@ function audit_status_verb(
     string $inactive = "desativou",
     string $changed = "alterou",
 ): string {
-    
-
-
-
-
-
-
-
 
     $s = mb_strtolower(
         trim((string) ($ctx["status"] ?? ($ctx["active"] ?? ""))),
@@ -3386,14 +2687,6 @@ function audit_status_verb(
 }
 function audit_route_name(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $r = trim(
         (string) ($ctx["janela"] ?? ($ctx["rota"] ?? ($ctx["route"] ?? ""))),
@@ -3402,14 +2695,6 @@ function audit_route_name(array $ctx): string
 }
 function audit_global_notice_title(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $t = trim(
         (string) ($ctx["notice_title"] ??
@@ -3419,14 +2704,6 @@ function audit_global_notice_title(array $ctx): string
 }
 function audit_subscription_target(array $ctx): string
 {
-    
-
-
-
-
-
-
-
 
     $cl = audit_clinic_target($ctx);
     $status = trim(
@@ -3441,27 +2718,11 @@ function audit_friendly(
     array $ctx,
     ?int $uid,
 ): string {
-    
-
-
-
-
-
-
-
 
     return activity_direct_title($event, $entity, $entityId, $ctx, $uid);
 }
 function event_label(string $e): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "janela_aberta" => "Tela consultada",
@@ -3550,14 +2811,6 @@ function event_label(string $e): string
 }
 function event_icon(string $e): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "janela_aberta" => "visibility",
@@ -3645,14 +2898,6 @@ function event_icon(string $e): string
 }
 function entity_label(?string $e): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "clinica" => "consultório",
@@ -3683,14 +2928,6 @@ function entity_label(?string $e): string
 }
 function audit_visibility_filter(array $c, string &$where, array &$params): void
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $role = (string) $c["role"];
@@ -3737,28 +2974,12 @@ function audit_visibility_filter(array $c, string &$where, array &$params): void
 }
 function recent_events(int $cid, int $uid, string $role): array
 {
-    
-
-
-
-
-
-
-
 
     $rows = audit_rows_light("clinic_id=?", [$cid], 12);
     return audit_items($rows);
 }
 function audit_preview_for_appointment(int $cid, int $appointmentId): string
 {
-    
-
-
-
-
-
-
-
 
     $rows = audit_rows_light(
         "clinic_id=? AND entity_key=? AND entity_id=?",
@@ -3786,27 +3007,11 @@ function audit_preview_for_appointment(int $cid, int $appointmentId): string
 }
 function audit_team_filter_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0) {
         return [];
     }
     $loader = static function () use ($cid): array {
-        
-
-
-
-
-
-
-
 
         try {
             $rows = q(
@@ -3844,15 +3049,6 @@ function audit_activity_day_name(
     int $cid = 0,
     ?array $c = null,
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $labels = [
         "Domingo",
@@ -3874,14 +3070,6 @@ function audit_activity_day_name(
 }
 function audit_period_options(int $cid = 0, ?array $c = null): array
 {
-    
-
-
-
-
-
-
-
 
     $today = app_today_in_timezone($cid, $c);
     $before = date("Y-m-d", strtotime($today . " -2 days"));
@@ -3899,14 +3087,6 @@ function audit_period_clause(
     array $c,
     ?string $selectedDate = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $opts = audit_period_options($cid, $c);
     if (!isset($opts[$period])) {
@@ -3933,15 +3113,6 @@ function audit_period_clause(
 }
 function audit_activity_url(array $extra = []): string
 {
-    
-
-
-
-
-
-
-
-
 
     $base = ["r" => "audit"];
     foreach (["member", "period", "date"] as $k) {
@@ -3953,16 +3124,6 @@ function audit_activity_url(array $extra = []): string
 }
 function page_audit(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = require_can("audit");
     $cid = (int) $c["clinic_id"];
@@ -4013,14 +3174,6 @@ function page_audit(): void
         $period,
         $selectedDate,
     ): array {
-        
-
-
-
-
-
-
-
 
         $base = [];
         if ($member > 0) {

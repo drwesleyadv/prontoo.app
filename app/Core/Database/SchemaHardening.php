@@ -6,28 +6,11 @@ namespace Prontoo\Core\Database;
 final class SchemaHardening
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function run(): void
     {
-        
-
-
-
-
-
-
-
-
 
         if (!\function_exists("schema_validate_complete")) {
             throw new \RuntimeException(

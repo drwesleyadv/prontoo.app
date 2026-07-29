@@ -7,28 +7,10 @@ use Prontoo\Core\Tenant\TenantRegistry;
 final class SqlScopeGuard
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function guard(string $sql, array $params = []): void
     {
-        
-
-
-
-
-
-
-
-
-
 
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"])) {
             return;
@@ -99,15 +81,6 @@ final class SqlScopeGuard
         string $scopeColumn,
         int $clinicId,
     ): void {
-        
-
-
-
-
-
-
-
-
 
         $scopeColumn = strtolower($scopeColumn);
         if ($operation === "UPDATE" || $operation === "DELETE") {
@@ -247,14 +220,6 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         return self::booleanScopeProof(
             $sql,
@@ -273,14 +238,6 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         [$expression, $baseOffset] = self::trimExpression(
             $expression,
@@ -351,14 +308,6 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         $column = preg_quote($scopeColumn, "/");
         $columnExpr = "(?:`?[a-z0-9_]+`?\\s*\\.\\s*)?`?" . $column . "`?";
@@ -396,14 +345,6 @@ final class SqlScopeGuard
         int $clinicId,
         array $params,
     ): string {
-        
-
-
-
-
-
-
-
 
         if ($token === "?") {
             $index = self::placeholderIndexBefore($sql, $tokenOffset);
@@ -423,14 +364,6 @@ final class SqlScopeGuard
         string $sql,
         string $scopeColumn,
     ): ?array {
-        
-
-
-
-
-
-
-
 
         if (
             !preg_match(
@@ -462,14 +395,6 @@ final class SqlScopeGuard
         string $sql,
         string $scopeColumn,
     ): bool {
-        
-
-
-
-
-
-
-
 
         if (
             !preg_match(
@@ -494,14 +419,6 @@ final class SqlScopeGuard
         array $params,
         array $insert,
     ): string {
-        
-
-
-
-
-
-
-
 
         $clinicIndex = $insert["clinic_index"] ?? null;
         if (!is_int($clinicIndex)) {
@@ -563,14 +480,6 @@ final class SqlScopeGuard
     }
     private static function splitSqlList(string $list): array
     {
-        
-
-
-
-
-
-
-
 
         $items = [];
         $current = "";
@@ -615,14 +524,6 @@ final class SqlScopeGuard
     }
     private static function splitSqlListWithOffsets(string $list): array
     {
-        
-
-
-
-
-
-
-
 
         $items = [];
         $current = "";
@@ -663,14 +564,6 @@ final class SqlScopeGuard
     }
     private static function insertValueGroups(string $sql, int $offset): array
     {
-        
-
-
-
-
-
-
-
 
         $groups = [];
         $length = strlen($sql);
@@ -710,14 +603,6 @@ final class SqlScopeGuard
     }
     private static function matchingParenthesis(string $sql, int $start): ?int
     {
-        
-
-
-
-
-
-
-
 
         $depth = 0;
         $quote = null;
@@ -749,14 +634,6 @@ final class SqlScopeGuard
         string $sql,
         string $keyword,
     ): ?int {
-        
-
-
-
-
-
-
-
 
         $depth = 0;
         $quote = null;
@@ -798,14 +675,6 @@ final class SqlScopeGuard
         string $scopeColumn,
         int $wherePosition,
     ): bool {
-        
-
-
-
-
-
-
-
 
         $setPosition = self::topLevelKeywordPosition($sql, "set");
         if ($setPosition === null || $setPosition >= $wherePosition) {
@@ -832,28 +701,12 @@ final class SqlScopeGuard
     }
     private static function trimExpression(string $expression, int $offset): array
     {
-        
-
-
-
-
-
-
-
 
         $leading = strlen($expression) - strlen(ltrim($expression));
         return [trim($expression), $offset + $leading];
     }
     private static function outerParenthesesWrap(string $expression): bool
     {
-        
-
-
-
-
-
-
-
 
         $expression = trim($expression);
         if (strlen($expression) < 2 || $expression[0] !== "(") {
@@ -865,14 +718,6 @@ final class SqlScopeGuard
         string $expression,
         string $operator,
     ): array {
-        
-
-
-
-
-
-
-
 
         $parts = [];
         $start = 0;
@@ -920,14 +765,6 @@ final class SqlScopeGuard
     }
     private static function placeholderIndexBefore(string $sql, int $offset): int
     {
-        
-
-
-
-
-
-
-
 
         $count = 0;
         $quote = null;
@@ -952,27 +789,10 @@ final class SqlScopeGuard
     }
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
-
 
         $clinicId = 17;
         $cases = [];
         $where = static function (string $sql, array $params) use ($clinicId): string {
-            
-
-
-
-
-
-
-
 
             $position = self::topLevelKeywordPosition($sql, "where");
             return $position === null
@@ -1067,15 +887,6 @@ final class SqlScopeGuard
     }
     private static function globalOrSystemContext(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         if (!empty($GLOBALS["PRONTOO_SCOPE_GUARD_SYSTEM"])) {
             return true;
@@ -1098,15 +909,6 @@ final class SqlScopeGuard
     }
     private static function sessionUserIsGlobalAdmin(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         $uid = (int) ($_SESSION["uid"] ?? 0);
         if ($uid <= 0) {
@@ -1128,14 +930,6 @@ final class SqlScopeGuard
     }
     private static function clinicReadOnly(int $clinicId): bool
     {
-        
-
-
-
-
-
-
-
 
         return function_exists("clinic_read_only_db")
             ? \clinic_read_only_db($clinicId)
@@ -1146,14 +940,6 @@ final class SqlScopeGuard
         string $sql,
         string $detail,
     ): void {
-        
-
-
-
-
-
-
-
 
         if (function_exists("record_scope_violation")) {
             \record_scope_violation($key, $sql, $detail);

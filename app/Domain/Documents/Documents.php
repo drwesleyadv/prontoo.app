@@ -2,40 +2,16 @@
 declare(strict_types=1);
 function document_identifier_consonants(): array
 {
-    
-
-
-
-
-
-
-
 
     return str_split("BCDFGHJKLMNPQRSTVWXYZ");
 }
 function document_identifier_base(): int
 {
-    
-
-
-
-
-
-
-
 
     return count(document_identifier_consonants());
 }
 function document_identifier_random_alphabet(): string
 {
-    
-
-
-
-
-
-
-
 
     $letters = document_identifier_consonants();
     shuffle($letters);
@@ -43,14 +19,6 @@ function document_identifier_random_alphabet(): string
 }
 function document_identifier_valid_alphabet(string $alphabet): bool
 {
-    
-
-
-
-
-
-
-
 
     $alphabet = strtoupper(trim($alphabet));
     $letters = str_split($alphabet);
@@ -62,15 +30,6 @@ function document_identifier_valid_alphabet(string $alphabet): bool
 }
 function document_identifier_digits(int $sequence): array
 {
-    
-
-
-
-
-
-
-
-
 
     if ($sequence <= 0) {
         throw new RuntimeException("Sequência documental inválida.");
@@ -90,14 +49,6 @@ function document_identifier_digits(int $sequence): array
 }
 function document_identifier_numeric_part(int $sequence): string
 {
-    
-
-
-
-
-
-
-
 
     return implode(
         "",
@@ -109,15 +60,6 @@ function document_identifier_numeric_part(int $sequence): string
 }
 function document_identifier_encode(int $sequence, string $alphabet): string
 {
-    
-
-
-
-
-
-
-
-
 
     $alphabet = strtoupper($alphabet);
     if (!document_identifier_valid_alphabet($alphabet)) {
@@ -133,57 +75,23 @@ function document_identifier_encode(int $sequence, string $alphabet): string
 }
 function document_identifier_display(?string $identifier): string
 {
-    
-
-
-
-
-
-
-
 
     $identifier = strtoupper(trim((string) $identifier));
     return preg_match('/^[A-Z]{3,12}$/', $identifier) ? $identifier : "";
 }
 function document_identifier_capacity_for_length(int $length = 3): int
 {
-    
-
-
-
-
-
-
-
 
     $length = max(1, $length);
     return (int) (document_identifier_base() ** $length);
 }
 function document_assign_identifier(int $cid, int $docId): string
 {
-    
-
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $docId <= 0) {
         throw new RuntimeException("Documento inválido para identificação.");
     }
     return db_tx(function () use ($cid, $docId) {
-        
-
-
-
-
-
-
-
-
 
         $doc = one(
             "SELECT id,document_identifier FROM pi_documents WHERE id=? AND clinic_id=? LIMIT 1 FOR UPDATE",
@@ -250,27 +158,11 @@ function document_assign_identifier(int $cid, int $docId): string
 }
 function document_print_header_html(?string $identifier): string
 {
-    
-
-
-
-
-
-
-
 
     return "";
 }
 function document_print_footer_html(?string $identifier): string
 {
-    
-
-
-
-
-
-
-
 
     $id = document_identifier_display($identifier);
     return $id !== ""
@@ -281,14 +173,6 @@ function document_print_footer_html(?string $identifier): string
 }
 function document_status_label(string $status): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "rascunho" => "Rascunho",
@@ -306,14 +190,6 @@ function document_status_label(string $status): string
 }
 function document_status_class(string $status): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($status) {
         "emitido", "entregue", "approved" => "ok",
@@ -324,14 +200,6 @@ function document_status_class(string $status): string
 }
 function document_editable_status(string $status): bool
 {
-    
-
-
-
-
-
-
-
 
     return in_array($status, ["rascunho", "preparado"], true);
 }
@@ -342,16 +210,6 @@ function create_document_draft_from_template(
     int $appointmentId = 0,
     array $context = [],
 ): int {
-    
-
-
-
-
-
-
-
-
-
 
     $cid = clinic_id_required($c);
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -427,16 +285,6 @@ function save_document_draft(
     int $appointmentId = 0,
     array $context = [],
 ): void {
-    
-
-
-
-
-
-
-
-
-
 
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
@@ -509,16 +357,6 @@ function save_document_draft(
 }
 function discard_document_draft(array $c, int $docId): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
@@ -551,16 +389,6 @@ function discard_document_draft(array $c, int $docId): void
 }
 function confirm_document_issue(array $c, int $docId): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $doc = fetch_document_for_current_user($c, $docId);
     if (!$doc) {
@@ -586,14 +414,6 @@ function confirm_document_issue(array $c, int $docId): void
         );
     }
     $identifier = db_tx(function () use ($c, $docId) {
-        
-
-
-
-
-
-
-
 
         q(
             "UPDATE pi_documents SET document_status='emitido', confirmed_at=NOW(), issued_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
@@ -618,14 +438,6 @@ function confirm_document_issue(array $c, int $docId): void
 }
 function document_type_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "recibo" => "Recibo",
@@ -646,14 +458,6 @@ function document_type_options(): array
 }
 function document_system_field_groups(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "consultorio" => [
@@ -742,14 +546,6 @@ function document_system_field_groups(): array
 }
 function document_system_fields(): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach (document_system_field_groups() as $group) {
@@ -761,14 +557,6 @@ function document_system_fields(): array
 }
 function document_allowed_types_for_role(string $role): array
 {
-    
-
-
-
-
-
-
-
 
     return match ($role) {
         "recepcionista" => [
@@ -812,14 +600,6 @@ function document_allowed_types_for_role(string $role): array
 }
 function document_type_options_for_role(string $role): array
 {
-    
-
-
-
-
-
-
-
 
     $all = document_type_options();
     $allowed = array_flip(document_allowed_types_for_role($role));
@@ -827,14 +607,6 @@ function document_type_options_for_role(string $role): array
 }
 function document_role_config(string $role, int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     $label = role_label_for($role, $cid);
     $base = [
@@ -896,14 +668,6 @@ function document_ds_metric(
     string $note = "",
     string $class = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<article class="doc-ds-metric patient-kpi-card kpi-card ' .
         e($class) .
@@ -919,14 +683,6 @@ function document_ds_metric(
 }
 function document_ds_status_chip(string $status): string
 {
-    
-
-
-
-
-
-
-
 
     return '<span class="doc-ds-chip ' .
         document_status_class($status) .
@@ -936,14 +692,6 @@ function document_ds_status_chip(string $status): string
 }
 function document_ds_type_label(array $typeOptions, ?string $type): string
 {
-    
-
-
-
-
-
-
-
 
     $type = (string) ($type ?? "");
     return $typeOptions[$type] ??
@@ -951,14 +699,6 @@ function document_ds_type_label(array $typeOptions, ?string $type): string
 }
 function document_ds_recent_row(array $d, array $typeOptions): string
 {
-    
-
-
-
-
-
-
-
 
     $st = (string) ($d["document_status"] ?? "emitido");
     $idText = document_identifier_display($d["document_identifier"] ?? "");
@@ -1053,15 +793,6 @@ function document_ds_recent_row(array $d, array $typeOptions): string
 }
 function document_ds_model_row(array $tpl, array $typeOptions, int $cid): string
 {
-    
-
-
-
-
-
-
-
-
 
     $kind = $typeOptions[(string) ($tpl["type_key"] ?? "")] ?? "Documento";
     $owner = role_label_for((string) ($tpl["owner_role"] ?? ""), $cid);
@@ -1116,14 +847,6 @@ function document_ds_model_row(array $tpl, array $typeOptions, int $cid): string
 if (!function_exists("cpf_br")) {
     function cpf_br(string $cpf): string
     {
-        
-
-
-
-
-
-
-
 
         $d = only_digits($cpf);
         return strlen($d) === 11
@@ -1139,14 +862,6 @@ if (!function_exists("cpf_br")) {
 }
 function document_template_visible_where(array $c, string $alias = "dt"): array
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "");
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -1163,14 +878,6 @@ function document_template_visible_where(array $c, string $alias = "dt"): array
 }
 function can_edit_document_template(array $c, array $tpl): bool
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "");
     if ($role === "gerente") {
@@ -1183,14 +890,6 @@ function document_template_status_after_save(
     string $ownerRole,
     bool $isUpdate = false,
 ): array {
-    
-
-
-
-
-
-
-
 
     $editorRole = (string) ($c["role"] ?? "");
     if ($editorRole !== "gerente") {
@@ -1200,14 +899,6 @@ function document_template_status_after_save(
 }
 function document_can_issue_template(array $c, array $tpl): bool
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "");
     $type = (string) ($tpl["type_key"] ?? "");
@@ -1229,14 +920,6 @@ function document_can_issue_template(array $c, array $tpl): bool
 }
 function document_sanitize_html(string $html): string
 {
-    
-
-
-
-
-
-
-
 
     $html = trim($html);
     if ($html === "") {
@@ -1254,14 +937,6 @@ function document_sanitize_html(string $html): string
         $html,
     );
     $blockClass = function (string $attrs): string {
-        
-
-
-
-
-
-
-
 
         $classes = [];
         if (
@@ -1327,14 +1002,6 @@ function document_sanitize_html(string $html): string
     $html = preg_replace_callback(
         "/<\s*(p|div|blockquote|h2|h3)\b([^>]*)>/i",
         function ($m) use ($blockClass) {
-            
-
-
-
-
-
-
-
 
             $tag =
                 strtolower($m[1]) === "blockquote" ? "div" : strtolower($m[1]);
@@ -1347,20 +1014,10 @@ function document_sanitize_html(string $html): string
         $html,
         "<b><strong><i><em><u><p><br><div><ul><ol><li><h2><h3>",
     );
-    
-    
-    
+
     $html = preg_replace_callback(
         "/<\s*(\/?)\s*(b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3)\b([^>]*)>/i",
         function ($m) {
-            
-
-
-
-
-
-
-
 
             $closing = ($m[1] ?? "") === "/";
             $tag = strtolower((string) ($m[2] ?? ""));
@@ -1398,14 +1055,6 @@ function document_sanitize_html(string $html): string
 }
 function document_body_to_html(string $body): string
 {
-    
-
-
-
-
-
-
-
 
     $body = trim($body);
     if ($body === "") {
@@ -1429,14 +1078,6 @@ function document_print_page_core_html(
     string $html,
     ?string $identifier = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<div class="doc-print-page" role="document">' .
         document_print_header_html($identifier) .
@@ -1450,14 +1091,6 @@ function document_preview_page_html(
     string $html,
     ?string $identifier = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<div class="doc-issued-body doc-a4-preview" aria-label="Pré-visualização em folha A4 aproximada da impressão"><div class="doc-a4-preview-frame">' .
         document_print_page_core_html($html, $identifier) .
@@ -1468,15 +1101,6 @@ function document_print_document_shell_html(
     bool $autoPrint = true,
     string $mode = "print",
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $title = trim((string) ($doc["title"] ?? "Documento"));
     if ($title === "") {
@@ -1507,14 +1131,6 @@ function document_print_document_shell_html(
 }
 function document_body_is_empty(string $html): bool
 {
-    
-
-
-
-
-
-
-
 
     return trim(
         preg_replace(
@@ -1530,14 +1146,6 @@ function document_issue_meta_sentence(
     null|string|int $issuedAt,
     string $status = "emitido",
 ): string {
-    
-
-
-
-
-
-
-
 
     $actor = trim((string) ($issuedName ?? ""));
     $actor = $actor !== "" ? first_name($actor) : "Colaborador";
@@ -1552,14 +1160,6 @@ function document_issue_meta_sentence(
 }
 function render_document_body(string $body, array $vars): string
 {
-    
-
-
-
-
-
-
-
 
     $map = [];
     foreach ($vars as $k => $v) {
@@ -1569,28 +1169,12 @@ function render_document_body(string $body, array $vars): string
 }
 function document_time_br(?string $dt): string
 {
-    
-
-
-
-
-
-
-
 
     $ts = app_storage_timestamp($dt);
     return $ts ? date("H\hi", $ts) : "";
 }
 function document_appointment_row(int $cid, int $appointmentId): ?array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $appointmentId <= 0) {
         return null;
@@ -1606,15 +1190,6 @@ function document_resolve_patient_appointment(
     int $patientId = 0,
     int $appointmentId = 0,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     if ($appointmentId > 0) {
         $appt = document_appointment_row($cid, $appointmentId);
@@ -1649,14 +1224,6 @@ function document_appointment_options(
     int $selectedId = 0,
     int $limit = 240,
 ): array {
-    
-
-
-
-
-
-
-
 
     $limit = max(20, min(500, $limit));
     $rows = q(
@@ -1694,14 +1261,6 @@ function document_appointment_select_field(
     int $cid,
     int $selectedId = 0,
 ): string {
-    
-
-
-
-
-
-
-
 
     return select_label(
         "Agendamento vinculado",
@@ -1713,14 +1272,6 @@ function document_appointment_select_field(
 }
 function document_context_json_decode(mixed $raw): array
 {
-    
-
-
-
-
-
-
-
 
     if (is_array($raw)) {
         return $raw;
@@ -1734,14 +1285,6 @@ function document_context_json_decode(mixed $raw): array
 }
 function document_context_json_encode(array $context): string
 {
-    
-
-
-
-
-
-
-
 
     $clean = [];
     foreach (
@@ -1769,16 +1312,6 @@ function document_context_json_encode(array $context): string
 }
 function document_context_ids_from_post(array $c): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     $ctx = [];
@@ -1827,14 +1360,6 @@ function document_context_select_options(
     int $selectedId = 0,
     int $limit = 120,
 ): array {
-    
-
-
-
-
-
-
-
 
     $limit = max(20, min(240, $limit));
     $out = [];
@@ -1997,14 +1522,6 @@ function document_context_select_options(
 }
 function document_context_binding_fields(array $c, array $doc): string
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     $ctx = document_context_json_decode($doc["context_json"] ?? "{}");
@@ -2079,14 +1596,6 @@ function document_issue_context(
     int $appointmentId = 0,
     array $context = [],
 ): array {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
@@ -2336,14 +1845,6 @@ function document_issue_context(
 }
 function approved_document_template_options(array $c): array
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -2352,14 +1853,6 @@ function approved_document_template_options(array $c): array
         return [];
     }
     $loader = function () use ($c, $cid): array {
-        
-
-
-
-
-
-
-
 
         [$where, $params] = document_template_visible_where($c, "dt");
         $rows = q(
@@ -2392,14 +1885,6 @@ function patient_document_timeline_items(
     int $patientId,
     int $limit = 40,
 ): array {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     $types = document_type_options();
@@ -2432,14 +1917,6 @@ function patient_document_timeline_items(
 }
 function patient_summary_excerpt(string $text, int $limit = 220): string
 {
-    
-
-
-
-
-
-
-
 
     $text = str_ireplace(["<br>", "<br/>", "<br />"], "\n", $text);
     $plain = html_entity_decode(
@@ -2461,14 +1938,6 @@ function patient_summary_clinical_block(
     array $items,
     string $empty,
 ): string {
-    
-
-
-
-
-
-
-
 
     $items = array_slice($items, 0, 3);
     $h =
@@ -2496,14 +1965,6 @@ function patient_summary_clinical_block(
 }
 function document_can_access(array $c, array $doc): bool
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($c["clinic_id"] ?? 0);
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -2538,14 +1999,6 @@ function document_can_access(array $c, array $doc): bool
 }
 function fetch_document_for_current_user(array $c, int $docId): ?array
 {
-    
-
-
-
-
-
-
-
 
     if ($docId <= 0) {
         return null;
@@ -2558,17 +2011,6 @@ function fetch_document_for_current_user(array $c, int $docId): ?array
 }
 function page_document_view(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
@@ -2636,17 +2078,6 @@ function page_document_view(): void
 }
 function page_document_print(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
@@ -2680,14 +2111,6 @@ function page_document_print(): void
 }
 function document_field_buttons(): string
 {
-    
-
-
-
-
-
-
-
 
     $h =
         '<div class="doc-field-panel-head"><strong>' .
@@ -2725,14 +2148,6 @@ function document_editor_button(
     string $label,
     string $value = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $valueAttr = $value !== "" ? ' data-doc-value="' . e($value) . '"' : "";
     return '<button type="button" class="ghost small doc-tool" data-doc-cmd="' .
@@ -2754,14 +2169,6 @@ function document_editor_html(
     string $value = "",
     string $id = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $id = $id !== "" ? $id : "doced_" . bin2hex(random_bytes(3));
     $html = document_body_to_html($value);
@@ -2837,14 +2244,6 @@ function document_editor_html(
 }
 function document_stage_actions(string $stage): string
 {
-    
-
-
-
-
-
-
-
 
     $emit = href("documents", ["emit" => 1]);
     $models = href("documents", ["models" => 1]);
@@ -2875,14 +2274,6 @@ function document_stage_strip(
     int $pending,
     int $visibleDocs,
 ): string {
-    
-
-
-
-
-
-
-
 
     $items = [
         [
@@ -2939,14 +2330,6 @@ function document_overview_cards(
     int $visibleDocs,
     string $docSearchMode,
 ): string {
-    
-
-
-
-
-
-
-
 
     return '<section class="doc-overview-cards kpis" aria-label="Resumo de documentos">' .
         document_ds_metric(
@@ -2981,14 +2364,6 @@ function document_template_author_form(
     string $submitLabel = "Salvar modelo",
     string $cancelHref = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     if (!$typeOptions) {
         $typeOptions = document_type_options();
@@ -3079,14 +2454,6 @@ function document_model_search_card(
     string $modelSearch,
     string $mode = "emit",
 ): string {
-    
-
-
-
-
-
-
-
 
     $mode = $mode === "models" ? "models" : "emit";
     $hidden =
@@ -3124,17 +2491,6 @@ function document_model_search_card(
 }
 function page_documents(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("documents");
     $cid = (int) $c["clinic_id"];
@@ -3425,14 +2781,6 @@ function page_documents(): void
         }
     }
     usort($createTemplates, function ($a, $b) use ($role) {
-        
-
-
-
-
-
-
-
 
         $la = app_storage_timestamp($a["last_used_at"] ?? "") ?: 0;
         $lb = app_storage_timestamp($b["last_used_at"] ?? "") ?: 0;
@@ -3454,14 +2802,6 @@ function page_documents(): void
                 $cid,
                 $qModel,
             ) {
-                
-
-
-
-
-
-
-
 
                 $hay = mb_strtolower(
                     ($tpl["title"] ?? "") .
@@ -3913,17 +3253,6 @@ function page_documents(): void
 }
 function page_procedures(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("procedures");
     if (!has_effective_role($c, "gerente")) {
@@ -4269,14 +3598,6 @@ function page_procedures(): void
         $needle = mb_strtolower($search);
         $rows = array_values(
             array_filter($allRows, function (array $r) use ($needle): bool {
-                
-
-
-
-
-
-
-
 
                 $hay = mb_strtolower(
                     trim(

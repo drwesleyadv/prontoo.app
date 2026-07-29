@@ -12,14 +12,6 @@ require dirname(__DIR__) . "/app/prontoo.php";
 prontoo_load_full_runtime_modules();
 function prontoo_cron_preflight_marker_path(): string
 {
-    
-
-
-
-
-
-
-
 
     $rev = defined("PRONTOO_SCHEMA_REV")
         ? (string) PRONTOO_SCHEMA_REV
@@ -38,14 +30,6 @@ function prontoo_cron_preflight_marker_path(): string
 }
 function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path("logs");
     if (!is_dir($dir)) {
@@ -56,15 +40,6 @@ function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 }
 function prontoo_cron_auth_permission_reset_revision(): string
 {
-    
-
-
-
-
-
-
-
-
 
     return defined("PRONTOO_SCHEMA_REV")
         ? (string) PRONTOO_SCHEMA_REV
@@ -72,15 +47,6 @@ function prontoo_cron_auth_permission_reset_revision(): string
 }
 function prontoo_cron_preflight_once(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $marker = prontoo_cron_preflight_marker_path();
     if (is_file($marker) && getenv("PRONTOO_CRON_PREFLIGHT_FORCE") !== "1") {
@@ -96,14 +62,6 @@ function prontoo_cron_preflight_once(): array
         string $message,
         string $level = "error",
     ) use (&$checks, &$fail, &$warn): void {
-        
-
-
-
-
-
-
-
 
         $checks[] = [
             "key" => $key,

@@ -15,27 +15,11 @@ final class TaskContextInvariant
     ];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function supports(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return in_array($table, self::TABLES, true);
     }
@@ -47,14 +31,6 @@ final class TaskContextInvariant
         array $params,
         ?array $insert,
     ): array {
-        
-
-
-
-
-
-
-
 
         $checks = [];
         if ($table === "pi_tasks") {
@@ -91,14 +67,6 @@ final class TaskContextInvariant
         string $column,
         array $allowed,
     ): array {
-        
-
-
-
-
-
-
-
 
         $values = [];
         $complete = true;
@@ -153,15 +121,6 @@ final class TaskContextInvariant
 
     private static function deny(string $key, string $sql): never
     {
-        
-
-
-
-
-
-
-
-
 
         if (function_exists("record_scope_violation")) {
             \record_scope_violation(

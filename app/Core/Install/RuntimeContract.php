@@ -24,27 +24,11 @@ final class RuntimeContract
     ];
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function requiredCoreFunctions(): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             'csrf',
@@ -66,28 +50,12 @@ final class RuntimeContract
 
     public static function requiredFullFunctions(): array
     {
-        
-
-
-
-
-
-
-
 
         return ['page_home', 'audit', 'audit_items', 'verify_audit_row'];
     }
 
     public static function requiredFunctions(): array
     {
-        
-
-
-
-
-
-
-
 
         return array_values(array_unique(array_merge(
             self::requiredCoreFunctions(),
@@ -97,14 +65,6 @@ final class RuntimeContract
 
     public static function requiredClasses(): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             LayerMap::class,
@@ -122,28 +82,12 @@ final class RuntimeContract
 
     public static function requiredInterfaces(): array
     {
-        
-
-
-
-
-
-
-
 
         return [CapabilityProvider::class, ActionProofPort::class];
     }
 
     public static function requiredFiles(string $root, string $version): array
     {
-        
-
-
-
-
-
-
-
 
         $files = [
             'version.json',
@@ -170,29 +114,12 @@ final class RuntimeContract
 
     public static function optionalFiles(string $root, string $version): array
     {
-        
-
-
-
-
-
-
-
 
         return [];
     }
 
     private static function assertFunctions(array $functions): void
     {
-        
-
-
-
-
-
-
-
-
 
         foreach ($functions as $function) {
             if (!\function_exists($function)) {
@@ -203,15 +130,6 @@ final class RuntimeContract
 
     private static function assertTypes(): void
     {
-        
-
-
-
-
-
-
-
-
 
         foreach (self::requiredClasses() as $class) {
             if (!\class_exists($class)) {
@@ -227,14 +145,6 @@ final class RuntimeContract
 
     private static function fullRuntimeExpected(): bool
     {
-        
-
-
-
-
-
-
-
 
         if (\function_exists('prontoo_use_light_boot') && \prontoo_use_light_boot()) {
             return false;
@@ -244,15 +154,6 @@ final class RuntimeContract
 
     private static function assertVersionContract(string $root, string $version): void
     {
-        
-
-
-
-
-
-
-
-
 
         if (\function_exists('prontoo_version_contract_status')) {
             $status = \prontoo_version_contract_status();
@@ -279,15 +180,6 @@ final class RuntimeContract
 
     private static function assertRuntimeArchitecture(string $root): void
     {
-        
-
-
-
-
-
-
-
-
 
         $report = ArchitectureVerifier::report($root, false);
         $runtimeErrors = [];
@@ -323,15 +215,6 @@ final class RuntimeContract
 
     public static function assert(string $root, string $version): void
     {
-        
-
-
-
-
-
-
-
-
 
         self::assertVersionContract($root, $version);
         self::assertTypes();

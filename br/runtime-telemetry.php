@@ -2,14 +2,6 @@
 if (!function_exists("storage_path")) {
     function storage_path(string $suffix = ""): string
     {
-        
-
-
-
-
-
-
-
 
         $base = dirname(__DIR__) . DIRECTORY_SEPARATOR . "ssd";
         return $suffix === ""
@@ -20,24 +12,8 @@ if (!function_exists("storage_path")) {
 
 function br_landing_register_route_telemetry(float $startedAt): void
 {
-    
-
-
-
-
-
-
-
 
     register_shutdown_function(static function () use ($startedAt): void {
-        
-
-
-
-
-
-
-
 
         $configFile = dirname(__DIR__) . "/app/config.php";
         if (!is_file($configFile)) {

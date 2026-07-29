@@ -15,14 +15,6 @@ final readonly class ActionMiddleware
         private AuthorizationService $authorization,
         private ActionProofPort $proofs,
     ) {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -32,16 +24,6 @@ final readonly class ActionMiddleware
         array $post,
         array $context,
     ): void {
-        
-
-
-
-
-
-
-
-
-
 
         $decision = $this->authorization->evaluate($route, $method, $post, $context);
         if ($decision->skipped) {
@@ -76,27 +58,10 @@ final readonly class ActionMiddleware
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
-
 
         $provider = new class implements CapabilityProvider {
             public function grants(ActionContract $contract, string $capability, array $context): bool
             {
-                
-
-
-
-
-
-
-
 
                 return in_array($capability, (array) ($context['grants'] ?? []), true);
             }
@@ -107,14 +72,6 @@ final readonly class ActionMiddleware
 
             public function write(string $route, array $context, Decision $decision): bool
             {
-                
-
-
-
-
-
-
-
 
                 $this->writes++;
                 return $this->result;

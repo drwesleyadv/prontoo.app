@@ -3,14 +3,6 @@ declare(strict_types=1);
 
 function prontoo_min_php_version(): string
 {
-    
-
-
-
-
-
-
-
 
     return defined("PRONTOO_MIN_PHP_VERSION")
         ? (string) PRONTOO_MIN_PHP_VERSION
@@ -19,14 +11,6 @@ function prontoo_min_php_version(): string
 
 function prontoo_php_runtime_ok(?string $version = null): bool
 {
-    
-
-
-
-
-
-
-
 
     return version_compare(
         $version ?? PHP_VERSION,
@@ -37,14 +21,6 @@ function prontoo_php_runtime_ok(?string $version = null): bool
 
 function prontoo_php_runtime_message(?string $version = null): string
 {
-    
-
-
-
-
-
-
-
 
     $version = $version ?? PHP_VERSION;
     return "PHP " .
@@ -56,14 +32,6 @@ function prontoo_php_runtime_message(?string $version = null): string
 
 function prontoo_ini_size_to_bytes(mixed $value): ?int
 {
-    
-
-
-
-
-
-
-
 
     if ($value === null || $value === false) {
         return null;
@@ -98,14 +66,6 @@ function prontoo_memory_limit_meets(
     int $minimumBytes,
     mixed $memoryLimit = null,
 ): bool {
-    
-
-
-
-
-
-
-
 
     $bytes = prontoo_ini_size_to_bytes($memoryLimit ?? ini_get("memory_limit"));
     return $bytes === null || $bytes >= $minimumBytes;
@@ -113,24 +73,11 @@ function prontoo_memory_limit_meets(
 
 function prontoo_memory_limit_label(mixed $memoryLimit = null): string
 {
-    
-
-
-
-
-
-
-
 
     $raw = $memoryLimit ?? ini_get("memory_limit");
     $raw = trim((string) $raw);
     return $raw !== "" ? $raw : "não informado";
 }
-
-
-
-
-
 
 function prontoo_runtime_attempt(
     callable $operation,
@@ -138,15 +85,6 @@ function prontoo_runtime_attempt(
     string $label = "operação de arquivo",
     bool $logFailure = true,
 ): mixed {
-    
-
-
-
-
-
-
-
-
 
     $previous = set_error_handler(
         static function (
@@ -155,15 +93,6 @@ function prontoo_runtime_attempt(
             string $file,
             int $line,
         ): void {
-            
-
-
-
-
-
-
-
-
 
             throw new ErrorException($message, 0, $severity, $file, $line);
         },
@@ -186,14 +115,6 @@ function prontoo_fs_mkdir(
     bool $recursive = true,
     bool $logFailure = true,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if (is_dir($directory)) {
         return true;
@@ -210,14 +131,6 @@ function prontoo_fs_read(
     string $path,
     bool $logFailure = true,
 ): ?string {
-    
-
-
-
-
-
-
-
 
     if (!is_file($path)) {
         return null;
@@ -237,14 +150,6 @@ function prontoo_fs_write(
     int $flags = LOCK_EX,
     bool $logFailure = true,
 ): int|false {
-    
-
-
-
-
-
-
-
 
     return prontoo_runtime_attempt(
         static  fn(): int|false => file_put_contents($path, $contents, $flags),
@@ -256,14 +161,6 @@ function prontoo_fs_write(
 
 function prontoo_fs_unlink(string $path, bool $logFailure = true): bool
 {
-    
-
-
-
-
-
-
-
 
     if (!file_exists($path) && !is_link($path)) {
         return true;
@@ -281,14 +178,6 @@ function prontoo_fs_chmod(
     int $mode,
     bool $logFailure = true,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if (!file_exists($path)) {
         return false;
@@ -306,14 +195,6 @@ function prontoo_fs_rename(
     string $destination,
     bool $logFailure = true,
 ): bool {
-    
-
-
-
-
-
-
-
 
     return (bool) prontoo_runtime_attempt(
         static  fn(): bool => rename($source, $destination),
@@ -327,14 +208,6 @@ function prontoo_fs_fileperms(
     string $path,
     bool $logFailure = false,
 ): int|false {
-    
-
-
-
-
-
-
-
 
     return prontoo_runtime_attempt(
         static  fn(): int|false => fileperms($path),
@@ -349,14 +222,6 @@ function prontoo_fs_move_upload(
     string $destination,
     bool $logFailure = true,
 ): bool {
-    
-
-
-
-
-
-
-
 
     return (bool) prontoo_runtime_attempt(
         static  fn(): bool => move_uploaded_file($source, $destination),

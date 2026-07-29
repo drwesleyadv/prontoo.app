@@ -5,27 +5,11 @@ namespace Prontoo\Core\Invariant\Context;
 final class FinancialContextInvariant
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function supports(string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         return str_starts_with($table, "pi_financial_") ||
             in_array(
@@ -37,14 +21,6 @@ final class FinancialContextInvariant
 
     public static function assertWrite(string $table): array
     {
-        
-
-
-
-
-
-
-
 
         return [
             "context" => "financial",

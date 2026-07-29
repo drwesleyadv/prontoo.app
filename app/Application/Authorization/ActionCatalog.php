@@ -11,27 +11,11 @@ final class ActionCatalog
     public const DEFAULT_ACTION = '__default__';
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function actionToken(array $post): string
     {
-        
-
-
-
-
-
-
-
 
         $action = Canonical::token((string) ($post['act'] ?? ''), '');
         return $action !== '' ? $action : self::DEFAULT_ACTION;
@@ -39,15 +23,6 @@ final class ActionCatalog
 
     public static function resolve(string $route, array $post): ?ActionContract
     {
-        
-
-
-
-
-
-
-
-
 
         $route = Canonical::token($route, 'login');
         $action = self::actionToken($post);
@@ -70,17 +45,8 @@ final class ActionCatalog
         );
     }
 
-    
     public static function all(): array
     {
-        
-
-
-
-
-
-
-
 
         $contracts = [];
         foreach (self::definitions() as $route => $actions) {
@@ -96,18 +62,8 @@ final class ActionCatalog
         return $contracts;
     }
 
-    
     public static function definitions(): array
     {
-        
-
-
-
-
-
-
-
-
 
         static $catalog = null;
         if (is_array($catalog)) {
@@ -127,15 +83,6 @@ final class ActionCatalog
             ?string $primary = null,
             array $producers = [],
         ) use (&$catalog): void {
-            
-
-
-
-
-
-
-
-
 
             foreach ((array) $actions as $action) {
                 $action = $action !== '' ? $action : self::DEFAULT_ACTION;
@@ -170,7 +117,6 @@ final class ActionCatalog
         $financial = 'Domain/Financial/Financial.php';
         $admin = 'Admin/AdminPages.php';
 
-        
         $add('login', self::DEFAULT_ACTION, 'public', $auth, [], ['session:authenticate']);
         $add('login', 'mfa_verify', 'public', $auth, [], ['session:mfa']);
         $add('mfa', ['mfa_enroll', 'mfa_continue'], 'public', $auth, [], ['session:mfa']);
@@ -183,17 +129,14 @@ final class ActionCatalog
         $add('profile', ['profile_update_user', 'profile_change_password', 'profile_mfa_prepare', 'profile_mfa_enable', 'profile_mfa_cancel', 'profile_mfa_recovery_ack', 'profile_mfa_recovery_regenerate', 'profile_mfa_replace_prepare', 'profile_mfa_replace_enable', 'profile_mfa_disable', 'profile_switch_environment'], 'authenticated', $auth, ['session:self'], ['identity:self', 'session:mfa', 'session:environment']);
         $add('global_reauth', self::DEFAULT_ACTION, 'authenticated', $auth, ['session:self'], ['session:privileged']);
 
-        
         foreach (['painel', 'operations', 'leads', 'patients', 'appointments', 'procedures', 'documents', 'tasks', 'maestro', 'audit', 'financial', 'notices', 'users', 'settings', 'permissions'] as $route) {
             $add($route, 'onboarding_tip_dismiss', 'clinic', $auth, ['session:self'], ['onboarding_tip:edit']);
         }
 
-        
         $add('onboarding', self::DEFAULT_ACTION, 'clinic', $auth, ['settings:edit'], ['clinic:edit', 'permissions:seed']);
         $add('settings', ['profile', 'sectors', 'visual'], 'clinic', $subscription, ['settings:edit'], ['clinic:edit']);
         $add('settings', 'subscription_claim', 'clinic', $subscription, ['settings:edit'], ['subscription:claim'], [], 'subscription_claim');
 
-        
         $add('patients', self::DEFAULT_ACTION, 'clinic', $patients, ['patients:add'], ['patients:add']);
         $add('patient', ['save_legal_guardian', 'update_patient_contact', 'update_patient', 'create_patient_tab', 'update_care'], 'clinic', $patients, ['patients:edit'], ['patients:edit']);
         $add('patient', ['delete_legal_guardian', 'delete_patient', 'delete_care'], 'clinic', $patients, ['patients:delete'], ['patients:delete']);
@@ -202,32 +145,27 @@ final class ActionCatalog
         $add('patient', 'finish_active_appointment', 'clinic', $patients, ['patients:view', 'appointments:edit'], ['appointments:transition'], ['tasks:edit']);
         $add('patient', [self::DEFAULT_ACTION, 'record'], 'clinic', $patients, ['patients:edit'], ['care:add'], ['appointments:transition', 'tasks:edit']);
 
-        
         $add('leads', [self::DEFAULT_ACTION, 'save'], 'clinic', $leads, ['leads:add'], ['leads:add']);
         $add('leads', 'update', 'clinic', $leads, ['leads:edit'], ['leads:edit']);
         $add('leads', 'convert', 'clinic', $leads, ['leads:edit', 'patients:add'], ['leads:convert', 'patients:add']);
         $add('leads', 'archive_lead', 'clinic', $leads, ['leads:edit'], ['leads:archive']);
 
-        
         $add('appointments', [self::DEFAULT_ACTION, 'create'], 'clinic', $appointments, ['appointments:add'], ['appointments:add'], ['financial:sync', 'tasks:add']);
         $add('appointments', ['agenda_note', 'block'], 'clinic', $appointments, ['appointments:add'], ['agenda:add']);
         $add('appointments', ['agenda_note_delete', 'delete_appointment', 'delete_block', 'unblock', 'cancel'], 'clinic', $appointments, ['appointments:delete'], ['agenda:delete'], ['financial:sync', 'tasks:edit']);
         $add('appointments', ['edit', 'update_block', 'update_appointment', 'confirm', 'arrived', 'no_show', 'start_prepare', 'finish_prepare', 'start_consultation', 'finish_consultation', 'finish_checkout'], 'clinic', $appointments, ['appointments:edit'], ['appointments:transition'], ['tasks:edit', 'financial:sync']);
 
-        
         $add('documents', 'save_template', 'clinic', $documents, [], ['documents:template'], [], 'matrix', 'documents:edit');
         $add('documents', ['approve_template', 'reject_template', 'save_document', 'confirm_document'], 'clinic', $documents, ['documents:edit'], ['documents:edit']);
         $add('documents', 'create_document', 'clinic', $documents, ['documents:add'], ['documents:add']);
         $add('procedures', 'save', 'clinic', $documents, [], ['procedures:write'], [], 'matrix', 'procedures:edit');
         $add('procedures', 'toggle', 'clinic', $documents, ['procedures:edit'], ['procedures:edit']);
 
-        
         $add('tasks', [self::DEFAULT_ACTION, 'create'], 'clinic', $tasks, ['tasks:add'], ['tasks:add']);
         $add('tasks', ['start', 'release', 'done', 'comment', 'comment_edit', 'comment_delete'], 'clinic', $tasks, ['tasks:edit'], ['tasks:edit']);
         $add('notices', [self::DEFAULT_ACTION, 'create'], 'clinic', $tasks, ['notices:add'], ['notices:add']);
         $add('notices', ['support_message', 'ack', 'hide', 'unhide'], 'clinic', $tasks, ['notices:view'], ['notices:self_state'], [], 'notice_support');
 
-        
         $add('users', [self::DEFAULT_ACTION, 'save'], 'clinic', $users, ['users:add'], ['users:add']);
         $add('users', 'deactivate', 'clinic', $users, ['users:delete'], ['users:deactivate']);
         $add('user', [self::DEFAULT_ACTION, 'update'], 'clinic', $users, ['users:edit'], ['users:edit']);
@@ -237,13 +175,11 @@ final class ActionCatalog
         $add('maestro', 'toggle_rule', 'clinic', $maestro, ['maestro:edit'], ['maestro:edit'], [], 'manager_only');
         $add('maestro', 'delete_rule', 'clinic', $maestro, ['maestro:delete'], ['maestro:delete'], [], 'manager_only');
 
-        
         $add('financial', ['cash_open', 'cash_keep_closed', 'cash_receipt', 'cash_payment', 'cash_close'], 'clinic', $financial, ['financial:edit'], ['financial:cashier'], [], 'financial_operational');
         $add('financial', ['drawer_create', 'bank_account'], 'clinic', $financial, ['financial:add'], ['financial:add']);
         $add('financial', ['drawer_rename', 'drawer_assign', 'drawer_unassign', 'drawer_deactivate', 'drawer_schedule_unlock', 'goal', 'review_close', 'review_opening', 'daily_consolidate', 'admin_receive', 'admin_payment', 'admin_transfer', 'safe_payment', 'safe_receipt', 'deposit_bank'], 'clinic', $financial, ['financial:edit'], ['financial:edit']);
         $add('creditors', [self::DEFAULT_ACTION, 'creditor_save', 'creditor_deactivate'], 'clinic', $financial, ['financial:edit'], ['financial:counterparty']);
 
-        
         $globalActions = [
             'admin_painel' => ['goal', 'confirm_subscription_payment', 'reject_subscription_payment'],
             'admin_clinics' => ['activate_subscription', 'billing', 'deactivate_subscription', 'default_billing', 'toggle'],
@@ -262,21 +198,12 @@ final class ActionCatalog
         return $catalog;
     }
 
-    
     private static function conditionalRequired(
         string $route,
         string $action,
         array $definition,
         array $post,
     ): array {
-        
-
-
-
-
-
-
-
 
         $required = self::tokens((array) ($definition['required'] ?? []));
         if ($route === 'documents' && $action === 'save_template') {
@@ -288,17 +215,8 @@ final class ActionCatalog
         return self::tokens($required);
     }
 
-    
     private static function tokens(array $values): array
     {
-        
-
-
-
-
-
-
-
 
         $tokens = [];
         foreach ($values as $value) {
@@ -312,14 +230,6 @@ final class ActionCatalog
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
 
         $cases = [];
         $cases['catalog_nonempty'] = self::definitions() !== [];

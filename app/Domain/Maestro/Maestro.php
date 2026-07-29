@@ -2,15 +2,6 @@
 declare(strict_types=1);
 function maestro_global_physical_rollback(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return;
@@ -31,15 +22,6 @@ function maestro_global_physical_rollback(): void
 }
 function maestro_runtime_access_marker_ready(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (array_key_exists("PRONTOO_MAESTRO_RUNTIME_ACCESS_READY", $GLOBALS)) {
         return (bool) $GLOBALS["PRONTOO_MAESTRO_RUNTIME_ACCESS_READY"];
@@ -60,15 +42,6 @@ function maestro_runtime_access_marker_ready(): bool
 }
 function maestro_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if (!has_cfg()) {
@@ -92,45 +65,14 @@ function maestro_ensure_schema(): void
 
 function maestro_grant_runtime_access(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     if (!has_cfg() || maestro_runtime_access_marker_ready()) {
         return;
     }
     try {
         with_scope_guard_disabled(static function (): void {
-            
-
-
-
-
-
-
-
-
-
 
             db_tx(static function (): void {
-                
-
-
-
-
-
-
-
-
-
 
                 q(
                     "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','maestro',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
@@ -157,14 +99,6 @@ function maestro_grant_runtime_access(): void
 }
 function maestro_runtime_upgrade(): void
 {
-    
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return;
@@ -177,14 +111,6 @@ function maestro_runtime_upgrade(): void
 }
 function maestro_trigger_catalog(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "appointment_before_start" => [
@@ -693,14 +619,6 @@ function maestro_trigger_catalog(): array
 }
 function maestro_action_types(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "create_task" => "Distribuir tarefa",
@@ -709,14 +627,6 @@ function maestro_action_types(): array
 }
 function maestro_module_label(string $module): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "appointments" => "Agenda",
@@ -731,28 +641,12 @@ function maestro_module_label(string $module): string
 }
 function maestro_json(array $data): string
 {
-    
-
-
-
-
-
-
-
 
     $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return $json !== false ? $json : "{}";
 }
 function maestro_decode_json(mixed $raw): array
 {
-    
-
-
-
-
-
-
-
 
     if (is_array($raw)) {
         return $raw;
@@ -766,14 +660,6 @@ function maestro_decode_json(mixed $raw): array
 }
 function maestro_text(string $s, int $max = 180): string
 {
-    
-
-
-
-
-
-
-
 
     $s = trim(strip_tags($s));
     $s = preg_replace("/\s+/u", " ", $s) ?: "";
@@ -781,42 +667,18 @@ function maestro_text(string $s, int $max = 180): string
 }
 function maestro_template(string $s, int $max = 900): string
 {
-    
-
-
-
-
-
-
-
 
     $s = trim(strip_tags($s));
     return mb_substr($s, 0, $max);
 }
 function maestro_days(mixed $v, int $default = 1): int
 {
-    
-
-
-
-
-
-
-
 
     $n = (int) $v;
     return max(0, min(365, $n > 0 || $v === "0" ? $n : $default));
 }
 function maestro_amount(mixed $v, int $default = 1, string $unit = "days"): int
 {
-    
-
-
-
-
-
-
-
 
     $n = (int) $v;
     if (!($n > 0 || $v === "0")) {
@@ -831,53 +693,21 @@ function maestro_amount(mixed $v, int $default = 1, string $unit = "days"): int
 }
 function maestro_priority(mixed $v): int
 {
-    
-
-
-
-
-
-
-
 
     return max(1, min(100, (int) $v));
 }
 function maestro_due_dt(int $offsetDays = 0): ?string
 {
-    
-
-
-
-
-
-
-
 
     $offsetDays = max(0, min(365, $offsetDays));
     return date("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days"));
 }
 function maestro_apply_placeholders(string $template, array $vars): string
 {
-    
-
-
-
-
-
-
-
 
     return preg_replace_callback(
         "/\{\{\s*([a-z0-9_]+)\s*\}\}/iu",
         function ($m) use ($vars) {
-            
-
-
-
-
-
-
-
 
             $k = mb_strtolower((string) $m[1]);
             return (string) ($vars[$k] ?? "");
@@ -887,31 +717,11 @@ function maestro_apply_placeholders(string $template, array $vars): string
 }
 function maestro_actor_id(): ?int
 {
-    
-
-
-
-
-
-
-
-
 
     return isset($_SESSION["uid"]) ? (int) $_SESSION["uid"] : null;
 }
 function maestro_save_rule(array $c): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
@@ -1055,14 +865,6 @@ function maestro_save_rule(array $c): void
 }
 function maestro_module_options(array $catalog): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach ($catalog as $it) {
@@ -1077,14 +879,6 @@ function maestro_trigger_option_html(
     array $catalog,
     string $selected = "appointment_before_start",
 ): string {
-    
-
-
-
-
-
-
-
 
     $h = '<select name="trigger_event" required data-maestro-trigger>';
     foreach ($catalog as $key => $it) {
@@ -1122,14 +916,6 @@ function maestro_trigger_option_html(
 }
 function maestro_duration_label(int $ms): string
 {
-    
-
-
-
-
-
-
-
 
     if ($ms <= 0) {
         return "0 ms";
@@ -1150,14 +936,6 @@ function maestro_unit_label(
     int $amount,
     bool $short = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     if ($short) {
         return $unit === "minutes" ? "min" : ($unit === "hours" ? "h" : "d");
@@ -1172,14 +950,6 @@ function maestro_unit_label(
 }
 function maestro_module_icon(string $module): string
 {
-    
-
-
-
-
-
-
-
 
     return [
         "appointments" => "calendar_month",
@@ -1194,27 +964,11 @@ function maestro_module_icon(string $module): string
 }
 function maestro_action_icon(string $action): string
 {
-    
-
-
-
-
-
-
-
 
     return $action === "create_notice" ? "campaign" : "assignment_turned_in";
 }
 function maestro_target_label(array $act, int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     $dest = (string) ($act["target_scope"] ?? "clinic");
     if ($dest === "role") {
@@ -1237,28 +991,12 @@ function maestro_target_label(array $act, int $cid): string
 }
 function maestro_last_label(?string $value): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) $value);
     return $value !== "" ? dt_br($value) : "Ainda não afinada";
 }
 function maestro_next_label(?string $value): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) $value);
     if ($value === "") {
@@ -1272,18 +1010,6 @@ function maestro_next_label(?string $value): string
 }
 function page_maestro(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("maestro");
     if (
@@ -1588,27 +1314,11 @@ function page_maestro(): void
 }
 function maestro_match_base(array $vars, array $extra = []): array
 {
-    
-
-
-
-
-
-
-
 
     return $extra + ["variables" => $vars];
 }
 function maestro_fetch_candidates(array $rule, int $limit = 120): array
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $rule["clinic_id"];
     $trigger = (string) $rule["trigger_event"];
@@ -2441,16 +2151,6 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
 }
 function maestro_create_action(array $rule, array $match): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $cid = (int) $rule["clinic_id"];
     $act = maestro_decode_json($rule["action_json"] ?? "");
@@ -2546,14 +2246,6 @@ function maestro_create_action(array $rule, array $match): array
 }
 function maestro_routine_key(array $rule): string
 {
-    
-
-
-
-
-
-
-
 
     return "rule:" .
         (int) $rule["id"] .
@@ -2564,14 +2256,6 @@ function maestro_routine_key(array $rule): string
 }
 function maestro_rule_score(array $rule, ?array $stat = null): float
 {
-    
-
-
-
-
-
-
-
 
     $priority = (int) ($rule["priority"] ?? 50);
     $next = $rule["next_run_at"]
@@ -2590,14 +2274,6 @@ function maestro_ewma_observation(
     bool $skipped = false,
     float $alpha = 0.25,
 ): ?float {
-    
-
-
-
-
-
-
-
 
     if ($skipped) {
         return $previous;
@@ -2614,14 +2290,6 @@ function maestro_stats_update(
     float $score,
     bool $skipped = false,
 ): void {
-    
-
-
-
-
-
-
-
 
     db_tx(function () use (
         $key,
@@ -2630,14 +2298,6 @@ function maestro_stats_update(
         $score,
         $skipped,
     ): void {
-        
-
-
-
-
-
-
-
 
         $old = one(
             "SELECT * FROM pi_maestro_job_stats WHERE routine_key=? FOR UPDATE",
@@ -2681,14 +2341,6 @@ function maestro_stats_update(
 }
 function maestro_with_guarded_clinic(int $cid, callable $fn): mixed
 {
-    
-
-
-
-
-
-
-
 
     return with_scope_guard_clinic(
         $cid,
@@ -2697,14 +2349,6 @@ function maestro_with_guarded_clinic(int $cid, callable $fn): mixed
 }
 function maestro_run_rule(array $rule, float $deadline): array
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) ($rule["clinic_id"] ?? 0);
     return maestro_with_guarded_clinic(
@@ -2714,14 +2358,6 @@ function maestro_run_rule(array $rule, float $deadline): array
 }
 function maestro_run_rule_scoped(array $rule, float $deadline): array
 {
-    
-
-
-
-
-
-
-
 
     $cid = (int) $rule["clinic_id"];
     if (clinic_read_only_db($cid)) {
@@ -2810,15 +2446,6 @@ function maestro_run_rule_scoped(array $rule, float $deadline): array
 }
 function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 {
-    
-
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return [
@@ -2874,14 +2501,6 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
                 $stats[(string) $s["routine_key"]] = $s;
             }
             usort($rules, function ($a, $b) use ($stats) {
-                
-
-
-
-
-
-
-
 
                 return maestro_rule_score(
                     $b,
@@ -2972,15 +2591,6 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 }
 function maestro_record_cron_failure(float $startedAt, string $note): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!has_cfg()) {
         return;

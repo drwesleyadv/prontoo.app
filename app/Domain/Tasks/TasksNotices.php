@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function notice_target_sql(array $c, string $alias = "n"): array
 {
-    
-
-
-
-
-
-
-
 
     $role = (string) ($c["role"] ?? "");
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -27,14 +19,6 @@ function notice_target_sql(array $c, string $alias = "n"): array
 }
 function notice_target_label(array $n, array $users = []): string
 {
-    
-
-
-
-
-
-
-
 
     $scope = (string) ($n["target_scope"] ?? "all");
     if ($scope === "role") {
@@ -53,14 +37,6 @@ function notice_target_label(array $n, array $users = []): string
 }
 function notice_recipient_phrase(array $n, array $users = []): string
 {
-    
-
-
-
-
-
-
-
 
     $scope = (string) ($n["target_scope"] ?? "all");
     if ($scope === "all") {
@@ -81,14 +57,6 @@ function notice_recipient_phrase(array $n, array $users = []): string
 }
 function notice_recipient_people(int $cid, array $notice, array $team): array
 {
-    
-
-
-
-
-
-
-
 
     $scope = (string) ($notice["target_scope"] ?? "all");
     $ids = [];
@@ -150,14 +118,6 @@ function notice_recipient_people(int $cid, array $notice, array $team): array
 }
 function notice_recipient_pills(int $cid, array $notice, array $team): string
 {
-    
-
-
-
-
-
-
-
 
     $people = notice_recipient_people($cid, $notice, $team);
     if (!$people) {
@@ -202,14 +162,6 @@ function task_event(
     ?string $toStatus = null,
     ?string $note = null,
 ): void {
-    
-
-
-
-
-
-
-
 
     try {
         if ($cid <= 0 || $taskId <= 0 || $eventKey === "") {
@@ -240,15 +192,6 @@ function notify_task_personal_assignment(
     ?int $createdBy = null,
     string $source = "manual",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     try {
         if ($cid <= 0 || $taskId <= 0 || $targetUserId <= 0) {
@@ -294,14 +237,6 @@ function notify_task_personal_assignment(
 }
 function workflow_valid_role(int $cid, ?string $role): ?string
 {
-    
-
-
-
-
-
-
-
 
     $role = trim((string) $role);
     if ($role === "") {
@@ -323,14 +258,6 @@ function workflow_valid_role(int $cid, ?string $role): ?string
 }
 function workflow_notice_body(string $body, string $action = ""): string
 {
-    
-
-
-
-
-
-
-
 
     $body = trim($body);
     $action = trim($action);
@@ -354,16 +281,6 @@ function workflow_care_notice(
     int $requiresAck = 1,
     string $action = "",
 ): ?int {
-    
-
-
-
-
-
-
-
-
-
 
     try {
         if ($cid <= 0 || trim($title) === "" || trim($body) === "") {
@@ -463,14 +380,6 @@ function workflow_task_notice(
     string $sourceEntity,
     string $sourceEntityId,
 ): void {
-    
-
-
-
-
-
-
-
 
     $body = trim($description);
     if ($appointmentId) {
@@ -513,14 +422,6 @@ function workflow_appointment_payment_pending(
     int $cid,
     int $appointmentId,
 ): bool {
-    
-
-
-
-
-
-
-
 
     try {
         if ($cid <= 0 || $appointmentId <= 0) {
@@ -552,15 +453,6 @@ function workflow_on_task_started(
     int $startedBy,
     string $role,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     try {
         $cid = (int) ($task["clinic_id"] ?? 0);
@@ -602,15 +494,6 @@ function workflow_on_appointment_finished(
     ?int $finishedBy = null,
     string $source = "atendimento",
 ): void {
-    
-
-
-
-
-
-
-
-
 
     try {
         if ($cid <= 0 || $appointmentId <= 0) {
@@ -670,14 +553,6 @@ function workflow_on_appointment_finished(
 }
 function unread_notifications_count(array $c): int
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return 0;
@@ -705,14 +580,6 @@ function unread_notifications_count(array $c): int
 }
 function notification_button(array $c): string
 {
-    
-
-
-
-
-
-
-
 
     if (($c["scope"] ?? "") !== "clinic") {
         return "";
@@ -727,14 +594,6 @@ function notification_button(array $c): string
 }
 function team_user_ids_for_roles(int $cid, array $roles): array
 {
-    
-
-
-
-
-
-
-
 
     $roles = array_values(array_unique(array_filter($roles)));
     if (!$roles) {
@@ -749,14 +608,6 @@ function team_user_ids_for_roles(int $cid, array $roles): array
 }
 function first_team_user_for_role(int $cid, string $role): ?int
 {
-    
-
-
-
-
-
-
-
 
     try {
         $id = (int) val(
@@ -783,16 +634,6 @@ function create_workflow_task(
     ?string $targetRole = null,
     bool $strict = false,
 ): ?int {
-    
-
-
-
-
-
-
-
-
-
 
     try {
         $targetScope =
@@ -867,15 +708,6 @@ function create_workflow_task(
             $sourceEntity,
             $sourceEntityId,
         ): int {
-            
-
-
-
-
-
-
-
-
 
             q(
                 "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,status,due_at,created_by,created_at) VALUES (?,?,?,?,?,?, 'aberta', ?, ?, NOW())",
@@ -966,14 +798,6 @@ function workflow_on_patient_arrived(
     int $appointmentId,
     int $patientLinkId,
 ): void {
-    
-
-
-
-
-
-
-
 
     $name = patient_display_name($patientLinkId, $cid);
     create_workflow_task(
@@ -996,15 +820,6 @@ function workflow_on_task_completed(
     int $completedBy,
     string $role,
 ): void {
-    
-
-
-
-
-
-
-
-
 
     $cid = (int) ($task["clinic_id"] ?? 0);
     if ($cid <= 0) {
@@ -1084,14 +899,6 @@ function workflow_on_task_completed(
 }
 function task_nav_counts(array $c): array
 {
-    
-
-
-
-
-
-
-
 
     $zero = [
         "open" => 0,
@@ -1161,17 +968,6 @@ function task_nav_counts(array $c): array
 }
 function page_admin_global_notices(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_global_notices");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
@@ -1352,17 +1148,6 @@ function page_admin_global_notices(): void
 }
 function page_tasks(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("tasks");
     $cid = (int) $c["clinic_id"];
@@ -1372,14 +1157,6 @@ function page_tasks(): void
     $roleOptions = clinic_role_options($cid, true);
     $users = team_options($cid);
     $canStartTask = function (array $task) use ($uid, $role): bool {
-        
-
-
-
-
-
-
-
 
         if (
             !in_array(
@@ -1416,14 +1193,6 @@ function page_tasks(): void
         return false;
     };
     $destinationLabel = function (array $task) use ($cid, $users): string {
-        
-
-
-
-
-
-
-
 
         $assigned = trim((string) ($task["assigned_name"] ?? ""));
         if ($assigned !== "") {
@@ -1977,26 +1746,10 @@ function page_tasks(): void
     }
     $counts = task_nav_counts($c);
     $activeClass = function (string $v) use ($view, $qTerm): string {
-        
-
-
-
-
-
-
-
 
         return $qTerm === "" && $v === $view ? " active" : "";
     };
     $qs = function (string $v): array {
-        
-
-
-
-
-
-
-
 
         return ["view" => $v];
     };
@@ -2163,14 +1916,6 @@ function page_tasks(): void
         }
     }
     $dueLabel = function (array $r) use ($now, $today): array {
-        
-
-
-
-
-
-
-
 
         $status = (string) $r["status"];
         $due = (string) ($r["due_at"] ?? "");
@@ -2209,14 +1954,6 @@ function page_tasks(): void
         return ["Prazo: " . dt_br($due), "neutral", "event"];
     };
     $priorityLabel = function (array $r) use ($now, $today): array {
-        
-
-
-
-
-
-
-
 
         if (
             !in_array(
@@ -2251,14 +1988,6 @@ function page_tasks(): void
         $canStartTask,
         $destinationLabel,
     ): string {
-        
-
-
-
-
-
-
-
 
         [$dueTxt, $dueClass, $dueIcon] = $dueLabel($r);
         [$prioTxt, $prioClass] = $priorityLabel($r);
@@ -2528,15 +2257,6 @@ function page_tasks(): void
 }
 function readonly_support_alerts_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated || !has_cfg()) {
@@ -2559,14 +2279,6 @@ function readonly_support_alerts_ensure_schema(): void
 
 function readonly_support_notice_screen(array $c, string $view = "sent"): string
 {
-    
-
-
-
-
-
-
-
 
     readonly_support_alerts_ensure_schema();
     $cid = (int) ($c["clinic_id"] ?? 0);
@@ -2634,17 +2346,6 @@ function readonly_support_notice_screen(array $c, string $view = "sent"): string
 }
 function page_notices(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("notices");
     $cid = (int) $c["clinic_id"];

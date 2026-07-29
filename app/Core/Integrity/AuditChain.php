@@ -7,14 +7,6 @@ final class AuditChain
     private const META_KEY = "audit_chain_head:global";
     private const POLICY_VERSION = "audit-chain-v3-linked";
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function build(
@@ -23,15 +15,6 @@ final class AuditChain
         ?array $proofContext = null,
     ): array
     {
-        
-
-
-
-
-
-
-
-
 
         $previous = self::currentHeadForUpdate();
         $proof = self::buildFromPrevious(
@@ -49,14 +32,6 @@ final class AuditChain
         string $previous,
         array $proofContext = [],
     ): array {
-        
-
-
-
-
-
-
-
 
         $previous = trim($previous);
         if ($previous !== "" && preg_match('/^[a-f0-9]{64}$/', $previous) !== 1) {
@@ -91,14 +66,6 @@ final class AuditChain
     }
     public static function verifyRow(array $row, string $secret): bool
     {
-        
-
-
-
-
-
-
-
 
         $integrity = strtolower(trim((string) ($row["integrity_hash"] ?? "")));
         $previous = strtolower(trim((string) ($row["previous_hash"] ?? "")));
@@ -159,14 +126,6 @@ final class AuditChain
     }
     public static function verifySequence(array $rows, string $secret): bool
     {
-        
-
-
-
-
-
-
-
 
         usort(
             $rows,
@@ -198,14 +157,6 @@ final class AuditChain
     }
     public static function storedHeadMatchesLatest(): bool
     {
-        
-
-
-
-
-
-
-
 
         $head = \one(
             "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
@@ -230,15 +181,6 @@ final class AuditChain
     }
     private static function runtimeProofContext(): array
     {
-        
-
-
-
-
-
-
-
-
 
         return [
             "route" => function_exists("route") ? \route() : "",
@@ -250,14 +192,6 @@ final class AuditChain
     }
     private static function canonicalize(mixed $value): mixed
     {
-        
-
-
-
-
-
-
-
 
         if (!is_array($value)) {
             return $value;
@@ -272,14 +206,6 @@ final class AuditChain
     }
     private static function ensureHead(): void
     {
-        
-
-
-
-
-
-
-
 
         \q(
             "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,NULL,NOW()) ON DUPLICATE KEY UPDATE meta_key=VALUES(meta_key)",
@@ -303,14 +229,6 @@ final class AuditChain
     }
     private static function currentHeadForUpdate(): string
     {
-        
-
-
-
-
-
-
-
 
         self::ensureHead();
         $row = \one(
@@ -321,14 +239,6 @@ final class AuditChain
     }
     private static function advanceHead(string $hash): void
     {
-        
-
-
-
-
-
-
-
 
         if (preg_match('/^[a-f0-9]{64}$/', $hash) !== 1) {
             throw new \InvalidArgumentException("Novo hash de auditoria inválido.");

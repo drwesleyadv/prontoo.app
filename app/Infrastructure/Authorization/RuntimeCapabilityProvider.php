@@ -11,21 +11,12 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     
     private array $credentialCache = [];
 
-    
     private array $permissionCache = [];
 
     public function __construct(
         private ?\Closure $credentialResolver = null,
         private ?\Closure $permissionResolver = null,
     ) {
-        
-
-
-
-
-
-
-
 
     }
 
@@ -34,14 +25,6 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
         string $capability,
         array $context,
     ): bool {
-        
-
-
-
-
-
-
-
 
         $state = $this->credentialState($context);
         if (!$state['active']) {
@@ -94,18 +77,8 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
         return $operation === 'view' && isset(($context['allowed'] ?? [])[$module]);
     }
 
-    
     private function credentialState(array $context): array
     {
-        
-
-
-
-
-
-
-
-
 
         $userId = (int) ($context['user']['id'] ?? ($context['user_id'] ?? 0));
         $scope = (string) ($context['scope'] ?? '');
@@ -175,17 +148,8 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
         }
     }
 
-    
     private function normalizeCredentialState(mixed $resolved): array
     {
-        
-
-
-
-
-
-
-
 
         $resolved = is_array($resolved) ? $resolved : [];
         $roles = [];
@@ -202,17 +166,8 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
         ];
     }
 
-    
     private function permissionMatrix(string $role, int $clinicId): array
     {
-        
-
-
-
-
-
-
-
 
         $key = $clinicId . '|' . $role;
         if (isset($this->permissionCache[$key])) {
@@ -236,14 +191,6 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
     private function cashierActionAllowed(ActionContract $contract): bool
     {
-        
-
-
-
-
-
-
-
 
         if ($contract->route === 'patient') {
             return $contract->action === 'patient_revenue_receive';
@@ -257,14 +204,6 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
     private function splitCapability(string $capability): array
     {
-        
-
-
-
-
-
-
-
 
         $parts = explode(':', $capability, 2);
         return [trim((string) ($parts[0] ?? '')), trim((string) ($parts[1] ?? ''))];
@@ -272,15 +211,6 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
     public static function logicSelfTest(): array
     {
-        
-
-
-
-
-
-
-
-
 
         $provider = new self(
             static  fn(array $context): array => [

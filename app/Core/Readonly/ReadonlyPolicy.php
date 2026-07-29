@@ -35,26 +35,10 @@ final class ReadonlyPolicy
         "pi_platform_counters",
     ];
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
     public static function postAllowed(string $route, string $action = ""): bool
     {
-        
-
-
-
-
-
-
-
 
         $route = self::cleanRoute($route);
         $action = self::cleanAction($action);
@@ -78,14 +62,6 @@ final class ReadonlyPolicy
         string $action = "",
         bool $isClinicScope = true,
     ): array {
-        
-
-
-
-
-
-
-
 
         if (!$isClinicScope) {
             return ["*"];
@@ -129,14 +105,6 @@ final class ReadonlyPolicy
         string $action = "",
         bool $isClinicScope = true,
     ): bool {
-        
-
-
-
-
-
-
-
 
         $allowed = self::allowedWriteTables($route, $action, $isClinicScope);
         if (in_array("*", $allowed, true)) {
@@ -155,27 +123,11 @@ final class ReadonlyPolicy
     }
     private static function cleanRoute(string $route): string
     {
-        
-
-
-
-
-
-
-
 
         return preg_replace("/[^a-z0-9_\-]/i", "", $route) ?: "login";
     }
     private static function cleanAction(string $action): string
     {
-        
-
-
-
-
-
-
-
 
         return preg_replace("/[^a-z0-9_\-]/i", "", $action) ?: "";
     }

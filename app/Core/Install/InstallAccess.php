@@ -17,27 +17,11 @@ final class InstallAccess
     private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785190207;
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function isLoopbackAddress(string $address): bool
     {
-        
-
-
-
-
-
-
-
 
         $address = trim($address);
         if ($address === '::1') {
@@ -51,14 +35,6 @@ final class InstallAccess
 
     public static function requestHostFrom(array $server): string
     {
-        
-
-
-
-
-
-
-
 
         $host = strtolower(trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
         if ($host === '') {
@@ -73,29 +49,12 @@ final class InstallAccess
 
     public static function requestHost(): string
     {
-        
-
-
-
-
-
-
-
-
 
         return self::requestHostFrom($_SERVER);
     }
 
     public static function isLocalServer(array $server): bool
     {
-        
-
-
-
-
-
-
-
 
         if (!self::isLoopbackAddress((string) ($server['REMOTE_ADDR'] ?? ''))) {
             return false;
@@ -110,31 +69,12 @@ final class InstallAccess
 
     public static function isLocalHttpRequest(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         return PHP_SAPI !== 'cli' && self::isLocalServer($_SERVER);
     }
 
     public static function isInstallerExecutionAllowed(?array $server = null, ?int $now = null): bool
     {
-        
-
-
-
-
-
-
-
-
-
 
         if (PHP_SAPI === 'cli' && $server === null) {
             return (string) getenv('GITHUB_ACTIONS') === 'true' &&
@@ -173,16 +113,6 @@ final class InstallAccess
 
     public static function assertInstallerEntry(): void
     {
-        
-
-
-
-
-
-
-
-
-
 
         if (!self::isInstallerExecutionAllowed()) {
             self::denyPublicAccess();
@@ -191,14 +121,6 @@ final class InstallAccess
 
     public static function denyPublicAccess(): never
     {
-        
-
-
-
-
-
-
-
 
         if (!headers_sent()) {
             http_response_code(404);

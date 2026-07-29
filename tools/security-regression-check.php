@@ -9,25 +9,21 @@ $GLOBALS["prontoo_test_mfa_mode"] = "absent";
 $GLOBALS["prontoo_test_mfa_record"] = null;
 $GLOBALS["prontoo_test_has_cfg"] = true;
 
-
 function storage_path(string $suffix = ""): string
 {
     $root = (string) $GLOBALS["testStorageRoot"];
     return $suffix === "" ? $root : $root . "/" . ltrim($suffix, "/");
 }
 
-
 function cfg(): array
 {
     return ["secret" => str_repeat("s", 48)];
 }
 
-
 function has_cfg(): bool
 {
     return (bool) $GLOBALS["prontoo_test_has_cfg"];
 }
-
 
 function val(string $sql, array $params = []): mixed
 {
@@ -52,7 +48,6 @@ function val(string $sql, array $params = []): mixed
     return null;
 }
 
-
 function security_storage_deny_file(string $dir): void
 {
     if (!is_dir($dir)) {
@@ -61,7 +56,6 @@ function security_storage_deny_file(string $dir): void
     file_put_contents($dir . "/.htaccess", "Require all denied\n");
     file_put_contents($dir . "/index.html", "");
 }
-
 
 function security_regression_assert(bool $condition, string $message): void
 {

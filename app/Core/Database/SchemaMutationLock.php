@@ -12,29 +12,11 @@ final class SchemaMutationLock
     private static ?string $nonce = null;
 
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function runForInstaller(callable $callback): mixed
     {
-        
-
-
-
-
-
-
-
-
-
 
         if (!self::mayOpenInstallerWindow()) {
             throw new \RuntimeException('A janela estrutural só pode ser aberta pelo instalador autorizado ou pela certificação controlada.');
@@ -58,15 +40,6 @@ final class SchemaMutationLock
 
     public static function isActive(): bool
     {
-        
-
-
-
-
-
-
-
-
 
         $provided = (string) ($GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE'] ?? '');
         return self::$depth === 1 &&
@@ -77,15 +50,6 @@ final class SchemaMutationLock
 
     public static function assertActive(): void
     {
-        
-
-
-
-
-
-
-
-
 
         if (!self::isActive()) {
             throw new \RuntimeException('A estrutura do banco está congelada fora da janela privada do instalador.');
@@ -94,16 +58,6 @@ final class SchemaMutationLock
 
     private static function mayOpenInstallerWindow(): bool
     {
-        
-
-
-
-
-
-
-
-
-
 
         if (
             PHP_SAPI === 'cli' &&

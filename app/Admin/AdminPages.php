@@ -2,14 +2,6 @@
 declare(strict_types=1);
 function platform_storage_status(): array
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path();
     $ok = is_dir($dir) && is_writable($dir);
@@ -21,14 +13,6 @@ function platform_storage_status(): array
 }
 function admin_scope_guard_definition(string $key): array
 {
-    
-
-
-
-
-
-
-
 
     $definitions = [
         "write_in_read_only" => [
@@ -202,14 +186,6 @@ function admin_scope_guard_definition(string $key): array
 }
 function admin_scope_guard_stats(int $hours = 24): array
 {
-    
-
-
-
-
-
-
-
 
     $hours = max(1, min(24 * 30, $hours));
     $objectiveKeys = [
@@ -263,14 +239,6 @@ function admin_scope_guard_groups(
     int $limit = 30,
     bool $includePolicy = false,
 ): array {
-    
-
-
-
-
-
-
-
 
     $hours = max(1, min(24 * 30, $hours));
     $limit = max(1, min(80, $limit));
@@ -295,14 +263,6 @@ function admin_scope_guard_groups(
 }
 function admin_scope_evidence_html(array $row, bool $compact = false): string
 {
-    
-
-
-
-
-
-
-
 
     $key = (string) ($row["violation_key"] ?? "");
     $definition = admin_scope_guard_definition($key);
@@ -364,14 +324,6 @@ function admin_scope_evidence_html(array $row, bool $compact = false): string
 }
 function admin_scope_guard_timeline_item(array $row): array
 {
-    
-
-
-
-
-
-
-
 
     $definition = admin_scope_guard_definition(
         (string) ($row["violation_key"] ?? ""),
@@ -405,14 +357,6 @@ function admin_scope_guard_timeline_item(array $row): array
 }
 function platform_backend_selftest(array $preloaded = []): array
 {
-    
-
-
-
-
-
-
-
 
     $checks = [];
     $ok = true;
@@ -464,14 +408,6 @@ function platform_backend_selftest(array $preloaded = []): array
         "platform_selftest_integrity_alerts_" . admin_model_clinic_id(),
         60,
         static function () use ($auditModelWhere): int {
-            
-
-
-
-
-
-
-
 
             $alerts = 0;
             try {
@@ -501,14 +437,6 @@ function platform_backend_selftest(array $preloaded = []): array
 }
 function platform_autotest_actions(array $checks): array
 {
-    
-
-
-
-
-
-
-
 
     $actions = [];
     if (empty($checks["database"])) {
@@ -562,14 +490,6 @@ function platform_login_loaded_audit(
     array $checks,
     bool $autoLogin = false,
 ): void {
-    
-
-
-
-
-
-
-
 
     try {
         $bucket = security_client_bucket("login_loaded_audit");
@@ -602,14 +522,6 @@ function platform_login_loaded_audit(
 }
 function admin_nav_parent(string $route): string
 {
-    
-
-
-
-
-
-
-
 
     return match ($route) {
         "admin_stats", "admin_operations" => "admin_painel",
@@ -638,14 +550,6 @@ function stat_link_card(
     string $note = "",
     string $route = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $inner =
         icon($iconName) .
@@ -667,14 +571,6 @@ function stat_link_card(
 if (!function_exists("admin_choice_card")) {
     function admin_choice_card(): string
     {
-        
-
-
-
-
-
-
-
 
         return '<button class="clinic-choice credential-choice admin-choice" type="submit" name="act" value="choose_admin"><span class="credential-icon app-brandmark-inline" data-app-brandmark><img class="auth-brandmark-favicon app-brandmark-img" src="/public/assets/app-icon-' .
             e(PRONTOO_ASSET_REV) .
@@ -685,14 +581,6 @@ if (!function_exists("admin_choice_card")) {
 }
 function admin_global_timezone_options(): array
 {
-    
-
-
-
-
-
-
-
 
     $priority = [
         "America/Cuiaba" => "Cuiabá / Mato Grosso",
@@ -720,14 +608,6 @@ function admin_global_timezone_options(): array
 }
 function admin_quick_links(): string
 {
-    
-
-
-
-
-
-
-
 
     $links = [
         [
@@ -784,14 +664,6 @@ function admin_quick_links(): string
 }
 function human_bytes(float $bytes): string
 {
-    
-
-
-
-
-
-
-
 
     $u = ["B", "KB", "MB", "GB", "TB"];
     $i = 0;
@@ -806,14 +678,6 @@ function bool_status(
     string $okTxt = "OK",
     string $badTxt = "Atenção",
 ): string {
-    
-
-
-
-
-
-
-
 
     return $ok ? $okTxt : $badTxt;
 }
@@ -824,14 +688,6 @@ function admin_global_compact_pill(
     string $note = "",
     string $route = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $inner =
         icon($iconName) .
@@ -851,36 +707,12 @@ function admin_global_compact_pill(
 }
 function admin_global_ops_finance_html(): string
 {
-    
-
-
-
-
-
-
-
 
     $qInt = function (string $sql, array $p = []): int {
-        
-
-
-
-
-
-
-
 
         return (int) safe_val($sql, $p, 0);
     };
     $qCents = function (string $sql, array $p = []): int {
-        
-
-
-
-
-
-
-
 
         return (int) safe_val($sql, $p, 0);
     };
@@ -1068,15 +900,6 @@ function admin_global_ops_finance_html(): string
 }
 function admin_global_metric_series_24h(string $metric): array
 {
-    
-
-
-
-
-
-
-
-
 
     static $requestSeries = null;
     $metric = $metric === "response" ? "query_ms" : $metric;
@@ -1154,14 +977,6 @@ function admin_metric_duration_label(
     float $milliseconds,
     bool $compact = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     $milliseconds = max(0.0, $milliseconds);
     if ($milliseconds >= 1000.0) {
@@ -1176,14 +991,6 @@ function admin_metric_duration_label(
 }
 function admin_metric_value_label(float $value, string $mode): string
 {
-    
-
-
-
-
-
-
-
 
     if ($mode === "ms") {
         return admin_metric_duration_label($value, false);
@@ -1192,27 +999,11 @@ function admin_metric_value_label(float $value, string $mode): string
 }
 function admin_metric_value_compact(float $value, string $mode): string
 {
-    
-
-
-
-
-
-
-
 
     return admin_metric_duration_label($value, true);
 }
 function admin_metric_recent_average(array $series, int $minutes = 5): float
 {
-    
-
-
-
-
-
-
-
 
     $recent = array_slice($series, -max(1, $minutes));
     $weightedSum = 0.0;
@@ -1243,14 +1034,6 @@ function admin_metric_line_chart(
     string $iconName,
     string $mode = "count",
 ): string {
-    
-
-
-
-
-
-
-
 
     $values = array_map( fn($r) => (float) ($r["value"] ?? 0), $series);
     if (!$values) {
@@ -1442,14 +1225,6 @@ function admin_metric_dual_area_chart(
     array $responseSeries,
     string $iconName = "speed",
 ): string {
-    
-
-
-
-
-
-
-
 
     $loadValues = array_map( fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
     $responseValues = array_map(
@@ -1482,14 +1257,6 @@ function admin_metric_dual_area_chart(
         $plotH,
         $max,
     ): array {
-        
-
-
-
-
-
-
-
 
         $n = count($series);
         $points = [];
@@ -1508,14 +1275,6 @@ function admin_metric_dual_area_chart(
         return $points;
     };
     $path = static function (array $points): string {
-        
-
-
-
-
-
-
-
 
         $d = "";
         foreach ($points as $i => $pt) {
@@ -1528,14 +1287,6 @@ function admin_metric_dual_area_chart(
         array $points,
         float $baseline,
     ): string {
-        
-
-
-
-
-
-
-
 
         if (!$points || $d === "") {
             return "";
@@ -1740,15 +1491,6 @@ function admin_metric_dual_area_chart(
 }
 function admin_global_sequence_series_30d(): array
 {
-    
-
-
-
-
-
-
-
-
 
     $tz = telemetry_cuiaba_tz();
     $today = new DateTimeImmutable("today", $tz);
@@ -1805,14 +1547,6 @@ function admin_global_sequence_series_30d(): array
 }
 function admin_sequence_average(array $series, int $days): float
 {
-    
-
-
-
-
-
-
-
 
     $recent = array_slice($series, -max(1, $days));
     if (!$recent) {
@@ -1830,14 +1564,6 @@ function admin_metric_bar_chart(
     string $iconName,
     string $unitLabel = "registros",
 ): string {
-    
-
-
-
-
-
-
-
 
     $values = array_map( fn($r) => (float) ($r["value"] ?? 0), $series);
     if (!$values) {
@@ -1979,14 +1705,6 @@ function admin_metric_bar_chart(
 }
 function admin_maestro_health_time_label(?string $value): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -2019,14 +1737,6 @@ function admin_maestro_health_time_label(?string $value): string
 }
 function admin_maestro_health_pill_html(): string
 {
-    
-
-
-
-
-
-
-
 
     $ok = false;
     $label = "Rotinas sem execução registrada";
@@ -2085,14 +1795,6 @@ function admin_maestro_health_pill_html(): string
 }
 function admin_global_perf_charts_html(): string
 {
-    
-
-
-
-
-
-
-
 
     $response = admin_global_metric_series_24h("query_ms");
     $load = admin_global_metric_series_24h("load");
@@ -2121,14 +1823,6 @@ function admin_global_perf_charts_html(): string
 }
 function page_admin_operations(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_operations");
     $body =
@@ -2142,17 +1836,6 @@ function page_admin_operations(): void
 }
 function page_admin_deleted(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_health");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
@@ -2322,14 +2005,6 @@ function page_admin_deleted(): void
 }
 function page_admin_health(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_health");
     $dbOk = false;
@@ -2499,15 +2174,6 @@ function page_admin_health(): void
 }
 function page_admin_diagnostics(): void
 {
-    
-
-
-
-
-
-
-
-
 
     require_can("admin_diagnostics");
     $dbOk = false;
@@ -2605,18 +2271,6 @@ function page_admin_diagnostics(): void
 }
 function page_admin_errors(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_errors");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
@@ -2707,14 +2361,6 @@ function page_admin_errors(): void
 }
 function onboarding_score(array $r): array
 {
-    
-
-
-
-
-
-
-
 
     $checks = [
         (int) $r["onboarding_done"] === 1,
@@ -2729,27 +2375,11 @@ function onboarding_score(array $r): array
 }
 function page_admin_onboarding(): void
 {
-    
-
-
-
-
-
-
-
 
     redirect("admin_clinics");
 }
 function page_admin_integrity(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_integrity");
     $modelAuditWhere = admin_model_clinic_exclude_where("a.clinic_id");
@@ -2881,17 +2511,6 @@ function page_admin_integrity(): void
 }
 function page_admin_maintenance(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("admin_maintenance");
     $uid = (int) ($c["user"]["id"] ?? 0);
@@ -3121,30 +2740,11 @@ function page_admin_maintenance(): void
 }
 function page_admin_settings(): void
 {
-    
-
-
-
-
-
-
-
 
     redirect("admin_maintenance", ["tab" => "configuracoes"]);
 }
 function page_admin_painel(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_painel");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
@@ -3288,14 +2888,6 @@ function page_admin_painel(): void
         }
     }
     $qInt = function (string $sql, array $p = []): int {
-        
-
-
-
-
-
-
-
 
         return (int) safe_val($sql, $p, 0);
     };
@@ -3590,14 +3182,6 @@ function page_admin_painel(): void
 }
 function page_admin_people(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_users");
     $rows = q(
@@ -3632,40 +3216,16 @@ function page_admin_people(): void
 }
 function page_admin_users(): void
 {
-    
-
-
-
-
-
-
-
 
     redirect("admin_people");
 }
 function page_admin_stats(): void
 {
-    
-
-
-
-
-
-
-
 
     redirect("admin_painel");
 }
 function onboarding_use_icon(bool $ok, string $label): string
 {
-    
-
-
-
-
-
-
-
 
     return '<span class="onboard-cell ' .
         ($ok ? "ok" : "bad") .
@@ -3679,14 +3239,6 @@ function onboarding_use_icon(bool $ok, string $label): string
 }
 function onboarding_progress_bar(array $used): string
 {
-    
-
-
-
-
-
-
-
 
     $total = 6;
     $labels = [
@@ -3737,14 +3289,6 @@ function admin_clinic_detail_item(
     string $value,
     string $note = "",
 ): string {
-    
-
-
-
-
-
-
-
 
     $value = trim($value) !== "" ? $value : "Não informado";
     return '<div class="admin-clinic-detail-item"><span class="admin-clinic-detail-item-icon">' .
@@ -3759,14 +3303,6 @@ function admin_clinic_detail_item(
 }
 function admin_clinic_detail_page(int $id): void
 {
-    
-
-
-
-
-
-
-
 
     $clinic = one(
         "SELECT c.*,ou.name AS owner_name,ou.email AS owner_email,ou.active AS owner_active,ou.last_login_at AS owner_last_login_at,ou.created_at AS owner_created_at,op.full_name AS owner_person_name,op.cpf AS owner_cpf,op.birth_date AS owner_birth_date,op.phone AS owner_phone,op.email AS owner_person_email,op.address AS owner_address,op.address_number AS owner_address_number,op.address_neighborhood AS owner_address_neighborhood,op.address_complement AS owner_address_complement,op.address_city AS owner_address_city,op.address_state AS owner_address_state,mu.name AS manager_name,mu.email AS manager_email FROM pi_clinics c JOIN pi_users ou ON ou.id=c.owner_user_id JOIN pi_persons op ON op.id=ou.person_id LEFT JOIN pi_users mu ON mu.id=c.manager_user_id WHERE c.id=?",
@@ -4022,14 +3558,6 @@ function admin_clinic_detail_page(int $id): void
 }
 function admin_clinic_people_counts_by_cpf(array $clinicIds): array
 {
-    
-
-
-
-
-
-
-
 
     $clinicIds = array_values(
         array_unique(array_filter(array_map("intval", $clinicIds))),
@@ -4040,14 +3568,6 @@ function admin_clinic_people_counts_by_cpf(array $clinicIds): array
     sort($clinicIds, SORT_NUMERIC);
     $clinicIds = array_slice($clinicIds, 0, 300);
     $loader = static function () use ($clinicIds): array {
-        
-
-
-
-
-
-
-
 
         $out = [];
         foreach ($clinicIds as $clinicId) {
@@ -4097,30 +3617,11 @@ function admin_clinic_people_counts_by_cpf(array $clinicIds): array
 }
 function page_admin_clinics(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_clinics");
     $detailId = max(0, (int) ($_GET["clinic_id"] ?? 0));
     $returnClinicId = max(0, (int) ($_POST["return_clinic_id"] ?? 0));
     $redirectAfterClinicAction = static function (int $clinicId = 0): void {
-        
-
-
-
-
-
-
-
 
         redirect(
             "admin_clinics",
@@ -4456,18 +3957,6 @@ function page_admin_clinics(): void
 }
 function page_admin_security(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
-
 
     require_can("admin_security");
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
@@ -4614,14 +4103,6 @@ function page_admin_security(): void
 }
 function page_admin_audit(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_health");
     $rows = audit_rows_light("1=1", [], 120);
@@ -4643,15 +4124,6 @@ function page_admin_audit(): void
 }
 function admin_alerts_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated || !has_cfg()) {
@@ -4674,14 +4146,6 @@ function admin_alerts_ensure_schema(): void
 
 function admin_alerts_admin_users(): array
 {
-    
-
-
-
-
-
-
-
 
     try {
         $rows = q(
@@ -4702,14 +4166,6 @@ function admin_alert_contact_label(
     int $currentUserId = 0,
     bool $asSupport = false,
 ): string {
-    
-
-
-
-
-
-
-
 
     if ($asSupport) {
         return "Suporte";
@@ -4722,17 +4178,6 @@ function admin_alert_contact_label(
 }
 function page_admin_alerts(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("admin_alerts");
     admin_alerts_ensure_schema();
@@ -5154,27 +4599,11 @@ function page_admin_alerts(): void
 
 function admin_performance_format_ms(float $ms): string
 {
-    
-
-
-
-
-
-
-
 
     return number_format(max(0.0, $ms), 1, ",", ".") . " ms";
 }
 function admin_performance_rows_html(array $rows): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$rows) {
         return '<div class="empty">Ainda não há dados de performance nas últimas 24 horas. Use o sistema por alguns minutos e retorne a esta tela.</div>';
@@ -5224,14 +4653,6 @@ function admin_performance_rows_html(array $rows): string
 }
 function page_admin_performance(): void
 {
-    
-
-
-
-
-
-
-
 
     require_can("admin_performance");
     $summary = function_exists("telemetry_route_performance_summary")

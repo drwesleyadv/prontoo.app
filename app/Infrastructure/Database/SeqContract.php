@@ -6,28 +6,11 @@ namespace Prontoo\Infrastructure\Database;
 final class SeqContract
 {
     private function __construct() {
-        
-
-
-
-
-
-
-
 
     }
 
     public static function assert(\PDO $pdo): void
     {
-        
-
-
-
-
-
-
-
-
 
         if (self::tableExists($pdo, 'pi_sequence')) {
             throw new \RuntimeException('A tabela legada pi_sequence não pode existir no schema limpo.');
@@ -60,14 +43,6 @@ final class SeqContract
 
     private static function tableExists(\PDO $pdo, string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         $stmt = $pdo->prepare(
             'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
@@ -78,14 +53,6 @@ final class SeqContract
 
     private static function hasUniqueSeq(\PDO $pdo, string $table): bool
     {
-        
-
-
-
-
-
-
-
 
         $stmt = $pdo->prepare(
             "SELECT 1 FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name=? AND column_name='Seq' AND non_unique=0 LIMIT 1",

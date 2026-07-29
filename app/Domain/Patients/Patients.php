@@ -1,39 +1,16 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/PatientPure.php';
+
 function patient_cpf_br(string $cpf): string
 {
-    
-
-
-
-
-
-
-
-
-    $d = function_exists("only_digits")
+    $digits = function_exists('only_digits')
         ? only_digits($cpf)
-        : preg_replace("/\D+/", "", $cpf);
-    return strlen((string) $d) === 11
-        ? substr((string) $d, 0, 3) .
-                "." .
-                substr((string) $d, 3, 3) .
-                "." .
-                substr((string) $d, 6, 3) .
-                "-" .
-                substr((string) $d, 9, 2)
-        : $cpf;
+        : preg_replace('/\D+/', '', $cpf);
+    return \Prontoo\Domain\Patients\PatientPure::cpfBr($cpf, (string) $digits);
 }
 function normalize_patient_tab_icon(?string $icon): string
 {
-    
-
-
-
-
-
-
-
 
     $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
     return array_key_exists($icon, patient_health_icon_options())
@@ -42,56 +19,18 @@ function normalize_patient_tab_icon(?string $icon): string
 }
 function patient_tab_label_clean(string $label): string
 {
-    
-
-
-
-
-
-
-
-
-    $label = trim(preg_replace("/\s+/u", " ", strip_tags($label)) ?? "");
-    $label = mb_substr($label, 0, 60, "UTF-8");
-    return $label;
+    return \Prontoo\Domain\Patients\PatientPure::cleanTabLabel($label);
 }
 function patient_tab_record_type(int $tabId): string
 {
-    
-
-
-
-
-
-
-
-
-    return "tab_" . max(0, $tabId);
+    return \Prontoo\Domain\Patients\PatientPure::tabRecordType($tabId);
 }
 function patient_tab_key(int $tabId): string
 {
-    
-
-
-
-
-
-
-
-
-    return "extra" . max(0, $tabId);
+    return \Prontoo\Domain\Patients\PatientPure::tabKey($tabId);
 }
 function patient_tabs_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated) {
@@ -107,14 +46,6 @@ function patient_tabs_ensure_schema(): void
 
 function patient_extra_tabs(int $cid, int $patientId): array
 {
-    
-
-
-
-
-
-
-
 
     patient_tabs_ensure_schema();
     $rows = q(
@@ -135,14 +66,6 @@ function patient_extra_tabs(int $cid, int $patientId): array
 }
 function patient_tab_map_by_type(array $tabs): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach ($tabs as $t) {
@@ -152,14 +75,6 @@ function patient_tab_map_by_type(array $tabs): array
 }
 function patient_tab_record_options(array $tabs): array
 {
-    
-
-
-
-
-
-
-
 
     $out = [];
     foreach ($tabs as $t) {
@@ -169,14 +84,6 @@ function patient_tab_record_options(array $tabs): array
 }
 function patient_record_type_label(string $type): string
 {
-    
-
-
-
-
-
-
-
 
     $type = trim($type);
     $base = [
@@ -225,14 +132,6 @@ function patient_record_type_label(string $type): string
 }
 function patient_tab_icon_picker(string $current = "clinical_notes"): string
 {
-    
-
-
-
-
-
-
-
 
     $current = normalize_patient_tab_icon($current);
     $html =
@@ -260,15 +159,6 @@ function patient_tab_icon_picker(string $current = "clinical_notes"): string
 }
 function patient_guardians_ensure_schema(): void
 {
-    
-
-
-
-
-
-
-
-
 
     static $validated = false;
     if ($validated) {
@@ -284,96 +174,22 @@ function patient_guardians_ensure_schema(): void
 
 function patient_guardian_relationship_options(): array
 {
-    
-
-
-
-
-
-
-
-
-    return [
-        "mae" => "Mãe",
-        "pai" => "Pai",
-        "tutor" => "Tutor(a)",
-        "guardiao" => "Guardião(ã)",
-        "avo" => "Avó/Avô com guarda ou autorização",
-        "responsavel_judicial" => "Responsável por decisão judicial",
-        "outro" => "Outro vínculo documentado",
-    ];
+    return \Prontoo\Domain\Patients\PatientPure::guardianRelationshipOptions();
 }
 function normalize_guardian_relationship(string $v): string
 {
-    
-
-
-
-
-
-
-
-
-    $v = preg_replace("/[^a-z0-9_]+/i", "", strtolower(trim($v))) ?: "";
-    return array_key_exists($v, patient_guardian_relationship_options())
-        ? $v
-        : "outro";
+    return \Prontoo\Domain\Patients\PatientPure::normalizeGuardianRelationship($v);
 }
 function patient_age_years(null|string|int $birth): ?int
 {
-    
-
-
-
-
-
-
-
-
-
-    $birth = trim((string) ($birth ?? ""));
-    if ($birth === "") {
-        return null;
-    }
-    try {
-        $d = preg_match('/^-?\d+$/', $birth)
-            ? new DateTimeImmutable("@" . (int) $birth)->setTimezone(
-                new DateTimeZone("UTC"),
-            )
-            : new DateTimeImmutable($birth);
-        $today = new DateTimeImmutable("today", new DateTimeZone("UTC"));
-        if ($d > $today) {
-            return null;
-        }
-        return (int) $d->diff($today)->y;
-    } catch (Throwable $e) {
-        return null;
-    }
+    return \Prontoo\Domain\Patients\PatientPure::ageYears($birth);
 }
 function patient_is_minor(array $p): bool
 {
-    
-
-
-
-
-
-
-
-
-    $age = patient_age_years($p["birth_date"] ?? null);
-    return $age !== null && $age < 18;
+    return \Prontoo\Domain\Patients\PatientPure::isMinor($p);
 }
 function patient_identity_complete(array $p): bool
 {
-    
-
-
-
-
-
-
-
 
     return trim((string) ($p["full_name"] ?? "")) !== "" &&
         valid_cpf(only_digits((string) ($p["cpf"] ?? ""))) &&
@@ -381,14 +197,6 @@ function patient_identity_complete(array $p): bool
 }
 function patient_invoice_registration_missing_fields(array $p): array
 {
-    
-
-
-
-
-
-
-
 
     $missing = [];
     if (trim((string) ($p["full_name"] ?? "")) === "") {
@@ -429,27 +237,11 @@ function patient_invoice_registration_missing_fields(array $p): array
 }
 function patient_invoice_registration_complete(array $p): bool
 {
-    
-
-
-
-
-
-
-
 
     return patient_invoice_registration_missing_fields($p) === [];
 }
 function patient_invoice_registration_alert_message(array $p): string
 {
-    
-
-
-
-
-
-
-
 
     $missing = patient_invoice_registration_missing_fields($p);
     return "Atualização cadastral obrigatória antes de agendar a próxima consulta" .
@@ -459,14 +251,6 @@ function patient_appointment_registration_block_reason(
     int $cid,
     int $patientId,
 ): ?string {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return null;
@@ -485,14 +269,6 @@ function patient_appointment_registration_block_reason(
 }
 function patient_legal_guardians(int $cid, int $patientId): array
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return [];
@@ -515,28 +291,12 @@ function patient_legal_guardians(int $cid, int $patientId): array
 }
 function patient_primary_legal_guardian(int $cid, int $patientId): ?array
 {
-    
-
-
-
-
-
-
-
 
     $g = patient_legal_guardians($cid, $patientId);
     return $g[0] ?? null;
 }
 function patient_has_legal_guardian(int $cid, int $patientId): bool
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return false;
@@ -549,14 +309,6 @@ function patient_has_legal_guardian(int $cid, int $patientId): bool
 }
 function patient_profile_status(array $p, array $guardians): array
 {
-    
-
-
-
-
-
-
-
 
     if (!patient_identity_complete($p)) {
         return [
@@ -605,14 +357,6 @@ function patient_profile_status(array $p, array $guardians): array
 }
 function patient_sensitive_block_reason(int $cid, int $patientId): ?string
 {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return null;
@@ -640,14 +384,6 @@ function patient_guardian_form_html(
     array $guardian = [],
     string $submit = "Salvar responsável legal",
 ): string {
-    
-
-
-
-
-
-
-
 
     $gid = (int) ($guardian["id"] ?? 0);
     $rel = normalize_guardian_relationship(
@@ -729,14 +465,6 @@ function patient_legal_guardian_card(
     array $guardians,
     bool $canManage = true,
 ): string {
-    
-
-
-
-
-
-
-
 
     $minor = patient_is_minor($p);
     if (!$minor && !$guardians) {
@@ -824,15 +552,6 @@ function patient_legal_guardian_card(
 }
 function require_patient_in_clinic(int $cid, int $patientId): array
 {
-    
-
-
-
-
-
-
-
-
 
     $row = require_same_clinic_entity(
         $cid,
@@ -850,14 +569,6 @@ function require_patient_in_clinic(int $cid, int $patientId): array
 }
 function patient_location_defaults(int $cid, array $p = []): array
 {
-    
-
-
-
-
-
-
-
 
     $uf = trim((string) ($p["address_state"] ?? ""));
     $city = trim((string) ($p["address_city"] ?? ""));
@@ -888,14 +599,6 @@ function patient_location_defaults(int $cid, array $p = []): array
 }
 function patient_zip_input(array $p = []): string
 {
-    
-
-
-
-
-
-
-
 
     return form_row(
         "CEP",
@@ -909,14 +612,6 @@ function patient_zip_input(array $p = []): string
 }
 function patient_address_fields(int $cid, array $p = []): string
 {
-    
-
-
-
-
-
-
-
 
     $loc = patient_location_defaults($cid, $p);
     $uf = (string) $loc["address_state"];
@@ -995,29 +690,11 @@ function patient_address_fields(int $cid, array $p = []): string
 }
 function patient_location_fields(int $cid, array $p = []): string
 {
-    
-
-
-
-
-
-
-
 
     return patient_address_fields($cid, $p);
 }
 function patient_location_from_post(int $cid): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $zip = only_digits((string) ($_POST["address_zip"] ?? ""));
     $street = trim((string) ($_POST["address"] ?? ""));
@@ -1058,14 +735,6 @@ function patient_location_from_post(int $cid): array
 }
 function mask_cep(string $cep): string
 {
-    
-
-
-
-
-
-
-
 
     $d = only_digits($cep);
     if (strlen($d) !== 8) {
@@ -1075,16 +744,6 @@ function mask_cep(string $cep): string
 }
 function patient_invoice_contact_from_post(): array
 {
-    
-
-
-
-
-
-
-
-
-
 
     $email = trim((string) ($_POST["email"] ?? ""));
     $phone = phone_br((string) ($_POST["phone"] ?? ""));
@@ -1103,14 +762,6 @@ function clinic_patient_exists(
     int $patientId,
     bool $activeOnly = true,
 ): bool {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return false;
@@ -1123,14 +774,6 @@ function clinic_patient_exists(
 }
 function patient_options(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     static $memo = [];
     if (isset($memo[$cid])) {
@@ -1157,15 +800,6 @@ function patient_autosuggest_datalist(
     int $cid,
     string $id = "prontoo_patient_suggestions",
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $limit = max(0, min(80, (int) ($_GET["patient_preload"] ?? 0)));
     if ($limit <= 0) {
@@ -1206,14 +840,6 @@ function patient_lookup_field(
     string $hiddenValue = "",
     string $inputName = "patient_search",
 ): string {
-    
-
-
-
-
-
-
-
 
     $display = "";
     $pid = (int) $hiddenValue;
@@ -1244,15 +870,6 @@ function patient_lookup_field(
 }
 function posted_patient_search_value(): string
 {
-    
-
-
-
-
-
-
-
-
 
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "patient_search")) {
@@ -1266,14 +883,6 @@ function resolve_patient_lookup_id(
     int $postedId,
     string $search = "",
 ): int {
-    
-
-
-
-
-
-
-
 
     if ($postedId > 0) {
         $ok = (int) val(
@@ -1332,14 +941,6 @@ function resolve_patient_lookup_id(
 }
 function patient_identity_by_cpf(string $cpf, int $cid): ?array
 {
-    
-
-
-
-
-
-
-
 
     $cpf = only_digits($cpf);
     if (!valid_cpf($cpf)) {
@@ -1371,14 +972,6 @@ function patient_identity_by_cpf(string $cpf, int $cid): ?array
 }
 function patient_lookup_payload(int $cid, string $cpf): array
 {
-    
-
-
-
-
-
-
-
 
     $cpf = only_digits($cpf);
     if (!valid_cpf($cpf)) {
@@ -1445,15 +1038,6 @@ function patient_lookup_payload(int $cid, string $cpf): array
 }
 function page_patient_lookup(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
@@ -1560,14 +1144,6 @@ function page_patient_lookup(): void
 }
 function patient_directory_filter_options(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "today" => "Hoje",
@@ -1578,27 +1154,11 @@ function patient_directory_filter_options(): array
 }
 function patient_directory_filter_default(): string
 {
-    
-
-
-
-
-
-
-
 
     return "today";
 }
 function patient_directory_filter_icons(): array
 {
-    
-
-
-
-
-
-
-
 
     return [
         "today" => "today",
@@ -1609,28 +1169,11 @@ function patient_directory_filter_icons(): array
 }
 function patient_directory_cancel_statuses(): array
 {
-    
-
-
-
-
-
-
-
 
     return ["cancelado", "nao_compareceu"];
 }
 function patient_week_utc_range(int $cid): array
 {
-    
-
-
-
-
-
-
-
-
 
     $today = app_today_in_timezone($cid);
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
@@ -1645,14 +1188,6 @@ function patient_week_utc_range(int $cid): array
 }
 function patient_today_utc_range(int $cid): array
 {
-    
-
-
-
-
-
-
-
 
     return app_local_day_utc_range(app_today_in_timezone($cid), $cid);
 }
@@ -1662,14 +1197,6 @@ function patient_directory_filter_where(
     string $patientAlias = "pp",
     string $personAlias = "p",
 ): string {
-    
-
-
-
-
-
-
-
 
     $filter = array_key_exists($filter, patient_directory_filter_options())
         ? $filter
@@ -1697,14 +1224,6 @@ function patient_directory_filter_where(
 }
 function patient_directory_select_metrics_sql(int $cid): string
 {
-    
-
-
-
-
-
-
-
 
     [$todayStart, $todayEnd] = patient_today_utc_range($cid);
     return ",(SELECT MIN(pa.start_at) FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.start_at>=" .
@@ -1731,14 +1250,6 @@ function patient_directory_select_metrics_sql(int $cid): string
 }
 function patient_directory_order_sql(string $filter): string
 {
-    
-
-
-
-
-
-
-
 
     $filter = array_key_exists($filter, patient_directory_filter_options())
         ? $filter
@@ -1754,14 +1265,6 @@ function patient_directory_order_sql(string $filter): string
 }
 function patient_directory_status(array $r): array
 {
-    
-
-
-
-
-
-
-
 
     $guardians = (int) ($r["guardian_count"] ?? 0) > 0 ? [["id" => 1]] : [];
     $status = patient_profile_status($r, $guardians);
@@ -1780,14 +1283,6 @@ function patient_directory_status(array $r): array
 }
 function patient_directory_card(array $r, int $cid = 0): string
 {
-    
-
-
-
-
-
-
-
 
     $name = (string) ($r["full_name"] ?? "Paciente #" . ($r["id"] ?? ""));
     $birth = (string) ($r["birth_date"] ?? "");
@@ -1940,14 +1435,6 @@ function patient_profile_overview(
     int $totalConsultations,
     string $firstConsultationLabel,
 ): string {
-    
-
-
-
-
-
-
-
 
     $name = trim((string) ($p["full_name"] ?? "Paciente"));
     $birth = trim((string) ($p["birth_date"] ?? ""));
@@ -2042,15 +1529,6 @@ function patient_profile_overview(
 }
 function patient_reception_story_time(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
-
 
     $raw = trim((string) ($value ?? ""));
     if ($raw === "") {
@@ -2101,14 +1579,6 @@ function patient_reception_story_title(
     string $who,
     null|string|int $createdAt,
 ): string {
-    
-
-
-
-
-
-
-
 
     $who = trim($who);
     if ($who === "") {
@@ -2122,14 +1592,6 @@ function patient_reception_story_title(
 }
 function patient_reception_meta_chips_html(array $parts): string
 {
-    
-
-
-
-
-
-
-
 
     $icons = [
         "Telefone" => "call",
@@ -2183,14 +1645,6 @@ function patient_reception_history_items(
     int $patientId,
     array $p,
 ): array {
-    
-
-
-
-
-
-
-
 
     if ($cid <= 0 || $patientId <= 0) {
         return [];
@@ -2362,14 +1816,6 @@ function patient_reception_history_items(
 }
 function patient_reception_history_panel(array $items): string
 {
-    
-
-
-
-
-
-
-
 
     $count = count($items);
     return '<section class="patient-panel patient-panel-atendimentos" role="tabpanel"><div class="patient-section-title"><div><h2>Atendimentos</h2><p>Histórico de ocorrências registradas pela recepção antes ou durante o vínculo com o paciente.</p></div><span>' .
@@ -2384,16 +1830,6 @@ function patient_reception_history_panel(array $items): string
 }
 function page_patient_suggest(): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $c = need_login();
     if (($c["scope"] ?? "") !== "clinic") {
@@ -2488,17 +1924,6 @@ function page_patient_suggest(): void
 }
 function page_patients(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("patients");
     $cid = (int) $c["clinic_id"];
@@ -2930,14 +2355,6 @@ function patient_appointment_duration_label(
     null|string|int $startAt,
     null|string|int $endAt,
 ): string {
-    
-
-
-
-
-
-
-
 
     $s = app_parse_db_utc($startAt);
     $e = app_parse_db_utc($endAt);
@@ -2958,14 +2375,6 @@ function patient_appointment_duration_label(
 function patient_appointment_elapsed_until_now_label(
     null|string|int $startAt,
 ): string {
-    
-
-
-
-
-
-
-
 
     $s = app_parse_db_utc($startAt);
     if (!$s) {
@@ -2981,14 +2390,6 @@ function patient_appointment_elapsed_until_now_label(
 }
 function patient_appointment_code(array $a): string
 {
-    
-
-
-
-
-
-
-
 
     return function_exists("appointment_status_code")
         ? appointment_status_code($a)
@@ -2999,14 +2400,6 @@ function patient_appointment_not_started_label(
     int $cid = 0,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $scheduled =
         $cid > 0
@@ -3041,14 +2434,6 @@ function patient_appointment_real_duration_label(
     int $cid = 0,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $started = $a["consultation_started_at"] ?? null;
     $finished = $a["consultation_finished_at"] ?? null;
@@ -3069,14 +2454,6 @@ function patient_appointment_real_duration_label(
 }
 function patient_appointment_status_title(array $a): string
 {
-    
-
-
-
-
-
-
-
 
     $code = patient_appointment_code($a);
     return match ($code) {
@@ -3094,14 +2471,6 @@ function patient_appointment_status_title(array $a): string
 }
 function patient_appointment_icon(array $a): string
 {
-    
-
-
-
-
-
-
-
 
     $code = patient_appointment_code($a);
     return match ($code) {
@@ -3117,14 +2486,6 @@ function patient_appointment_icon(array $a): string
 }
 function patient_appointment_status_class(array $a): string
 {
-    
-
-
-
-
-
-
-
 
     $code = patient_appointment_code($a);
     $safe = preg_replace('/[^a-z0-9_\t -]/i', "", $code) ?: "agendado";
@@ -3133,14 +2494,6 @@ function patient_appointment_status_class(array $a): string
 }
 function patient_document_type_human_label(?string $typeKey): string
 {
-    
-
-
-
-
-
-
-
 
     $key = mb_strtolower(trim((string) $typeKey));
     if ($key === "") {
@@ -3181,14 +2534,6 @@ function patient_appointment_docs_by_appointment(
     int $cid,
     array $appointmentIds,
 ): array {
-    
-
-
-
-
-
-
-
 
     $ids = array_values(
         array_unique(
@@ -3228,14 +2573,6 @@ function patient_appointment_docs_by_appointment(
 }
 function patient_appointment_docs_label(array $docs): string
 {
-    
-
-
-
-
-
-
-
 
     if (!$docs) {
         return "Documentos gerados: não houve geração de documentos nesta consulta.";
@@ -3270,14 +2607,6 @@ function patient_appointment_real_start_label(
     int $cid,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $started = app_db_utc_to_local(
         $a["consultation_started_at"] ?? null,
@@ -3294,14 +2623,6 @@ function patient_appointment_real_end_label(
     int $cid,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $started = app_db_utc_to_local(
         $a["consultation_started_at"] ?? null,
@@ -3329,14 +2650,6 @@ function patient_appointment_first_line(
     int $cid,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $scheduled = app_db_utc_to_local($a["start_at"] ?? null, $cid, $context);
     $date = $scheduled ? $scheduled->format("d/m/Y") : "—";
@@ -3354,14 +2667,6 @@ function patient_appointment_first_line_html(
     int $cid,
     array $context = [],
 ): string {
-    
-
-
-
-
-
-
-
 
     $scheduled = app_db_utc_to_local($a["start_at"] ?? null, $cid, $context);
     $chips = [
@@ -3392,14 +2697,6 @@ function patient_appointment_first_line_html(
 }
 function patient_appointment_options_from_rows(array $appts): array
 {
-    
-
-
-
-
-
-
-
 
     $opts = ["" => "Sem vínculo com agendamento"];
     foreach ($appts as $a) {
@@ -3419,14 +2716,6 @@ function patient_appointment_options_from_rows(array $appts): array
 }
 function patient_default_document_appointment(array $appts): ?int
 {
-    
-
-
-
-
-
-
-
 
     foreach ($appts as $a) {
         $code = patient_appointment_code($a);
@@ -3455,14 +2744,6 @@ function patient_appointment_timeline_items(
     array $appointments,
     array $context = [],
 ): array {
-    
-
-
-
-
-
-
-
 
     $ids = [];
     foreach ($appointments as $a) {
@@ -3494,17 +2775,6 @@ function patient_appointment_timeline_items(
 }
 function page_patient(): void
 {
-    
-
-
-
-
-
-
-
-
-
-
 
     $c = require_can("patients");
     $cid = (int) $c["clinic_id"];
@@ -4814,14 +4084,6 @@ function page_patient(): void
         $extraTypeOptions,
         $role,
     ): string {
-        
-
-
-
-
-
-
-
 
         if (!$extraTypeOptions) {
             return '<div class="empty">Crie uma aba extra para este paciente antes de registrar anotações clínicas. Cada aba criada passa a aparecer como Tipo da anotação.</div>';

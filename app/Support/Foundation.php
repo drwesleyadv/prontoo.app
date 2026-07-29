@@ -3,27 +3,11 @@ declare(strict_types=1);
 @date_default_timezone_set("UTC");
 function app_root(): string
 {
-    
-
-
-
-
-
-
-
 
     return defined("PRONTOO_ROOT") ? PRONTOO_ROOT : dirname(__DIR__, 2);
 }
 function cfg_file(): string
 {
-    
-
-
-
-
-
-
-
 
     $env = trim((string) (getenv("PRONTOO_CONFIG_PATH") ?: ""));
     if ($env !== "" && str_starts_with($env, "/")) {
@@ -33,40 +17,16 @@ function cfg_file(): string
 }
 function has_cfg(): bool
 {
-    
-
-
-
-
-
-
-
 
     return is_file(cfg_file());
 }
 function now(): string
 {
-    
-
-
-
-
-
-
-
 
     return (string) time();
 }
 function app_timezone_safe(string $tz): string
 {
-    
-
-
-
-
-
-
-
 
     $tz = trim($tz);
     return in_array($tz, timezone_identifiers_list(), true)
@@ -75,15 +35,6 @@ function app_timezone_safe(string $tz): string
 }
 function app_global_admin_timezone(int $userId = 0): string
 {
-    
-
-
-
-
-
-
-
-
 
     $userId = $userId > 0 ? $userId : (int) ($_SESSION["uid"] ?? 0);
     if ($userId > 0 && has_cfg() && function_exists("val")) {
@@ -126,14 +77,6 @@ function app_global_admin_timezone(int $userId = 0): string
 }
 function app_force_utc_runtime(): void
 {
-    
-
-
-
-
-
-
-
 
     @date_default_timezone_set("UTC");
     if (function_exists("pdo") && has_cfg()) {
@@ -146,15 +89,6 @@ function app_force_utc_runtime(): void
 }
 function app_timezone_offset_string(string $tz, ?int $timestamp = null): string
 {
-    
-
-
-
-
-
-
-
-
 
     $zone = new DateTimeZone(app_timezone_safe($tz));
     $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
@@ -170,15 +104,6 @@ function app_timezone_offset_string(string $tz, ?int $timestamp = null): string
 }
 function app_timezone_offset_minutes(string $tz, ?int $timestamp = null): int
 {
-    
-
-
-
-
-
-
-
-
 
     $zone = new DateTimeZone(app_timezone_safe($tz));
     $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
@@ -186,30 +111,12 @@ function app_timezone_offset_minutes(string $tz, ?int $timestamp = null): int
 }
 function app_apply_request_timezone(string $tz): void
 {
-    
-
-
-
-
-
-
-
-
 
     $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = app_timezone_safe($tz);
     app_force_utc_runtime();
 }
 function app_context_timezone(?array $context = null, int $clinicId = 0): string
 {
-    
-
-
-
-
-
-
-
-
 
     if (
         is_array($context) &&
@@ -257,15 +164,6 @@ function app_context_timezone(?array $context = null, int $clinicId = 0): string
 }
 function app_now_utc(): DateTimeImmutable
 {
-    
-
-
-
-
-
-
-
-
 
     return new DateTimeImmutable("now", new DateTimeZone("UTC"));
 }
@@ -273,15 +171,6 @@ function app_now_in_timezone(
     int $clinicId = 0,
     ?array $context = null,
 ): DateTimeImmutable {
-    
-
-
-
-
-
-
-
-
 
     return app_now_utc()->setTimezone(
         new DateTimeZone(app_context_timezone($context, $clinicId)),
@@ -291,14 +180,6 @@ function app_today_in_timezone(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     return app_now_in_timezone($clinicId, $context)->format("Y-m-d");
 }
@@ -307,14 +188,6 @@ function app_month_in_timezone(
     ?array $context = null,
     ?DateTimeImmutable $nowUtc = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $nowUtc ??= app_now_utc();
     return $nowUtc
@@ -328,14 +201,6 @@ function app_local_month_utc_range(
     int $clinicId = 0,
     ?array $context = null,
 ): array {
-    
-
-
-
-
-
-
-
 
     if (
         preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) !== 1 ||
@@ -354,15 +219,6 @@ function app_local_month_utc_range(
 }
 function app_parse_db_utc(null|string|int $value): ?DateTimeImmutable
 {
-    
-
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -382,15 +238,6 @@ function app_db_utc_to_local(
     int $clinicId = 0,
     ?array $context = null,
 ): ?DateTimeImmutable {
-    
-
-
-
-
-
-
-
-
 
     $dt = app_parse_db_utc($value);
     if (!$dt) {
@@ -405,15 +252,6 @@ function app_local_to_db_utc(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -441,14 +279,6 @@ function app_storage_timestamp(
     null|string|int $value,
     bool $endOfDay = false,
 ): int {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -468,14 +298,6 @@ function app_storage_timestamp(
 }
 function app_date_input_from_storage(null|string|int $value): string
 {
-    
-
-
-
-
-
-
-
 
     $value = trim((string) ($value ?? ""));
     if ($value === "") {
@@ -493,14 +315,6 @@ function app_db_utc_to_local_input(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("Y-m-d\TH:i") : "";
@@ -510,15 +324,6 @@ function app_local_day_utc_range(
     int $clinicId = 0,
     ?array $context = null,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
         $day = app_today_in_timezone($clinicId, $context);
@@ -536,14 +341,6 @@ function app_date_only_end_timestamp(
     int $clinicId = 0,
     ?array $context = null,
 ): int {
-    
-
-
-
-
-
-
-
 
     $ymd = app_date_input_from_storage($value);
     if ($ymd === "" || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) {
@@ -560,14 +357,6 @@ function app_time_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("H:i") : "--:--";
@@ -577,14 +366,6 @@ function app_date_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     return $dt ? $dt->format("d/m/Y") : "—";
@@ -594,14 +375,6 @@ function app_datetime_br(
     int $clinicId = 0,
     ?array $context = null,
 ): string {
-    
-
-
-
-
-
-
-
 
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     if (!$dt) {
@@ -619,14 +392,6 @@ function app_datetime_br(
 }
 function patient_display_name(int $patientLinkId, ?int $cid = null): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         if (function_exists("audit_patient_name_by_link")) {
@@ -653,27 +418,11 @@ function patient_display_name(int $patientLinkId, ?int $cid = null): string
 }
 function maintenance_active(): bool
 {
-    
-
-
-
-
-
-
-
 
     return has_cfg() && function_exists("meta_get") && meta_get("maintenance_active", "0") === "1";
 }
 function page_maintenance_notice(): void
 {
-    
-
-
-
-
-
-
-
 
     $message = function_exists("meta_get")
         ? meta_get(
@@ -693,27 +442,11 @@ function page_maintenance_notice(): void
 }
 function only_digits(string $s): string
 {
-    
-
-
-
-
-
-
-
 
     return preg_replace("/\D+/", "", $s) ?? "";
 }
 function cpf_br(?string $cpf): string
 {
-    
-
-
-
-
-
-
-
 
     $d = only_digits((string) ($cpf ?? ""));
     return strlen($d) === 11
@@ -728,14 +461,6 @@ function cpf_br(?string $cpf): string
 }
 function app_config_string(string $key, string $default = ""): string
 {
-    
-
-
-
-
-
-
-
 
     try {
         if (function_exists("cfg") && has_cfg()) {
@@ -752,14 +477,6 @@ function app_config_string(string $key, string $default = ""): string
 }
 function app_is_production(): bool
 {
-    
-
-
-
-
-
-
-
 
     $defaultEnv = has_cfg() ? "production" : "development";
     $env = strtolower(
@@ -775,14 +492,6 @@ function app_is_production(): bool
 
 function app_canonical_host(): string
 {
-    
-
-
-
-
-
-
-
 
     $host = app_config_string(
         "canonical_host",
@@ -802,15 +511,6 @@ function app_canonical_host(): string
 }
 function request_host_raw(): string
 {
-    
-
-
-
-
-
-
-
-
 
     $host = (string) ($_SERVER["HTTP_HOST"] ?? "localhost");
     $host = preg_replace("/[^a-zA-Z0-9\.\-:\[\]]/", "", $host) ?: "localhost";
@@ -818,15 +518,6 @@ function request_host_raw(): string
 }
 function app_enforce_canonical_host(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (PHP_SAPI === "cli" || !app_is_production()) {
         return;
@@ -852,15 +543,6 @@ function app_enforce_canonical_host(): void
 
 function is_https(): bool
 {
-    
-
-
-
-
-
-
-
-
 
     if (function_exists("security_https_active")) {
         return security_https_active();
@@ -870,14 +552,6 @@ function is_https(): bool
 }
 function request_host(): string
 {
-    
-
-
-
-
-
-
-
 
     $canonical = app_is_production() ? app_canonical_host() : "";
     if ($canonical !== "") {
@@ -887,15 +561,6 @@ function request_host(): string
 }
 function base_path(): string
 {
-    
-
-
-
-
-
-
-
-
 
     $script = (string) ($_SERVER["SCRIPT_NAME"] ?? "/");
     $dir = rtrim(str_replace(["install.php", "index.php"], "", $script), "/");
@@ -903,14 +568,6 @@ function base_path(): string
 }
 function base_url(string $suffix = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return (is_https() ? "https://" : "http://") .
         request_host() .
@@ -920,14 +577,6 @@ function base_url(string $suffix = ""): string
 }
 function href(string $route, array $params = []): string
 {
-    
-
-
-
-
-
-
-
 
     return (base_path() ?: "") .
         "/?" .
@@ -935,14 +584,6 @@ function href(string $route, array $params = []): string
 }
 function redirect(string $route, array $params = []): void
 {
-    
-
-
-
-
-
-
-
 
     if (!headers_sent()) {
         header("Location: " . href($route, $params));
@@ -951,29 +592,12 @@ function redirect(string $route, array $params = []): void
 }
 function route(): string
 {
-    
-
-
-
-
-
-
-
-
 
     return preg_replace("/[^a-z0-9_\-]/i", "", $_GET["r"] ?? "login") ?:
         "login";
 }
 function app_debug(): bool
 {
-    
-
-
-
-
-
-
-
 
     if (
         app_is_production() &&
@@ -993,14 +617,6 @@ function app_public_error_message(
     Throwable $error,
     string $fallback = "Não foi possível concluir esta ação.",
 ): string {
-    
-
-
-
-
-
-
-
 
     $message = trim($error->getMessage());
     if ($message === "" || $error instanceof PDOException) {
@@ -1019,14 +635,6 @@ function app_public_error_message(
 
 function app_fail(Throwable $e, int $status = 500): void
 {
-    
-
-
-
-
-
-
-
 
     $status = $e instanceof ProntooHttpError ? $e->status : $status;
     $http = $e instanceof ProntooHttpError;
@@ -1087,27 +695,11 @@ function app_fail(Throwable $e, int $status = 500): void
 }
 function runtime_self_check(): void
 {
-    
-
-
-
-
-
-
-
 
     \Prontoo\Core\Install\RuntimeContract::assert(app_root(), PRONTOO_VERSION);
 }
 function cfg(): array
 {
-    
-
-
-
-
-
-
-
 
     static $c = null;
     if ($c !== null) {
@@ -1118,27 +710,11 @@ function cfg(): array
 }
 function storage_path(string $path = ""): string
 {
-    
-
-
-
-
-
-
-
 
     return app_root() . "/ssd" . ($path ? "/" . ltrim($path, "/") : "");
 }
 function cache_path(string $key): string
 {
-    
-
-
-
-
-
-
-
 
     $dir = storage_path("cache");
     if (!is_dir($dir)) {
@@ -1151,14 +727,6 @@ function cache_path(string $key): string
 }
 function cache_get(string $key, int $ttl): mixed
 {
-    
-
-
-
-
-
-
-
 
     $f = cache_path($key);
     if (!is_file($f) || time() - filemtime($f) > $ttl) {
@@ -1173,14 +741,6 @@ function cache_get(string $key, int $ttl): mixed
 }
 function cache_set(string $key, mixed $value): mixed
 {
-    
-
-
-
-
-
-
-
 
     @file_put_contents(
         cache_path($key),
@@ -1191,14 +751,6 @@ function cache_set(string $key, mixed $value): mixed
 }
 function cache_remember(string $key, int $ttl, callable $fn): mixed
 {
-    
-
-
-
-
-
-
-
 
     if ($ttl <= 0) {
         try {
@@ -1221,14 +773,6 @@ function cache_remember(string $key, int $ttl, callable $fn): mixed
 }
 function cached_val(string $key, int $ttl, string $sql, array $p = []): mixed
 {
-    
-
-
-
-
-
-
-
 
     $ttl = max(0, $ttl);
     if ($ttl <= 0) {
@@ -1267,40 +811,16 @@ function cached_val(string $key, int $ttl, string $sql, array $p = []): mixed
 }
 function bounded_limit(int $n, int $max = PRONTOO_HOT_LIST_LIMIT): int
 {
-    
-
-
-
-
-
-
-
 
     return max(1, min($max, $n));
 }
 function counter_key(string $name): string
 {
-    
-
-
-
-
-
-
-
 
     return preg_replace("/[^a-z0-9_\-\.]/i", "_", $name) ?: "counter";
 }
 function counter_inc(string $name, int $by = 1): void
 {
-    
-
-
-
-
-
-
-
 
     try {
         q(
@@ -1313,14 +833,6 @@ function counter_inc(string $name, int $by = 1): void
 }
 function counter_get(string $name, int $fallback = 0): int
 {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) (val(
@@ -1334,14 +846,6 @@ function counter_get(string $name, int $fallback = 0): int
 }
 function prontoo_login_selftest_light(): array
 {
-    
-
-
-
-
-
-
-
 
     $ok = true;
     $checks = ["mode" => "login_light", "version" => PRONTOO_VERSION];
@@ -1383,15 +887,6 @@ function prontoo_login_selftest_light(): array
 }
 function page_login_autotest(): void
 {
-    
-
-
-
-
-
-
-
-
 
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
@@ -1449,14 +944,6 @@ function person_signature_value(
     string $name,
     ?string $date,
 ): string {
-    
-
-
-
-
-
-
-
 
     $base =
         only_digits($identity) .
@@ -1468,15 +955,6 @@ function person_signature_value(
 }
 function person_signature_sync(int $personId, bool $verify = false): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($personId <= 0) {
         return;
@@ -1524,27 +1002,11 @@ function person_signature_sync(int $personId, bool $verify = false): void
 }
 function person_signature_refresh(int $personId): void
 {
-    
-
-
-
-
-
-
-
 
     person_signature_sync($personId, false);
 }
 function person_signature_refresh_verified(int $personId): void
 {
-    
-
-
-
-
-
-
-
 
     person_signature_sync($personId, true);
 }
@@ -1554,15 +1016,6 @@ function person_identity_immutable_values(
     ?string $birthInput = null,
     bool $requireMissing = false,
 ): array {
-    
-
-
-
-
-
-
-
-
 
     $current =
         $personId > 0
@@ -1614,14 +1067,6 @@ function count_recent_or_counter(
     array $p = [],
     int $ttl = PRONTOO_DASHBOARD_COUNTER_TTL,
 ): int {
-    
-
-
-
-
-
-
-
 
     try {
         return (int) cached_val("counter_" . $counter, max(0, $ttl), $sql, $p);
@@ -1634,14 +1079,6 @@ function count_recent_or_counter(
 }
 function meta_cache_ttl(string $key): int
 {
-    
-
-
-
-
-
-
-
 
     if (
         $key === "auth_generation" ||
@@ -1660,24 +1097,8 @@ function meta_cache_ttl(string $key): int
 }
 function meta_get(string $key, mixed $default = null): mixed
 {
-    
-
-
-
-
-
-
-
 
     $loader = function () use ($key, $default): mixed {
-        
-
-
-
-
-
-
-
 
         try {
             $value = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [$key]);
@@ -1700,14 +1121,6 @@ function meta_get(string $key, mixed $default = null): mixed
 }
 function meta_set(string $key, mixed $value): void
 {
-    
-
-
-
-
-
-
-
 
     q(
         "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value), updated_at=NOW()",
@@ -1731,14 +1144,6 @@ function meta_set(string $key, mixed $value): void
 }
 function clinic_signup_blocked(): bool
 {
-    
-
-
-
-
-
-
-
 
     if (!function_exists("has_cfg") || !has_cfg()) {
         return false;
@@ -1747,16 +1152,6 @@ function clinic_signup_blocked(): bool
 }
 function log_runtime_error(Throwable $e, int $status = 500): void
 {
-    
-
-
-
-
-
-
-
-
-
 
     $message = function_exists("privacy_sanitize_error_message")
         ? privacy_sanitize_error_message($e, 900)
@@ -1833,14 +1228,6 @@ function log_runtime_error(Throwable $e, int $status = 500): void
 }
 function person_common_profile_schema_ready(): void
 {
-    
-
-
-
-
-
-
-
 
     ensure_runtime_schema_minimum();
 }
@@ -1848,24 +1235,8 @@ function person_common_profile_from_array(
     array $data,
     string $prefix = "",
 ): array {
-    
-
-
-
-
-
-
-
 
     $k = function (string $name) use ($data, $prefix) {
-        
-
-
-
-
-
-
-
 
         return trim((string) ($data[$prefix . $name] ?? ""));
     };
@@ -1899,15 +1270,6 @@ function person_common_profile_from_array(
 }
 function person_common_profile_update(int $personId, array $profile): void
 {
-    
-
-
-
-
-
-
-
-
 
     if ($personId <= 0) {
         return;
@@ -1966,24 +1328,8 @@ function person_common_profile_fields_html(
     bool $includeEmail = true,
     bool $includePhone = true,
 ): string {
-    
-
-
-
-
-
-
-
 
     $get = function (string $k, string $def = "") use ($p) {
-        
-
-
-
-
-
-
-
 
         return (string) ($p[$k] ?? $def);
     };
