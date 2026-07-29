@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Prontoo\Infrastructure\Patients;
 
 use Prontoo\Application\Patients\PatientTabCommandPort;
+use RuntimeException;
 use Throwable;
 
 final class PdoPatientTabCommandRepository implements PatientTabCommandPort
@@ -21,6 +22,13 @@ final class PdoPatientTabCommandRepository implements PatientTabCommandPort
             $pdo->beginTransaction();
         }
         try {
+            $patient = \one(
+                "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
+                [$patientId, $clinicId],
+            );
+            if (!$patient) {
+                throw new RuntimeException('Paciente não encontrado no consultório atual.');
+            }
             $existing = \one(
                 "SELECT id,sort_order FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND label=? AND active=1 LIMIT 1 FOR UPDATE",
                 [$clinicId, $patientId, $label],
