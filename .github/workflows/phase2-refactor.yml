@@ -65,7 +65,7 @@ jobs:
           path.write_text(source)
           PY
           php tools/phase2-apply.php
-          git rm tools/phase2-apply.php
+          git rm -f tools/phase2-apply.php
       - name: Reconcile manifest
         shell: bash
         run: |
