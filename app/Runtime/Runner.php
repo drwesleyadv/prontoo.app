@@ -637,3 +637,28 @@ function prontoo_patient_has_legal_guardian(int $clinicId, int $patientId): bool
 {
     return prontoo_patient_read_service()->hasLegalGuardian($clinicId, $patientId);
 }
+function prontoo_patient_tab_command_service(): \Prontoo\Application\Patients\PatientTabCommandService
+{
+    static $service = null;
+    if (!$service instanceof \Prontoo\Application\Patients\PatientTabCommandService) {
+        $service = new \Prontoo\Application\Patients\PatientTabCommandService(
+            new \Prontoo\Infrastructure\Patients\PdoPatientTabCommandRepository(),
+        );
+    }
+    return $service;
+}
+function prontoo_create_patient_tab_command(
+    int $clinicId,
+    int $patientId,
+    string $label,
+    string $iconName,
+    int $userId,
+): array {
+    return prontoo_patient_tab_command_service()->create(
+        $clinicId,
+        $patientId,
+        $label,
+        $iconName,
+        $userId,
+    );
+}

@@ -851,6 +851,107 @@ $phaseThreeCharacterization = [
     'ok' => $phaseThreeFailures === [],
     'failed' => $phaseThreeFailures,
 ];
+require_once $root . '/app/Application/Patients/PatientTabCommandPort.php';
+require_once $root . '/app/Application/Patients/PatientTabCommandService.php';
+require_once $root . '/app/Infrastructure/Patients/PdoPatientTabCommandRepository.php';
+
+$phaseFourFailures = [];
+$phaseFourAssert = static function (bool $condition, string $name) use (&$phaseFourFailures): void {
+    if (!$condition) {
+        $phaseFourFailures[] = $name;
+    }
+};
+$phaseFourPort = new class implements \Prontoo\Application\Patients\PatientTabCommandPort {
+    public array $result = ['status' => 'created', 'id' => 9, 'sort_order' => 20];
+    public array $received = [];
+
+    public function createIfAbsent(
+        int $clinicId,
+        int $patientId,
+        string $label,
+        string $iconName,
+        int $userId,
+    ): array {
+        $this->received = [$clinicId, $patientId, $label, $iconName, $userId];
+        return $this->result;
+    }
+};
+$phaseFourService = new \Prontoo\Application\Patients\PatientTabCommandService($phaseFourPort);
+$phaseFourCreated = $phaseFourService->create(3, 7, 'Evolução', 'clinical_notes', 11);
+$phaseFourAssert(
+    $phaseFourCreated === ['status' => 'created', 'id' => 9, 'sort_order' => 20] &&
+    $phaseFourPort->received === [3, 7, 'Evolução', 'clinical_notes', 11],
+    'patient_tab_command_created',
+);
+$phaseFourPort->result = ['status' => 'duplicate', 'id' => 4, 'sort_order' => 10];
+$phaseFourAssert(
+    $phaseFourService->create(3, 7, 'Evolução', 'clinical_notes', 11) === [
+        'status' => 'duplicate',
+        'id' => 4,
+        'sort_order' => 10,
+    ],
+    'patient_tab_command_duplicate',
+);
+try {
+    $phaseFourService->create(0, 7, 'Evolução', 'clinical_notes', 11);
+    $phaseFourFailures[] = 'patient_tab_command_invalid_scope';
+} catch (InvalidArgumentException) {
+}
+$phaseFourSources = [
+    'port' => (string) file_get_contents($root . '/app/Application/Patients/PatientTabCommandPort.php'),
+    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientTabCommandService.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientTabCommandRepository.php'),
+    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+];
+foreach ([
+    'port' => ['createIfAbsent(', 'int $clinicId', 'int $patientId', 'int $userId'],
+    'service' => ['$this->port->createIfAbsent(', "['created', 'duplicate']"],
+    'repository' => [
+        '$ownsTransaction = !$pdo->inTransaction()',
+        '$pdo->beginTransaction()',
+        'LIMIT 1 FOR UPDATE',
+        'WHERE clinic_id=? AND patient_link_id=?',
+        'INSERT INTO pi_patient_tabs',
+        '$pdo->rollBack()',
+    ],
+    'patients_facade' => ['prontoo_create_patient_tab_command(', 'aba_paciente_criada'],
+    'runner' => [
+        'new \\Prontoo\\Infrastructure\\Patients\\PdoPatientTabCommandRepository()',
+        'prontoo_patient_tab_command_service()->create(',
+    ],
+    'loader' => [
+        "'Application/Patients/PatientTabCommandPort.php'",
+        "'Application/Patients/PatientTabCommandService.php'",
+        "'Infrastructure/Patients/PdoPatientTabCommandRepository.php'",
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($phaseFourSources[$sourceKey], $requiredToken)) {
+            $phaseFourFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
+    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
+    'repository' => ['$_GET', '$_POST', '$_SESSION', '<div', '<section'],
+    'patients_facade' => [
+        'SELECT id FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND label=? AND active=1 LIMIT 1',
+        'INSERT INTO pi_patient_tabs (clinic_id,patient_link_id,label,icon_name,sort_order,created_by,created_at)',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($phaseFourSources[$sourceKey], $forbiddenToken)) {
+            $phaseFourFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$phaseFourCharacterization = [
+    'ok' => $phaseFourFailures === [],
+    'failed' => $phaseFourFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -862,7 +963,8 @@ $result = [
         !empty($operationalUi['ok']) &&
         !empty($phaseOneCharacterization['ok']) &&
         !empty($phaseTwoCharacterization['ok']) &&
-        !empty($phaseThreeCharacterization['ok']),
+        !empty($phaseThreeCharacterization['ok']) &&
+        !empty($phaseFourCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -873,6 +975,7 @@ $result = [
     'phase_one_characterization' => $phaseOneCharacterization,
     'phase_two_characterization' => $phaseTwoCharacterization,
     'phase_three_characterization' => $phaseThreeCharacterization,
+    'phase_four_characterization' => $phaseFourCharacterization,
 ];
 
 echo json_encode(
