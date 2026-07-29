@@ -57,9 +57,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base64 -d tools/phase4_apply.py.gz.b64 | gzip -d > /tmp/phase4_apply.py
+          cat tools/phase4_apply.part00 tools/phase4_apply.part01 tools/phase4_apply.part02 tools/phase4_apply.part03 tools/phase4_apply.part04 | base64 -d | gzip -d > /tmp/phase4_apply.py
           python3 /tmp/phase4_apply.py
-          git rm -f tools/phase4_apply.py.gz.b64 .github/workflows/phase4-refactor.yml
+          git rm -f tools/phase4_apply.part00 tools/phase4_apply.part01 tools/phase4_apply.part02 tools/phase4_apply.part03 tools/phase4_apply.part04 tools/phase4_apply.py.gz.b64 .github/workflows/phase4-refactor.yml
       - name: Reconcile manifest
         shell: bash
         run: |
