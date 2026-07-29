@@ -62,9 +62,40 @@ jobs:
           path = Path('tools/phase2-apply.php')
           source = path.read_text()
           source = source.replace("'$1' . $version . '$2'", "'${1}' . $version . '${2}'")
+          source = source.replace(
+              'prontoo_patient_tab_active_rows($cid, $patientId)',
+              r'\Prontoo\Infrastructure\Patients\PatientTabReadRepository::activeTabs($cid, $patientId)',
+          )
+          source = source.replace(
+              'prontoo_patient_tab_label_by_id($id)',
+              r'\Prontoo\Infrastructure\Patients\PatientTabReadRepository::labelById($id)',
+          )
+          source = source.replace(
+              'prontoo_patient_tab_icon_picker(patient_health_icon_options(), $current)',
+              r'\Prontoo\Presentation\Patients\PatientTabView::iconPicker(patient_health_icon_options(), $current, static fn(string $value): string => e($value), static fn(string $name): string => icon($name))',
+          )
+          source = source.replace(
+              'prontoo_onboarding_tip_render($tip, $key, $return, csrf_field())',
+              r'\Prontoo\Presentation\Auth\OnboardingTipView::render($tip, $key, $return, csrf_field(), static fn(string $value): string => e($value), static fn(string $name): string => icon($name))',
+          )
           path.write_text(source)
           PY
           php tools/phase2-apply.php
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+          for name in (
+              'app/Infrastructure/Patients/PatientTabReadRepository.php',
+              'app/Presentation/Patients/PatientTabView.php',
+              'app/Presentation/Auth/OnboardingTipView.php',
+          ):
+              path = Path(name)
+              source = path.read_text()
+              source, count = re.subn(r'\nnamespace \{\n.*\Z', '\n', source, flags=re.S)
+              if count != 1:
+                  raise SystemExit(f'Fronteira global inesperada: {name}')
+              path.write_text(source)
+          PY
           git rm -f tools/phase2-apply.php
       - name: Reconcile manifest
         shell: bash
