@@ -19,7 +19,7 @@ env:
 
 jobs:
   refactor:
-    if: ${{ github.event_name == 'push' && github.ref_name == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]' }}
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -40,6 +40,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -78,9 +79,9 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -m "Reestruturar documentação e remover comentários"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${GITHUB_HEAD_REF}
   validate:
-    if: ${{ !(github.event_name == 'push' && github.ref_name == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]') }}
+    if: ${{ !(github.event_name == 'pull_request' && github.head_ref == 'agent/documentation-refactor' && github.actor != 'github-actions[bot]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
