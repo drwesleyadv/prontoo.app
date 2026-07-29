@@ -952,6 +952,119 @@ $phaseFourCharacterization = [
     'ok' => $phaseFourFailures === [],
     'failed' => $phaseFourFailures,
 ];
+
+require_once $root . '/app/Application/Financial/PatientRevenueReceiptPort.php';
+require_once $root . '/app/Application/Financial/PatientRevenueReceiptService.php';
+require_once $root . '/app/Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php';
+
+$phaseFiveFailures = [];
+$phaseFiveAssert = static function (bool $condition, string $name) use (&$phaseFiveFailures): void {
+    if (!$condition) {
+        $phaseFiveFailures[] = $name;
+    }
+};
+$phaseFivePort = new class implements \Prontoo\Application\Financial\PatientRevenueReceiptPort {
+    public array $result = [
+        'status' => 'received',
+        'revenue_id' => 8,
+        'movement_id' => 13,
+        'amount_cents' => 12500,
+        'title' => 'Consulta',
+    ];
+    public array $received = [];
+
+    public function receive(
+        int $clinicId,
+        int $patientId,
+        int $revenueId,
+        int $userId,
+        string $role,
+    ): array {
+        $this->received = [$clinicId, $patientId, $revenueId, $userId, $role];
+        return $this->result;
+    }
+};
+$phaseFiveService = new \Prontoo\Application\Financial\PatientRevenueReceiptService($phaseFivePort);
+$phaseFiveReceived = $phaseFiveService->receive(2, 4, 8, 10, 'recepcionista');
+$phaseFiveAssert(
+    $phaseFiveReceived === [
+        'status' => 'received',
+        'revenue_id' => 8,
+        'movement_id' => 13,
+        'amount_cents' => 12500,
+        'title' => 'Consulta',
+    ] && $phaseFivePort->received === [2, 4, 8, 10, 'recepcionista'],
+    'patient_revenue_receipt_received',
+);
+$phaseFivePort->result = ['status' => 'not_pending', 'revenue_id' => 8];
+$phaseFiveAssert(
+    $phaseFiveService->receive(2, 4, 8, 10, 'gerente')['status'] === 'not_pending',
+    'patient_revenue_receipt_not_pending',
+);
+try {
+    $phaseFiveService->receive(2, 4, 8, 10, 'medico');
+    $phaseFiveFailures[] = 'patient_revenue_receipt_forbidden_role';
+} catch (InvalidArgumentException) {
+}
+$phaseFiveSources = [
+    'port' => (string) file_get_contents($root . '/app/Application/Financial/PatientRevenueReceiptPort.php'),
+    'service' => (string) file_get_contents($root . '/app/Application/Financial/PatientRevenueReceiptService.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php'),
+    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+];
+foreach ([
+    'port' => ['public function receive(', 'int $clinicId', 'int $revenueId', 'string $role'],
+    'service' => ["['recepcionista', 'gerente']", '$this->port->receive(', "['received', 'not_pending']"],
+    'repository' => [
+        '$ownsTransaction = !$pdo->inTransaction()',
+        'SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE',
+        'FROM pi_financial_revenues WHERE id=? AND clinic_id=? AND patient_link_id=? LIMIT 1 FOR UPDATE',
+        "source_entity='patient_revenue'",
+        '\\financial_create_movement(',
+        "UPDATE pi_financial_revenues SET status='efetivada'",
+        "UPDATE pi_appointments SET payment_status='efetivada'",
+        '$pdo->rollBack()',
+    ],
+    'patients_facade' => ['prontoo_receive_patient_revenue_command(', 'receita_recebida'],
+    'runner' => [
+        'new \\Prontoo\\Infrastructure\\Financial\\PdoPatientRevenueReceiptRepository()',
+        'prontoo_patient_revenue_receipt_service()->receive(',
+    ],
+    'loader' => [
+        "'Application/Financial/PatientRevenueReceiptPort.php'",
+        "'Application/Financial/PatientRevenueReceiptService.php'",
+        "'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php'",
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($phaseFiveSources[$sourceKey], $requiredToken)) {
+            $phaseFiveFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
+    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
+    'repository' => ['$_GET', '$_POST', '$_SESSION', '<div', '<section'],
+    'patients_facade' => [
+        "SELECT id,appointment_id,amount_cents,title,payment_method FROM pi_financial_revenues",
+        "UPDATE pi_financial_revenues SET status='efetivada'",
+        "UPDATE pi_appointments SET payment_status='efetivada'",
+        'financial_create_movement(',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($phaseFiveSources[$sourceKey], $forbiddenToken)) {
+            $phaseFiveFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$phaseFiveCharacterization = [
+    'ok' => $phaseFiveFailures === [],
+    'failed' => $phaseFiveFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -964,7 +1077,8 @@ $result = [
         !empty($phaseOneCharacterization['ok']) &&
         !empty($phaseTwoCharacterization['ok']) &&
         !empty($phaseThreeCharacterization['ok']) &&
-        !empty($phaseFourCharacterization['ok']),
+        !empty($phaseFourCharacterization['ok']) &&
+        !empty($phaseFiveCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -976,6 +1090,7 @@ $result = [
     'phase_two_characterization' => $phaseTwoCharacterization,
     'phase_three_characterization' => $phaseThreeCharacterization,
     'phase_four_characterization' => $phaseFourCharacterization,
+    'phase_five_characterization' => $phaseFiveCharacterization,
 ];
 
 echo json_encode(

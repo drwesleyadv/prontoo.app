@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.29.6 — Fase 5: endurecimento financeiro crítico
+
+- Migra o recebimento pela ficha do paciente para porta, caso de uso e adaptador PDO.
+- Torna autorização, isolamento por consultório, bloqueios e resultado explicitamente testáveis.
+- Mantém movimento financeiro, receita e atendimento na mesma unidade transacional.
+- Evita movimento confirmado duplicado para a mesma cobrança.
+- Preserva mensagens, auditoria, rotas, permissões, banco, schema e interface.
+
 ## 1.7.29.5 — Fase 4: comandos transacionais
 
 - Criação de abas do paciente migrada para porta, caso de uso e adaptador PDO.

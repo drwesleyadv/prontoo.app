@@ -13,6 +13,7 @@
 - [Fase 2 — apresentação e leitura](architecture/phase-2-presentation-boundaries.md)
 - [Fase 3 — consultas e casos de uso](architecture/phase-3-read-use-cases.md)
 - [Fase 4 — comandos transacionais](architecture/phase-4-transactional-commands.md)
+- [Fase 5 — endurecimento financeiro crítico](architecture/phase-5-critical-financial-command.md)
 
 ## Decisões arquiteturais
 

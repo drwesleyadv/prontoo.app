@@ -662,3 +662,29 @@ function prontoo_create_patient_tab_command(
         $userId,
     );
 }
+
+function prontoo_patient_revenue_receipt_service(): \Prontoo\Application\Financial\PatientRevenueReceiptService
+{
+    static $service = null;
+    if (!$service instanceof \Prontoo\Application\Financial\PatientRevenueReceiptService) {
+        $service = new \Prontoo\Application\Financial\PatientRevenueReceiptService(
+            new \Prontoo\Infrastructure\Financial\PdoPatientRevenueReceiptRepository(),
+        );
+    }
+    return $service;
+}
+function prontoo_receive_patient_revenue_command(
+    int $clinicId,
+    int $patientId,
+    int $revenueId,
+    int $userId,
+    string $role,
+): array {
+    return prontoo_patient_revenue_receipt_service()->receive(
+        $clinicId,
+        $patientId,
+        $revenueId,
+        $userId,
+        $role,
+    );
+}

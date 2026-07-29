@@ -3013,55 +3013,24 @@ function page_patient(): void
             }
             ensure_financial_operational_schema();
             $rid = (int) ($_POST["revenue_id"] ?? 0);
-            $rev = one(
-                "SELECT id,appointment_id,amount_cents,title,payment_method FROM pi_financial_revenues WHERE id=? AND clinic_id=? AND patient_link_id=? AND status='prevista' LIMIT 1",
-                [$rid, $cid, $id],
-            );
-            if (!$rev) {
-                flash("Escolha uma cobrança pendente do paciente.", "bad");
-                redirect("patient", ["id" => $id]);
-            }
             try {
                 $uid = (int) $c["user"]["id"];
-                $to = 0;
-                $sessionId = null;
-                if ($role === "recepcionista") {
-                    $sOpen = financial_require_open_session($cid, $uid);
-                    $to = (int) $sOpen["location_id"];
-                    $sessionId = (int) $sOpen["id"];
-                } else {
-                    $to = financial_ensure_admin_safe($cid, $uid);
-                }
-                financial_create_movement(
+                $receipt = prontoo_receive_patient_revenue_command(
                     $cid,
-                    "receipt",
-                    (int) $rev["amount_cents"],
-                    null,
-                    $to,
-                    $sessionId,
-                    $uid,
-                    (string) ($rev["title"] ?: "Recebimento do paciente"),
-                    (string) ($rev["payment_method"] ?? ""),
-                    "Recebimento registrado pela ficha do paciente.",
-                    "confirmed",
-                    "patient_revenue",
+                    $id,
                     $rid,
+                    $uid,
+                    $role,
                 );
-                q(
-                    "UPDATE pi_financial_revenues SET status='efetivada', account_id=NULL, received_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                    [$uid, $rid, $cid, $id],
-                );
-                if (!empty($rev["appointment_id"])) {
-                    q(
-                        "UPDATE pi_appointments SET payment_status='efetivada', payment_confirmed_at=COALESCE(payment_confirmed_at,NOW()), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                        [$rid, (int) $rev["appointment_id"], $cid, $id],
-                    );
+                if ((string) ($receipt["status"] ?? "") !== "received") {
+                    flash("Escolha uma cobrança pendente do paciente.", "bad");
+                    redirect("patient", ["id" => $id]);
                 }
                 audit("receita_recebida", "financeiro", $rid, [
                     "patient_link_id" => $id,
                     "patient_name" => (string) $p["full_name"],
-                    "valor" => (int) $rev["amount_cents"],
-                    "title" => $rev["title"],
+                    "valor" => (int) ($receipt["amount_cents"] ?? 0),
+                    "title" => (string) ($receipt["title"] ?? ""),
                     "audit_body" =>
                         "Recebimento do paciente informado pela ficha do paciente e registrado no local financeiro do usuário responsável.",
                 ]);

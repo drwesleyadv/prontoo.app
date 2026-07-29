@@ -1,3 +1,8 @@
+Prontoo 1.7.29.6 — Fase 5: endurecimento financeiro crítico
+
+- Recebimento do paciente migrado para comando autorizado e transacional.
+- Bloqueios e isolamento impedem duplicidade e travessia entre consultórios.
+- Banco, schema, interface, mensagens e permissões permanecem equivalentes.
 Prontoo 1.7.29.5 — Fase 4: comandos transacionais
 
 - Criação de abas migrada para comando transacional e idempotente.
