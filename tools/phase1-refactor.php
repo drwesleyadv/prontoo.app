@@ -313,6 +313,21 @@ PHP;
 phase1_write($root . '/app/Domain/Identity/IdentityDocumentValidator.php', $identityValidator . PHP_EOL);
 phase1_write($root . '/app/Domain/Patients/PatientPure.php', $patientPure . PHP_EOL);
 
+$layerMapPath = $root . '/app/Core/Architecture/LayerMap.php';
+$layerMap = (string) file_get_contents($layerMapPath);
+if (!str_contains($layerMap, "'app/Domain/Identity/'")) {
+    $layerMap = str_replace(
+        "        'app/Domain/Authorization/',",
+        "        'app/Domain/Authorization/',\n        'app/Domain/Identity/',\n        'app/Domain/Patients/PatientPure.php',",
+        $layerMap,
+        $count,
+    );
+    if ($count !== 1) {
+        throw new RuntimeException('Não foi possível registrar os componentes nativos da Fase 1.');
+    }
+}
+phase1_write($layerMapPath, $layerMap);
+
 $authPath = $root . '/app/Auth/AuthOnboarding.php';
 phase1_insert_after_declare(
     $authPath,
