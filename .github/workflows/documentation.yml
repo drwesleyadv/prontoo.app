@@ -53,6 +53,16 @@ jobs:
         run: |
           set -euo pipefail
           cat tools/documentation-refactor.php.gz.b64.part* | base64 -d | gzip -d > tools/documentation-refactor.php
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/documentation-refactor.php')
+          source = path.read_text()
+          old = "$source = preg_replace($regex, '$1$2' . $version . '$2$3', $source, 1, $count);"
+          new = "$source = preg_replace_callback($regex, static fn(array $match): string => $match[1] . $match[2] . $version . $match[2] . $match[3], $source, 1, $count);"
+          if old not in source:
+              raise SystemExit('Trecho de atualização de versão não encontrado')
+          path.write_text(source.replace(old, new))
+          PY
           rm -f tools/documentation-refactor.php.gz.b64.part*
           php tools/documentation-refactor.php
       - name: Validate generated state
