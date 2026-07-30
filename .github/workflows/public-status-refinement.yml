@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/public-status-borders-chart-fills
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: public-status-borders-chart-fills
