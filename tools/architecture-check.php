@@ -1460,6 +1460,7 @@ foreach ([
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
+        'data-metric-value-type="',
         '$fillAreas = $loadArea . $responseArea;',
         'admin_metric_dual_area_chart("Velocidade", $load, $response, "speed")',
         '"Leitura e gravação",',
@@ -1478,11 +1479,13 @@ foreach ([
         'grid-template-columns:repeat(4,minmax(0,1fr))!important',
         '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);opacity:.38}',
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
     ],
     'bootstrap' => [
-        'dual-area-single-renderer-bit-identical-formatting-data-specific-labels-one-row',
+        'dual-area-single-renderer-count-opaque-mountain-fills-data-specific-labels-one-row',
     ],
     'runner' => [
         '$publicStatus = $r === "status"',
@@ -1564,14 +1567,11 @@ foreach ([
     '"Requisições e registros"',
     'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
     'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
-    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{',
-    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{',
     '? $responseArea . $loadArea',
     '$segmentedCountAreas = static function (',
     'metric-chart-fill-load-exclusive',
     'metric-chart-fill-response-exclusive',
     'metric-chart-fill-intersection',
-    'data-metric-value-type="',
 ] as $outlineToken) {
     if (str_contains(
         $developerDashboardSources['admin'] .

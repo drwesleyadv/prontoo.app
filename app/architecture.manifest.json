@@ -1,5 +1,5 @@
 {
-    "version": "1.7.30.20",
+    "version": "1.7.30.21",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-30T20:39:43.005716+00:00",
-    "updated_at": "2026-07-30T20:39:43.005716+00:00",
+    "generated_at": "2026-07-30T21:37:47.814813+00:00",
+    "updated_at": "2026-07-30T21:37:47.814813+00:00",
     "baseline_source": "1.7.30.12",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -168,17 +168,18 @@
     "server_evolution_phase_six_check": "tools/architecture-check.php",
     "contract_consistency_policy": "version_architecture_and_update_manifests_must_match_canonical_release_metadata_and_architecture_limits",
     "contract_consistency_check": "tools/architecture-check.php",
-    "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_two_charts_one_shared_renderer_bit_identical_chart_formatting_data_specific_labels_count_averages_include_zero_days_and_public_read_only_status_card_without_authenticated_context",
+    "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_two_charts_one_shared_renderer_count_chart_exact_line_color_opaque_mountain_fills_data_specific_labels_and_public_read_only_status_card_without_authenticated_context",
     "developer_dashboard_observability_components": [
         "app/Admin/AdminPages.php",
         "public/assets/design-system.css",
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.7.30.20",
-    "build": "1.7.30.20-admin-agenda-entry-no-panel",
+    "release": "1.7.30.21",
+    "build": "1.7.30.21-read-write-opaque-mountain-fills",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
-    "administrator_entry_policy": "clinic_administrator_has_no_panel_item_or_panel_rendering_and_login_starts_on_daily_appointments"
+    "administrator_entry_policy": "clinic_administrator_has_no_panel_item_or_panel_rendering_and_login_starts_on_daily_appointments",
+    "developer_dashboard_count_area_policy": "read_write_request_and_record_areas_fill_to_baseline_with_exact_respective_line_colors_and_opacity_one"
 }

@@ -1,14 +1,13 @@
-name: Publish Read Write Mountain Fills
+name: Architecture Contract
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+  push:
+    branches:
+      - main
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -22,8 +21,7 @@ env:
   PRONTOO_INSTALLER_CLI_MODE: '1'
 
 jobs:
-  publish:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/read-write-mountain-fills' }}
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -40,11 +38,8 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout pull request branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -52,224 +47,7 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql
-      - name: Apply opaque mountain fills
-        shell: bash
-        run: |
-          set -euo pipefail
-          sleep 25
-          git fetch origin "${GITHUB_HEAD_REF}"
-          git reset --hard "origin/${GITHUB_HEAD_REF}"
-          python3 <<'PY'
-          from pathlib import Path
-          from datetime import datetime, timezone
-          import hashlib
-          import json
-          import subprocess
-          import time
-
-          base_commit = "b3186fd5b75afc0f013dd516ee7ddf85a35cdf7d"
-          version = "1.7.30.21"
-          previous = "1.7.30.20"
-          build = "1.7.30.21-read-write-opaque-mountain-fills"
-          now = datetime.now(timezone.utc).isoformat()
-          now_unix = int(time.time())
-
-          def replace_once(path: str, old: str, new: str) -> None:
-              file = Path(path)
-              text = file.read_text(encoding="utf-8")
-              count = text.count(old)
-              if count != 1:
-                  raise RuntimeError(f"Substituição não determinística em {path}: {count}")
-              file.write_text(text.replace(old, new, 1), encoding="utf-8")
-
-          replace_once(
-              "app/Admin/AdminPages.php",
-              '''    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-ds-card="admin-dual-area-chart" aria-label="' .
-          ''',
-              '''    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
-                  e($valueType) .
-                  '" data-ds-card="admin-dual-area-chart" aria-label="' .
-          ''',
-          )
-
-          replace_once(
-              "public/assets/design-system.css",
-              '''.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}
-          ''',
-              '''.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}
-          .metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}
-          .metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}
-          ''',
-          )
-
-          replace_once(
-              "tools/architecture-check.php",
-              '''        '"value_type" => "count"',
-          ''',
-              '''        '"value_type" => "count"',
-                  'data-metric-value-type="',
-          ''',
-          )
-          replace_once(
-              "tools/architecture-check.php",
-              '''        '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
-          ''',
-              '''        '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
-                  '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
-                  '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
-          ''',
-          )
-          for token in [
-              "    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-load{',\n",
-              "    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-response{',\n",
-              "    'data-metric-value-type=\"',\n",
-          ]:
-              replace_once("tools/architecture-check.php", token, "")
-          replace_once(
-              "tools/architecture-check.php",
-              "dual-area-single-renderer-bit-identical-formatting-data-specific-labels-one-row",
-              "dual-area-single-renderer-count-opaque-mountain-fills-data-specific-labels-one-row",
-          )
-
-          replace_once(
-              "app/prontoo.php",
-              'const PRONTOO_VERSION_FALLBACK = "1.7.30.20";',
-              'const PRONTOO_VERSION_FALLBACK = "1.7.30.21";',
-          )
-          replace_once(
-              "app/prontoo.php",
-              'const PRONTOO_PREVIOUS_VERSION = "1.7.30.19";',
-              'const PRONTOO_PREVIOUS_VERSION = "1.7.30.20";',
-          )
-          replace_once(
-              "app/prontoo.php",
-              'const PRONTOO_PERFORMANCE_CHARTS_POLICY = "dual-area-single-renderer-bit-identical-formatting-data-specific-labels-one-row";',
-              'const PRONTOO_PERFORMANCE_CHARTS_POLICY = "dual-area-single-renderer-count-opaque-mountain-fills-data-specific-labels-one-row";',
-          )
-          replace_once(
-              "br/index.php",
-              'const BR_LANDING_VERSION_FALLBACK = "1.7.30.20";',
-              'const BR_LANDING_VERSION_FALLBACK = "1.7.30.21";',
-          )
-
-          version_path = Path("version.json")
-          metadata = json.loads(version_path.read_text(encoding="utf-8"))
-          metadata.update({
-              "version": version,
-              "release": version,
-              "generated_at_unix": now_unix,
-              "generated_at": now,
-              "updated_at": now,
-              "build": build,
-              "previous_version": previous,
-              "database_changes": False,
-              "schema_changes": False,
-              "logic_changes": True,
-              "visual_changes": True,
-              "documentation_changes": True,
-              "functional_equivalence_policy": "preserves_metrics_lines_labels_and_shared_renderer_while_read_write_count_areas_use_exact_opaque_line_colors",
-              "notes": "Leitura e gravação mantém as cores das linhas e passa a preencher integralmente cada área inferior com a mesma cor, sem transparência, criando duas montanhas opacas.",
-              "deployment_sync_id": "github-read-write-opaque-mountain-fills-1-7-30-21",
-              "deployment_sync_requested_at": now,
-              "rewrite_scope": "developer_dashboard_read_write_chart_opaque_count_fills",
-          })
-          version_path.write_text(
-              json.dumps(metadata, ensure_ascii=False, indent=4) + "\n",
-              encoding="utf-8",
-          )
-
-          architecture_path = Path("app/architecture.manifest.json")
-          architecture = json.loads(architecture_path.read_text(encoding="utf-8"))
-          architecture.update({
-              "version": version,
-              "release": version,
-              "build": build,
-              "generated_at": now,
-              "updated_at": now,
-              "database_changes": False,
-              "schema_changes": False,
-              "visual_changes": True,
-              "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_two_charts_one_shared_renderer_count_chart_exact_line_color_opaque_mountain_fills_data_specific_labels_and_public_read_only_status_card_without_authenticated_context",
-              "developer_dashboard_count_area_policy": "read_write_request_and_record_areas_fill_to_baseline_with_exact_respective_line_colors_and_opacity_one",
-          })
-          architecture_path.write_text(
-              json.dumps(architecture, ensure_ascii=False, indent=4) + "\n",
-              encoding="utf-8",
-          )
-
-          manifest_path = Path("app/update.manifest.json")
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          manifest.update({
-              "version": version,
-              "release": version,
-              "build": build,
-              "generated_at": now,
-              "updated_at": now,
-              "database_changes": False,
-              "schema_changes": False,
-              "logic_changes": True,
-              "visual_changes": True,
-              "documentation_changes": True,
-          })
-
-          md_entry = (
-              "## 1.7.30.21 — Montanhas opacas em Leitura e gravação\n\n"
-              "- mantém inalteradas as cores e espessuras das linhas de Requisições e Registros;\n"
-              "- aplica à área inferior de cada série exatamente a mesma cor da respectiva linha;\n"
-              "- remove integralmente a transparência dos dois preenchimentos, formando montanhas opacas até a linha de base;\n"
-              "- preserva o preenchimento translúcido do gráfico Velocidade e o renderer compartilhado;\n"
-              "- não altera banco de dados nem schema.\n\n"
-          )
-          txt_entry = (
-              "Prontoo 1.7.30.21 — Montanhas opacas em Leitura e gravação\n\n"
-              "- Mantém as cores e espessuras das linhas de Requisições e Registros.\n"
-              "- Preenche cada área inferior com a mesma cor da linha correspondente.\n"
-              "- Remove a transparência dos dois preenchimentos.\n"
-              "- Preserva Velocidade, banco de dados e schema.\n\n"
-          )
-          changelog = Path("CHANGELOG.md")
-          changelog_text = changelog.read_text(encoding="utf-8")
-          marker = "# Histórico de versões\n\n"
-          if changelog_text.count(marker) != 1:
-              raise RuntimeError("Cabeçalho canônico do CHANGELOG não encontrado")
-          changelog.write_text(
-              changelog_text.replace(marker, marker + md_entry, 1),
-              encoding="utf-8",
-          )
-          legacy = Path("ChangeLog.txt")
-          legacy.write_text(txt_entry + legacy.read_text(encoding="utf-8"), encoding="utf-8")
-
-          Path(".github/workflows/architecture.yml").write_bytes(
-              subprocess.check_output([
-                  "git",
-                  "show",
-                  base_commit + ":.github/workflows/architecture.yml",
-              ])
-          )
-          Path(".github/read-write-mountain-fills.trigger").unlink(missing_ok=True)
-
-          files = {}
-          total = 0
-          excluded_roots = (".git/", "ssd/", "vendor/", "node_modules/")
-          for file in Path(".").rglob("*"):
-              if not file.is_file() or file.is_symlink():
-                  continue
-              relative = file.as_posix()
-              if relative == "app/update.manifest.json" or relative.startswith(excluded_roots):
-                  continue
-              data = file.read_bytes()
-              files[relative] = hashlib.sha256(data).hexdigest()
-              total += len(data)
-          manifest["files"] = dict(sorted(files.items()))
-          manifest["file_count"] = len(files)
-          manifest["total_uncompressed_bytes"] = total
-          manifest["updated_at"] = now
-          manifest_path.write_text(
-              json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
-              encoding="utf-8",
-          )
-          PY
-      - name: Validate publication
+      - name: PHP syntax
         shell: bash
         run: |
           set -euo pipefail
@@ -281,20 +59,62 @@ jobs:
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
             -name '*.php' -print0)
-          git diff --check
-          php tools/documentation-check.php
-          php tools/code-comment-check.php
-          php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-      - name: Commit publication
+      - name: Canonical JSON contracts
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet && exit 0
-          git commit -m "Renderizar montanhas opacas em Leitura e gravação"
-          git push origin HEAD:${GITHUB_HEAD_REF}
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $contracts = [];
+          foreach (['version.json', 'app/update.manifest.json', 'app/architecture.manifest.json'] as $file) {
+              $contracts[$file] = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($contracts[$file])) {
+                  throw new RuntimeException('Contrato JSON inválido: ' . $file);
+              }
+          }
+          $version = trim((string) ($contracts['version.json']['version'] ?? ''));
+          if ($version === '' ||
+              trim((string) ($contracts['version.json']['release'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/update.manifest.json']['version'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/update.manifest.json']['release'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/architecture.manifest.json']['version'] ?? '')) !== $version) {
+              throw new RuntimeException('Contrato canônico de versão divergente');
+          }
+          foreach ([
+              'app/prontoo.php' => 'PRONTOO_VERSION_FALLBACK',
+              'br/index.php' => 'BR_LANDING_VERSION_FALLBACK',
+          ] as $file => $constant) {
+              $source = (string) file_get_contents($file);
+              $pattern = '/const\s+' . preg_quote($constant, '/') . '\s*=\s*["\x27]([^"\x27]+)["\x27]\s*;/';
+              if (!preg_match($pattern, $source, $match) || trim((string) ($match[1] ?? '')) !== $version) {
+                  throw new RuntimeException('Fallback de versão divergente: ' . $file);
+              }
+          }
+          PHP
+      - name: Documentation and comment contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+      - name: Security regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/security-regression-check.php
+      - name: Architecture invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/architecture-check.php
+      - name: Schema contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/schema-check.php
+      - name: Installer security
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/install-security-check.php

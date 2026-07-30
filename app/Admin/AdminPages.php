@@ -1505,7 +1505,9 @@ function admin_metric_dual_area_chart(
                 '" class="metric-chart-fill-response"/>'
             : "";
     $fillAreas = $loadArea . $responseArea;
-    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-ds-card="admin-dual-area-chart" aria-label="' .
+    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
+        e($valueType) .
+        '" data-ds-card="admin-dual-area-chart" aria-label="' .
         e($title) .
         '"><header><div class="metric-chart-title">' .
         icon($iconName) .

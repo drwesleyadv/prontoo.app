@@ -1,3 +1,10 @@
+Prontoo 1.7.30.21 — Montanhas opacas em Leitura e gravação
+
+- Mantém as cores e espessuras das linhas de Requisições e Registros.
+- Preenche cada área inferior com a mesma cor da linha correspondente.
+- Remove a transparência dos dois preenchimentos.
+- Preserva Velocidade, banco de dados e schema.
+
 Prontoo 1.7.30.20 — Administrador inicia na Agenda diária
 
 - Remove o item Painel da navegação do perfil Administrador.

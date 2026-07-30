@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.21 — Montanhas opacas em Leitura e gravação
+
+- mantém inalteradas as cores e espessuras das linhas de Requisições e Registros;
+- aplica à área inferior de cada série exatamente a mesma cor da respectiva linha;
+- remove integralmente a transparência dos dois preenchimentos, formando montanhas opacas até a linha de base;
+- preserva o preenchimento translúcido do gráfico Velocidade e o renderer compartilhado;
+- não altera banco de dados nem schema.
+
 ## 1.7.30.20 — Administrador inicia na Agenda diária
 
 - remove completamente o item Painel da navegação do perfil Administrador;
