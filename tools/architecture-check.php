@@ -1406,6 +1406,8 @@ foreach ([
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
+        '? $responseArea . $loadArea',
+        ': $loadArea . $responseArea;',
         '$recentValue = $valueType === "count"',
         '$overallAverageValues = $valueType === "count"',
         '$middleAverageValues = $valueType === "count"',
@@ -1421,7 +1423,7 @@ foreach ([
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:.3}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
         '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:.42}',
     ],
     'bootstrap' => [
