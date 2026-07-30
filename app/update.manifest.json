@@ -242,7 +242,7 @@
         "tools/install-security-check.php": "36f779737b73372330dd5c04621e5671b859205b0a8445290fcd032bc2098650",
         "tools/schema-check.php": "dc34c8fe49bab48bf46ddea1f12e2b76f32b7b5c51043864a663d1a964209ec4",
         "tools/security-regression-check.php": "c14e866ea64228aa3d976dd0b6426cf05a846972ebc6faa13104911cdfc35992",
-        "version.json": "e2f73d9f4f264bb99e9426bfbac83e9fb618ca0f5fe399e93a844505f9a6d952"
+        "version.json": "03f05b1f20813c7d83ccc3f5bb7b6acc3c6d7b1f9ca42f9d360cc29f61c5a9ab"
     },
     "removed_files": [
         "ARCHITECTURE.md",
@@ -265,7 +265,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.30.19",
-    "updated_at": "2026-07-30T20:52:51+00:00",
+    "updated_at": "2026-07-30T20:59:43+00:00",
     "notes": "O perfil Administrador deixa de exibir e renderizar o Painel e passa a iniciar na visão diária da Agenda.",
     "deployment_sync_id": "github-admin-agenda-entry-no-panel-1-7-30-20",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
