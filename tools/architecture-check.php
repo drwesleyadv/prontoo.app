@@ -1391,23 +1391,26 @@ foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
 foreach ([
     'admin' => [
         'function admin_metric_dual_count_chart(',
-        '"Requisições 24h"',
-        '"Tempo da Landing Page"',
-        '"Usuários ativos 24h"',
+        '"Requisições"',
+        '"Tempo Médio"',
+        '"Landing Page"',
+        '"Usuários Ativos"',
         '"Requisições e registros"',
-        'metric-chart-line-requests',
-        'metric-chart-line-records',
+        'metric-chart-fill-requests',
+        'metric-chart-fill-records',
+        '$averageResponseMs',
         'telemetry_route_performance_summary(24)',
     ],
     'css' => [
-        'grid-template-columns:repeat(3,minmax(0,1fr))!important',
-        '.metric-dual-count-chart .metric-chart-line-requests',
-        'stroke:var(--pt-color-success)!important',
-        '.metric-dual-count-chart .metric-chart-line-records',
-        'color-mix(in srgb,var(--pt-color-success) 52%,#fff)',
+        'grid-template-columns:repeat(4,minmax(0,1fr))!important',
+        '.metric-dual-count-chart .metric-chart-fill-requests',
+        'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
+        '.metric-dual-count-chart .metric-chart-fill-records',
+        'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
+        'stroke:none!important',
     ],
     'bootstrap' => [
-        'dual-area-speed-and-volume-no-dual-legend-one-row',
+        'dual-area-speed-and-filled-volume-no-series-outline-one-row',
     ],
 ] as $sourceKey => $tokens) {
     foreach ($tokens as $token) {
@@ -1419,16 +1422,19 @@ foreach ([
 }
 $cardPositions = [];
 foreach ([
-    'requests' => '"Requisições 24h"',
-    'landing' => '"Tempo da Landing Page"',
-    'users' => '"Usuários ativos 24h"',
+    'requests' => '"Requisições"',
+    'average' => '"Tempo Médio"',
+    'landing' => '"Landing Page"',
+    'users' => '"Usuários Ativos"',
 ] as $key => $token) {
     $cardPositions[$key] = strpos($developerDashboardSources['admin'], $token);
 }
 if ($cardPositions['requests'] === false ||
+    $cardPositions['average'] === false ||
     $cardPositions['landing'] === false ||
     $cardPositions['users'] === false ||
-    !($cardPositions['requests'] < $cardPositions['landing'] &&
+    !($cardPositions['requests'] < $cardPositions['average'] &&
+        $cardPositions['average'] < $cardPositions['landing'] &&
         $cardPositions['landing'] < $cardPositions['users'])) {
     $developerDashboardFailures[] = 'developer_dashboard_card_order';
 }
@@ -1462,6 +1468,21 @@ foreach ([
     if (str_contains($developerPanelSource, $obsoletePanelToken)) {
         $developerDashboardFailures[] =
             'obsolete_dashboard_card:' . $obsoletePanelToken;
+    }
+}
+foreach ([
+    'metric-chart-line-requests',
+    'metric-chart-line-records',
+    'metric-chart-dot-requests',
+    'metric-chart-dot-records',
+] as $outlineToken) {
+    if (str_contains(
+        $developerDashboardSources['admin'] .
+            $developerDashboardSources['css'],
+        $outlineToken,
+    )) {
+        $developerDashboardFailures[] =
+            'developer_dashboard_outline_token:' . $outlineToken;
     }
 }
 foreach ([

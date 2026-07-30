@@ -4785,12 +4785,8 @@ body.scope-global .global-compact-pill span{font:var(--md-sys-typescale-body-sma
 .metric-area-chart .metric-chart-dot{fill:var(--md-sys-color-primary)!important;stroke:#fff!important;stroke-width:2;}
 .metric-area-chart .metric-chart-hit{fill:transparent!important;stroke:transparent!important;}
 .metric-area-chart .metric-axis-label{fill:var(--md-sys-color-on-surface-variant)!important;font-size:10px;opacity:.72;}
-.metric-dual-count-chart .metric-chart-fill-requests{fill:color-mix(in srgb,var(--pt-color-success) 24%,transparent)!important;stroke:none!important;opacity:.92;}
-.metric-dual-count-chart .metric-chart-line-requests{fill:none!important;stroke:var(--pt-color-success)!important;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px color-mix(in srgb,var(--pt-color-success) 20%,transparent));}
-.metric-dual-count-chart .metric-chart-fill-records{fill:color-mix(in srgb,var(--pt-color-success) 10%,transparent)!important;stroke:none!important;opacity:.82;}
-.metric-dual-count-chart .metric-chart-line-records{fill:none!important;stroke:color-mix(in srgb,var(--pt-color-success) 52%,#fff)!important;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px color-mix(in srgb,var(--pt-color-success) 12%,transparent));}
-.metric-dual-count-chart .metric-chart-dot-requests{fill:var(--pt-color-success)!important;stroke:#fff!important;stroke-width:2;}
-.metric-dual-count-chart .metric-chart-dot-records{fill:color-mix(in srgb,var(--pt-color-success) 52%,#fff)!important;stroke:#fff!important;stroke-width:2;}
+.metric-dual-count-chart .metric-chart-fill-requests{fill:color-mix(in srgb,var(--pt-color-success) 32%,transparent)!important;stroke:none!important;opacity:.88;}
+.metric-dual-count-chart .metric-chart-fill-records{fill:color-mix(in srgb,var(--pt-color-success) 16%,transparent)!important;stroke:none!important;opacity:.78;}
 .metric-dual-count-chart .metric-count-pill{gap:5px!important;}
 .metric-dual-count-chart .metric-count-pill small{font:inherit;color:inherit;}
 .metric-dual-count-chart .metric-series-key{display:inline-block;width:9px;height:9px;border-radius:999px;flex:0 0 auto;}
@@ -5165,7 +5161,7 @@ body.scope-global .priority-actions > h2{
 }
 body.scope-global .global-telemetry-grid{
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:10px!important;
 }
 body.scope-global .admin-overview-kpis .stat-card{

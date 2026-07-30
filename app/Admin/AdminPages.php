@@ -1661,34 +1661,6 @@ function admin_metric_dual_count_chart(
         '"><i class="metric-series-key" aria-hidden="true"></i><small>Registros</small><b>' .
         e(n($recordTotal)) .
         "</b></span>";
-    $lastRequest = end($requestPoints);
-    $lastRecord = end($recordPoints);
-    $requestCircle = $lastRequest
-        ? '<circle cx="' .
-            $lastRequest[0] .
-            '" cy="' .
-            $lastRequest[1] .
-            '" r="3.6" class="metric-chart-dot metric-chart-dot-requests"><title>' .
-            e(
-                $lastRequest[4] .
-                    " · Requisições " .
-                    admin_metric_value_label($lastRequest[2], "count"),
-            ) .
-            "</title></circle>"
-        : "";
-    $recordCircle = $lastRecord
-        ? '<circle cx="' .
-            $lastRecord[0] .
-            '" cy="' .
-            $lastRecord[1] .
-            '" r="3.2" class="metric-chart-dot metric-chart-dot-records"><title>' .
-            e(
-                $lastRecord[4] .
-                    " · Registros " .
-                    admin_metric_value_label($lastRecord[2], "count"),
-            ) .
-            "</title></circle>"
-        : "";
     $summary =
         $title .
         ": " .
@@ -1713,28 +1685,16 @@ function admin_metric_dual_count_chart(
         '" aria-hidden="true" focusable="false"><g>' .
         $grid .
         "</g>" .
-        ($requestFill !== ""
-            ? '<path d="' .
-                e($requestFill) .
-                '" class="metric-chart-fill-requests"/>'
-            : "") .
         ($recordFill !== ""
             ? '<path d="' .
                 e($recordFill) .
                 '" class="metric-chart-fill-records"/>'
             : "") .
-        ($requestPath !== ""
+        ($requestFill !== ""
             ? '<path d="' .
-                e($requestPath) .
-                '" class="metric-chart-line-requests"/>'
+                e($requestFill) .
+                '" class="metric-chart-fill-requests"/>'
             : "") .
-        ($recordPath !== ""
-            ? '<path d="' .
-                e($recordPath) .
-                '" class="metric-chart-line-records"/>'
-            : "") .
-        $requestCircle .
-        $recordCircle .
         $hover .
         $ticks .
         "</svg></article>";
@@ -2991,6 +2951,7 @@ function page_admin_painel(): void
         ? telemetry_route_performance_summary(24)
         : ["routes" => [], "total" => 0];
     $requests24h = max(0, (int) ($performance24h["total"] ?? 0));
+    $averageResponseMs = max(0.0, (float) ($performance24h["avg_ms"] ?? 0));
     $landingAverageMs = 0.0;
     foreach ((array) ($performance24h["routes"] ?? []) as $routePerformance) {
         if ((string) ($routePerformance["route"] ?? "") !== "landing") {
@@ -3226,13 +3187,22 @@ function page_admin_painel(): void
     $telemetry =
         '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .
         stat_card(
-            "Requisições 24h",
+            "Requisições",
             $requests24h,
             "route",
-            "amostras do runtime",
+            "últimas 24 horas",
         ) .
         stat_link_card(
-            "Tempo da Landing Page",
+            "Tempo Médio",
+            $averageResponseMs > 0
+                ? admin_performance_format_ms($averageResponseMs)
+                : "—",
+            "speed",
+            "resposta nas últimas 24 horas",
+            "admin_performance",
+        ) .
+        stat_link_card(
+            "Landing Page",
             $landingAverageMs > 0
                 ? admin_performance_format_ms($landingAverageMs)
                 : "—",
@@ -3241,10 +3211,10 @@ function page_admin_painel(): void
             "admin_performance",
         ) .
         stat_card(
-            "Usuários ativos 24h",
+            "Usuários Ativos",
             $activeUsers24h,
             "person_check",
-            "uso recente",
+            "últimas 24 horas",
         ) .
         "</div>";
     $actionsCard = $actions

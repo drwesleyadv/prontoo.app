@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.10 — Áreas do gráfico sem contornos
+
+- organiza os cards em Requisições, Tempo Médio, Landing Page e Usuários Ativos;
+- remove linhas de contorno e marcadores finais das séries Requisições e Registros;
+- mantém somente as áreas preenchidas na base, com Registros em verde claro e Requisições em verde escuro;
+- preserva período, valores, tooltips e demais gráficos;
+- mantém banco e schema inalterados.
+
 ## 1.7.30.9 — Consolidação do Painel do Desenvolvedor
 
 - remove a rota, o item de navegação e as funções da tela Telemetria duplicada;

@@ -1,3 +1,8 @@
+Prontoo 1.7.30.10 — Áreas do gráfico sem contornos
+
+- Organiza os cards em Requisições, Tempo Médio, Landing Page e Usuários Ativos.
+- Remove linhas e marcadores visíveis do gráfico Requisições e Registros.
+- Mantém apenas as áreas preenchidas em verde escuro e verde claro, sem alterar banco ou schema.
 Prontoo 1.7.30.9 — Consolidação do Painel do Desenvolvedor
 
 - Remove a tela Telemetria duplicada e concentra seus indicadores úteis no painel principal.
