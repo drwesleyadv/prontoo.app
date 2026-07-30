@@ -116,4 +116,4 @@ if "$statsWideLayoutCss" not in check:
     check = check[:position] + css_contract + "\n" + check[position:]
 write(check_path, check)
 
-print(json.dumps({"ok": True, "version": "1.7.30.14"}, ensure_ascii=False))
+print(json.dumps({"ok": True, "version": "1.7.30.14", "run": 2}, ensure_ascii=False))
