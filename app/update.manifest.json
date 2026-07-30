@@ -27,8 +27,8 @@
     "documented_function_units": 0,
     "schema_table_count": 62,
     "operational_tables_verified": 60,
-    "file_count": 213,
-    "total_uncompressed_bytes": 4499848,
+    "file_count": 214,
+    "total_uncompressed_bytes": 4525920,
     "files": {
         ".github/workflows/architecture.yml": "339500df8422ee93c04b231a952011a1f4ae45693f702e376dea4e9217958f57",
         ".github/workflows/documentation.yml": "c1d5dc0ceb274ad0fd8b3948c895709c19b9ea60e24b5e7ec3f4c83e76899f12",
@@ -242,6 +242,7 @@
         "tools/install-security-check.php": "36f779737b73372330dd5c04621e5671b859205b0a8445290fcd032bc2098650",
         "tools/schema-check.php": "dc34c8fe49bab48bf46ddea1f12e2b76f32b7b5c51043864a663d1a964209ec4",
         "tools/security-regression-check.php": "c14e866ea64228aa3d976dd0b6426cf05a846972ebc6faa13104911cdfc35992",
+        "tools/server_telemetry_apply.py": "c86f08efd8ad331baf31a796e3857a2b709d211c6ea4a83d2014a24b6ff38c24",
         "version.json": "0ae6f90e97a9ea289a173cab7bfe6a754fc99bfad468373b3eee5a382d5b8d7c"
     },
     "removed_files": [
@@ -265,7 +266,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.30.6",
-    "updated_at": "2026-07-30T13:32:22+00:00",
+    "updated_at": "2026-07-30T13:57:08+00:00",
     "notes": "Sincroniza os limites arquiteturais canônicos e impede nova divergência entre contratos.",
     "deployment_sync_id": "github-final-architecture-contract-sync-1-7-30-7",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
