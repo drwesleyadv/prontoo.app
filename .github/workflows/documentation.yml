@@ -53,8 +53,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/server_phase3_apply.py
+          python3 tools/server_phase3_fix.py
           git show origin/main:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          git rm -f tools/server_phase3_apply.py
+          git rm -f tools/server_phase3_apply.py tools/server_phase3_fix.py
           php <<'PHP'
           <?php
           declare(strict_types=1);
