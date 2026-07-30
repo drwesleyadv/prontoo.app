@@ -1491,6 +1491,254 @@ function admin_metric_dual_area_chart(
         $ticks .
         "</svg></article>";
 }
+function admin_metric_dual_count_chart(
+    string $title,
+    array $requestSeries,
+    array $recordSeries,
+    string $iconName = "monitoring",
+): string {
+    $requestValues = array_map(
+        static fn($row) => max(0.0, (float) ($row["value"] ?? 0)),
+        $requestSeries,
+    );
+    $recordValues = array_map(
+        static fn($row) => max(0.0, (float) ($row["value"] ?? 0)),
+        $recordSeries,
+    );
+    if (!$requestValues) {
+        $requestValues = [0.0];
+    }
+    if (!$recordValues) {
+        $recordValues = [0.0];
+    }
+    $max = max(max($requestValues), max($recordValues));
+    if ($max <= 0) {
+        $max = 1.0;
+    }
+    $w = 720;
+    $h = 190;
+    $padL = 34;
+    $padR = 14;
+    $padT = 18;
+    $padB = 32;
+    $plotW = $w - $padL - $padR;
+    $plotH = $h - $padT - $padB;
+    $baseline = $padT + $plotH;
+    $makePoints = static function (array $series) use (
+        $padL,
+        $plotW,
+        $padT,
+        $plotH,
+        $max,
+    ): array {
+        $n = count($series);
+        $points = [];
+        foreach ($series as $idx => $row) {
+            $value = max(0.0, (float) ($row["value"] ?? 0));
+            $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
+            $y = $padT + $plotH - ($value / $max) * $plotH;
+            $points[] = [
+                round($x, 2),
+                round($y, 2),
+                $value,
+                (string) ($row["label"] ?? ""),
+                (string) ($row["tooltip"] ?? ($row["label"] ?? "")),
+            ];
+        }
+        return $points;
+    };
+    $path = static function (array $points): string {
+        $value = "";
+        foreach ($points as $index => $point) {
+            $value .=
+                ($index === 0 ? "M" : "L") .
+                $point[0] .
+                " " .
+                $point[1] .
+                " ";
+        }
+        return trim($value);
+    };
+    $fill = static function (
+        string $pathValue,
+        array $points,
+        float $baselineValue,
+    ): string {
+        if (!$points || $pathValue === "") {
+            return "";
+        }
+        $first = $points[0];
+        $last = $points[count($points) - 1];
+        return $pathValue .
+            " L " .
+            $last[0] .
+            " " .
+            round($baselineValue, 2) .
+            " L " .
+            $first[0] .
+            " " .
+            round($baselineValue, 2) .
+            " Z";
+    };
+    $requestPoints = $makePoints($requestSeries);
+    $recordPoints = $makePoints($recordSeries);
+    $requestPath = $path($requestPoints);
+    $recordPath = $path($recordPoints);
+    $requestFill = $fill($requestPath, $requestPoints, $baseline);
+    $recordFill = $fill($recordPath, $recordPoints, $baseline);
+    $grid = "";
+    for ($i = 0; $i <= 3; $i++) {
+        $gridY = $padT + $i * ($plotH / 3);
+        $gridValue = $max - ($max / 3) * $i;
+        $grid .=
+            '<line x1="' .
+            $padL .
+            '" y1="' .
+            round($gridY, 2) .
+            '" x2="' .
+            ($w - $padR) .
+            '" y2="' .
+            round($gridY, 2) .
+            '" class="metric-grid-line"/><text x="6" y="' .
+            round($gridY + 4, 2) .
+            '" class="metric-axis-label">' .
+            e(number_format($gridValue, 0, ",", ".")) .
+            "</text>";
+    }
+    $ticks = "";
+    $pointCount = count($requestPoints);
+    $tickEvery = max(1, (int) ceil(max(1, $pointCount) / 8));
+    foreach ($requestPoints as $index => $point) {
+        if ($index % $tickEvery === 0 || $index === $pointCount - 1) {
+            $ticks .=
+                '<text x="' .
+                $point[0] .
+                '" y="' .
+                ($h - 8) .
+                '" class="metric-axis-label metric-x-label">' .
+                e($point[3]) .
+                "</text>";
+        }
+    }
+    $hover = "";
+    foreach ($requestPoints as $point) {
+        $hover .=
+            '<circle cx="' .
+            $point[0] .
+            '" cy="' .
+            $point[1] .
+            '" r="4.5" class="metric-chart-hit"><title>' .
+            e(
+                $point[4] .
+                    " · Requisições " .
+                    admin_metric_value_label($point[2], "count"),
+            ) .
+            "</title></circle>";
+    }
+    foreach ($recordPoints as $point) {
+        $hover .=
+            '<circle cx="' .
+            $point[0] .
+            '" cy="' .
+            $point[1] .
+            '" r="3.8" class="metric-chart-hit"><title>' .
+            e(
+                $point[4] .
+                    " · Registros " .
+                    admin_metric_value_label($point[2], "count"),
+            ) .
+            "</title></circle>";
+    }
+    $requestTotal = (int) round(array_sum($requestValues));
+    $recordTotal = (int) round(array_sum($recordValues));
+    $pills =
+        '<span class="metric-count-pill is-requests" title="Requisições nos últimos 30 dias: ' .
+        e(n($requestTotal)) .
+        '"><i class="metric-series-key" aria-hidden="true"></i><small>Requisições</small><b>' .
+        e(n($requestTotal)) .
+        '</b></span><span class="metric-count-pill is-records" title="Registros nos últimos 30 dias: ' .
+        e(n($recordTotal)) .
+        '"><i class="metric-series-key" aria-hidden="true"></i><small>Registros</small><b>' .
+        e(n($recordTotal)) .
+        "</b></span>";
+    $lastRequest = end($requestPoints);
+    $lastRecord = end($recordPoints);
+    $requestCircle = $lastRequest
+        ? '<circle cx="' .
+            $lastRequest[0] .
+            '" cy="' .
+            $lastRequest[1] .
+            '" r="3.6" class="metric-chart-dot metric-chart-dot-requests"><title>' .
+            e(
+                $lastRequest[4] .
+                    " · Requisições " .
+                    admin_metric_value_label($lastRequest[2], "count"),
+            ) .
+            "</title></circle>"
+        : "";
+    $recordCircle = $lastRecord
+        ? '<circle cx="' .
+            $lastRecord[0] .
+            '" cy="' .
+            $lastRecord[1] .
+            '" r="3.2" class="metric-chart-dot metric-chart-dot-records"><title>' .
+            e(
+                $lastRecord[4] .
+                    " · Registros " .
+                    admin_metric_value_label($lastRecord[2], "count"),
+            ) .
+            "</title></circle>"
+        : "";
+    $summary =
+        $title .
+        ": " .
+        n($requestTotal) .
+        " requisições e " .
+        n($recordTotal) .
+        " registros nos últimos 30 dias.";
+    return '<article class="metric-line-chart metric-area-chart metric-dual-count-chart" data-ds-card="admin-dual-count-chart" aria-label="' .
+        e($title) .
+        '"><header><div class="metric-chart-title">' .
+        icon($iconName) .
+        "<div><h3>" .
+        e($title) .
+        '</h3></div></div><div class="metric-chart-value"><div class="metric-chart-pills">' .
+        $pills .
+        '</div></div></header><p class="sr-only">' .
+        e($summary) .
+        '</p><svg viewBox="0 0 ' .
+        $w .
+        " " .
+        $h .
+        '" aria-hidden="true" focusable="false"><g>' .
+        $grid .
+        "</g>" .
+        ($requestFill !== ""
+            ? '<path d="' .
+                e($requestFill) .
+                '" class="metric-chart-fill-requests"/>'
+            : "") .
+        ($recordFill !== ""
+            ? '<path d="' .
+                e($recordFill) .
+                '" class="metric-chart-fill-records"/>'
+            : "") .
+        ($requestPath !== ""
+            ? '<path d="' .
+                e($requestPath) .
+                '" class="metric-chart-line-requests"/>'
+            : "") .
+        ($recordPath !== ""
+            ? '<path d="' .
+                e($recordPath) .
+                '" class="metric-chart-line-records"/>'
+            : "") .
+        $requestCircle .
+        $recordCircle .
+        $hover .
+        $ticks .
+        "</svg></article>";
+}
 function admin_global_sequence_series_30d(): array
 {
 
@@ -1546,164 +1794,6 @@ function admin_global_sequence_series_30d(): array
         error_log("[Prontoo admin seq chart] " . $e->getMessage());
     }
     return array_values($days);
-}
-function admin_sequence_average(array $series, int $days): float
-{
-
-    $recent = array_slice($series, -max(1, $days));
-    if (!$recent) {
-        return 0.0;
-    }
-    $sum = 0;
-    foreach ($recent as $row) {
-        $sum += (int) ($row["value"] ?? 0);
-    }
-    return round($sum / count($recent), 1);
-}
-function admin_metric_bar_chart(
-    string $title,
-    array $series,
-    string $iconName,
-    string $unitLabel = "registros",
-): string {
-
-    $values = array_map( fn($r) => (float) ($r["value"] ?? 0), $series);
-    if (!$values) {
-        $values = [0.0];
-    }
-    $max = max($values);
-    if ($max <= 0) {
-        $max = 1.0;
-    }
-    $w = 720;
-    $h = 190;
-    $padL = 34;
-    $padR = 14;
-    $padT = 18;
-    $padB = 32;
-    $plotW = $w - $padL - $padR;
-    $plotH = $h - $padT - $padB;
-    $n = max(1, count($series));
-    $slot = $plotW / $n;
-    $barW = max(4, min(16, $slot * 0.56));
-    $grid = "";
-    for ($i = 0; $i <= 3; $i++) {
-        $gy = $padT + $i * ($plotH / 3);
-        $gv = $max - ($max / 3) * $i;
-        $grid .=
-            '<line x1="' .
-            $padL .
-            '" y1="' .
-            round($gy, 2) .
-            '" x2="' .
-            ($w - $padR) .
-            '" y2="' .
-            round($gy, 2) .
-            '" class="metric-grid-line"/><text x="6" y="' .
-            round($gy + 4, 2) .
-            '" class="metric-axis-label">' .
-            e(number_format($gv, 0, ",", ".")) .
-            "</text>";
-    }
-    $bars = "";
-    $ticks = "";
-    $tickEvery = 5;
-    foreach ($series as $i => $row) {
-        $v = (float) ($row["value"] ?? 0);
-        $x = $padL + $i * $slot + ($slot - $barW) / 2;
-        $barH = ($v / $max) * $plotH;
-        $y = $padT + $plotH - $barH;
-        $label = (string) ($row["label"] ?? "");
-        $tip =
-            (string) ($row["tooltip"] ?? $label) .
-            " · " .
-            number_format($v, 0, ",", ".") .
-            " " .
-            (string) $unitLabel;
-        $bars .=
-            '<rect x="' .
-            round($x, 2) .
-            '" y="' .
-            round($y, 2) .
-            '" width="' .
-            round($barW, 2) .
-            '" height="' .
-            round(max(1, $barH), 2) .
-            '" rx="4" ry="4" class="metric-chart-bar"><title>' .
-            e($tip) .
-            "</title></rect>";
-        if ($i % $tickEvery === 0 || $i === $n - 1) {
-            $ticks .=
-                '<text x="' .
-                round($x + $barW / 2, 2) .
-                '" y="' .
-                ($h - 8) .
-                '" class="metric-axis-label metric-x-label">' .
-                e($label) .
-                "</text>";
-        }
-    }
-    $avg5 = admin_sequence_average($series, 5);
-    $avg15 = admin_sequence_average($series, 15);
-    $avg30 = admin_sequence_average($series, 30);
-    $fmt = static  fn(float $v): string => number_format(
-        $v,
-        $v === floor($v) ? 0 : 1,
-        ",",
-        ".",
-    );
-    $pills =
-        '<span title="Média dos últimos 5 dias" aria-label="Média dos últimos 5 dias: ' .
-        e($fmt($avg5)) .
-        '">' .
-        icon("looks_5") .
-        "<b>" .
-        e($fmt($avg5)) .
-        "</b></span>" .
-        '<span title="Média dos últimos 15 dias" aria-label="Média dos últimos 15 dias: ' .
-        e($fmt($avg15)) .
-        '">' .
-        icon("calendar_view_week") .
-        "<b>" .
-        e($fmt($avg15)) .
-        "</b></span>" .
-        '<span title="Média dos últimos 30 dias" aria-label="Média dos últimos 30 dias: ' .
-        e($fmt($avg30)) .
-        '">' .
-        icon("calendar_month") .
-        "<b>" .
-        e($fmt($avg30)) .
-        "</b></span>";
-    $summary =
-        $title .
-        ": média de 5 dias " .
-        $fmt($avg5) .
-        ", média de 15 dias " .
-        $fmt($avg15) .
-        ", média de 30 dias " .
-        $fmt($avg30) .
-        ".";
-    return '<article class="metric-line-chart metric-area-chart metric-bar-chart" data-ds-card="admin-bar-chart" aria-label="' .
-        e($title) .
-        '"><header><div class="metric-chart-title">' .
-        icon($iconName) .
-        "<div><h3>" .
-        e($title) .
-        '</h3></div></div><div class="metric-chart-value"><div class="metric-chart-pills">' .
-        $pills .
-        '</div></div></header><p class="sr-only">' .
-        e($summary) .
-        '</p><svg viewBox="0 0 ' .
-        $w .
-        " " .
-        $h .
-        '" aria-hidden="true" focusable="false"><g>' .
-        $grid .
-        "</g><g>" .
-        $bars .
-        "</g>" .
-        $ticks .
-        "</svg></article>";
 }
 function admin_maestro_health_time_label(?string $value): string
 {
@@ -1797,29 +1887,19 @@ function admin_maestro_health_pill_html(): string
 }
 function admin_global_perf_charts_html(): string
 {
-
     $response = admin_global_metric_series_24h("query_ms");
     $load = admin_global_metric_series_24h("load");
-    $seq = admin_global_sequence_series_30d();
+    $records = admin_global_sequence_series_30d();
     $requests = function_exists("telemetry_route_requests_series_30d")
         ? telemetry_route_requests_series_30d()
         : [];
-    $seqTotal = (int) array_sum(
-        array_map(static  fn($row) => (int) ($row["value"] ?? 0), $seq),
-    );
-    $requestTotal = (int) array_sum(
-        array_map(static  fn($row) => (int) ($row["value"] ?? 0), $requests),
-    );
-    $seqTitle = n($seqTotal);
-    $requestTitle = n($requestTotal);
     return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
         admin_metric_dual_area_chart("Velocidade", $load, $response, "speed") .
-        admin_metric_bar_chart($seqTitle, $seq, "fingerprint") .
-        admin_metric_bar_chart(
-            $requestTitle,
+        admin_metric_dual_count_chart(
+            "Requisições e registros",
             $requests,
-            "route",
-            "requisições",
+            $records,
+            "monitoring",
         ) .
         "</div>";
 }
@@ -2907,16 +2987,21 @@ function page_admin_painel(): void
     $activeUsers24h = $qInt(
         "SELECT COUNT(DISTINCT user_id) FROM pi_audit WHERE user_id IS NOT NULL AND created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) $modelAuditWhere",
     );
-    $activeClinics7d = $qInt(
-        "SELECT COUNT(DISTINCT clinic_id) FROM pi_audit WHERE clinic_id IS NOT NULL AND created_at>=DATE_SUB(NOW(), INTERVAL 7 DAY) $modelAuditWhere",
-    );
-    $landingLoads7d = function_exists("telemetry_route_count_last_days")
-        ? telemetry_route_count_last_days("landing", 7)
-        : 0;
     $performance24h = function_exists("telemetry_route_performance_summary")
         ? telemetry_route_performance_summary(24)
-        : ["avg_ms" => 0.0];
-    $averageResponseMs = max(0.0, (float) ($performance24h["avg_ms"] ?? 0));
+        : ["routes" => [], "total" => 0];
+    $requests24h = max(0, (int) ($performance24h["total"] ?? 0));
+    $landingAverageMs = 0.0;
+    foreach ((array) ($performance24h["routes"] ?? []) as $routePerformance) {
+        if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+            continue;
+        }
+        $landingAverageMs = max(
+            0.0,
+            (float) ($routePerformance["avg_ms"] ?? 0),
+        );
+        break;
+    }
     $locks = $qInt(
         "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
     );
@@ -3141,29 +3226,25 @@ function page_admin_painel(): void
     $telemetry =
         '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .
         stat_card(
-            "Usuários ativos 24h",
-            $activeUsers24h,
-            "person_check",
-            "uso recente",
-        ) .
-        stat_card(
-            "Consultórios ativos 7d",
-            $activeClinics7d,
-            "domain",
-            "com atividade",
+            "Requisições 24h",
+            $requests24h,
+            "route",
+            "amostras do runtime",
         ) .
         stat_link_card(
-            "Tempo médio de resposta",
-            admin_performance_format_ms($averageResponseMs),
-            "speed",
+            "Tempo da Landing Page",
+            $landingAverageMs > 0
+                ? admin_performance_format_ms($landingAverageMs)
+                : "—",
+            "web",
             "média nas últimas 24 horas",
             "admin_performance",
         ) .
         stat_card(
-            "Landing page",
-            $landingLoads7d,
-            "web",
-            "carregamentos em 7 dias",
+            "Usuários ativos 24h",
+            $activeUsers24h,
+            "person_check",
+            "uso recente",
         ) .
         "</div>";
     $actionsCard = $actions
@@ -4652,396 +4733,6 @@ function admin_performance_rows_html(array $rows): string
             "</td></tr>";
     }
     return $h . "</tbody></table></div>";
-}
-function admin_telemetry_window_hours(): int
-{
-    $hours = (int) ($_GET["hours"] ?? 24);
-    return in_array($hours, [6, 24, 72, 168], true) ? $hours : 24;
-}
-function admin_telemetry_window_label(int $hours): string
-{
-    return [
-        6 => "6 horas",
-        24 => "24 horas",
-        72 => "3 dias",
-        168 => "7 dias",
-    ][$hours] ?? "24 horas";
-}
-function admin_telemetry_window_html(int $hours): string
-{
-    $items = "";
-    foreach ([6 => "6h", 24 => "24h", 72 => "3 dias", 168 => "7 dias"] as $value => $label) {
-        $items .=
-            '<a class="' .
-            ($hours === $value ? "primary" : "secondary") .
-            ' small cmdlike" href="' .
-            href("admin_telemetry", ["hours" => $value]) .
-            '">' .
-            e($label) .
-            "</a>";
-    }
-    return '<nav class="cmd-bar admin-telemetry-window" aria-label="Janela da telemetria">' .
-        $items .
-        "</nav>";
-}
-function admin_telemetry_bucket_seconds(int $hours): int
-{
-    if ($hours <= 6) {
-        return 300;
-    }
-    if ($hours <= 24) {
-        return 900;
-    }
-    if ($hours <= 72) {
-        return 3600;
-    }
-    return 10800;
-}
-function admin_telemetry_time_series(int $hours): array
-{
-    $hours = max(1, min(168, $hours));
-    $bucketSeconds = admin_telemetry_bucket_seconds($hours);
-    $tz = telemetry_cuiaba_tz();
-    $now = new DateTimeImmutable("now", $tz);
-    $nowTs = $now->getTimestamp();
-    $startTs = $nowTs - $hours * 3600;
-    $bucketCount = max(2, (int) ceil(($nowTs - $startTs) / $bucketSeconds) + 1);
-    $series = [
-        "response" => [],
-        "database" => [],
-        "requests" => [],
-        "errors" => [],
-    ];
-    for ($i = 0; $i < $bucketCount; $i++) {
-        $ts = $startTs + $i * $bucketSeconds;
-        $dt = new DateTimeImmutable("@" . $ts)->setTimezone($tz);
-        $label = $hours <= 24 ? $dt->format("H:i") : $dt->format("d/m H:i");
-        $tooltip = $dt->format("d/m/Y H:i");
-        foreach (array_keys($series) as $key) {
-            $series[$key][$i] = [
-                "ts" => $ts,
-                "label" => $label,
-                "tooltip" => $tooltip,
-                "value" => 0.0,
-                "sum" => 0.0,
-                "samples" => 0,
-            ];
-        }
-    }
-    foreach (telemetry_read_events() as $event) {
-        if (!is_array($event)) {
-            continue;
-        }
-        $ts = (int) ($event["ts"] ?? 0);
-        if ($ts < $startTs || $ts > $nowTs) {
-            continue;
-        }
-        $idx = min(
-            $bucketCount - 1,
-            max(0, (int) floor(($ts - $startTs) / $bucketSeconds)),
-        );
-        $elapsed = max(0.0, (float) ($event["elapsed_ms"] ?? 0));
-        $queryMs = max(0.0, (float) ($event["query_ms"] ?? 0));
-        if ($elapsed > 0) {
-            $series["response"][$idx]["sum"] += $elapsed;
-            $series["response"][$idx]["samples"]++;
-        }
-        if ($queryMs > 0) {
-            $series["database"][$idx]["sum"] += $queryMs;
-            $series["database"][$idx]["samples"]++;
-        }
-        $series["requests"][$idx]["value"]++;
-        if (empty($event["success"])) {
-            $series["errors"][$idx]["value"]++;
-        }
-    }
-    foreach (["response", "database"] as $key) {
-        foreach ($series[$key] as &$row) {
-            $row["value"] =
-                (int) $row["samples"] > 0
-                    ? round((float) $row["sum"] / (int) $row["samples"], 1)
-                    : 0.0;
-            unset($row["sum"]);
-        }
-        unset($row);
-    }
-    foreach (["requests", "errors"] as $key) {
-        foreach ($series[$key] as &$row) {
-            unset($row["sum"]);
-        }
-        unset($row);
-    }
-    return $series;
-}
-function admin_telemetry_spool_health(): array
-{
-    $dirs = array_values(
-        array_unique(
-            array_merge(
-                maestro_deferred_storage_dirs("audit"),
-                maestro_deferred_storage_dirs("telemetry"),
-            ),
-        ),
-    );
-    $queued = 0;
-    $processing = 0;
-    $deadLetter = 0;
-    $oldest = 0;
-    foreach ($dirs as $dir) {
-        if (!is_dir($dir)) {
-            continue;
-        }
-        foreach ((array) glob($dir . "/*.json") as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-            $queued++;
-            $oldest = max($oldest, max(0, time() - (int) @filemtime($file)));
-        }
-        foreach ((array) glob($dir . "/*.processing") as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-            $processing++;
-            $oldest = max($oldest, max(0, time() - (int) @filemtime($file)));
-        }
-        foreach ((array) glob($dir . "/dead-letter/*") as $file) {
-            if (is_file($file)) {
-                $deadLetter++;
-            }
-        }
-    }
-    return [
-        "queued" => $queued,
-        "processing" => $processing,
-        "dead_letter" => $deadLetter,
-        "oldest_age_seconds" => $oldest,
-        "alert" => $deadLetter > 0 || $oldest > 3600,
-    ];
-}
-function admin_telemetry_age_label(int $seconds): string
-{
-    $seconds = max(0, $seconds);
-    if ($seconds < 60) {
-        return $seconds . " s";
-    }
-    if ($seconds < 3600) {
-        return (int) floor($seconds / 60) . " min";
-    }
-    if ($seconds < 86400) {
-        return number_format($seconds / 3600, 1, ",", ".") . " h";
-    }
-    return number_format($seconds / 86400, 1, ",", ".") . " dias";
-}
-function admin_telemetry_cache_rows_html(array $rows): string
-{
-    if (!$rows) {
-        return '<div class="empty-state">Ainda não há amostras de cache nesta janela.</div>';
-    }
-    $h =
-        '<div class="table-wrap"><table class="data-table admin-performance-table"><thead><tr><th>Categoria</th><th>Consultas</th><th>Memória</th><th>Arquivo</th><th>Perdas</th><th>Acerto</th><th>Invalidações</th><th>Fallbacks</th><th>Espera média</th></tr></thead><tbody>';
-    foreach (array_slice($rows, 0, 20) as $row) {
-        $hitRate = (float) ($row["hit_rate"] ?? 0);
-        $tone = $hitRate >= 85 ? "is-ok" : ($hitRate >= 60 ? "is-warn" : "is-bad");
-        $h .=
-            '<tr class="' .
-            $tone .
-            '"><td><code>' .
-            e((string) ($row["category"] ?? "general")) .
-            "</code></td><td>" .
-            n((int) ($row["lookups"] ?? 0)) .
-            "</td><td>" .
-            n((int) ($row["memory_hits"] ?? 0)) .
-            "</td><td>" .
-            n((int) ($row["file_hits"] ?? 0)) .
-            "</td><td>" .
-            n((int) ($row["misses"] ?? 0)) .
-            "</td><td><b>" .
-            e(number_format($hitRate, 1, ",", ".") . "%") .
-            "</b></td><td>" .
-            n((int) ($row["invalidations"] ?? 0)) .
-            "</td><td>" .
-            n((int) ($row["generation_fallback_clears"] ?? 0)) .
-            "</td><td>" .
-            e(admin_performance_format_ms((float) ($row["avg_lock_wait_ms"] ?? 0))) .
-            "</td></tr>";
-    }
-    return $h . "</tbody></table></div>";
-}
-function admin_telemetry_release_rows_html(array $releases): string
-{
-    if (!$releases) {
-        return '<div class="empty-state">Ainda não há dados suficientes para comparar versões.</div>';
-    }
-    uasort($releases, static fn(array $a, array $b): int =>
-        strcmp((string) ($b["release"] ?? ""), (string) ($a["release"] ?? ""))
-    );
-    $h =
-        '<div class="table-wrap"><table class="data-table admin-performance-table"><thead><tr><th>Versão</th><th>Requisições</th><th>Resposta média</th><th>Banco médio</th><th>Consultas</th><th>Falhas</th></tr></thead><tbody>';
-    foreach (array_slice(array_values($releases), 0, 8) as $row) {
-        $errors = (int) ($row["errors"] ?? 0);
-        $h .=
-            "<tr><td><code>" .
-            e((string) ($row["release"] ?? "unknown")) .
-            "</code></td><td>" .
-            n((int) ($row["count"] ?? 0)) .
-            "</td><td><b>" .
-            e(admin_performance_format_ms((float) ($row["avg_ms"] ?? 0))) .
-            "</b></td><td>" .
-            e(admin_performance_format_ms((float) ($row["query_avg_ms"] ?? 0))) .
-            "</td><td>" .
-            e(number_format((float) ($row["queries_avg"] ?? 0), 1, ",", ".")) .
-            "</td><td>" .
-            ($errors > 0
-                ? '<span class="status danger">' . n($errors) . "</span>"
-                : '<span class="status ok">0</span>') .
-            "</td></tr>";
-    }
-    return $h . "</tbody></table></div>";
-}
-function page_admin_telemetry(): void
-{
-    require_can("admin_telemetry");
-    $hours = admin_telemetry_window_hours();
-    $windowLabel = admin_telemetry_window_label($hours);
-    $series = admin_telemetry_time_series($hours);
-    $routes = telemetry_route_performance_summary($hours);
-    $cache = telemetry_cache_performance_summary($hours);
-    $releases = telemetry_release_performance_summary(max(24, $hours));
-    $spool = admin_telemetry_spool_health();
-    $routeRows = isset($routes["routes"]) && is_array($routes["routes"])
-        ? $routes["routes"]
-        : [];
-    $total = (int) ($routes["total"] ?? 0);
-    $avg = (float) ($routes["avg_ms"] ?? 0);
-    $errors = (int) array_sum(
-        array_map(static fn(array $row): int => (int) ($row["errors"] ?? 0), $routeRows),
-    );
-    $errorRate = $total > 0 ? round(($errors / $total) * 100, 2) : 0.0;
-    $cacheTotal = isset($cache["total"]) && is_array($cache["total"])
-        ? $cache["total"]
-        : [];
-    $cacheLookups = (int) ($cacheTotal["lookups"] ?? 0);
-    $cacheHitRate = (float) ($cacheTotal["hit_rate"] ?? 0);
-    $queueTotal = (int) $spool["queued"] + (int) $spool["processing"];
-    $stats =
-        '<div class="stats-grid admin-performance-stats">' .
-        stat_card("Requisições", $total, "route", "Janela de " . $windowLabel) .
-        stat_card(
-            "Resposta média",
-            admin_performance_format_ms($avg),
-            "speed",
-            "Tempo total observado",
-        ) .
-        stat_card(
-            "Taxa de falhas",
-            number_format($errorRate, 2, ",", ".") . "%",
-            "error",
-            n($errors) . " falha(s) observada(s)",
-        ) .
-        stat_card(
-            "Acertos de cache",
-            $cacheLookups > 0 ? number_format($cacheHitRate, 1, ",", ".") . "%" : "—",
-            "cached",
-            $cacheLookups > 0 ? n($cacheLookups) . " consultas" : "Sem amostras",
-        ) .
-        stat_card(
-            "Fila diferida",
-            $queueTotal,
-            "pending_actions",
-            (int) $spool["processing"] . " em processamento",
-        ) .
-        stat_card(
-            "Item mais antigo",
-            $queueTotal > 0
-                ? admin_telemetry_age_label((int) $spool["oldest_age_seconds"])
-                : "—",
-            !empty($spool["alert"]) ? "warning" : "schedule",
-            (int) $spool["dead_letter"] . " em fila morta",
-        ) .
-        "</div>";
-    $charts =
-        '<div class="global-performance-charts global-area-charts admin-telemetry-charts">' .
-        admin_metric_line_chart(
-            "Tempo total de resposta",
-            "Média por intervalo, incluindo aplicação e banco.",
-            $series["response"],
-            "speed",
-            "ms",
-        ) .
-        admin_metric_line_chart(
-            "Tempo de banco",
-            "Tempo médio gasto em consultas SQL por intervalo.",
-            $series["database"],
-            "database",
-            "ms",
-        ) .
-        admin_metric_line_chart(
-            "Requisições",
-            "Volume de requisições registradas por intervalo.",
-            $series["requests"],
-            "route",
-            "count",
-        ) .
-        admin_metric_line_chart(
-            "Falhas",
-            "Requisições não concluídas com sucesso por intervalo.",
-            $series["errors"],
-            "error",
-            "count",
-        ) .
-        "</div>";
-    $updated = trim((string) ($routes["updated_at"] ?? ""));
-    $body =
-        page_head(
-            "Telemetria",
-            "Desempenho, eficiência e sinais operacionais do runtime, sem dados clínicos ou pessoais.",
-            admin_telemetry_window_html($hours),
-        ) .
-        '<section class="admin-performance-screen admin-telemetry-screen">' .
-        $stats .
-        card(
-            '<div class="section-head admin-performance-head"><h2>' .
-                icon("monitoring") .
-                "<span>Tendências · " .
-                e($windowLabel) .
-                "</span></h2><p>As séries são agregadas no fuso operacional de Cuiabá." .
-                ($updated !== "" ? " Última atualização: " . e($updated) . "." : "") .
-                "</p></div>" .
-                $charts,
-            "admin-performance-card admin-telemetry-chart-card",
-        ) .
-        card(
-            '<div class="section-head admin-performance-head"><h2>' .
-                icon("speed") .
-                '<span>Rotas mais lentas</span></h2><p>Prioriza rotas por tempo médio para orientar investigação e otimização.</p></div>' .
-                admin_performance_rows_html(array_slice($routeRows, 0, 15)),
-            "admin-performance-card",
-        ) .
-        card(
-            '<div class="section-head admin-performance-head"><h2>' .
-                icon("cached") .
-                '<span>Eficiência do cache</span></h2><p>Acertos, perdas, invalidações e contenção por categoria.</p></div>' .
-                admin_telemetry_cache_rows_html(
-                    isset($cache["categories"]) && is_array($cache["categories"])
-                        ? $cache["categories"]
-                        : [],
-                ),
-            "admin-performance-card",
-        ) .
-        card(
-            '<div class="section-head admin-performance-head"><h2>' .
-                icon("deployed_code") .
-                '<span>Comparação entre versões</span></h2><p>Ajuda a identificar regressões após publicações recentes.</p></div>' .
-                admin_telemetry_release_rows_html(
-                    isset($releases["releases"]) && is_array($releases["releases"])
-                        ? $releases["releases"]
-                        : [],
-                ),
-            "admin-performance-card",
-        ) .
-        "</section>";
-    page("Telemetria", $body);
 }
 function page_admin_performance(): void
 {

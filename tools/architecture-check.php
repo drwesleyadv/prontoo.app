@@ -1371,70 +1371,120 @@ $serverPhaseSixCharacterization = [
     'ok' => $serverPhaseSixFailures === [],
     'failed' => $serverPhaseSixFailures,
 ];
-$developerTelemetryFailures = [];
-$developerTelemetrySources = [
+$developerDashboardFailures = [];
+$developerDashboardSources = [
     'admin' => (string) file_get_contents($root . '/app/Admin/AdminPages.php'),
     'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
     'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
     'bootstrap' => (string) file_get_contents($root . '/app/prontoo.php'),
+    'css' => (string) file_get_contents($root . '/public/assets/design-system.css'),
+    'docs' => (string) file_get_contents($root . '/docs/index.md'),
 ];
-foreach ([
-    'admin' => [
-        'function page_admin_telemetry(): void',
-        'require_can("admin_telemetry")',
-        'admin_metric_line_chart(',
-        'telemetry_route_performance_summary($hours)',
-        'telemetry_cache_performance_summary($hours)',
-        'telemetry_release_performance_summary(max(24, $hours))',
-        'admin_telemetry_spool_health()',
-        'Desempenho, eficiência e sinais operacionais do runtime',
-    ],
-    'runner' => ['"admin_telemetry"'],
-    'loader' => ["'admin_telemetry' => \$admin"],
-    'bootstrap' => ['"admin_telemetry" => ["label" => "Telemetria", "icon" => "monitoring"]'],
-] as $sourceKey => $tokens) {
-    foreach ($tokens as $token) {
-        if (!str_contains($developerTelemetrySources[$sourceKey], $token)) {
-            $developerTelemetryFailures[] = $sourceKey . ':missing:' . $token;
+foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
+    foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {
+        if (str_contains($developerDashboardSources[$sourceKey], $token)) {
+            $developerDashboardFailures[] =
+                $sourceKey . ':obsolete_telemetry_token:' . $token;
         }
     }
 }
-$telemetryPageStart = strpos(
-    $developerTelemetrySources['admin'],
-    'function page_admin_telemetry(): void',
-);
-$telemetryPageEnd = $telemetryPageStart === false
-    ? false
-    : strpos(
-        $developerTelemetrySources['admin'],
-        'function page_admin_performance(): void',
-        $telemetryPageStart,
-    );
-$telemetryPageSource =
-    $telemetryPageStart !== false && $telemetryPageEnd !== false
-        ? substr(
-            $developerTelemetrySources['admin'],
-            $telemetryPageStart,
-            $telemetryPageEnd - $telemetryPageStart,
-        )
-        : '';
-if ($telemetryPageSource === '') {
-    $developerTelemetryFailures[] = 'telemetry_page_boundary';
-}
-foreach (['INSERT ', 'UPDATE ', 'DELETE ', '$_POST'] as $token) {
-    if (str_contains($telemetryPageSource, $token)) {
-        $developerTelemetryFailures[] = 'telemetry_page_write_token:' . $token;
+foreach ([
+    'admin' => [
+        'function admin_metric_dual_count_chart(',
+        '"Requisições 24h"',
+        '"Tempo da Landing Page"',
+        '"Usuários ativos 24h"',
+        '"Requisições e registros"',
+        'metric-chart-line-requests',
+        'metric-chart-line-records',
+        'telemetry_route_performance_summary(24)',
+    ],
+    'css' => [
+        'grid-template-columns:repeat(3,minmax(0,1fr))!important',
+        '.metric-dual-count-chart .metric-chart-line-requests',
+        'stroke:var(--pt-color-success)!important',
+        '.metric-dual-count-chart .metric-chart-line-records',
+        'color-mix(in srgb,var(--pt-color-success) 52%,#fff)',
+    ],
+    'bootstrap' => [
+        'dual-area-speed-and-volume-no-dual-legend-one-row',
+    ],
+] as $sourceKey => $tokens) {
+    foreach ($tokens as $token) {
+        if (!str_contains($developerDashboardSources[$sourceKey], $token)) {
+            $developerDashboardFailures[] =
+                $sourceKey . ':missing:' . $token;
+        }
     }
 }
-if (!str_contains(
-    $developerTelemetrySources['admin'],
-    'return number_format($value, $value === floor($value) ? 0 : 1, ",", ".");',
-)) {
-    $developerTelemetryFailures[] = 'count_chart_compact_format';
+$cardPositions = [];
+foreach ([
+    'requests' => '"Requisições 24h"',
+    'landing' => '"Tempo da Landing Page"',
+    'users' => '"Usuários ativos 24h"',
+] as $key => $token) {
+    $cardPositions[$key] = strpos($developerDashboardSources['admin'], $token);
 }
-$developerTelemetryCharacterization = [
-    'ok' => $developerTelemetryFailures === [],
-    'failed' => $developerTelemetryFailures,
+if ($cardPositions['requests'] === false ||
+    $cardPositions['landing'] === false ||
+    $cardPositions['users'] === false ||
+    !($cardPositions['requests'] < $cardPositions['landing'] &&
+        $cardPositions['landing'] < $cardPositions['users'])) {
+    $developerDashboardFailures[] = 'developer_dashboard_card_order';
+}
+$developerPanelStart = strpos(
+    $developerDashboardSources['admin'],
+    'function page_admin_painel(): void',
+);
+$developerPanelEnd = $developerPanelStart === false
+    ? false
+    : strpos(
+        $developerDashboardSources['admin'],
+        'function page_admin_people(): void',
+        $developerPanelStart,
+    );
+$developerPanelSource =
+    $developerPanelStart !== false && $developerPanelEnd !== false
+        ? substr(
+            $developerDashboardSources['admin'],
+            $developerPanelStart,
+            $developerPanelEnd - $developerPanelStart,
+        )
+        : '';
+if ($developerPanelSource === '') {
+    $developerDashboardFailures[] = 'developer_dashboard_page_boundary';
+}
+foreach ([
+    'Consultórios ativos 7d',
+    'Tempo médio de resposta',
+    '"Landing page"',
+] as $obsoletePanelToken) {
+    if (str_contains($developerPanelSource, $obsoletePanelToken)) {
+        $developerDashboardFailures[] =
+            'obsolete_dashboard_card:' . $obsoletePanelToken;
+    }
+}
+foreach ([
+    'admin_metric_bar_chart(',
+    'metric-bar-chart',
+    'developer-telemetry-dashboard.md',
+] as $obsoleteToken) {
+    if (str_contains(
+        $developerDashboardSources['admin'] .
+            $developerDashboardSources['css'] .
+            $developerDashboardSources['docs'],
+        $obsoleteToken,
+    )) {
+        $developerDashboardFailures[] =
+            'obsolete_dashboard_token:' . $obsoleteToken;
+    }
+}
+if (is_file($root . '/docs/performance/developer-telemetry-dashboard.md')) {
+    $developerDashboardFailures[] = 'obsolete_telemetry_document';
+}
+$developerDashboardCharacterization = [
+    'ok' => $developerDashboardFailures === [],
+    'failed' => $developerDashboardFailures,
 ];
 $result = [
     'ok' =>
@@ -1456,7 +1506,7 @@ $result = [
         !empty($serverPhaseFourCharacterization['ok']) &&
         !empty($serverPhaseFiveCharacterization['ok']) &&
         !empty($serverPhaseSixCharacterization['ok']) &&
-        !empty($developerTelemetryCharacterization['ok']),
+        !empty($developerDashboardCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1475,7 +1525,7 @@ $result = [
     'server_phase_four_characterization' => $serverPhaseFourCharacterization,
     'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
     'server_phase_six_characterization' => $serverPhaseSixCharacterization,
-    'developer_telemetry_characterization' => $developerTelemetryCharacterization,
+    'developer_dashboard_characterization' => $developerDashboardCharacterization,
 ];
 
 echo json_encode(

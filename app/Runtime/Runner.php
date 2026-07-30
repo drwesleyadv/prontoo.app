@@ -57,7 +57,6 @@ function prontoo_route_map(): array
         "admin_maintenance",
         "admin_health",
         "admin_performance",
-        "admin_telemetry",
         "admin_deleted",
         "admin_errors",
         "admin_diagnostics",

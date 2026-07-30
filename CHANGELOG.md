@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.9 — Consolidação do Painel do Desenvolvedor
+
+- remove a rota, o item de navegação e as funções da tela Telemetria duplicada;
+- reorganiza os cards para Requisições 24h, Tempo da Landing Page e Usuários ativos 24h;
+- unifica Requisições e Registros em gráfico de duas séries no modelo visual de Velocidade;
+- aplica verde escuro às Requisições e verde claro aos Registros;
+- mantém banco e schema inalterados.
+
 ## 1.7.30.8 — Telemetria no Painel do Desenvolvedor
 
 - adiciona o item Telemetria à navegação global do Desenvolvedor;
