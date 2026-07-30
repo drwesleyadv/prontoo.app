@@ -69,21 +69,27 @@ jobs:
           from pathlib import Path
           path = Path('tools/public_status_refinement.py')
           text = path.read_text(encoding='utf-8')
-          old = '''for old, new, label in [
-              ('        "stats",\n        "login",', '        "status",\n        "login",', "route map"),
-              ('        "stats",\n        "login",', '        "status",\n        "login",', "public route list"),
-              ('        ["mobile_web_access", "signup", "stats"],', '        ["mobile_web_access", "signup", "status"],', "public light route"),'''
-          new = '''route_token = '        "stats",\\n        "login",'
+          anchor = 'runner = read(runner_path)\n'
+          start = text.index(anchor) + len(anchor)
+          end_token = 'write(runner_path, runner)'
+          end = text.index(end_token, start) + len(end_token)
+          replacement = '''route_token = '        "stats",\\n        "login",'
           status_route_token = '        "status",\\n        "login",'
           route_count = runner.count(route_token)
           if route_count != 2:
               raise RuntimeError(f"public routes: expected two occurrences, found {route_count}")
           runner = runner.replace(route_token, status_route_token, 2)
           for old, new, label in [
-              ('        ["mobile_web_access", "signup", "stats"],', '        ["mobile_web_access", "signup", "status"],', "public light route"),'''
-          if old not in text:
-              raise SystemExit('runner route preparer anchor missing')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              ('        ["mobile_web_access", "signup", "stats"],', '        ["mobile_web_access", "signup", "status"],', "public light route"),
+              ('        $publicStats = $r === "stats";', '        $publicStatus = $r === "status";', "public route flag"),
+              ('        headers_secure($publicStats);', '        headers_secure($publicStatus);', "public headers"),
+              ('        $cNow = $publicStats || $publicHome || $r === "logout" ? [] : ctx();', '        $cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();', "public empty context"),
+              ('            !$publicStats &&', '            !$publicStatus &&', "public maintenance bypass"),
+              ('        if ($r !== "logout" && !$publicStats) {', '        if ($r !== "logout" && !$publicStatus) {', "public integrity bypass"),
+          ]:
+              runner = replace_once(runner, old, new, label)
+          write(runner_path, runner)'''
+          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
           PY
           python3 tools/public_status_refinement.py
           rm tools/public_status_refinement.py
