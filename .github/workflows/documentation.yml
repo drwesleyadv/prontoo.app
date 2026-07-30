@@ -56,11 +56,17 @@ jobs:
           from pathlib import Path
           path = Path('tools/server_telemetry_apply.py')
           source = path.read_text(encoding='utf-8')
-          old = 'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n    return admin_metric_duration_label($value, true);\n}"""'
-          new = 'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n\n    return admin_metric_duration_label($value, true);\n}"""'
-          if source.count(old) != 1:
-              raise SystemExit('compact formatter patch boundary not found')
-          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          replacements = {
+              'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n    return admin_metric_duration_label($value, true);\n}"""':
+                  'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n\n    return admin_metric_duration_label($value, true);\n}"""',
+              'result_marker = "$result = [\\n"':
+                  'result_marker = "$result = [\\n    \'ok\' =>\\n        !empty($architecture[\'ok\']) &&\\n"',
+          }
+          for old, new in replacements.items():
+              if source.count(old) != 1:
+                  raise SystemExit('generator patch boundary not found: ' + old[:48])
+              source = source.replace(old, new, 1)
+          path.write_text(source, encoding='utf-8')
           PY
           python3 -m py_compile tools/server_telemetry_apply.py
           python3 tools/server_telemetry_apply.py
