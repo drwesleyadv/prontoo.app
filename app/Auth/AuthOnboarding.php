@@ -477,10 +477,7 @@ function login_apply_resolved_credential(
         "skip_runtime_context" => true,
         "skip_context_enrichment" => true,
     ]);
-    $destination =
-        (string) ($choice["role_code"] ?? "") === "gerente"
-            ? "painel"
-            : "appointments";
+    $destination = "appointments";
     if ($redirectAfterLogin) {
         redirect($destination);
     }

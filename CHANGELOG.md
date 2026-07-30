@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.20 — Administrador inicia na Agenda diária
+
+- remove completamente o item Painel da navegação do perfil Administrador;
+- direciona o login do Administrador para a Agenda, cuja visão padrão é Diário;
+- redireciona acessos diretos à antiga rota Painel do Administrador para a Agenda;
+- preserva os demais perfis, permissões, banco e schema.
+
 ## 1.7.30.19 — Sincronização do contrato de versão
 
 - corrige `app/update.manifest.json`, que permaneceu em 1.7.30.17 após a publicação 1.7.30.18;
