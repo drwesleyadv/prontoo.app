@@ -59,8 +59,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 tools/segmented_count_chart_fills_fix.py
           python3 tools/segmented_count_chart_fills.py
-          rm -f tools/segmented_count_chart_fills.py .github/workflows/segmented-count-chart-fills.yml
+          rm -f tools/segmented_count_chart_fills.py tools/segmented_count_chart_fills_fix.py .github/workflows/segmented-count-chart-fills.yml
           find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
           <?php
@@ -99,6 +100,7 @@ jobs:
           );
           PHP
           test ! -e tools/segmented_count_chart_fills.py
+          test ! -e tools/segmented_count_chart_fills_fix.py
           test ! -e .github/workflows/segmented-count-chart-fills.yml
           test -z "$(find . -type d -name '__pycache__' -print -quit)"
           grep -F '$segmentedCountAreas = static function (' app/Admin/AdminPages.php
