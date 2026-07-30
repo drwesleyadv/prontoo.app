@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.12 — Composição visual idêntica entre gráficos
+
+- reutiliza no gráfico Leitura e gravação as mesmas classes de preenchimento do gráfico Velocidade;
+- alinha a ordem de pintura: Requisições no tom escuro primeiro e Registros no tom claro depois;
+- elimina regras duplicadas de paleta que poderiam divergir por especificidade;
+- mantém métricas, banco e schema inalterados.
+
 ## 1.7.30.11 — Paleta compartilhada e volume da Landing Page
 
 - renomeia o gráfico Requisições e registros para Leitura e gravação;

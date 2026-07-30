@@ -1,3 +1,8 @@
+Prontoo 1.7.30.12 — Composição visual idêntica entre gráficos
+
+- Reutiliza no gráfico Leitura e gravação as mesmas classes de preenchimento do gráfico Velocidade.
+- Pinta Requisições com a área escura e Registros com a área clara na mesma ordem de composição.
+- Mantém banco e schema inalterados.
 Prontoo 1.7.30.11 — Paleta compartilhada e volume da Landing Page
 
 - Renomeia o gráfico para Leitura e gravação.
