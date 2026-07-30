@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.19 — Sincronização do contrato de versão
+
+- corrige `app/update.manifest.json`, que permaneceu em 1.7.30.17 após a publicação 1.7.30.18;
+- sincroniza version, release, build, schema e hashes do pacote com a fonte canônica;
+- torna o diagnóstico do runtime específico por campo divergente;
+- adiciona guard de CI que bloqueia publicação parcial antes do merge;
+- preserva banco, schema e comportamento funcional da plataforma.
+
 ## 1.7.30.18 — Leitura e gravação como cópia visual de Velocidade
 
 - descarta integralmente a geometria segmentada, a interseção e as classes exclusivas do gráfico Leitura e gravação;

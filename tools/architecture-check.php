@@ -34,6 +34,60 @@ foreach ([
         throw new RuntimeException('Contrato arquitetural divergente entre version.json e architecture.manifest.json: ' . $versionKey);
     }
 }
+$updateManifestMetadata = json_decode(
+    (string) file_get_contents($root . '/app/update.manifest.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+foreach ([
+    'version' => 'version',
+    'release' => 'release',
+    'build' => 'build',
+    'package_type' => 'package_type',
+    'schema_revision' => 'schema_revision',
+    'minimum_php' => 'minimum_php',
+    'minimum_mysql' => 'minimum_mysql',
+    'database_changes' => 'database_changes',
+    'schema_changes' => 'schema_changes',
+    'logic_changes' => 'logic_changes',
+    'visual_changes' => 'visual_changes',
+    'documentation_changes' => 'documentation_changes',
+    'previous_version' => 'previous_version',
+    'deployment_sync_id' => 'deployment_sync_id',
+] as $versionKey => $manifestKey) {
+    if (($versionMetadata[$versionKey] ?? null) !== ($updateManifestMetadata[$manifestKey] ?? null)) {
+        throw new RuntimeException(
+            'Contrato de release divergente entre version.json e app/update.manifest.json: ' . $versionKey,
+        );
+    }
+}
+$manifestFiles = $updateManifestMetadata['files'] ?? null;
+if (!is_array($manifestFiles) || $manifestFiles === []) {
+    throw new RuntimeException('Mapa de arquivos ausente em app/update.manifest.json.');
+}
+if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles)) {
+    throw new RuntimeException('Contagem de arquivos divergente em app/update.manifest.json.');
+}
+$manifestBytes = 0;
+foreach ($manifestFiles as $relativePath => $expectedHash) {
+    $absolutePath = $root . '/' . ltrim((string) $relativePath, '/');
+    if (!is_file($absolutePath)) {
+        throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
+    }
+    $actualHash = hash_file('sha256', $absolutePath);
+    if (!is_string($actualHash) || !hash_equals((string) $expectedHash, $actualHash)) {
+        throw new RuntimeException('Hash divergente no manifesto: ' . $relativePath);
+    }
+    $size = filesize($absolutePath);
+    if ($size === false) {
+        throw new RuntimeException('Tamanho indisponível para arquivo do manifesto: ' . $relativePath);
+    }
+    $manifestBytes += $size;
+}
+if ((int) ($updateManifestMetadata['total_uncompressed_bytes'] ?? -1) !== $manifestBytes) {
+    throw new RuntimeException('Tamanho total divergente em app/update.manifest.json.');
+}
 if (!defined('PRONTOO_VERSION')) {
     define('PRONTOO_VERSION', (string) ($versionMetadata['version'] ?? ''));
 }

@@ -1,3 +1,10 @@
+Prontoo 1.7.30.19 — Sincronização do contrato de versão
+
+- Corrige o manifesto de atualização que permaneceu em 1.7.30.17 após a publicação 1.7.30.18.
+- Sincroniza versão, release, build, schema e hashes com version.json.
+- Adiciona validação de CI contra futuras publicações parciais.
+- Banco, schema e comportamento funcional permanecem inalterados.
+
 Prontoo 1.7.30.18 — Leitura e gravação como cópia visual de Velocidade
 
 - Remove integralmente a apresentação específica e segmentada de Leitura e gravação.

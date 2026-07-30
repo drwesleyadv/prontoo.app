@@ -151,7 +151,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.30.18";
+const PRONTOO_VERSION_FALLBACK = "1.7.30.19";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -218,10 +218,19 @@ function prontoo_version_contract_status(): array
     } else {
         $raw = @file_get_contents($manifestFile);
         $manifest = is_string($raw) ? json_decode($raw, true) : null;
-        if (!is_array($manifest) ||
-            trim((string) ($manifest["version"] ?? "")) !== $expected ||
-            trim((string) ($manifest["release"] ?? "")) !== $expected) {
-            $issues[] = "app/update.manifest.json";
+        if (!is_array($manifest)) {
+            $issues[] = "app/update.manifest.json:invalid";
+        } else {
+            foreach ([
+                "version" => $expected,
+                "release" => $expected,
+                "build" => trim((string) ($metadata["build"] ?? "")),
+                "schema_revision" => trim((string) ($metadata["schema_revision"] ?? "")),
+            ] as $key => $canonicalValue) {
+                if (trim((string) ($manifest[$key] ?? "")) !== $canonicalValue) {
+                    $issues[] = "app/update.manifest.json:" . $key;
+                }
+            }
         }
     }
     $landingFile = PRONTOO_ROOT . "/br/index.php";
@@ -264,7 +273,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.7.27.5";
+const PRONTOO_PREVIOUS_VERSION = "1.7.30.18";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
