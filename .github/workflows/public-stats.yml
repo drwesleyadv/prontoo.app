@@ -66,13 +66,15 @@ jobs:
           from pathlib import Path
           path = Path('tools/public_stats_apply.py')
           text = path.read_text(encoding='utf-8')
-          old = '''        "$stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]",
-                  "'stats' => $stats",'''
-          new = '''        '$stats = [\\'stats\\' => [\\'Domain/Maestro/Maestro.php\\', \\'Admin/AdminPages.php\\']]',
-                  '\\'stats\\' => $stats','''
-          if old not in text:
-              raise SystemExit('loader architecture token patch anchor missing')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          replacements = {
+              '''        "$stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]",''': '''        '$stats = [\\'stats\\' => [\\'Domain/Maestro/Maestro.php\\', \\'Admin/AdminPages.php\\']]', ''',
+              '''        "'stats' => $stats",''': '''        '\\'stats\\' => $stats',''',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'loader architecture token patch anchor missing: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
           PY
           python3 tools/public_stats_apply.py
           rm tools/public_stats_apply.py
