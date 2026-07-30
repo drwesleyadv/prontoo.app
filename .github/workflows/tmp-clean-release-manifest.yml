@@ -1,0 +1,142 @@
+name: Clean and Verify Release Manifest
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: clean-release-manifest-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  clean-release-manifest:
+    if: github.head_ref == 'agent/fix-runtime-version-contract-manifest'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0.30
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-runtime-version-contract-manifest
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql
+      - name: Clean validate and publish manifest
+        shell: bash
+        env:
+          PRONTOO_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=prontoo_test;charset=utf8mb4
+          PRONTOO_TEST_DB_USER: root
+          PRONTOO_TEST_DB_PASS: root
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/architecture-check.php')
+          text = path.read_text()
+          anchor = """}
+          if (!defined('PRONTOO_VERSION')) {
+          """
+          insert = """}
+          $manifestFiles = $updateManifestMetadata['files'] ?? null;
+          if (!is_array($manifestFiles) || $manifestFiles === []) {
+              throw new RuntimeException('Mapa de arquivos ausente em app/update.manifest.json.');
+          }
+          if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles)) {
+              throw new RuntimeException('Contagem de arquivos divergente em app/update.manifest.json.');
+          }
+          $manifestBytes = 0;
+          foreach ($manifestFiles as $relativePath => $expectedHash) {
+              $absolutePath = $root . '/' . ltrim((string) $relativePath, '/');
+              if (!is_file($absolutePath)) {
+                  throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
+              }
+              $actualHash = hash_file('sha256', $absolutePath);
+              if (!is_string($actualHash) || !hash_equals((string) $expectedHash, $actualHash)) {
+                  throw new RuntimeException('Hash divergente no manifesto: ' . $relativePath);
+              }
+              $size = filesize($absolutePath);
+              if ($size === false) {
+                  throw new RuntimeException('Tamanho indisponível para arquivo do manifesto: ' . $relativePath);
+              }
+              $manifestBytes += $size;
+          }
+          if ((int) ($updateManifestMetadata['total_uncompressed_bytes'] ?? -1) !== $manifestBytes) {
+              throw new RuntimeException('Tamanho total divergente em app/update.manifest.json.');
+          }
+          if (!defined('PRONTOO_VERSION')) {
+          """
+          if '$manifestFiles = $updateManifestMetadata' not in text:
+              count = text.count(anchor)
+              if count != 1:
+                  raise SystemExit(f'architecture anchor mismatch: {count}')
+              text = text.replace(anchor, insert, 1)
+              path.write_text(text)
+          PY
+          git rm -f .github/workflows/tmp-clean-release-manifest.yml
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('.')
+          path = root / 'app/update.manifest.json'
+          manifest = json.loads(path.read_text())
+          current = manifest.get('files')
+          if not isinstance(current, dict):
+              raise SystemExit('manifest files map missing')
+          cleaned = {}
+          total = 0
+          for relative in current:
+              file_path = root / relative
+              if not file_path.is_file():
+                  continue
+              payload = file_path.read_bytes()
+              cleaned[relative] = hashlib.sha256(payload).hexdigest()
+              total += len(payload)
+          manifest['files'] = cleaned
+          manifest['file_count'] = len(cleaned)
+          manifest['total_uncompressed_bytes'] = total
+          manifest['updated_at'] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+          path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+          if any('tmp-' in key or 'tmp_' in key for key in cleaned):
+              raise SystemExit('temporary file remained in manifest')
+          print(json.dumps({'file_count': len(cleaned), 'total_uncompressed_bytes': total}))
+          PY
+          find app br cron public tools -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          git diff --check
+          git status --short
+          git config user.name 'prontoo-release-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add tools/architecture-check.php app/update.manifest.json
+          if git diff --cached --quiet; then
+            echo 'Nenhuma correção de manifesto foi gerada.' >&2
+            exit 1
+          fi
+          git commit -m 'Fechar integridade do manifesto de release'
+          git push origin HEAD:agent/fix-runtime-version-contract-manifest
