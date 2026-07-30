@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.7 — Sincronização final dos contratos arquiteturais
+
+- sincroniza a baseline nativa em 37 nos contratos de versão e arquitetura;
+- mantém o teto transitório em 80;
+- adiciona verificação fail-fast de consistência entre os dois manifestos;
+- não altera banco, schema, lógica, interface ou comportamento operacional.
+
 ## 1.7.30.6 — Evolução do servidor, Fase 6: view de contato do paciente
 
 - remove duas renderizações duplicadas do formulário de contato;

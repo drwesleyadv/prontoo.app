@@ -1,3 +1,7 @@
+Prontoo 1.7.30.7 — Sincronização final dos contratos arquiteturais
+
+- Corrige a baseline nativa para 37 e impede divergência futura entre manifestos.
+- Mantém banco, schema, lógica, interface e comportamento operacional.
 Prontoo 1.7.30.6 — Evolução do servidor, Fase 6: view de contato do paciente
 
 - Centraliza o formulário de contato em apresentação e remove duplicação da fachada.
