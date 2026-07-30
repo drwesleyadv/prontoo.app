@@ -5,6 +5,10 @@ on:
     branches:
       - agent/reuse-speed-chart-renderer
 
+concurrency:
+  group: public-stats-agent-reuse-speed-chart-renderer
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
