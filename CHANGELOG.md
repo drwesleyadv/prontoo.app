@@ -4,7 +4,8 @@
 
 - mantém na área inferior de Requisições exatamente o mesmo tom visual de sua linha;
 - remove a diluição causada pela opacidade parcial apenas no preenchimento de Requisições;
-- preserva Registros, Velocidade, métricas, banco e schema.
+- desenha Registros primeiro e Requisições depois, mantendo o tom exato da área visível de Requisições;
+- mantém a fórmula cromática de Registros e preserva Velocidade, métricas, banco e schema.
 
 ## 1.7.30.15 — Status público com bordas e cores correspondentes
 

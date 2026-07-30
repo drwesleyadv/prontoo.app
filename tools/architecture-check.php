@@ -1406,6 +1406,8 @@ foreach ([
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
+        '? $responseArea . $loadArea',
+        ': $loadArea . $responseArea;',
         '$recentValue = $valueType === "count"',
         '$overallAverageValues = $valueType === "count"',
         '$middleAverageValues = $valueType === "count"',

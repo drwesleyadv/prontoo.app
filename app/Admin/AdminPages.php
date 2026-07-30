@@ -1494,6 +1494,20 @@ function admin_metric_dual_area_chart(
         " " .
         $overallCompact .
         ".";
+    $loadArea =
+        $loadFill !== ""
+            ? '<path d="' . e($loadFill) . '" class="metric-chart-fill-load"/>'
+            : "";
+    $responseArea =
+        $responseFill !== ""
+            ? '<path d="' .
+                e($responseFill) .
+                '" class="metric-chart-fill-response"/>'
+            : "";
+    $fillAreas =
+        $valueType === "count"
+            ? $responseArea . $loadArea
+            : $loadArea . $responseArea;
     return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
         e($valueType) .
         '" data-ds-card="admin-dual-area-chart" aria-label="' .
@@ -1513,14 +1527,7 @@ function admin_metric_dual_area_chart(
         '" aria-hidden="true" focusable="false"><g>' .
         $grid .
         "</g>" .
-        ($loadFill !== ""
-            ? '<path d="' . e($loadFill) . '" class="metric-chart-fill-load"/>'
-            : "") .
-        ($responseFill !== ""
-            ? '<path d="' .
-                e($responseFill) .
-                '" class="metric-chart-fill-response"/>'
-            : "") .
+        $fillAreas .
         ($loadD !== ""
             ? '<path d="' . e($loadD) . '" class="metric-chart-line-load"/>'
             : "") .

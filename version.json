@@ -1,10 +1,10 @@
 {
     "version": "1.7.30.16",
     "release": "1.7.30.16",
-    "generated_at_unix": 1785437252,
-    "generated_at": "2026-07-30T18:47:32.188203+00:00",
-    "updated_at": "2026-07-30T18:47:32.188203+00:00",
-    "build": "1.7.30.16-request-fill-exact-line-tone",
+    "generated_at_unix": 1785437884,
+    "generated_at": "2026-07-30T18:58:04.564551+00:00",
+    "updated_at": "2026-07-30T18:58:04.564551+00:00",
+    "build": "1.7.30.16-request-fill-exact-line-tone-layer-order",
     "asset_version": "1.7.15.10",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -23,7 +23,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "No gráfico Leitura e gravação, a área de Requisições usa o mesmo tom visual da linha correspondente, sem diluição por opacidade.",
+    "notes": "No gráfico Leitura e gravação, Registros é desenhado primeiro e a área opaca de Requisições é desenhada depois com exatamente o tom de sua linha.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -53,7 +53,7 @@
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "baseline_source": "1.7.30.12",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "developer_dashboard_request_fill_exact_line_tone",
+    "rewrite_scope": "developer_dashboard_request_fill_exact_line_tone_and_count_layer_order",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments"
 }
