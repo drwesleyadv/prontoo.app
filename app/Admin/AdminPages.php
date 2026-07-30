@@ -1325,134 +1325,6 @@ function admin_metric_dual_area_chart(
             round($baseline, 2) .
             " Z";
     };
-    $segmentedCountAreas = static function (
-        array $primaryPoints,
-        array $secondaryPoints,
-        float $baseline,
-    ): array {
-        $empty = [
-            "primary" => "",
-            "secondary" => "",
-            "intersection" => "",
-        ];
-        $count = min(count($primaryPoints), count($secondaryPoints));
-        if ($count < 2) {
-            return $empty;
-        }
-        $samples = [];
-        for ($i = 0; $i < $count - 1; $i++) {
-            $primaryStart = $primaryPoints[$i];
-            $primaryEnd = $primaryPoints[$i + 1];
-            $secondaryStart = $secondaryPoints[$i];
-            $secondaryEnd = $secondaryPoints[$i + 1];
-            if (
-                abs((float) $primaryStart[0] - (float) $secondaryStart[0]) > 0.01 ||
-                abs((float) $primaryEnd[0] - (float) $secondaryEnd[0]) > 0.01
-            ) {
-                return $empty;
-            }
-            if ($i === 0) {
-                $samples[] = [
-                    (float) $primaryStart[0],
-                    (float) $primaryStart[1],
-                    (float) $secondaryStart[1],
-                ];
-            }
-            $startDelta =
-                (float) $primaryStart[1] - (float) $secondaryStart[1];
-            $endDelta =
-                (float) $primaryEnd[1] - (float) $secondaryEnd[1];
-            if (
-                ($startDelta < 0 && $endDelta > 0) ||
-                ($startDelta > 0 && $endDelta < 0)
-            ) {
-                $ratio = $startDelta / ($startDelta - $endDelta);
-                $crossX =
-                    (float) $primaryStart[0] +
-                    ((float) $primaryEnd[0] - (float) $primaryStart[0]) * $ratio;
-                $crossPrimaryY =
-                    (float) $primaryStart[1] +
-                    ((float) $primaryEnd[1] - (float) $primaryStart[1]) * $ratio;
-                $crossSecondaryY =
-                    (float) $secondaryStart[1] +
-                    ((float) $secondaryEnd[1] - (float) $secondaryStart[1]) * $ratio;
-                $crossY = ($crossPrimaryY + $crossSecondaryY) / 2;
-                $samples[] = [$crossX, $crossY, $crossY];
-            }
-            $samples[] = [
-                (float) $primaryEnd[0],
-                (float) $primaryEnd[1],
-                (float) $secondaryEnd[1],
-            ];
-        }
-        if (count($samples) < 2) {
-            return $empty;
-        }
-        $coord = static fn(float $value): string => (string) round($value, 2);
-        $intersectionPath = "";
-        foreach ($samples as $index => $sample) {
-            $intersectionY = max((float) $sample[1], (float) $sample[2]);
-            $intersectionPath .=
-                ($index === 0 ? "M" : "L") .
-                $coord((float) $sample[0]) .
-                " " .
-                $coord($intersectionY) .
-                " ";
-        }
-        $firstSample = $samples[0];
-        $lastSample = $samples[count($samples) - 1];
-        $intersectionPath .=
-            "L " .
-            $coord((float) $lastSample[0]) .
-            " " .
-            $coord($baseline) .
-            " L " .
-            $coord((float) $firstSample[0]) .
-            " " .
-            $coord($baseline) .
-            " Z";
-        $primaryPath = "";
-        $secondaryPath = "";
-        for ($i = 0; $i < count($samples) - 1; $i++) {
-            $start = $samples[$i];
-            $end = $samples[$i + 1];
-            $midDelta =
-                (((float) $start[1] - (float) $start[2]) +
-                    ((float) $end[1] - (float) $end[2])) /
-                2;
-            if (abs($midDelta) < 0.0001) {
-                continue;
-            }
-            $segment =
-                "M" .
-                $coord((float) $start[0]) .
-                " " .
-                $coord($midDelta < 0 ? (float) $start[1] : (float) $start[2]) .
-                " L " .
-                $coord((float) $end[0]) .
-                " " .
-                $coord($midDelta < 0 ? (float) $end[1] : (float) $end[2]) .
-                " L " .
-                $coord((float) $end[0]) .
-                " " .
-                $coord($midDelta < 0 ? (float) $end[2] : (float) $end[1]) .
-                " L " .
-                $coord((float) $start[0]) .
-                " " .
-                $coord($midDelta < 0 ? (float) $start[2] : (float) $start[1]) .
-                " Z ";
-            if ($midDelta < 0) {
-                $primaryPath .= $segment;
-            } else {
-                $secondaryPath .= $segment;
-            }
-        }
-        return [
-            "primary" => trim($primaryPath),
-            "secondary" => trim($secondaryPath),
-            "intersection" => trim($intersectionPath),
-        ];
-    };
     $loadPoints = $makePoints($loadSeries);
     $responsePoints = $makePoints($responseSeries);
     $loadD = $path($loadPoints);
@@ -1622,50 +1494,18 @@ function admin_metric_dual_area_chart(
         " " .
         $overallCompact .
         ".";
-    if ($valueType === "count") {
-        $segmentedAreas = $segmentedCountAreas(
-            $loadPoints,
-            $responsePoints,
-            $baseline,
-        );
-        $intersectionArea =
-            $segmentedAreas["intersection"] !== ""
-                ? '<path d="' .
-                    e($segmentedAreas["intersection"]) .
-                    '" class="metric-chart-fill-intersection"/>'
-                : "";
-        $loadExclusiveArea =
-            $segmentedAreas["primary"] !== ""
-                ? '<path d="' .
-                    e($segmentedAreas["primary"]) .
-                    '" class="metric-chart-fill-load-exclusive"/>'
-                : "";
-        $responseExclusiveArea =
-            $segmentedAreas["secondary"] !== ""
-                ? '<path d="' .
-                    e($segmentedAreas["secondary"]) .
-                    '" class="metric-chart-fill-response-exclusive"/>'
-                : "";
-        $fillAreas =
-            $intersectionArea . $loadExclusiveArea . $responseExclusiveArea;
-    } else {
-        $loadArea =
-            $loadFill !== ""
-                ? '<path d="' .
-                    e($loadFill) .
-                    '" class="metric-chart-fill-load"/>'
-                : "";
-        $responseArea =
-            $responseFill !== ""
-                ? '<path d="' .
-                    e($responseFill) .
-                    '" class="metric-chart-fill-response"/>'
-                : "";
-        $fillAreas = $loadArea . $responseArea;
-    }
-    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
-        e($valueType) .
-        '" data-ds-card="admin-dual-area-chart" aria-label="' .
+    $loadArea =
+        $loadFill !== ""
+            ? '<path d="' . e($loadFill) . '" class="metric-chart-fill-load"/>'
+            : "";
+    $responseArea =
+        $responseFill !== ""
+            ? '<path d="' .
+                e($responseFill) .
+                '" class="metric-chart-fill-response"/>'
+            : "";
+    $fillAreas = $loadArea . $responseArea;
+    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-ds-card="admin-dual-area-chart" aria-label="' .
         e($title) .
         '"><header><div class="metric-chart-title">' .
         icon($iconName) .
@@ -1864,7 +1704,7 @@ function admin_global_perf_charts_html(): string
             "Leitura e gravação",
             $requests,
             $records,
-            "monitoring",
+            "speed",
             [
                 "primary_label" => "Requisições",
                 "secondary_label" => "Registros",

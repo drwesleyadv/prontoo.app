@@ -1,3 +1,10 @@
+Prontoo 1.7.30.18 — Leitura e gravação como cópia visual de Velocidade
+
+- Remove integralmente a apresentação específica e segmentada de Leitura e gravação.
+- O segundo gráfico passa a usar o mesmo renderer, classes, SVG, ordem de pintura e ícone de Velocidade.
+- Somente dados, rótulos e valores mudam para Requisições e Registros.
+- Banco e schema permanecem inalterados.
+
 Prontoo 1.7.30.17 — Áreas segmentadas em Leitura e gravação
 
 - Requisições e Registros passam a ter preenchimentos exclusivos com o mesmo tom de suas linhas.

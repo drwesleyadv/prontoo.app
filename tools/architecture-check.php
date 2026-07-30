@@ -1406,12 +1406,11 @@ foreach ([
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
-        '$segmentedCountAreas = static function (',
-        '"intersection" => trim($intersectionPath)',
-        'class="metric-chart-fill-load-exclusive"',
-        'class="metric-chart-fill-response-exclusive"',
-        'class="metric-chart-fill-intersection"',
-        '$intersectionArea . $loadExclusiveArea . $responseExclusiveArea',
+        '$fillAreas = $loadArea . $responseArea;',
+        'admin_metric_dual_area_chart("Velocidade", $load, $response, "speed")',
+        '"Leitura e gravação",',
+        '$requests,',
+        '$records,',
         '$recentValue = $valueType === "count"',
         '$overallAverageValues = $valueType === "count"',
         '$middleAverageValues = $valueType === "count"',
@@ -1427,12 +1426,9 @@ foreach ([
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load-exclusive{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response-exclusive{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-intersection{fill:color-mix(in srgb,var(--md-sys-color-outline-variant) 42%,var(--md-sys-color-surface-container-lowest) 58%);opacity:1}',
     ],
     'bootstrap' => [
-        'dual-area-single-renderer-identical-visuals-data-specific-labels-one-row',
+        'dual-area-single-renderer-bit-identical-formatting-data-specific-labels-one-row',
     ],
     'runner' => [
         '$publicStatus = $r === "status"',
@@ -1517,6 +1513,11 @@ foreach ([
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{',
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{',
     '? $responseArea . $loadArea',
+    '$segmentedCountAreas = static function (',
+    'metric-chart-fill-load-exclusive',
+    'metric-chart-fill-response-exclusive',
+    'metric-chart-fill-intersection',
+    'data-metric-value-type="',
 ] as $outlineToken) {
     if (str_contains(
         $developerDashboardSources['admin'] .
