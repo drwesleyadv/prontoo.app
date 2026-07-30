@@ -1,3 +1,7 @@
+Prontoo 1.7.30.8 — Telemetria no Painel do Desenvolvedor
+
+- Adiciona gráficos de desempenho, cache, versões e fila diferida em uma tela global somente leitura.
+- Mantém banco, schema e dados clínicos inalterados.
 Prontoo 1.7.30.7 — Sincronização final dos contratos arquiteturais
 
 - Corrige a baseline nativa para 37 e impede divergência futura entre manifestos.

@@ -243,7 +243,7 @@ function prontoo_route_module_groups(string $route): array
         'admin_operations' => $admin + $financial,
         'admin_global_notices' => $tasks + $admin,
         'admin_alerts' => $admin, 'admin_maintenance' => $admin,
-        'admin_health' => $admin, 'admin_performance' => $admin,
+        'admin_health' => $admin, 'admin_performance' => $admin, 'admin_telemetry' => $admin,
         'admin_deleted' => $admin, 'admin_errors' => $admin,
         'admin_diagnostics' => $admin, 'admin_integrity' => $admin,
         'admin_security' => $admin, 'admin_settings' => $admin,

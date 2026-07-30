@@ -1371,6 +1371,71 @@ $serverPhaseSixCharacterization = [
     'ok' => $serverPhaseSixFailures === [],
     'failed' => $serverPhaseSixFailures,
 ];
+$developerTelemetryFailures = [];
+$developerTelemetrySources = [
+    'admin' => (string) file_get_contents($root . '/app/Admin/AdminPages.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+    'bootstrap' => (string) file_get_contents($root . '/app/prontoo.php'),
+];
+foreach ([
+    'admin' => [
+        'function page_admin_telemetry(): void',
+        'require_can("admin_telemetry")',
+        'admin_metric_line_chart(',
+        'telemetry_route_performance_summary($hours)',
+        'telemetry_cache_performance_summary($hours)',
+        'telemetry_release_performance_summary(max(24, $hours))',
+        'admin_telemetry_spool_health()',
+        'Desempenho, eficiência e sinais operacionais do runtime',
+    ],
+    'runner' => ['"admin_telemetry"'],
+    'loader' => ["'admin_telemetry' => \$admin"],
+    'bootstrap' => ['"admin_telemetry" => ["label" => "Telemetria", "icon" => "monitoring"]'],
+] as $sourceKey => $tokens) {
+    foreach ($tokens as $token) {
+        if (!str_contains($developerTelemetrySources[$sourceKey], $token)) {
+            $developerTelemetryFailures[] = $sourceKey . ':missing:' . $token;
+        }
+    }
+}
+$telemetryPageStart = strpos(
+    $developerTelemetrySources['admin'],
+    'function page_admin_telemetry(): void',
+);
+$telemetryPageEnd = $telemetryPageStart === false
+    ? false
+    : strpos(
+        $developerTelemetrySources['admin'],
+        'function page_admin_performance(): void',
+        $telemetryPageStart,
+    );
+$telemetryPageSource =
+    $telemetryPageStart !== false && $telemetryPageEnd !== false
+        ? substr(
+            $developerTelemetrySources['admin'],
+            $telemetryPageStart,
+            $telemetryPageEnd - $telemetryPageStart,
+        )
+        : '';
+if ($telemetryPageSource === '') {
+    $developerTelemetryFailures[] = 'telemetry_page_boundary';
+}
+foreach (['INSERT ', 'UPDATE ', 'DELETE ', '$_POST'] as $token) {
+    if (str_contains($telemetryPageSource, $token)) {
+        $developerTelemetryFailures[] = 'telemetry_page_write_token:' . $token;
+    }
+}
+if (!str_contains(
+    $developerTelemetrySources['admin'],
+    'return number_format($value, $value === floor($value) ? 0 : 1, ",", ".");',
+)) {
+    $developerTelemetryFailures[] = 'count_chart_compact_format';
+}
+$developerTelemetryCharacterization = [
+    'ok' => $developerTelemetryFailures === [],
+    'failed' => $developerTelemetryFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1390,7 +1455,8 @@ $result = [
         !empty($serverPhaseThreeCharacterization['ok']) &&
         !empty($serverPhaseFourCharacterization['ok']) &&
         !empty($serverPhaseFiveCharacterization['ok']) &&
-        !empty($serverPhaseSixCharacterization['ok']),
+        !empty($serverPhaseSixCharacterization['ok']) &&
+        !empty($developerTelemetryCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1409,6 +1475,7 @@ $result = [
     'server_phase_four_characterization' => $serverPhaseFourCharacterization,
     'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
     'server_phase_six_characterization' => $serverPhaseSixCharacterization,
+    'developer_telemetry_characterization' => $developerTelemetryCharacterization,
 ];
 
 echo json_encode(
