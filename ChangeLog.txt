@@ -1,3 +1,9 @@
+Prontoo 1.7.30.11 — Paleta compartilhada e volume da Landing Page
+
+- Renomeia o gráfico para Leitura e gravação.
+- Usa os mesmos tons do gráfico Velocidade nas áreas de leitura e gravação.
+- Exibe no card Landing Page o número de requisições das últimas 24 horas.
+- Mantém banco e schema inalterados.
 Prontoo 1.7.30.10 — Áreas do gráfico sem contornos
 
 - Organiza os cards em Requisições, Tempo Médio, Landing Page e Usuários Ativos.

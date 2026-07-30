@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.11 — Paleta compartilhada e volume da Landing Page
+
+- renomeia o gráfico Requisições e registros para Leitura e gravação;
+- aplica às duas áreas exatamente os mesmos tons usados no gráfico Velocidade;
+- mantém o gráfico sem linhas de contorno ou marcadores visíveis;
+- altera o card Landing Page para mostrar requisições das últimas 24 horas;
+- mantém banco e schema inalterados.
+
 ## 1.7.30.10 — Áreas do gráfico sem contornos
 
 - organiza os cards em Requisições, Tempo Médio, Landing Page e Usuários Ativos;

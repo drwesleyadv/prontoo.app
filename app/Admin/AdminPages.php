@@ -1856,7 +1856,7 @@ function admin_global_perf_charts_html(): string
     return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
         admin_metric_dual_area_chart("Velocidade", $load, $response, "speed") .
         admin_metric_dual_count_chart(
-            "Requisições e registros",
+            "Leitura e gravação",
             $requests,
             $records,
             "monitoring",
@@ -2952,14 +2952,14 @@ function page_admin_painel(): void
         : ["routes" => [], "total" => 0];
     $requests24h = max(0, (int) ($performance24h["total"] ?? 0));
     $averageResponseMs = max(0.0, (float) ($performance24h["avg_ms"] ?? 0));
-    $landingAverageMs = 0.0;
+    $landingRequests24h = 0;
     foreach ((array) ($performance24h["routes"] ?? []) as $routePerformance) {
         if ((string) ($routePerformance["route"] ?? "") !== "landing") {
             continue;
         }
-        $landingAverageMs = max(
-            0.0,
-            (float) ($routePerformance["avg_ms"] ?? 0),
+        $landingRequests24h = max(
+            0,
+            (int) ($routePerformance["count"] ?? 0),
         );
         break;
     }
@@ -3203,11 +3203,9 @@ function page_admin_painel(): void
         ) .
         stat_link_card(
             "Landing Page",
-            $landingAverageMs > 0
-                ? admin_performance_format_ms($landingAverageMs)
-                : "—",
+            $landingRequests24h,
             "web",
-            "média nas últimas 24 horas",
+            "requisições nas últimas 24 horas",
             "admin_performance",
         ) .
         stat_card(

@@ -1395,22 +1395,25 @@ foreach ([
         '"Tempo Médio"',
         '"Landing Page"',
         '"Usuários Ativos"',
-        '"Requisições e registros"',
+        '"Leitura e gravação"',
         'metric-chart-fill-requests',
         'metric-chart-fill-records',
         '$averageResponseMs',
+        '$landingRequests24h',
+        '(int) ($routePerformance["count"] ?? 0)',
+        '"requisições nas últimas 24 horas"',
         'telemetry_route_performance_summary(24)',
     ],
     'css' => [
         'grid-template-columns:repeat(4,minmax(0,1fr))!important',
-        '.metric-dual-count-chart .metric-chart-fill-requests',
-        'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
-        '.metric-dual-count-chart .metric-chart-fill-records',
-        'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
+        '.metric-dual-count-chart .metric-chart-fill-requests{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%)!important;stroke:none!important;opacity:.38;}',
+        '.metric-dual-count-chart .metric-chart-fill-records{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%)!important;stroke:none!important;opacity:.78;}',
+        '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);opacity:.38}',
+        '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
         'stroke:none!important',
     ],
     'bootstrap' => [
-        'dual-area-speed-and-filled-volume-no-series-outline-one-row',
+        'dual-area-shared-palette-filled-volume-no-series-outline-one-row',
     ],
 ] as $sourceKey => $tokens) {
     foreach ($tokens as $token) {
@@ -1475,6 +1478,10 @@ foreach ([
     'metric-chart-line-records',
     'metric-chart-dot-requests',
     'metric-chart-dot-records',
+    '$landingAverageMs',
+    '"Requisições e registros"',
+    'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
+    'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
 ] as $outlineToken) {
     if (str_contains(
         $developerDashboardSources['admin'] .
