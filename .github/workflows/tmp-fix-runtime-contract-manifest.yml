@@ -47,6 +47,20 @@ jobs:
           PRONTOO_TEST_DB_PASS: root
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/tmp_fix_runtime_contract_manifest.py')
+          text = path.read_text()
+          for token in (
+              'app/update.manifest.json:version',
+              'app/update.manifest.json:release',
+              'app/update.manifest.json:build',
+              'app/update.manifest.json:schema_revision',
+          ):
+              text = text.replace(f"    '{token}',\n", '')
+          path.write_text(text)
+          PY
           python3 tools/tmp_fix_runtime_contract_manifest.py
           git rm tools/tmp_fix_runtime_contract_manifest.py .github/workflows/tmp-fix-runtime-contract-manifest.yml
           find app br cron public tools -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
@@ -81,6 +95,8 @@ jobs:
           match = re.search(r'BR_LANDING_VERSION_FALLBACK\s*=\s*["\']([^"\']+)["\']', landing)
           if not match or match.group(1) != expected:
               raise SystemExit('landing fallback mismatch')
+          if '"app/update.manifest.json:" . $key' not in app:
+              raise SystemExit('dynamic manifest diagnostic missing')
           print(json.dumps({'version': expected, 'build': version['build'], 'contract': 'ok'}))
           PY
           git diff --check
