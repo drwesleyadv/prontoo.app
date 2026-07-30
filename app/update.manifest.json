@@ -265,7 +265,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.30.12",
-    "updated_at": "2026-07-30T15:56:40+00:00",
+    "updated_at": "2026-07-30T15:58:55+00:00",
     "notes": "Velocidade e Leitura e gravação utilizam o mesmo renderer dual-area; somente dados, rótulos e unidade diferem.",
     "deployment_sync_id": "github-shared-speed-chart-renderer-1-7-30-13",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
