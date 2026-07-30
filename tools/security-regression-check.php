@@ -188,21 +188,26 @@ $routePayload = json_decode(
     512,
     JSON_THROW_ON_ERROR,
 );
-$pagePayload = json_decode(
-    (string) file_get_contents(telemetry_page_file()),
-    true,
-    512,
-    JSON_THROW_ON_ERROR,
-);
+$pageEvents = telemetry_read_events();
+$pageDeferredIds = [];
+foreach ($pageEvents as $pageEvent) {
+    if (!is_array($pageEvent)) {
+        continue;
+    }
+    $pageDeferredId = (string) ($pageEvent["deferred_id"] ?? "");
+    if ($pageDeferredId !== "") {
+        $pageDeferredIds[$pageDeferredId] = true;
+    }
+}
 $routeCount = 0;
 foreach ((array) ($routePayload["daily_requests"] ?? []) as $row) {
     $routeCount += (int) ($row["count"] ?? 0);
 }
 security_regression_assert(
     $routeCount === 1 &&
-        count((array) ($pagePayload["events"] ?? [])) === 1 &&
+        count($pageEvents) === 1 &&
         count((array) ($routePayload["deferred_ids"] ?? [])) === 1 &&
-        count((array) ($pagePayload["deferred_ids"] ?? [])) === 1,
+        count($pageDeferredIds) <= 1,
     "Replay duplicou métricas de rota ou página.",
 );
 

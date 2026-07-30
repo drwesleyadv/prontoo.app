@@ -64,3 +64,4 @@
 - [Glossário](glossary.md)
 - [Orçamentos de desempenho](performance/performance-budgets.md)
 - [Invalidação de cache por geração](performance/cache-generations.md)
+- [Telemetria particionada](performance/telemetry-partitions.md)
