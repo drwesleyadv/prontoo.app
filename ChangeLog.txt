@@ -1,3 +1,10 @@
+Prontoo 1.7.30.15 — Status público com bordas e cores correspondentes
+
+- Página pública renomeada de /stats para /status.
+- Card, agrupamento e gráficos públicos recuperam bordas coerentes.
+- Áreas de Requisições e Registros usam a mesma cor-base de suas linhas.
+- Banco e schema permanecem inalterados.
+
 Prontoo 1.7.30.14 — Stats amplo e sem bordas
 
 - Remove bordas, sombras e espaçamentos externos do card e dos gráficos exclusivamente em prontoo.app/stats.

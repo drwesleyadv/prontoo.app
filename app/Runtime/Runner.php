@@ -5,7 +5,7 @@ function prontoo_route_map(): array
 
     return [
         "home",
-        "stats",
+        "status",
         "login",
         "login_autotest",
         "mfa",
@@ -72,7 +72,7 @@ function prontoo_public_runtime_routes(): array
 {
 
     return [
-        "stats",
+        "status",
         "login",
         "login_autotest",
         "mfa",
@@ -149,7 +149,7 @@ function prontoo_route_is_public_light(string $route): bool
     }
     return in_array(
         $route,
-        ["mobile_web_access", "signup", "stats"],
+        ["mobile_web_access", "signup", "status"],
         true,
     ) && strtoupper((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")) === "GET";
 }
@@ -403,9 +403,9 @@ function prontoo_run(bool $installMode = false): void
         boot_security();
         guard_request();
         $r = route();
-        $publicStats = $r === "stats";
+        $publicStatus = $r === "status";
         $publicHome = false;
-        headers_secure($publicStats);
+        headers_secure($publicStatus);
         if (!has_cfg() && !$installMode && !$publicHome) {
             throw new ProntooHttpError(
                 503,
@@ -431,7 +431,7 @@ function prontoo_run(bool $installMode = false): void
         ) {
             ensure_clinic_trial_active((int) $_SESSION["clinic_id"], true);
         }
-        $cNow = $publicStats || $publicHome || $r === "logout" ? [] : ctx();
+        $cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();
         enforce_read_only($cNow, $r);
         if ($r !== "logout") {
             enforce_action_integrity($cNow, $r);
@@ -452,7 +452,7 @@ function prontoo_run(bool $installMode = false): void
             }
         }
         if (
-            !$publicStats &&
+            !$publicStatus &&
             !$publicHome &&
             function_exists("maintenance_active") &&
             maintenance_active() &&
@@ -526,7 +526,7 @@ function prontoo_run(bool $installMode = false): void
             redirect("financial");
         }
         prontoo_load_route_modules($r);
-        if ($r !== "logout" && !$publicStats) {
+        if ($r !== "logout" && !$publicStatus) {
             prontoo_flush_integrity_before_render();
         }
         $fn = in_array($r, $map, true) ? "page_" . $r : "page_home";

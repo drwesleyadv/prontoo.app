@@ -1494,7 +1494,9 @@ function admin_metric_dual_area_chart(
         " " .
         $overallCompact .
         ".";
-    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-ds-card="admin-dual-area-chart" aria-label="' .
+    return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
+        e($valueType) .
+        '" data-ds-card="admin-dual-area-chart" aria-label="' .
         e($title) .
         '"><header><div class="metric-chart-title">' .
         icon($iconName) .
@@ -1729,7 +1731,7 @@ function admin_performance_card_html(bool $public = false): string
         "admin-performance-card",
     );
 }
-function page_stats(): void
+function page_status(): void
 {
     if (strtoupper((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")) !== "GET") {
         throw new ProntooHttpError(405, "Método não permitido.");
@@ -1743,7 +1745,7 @@ function page_stats(): void
         ? (string) PRONTOO_ASSET_REV
         : (string) PRONTOO_VERSION;
     $card = admin_performance_card_html(true);
-    echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/stats"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
+    echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
         '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
         rawurlencode($assetRevision) .
@@ -1755,7 +1757,7 @@ function page_stats(): void
         rawurlencode($assetRevision) .
         '&release=' .
         rawurlencode(PRONTOO_VERSION) .
-        '"></script></head><body class="public scope-global stats-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="stats" data-app-version="' .
+        '"></script></head><body class="public scope-global status-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="status" data-app-version="' .
         e(PRONTOO_VERSION) .
         '"><main id="conteudo" tabindex="-1">' .
         $card .
