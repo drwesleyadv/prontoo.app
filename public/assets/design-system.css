@@ -4785,11 +4785,6 @@ body.scope-global .global-compact-pill span{font:var(--md-sys-typescale-body-sma
 .metric-area-chart .metric-chart-dot{fill:var(--md-sys-color-primary)!important;stroke:#fff!important;stroke-width:2;}
 .metric-area-chart .metric-chart-hit{fill:transparent!important;stroke:transparent!important;}
 .metric-area-chart .metric-axis-label{fill:var(--md-sys-color-on-surface-variant)!important;font-size:10px;opacity:.72;}
-.metric-dual-count-chart .metric-count-pill{gap:5px!important;}
-.metric-dual-count-chart .metric-count-pill small{font:inherit;color:inherit;}
-.metric-dual-count-chart .metric-series-key{display:inline-block;width:9px;height:9px;border-radius:999px;flex:0 0 auto;}
-.metric-dual-count-chart .is-requests .metric-series-key{background:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);}
-.metric-dual-count-chart .is-records .metric-series-key{background:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent);}
 .metric-area-chart .metric-x-label{text-anchor:middle;}
 body.scope-global .global-performance-charts{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important;gap:14px!important;}
 body.scope-global .section-head.admin-performance-head{align-items:end;}
@@ -14127,8 +14122,8 @@ body[data-route="painel"] .timeline small{
 @media(max-width:760px){.admin-performance-table{min-width:680px}.admin-performance-table th,.admin-performance-table td{padding:10px 12px}.admin-performance-screen{gap:14px}}
 
 
-.metric-dual-time-chart .metric-chart-fill-load,.metric-dual-count-chart .metric-chart-fill-requests{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);stroke:none;opacity:.38}
-.metric-dual-time-chart .metric-chart-fill-response,.metric-dual-count-chart .metric-chart-fill-records{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);stroke:none;opacity:.78}
+.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);opacity:.38}
+.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}
 .metric-dual-time-chart .metric-chart-line-load{fill:none;stroke:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
 .metric-dual-time-chart .metric-chart-line-response{fill:none;stroke:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .metric-dual-time-chart .metric-chart-dot-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%)}

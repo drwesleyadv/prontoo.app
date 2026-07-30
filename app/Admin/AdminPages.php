@@ -1226,8 +1226,27 @@ function admin_metric_dual_area_chart(
     array $loadSeries,
     array $responseSeries,
     string $iconName = "speed",
+    array $presentation = [],
 ): string {
 
+    $primaryLabel = trim((string) ($presentation["primary_label"] ?? "Carregamento"));
+    $secondaryLabel = trim((string) ($presentation["secondary_label"] ?? "Resposta"));
+    $valueType = (string) ($presentation["value_type"] ?? "ms");
+    if ($primaryLabel === "") {
+        $primaryLabel = "Carregamento";
+    }
+    if ($secondaryLabel === "") {
+        $secondaryLabel = "Resposta";
+    }
+    if (!in_array($valueType, ["ms", "count"], true)) {
+        $valueType = "ms";
+    }
+    $recentPoints = max(1, (int) ($presentation["recent_points"] ?? 5));
+    $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));
+    $recentTitle = trim((string) ($presentation["recent_title"] ?? "Carregamento médio dos últimos 5 minutos"));
+    $middleTitle = trim((string) ($presentation["middle_title"] ?? "Carregamento médio dos últimos 30 minutos"));
+    $overallTitle = trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
+    $summaryLead = trim((string) ($presentation["summary_lead"] ?? "indicadores exibem somente o tempo de carregamento."));
     $loadValues = array_map( fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
     $responseValues = array_map(
          fn($r) => (float) ($r["value"] ?? 0),
@@ -1356,8 +1375,8 @@ function admin_metric_dual_area_chart(
             '" r="4.5" class="metric-chart-hit"><title>' .
             e(
                 $pt[4] .
-                    " · Carregamento " .
-                    admin_metric_value_label($pt[2], "ms"),
+                    " · " . $primaryLabel . " " .
+                    admin_metric_value_label($pt[2], $valueType),
             ) .
             "</title></circle>";
     }
@@ -1370,49 +1389,55 @@ function admin_metric_dual_area_chart(
             '" r="3.8" class="metric-chart-hit"><title>' .
             e(
                 $pt[4] .
-                    " · Resposta " .
-                    admin_metric_value_label($pt[2], "ms"),
+                    " · " . $secondaryLabel . " " .
+                    admin_metric_value_label($pt[2], $valueType),
             ) .
             "</title></circle>";
     }
-    $nowAvg5 = admin_metric_recent_average($loadSeries, 5);
+    $recentValue = admin_metric_recent_average($loadSeries, $recentPoints);
     $loadNonZero = array_values(
-        array_filter($loadValues, static  fn($v) => (float) $v > 0),
+        array_filter($loadValues, static fn($v) => (float) $v > 0),
     );
-    $avg24 = count($loadNonZero)
+    $overallValue = count($loadNonZero)
         ? array_sum($loadNonZero) / count($loadNonZero)
         : 0.0;
-    $recentValues = array_slice($loadValues, -31);
-    $recentNonZero = array_values(
-        array_filter($recentValues, static  fn($v) => (float) $v > 0),
+    $middleValues = array_slice($loadValues, -$middlePoints);
+    $middleNonZero = array_values(
+        array_filter($middleValues, static fn($v) => (float) $v > 0),
     );
-    $avg30 = count($recentNonZero)
-        ? array_sum($recentNonZero) / count($recentNonZero)
+    $middleValue = count($middleNonZero)
+        ? array_sum($middleNonZero) / count($middleNonZero)
         : 0.0;
-    $nowCompact = admin_metric_value_compact($nowAvg5, "ms");
-    $avg30Compact = admin_metric_value_compact($avg30, "ms");
-    $avg24Compact = admin_metric_value_compact($avg24, "ms");
+    $recentCompact = admin_metric_value_compact($recentValue, $valueType);
+    $middleCompact = admin_metric_value_compact($middleValue, $valueType);
+    $overallCompact = admin_metric_value_compact($overallValue, $valueType);
     $pills =
-        '<span title="Carregamento médio dos últimos 5 minutos" aria-label="Carregamento médio dos últimos 5 minutos: ' .
-        e($nowCompact) .
+        '<span title="' .
+        e($recentTitle) .
+        '" aria-label="' .
+        e($recentTitle . ": " . $recentCompact) .
         '">' .
         icon("radio_button_checked") .
         "<b>" .
-        e($nowCompact) .
+        e($recentCompact) .
         "</b></span>" .
-        '<span title="Carregamento médio dos últimos 30 minutos" aria-label="Carregamento médio dos últimos 30 minutos: ' .
-        e($avg30Compact) .
+        '<span title="' .
+        e($middleTitle) .
+        '" aria-label="' .
+        e($middleTitle . ": " . $middleCompact) .
         '">' .
         icon("timer") .
         "<b>" .
-        e($avg30Compact) .
+        e($middleCompact) .
         "</b></span>" .
-        '<span title="Carregamento médio das últimas 24 horas" aria-label="Carregamento médio das últimas 24 horas: ' .
-        e($avg24Compact) .
+        '<span title="' .
+        e($overallTitle) .
+        '" aria-label="' .
+        e($overallTitle . ": " . $overallCompact) .
         '">' .
         icon("calendar_today") .
         "<b>" .
-        e($avg24Compact) .
+        e($overallCompact) .
         "</b></span>";
     $legend = "";
     $lastLoad = end($loadPoints);
@@ -1425,8 +1450,8 @@ function admin_metric_dual_area_chart(
             '" r="3.6" class="metric-chart-dot metric-chart-dot-load"><title>' .
             e(
                 $lastLoad[4] .
-                    " · Carregamento " .
-                    admin_metric_value_label($lastLoad[2], "ms"),
+                    " · " . $primaryLabel . " " .
+                    admin_metric_value_label($lastLoad[2], $valueType),
             ) .
             "</title></circle>"
         : "";
@@ -1438,19 +1463,27 @@ function admin_metric_dual_area_chart(
             '" r="3.2" class="metric-chart-dot metric-chart-dot-response"><title>' .
             e(
                 $lastResp[4] .
-                    " · Resposta " .
-                    admin_metric_value_label($lastResp[2], "ms"),
+                    " · " . $secondaryLabel . " " .
+                    admin_metric_value_label($lastResp[2], $valueType),
             ) .
             "</title></circle>"
         : "";
     $summary =
         $title .
-        ": indicadores exibem somente o tempo de carregamento. Carregamento 5 minutos " .
-        admin_metric_value_compact($nowAvg5, "ms") .
-        ", 30 minutos " .
-        admin_metric_value_compact($avg30, "ms") .
-        ", 24 horas " .
-        admin_metric_value_compact($avg24, "ms") .
+        ": " .
+        $summaryLead .
+        " " .
+        $recentTitle .
+        " " .
+        $recentCompact .
+        ", " .
+        $middleTitle .
+        " " .
+        $middleCompact .
+        ", " .
+        $overallTitle .
+        " " .
+        $overallCompact .
         ".";
     return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-ds-card="admin-dual-area-chart" aria-label="' .
         e($title) .
@@ -1487,214 +1520,6 @@ function admin_metric_dual_area_chart(
             : "") .
         $loadCircle .
         $responseCircle .
-        $hover .
-        $ticks .
-        "</svg></article>";
-}
-function admin_metric_dual_count_chart(
-    string $title,
-    array $requestSeries,
-    array $recordSeries,
-    string $iconName = "monitoring",
-): string {
-    $requestValues = array_map(
-        static fn($row) => max(0.0, (float) ($row["value"] ?? 0)),
-        $requestSeries,
-    );
-    $recordValues = array_map(
-        static fn($row) => max(0.0, (float) ($row["value"] ?? 0)),
-        $recordSeries,
-    );
-    if (!$requestValues) {
-        $requestValues = [0.0];
-    }
-    if (!$recordValues) {
-        $recordValues = [0.0];
-    }
-    $max = max(max($requestValues), max($recordValues));
-    if ($max <= 0) {
-        $max = 1.0;
-    }
-    $w = 720;
-    $h = 190;
-    $padL = 34;
-    $padR = 14;
-    $padT = 18;
-    $padB = 32;
-    $plotW = $w - $padL - $padR;
-    $plotH = $h - $padT - $padB;
-    $baseline = $padT + $plotH;
-    $makePoints = static function (array $series) use (
-        $padL,
-        $plotW,
-        $padT,
-        $plotH,
-        $max,
-    ): array {
-        $n = count($series);
-        $points = [];
-        foreach ($series as $idx => $row) {
-            $value = max(0.0, (float) ($row["value"] ?? 0));
-            $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
-            $y = $padT + $plotH - ($value / $max) * $plotH;
-            $points[] = [
-                round($x, 2),
-                round($y, 2),
-                $value,
-                (string) ($row["label"] ?? ""),
-                (string) ($row["tooltip"] ?? ($row["label"] ?? "")),
-            ];
-        }
-        return $points;
-    };
-    $path = static function (array $points): string {
-        $value = "";
-        foreach ($points as $index => $point) {
-            $value .=
-                ($index === 0 ? "M" : "L") .
-                $point[0] .
-                " " .
-                $point[1] .
-                " ";
-        }
-        return trim($value);
-    };
-    $fill = static function (
-        string $pathValue,
-        array $points,
-        float $baselineValue,
-    ): string {
-        if (!$points || $pathValue === "") {
-            return "";
-        }
-        $first = $points[0];
-        $last = $points[count($points) - 1];
-        return $pathValue .
-            " L " .
-            $last[0] .
-            " " .
-            round($baselineValue, 2) .
-            " L " .
-            $first[0] .
-            " " .
-            round($baselineValue, 2) .
-            " Z";
-    };
-    $requestPoints = $makePoints($requestSeries);
-    $recordPoints = $makePoints($recordSeries);
-    $requestPath = $path($requestPoints);
-    $recordPath = $path($recordPoints);
-    $requestFill = $fill($requestPath, $requestPoints, $baseline);
-    $recordFill = $fill($recordPath, $recordPoints, $baseline);
-    $grid = "";
-    for ($i = 0; $i <= 3; $i++) {
-        $gridY = $padT + $i * ($plotH / 3);
-        $gridValue = $max - ($max / 3) * $i;
-        $grid .=
-            '<line x1="' .
-            $padL .
-            '" y1="' .
-            round($gridY, 2) .
-            '" x2="' .
-            ($w - $padR) .
-            '" y2="' .
-            round($gridY, 2) .
-            '" class="metric-grid-line"/><text x="6" y="' .
-            round($gridY + 4, 2) .
-            '" class="metric-axis-label">' .
-            e(number_format($gridValue, 0, ",", ".")) .
-            "</text>";
-    }
-    $ticks = "";
-    $pointCount = count($requestPoints);
-    $tickEvery = max(1, (int) ceil(max(1, $pointCount) / 8));
-    foreach ($requestPoints as $index => $point) {
-        if ($index % $tickEvery === 0 || $index === $pointCount - 1) {
-            $ticks .=
-                '<text x="' .
-                $point[0] .
-                '" y="' .
-                ($h - 8) .
-                '" class="metric-axis-label metric-x-label">' .
-                e($point[3]) .
-                "</text>";
-        }
-    }
-    $hover = "";
-    foreach ($requestPoints as $point) {
-        $hover .=
-            '<circle cx="' .
-            $point[0] .
-            '" cy="' .
-            $point[1] .
-            '" r="4.5" class="metric-chart-hit"><title>' .
-            e(
-                $point[4] .
-                    " · Requisições " .
-                    admin_metric_value_label($point[2], "count"),
-            ) .
-            "</title></circle>";
-    }
-    foreach ($recordPoints as $point) {
-        $hover .=
-            '<circle cx="' .
-            $point[0] .
-            '" cy="' .
-            $point[1] .
-            '" r="3.8" class="metric-chart-hit"><title>' .
-            e(
-                $point[4] .
-                    " · Registros " .
-                    admin_metric_value_label($point[2], "count"),
-            ) .
-            "</title></circle>";
-    }
-    $requestTotal = (int) round(array_sum($requestValues));
-    $recordTotal = (int) round(array_sum($recordValues));
-    $pills =
-        '<span class="metric-count-pill is-requests" title="Requisições nos últimos 30 dias: ' .
-        e(n($requestTotal)) .
-        '"><i class="metric-series-key" aria-hidden="true"></i><small>Requisições</small><b>' .
-        e(n($requestTotal)) .
-        '</b></span><span class="metric-count-pill is-records" title="Registros nos últimos 30 dias: ' .
-        e(n($recordTotal)) .
-        '"><i class="metric-series-key" aria-hidden="true"></i><small>Registros</small><b>' .
-        e(n($recordTotal)) .
-        "</b></span>";
-    $summary =
-        $title .
-        ": " .
-        n($requestTotal) .
-        " requisições e " .
-        n($recordTotal) .
-        " registros nos últimos 30 dias.";
-    return '<article class="metric-line-chart metric-area-chart metric-dual-count-chart" data-ds-card="admin-dual-count-chart" aria-label="' .
-        e($title) .
-        '"><header><div class="metric-chart-title">' .
-        icon($iconName) .
-        "<div><h3>" .
-        e($title) .
-        '</h3></div></div><div class="metric-chart-value"><div class="metric-chart-pills">' .
-        $pills .
-        '</div></div></header><p class="sr-only">' .
-        e($summary) .
-        '</p><svg viewBox="0 0 ' .
-        $w .
-        " " .
-        $h .
-        '" aria-hidden="true" focusable="false"><g>' .
-        $grid .
-        "</g>" .
-        ($requestFill !== ""
-            ? '<path d="' .
-                e($requestFill) .
-                '" class="metric-chart-fill-load metric-chart-fill-requests"/>'
-            : "") .
-        ($recordFill !== ""
-            ? '<path d="' .
-                e($recordFill) .
-                '" class="metric-chart-fill-response metric-chart-fill-records"/>'
-            : "") .
         $hover .
         $ticks .
         "</svg></article>";
@@ -1855,11 +1680,22 @@ function admin_global_perf_charts_html(): string
         : [];
     return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
         admin_metric_dual_area_chart("Velocidade", $load, $response, "speed") .
-        admin_metric_dual_count_chart(
+        admin_metric_dual_area_chart(
             "Leitura e gravação",
             $requests,
             $records,
             "monitoring",
+            [
+                "primary_label" => "Requisições",
+                "secondary_label" => "Registros",
+                "value_type" => "count",
+                "recent_points" => 1,
+                "middle_points" => 7,
+                "recent_title" => "Requisições de hoje",
+                "middle_title" => "Média diária de requisições nos últimos 7 dias",
+                "overall_title" => "Média diária de requisições nos últimos 30 dias",
+                "summary_lead" => "dados de Requisições e Registros dos últimos 30 dias.",
+            ],
         ) .
         "</div>";
 }
