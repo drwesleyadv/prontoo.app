@@ -67,3 +67,4 @@
 - [Telemetria particionada](performance/telemetry-partitions.md)
 - [Read model do histórico da recepção](performance/patient-reception-read-model.md)
 - [Comando de contato do paciente](architecture/patient-contact-command.md)
+- [View de contato do paciente](architecture/patient-contact-view.md)

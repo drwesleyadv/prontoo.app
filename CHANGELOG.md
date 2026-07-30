@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.6 — Evolução do servidor, Fase 6: view de contato do paciente
+
+- remove duas renderizações duplicadas do formulário de contato;
+- move o HTML específico para uma view de apresentação;
+- preserva componentes, campos, atributos, CSRF e ação do formulário;
+- adiciona snapshot determinístico e contrato de fronteira;
+- não altera banco, schema, interface ou comportamento.
+
 ## 1.7.30.5 — Evolução do servidor, Fase 5: comando de contato do paciente
 
 - move a atualização de contato para porta, serviço e adaptador PDO;

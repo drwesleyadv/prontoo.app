@@ -1312,6 +1312,55 @@ $serverPhaseFiveCharacterization = [
     'ok' => $serverPhaseFiveFailures === [],
     'failed' => $serverPhaseFiveFailures,
 ];
+require_once $root . '/app/Presentation/Patients/PatientContactView.php';
+
+$serverPhaseSixFailures = [];
+$contactViewHtml = \Prontoo\Presentation\Patients\PatientContactView::editForm(
+    ['phone' => '65999990000', 'email' => 'contato@example.com'],
+    7,
+    static fn(string $label, string $iconName): string => '<action>' . $label . ':' . $iconName . '</action>',
+    static fn(): string => '<csrf>',
+    static fn(string $name, string $type, mixed $value, string $attributes): string =>
+        '<input-helper>' . $name . ':' . $type . ':' . $value . ':' . $attributes . '</input-helper>',
+    static fn(string $label, string $control): string => '<row>' . $label . $control . '</row>',
+    static fn(int $clinicId, array $patient): string => '<address>' . $clinicId . ':' . ($patient['phone'] ?? '') . '</address>',
+    static fn(string $label): string => '<actions>' . $label . '</actions>',
+);
+$expectedContactViewHtml = '<details class="patient-edit patient-contact-edit"><summary class="primary small cmdlike"><action>Atualizar contato:contact_phone</action></summary><form method="post" class="compact patient-record-form"><csrf><input type="hidden" name="act" value="update_patient_contact"><div class="two"><row>Telefone<input-helper>phone:text:65999990000:required inputmode="tel"</input-helper></row><row>E-mail<input-helper>email:email:contato@example.com:required</input-helper></row></div><address>7:65999990000</address><actions>Salvar contato</actions></form></details>';
+if ($contactViewHtml !== $expectedContactViewHtml) {
+    $serverPhaseSixFailures[] = 'patient_contact_view_snapshot';
+}
+$serverPhaseSixSources = [
+    'view' => (string) file_get_contents($root . '/app/Presentation/Patients/PatientContactView.php'),
+    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
+];
+foreach (['SELECT ', 'INSERT ', 'UPDATE ', 'DELETE ', '$_GET', '$_POST', '$_SESSION'] as $token) {
+    if (str_contains($serverPhaseSixSources['view'], $token)) {
+        $serverPhaseSixFailures[] = 'contact_view:forbidden:' . $token;
+    }
+}
+if (substr_count($serverPhaseSixSources['patients'], 'prontoo_patient_contact_edit_form($p, $cid)') !== 2) {
+    $serverPhaseSixFailures[] = 'contact_view_facade_delegations';
+}
+if (str_contains($serverPhaseSixSources['patients'], '<details class="patient-edit patient-contact-edit">')) {
+    $serverPhaseSixFailures[] = 'contact_view_markup_still_duplicated';
+}
+foreach ([
+    'runner' => ['PatientContactView::editForm(', 'patient_address_fields($cid, $value)'],
+    'loader' => ["'Presentation/Patients/PatientContactView.php'"],
+] as $sourceKey => $tokens) {
+    foreach ($tokens as $token) {
+        if (!str_contains($serverPhaseSixSources[$sourceKey], $token)) {
+            $serverPhaseSixFailures[] = $sourceKey . ':missing:' . $token;
+        }
+    }
+}
+$serverPhaseSixCharacterization = [
+    'ok' => $serverPhaseSixFailures === [],
+    'failed' => $serverPhaseSixFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1330,7 +1379,8 @@ $result = [
         !empty($serverPhaseTwoCharacterization['ok']) &&
         !empty($serverPhaseThreeCharacterization['ok']) &&
         !empty($serverPhaseFourCharacterization['ok']) &&
-        !empty($serverPhaseFiveCharacterization['ok']),
+        !empty($serverPhaseFiveCharacterization['ok']) &&
+        !empty($serverPhaseSixCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1348,6 +1398,7 @@ $result = [
     'server_phase_three_characterization' => $serverPhaseThreeCharacterization,
     'server_phase_four_characterization' => $serverPhaseFourCharacterization,
     'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
+    'server_phase_six_characterization' => $serverPhaseSixCharacterization,
 ];
 
 echo json_encode(
