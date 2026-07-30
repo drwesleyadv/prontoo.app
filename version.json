@@ -3,7 +3,7 @@
     "release": "1.7.30.19",
     "generated_at_unix": 1785442396,
     "generated_at": "2026-07-30T20:13:16.646507+00:00",
-    "updated_at": "2026-07-30T20:41:30.000000+00:00",
+    "updated_at": "2026-07-30T20:45:00.000000+00:00",
     "build": "1.7.30.19-runtime-contract-manifest-sync",
     "asset_version": "1.7.15.10",
     "package_type": "incremental_refinement",
