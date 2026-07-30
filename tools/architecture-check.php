@@ -62,6 +62,32 @@ foreach ([
         );
     }
 }
+$manifestFiles = $updateManifestMetadata['files'] ?? null;
+if (!is_array($manifestFiles) || $manifestFiles === []) {
+    throw new RuntimeException('Mapa de arquivos ausente em app/update.manifest.json.');
+}
+if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles)) {
+    throw new RuntimeException('Contagem de arquivos divergente em app/update.manifest.json.');
+}
+$manifestBytes = 0;
+foreach ($manifestFiles as $relativePath => $expectedHash) {
+    $absolutePath = $root . '/' . ltrim((string) $relativePath, '/');
+    if (!is_file($absolutePath)) {
+        throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
+    }
+    $actualHash = hash_file('sha256', $absolutePath);
+    if (!is_string($actualHash) || !hash_equals((string) $expectedHash, $actualHash)) {
+        throw new RuntimeException('Hash divergente no manifesto: ' . $relativePath);
+    }
+    $size = filesize($absolutePath);
+    if ($size === false) {
+        throw new RuntimeException('Tamanho indisponível para arquivo do manifesto: ' . $relativePath);
+    }
+    $manifestBytes += $size;
+}
+if ((int) ($updateManifestMetadata['total_uncompressed_bytes'] ?? -1) !== $manifestBytes) {
+    throw new RuntimeException('Tamanho total divergente em app/update.manifest.json.');
+}
 if (!defined('PRONTOO_VERSION')) {
     define('PRONTOO_VERSION', (string) ($versionMetadata['version'] ?? ''));
 }
