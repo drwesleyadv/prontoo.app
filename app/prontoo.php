@@ -151,7 +151,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.30.8";
+const PRONTOO_VERSION_FALLBACK = "1.7.30.9";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -281,7 +281,7 @@ const PRONTOO_DASHBOARD_COUNTER_TTL = 45;
 const PRONTOO_TELEMETRY_SAMPLE_RATE = 10;
 const PRONTOO_SERVER_JSON_CACHE = true;
 const PRONTOO_SERVER_JSON_CACHE_POLICY = "server-storage-only-domain-invalidated-short-ttl";
-const PRONTOO_PERFORMANCE_CHARTS_POLICY = "dual-area-speed-label-no-dual-legend-one-row";
+const PRONTOO_PERFORMANCE_CHARTS_POLICY = "dual-area-speed-and-volume-no-dual-legend-one-row";
 const PRONTOO_CMD_BAR_SHAPE_POLICY = "square-container-rounded-actions";
 if (PHP_SAPI !== "cli") {
     ini_set("log_errors", "1");
@@ -356,7 +356,6 @@ const PRONTOO_ADMIN_ACTIONS = [
     "admin_clinics" => ["label" => "Consultórios", "icon" => "home_health"],
     "admin_health" => ["label" => "Incidentes", "icon" => "crisis_alert"],
     "admin_performance" => ["label" => "Performance", "icon" => "speed"],
-    "admin_telemetry" => ["label" => "Telemetria", "icon" => "monitoring"],
     "admin_alerts" => ["label" => "Avisos", "icon" => "campaign"],
     "admin_maintenance" => ["label" => "Manutenção", "icon" => "construction"],
 ];

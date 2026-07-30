@@ -1,3 +1,8 @@
+Prontoo 1.7.30.9 — Consolidação do Painel do Desenvolvedor
+
+- Remove a tela Telemetria duplicada e concentra seus indicadores úteis no painel principal.
+- Reorganiza os três cards e unifica Requisições e Registros em um gráfico de duas séries.
+- Mantém banco e schema inalterados.
 Prontoo 1.7.30.8 — Telemetria no Painel do Desenvolvedor
 
 - Adiciona gráficos de desempenho, cache, versões e fila diferida em uma tela global somente leitura.
