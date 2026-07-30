@@ -1612,15 +1612,21 @@ function admin_maestro_health_time_label(?string $value): string
     $ts = strtotime($value);
     return $ts ? gmdate("H\hi", $ts) : "--h--";
 }
-function admin_maestro_health_pill_html(): string
+function admin_maestro_health_pill_html(bool $allowSchemaEnsure = true): string
 {
 
     $ok = false;
     $label = "Rotinas sem execução registrada";
     try {
         if (has_cfg()) {
-            maestro_ensure_schema();
-            $hasSuccess = db_column_exists("pi_maestro_job_runs", "success");
+            $schemaReady = true;
+            if ($allowSchemaEnsure) {
+                maestro_ensure_schema();
+            } elseif (function_exists("db_table_exists")) {
+                $schemaReady = db_table_exists("pi_maestro_job_runs");
+            }
+            if ($schemaReady) {
+                $hasSuccess = db_column_exists("pi_maestro_job_runs", "success");
             $cols = $hasSuccess
                 ? "started_at,finished_at,duration_ms,note,success,errors_count"
                 : "started_at,finished_at,duration_ms,note";
@@ -1655,6 +1661,7 @@ function admin_maestro_health_pill_html(): string
                 $label = $ok
                     ? "Rotinas em dia às " . $timeLabel
                     : "Rotinas com atenção desde " . $timeLabel;
+            }
             }
         }
     } catch (Throwable $e) {
@@ -1698,6 +1705,52 @@ function admin_global_perf_charts_html(): string
             ],
         ) .
         "</div>";
+}
+function admin_performance_card_content_html(bool $public = false): string
+{
+    return '<div class="section-head admin-performance-head"><h2>Desempenho geral</h2>' .
+        admin_maestro_health_pill_html(!$public) .
+        "</div>" .
+        admin_global_perf_charts_html();
+}
+function admin_performance_card_html(bool $public = false): string
+{
+    return card(
+        admin_performance_card_content_html($public),
+        "admin-performance-card",
+    );
+}
+function page_stats(): void
+{
+    if (strtoupper((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")) !== "GET") {
+        throw new ProntooHttpError(405, "Método não permitido.");
+    }
+    if (!headers_sent()) {
+        header("Content-Type: text/html; charset=utf-8");
+        header("Cache-Control: public, max-age=60, stale-while-revalidate=60");
+        header("X-Robots-Tag: noindex, nofollow");
+    }
+    $assetRevision = defined("PRONTOO_ASSET_REV")
+        ? (string) PRONTOO_ASSET_REV
+        : (string) PRONTOO_VERSION;
+    $card = admin_performance_card_html(true);
+    echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/stats"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
+        e(PRONTOO_VERSION) .
+        '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
+        rawurlencode($assetRevision) .
+        '.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap" rel="stylesheet"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+        rawurlencode($assetRevision) .
+        '&release=' .
+        rawurlencode(PRONTOO_VERSION) .
+        '"><script defer src="/public/assets/app.js?v=' .
+        rawurlencode($assetRevision) .
+        '&release=' .
+        rawurlencode(PRONTOO_VERSION) .
+        '"></script></head><body class="public scope-global stats-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="stats" data-app-version="' .
+        e(PRONTOO_VERSION) .
+        '"><main id="conteudo" tabindex="-1">' .
+        $card .
+        "</main></body></html>";
 }
 function page_admin_operations(): void
 {
@@ -3013,13 +3066,7 @@ function page_admin_painel(): void
                 "Revise dados do consultório, cargos, procedimentos e agenda.",
         ];
     }
-    $charts = card(
-        '<div class="section-head admin-performance-head"><h2>Desempenho geral</h2>' .
-            admin_maestro_health_pill_html() .
-            "</div>" .
-            admin_global_perf_charts_html(),
-        "admin-performance-card",
-    );
+    $charts = admin_performance_card_html();
     $telemetry =
         '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .
         stat_card(

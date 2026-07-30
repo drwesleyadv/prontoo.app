@@ -14144,6 +14144,9 @@ body.scope-global .global-area-charts > .metric-area-chart{
   width:100%!important;
   max-width:none!important;
 }
+body[data-route="stats"]{min-height:100vh;background:var(--md-sys-color-surface,#f7faf8);}
+body[data-route="stats"] main{width:min(100%,1180px);margin:0 auto;padding:clamp(16px,4vw,48px);}
+body[data-route="stats"] .admin-performance-card{margin:0;}
 @media (min-width:761px){
   body.scope-global .global-performance-charts,
   body.scope-global .global-area-charts{

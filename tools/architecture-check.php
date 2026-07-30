@@ -1379,6 +1379,7 @@ $developerDashboardSources = [
     'bootstrap' => (string) file_get_contents($root . '/app/prontoo.php'),
     'css' => (string) file_get_contents($root . '/public/assets/design-system.css'),
     'docs' => (string) file_get_contents($root . '/docs/index.md'),
+    'htaccess' => (string) file_get_contents($root . '/.htaccess'),
 ];
 foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
     foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {
@@ -1392,6 +1393,11 @@ foreach ([
     'admin' => [
         'function admin_metric_dual_area_chart(',
         'array $presentation = []',
+        'function admin_performance_card_content_html(bool $public = false): string',
+        'function admin_performance_card_html(bool $public = false): string',
+        'function page_stats(): void',
+        'admin_performance_card_html(true)',
+        'https://prontoo.app/stats',
         '"Requisições"',
         '"Tempo Médio"',
         '"Landing Page"',
@@ -1415,6 +1421,19 @@ foreach ([
     ],
     'bootstrap' => [
         'dual-area-single-renderer-identical-visuals-data-specific-labels-one-row',
+    ],
+    'runner' => [
+        '$publicStats = $r === "stats"',
+        'headers_secure($publicStats)',
+        '$cNow = $publicStats || $publicHome || $r === "logout" ? [] : ctx()',
+        'if ($r !== "logout" && !$publicStats)',
+    ],
+    'loader' => [
+        '$stats = [\'stats\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
+        '\'stats\' => $stats',
+    ],
+    'htaccess' => [
+        'RewriteRule ^stats/?$ index.php?r=stats [QSA,L,NC]',
     ],
 ] as $sourceKey => $tokens) {
     foreach ($tokens as $token) {
@@ -1491,6 +1510,45 @@ foreach ([
     )) {
         $developerDashboardFailures[] =
             'developer_dashboard_outline_token:' . $outlineToken;
+    }
+}
+$publicStatsStart = strpos(
+    $developerDashboardSources['admin'],
+    'function page_stats(): void',
+);
+$publicStatsEnd = $publicStatsStart === false
+    ? false
+    : strpos(
+        $developerDashboardSources['admin'],
+        'function page_admin_operations(): void',
+        $publicStatsStart,
+    );
+$publicStatsSource =
+    $publicStatsStart !== false && $publicStatsEnd !== false
+        ? substr(
+            $developerDashboardSources['admin'],
+            $publicStatsStart,
+            $publicStatsEnd - $publicStatsStart,
+        )
+        : '';
+if ($publicStatsSource === '') {
+    $developerDashboardFailures[] = 'public_stats_page_boundary';
+} else {
+    foreach ([
+        'require_can(',
+        'ctx(',
+        '$_POST',
+        'INSERT ',
+        'UPDATE ',
+        'DELETE ',
+        'page_head(',
+        'admin-telemetry-card',
+        'priority-actions',
+    ] as $publicStatsForbiddenToken) {
+        if (str_contains($publicStatsSource, $publicStatsForbiddenToken)) {
+            $developerDashboardFailures[] =
+                'public_stats_forbidden_token:' . $publicStatsForbiddenToken;
+        }
     }
 }
 if (substr_count(

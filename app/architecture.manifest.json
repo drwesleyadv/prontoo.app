@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-30T15:56:40+00:00",
-    "updated_at": "2026-07-30T15:56:40+00:00",
+    "generated_at": "2026-07-30T16:37:58+00:00",
+    "updated_at": "2026-07-30T16:37:58+00:00",
     "baseline_source": "1.7.30.12",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -168,11 +168,12 @@
     "server_evolution_phase_six_check": "tools/architecture-check.php",
     "contract_consistency_policy": "version_and_architecture_manifests_must_match_version_native_min_and_transitional_max",
     "contract_consistency_check": "tools/architecture-check.php",
-    "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_landing_request_count_and_two_charts_rendered_by_one_shared_dual_area_function_with_data_specific_labels",
+    "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_two_charts_one_shared_renderer_and_public_read_only_stats_card_without_authenticated_context",
     "developer_dashboard_observability_components": [
         "app/Admin/AdminPages.php",
         "public/assets/design-system.css",
         "app/Support/Telemetry.php"
     ],
-    "developer_dashboard_observability_check": "tools/architecture-check.php"
+    "developer_dashboard_observability_check": "tools/architecture-check.php",
+    "public_stats_policy": "get_only_prontoo_app_stats_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation"
 }

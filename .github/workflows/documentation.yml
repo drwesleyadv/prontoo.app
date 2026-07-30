@@ -1,7 +1,8 @@
-name: Apply Public Stats and Validate
+name: Documentation Contract
 
 on:
   pull_request:
+  push:
     branches:
       - main
 
@@ -14,94 +15,28 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
-  GITHUB_ACTIONS: 'true'
-  CI: 'true'
-  PRONTOO_SCHEMA_TEST_MODE: '1'
-  PRONTOO_INSTALLER_CLI_MODE: '1'
-  PYTHONDONTWRITEBYTECODE: '1'
 
 jobs:
-  apply-public-stats:
-    if: github.head_ref == 'agent/reuse-speed-chart-renderer' && github.actor != 'github-actions[bot]'
+  reconcile-manifest:
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-          extensions: pdo_mysql
-      - name: Apply validate and publish clean tree
+      - name: Reconcile update manifest
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main agent/reuse-speed-chart-renderer
-          git reset --hard origin/agent/reuse-speed-chart-renderer
-          git show origin/main:.github/workflows/documentation.yml > /tmp/documentation.yml
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('tools/public_stats_apply.py')
-          text = path.read_text(encoding='utf-8')
-          marker = '    "stats public route",\n)\n'
-          end = text.index(marker) + len(marker)
-          start = text.rfind('runner = replace_once(', 0, end)
-          if start < 0:
-              raise SystemExit('public runtime route block start missing')
-          replacement = """public_route_old = '''        \"login\",
-                  \"login_autotest\",
-                  \"mfa\",'''
-          public_route_new = '''        \"stats\",
-                  \"login\",
-                  \"login_autotest\",
-                  \"mfa\",'''
-          if runner.count(public_route_old) != 2:
-              raise RuntimeError(
-                  f\"stats public route: expected two occurrences, found {runner.count(public_route_old)}\",
-              )
-          public_route_head, public_route_tail = runner.rsplit(public_route_old, 1)
-          runner = public_route_head + public_route_new + public_route_tail
-          """
-          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
-          PY
-          python3 tools/public_stats_apply.py
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('tools/architecture-check.php')
-          text = path.read_text(encoding='utf-8')
-          old = '''        "$stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]",
-                  "'stats' => $stats",'''
-          new = """        '$stats = [\\'stats\\' => [\\'Domain/Maestro/Maestro.php\\', \\'Admin/AdminPages.php\\']]',
-                  '\\'stats\\' => $stats',"""
-          if text.count(old) != 1:
-              raise SystemExit(f'generated loader token block count: {text.count(old)}')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
-          PY
-          cp /tmp/documentation.yml .github/workflows/documentation.yml
-          rm -f .github/workflows/public-stats.yml
-          rm -f tools/public_stats_apply.py
-          rm -f tools/public_stats_trigger.txt
-          rm -f public-stats-failure.log
-          find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -138,17 +73,43 @@ jobs:
               json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
           );
           PHP
-          test ! -e tools/public_stats_apply.py
-          test ! -e tools/public_stats_trigger.txt
-          test ! -e .github/workflows/public-stats.yml
-          test ! -e public-stats-failure.log
-          test -z "$(find . -type d -name '__pycache__' -print -quit)"
-          cmp -s .github/workflows/documentation.yml /tmp/documentation.yml
-          grep -F 'RewriteRule ^stats/?$ index.php?r=stats [QSA,L,NC]' .htaccess
-          grep -F 'function page_stats(): void' app/Admin/AdminPages.php
-          grep -F 'admin_performance_card_html(true)' app/Admin/AdminPages.php
-          grep -F '$publicStats = $r === "stats"' app/Runtime/Runner.php
-          grep -F "'stats' => \$stats" app/Support/ModuleLoader.php
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/update.manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Sincronizar manifesto documental"
+          git push origin HEAD:${GITHUB_HEAD_REF}
+  validate:
+    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Validate documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . \
@@ -160,13 +121,3 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --check
-          git commit -m "Disponibilizar card de desempenho em stats"
-          git push origin HEAD:${GITHUB_HEAD_REF}

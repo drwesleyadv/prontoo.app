@@ -35,6 +35,7 @@ FileETag None
     RewriteRule ^robots\.txt$ br/index.php?asset=robots [QSA,L,NC]
     RewriteRule ^sitemap\.xml$ br/index.php?asset=sitemap [QSA,L,NC]
     RewriteRule ^llms\.txt$ br/index.php?asset=llms [QSA,L,NC]
+    RewriteRule ^stats/?$ index.php?r=stats [QSA,L,NC]
     RewriteRule ^pdfs/([A-Z0-9]{1,80}(?:_C[0-9]{1,10}D[0-9]{1,10})?_[0-9]{9,14}(?:_[A-F0-9]{12})?\.pdf)$ index.php?r=document_pdf_file&file=$1 [QSA,L,NC]
     RewriteRule ^pdfs/ - [F,L]
     RewriteRule (^|/)\.[^/]+ - [F,L]

@@ -3,6 +3,7 @@ Prontoo 1.7.30.13 — Renderer único para os gráficos do Painel
 - Leitura e gravação passa a usar literalmente o mesmo renderer do gráfico Velocidade.
 - Somente dados, rótulos e unidade são específicos para Requisições e Registros.
 - Remove o renderer e os estilos exclusivos anteriores.
+- Disponibiliza prontoo.app/stats com somente o card de desempenho, em GET público e sem contexto autenticado.
 - Mantém banco e schema inalterados.
 Prontoo 1.7.30.12 — Composição visual idêntica entre gráficos
 
