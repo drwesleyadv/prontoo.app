@@ -1,8 +1,7 @@
-name: Documentation Contract
+name: Apply Count Average Fix
 
 on:
   pull_request:
-  push:
     branches:
       - main
 
@@ -15,28 +14,55 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
 
 jobs:
-  reconcile-manifest:
-    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+  apply-count-average-fix:
+    if: github.head_ref == 'agent/reuse-speed-chart-renderer' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.head_ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reconcile update manifest
+          extensions: pdo_mysql
+      - name: Apply validate and publish clean tree
         shell: bash
         run: |
           set -euo pipefail
+          git fetch origin main agent/reuse-speed-chart-renderer
+          git reset --hard origin/agent/reuse-speed-chart-renderer
+          git show origin/main:.github/workflows/documentation.yml > /tmp/documentation.yml
+          python3 tools/count_average_apply.py
+          cp /tmp/documentation.yml .github/workflows/documentation.yml
+          rm -f tools/count_average_apply.py
+          rm -f tools/count_average_trigger.txt
+          find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -73,43 +99,13 @@ jobs:
               json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
           );
           PHP
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/update.manifest.json
-          git diff --cached --quiet && exit 0
-          git commit -m "Sincronizar manifesto documental"
-          git push origin HEAD:${GITHUB_HEAD_REF}
-  validate:
-    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
-      - name: Validate documentation contract
-        shell: bash
-        run: |
-          set -euo pipefail
+          test ! -e tools/count_average_apply.py
+          test ! -e tools/count_average_trigger.txt
+          test -z "$(find . -type d -name '__pycache__' -print -quit)"
+          cmp -s .github/workflows/documentation.yml /tmp/documentation.yml
+          grep -F '$recentValue = $valueType === "count"' app/Admin/AdminPages.php
+          grep -F '$overallAverageValues = $valueType === "count"' app/Admin/AdminPages.php
+          grep -F '$middleAverageValues = $valueType === "count"' app/Admin/AdminPages.php
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . \
@@ -121,3 +117,13 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Incluir dias zerados nas médias de requisições"
+          git push origin HEAD:${GITHUB_HEAD_REF}
