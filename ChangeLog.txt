@@ -1,3 +1,7 @@
+Prontoo 1.7.30.4 — Evolução do servidor, Fase 4: read model da recepção
+
+- Consolida o histórico da recepção em uma leitura isolada por consultório.
+- Mantém banco, schema, interface, permissões e comportamento funcional.
 Prontoo 1.7.30.3 — Evolução do servidor, Fase 3: telemetria particionada
 
 - Registra eventos brutos em partições NDJSON append-only e mantém compatibilidade de leitura.

@@ -637,6 +637,29 @@ function prontoo_patient_has_legal_guardian(int $clinicId, int $patientId): bool
 {
     return prontoo_patient_read_service()->hasLegalGuardian($clinicId, $patientId);
 }
+function prontoo_patient_reception_history_read_service(): \Prontoo\Application\Patients\PatientReceptionHistoryReadService
+{
+    static $service = null;
+    if (!$service instanceof \Prontoo\Application\Patients\PatientReceptionHistoryReadService) {
+        $service = new \Prontoo\Application\Patients\PatientReceptionHistoryReadService(
+            new \Prontoo\Infrastructure\Patients\PdoPatientReceptionHistoryReadRepository(),
+        );
+    }
+    return $service;
+}
+function prontoo_patient_reception_history_read_model(
+    int $clinicId,
+    int $patientId,
+    int $personId,
+    string $phoneDigits,
+): array {
+    return prontoo_patient_reception_history_read_service()->read(
+        $clinicId,
+        $patientId,
+        $personId,
+        $phoneDigits,
+    );
+}
 function prontoo_patient_tab_command_service(): \Prontoo\Application\Patients\PatientTabCommandService
 {
     static $service = null;

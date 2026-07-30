@@ -1593,68 +1593,22 @@ function patient_reception_history_items(
     }
     $personId = (int) ($p["person_id"] ?? 0);
     $phoneDigits = substr(only_digits((string) ($p["phone"] ?? "")), 0, 11);
-    $where = [];
-    $params = [$cid];
-    if ($personId > 0) {
-        $where[] = "person_id=?";
-        $params[] = $personId;
-    }
-    if ($phoneDigits !== "") {
-        $where[] =
-            "phone_digits=? OR LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=?";
-        $params[] = $phoneDigits;
-        $params[] = $phoneDigits;
-    }
-    if (!$where) {
-        return [];
-    }
     try {
-        $leads = q(
-            "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at,updated_at FROM pi_leads WHERE clinic_id=? AND (" .
-                implode(" OR ", $where) .
-                ") ORDER BY created_at ASC,id ASC",
-            $params,
-        )->fetchAll();
-    } catch (Throwable $e) {
-        error_log(
-            "[Prontoo patient reception history leads] " . $e->getMessage(),
+        $readModel = prontoo_patient_reception_history_read_model(
+            $cid,
+            $patientId,
+            $personId,
+            $phoneDigits,
         );
+    } catch (Throwable $e) {
+        error_log("[Prontoo patient reception history] " . $e->getMessage());
         return [];
     }
+    $leads = (array) ($readModel["leads"] ?? []);
+    $events = (array) ($readModel["events"] ?? []);
+    $users = (array) ($readModel["users"] ?? []);
     if (!$leads) {
         return [];
-    }
-    $leadIds = int_ids($leads, "id");
-    $events = [];
-    $users = [];
-    if ($leadIds) {
-        $ph = implode(",", array_fill(0, count($leadIds), "?"));
-        try {
-            $rows = q(
-                "SELECT id,lead_id,event_type,stage_from,stage_to,phone,source,interest,next_action_at,body,created_by,created_at FROM pi_lead_events WHERE clinic_id=? AND lead_id IN ($ph) ORDER BY created_at ASC,id ASC",
-                array_merge([$cid], $leadIds),
-            )->fetchAll();
-            $uids = [];
-            foreach ($rows as $ev) {
-                $lid = (int) ($ev["lead_id"] ?? 0);
-                if ($lid <= 0) {
-                    continue;
-                }
-                $events[$lid][] = $ev;
-                $u = (int) ($ev["created_by"] ?? 0);
-                if ($u > 0) {
-                    $uids[$u] = $u;
-                }
-            }
-            if ($uids) {
-                $users = fetch_map("pi_users", array_values($uids), "id,name");
-            }
-        } catch (Throwable $e) {
-            error_log(
-                "[Prontoo patient reception history events] " .
-                    $e->getMessage(),
-            );
-        }
     }
     $items = [];
     foreach ($leads as $lead) {

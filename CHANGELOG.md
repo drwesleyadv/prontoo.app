@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.4 — Evolução do servidor, Fase 4: read model da recepção
+
+- consolida interessados, eventos e autores em uma única leitura;
+- move SQL do histórico da recepção para adaptador PDO;
+- mantém ordenação, estrutura e apresentação existentes;
+- torna isolamento e custo da leitura explicitamente testáveis;
+- não altera banco, schema ou interface.
+
 ## 1.7.30.3 — Evolução do servidor, Fase 3: telemetria particionada
 
 - substitui reescrita integral do histórico bruto por append NDJSON;
