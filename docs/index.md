@@ -65,3 +65,4 @@
 - [Orçamentos de desempenho](performance/performance-budgets.md)
 - [Invalidação de cache por geração](performance/cache-generations.md)
 - [Telemetria particionada](performance/telemetry-partitions.md)
+- [Read model do histórico da recepção](performance/patient-reception-read-model.md)

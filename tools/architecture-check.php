@@ -1184,6 +1184,70 @@ $serverPhaseThreeCharacterization = [
     'ok' => $serverPhaseThreeFailures === [],
     'failed' => $serverPhaseThreeFailures,
 ];
+require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadPort.php';
+require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadService.php';
+require_once $root . '/app/Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php';
+
+$serverPhaseFourFailures = [];
+$receptionPort = new class implements \Prontoo\Application\Patients\PatientReceptionHistoryReadPort {
+    public array $received = [];
+    public function read(
+        int $clinicId,
+        int $patientId,
+        int $personId,
+        string $phoneDigits,
+    ): array {
+        $this->received = [$clinicId, $patientId, $personId, $phoneDigits];
+        return [
+            'leads' => [['id' => 4]],
+            'events' => [4 => [['id' => 8]]],
+            'users' => [9 => ['id' => 9, 'name' => 'Ana']],
+        ];
+    }
+};
+$receptionService = new \Prontoo\Application\Patients\PatientReceptionHistoryReadService($receptionPort);
+$receptionModel = $receptionService->read(2, 3, 5, '(65) 99999-0000');
+if ($receptionPort->received !== [2, 3, 5, '65999990000'] ||
+    count($receptionModel['leads']) !== 1 ||
+    count($receptionModel['events'][4] ?? []) !== 1) {
+    $serverPhaseFourFailures[] = 'reception_read_model_behavior';
+}
+$serverPhaseFourSources = [
+    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientReceptionHistoryReadService.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php'),
+    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+];
+foreach ([
+    'repository' => ['LEFT JOIN pi_lead_events', 'LEFT JOIN pi_users', 'EXISTS (SELECT 1 FROM pi_patients', 'l.clinic_id=?'],
+    'patients' => ['prontoo_patient_reception_history_read_model('],
+    'runner' => ['PdoPatientReceptionHistoryReadRepository', 'PatientReceptionHistoryReadService'],
+] as $sourceKey => $tokens) {
+    foreach ($tokens as $token) {
+        if (!str_contains($serverPhaseFourSources[$sourceKey], $token)) {
+            $serverPhaseFourFailures[] = $sourceKey . ':missing:' . $token;
+        }
+    }
+}
+foreach (['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'] as $token) {
+    if (str_contains($serverPhaseFourSources['service'], $token)) {
+        $serverPhaseFourFailures[] = 'service:forbidden:' . $token;
+    }
+}
+$receptionFunctionStart = strpos($serverPhaseFourSources['patients'], 'function patient_reception_history_items(');
+$receptionFunctionEnd = $receptionFunctionStart === false
+    ? false
+    : strpos($serverPhaseFourSources['patients'], 'function patient_appointment_timeline_items(', $receptionFunctionStart);
+$receptionFunction = $receptionFunctionStart !== false && $receptionFunctionEnd !== false
+    ? substr($serverPhaseFourSources['patients'], $receptionFunctionStart, $receptionFunctionEnd - $receptionFunctionStart)
+    : '';
+if ($receptionFunction === '' || str_contains($receptionFunction, 'FROM pi_leads')) {
+    $serverPhaseFourFailures[] = 'legacy_reception_sql_not_removed';
+}
+$serverPhaseFourCharacterization = [
+    'ok' => $serverPhaseFourFailures === [],
+    'failed' => $serverPhaseFourFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1200,7 +1264,8 @@ $result = [
         !empty($phaseFiveCharacterization['ok']) &&
         !empty($serverPhaseOneCharacterization['ok']) &&
         !empty($serverPhaseTwoCharacterization['ok']) &&
-        !empty($serverPhaseThreeCharacterization['ok']),
+        !empty($serverPhaseThreeCharacterization['ok']) &&
+        !empty($serverPhaseFourCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1216,6 +1281,7 @@ $result = [
     'server_phase_one_characterization' => $serverPhaseOneCharacterization,
     'server_phase_two_characterization' => $serverPhaseTwoCharacterization,
     'server_phase_three_characterization' => $serverPhaseThreeCharacterization,
+    'server_phase_four_characterization' => $serverPhaseFourCharacterization,
 ];
 
 echo json_encode(
