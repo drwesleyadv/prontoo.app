@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.1 — Evolução do servidor, Fase 1: orçamentos de desempenho
+
+- cria contrato versionado de custo por rota;
+- adiciona avaliação determinística de tempo, consultas e módulos carregados;
+- integra a caracterização ao contrato arquitetural existente;
+- documenta regras de ajuste sem enfraquecer segurança ou integridade;
+- não altera banco, schema, interface ou comportamento operacional.
+
 ## 1.7.29.6 — Fase 5: endurecimento financeiro crítico
 
 - Migra o recebimento pela ficha do paciente para porta, caso de uso e adaptador PDO.

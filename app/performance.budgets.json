@@ -1,0 +1,63 @@
+{
+    "schema": "prontoo-performance-budgets-v1",
+    "version": "1.7.30.1",
+    "policy": "budgets_are_guardrails_and_must_be_tightened_from_production_baselines_without_weakening_security_or_integrity",
+    "defaults": {
+        "max_elapsed_ms": 2500,
+        "max_query_ms": 900,
+        "max_queries": 120,
+        "max_wide_selects": 4,
+        "max_module_files": 40,
+        "max_module_bytes": 2500000
+    },
+    "routes": {
+        "login": {
+            "max_elapsed_ms": 1200,
+            "max_query_ms": 350,
+            "max_queries": 35,
+            "max_wide_selects": 1,
+            "max_module_files": 24,
+            "max_module_bytes": 1400000
+        },
+        "home": {
+            "max_elapsed_ms": 1800,
+            "max_query_ms": 650,
+            "max_queries": 85,
+            "max_wide_selects": 2,
+            "max_module_files": 38,
+            "max_module_bytes": 2300000
+        },
+        "appointments": {
+            "max_elapsed_ms": 2200,
+            "max_query_ms": 800,
+            "max_queries": 110,
+            "max_wide_selects": 2,
+            "max_module_files": 40,
+            "max_module_bytes": 2500000
+        },
+        "patients": {
+            "max_elapsed_ms": 1800,
+            "max_query_ms": 600,
+            "max_queries": 80,
+            "max_wide_selects": 2,
+            "max_module_files": 36,
+            "max_module_bytes": 2200000
+        },
+        "patient": {
+            "max_elapsed_ms": 2400,
+            "max_query_ms": 900,
+            "max_queries": 120,
+            "max_wide_selects": 3,
+            "max_module_files": 42,
+            "max_module_bytes": 2700000
+        },
+        "financial": {
+            "max_elapsed_ms": 2500,
+            "max_query_ms": 950,
+            "max_queries": 125,
+            "max_wide_selects": 3,
+            "max_module_files": 42,
+            "max_module_bytes": 2700000
+        }
+    }
+}

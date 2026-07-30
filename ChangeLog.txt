@@ -1,3 +1,7 @@
+Prontoo 1.7.30.1 — Evolução do servidor, Fase 1: orçamentos de desempenho
+
+- Institui orçamentos versionados por rota e caracterização no contrato arquitetural.
+- Mantém banco, schema, interface, permissões e comportamento operacional.
 Prontoo 1.7.29.6 — Fase 5: endurecimento financeiro crítico
 
 - Recebimento do paciente migrado para comando autorizado e transacional.
