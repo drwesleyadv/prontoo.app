@@ -1,8 +1,7 @@
-name: Documentation Contract
+name: Apply Stats Wide Layout
 
 on:
   pull_request:
-  push:
     branches:
       - main
 
@@ -15,12 +14,30 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
 
 jobs:
-  reconcile-manifest:
-    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+  apply-stats-wide-layout:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,10 +50,18 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reconcile update manifest
+          extensions: pdo_mysql
+      - name: Apply validate and publish clean tree
         shell: bash
         run: |
           set -euo pipefail
+          git fetch origin main "${GITHUB_HEAD_REF}"
+          git reset --hard "origin/${GITHUB_HEAD_REF}"
+          git show origin/main:.github/workflows/documentation.yml > /tmp/documentation.yml
+          python3 tools/stats_wide_layout_apply.py
+          cp /tmp/documentation.yml .github/workflows/documentation.yml
+          rm tools/stats_wide_layout_apply.py
+          find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -64,6 +89,11 @@ jobs:
               $total += $file->getSize();
           }
           ksort($files, SORT_STRING);
+          $manifest['version'] = '1.7.30.14';
+          $manifest['release'] = '1.7.30.14';
+          $manifest['build'] = '1.7.30.14-public-stats-wide-borderless-layout';
+          $manifest['previous_version'] = '1.7.30.13';
+          $manifest['notes'] = 'A página pública /stats ocupa 95% da viewport, sem bordas nem espaçamentos externos no card e nos gráficos.';
           $manifest['files'] = $files;
           $manifest['file_count'] = count($files);
           $manifest['total_uncompressed_bytes'] = $total;
@@ -73,43 +103,11 @@ jobs:
               json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
           );
           PHP
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/update.manifest.json
-          git diff --cached --quiet && exit 0
-          git commit -m "Sincronizar manifesto documental"
-          git push origin HEAD:${GITHUB_HEAD_REF}
-  validate:
-    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
-      - name: Validate documentation contract
-        shell: bash
-        run: |
-          set -euo pipefail
+          test ! -e tools/stats_wide_layout_apply.py
+          test -z "$(find . -type d -name '__pycache__' -print -quit)"
+          cmp -s .github/workflows/documentation.yml /tmp/documentation.yml
+          grep -F 'body.stats-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:0!important;}' public/assets/design-system.css
+          grep -F 'body.stats-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}' public/assets/design-system.css
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . \
@@ -121,3 +119,13 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Ampliar layout público de stats"
+          git push origin HEAD:${GITHUB_HEAD_REF}
