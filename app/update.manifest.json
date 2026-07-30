@@ -27,12 +27,12 @@
     "documented_function_units": 0,
     "schema_table_count": 62,
     "operational_tables_verified": 60,
-    "file_count": 215,
-    "total_uncompressed_bytes": 4539322,
+    "file_count": 214,
+    "total_uncompressed_bytes": 4531087,
     "files": {
         ".github/workflows/architecture.yml": "339500df8422ee93c04b231a952011a1f4ae45693f702e376dea4e9217958f57",
         ".github/workflows/documentation.yml": "c1d5dc0ceb274ad0fd8b3948c895709c19b9ea60e24b5e7ec3f4c83e76899f12",
-        ".github/workflows/tmp-fix-runtime-contract-manifest.yml": "288b644651b4ee96766f986c6b4f48f690d712a98c8818b5c6de20ed24fd16b5",
+        ".github/workflows/tmp-clean-release-manifest.yml": "2fafc6d6a46a85f93679e0d970b0b06b4b5dfc8545d712b290cc7c25561e8bb9",
         ".gitignore": "4f409e9d6519b9e9bc3d20c915e4b1f0923917beb536f285e58fcfdf9b716346",
         ".htaccess": "069ee072d50d060e5b13e2b234ee7113f630154bdaae01b8966b37bcbc6792b1",
         "CHANGELOG.md": "17f8bcd2efe73c5b88f482deacd609a8f51d2f085405398689482c76b1a0ef4e",
@@ -243,7 +243,6 @@
         "tools/install-security-check.php": "36f779737b73372330dd5c04621e5671b859205b0a8445290fcd032bc2098650",
         "tools/schema-check.php": "dc34c8fe49bab48bf46ddea1f12e2b76f32b7b5c51043864a663d1a964209ec4",
         "tools/security-regression-check.php": "c14e866ea64228aa3d976dd0b6426cf05a846972ebc6faa13104911cdfc35992",
-        "tools/tmp_fix_runtime_contract_manifest.py": "8ef526a5a6153a353b3c9c4c91efdcac7d6511802f82d97c84bbaf85b7b6eea9",
         "version.json": "2b3fbd3c67c6d29a681d52f112af1f05da14c79534345fe6433f29a7864a30f4"
     },
     "removed_files": [
@@ -267,7 +266,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.30.18",
-    "updated_at": "2026-07-30T20:13:16+00:00",
+    "updated_at": "2026-07-30T20:15:44+00:00",
     "notes": "Sincroniza o manifesto de atualização com a versão canônica, restaura o runtime e adiciona bloqueio de CI contra publicações parciais de version, release, build e schema.",
     "deployment_sync_id": "github-runtime-contract-manifest-sync-1-7-30-19",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
