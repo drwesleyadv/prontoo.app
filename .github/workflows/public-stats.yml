@@ -74,39 +74,26 @@ jobs:
               if old not in text:
                   raise SystemExit(f'loader architecture token patch anchor missing: {old}')
               text = text.replace(old, new, 1)
-          route_old = '''runner = replace_once(
-              runner,
-              \'''        "login",
-                  "login_autotest",
-                  "mfa",\''',
-              \'''        "stats",
-                  "login",
-                  "login_autotest",
-                  "mfa",\''',
-              "stats public route",
-          )'''
-          route_new = '''runner = replace_once(
-              runner,
-              \'''function prontoo_public_runtime_routes(): array
-          {
-          
-              return [
-                  "login",
-                  "login_autotest",
-                  "mfa",\''',
-              \'''function prontoo_public_runtime_routes(): array
-          {
-          
-              return [
-                  "stats",
-                  "login",
-                  "login_autotest",
-                  "mfa",\''',
-              "stats public route",
-          )'''
-          if route_old not in text:
-              raise SystemExit('public runtime route patch anchor missing')
-          path.write_text(text.replace(route_old, route_new, 1), encoding='utf-8')
+          marker = '    "stats public route",\n)\n'
+          end = text.index(marker) + len(marker)
+          start = text.rfind('runner = replace_once(', 0, end)
+          if start < 0:
+              raise SystemExit('public runtime route block start missing')
+          replacement = """public_route_old = '''        \"login\",
+                  \"login_autotest\",
+                  \"mfa\",'''
+          public_route_new = '''        \"stats\",
+                  \"login\",
+                  \"login_autotest\",
+                  \"mfa\",'''
+          if runner.count(public_route_old) != 2:
+              raise RuntimeError(
+                  f\"stats public route: expected two occurrences, found {runner.count(public_route_old)}\",
+              )
+          public_route_head, public_route_tail = runner.rsplit(public_route_old, 1)
+          runner = public_route_head + public_route_new + public_route_tail
+          """
+          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
           PY
           python3 tools/public_stats_apply.py
           rm tools/public_stats_apply.py
