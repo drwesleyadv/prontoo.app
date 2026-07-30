@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.17 — Áreas segmentadas em Leitura e gravação
+
+- separa geometricamente as áreas exclusivas de Requisições e Registros;
+- mantém cada área exclusiva com exatamente a mesma cor e opacidade da respectiva linha;
+- trata a interseção como uma terceira área neutra, sem mistura cromática entre as séries;
+- preserva linhas, pontos, eixos, tooltips, gráfico Velocidade, métricas, banco e schema.
+
 ## 1.7.30.16 — Tom exato da área de Requisições
 
 - mantém na área inferior de Requisições exatamente o mesmo tom visual de sua linha;

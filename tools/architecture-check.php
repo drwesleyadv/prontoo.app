@@ -1406,8 +1406,12 @@ foreach ([
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
-        '? $responseArea . $loadArea',
-        ': $loadArea . $responseArea;',
+        '$segmentedCountAreas = static function (',
+        '"intersection" => trim($intersectionPath)',
+        'class="metric-chart-fill-load-exclusive"',
+        'class="metric-chart-fill-response-exclusive"',
+        'class="metric-chart-fill-intersection"',
+        '$intersectionArea . $loadExclusiveArea . $responseExclusiveArea',
         '$recentValue = $valueType === "count"',
         '$overallAverageValues = $valueType === "count"',
         '$middleAverageValues = $valueType === "count"',
@@ -1423,8 +1427,9 @@ foreach ([
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:.42}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load-exclusive{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response-exclusive{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-intersection{fill:color-mix(in srgb,var(--md-sys-color-outline-variant) 42%,var(--md-sys-color-surface-container-lowest) 58%);opacity:1}',
     ],
     'bootstrap' => [
         'dual-area-single-renderer-identical-visuals-data-specific-labels-one-row',
@@ -1509,6 +1514,9 @@ foreach ([
     '"Requisições e registros"',
     'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
     'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
+    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{',
+    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{',
+    '? $responseArea . $loadArea',
 ] as $outlineToken) {
     if (str_contains(
         $developerDashboardSources['admin'] .
