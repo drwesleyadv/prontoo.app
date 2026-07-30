@@ -1,3 +1,9 @@
+Prontoo 1.7.30.17 — Áreas segmentadas em Leitura e gravação
+
+- Requisições e Registros passam a ter preenchimentos exclusivos com o mesmo tom de suas linhas.
+- A área compartilhada recebe tratamento neutro próprio, sem sobreposição cromática.
+- Velocidade, métricas, banco e schema permanecem inalterados.
+
 Prontoo 1.7.30.16 — Tom exato da área de Requisições
 
 - A área inferior de Requisições passa a ter exatamente o mesmo tom visual da linha correspondente.
