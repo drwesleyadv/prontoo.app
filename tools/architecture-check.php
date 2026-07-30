@@ -1065,6 +1065,63 @@ $phaseFiveCharacterization = [
     'ok' => $phaseFiveFailures === [],
     'failed' => $phaseFiveFailures,
 ];
+require_once $root . '/app/Core/Performance/PerformanceBudget.php';
+
+$serverPhaseOneFailures = [];
+$performanceContract = json_decode(
+    (string) file_get_contents($root . '/app/performance.budgets.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+if (!is_array($performanceContract) || ($performanceContract['schema'] ?? '') !== 'prontoo-performance-budgets-v1') {
+    $serverPhaseOneFailures[] = 'performance_budget_schema';
+} else {
+    $underBudget = \Prontoo\Core\Performance\PerformanceBudget::evaluate(
+        $performanceContract,
+        'patients',
+        [
+            'elapsed_ms' => 400,
+            'query_ms' => 120,
+            'queries' => 20,
+            'wide_selects' => 0,
+            'module_files' => 20,
+            'module_bytes' => 900000,
+        ],
+    );
+    $overBudget = \Prontoo\Core\Performance\PerformanceBudget::evaluate(
+        $performanceContract,
+        'patients',
+        [
+            'elapsed_ms' => 5000,
+            'query_ms' => 2000,
+            'queries' => 300,
+            'wide_selects' => 8,
+            'module_files' => 90,
+            'module_bytes' => 5000000,
+        ],
+    );
+    $fallbackBudget = \Prontoo\Core\Performance\PerformanceBudget::resolve(
+        $performanceContract,
+        'unknown_route',
+    );
+    $normalizedDefault = \Prontoo\Core\Performance\PerformanceBudget::normalize(
+        (array) ($performanceContract['defaults'] ?? []),
+    );
+    if (empty($underBudget['ok'])) {
+        $serverPhaseOneFailures[] = 'performance_budget_under_limit';
+    }
+    if (!empty($overBudget['ok']) || count((array) ($overBudget['breaches'] ?? [])) !== 6) {
+        $serverPhaseOneFailures[] = 'performance_budget_breach_detection';
+    }
+    if ($fallbackBudget !== $normalizedDefault) {
+        $serverPhaseOneFailures[] = 'performance_budget_fallback';
+    }
+}
+$serverPhaseOneCharacterization = [
+    'ok' => $serverPhaseOneFailures === [],
+    'failed' => $serverPhaseOneFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1078,7 +1135,8 @@ $result = [
         !empty($phaseTwoCharacterization['ok']) &&
         !empty($phaseThreeCharacterization['ok']) &&
         !empty($phaseFourCharacterization['ok']) &&
-        !empty($phaseFiveCharacterization['ok']),
+        !empty($phaseFiveCharacterization['ok']) &&
+        !empty($serverPhaseOneCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1091,6 +1149,7 @@ $result = [
     'phase_three_characterization' => $phaseThreeCharacterization,
     'phase_four_characterization' => $phaseFourCharacterization,
     'phase_five_characterization' => $phaseFiveCharacterization,
+    'server_phase_one_characterization' => $serverPhaseOneCharacterization,
 ];
 
 echo json_encode(

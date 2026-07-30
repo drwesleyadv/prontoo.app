@@ -91,6 +91,7 @@ function prontoo_runtime_core_modules(): array
         'Support/SecurityPrivacy.php',
         'Support/Foundation.php',
         'Support/ServerJsonCache.php',
+        'Core/Performance/PerformanceBudget.php',
         'Support/Telemetry.php',
         'Database/DatabaseSchema.php',
         'Support/SecurityAccess.php',

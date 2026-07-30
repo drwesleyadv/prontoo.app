@@ -62,3 +62,4 @@
 ## Referência
 
 - [Glossário](glossary.md)
+- [Orçamentos de desempenho](performance/performance-budgets.md)
