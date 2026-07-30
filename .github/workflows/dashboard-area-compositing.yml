@@ -56,6 +56,39 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/dashboard_area_compositing_apply.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/architecture-check.php')
+          source = path.read_text(encoding='utf-8')
+          old_policy = "'dual-area-shared-palette-filled-volume-no-series-outline-one-row'"
+          new_policy = "'dual-area-shared-css-palette-identical-compositing-order-no-series-outline-one-row'"
+          if source.count(old_policy) != 1:
+              raise SystemExit('architecture policy token mismatch')
+          source = source.replace(old_policy, new_policy, 1)
+          old_loop = '''foreach ([
+              '.metric-dual-count-chart .metric-chart-fill-requests{',
+              '.metric-dual-count-chart .metric-chart-fill-records{',
+          ] as $duplicatedPaletteToken) {
+              if (str_contains($developerDashboardSources['css'], $duplicatedPaletteToken)) {
+                  $developerDashboardFailures[] =
+                      'developer_dashboard_duplicated_palette:' . $duplicatedPaletteToken;
+              }
+          }
+          '''
+          new_loop = '''foreach ([
+              "\n.metric-dual-count-chart .metric-chart-fill-requests{",
+              "\n.metric-dual-count-chart .metric-chart-fill-records{",
+          ] as $duplicatedPaletteToken) {
+              if (str_contains($developerDashboardSources['css'], $duplicatedPaletteToken)) {
+                  $developerDashboardFailures[] =
+                      'developer_dashboard_duplicated_palette:' . trim($duplicatedPaletteToken);
+              }
+          }
+          '''
+          if source.count(old_loop) != 1:
+              raise SystemExit('duplicated palette contract mismatch')
+          path.write_text(source.replace(old_loop, new_loop, 1), encoding='utf-8')
+          PY
           rm tools/dashboard_area_compositing_apply.py
           rm .github/workflows/dashboard-area-compositing.yml
           find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
@@ -102,8 +135,6 @@ jobs:
           grep -F 'class="metric-chart-fill-response metric-chart-fill-records"' app/Admin/AdminPages.php
           grep -F '.metric-dual-time-chart .metric-chart-fill-load,.metric-dual-count-chart .metric-chart-fill-requests{' public/assets/design-system.css
           grep -F '.metric-dual-time-chart .metric-chart-fill-response,.metric-dual-count-chart .metric-chart-fill-records{' public/assets/design-system.css
-          ! grep -F '.metric-dual-count-chart .metric-chart-fill-requests{' public/assets/design-system.css
-          ! grep -F '.metric-dual-count-chart .metric-chart-fill-records{' public/assets/design-system.css
           python3 - <<'PY'
           from pathlib import Path
           source = Path('app/Admin/AdminPages.php').read_text(encoding='utf-8')
@@ -111,6 +142,10 @@ jobs:
           record = source.index('class="metric-chart-fill-response metric-chart-fill-records"')
           if request >= record:
               raise SystemExit('invalid area compositing order')
+          css = Path('public/assets/design-system.css').read_text(encoding='utf-8')
+          for line in css.splitlines():
+              if line.startswith('.metric-dual-count-chart .metric-chart-fill-requests{') or line.startswith('.metric-dual-count-chart .metric-chart-fill-records{'):
+                  raise SystemExit('duplicated standalone count palette')
           PY
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
