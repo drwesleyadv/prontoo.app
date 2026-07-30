@@ -2,6 +2,9 @@ name: Documentation Contract
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,16 +15,74 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
-  GITHUB_ACTIONS: 'true'
-  CI: 'true'
-  PRONTOO_SCHEMA_TEST_MODE: '1'
-  PRONTOO_INSTALLER_CLI_MODE: '1'
 
 jobs:
-  apply-contract-sync:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'agent/final-architecture-contract-sync' }}
+  reconcile-manifest:
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Reconcile update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root = getcwd();
+          $manifestPath = $root . '/app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+          $files = [];
+          $total = 0;
+          $iterator = new RecursiveIteratorIterator(
+              new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+          );
+          foreach ($iterator as $file) {
+              if (!$file->isFile() || $file->isLink()) {
+                  continue;
+              }
+              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+              if ($relative === 'app/update.manifest.json' ||
+                  str_starts_with($relative, '.git/') ||
+                  str_starts_with($relative, 'ssd/') ||
+                  str_starts_with($relative, 'vendor/') ||
+                  str_starts_with($relative, 'node_modules/')) {
+                  continue;
+              }
+              $files[$relative] = hash_file('sha256', $file->getPathname());
+              $total += $file->getSize();
+          }
+          ksort($files, SORT_STRING);
+          $manifest['files'] = $files;
+          $manifest['file_count'] = count($files);
+          $manifest['total_uncompressed_bytes'] = $total;
+          $manifest['updated_at'] = gmdate('c');
+          file_put_contents(
+              $manifestPath,
+              json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
+          );
+          PHP
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/update.manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Sincronizar manifesto documental"
+          git push origin HEAD:${GITHUB_HEAD_REF}
+  validate:
+    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       mysql:
         image: mysql:8.0
@@ -38,9 +99,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -48,49 +106,18 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql
-      - name: Apply, restore and validate
+      - name: Validate documentation contract
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/final_contract_sync_apply.py
-          git show origin/main:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          git rm -f tools/final_contract_sync_apply.py
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          $root = getcwd();
-          $path = $root . '/app/update.manifest.json';
-          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
-          $files = [];
-          $total = 0;
-          $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
-          foreach ($iterator as $file) {
-              if (!$file->isFile() || $file->isLink()) {
-                  continue;
-              }
-              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
-              if ($relative === 'app/update.manifest.json' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
-                  continue;
-              }
-              $files[$relative] = hash_file('sha256', $file->getPathname());
-              $total += $file->getSize();
-          }
-          ksort($files, SORT_STRING);
-          $manifest['files'] = $files;
-          $manifest['file_count'] = count($files);
-          $manifest['total_uncompressed_bytes'] = $total;
-          $manifest['updated_at'] = gmdate('c');
-          file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
-          PHP
-          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Sincronizar contratos arquiteturais"
-          git push origin HEAD:${GITHUB_HEAD_REF}

@@ -24,6 +24,16 @@ if (!defined('PRONTOO_ROOT')) {
     define('PRONTOO_ROOT', $root);
 }
 $versionMetadata = json_decode((string) file_get_contents($root . '/version.json'), true, 512, JSON_THROW_ON_ERROR);
+$architectureMetadata = json_decode((string) file_get_contents($root . '/app/architecture.manifest.json'), true, 512, JSON_THROW_ON_ERROR);
+foreach ([
+    'version' => 'version',
+    'architecture_native_files_min' => 'native_files_min',
+    'architecture_transitional_files_max' => 'transitional_files_max',
+] as $versionKey => $architectureKey) {
+    if (($versionMetadata[$versionKey] ?? null) !== ($architectureMetadata[$architectureKey] ?? null)) {
+        throw new RuntimeException('Contrato arquitetural divergente entre version.json e architecture.manifest.json: ' . $versionKey);
+    }
+}
 if (!defined('PRONTOO_VERSION')) {
     define('PRONTOO_VERSION', (string) ($versionMetadata['version'] ?? ''));
 }
