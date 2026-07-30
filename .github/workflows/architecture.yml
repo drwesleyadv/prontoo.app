@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -40,6 +40,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || 'main' }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -47,6 +50,18 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql
+      - name: Apply administrator agenda publication
+        if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/administrator-agenda-publish.py
+          php -l app/Ui/Components.php
+          php -l app/Auth/AuthOnboarding.php
+          php -l app/Pages/Dashboards.php
+          php -l app/prontoo.php
+          php -l br/index.php
+          git diff --check
       - name: PHP syntax
         shell: bash
         run: |
@@ -118,3 +133,14 @@ jobs:
         run: |
           set -euo pipefail
           php tools/install-security-check.php
+      - name: Commit validated publication
+        if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Suprimir painel do Administrador"
+          git push origin HEAD:${GITHUB_HEAD_REF}
