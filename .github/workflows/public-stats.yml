@@ -59,6 +59,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          LOG_FILE=/tmp/public-stats-apply.log
+          exec > >(tee "$LOG_FILE") 2>&1
+          report_failure() {
+            status=$?
+            trap - EXIT
+            if [ "$status" -ne 0 ]; then
+              tail -n 300 "$LOG_FILE" > public-stats-failure.log
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add public-stats-failure.log
+              git commit -m "Registrar falha da aplicação de stats" || true
+              git push origin HEAD:agent/reuse-speed-chart-renderer || true
+            fi
+            exit "$status"
+          }
+          trap report_failure EXIT
           sleep 20
           git fetch origin agent/reuse-speed-chart-renderer
           git reset --hard origin/agent/reuse-speed-chart-renderer
@@ -98,6 +114,7 @@ jobs:
           python3 tools/public_stats_apply.py
           rm tools/public_stats_apply.py
           rm .github/workflows/public-stats.yml
+          rm -f public-stats-failure.log
           find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
           <?php
