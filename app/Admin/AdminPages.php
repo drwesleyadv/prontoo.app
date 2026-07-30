@@ -1325,11 +1325,40 @@ function admin_metric_dual_area_chart(
             round($baseline, 2) .
             " Z";
     };
+    $betweenFill = static function (
+        array $upperPoints,
+        array $lowerPoints,
+    ): string {
+
+        if (
+            !$upperPoints ||
+            !$lowerPoints ||
+            count($upperPoints) !== count($lowerPoints)
+        ) {
+            return "";
+        }
+        $d = "";
+        foreach ($upperPoints as $i => $point) {
+            $d .=
+                ($i === 0 ? "M" : "L") .
+                $point[0] .
+                " " .
+                $point[1] .
+                " ";
+        }
+        foreach (array_reverse($lowerPoints) as $point) {
+            $d .= "L" . $point[0] . " " . $point[1] . " ";
+        }
+        return trim($d) . " Z";
+    };
     $loadPoints = $makePoints($loadSeries);
     $responsePoints = $makePoints($responseSeries);
     $loadD = $path($loadPoints);
     $responseD = $path($responsePoints);
-    $loadFill = $fill($loadD, $loadPoints, $baseline);
+    $loadFill =
+        $valueType === "count"
+            ? $betweenFill($loadPoints, $responsePoints)
+            : $fill($loadD, $loadPoints, $baseline);
     $responseFill = $fill($responseD, $responsePoints, $baseline);
     $grid = "";
     for ($i = 0; $i <= 3; $i++) {
@@ -1504,7 +1533,10 @@ function admin_metric_dual_area_chart(
                 e($responseFill) .
                 '" class="metric-chart-fill-response"/>'
             : "";
-    $fillAreas = $loadArea . $responseArea;
+    $fillAreas =
+        $valueType === "count"
+            ? $responseArea . $loadArea
+            : $loadArea . $responseArea;
     return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
         e($valueType) .
         '" data-ds-card="admin-dual-area-chart" aria-label="' .

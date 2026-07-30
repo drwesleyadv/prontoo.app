@@ -1,3 +1,9 @@
+Prontoo 1.7.30.22 — Camadas corretas em Leitura e gravação
+
+- Registros preenche da sua linha até a base com verde claro opaco.
+- Requisições preenche apenas a faixa entre as duas linhas com verde escuro opaco.
+- Mantém as linhas, Velocidade, banco de dados e schema.
+
 Prontoo 1.7.30.21 — Montanhas opacas em Leitura e gravação
 
 - Mantém as cores e espessuras das linhas de Requisições e Registros.

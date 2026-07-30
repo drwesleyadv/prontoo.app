@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.22 — Camadas corretas em Leitura e gravação
+
+- mantém as cores e espessuras atuais das linhas de Requisições e Registros;
+- preenche a faixa inferior, da base até Registros, com o verde claro opaco de Registros;
+- preenche somente o intervalo entre Registros e Requisições com o verde escuro opaco de Requisições;
+- preserva o renderer compartilhado e o comportamento do gráfico Velocidade;
+- não altera banco de dados nem schema.
+
 ## 1.7.30.21 — Montanhas opacas em Leitura e gravação
 
 - mantém inalteradas as cores e espessuras das linhas de Requisições e Registros;
