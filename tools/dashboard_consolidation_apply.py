@@ -442,14 +442,21 @@ write(admin_path, admin)
 
 css_path = "public/assets/design-system.css"
 css = read(css_path)
-old_grid = "  grid-template-columns:repeat(4,minmax(0,1fr))!important;\n"
+old_grid = """body.scope-global .global-telemetry-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+"""
+new_grid = """body.scope-global .global-telemetry-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+"""
 if css.count(old_grid) != 1:
     raise RuntimeError("global telemetry grid boundary not found")
-css = css.replace(
-    old_grid,
-    "  grid-template-columns:repeat(3,minmax(0,1fr))!important;\n",
-    1,
-)
+css = css.replace(old_grid, new_grid, 1)
 css_marker = ".metric-area-chart .metric-axis-label{fill:var(--md-sys-color-on-surface-variant)!important;font-size:10px;opacity:.72;}\n"
 if css.count(css_marker) != 1:
     raise RuntimeError("metric area chart css boundary not found")
