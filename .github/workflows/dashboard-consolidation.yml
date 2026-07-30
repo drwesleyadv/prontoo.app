@@ -56,7 +56,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/dashboard_consolidation_apply.py
+          python3 tools/dashboard_consolidation_characterization_patch.py
           rm tools/dashboard_consolidation_apply.py
+          rm tools/dashboard_consolidation_characterization_patch.py
           rm .github/workflows/dashboard-consolidation.yml
           find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
@@ -97,6 +99,7 @@ jobs:
           PHP
           test ! -e docs/performance/developer-telemetry-dashboard.md
           test ! -e tools/dashboard_consolidation_apply.py
+          test ! -e tools/dashboard_consolidation_characterization_patch.py
           test ! -e .github/workflows/dashboard-consolidation.yml
           test -z "$(find . -type d -name '__pycache__' -print -quit)"
           while IFS= read -r -d '' file; do
