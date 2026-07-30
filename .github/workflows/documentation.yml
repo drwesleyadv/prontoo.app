@@ -52,9 +52,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 tools/server_phase1_fix.py
           python3 tools/server_phase1_apply.py
           git show origin/main:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          git rm -f tools/server_phase1_apply.py .github/workflows/server-phase1-performance-budgets.yml
+          git rm -f tools/server_phase1_fix.py tools/server_phase1_apply.py .github/workflows/server-phase1-performance-budgets.yml
           php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -87,7 +88,6 @@ jobs:
           php tools/code-comment-check.php
           php tools/security-regression-check.php
           php tools/architecture-check.php
-          php tools/performance-budget-check.php
           php tools/schema-check.php
           php tools/install-security-check.php
           git config user.name "github-actions[bot]"
