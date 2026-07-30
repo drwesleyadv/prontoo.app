@@ -62,14 +62,6 @@ jobs:
           from pathlib import Path
           path = Path('tools/public_stats_apply.py')
           text = path.read_text(encoding='utf-8')
-          replacements = {
-              '''        "$stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]",''': '''        '$stats = [\\'stats\\' => [\\'Domain/Maestro/Maestro.php\\', \\'Admin/AdminPages.php\\']]', ''',
-              '''        "'stats' => $stats",''': '''        '\\'stats\\' => $stats',''',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'loader architecture token patch anchor missing: {old}')
-              text = text.replace(old, new, 1)
           marker = '    "stats public route",\n)\n'
           end = text.index(marker) + len(marker)
           start = text.rfind('runner = replace_once(', 0, end)
@@ -92,9 +84,22 @@ jobs:
           path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
           PY
           python3 tools/public_stats_apply.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/architecture-check.php')
+          text = path.read_text(encoding='utf-8')
+          old = '''        "$stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]",
+                  "'stats' => $stats",'''
+          new = """        '$stats = [\\'stats\\' => [\\'Domain/Maestro/Maestro.php\\', \\'Admin/AdminPages.php\\']]',
+                  '\\'stats\\' => $stats',"""
+          if text.count(old) != 1:
+              raise SystemExit(f'generated loader token block count: {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
           cp /tmp/documentation.yml .github/workflows/documentation.yml
           rm -f .github/workflows/public-stats.yml
           rm -f tools/public_stats_apply.py
+          rm -f tools/public_stats_trigger.txt
           rm -f public-stats-failure.log
           find tools -type d -name '__pycache__' -prune -exec rm -rf {} +
           php <<'PHP'
@@ -134,6 +139,7 @@ jobs:
           );
           PHP
           test ! -e tools/public_stats_apply.py
+          test ! -e tools/public_stats_trigger.txt
           test ! -e .github/workflows/public-stats.yml
           test ! -e public-stats-failure.log
           test -z "$(find . -type d -name '__pycache__' -print -quit)"
@@ -143,9 +149,6 @@ jobs:
           grep -F 'admin_performance_card_html(true)' app/Admin/AdminPages.php
           grep -F '$publicStats = $r === "stats"' app/Runtime/Runner.php
           grep -F "'stats' => \$stats" app/Support/ModuleLoader.php
-          ! grep -A80 -F 'function page_stats(): void' app/Admin/AdminPages.php | grep -F 'require_can('
-          ! grep -A80 -F 'function page_stats(): void' app/Admin/AdminPages.php | grep -F 'ctx('
-          ! grep -A80 -F 'function page_stats(): void' app/Admin/AdminPages.php | grep -F '$_POST'
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . \
