@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - agent/segmented-count-chart-fills
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 concurrency:
   group: segmented-count-chart-fills
@@ -125,4 +132,3 @@ jobs:
           git diff --cached --check
           git commit -m "Segmentar áreas de Leitura e gravação"
           git push origin HEAD:agent/segmented-count-chart-fills
-
