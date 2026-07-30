@@ -884,6 +884,8 @@ function telemetry_cache_empty_row(): array
         "bypasses" => 0,
         "invalidations" => 0,
         "invalidated_categories" => 0,
+        "generation_bumps" => 0,
+        "generation_fallback_clears" => 0,
         "expired" => 0,
         "invalid" => 0,
         "write_errors" => 0,

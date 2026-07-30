@@ -1,3 +1,7 @@
+Prontoo 1.7.30.2 — Evolução do servidor, Fase 2: gerações de cache
+
+- Troca invalidação recursiva por gerações atômicas com fallback seguro.
+- Mantém banco, schema, interface, permissões e comportamento funcional.
 Prontoo 1.7.30.1 — Evolução do servidor, Fase 1: orçamentos de desempenho
 
 - Institui orçamentos versionados por rota e caracterização no contrato arquitetural.

@@ -103,6 +103,79 @@ function server_json_cache_category_dir(string $category): string
     return $resolved[$category] = $dir;
 }
 
+function server_json_cache_generation_file(string $category): string
+{
+
+    return server_json_cache_category_dir($category) . "/generation.txt";
+}
+
+function server_json_cache_generation(string $category): int
+{
+
+    $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
+    $generations = $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"] ?? [];
+    if (is_array($generations) && isset($generations[$category])) {
+        return max(1, (int) $generations[$category]);
+    }
+    $raw = @file_get_contents(server_json_cache_generation_file($category));
+    $generation = max(1, (int) trim(is_string($raw) ? $raw : "1"));
+    if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"]) ||
+        !is_array($GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"])) {
+        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"] = [];
+    }
+    $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = $generation;
+    return $generation;
+}
+
+function server_json_cache_bump_generation(string $category): int
+{
+
+    $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
+    $dir = server_json_cache_category_dir($category);
+    $file = server_json_cache_generation_file($category);
+    $handle = @fopen($file, "c+");
+    if (!is_resource($handle)) {
+        server_json_cache_rrmdir($dir);
+        @mkdir($dir, 0750, true);
+        @file_put_contents($file, "1\n", LOCK_EX);
+        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
+        server_json_cache_metric_add($category, "generation_fallback_clears");
+        return 1;
+    }
+    try {
+        if (!@flock($handle, LOCK_EX)) {
+            throw new RuntimeException("Não foi possível bloquear a geração do cache.");
+        }
+        rewind($handle);
+        $raw = stream_get_contents($handle);
+        $current = max(1, (int) trim(is_string($raw) ? $raw : "1"));
+        $next = $current >= PHP_INT_MAX - 1 ? 1 : $current + 1;
+        rewind($handle);
+        ftruncate($handle, 0);
+        if (fwrite($handle, (string) $next . "\n") === false || !fflush($handle)) {
+            throw new RuntimeException("Não foi possível persistir a geração do cache.");
+        }
+        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = $next;
+        server_json_cache_metric_add($category, "generation_bumps");
+        return $next;
+    } catch (Throwable $error) {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+        server_json_cache_rrmdir($dir);
+        @mkdir($dir, 0750, true);
+        @file_put_contents($file, "1\n", LOCK_EX);
+        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
+        server_json_cache_metric_add($category, "generation_fallback_clears");
+        error_log("[Prontoo cache generation] " . $error->getMessage());
+        return 1;
+    } finally {
+        if (is_resource($handle)) {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
+    }
+}
+
 function server_json_cache_ttl(string $category): int
 {
 
@@ -139,7 +212,20 @@ function server_json_cache_file(string $category, string $key): string
 {
 
     $key = preg_replace("/[^a-z0-9_\-\.]/i", "_", $key) ?: "cache";
-    return server_json_cache_category_dir($category) . "/" . $key . ".json";
+    $categoryDir = server_json_cache_category_dir($category);
+    $generationDir =
+        $categoryDir .
+        "/generation-" .
+        sprintf("%020d", server_json_cache_generation($category));
+    if (!is_dir($generationDir) &&
+        !@mkdir($generationDir, 0750, true) &&
+        !is_dir($generationDir)) {
+        return $generationDir . "/" . $key . ".json";
+    }
+    if (function_exists("security_storage_deny_file")) {
+        security_storage_deny_file($generationDir);
+    }
+    return $generationDir . "/" . $key . ".json";
 }
 
 function server_json_cache_request_is_read(): bool
@@ -424,7 +510,7 @@ function server_json_cache_clear_categories(array $categories): void
     foreach ($categories as $category) {
         server_json_cache_metric_add($category, "invalidations");
         $dir = server_json_cache_category_dir($category);
-        server_json_cache_rrmdir($dir);
+        server_json_cache_bump_generation($category);
         server_json_cache_memory_forget_prefix($dir . "/");
     }
 }

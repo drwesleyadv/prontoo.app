@@ -1122,6 +1122,38 @@ $serverPhaseOneCharacterization = [
     'ok' => $serverPhaseOneFailures === [],
     'failed' => $serverPhaseOneFailures,
 ];
+$serverPhaseTwoFailures = [];
+$cacheGenerationSource = (string) file_get_contents($root . '/app/Support/ServerJsonCache.php');
+foreach ([
+    'function server_json_cache_generation_file(',
+    'function server_json_cache_generation(',
+    'function server_json_cache_bump_generation(',
+    '"/generation-"',
+    'ftruncate($handle, 0)',
+    'server_json_cache_bump_generation($category)',
+    'generation_fallback_clears',
+] as $requiredToken) {
+    if (!str_contains($cacheGenerationSource, $requiredToken)) {
+        $serverPhaseTwoFailures[] = 'cache_generation_missing:' . $requiredToken;
+    }
+}
+$clearStart = strpos($cacheGenerationSource, 'function server_json_cache_clear_categories(');
+$clearEnd = $clearStart === false
+    ? false
+    : strpos($cacheGenerationSource, 'function server_json_cache_all_categories(', $clearStart);
+$clearSource = $clearStart !== false && $clearEnd !== false
+    ? substr($cacheGenerationSource, $clearStart, $clearEnd - $clearStart)
+    : '';
+if ($clearSource === '' || str_contains($clearSource, 'server_json_cache_rrmdir($dir)')) {
+    $serverPhaseTwoFailures[] = 'cache_invalidation_still_recursive';
+}
+if (str_contains($cacheGenerationSource, 'return server_json_cache_category_dir($category) . "/" . $key . ".json";')) {
+    $serverPhaseTwoFailures[] = 'cache_key_without_generation';
+}
+$serverPhaseTwoCharacterization = [
+    'ok' => $serverPhaseTwoFailures === [],
+    'failed' => $serverPhaseTwoFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1136,7 +1168,8 @@ $result = [
         !empty($phaseThreeCharacterization['ok']) &&
         !empty($phaseFourCharacterization['ok']) &&
         !empty($phaseFiveCharacterization['ok']) &&
-        !empty($serverPhaseOneCharacterization['ok']),
+        !empty($serverPhaseOneCharacterization['ok']) &&
+        !empty($serverPhaseTwoCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1150,6 +1183,7 @@ $result = [
     'phase_four_characterization' => $phaseFourCharacterization,
     'phase_five_characterization' => $phaseFiveCharacterization,
     'server_phase_one_characterization' => $serverPhaseOneCharacterization,
+    'server_phase_two_characterization' => $serverPhaseTwoCharacterization,
 ];
 
 echo json_encode(
