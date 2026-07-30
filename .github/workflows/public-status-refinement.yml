@@ -65,6 +65,26 @@ jobs:
           sleep 15
           git fetch origin agent/public-status-borders-chart-fills
           git reset --hard origin/agent/public-status-borders-chart-fills
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/public_status_refinement.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''for old, new, label in [
+              ('        "stats",\n        "login",', '        "status",\n        "login",', "route map"),
+              ('        "stats",\n        "login",', '        "status",\n        "login",', "public route list"),
+              ('        ["mobile_web_access", "signup", "stats"],', '        ["mobile_web_access", "signup", "status"],', "public light route"),'''
+          new = '''route_token = '        "stats",\\n        "login",'
+          status_route_token = '        "status",\\n        "login",'
+          route_count = runner.count(route_token)
+          if route_count != 2:
+              raise RuntimeError(f"public routes: expected two occurrences, found {route_count}")
+          runner = runner.replace(route_token, status_route_token, 2)
+          for old, new, label in [
+              ('        ["mobile_web_access", "signup", "stats"],', '        ["mobile_web_access", "signup", "status"],', "public light route"),'''
+          if old not in text:
+              raise SystemExit('runner route preparer anchor missing')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
           python3 tools/public_status_refinement.py
           rm tools/public_status_refinement.py
           rm .github/workflows/public-status-refinement.yml
