@@ -1,0 +1,110 @@
+name: Server Evolution Phase 1
+
+on:
+  push:
+    branches:
+      - agent/server-evolution-phase1-performance-budgets
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/server-evolution-phase1-performance-budgets
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/server_phase1_apply.py
+          git rm -f tools/server_phase1_apply.py .github/workflows/server-phase1-performance-budgets.yml
+      - name: Reconcile manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root = getcwd();
+          $path = $root . '/app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+          $files = [];
+          $total = 0;
+          $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+          foreach ($iterator as $file) {
+              if (!$file->isFile() || $file->isLink()) {
+                  continue;
+              }
+              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+              if ($relative === 'app/update.manifest.json' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
+                  continue;
+              }
+              $files[$relative] = hash_file('sha256', $file->getPathname());
+              $total += $file->getSize();
+          }
+          ksort($files, SORT_STRING);
+          $manifest['files'] = $files;
+          $manifest['file_count'] = count($files);
+          $manifest['total_uncompressed_bytes'] = $total;
+          $manifest['updated_at'] = gmdate('c');
+          file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
+          PHP
+      - name: Validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find . -path './.git' -prune -o -path './ssd' -prune -o -path './vendor' -prune -o -path './node_modules' -prune -o -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/performance-budget-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+      - name: Commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "OpenAI Agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Instituir orçamentos de desempenho"
+          git push origin HEAD:agent/server-evolution-phase1-performance-budgets
