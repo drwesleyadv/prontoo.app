@@ -1685,15 +1685,15 @@ function admin_metric_dual_count_chart(
         '" aria-hidden="true" focusable="false"><g>' .
         $grid .
         "</g>" .
-        ($recordFill !== ""
-            ? '<path d="' .
-                e($recordFill) .
-                '" class="metric-chart-fill-records"/>'
-            : "") .
         ($requestFill !== ""
             ? '<path d="' .
                 e($requestFill) .
-                '" class="metric-chart-fill-requests"/>'
+                '" class="metric-chart-fill-load metric-chart-fill-requests"/>'
+            : "") .
+        ($recordFill !== ""
+            ? '<path d="' .
+                e($recordFill) .
+                '" class="metric-chart-fill-response metric-chart-fill-records"/>'
             : "") .
         $hover .
         $ticks .
