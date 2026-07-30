@@ -1379,6 +1379,7 @@ $developerDashboardSources = [
     'bootstrap' => (string) file_get_contents($root . '/app/prontoo.php'),
     'css' => (string) file_get_contents($root . '/public/assets/design-system.css'),
     'docs' => (string) file_get_contents($root . '/docs/index.md'),
+    'htaccess' => (string) file_get_contents($root . '/.htaccess'),
 ];
 foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
     foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {
@@ -1390,14 +1391,24 @@ foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
 }
 foreach ([
     'admin' => [
-        'function admin_metric_dual_count_chart(',
+        'function admin_metric_dual_area_chart(',
+        'array $presentation = []',
+        'function admin_performance_card_content_html(bool $public = false): string',
+        'function admin_performance_card_html(bool $public = false): string',
+        'function page_stats(): void',
+        'admin_performance_card_html(true)',
+        'https://prontoo.app/stats',
         '"Requisições"',
         '"Tempo Médio"',
         '"Landing Page"',
         '"Usuários Ativos"',
         '"Leitura e gravação"',
-        'metric-chart-fill-load metric-chart-fill-requests',
-        'metric-chart-fill-response metric-chart-fill-records',
+        '"primary_label" => "Requisições"',
+        '"secondary_label" => "Registros"',
+        '"value_type" => "count"',
+        '$recentValue = $valueType === "count"',
+        '$overallAverageValues = $valueType === "count"',
+        '$middleAverageValues = $valueType === "count"',
         '$averageResponseMs',
         '$landingRequests24h',
         '(int) ($routePerformance["count"] ?? 0)',
@@ -1406,12 +1417,26 @@ foreach ([
     ],
     'css' => [
         'grid-template-columns:repeat(4,minmax(0,1fr))!important',
-        '.metric-dual-time-chart .metric-chart-fill-load,.metric-dual-count-chart .metric-chart-fill-requests{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);stroke:none;opacity:.38}',
-        '.metric-dual-time-chart .metric-chart-fill-response,.metric-dual-count-chart .metric-chart-fill-records{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);stroke:none;opacity:.78}',
-        'stroke:none',
+        '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);opacity:.38}',
+        '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
+        '.metric-dual-time-chart .metric-chart-line-load',
+        '.metric-dual-time-chart .metric-chart-line-response',
     ],
     'bootstrap' => [
-        'dual-area-shared-css-palette-identical-compositing-order-no-series-outline-one-row',
+        'dual-area-single-renderer-identical-visuals-data-specific-labels-one-row',
+    ],
+    'runner' => [
+        '$publicStats = $r === "stats"',
+        'headers_secure($publicStats)',
+        '$cNow = $publicStats || $publicHome || $r === "logout" ? [] : ctx()',
+        'if ($r !== "logout" && !$publicStats)',
+    ],
+    'loader' => [
+        '$stats = [\'stats\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
+        '\'stats\' => $stats',
+    ],
+    'htaccess' => [
+        'RewriteRule ^stats/?$ index.php?r=stats [QSA,L,NC]',
     ],
 ] as $sourceKey => $tokens) {
     foreach ($tokens as $token) {
@@ -1490,28 +1515,66 @@ foreach ([
             'developer_dashboard_outline_token:' . $outlineToken;
     }
 }
-$requestAreaPosition = strpos(
+$publicStatsStart = strpos(
     $developerDashboardSources['admin'],
-    'class="metric-chart-fill-load metric-chart-fill-requests"',
+    'function page_stats(): void',
 );
-$recordAreaPosition = strpos(
+$publicStatsEnd = $publicStatsStart === false
+    ? false
+    : strpos(
+        $developerDashboardSources['admin'],
+        'function page_admin_operations(): void',
+        $publicStatsStart,
+    );
+$publicStatsSource =
+    $publicStatsStart !== false && $publicStatsEnd !== false
+        ? substr(
+            $developerDashboardSources['admin'],
+            $publicStatsStart,
+            $publicStatsEnd - $publicStatsStart,
+        )
+        : '';
+if ($publicStatsSource === '') {
+    $developerDashboardFailures[] = 'public_stats_page_boundary';
+} else {
+    foreach ([
+        'require_can(',
+        'ctx(',
+        '$_POST',
+        'INSERT ',
+        'UPDATE ',
+        'DELETE ',
+        'page_head(',
+        'admin-telemetry-card',
+        'priority-actions',
+    ] as $publicStatsForbiddenToken) {
+        if (str_contains($publicStatsSource, $publicStatsForbiddenToken)) {
+            $developerDashboardFailures[] =
+                'public_stats_forbidden_token:' . $publicStatsForbiddenToken;
+        }
+    }
+}
+if (substr_count(
     $developerDashboardSources['admin'],
-    'class="metric-chart-fill-response metric-chart-fill-records"',
-);
-if ($requestAreaPosition === false ||
-    $recordAreaPosition === false ||
-    $requestAreaPosition >= $recordAreaPosition) {
-    $developerDashboardFailures[] = 'developer_dashboard_area_compositing_order';
+    'admin_metric_dual_area_chart(',
+) < 3) {
+    $developerDashboardFailures[] = 'developer_dashboard_shared_renderer_call_count';
 }
 foreach ([
-    "
-.metric-dual-count-chart .metric-chart-fill-requests{",
-    "
-.metric-dual-count-chart .metric-chart-fill-records{",
-] as $duplicatedPaletteToken) {
-    if (str_contains($developerDashboardSources['css'], $duplicatedPaletteToken)) {
+    'function admin_metric_dual_count_chart(',
+    'metric-dual-count-chart',
+    'metric-count-pill',
+    'metric-series-key',
+    'metric-chart-fill-requests',
+    'metric-chart-fill-records',
+] as $obsoleteCountRendererToken) {
+    if (str_contains(
+        $developerDashboardSources['admin'] .
+            $developerDashboardSources['css'],
+        $obsoleteCountRendererToken,
+    )) {
         $developerDashboardFailures[] =
-            'developer_dashboard_duplicated_palette:' . trim($duplicatedPaletteToken);
+            'obsolete_count_renderer_token:' . $obsoleteCountRendererToken;
     }
 }
 foreach ([

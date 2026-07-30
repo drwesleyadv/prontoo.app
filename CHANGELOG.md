@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.7.30.13 — Renderer único para os gráficos do Painel
+
+- elimina o renderer específico de Leitura e gravação;
+- renderiza Velocidade e Leitura e gravação pela mesma função, com HTML, SVG, áreas, linhas, pontos, eixos e tooltips idênticos;
+- altera somente dados, rótulos e unidade para Requisições e Registros;
+- remove estilos exclusivos e divergentes do gráfico anterior;
+- disponibiliza `https://prontoo.app/stats` como página pública GET com exclusivamente o card de desempenho, sem contexto autenticado, POST ou criação de schema;
+- inclui dias com zero requisições nas médias diárias de 7 e 30 dias;
+- mantém banco e schema inalterados.
+
 ## 1.7.30.12 — Composição visual idêntica entre gráficos
 
 - reutiliza no gráfico Leitura e gravação as mesmas classes de preenchimento do gráfico Velocidade;
