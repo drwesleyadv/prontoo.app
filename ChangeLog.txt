@@ -1,3 +1,10 @@
+Prontoo 1.7.30.20 — Administrador inicia na Agenda diária
+
+- Remove o item Painel da navegação do perfil Administrador.
+- Faz o login do Administrador carregar diretamente a visão diária da Agenda.
+- Redireciona a antiga rota Painel do Administrador para a Agenda.
+- Banco e schema permanecem inalterados.
+
 Prontoo 1.7.30.19 — Sincronização do contrato de versão
 
 - Corrige o manifesto de atualização que permaneceu em 1.7.30.17 após a publicação 1.7.30.18.

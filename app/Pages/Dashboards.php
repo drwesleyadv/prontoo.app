@@ -1071,8 +1071,7 @@ function page_painel(): void
     $cid = (int) $c["clinic_id"];
     $uid = (int) $c["user"]["id"];
     if (has_effective_role($c, "gerente")) {
-        page_gerente_painel($c);
-        return;
+        redirect("appointments");
     }
     if (($c["role"] ?? "") === "medico") {
         page_medico_painel($c);

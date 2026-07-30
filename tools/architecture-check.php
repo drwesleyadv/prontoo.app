@@ -1690,6 +1690,71 @@ if ($statusPublicLayoutFailures !== []) {
     exit(1);
 }
 
+
+$administratorEntryFailures = [];
+$administratorEntrySources = [
+    'auth' => (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php'),
+    'components' => (string) file_get_contents($root . '/app/Ui/Components.php'),
+    'dashboards' => (string) file_get_contents($root . '/app/Pages/Dashboards.php'),
+    'appointments' => (string) file_get_contents($root . '/app/Domain/Appointments/Appointments.php'),
+];
+foreach ([
+    'auth' => [
+        '$destination = "appointments";',
+        'redirect($destination);',
+        'return $destination;',
+    ],
+    'components' => [
+        'if (has_effective_role($c, "gerente")) {',
+        'unset($visibleActions["painel"]);',
+    ],
+    'dashboards' => [
+        'if (has_effective_role($c, "gerente")) {',
+        'redirect("appointments");',
+    ],
+    'appointments' => [
+        '$agendaView = (string) ($_GET["view"] ?? "diario");',
+        '$agendaView = "diario";',
+    ],
+] as $sourceKey => $requiredTokens) {
+    foreach ($requiredTokens as $requiredToken) {
+        if (!str_contains($administratorEntrySources[$sourceKey], $requiredToken)) {
+            $administratorEntryFailures[] = $sourceKey . ':missing:' . $requiredToken;
+        }
+    }
+}
+foreach ([
+    'auth' => [
+        '(string) ($choice["role_code"] ?? "") === "gerente"',
+        '? "painel"',
+    ],
+    'components' => [
+        '$adminPainelAction',
+        '$adminPainelInserted',
+        '$adminVisibleActions["painel"]',
+    ],
+] as $sourceKey => $forbiddenTokens) {
+    foreach ($forbiddenTokens as $forbiddenToken) {
+        if (str_contains($administratorEntrySources[$sourceKey], $forbiddenToken)) {
+            $administratorEntryFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
+        }
+    }
+}
+$painelStart = strpos($administratorEntrySources['dashboards'], 'function page_painel(): void');
+$painelSource = $painelStart === false
+    ? ''
+    : substr($administratorEntrySources['dashboards'], $painelStart);
+if ($painelSource === '' || !str_contains($painelSource, 'redirect("appointments");')) {
+    $administratorEntryFailures[] = 'dashboards:manager_panel_redirect';
+}
+if ($painelSource !== '' && str_contains($painelSource, 'page_gerente_painel($c);')) {
+    $administratorEntryFailures[] = 'dashboards:manager_panel_still_rendered';
+}
+$administratorEntryCharacterization = [
+    'ok' => $administratorEntryFailures === [],
+    'failed' => $administratorEntryFailures,
+];
+
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1710,6 +1775,7 @@ $result = [
         !empty($serverPhaseFourCharacterization['ok']) &&
         !empty($serverPhaseFiveCharacterization['ok']) &&
         !empty($serverPhaseSixCharacterization['ok']) &&
+        !empty($administratorEntryCharacterization['ok']) &&
         !empty($developerDashboardCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
@@ -1729,6 +1795,7 @@ $result = [
     'server_phase_four_characterization' => $serverPhaseFourCharacterization,
     'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
     'server_phase_six_characterization' => $serverPhaseSixCharacterization,
+    'administrator_entry_characterization' => $administratorEntryCharacterization,
     'developer_dashboard_characterization' => $developerDashboardCharacterization,
 ];
 
