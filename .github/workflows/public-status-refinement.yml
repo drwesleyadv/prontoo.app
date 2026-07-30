@@ -69,11 +69,11 @@ jobs:
           from pathlib import Path
           path = Path('tools/public_status_refinement.py')
           text = path.read_text(encoding='utf-8')
-          anchor = 'runner = read(runner_path)\n'
-          start = text.index(anchor) + len(anchor)
-          end_token = 'write(runner_path, runner)'
-          end = text.index(end_token, start) + len(end_token)
-          replacement = '''route_token = '        "stats",\\n        "login",'
+          runner_anchor = 'runner = read(runner_path)\n'
+          runner_start = text.index(runner_anchor) + len(runner_anchor)
+          runner_end_token = 'write(runner_path, runner)'
+          runner_end = text.index(runner_end_token, runner_start) + len(runner_end_token)
+          runner_replacement = '''route_token = '        "stats",\\n        "login",'
           status_route_token = '        "status",\\n        "login",'
           route_count = runner.count(route_token)
           if route_count != 2:
@@ -89,7 +89,19 @@ jobs:
           ]:
               runner = replace_once(runner, old, new, label)
           write(runner_path, runner)'''
-          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
+          text = text[:runner_start] + runner_replacement + text[runner_end:]
+          css_anchor = 'css = read(css_path)\n'
+          css_start = text.index(css_anchor) + len(css_anchor)
+          css_end = text.index('line_anchor = ', css_start)
+          css_replacement = '''route_css_token = 'body[data-route="stats"]'
+          status_css_token = 'body[data-route="status"]'
+          route_css_count = css.count(route_css_token)
+          if route_css_count != 3:
+              raise RuntimeError(f"public CSS routes: expected three occurrences, found {route_css_count}")
+          css = css.replace(route_css_token, status_css_token, 3)
+          '''
+          text = text[:css_start] + css_replacement + text[css_end:]
+          path.write_text(text, encoding='utf-8')
           PY
           python3 tools/public_status_refinement.py
           rm tools/public_status_refinement.py
