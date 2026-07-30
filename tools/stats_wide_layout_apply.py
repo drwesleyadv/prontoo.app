@@ -91,9 +91,6 @@ write("ChangeLog.txt", legacy_log)
 
 check_path = "tools/architecture-check.php"
 check = read(check_path)
-anchor = "'developer_telemetry_characterization'"
-if anchor not in check:
-    raise RuntimeError("architecture result anchor missing")
 css_contract = """
 $statsWideLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
 $statsWideLayoutFailures = [];
@@ -117,13 +114,6 @@ if "$statsWideLayoutCss" not in check:
     if position < 0:
         raise RuntimeError("architecture final result anchor missing")
     check = check[:position] + css_contract + "\n" + check[position:]
-    result_anchor = "    'developer_telemetry_characterization'"
-    check = replace_once(
-        check,
-        result_anchor,
-        "    'public_stats_wide_layout' => [\n        'ok' => true,\n        'width' => '95vw',\n        'borderless' => true,\n        'public_only' => true,\n    ],\n" + result_anchor,
-        "architecture result entry",
-    )
 write(check_path, check)
 
 print(json.dumps({"ok": True, "version": "1.7.30.14"}, ensure_ascii=False))
