@@ -62,7 +62,7 @@ jobs:
           path.write_text(text)
           PY
           python3 tools/tmp_fix_runtime_contract_manifest.py
-          git rm tools/tmp_fix_runtime_contract_manifest.py .github/workflows/tmp-fix-runtime-contract-manifest.yml
+          git rm -f tools/tmp_fix_runtime_contract_manifest.py .github/workflows/tmp-fix-runtime-contract-manifest.yml
           find app br cron public tools -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
           php tools/documentation-check.php
           php tools/code-comment-check.php
