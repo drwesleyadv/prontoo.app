@@ -3748,29 +3748,7 @@ function page_patient(): void
             ) .
             "</b></div></div>";
         $patientContactEdit = $canUpdatePatientContact
-            ? '<details class="patient-edit patient-contact-edit"><summary class="primary small cmdlike">' .
-                action_summary_label("Atualizar contato", "contact_phone") .
-                '</summary><form method="post" class="compact patient-record-form">' .
-                csrf_field() .
-                '<input type="hidden" name="act" value="update_patient_contact">' .
-                '<div class="two">' .
-                form_row(
-                    "Telefone",
-                    input(
-                        "phone",
-                        "text",
-                        $p["phone"],
-                        'required inputmode="tel"',
-                    ),
-                ) .
-                form_row(
-                    "E-mail",
-                    input("email", "email", $p["email"], "required"),
-                ) .
-                "</div>" .
-                patient_address_fields($cid, $p) .
-                form_actions("Salvar contato") .
-                "</form></details>"
+            ? prontoo_patient_contact_edit_form($p, $cid)
             : "";
         $dataPanel =
             '<section class="patient-panel patient-panel-cadastro" role="tabpanel"><h2>Cadastro</h2><p class="muted-copy">Dados de identificação e contato do paciente.</p>' .
@@ -4029,24 +4007,7 @@ function page_patient(): void
         "</b></div>" .
         "</div>";
     $patientContactEdit = $canUpdatePatientContact
-        ? '<details class="patient-edit patient-contact-edit"><summary class="primary small cmdlike">' .
-            action_summary_label("Atualizar contato", "contact_phone") .
-            '</summary><form method="post" class="compact patient-record-form">' .
-            csrf_field() .
-            '<input type="hidden" name="act" value="update_patient_contact">' .
-            '<div class="two">' .
-            form_row(
-                "Telefone",
-                input("phone", "text", $p["phone"], 'required inputmode="tel"'),
-            ) .
-            form_row(
-                "E-mail",
-                input("email", "email", $p["email"], "required"),
-            ) .
-            "</div>" .
-            patient_address_fields($cid, $p) .
-            form_actions("Salvar contato") .
-            "</form></details>"
+        ? prontoo_patient_contact_edit_form($p, $cid)
         : "";
     $patientCpfField =
         trim((string) ($p["cpf"] ?? "")) !== ""

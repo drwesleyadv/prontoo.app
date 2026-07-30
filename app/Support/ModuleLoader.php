@@ -126,6 +126,7 @@ function prontoo_full_runtime_modules(): array
         'Infrastructure/Patients/PdoPatientReadRepository.php',
         'Infrastructure/Patients/PatientTabReadRepository.php',
         'Presentation/Patients/PatientTabView.php',
+        'Presentation/Patients/PatientContactView.php',
         'Domain/Patients/Patients.php',
         'Domain/Appointments/Appointments.php',
         'Domain/Leads/Leads.php',
@@ -196,6 +197,7 @@ function prontoo_route_module_groups(string $route): array
         'Infrastructure/Patients/PdoPatientReadRepository.php',
         'Infrastructure/Patients/PatientTabReadRepository.php',
         'Presentation/Patients/PatientTabView.php',
+        'Presentation/Patients/PatientContactView.php',
         'Domain/Patients/Patients.php',
     ]];
     $leads = ['leads' => ['Domain/Leads/Leads.php']];
