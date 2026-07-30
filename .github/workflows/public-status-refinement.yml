@@ -101,6 +101,11 @@ jobs:
           css = css.replace(route_css_token, status_css_token, 3)
           '''
           text = text[:css_start] + css_replacement + text[css_end:]
+          contract_anchor = '    ("$publicStats", "$publicStatus"),\n'
+          if text.count(contract_anchor) != 1:
+              raise SystemExit('public status contract anchor missing')
+          contract_replacement = contract_anchor + '    (\'$publicStatus = $r === "stats"\', \'$publicStatus = $r === "status"\'),\n'
+          text = text.replace(contract_anchor, contract_replacement, 1)
           path.write_text(text, encoding='utf-8')
           PY
           python3 tools/public_status_refinement.py
