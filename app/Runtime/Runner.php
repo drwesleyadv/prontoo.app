@@ -686,6 +686,30 @@ function prontoo_create_patient_tab_command(
     );
 }
 
+function prontoo_patient_contact_command_service(): \Prontoo\Application\Patients\PatientContactCommandService
+{
+    static $service = null;
+    if (!$service instanceof \Prontoo\Application\Patients\PatientContactCommandService) {
+        $service = new \Prontoo\Application\Patients\PatientContactCommandService(
+            new \Prontoo\Infrastructure\Patients\PdoPatientContactCommandRepository(),
+        );
+    }
+    return $service;
+}
+function prontoo_update_patient_contact_command(
+    int $clinicId,
+    int $patientId,
+    int $userId,
+    array $contact,
+): array {
+    return prontoo_patient_contact_command_service()->update(
+        $clinicId,
+        $patientId,
+        $userId,
+        $contact,
+    );
+}
+
 function prontoo_patient_revenue_receipt_service(): \Prontoo\Application\Financial\PatientRevenueReceiptService
 {
     static $service = null;

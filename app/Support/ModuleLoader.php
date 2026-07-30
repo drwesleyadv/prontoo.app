@@ -112,6 +112,9 @@ function prontoo_full_runtime_modules(): array
 {
 
     return array_values(array_unique(array_merge(prontoo_runtime_core_modules(), [
+        'Application/Patients/PatientContactCommandPort.php',
+        'Application/Patients/PatientContactCommandService.php',
+        'Infrastructure/Patients/PdoPatientContactCommandRepository.php',
         'Application/Patients/PatientReceptionHistoryReadPort.php',
         'Application/Patients/PatientReceptionHistoryReadService.php',
         'Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php',
@@ -179,6 +182,9 @@ function prontoo_route_module_groups(string $route): array
 
     $commonClinic = ['dashboards' => ['Pages/Dashboards.php']];
     $patients = ['patients' => [
+        'Application/Patients/PatientContactCommandPort.php',
+        'Application/Patients/PatientContactCommandService.php',
+        'Infrastructure/Patients/PdoPatientContactCommandRepository.php',
         'Application/Patients/PatientReceptionHistoryReadPort.php',
         'Application/Patients/PatientReceptionHistoryReadService.php',
         'Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php',
