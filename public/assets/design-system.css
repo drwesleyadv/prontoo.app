@@ -14128,6 +14128,8 @@ body[data-route="painel"] .timeline small{
 .metric-dual-time-chart .metric-chart-line-response{fill:none;stroke:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .metric-dual-time-chart .metric-chart-dot-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%)}
 .metric-dual-time-chart .metric-chart-dot-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%)}
+.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:.3}
+.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:.42}
 .metric-dual-time-chart .metric-chart-hit{fill:transparent;stroke:transparent;cursor:help}
 
 
@@ -14144,9 +14146,9 @@ body.scope-global .global-area-charts > .metric-area-chart{
   width:100%!important;
   max-width:none!important;
 }
-body[data-route="stats"]{min-height:100vh;background:var(--md-sys-color-surface,#f7faf8);}
-body[data-route="stats"] main{width:min(100%,1180px);margin:0 auto;padding:clamp(16px,4vw,48px);}
-body[data-route="stats"] .admin-performance-card{margin:0;}
+body[data-route="status"]{min-height:100vh;background:var(--md-sys-color-surface,#f7faf8);}
+body[data-route="status"] main{width:min(100%,1180px);margin:0 auto;padding:clamp(16px,4vw,48px);}
+body[data-route="status"] .admin-performance-card{margin:0;}
 @media (min-width:761px){
   body.scope-global .global-performance-charts,
   body.scope-global .global-area-charts{
@@ -15055,10 +15057,11 @@ body[data-route="global_reauth"] .pagehead,body[data-route="global_reauth"] .sec
   .security-reauth-actions :is(a,button){width:100%;justify-content:center}
 }
 
-body.stats-public{margin:0!important;padding:0!important;}
-body.stats-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:0!important;}
-body.stats-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}
-body.stats-public .admin-performance-card>.section-head{margin:0!important;padding:0!important;border:0!important;}
-body.stats-public .global-performance-charts{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;gap:0!important;}
-body.stats-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}
-body.stats-public .global-performance-charts>.metric-area-chart svg{display:block;width:100%!important;max-width:none!important;}
+body.status-public{margin:0!important;padding:0!important;background:var(--md-sys-color-surface,#f7faf8)!important;}
+body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}
+body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;box-shadow:var(--md-sys-elevation-level1)!important;background:var(--md-sys-color-surface-container-lowest)!important;overflow:hidden!important;}
+body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}
+body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:20px!important;background:var(--md-sys-color-surface-container-low)!important;}
+body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:16px!important;box-shadow:none!important;background:var(--md-sys-color-surface-container-lowest)!important;}
+body.status-public .global-performance-charts>.metric-area-chart svg{display:block;width:100%!important;max-width:none!important;}
+@media(max-width:760px){body.status-public #conteudo{width:100%!important;padding:10px!important;}body.status-public .admin-performance-card{border-radius:18px!important;}body.status-public .admin-performance-card>.section-head{padding:15px!important;}body.status-public .global-performance-charts{margin:10px!important;padding:10px!important;gap:10px!important;border-radius:16px!important;}body.status-public .global-performance-charts>.metric-area-chart{padding:12px!important;border-radius:14px!important;}}

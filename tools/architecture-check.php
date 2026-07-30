@@ -1395,9 +1395,9 @@ foreach ([
         'array $presentation = []',
         'function admin_performance_card_content_html(bool $public = false): string',
         'function admin_performance_card_html(bool $public = false): string',
-        'function page_stats(): void',
+        'function page_status(): void',
         'admin_performance_card_html(true)',
-        'https://prontoo.app/stats',
+        'https://prontoo.app/status',
         '"Requisições"',
         '"Tempo Médio"',
         '"Landing Page"',
@@ -1421,22 +1421,24 @@ foreach ([
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:.3}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:.42}',
     ],
     'bootstrap' => [
         'dual-area-single-renderer-identical-visuals-data-specific-labels-one-row',
     ],
     'runner' => [
-        '$publicStats = $r === "stats"',
-        'headers_secure($publicStats)',
-        '$cNow = $publicStats || $publicHome || $r === "logout" ? [] : ctx()',
-        'if ($r !== "logout" && !$publicStats)',
+        '$publicStatus = $r === "status"',
+        'headers_secure($publicStatus)',
+        '$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx()',
+        'if ($r !== "logout" && !$publicStatus)',
     ],
     'loader' => [
-        '$stats = [\'stats\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
-        '\'stats\' => $stats',
+        '$status = [\'status\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
+        '\'status\' => $status',
     ],
     'htaccess' => [
-        'RewriteRule ^stats/?$ index.php?r=stats [QSA,L,NC]',
+        'RewriteRule ^status/?$ index.php?r=status [QSA,L,NC]',
     ],
 ] as $sourceKey => $tokens) {
     foreach ($tokens as $token) {
@@ -1515,27 +1517,27 @@ foreach ([
             'developer_dashboard_outline_token:' . $outlineToken;
     }
 }
-$publicStatsStart = strpos(
+$publicStatusStart = strpos(
     $developerDashboardSources['admin'],
-    'function page_stats(): void',
+    'function page_status(): void',
 );
-$publicStatsEnd = $publicStatsStart === false
+$publicStatusEnd = $publicStatusStart === false
     ? false
     : strpos(
         $developerDashboardSources['admin'],
         'function page_admin_operations(): void',
-        $publicStatsStart,
+        $publicStatusStart,
     );
-$publicStatsSource =
-    $publicStatsStart !== false && $publicStatsEnd !== false
+$publicStatusSource =
+    $publicStatusStart !== false && $publicStatusEnd !== false
         ? substr(
             $developerDashboardSources['admin'],
-            $publicStatsStart,
-            $publicStatsEnd - $publicStatsStart,
+            $publicStatusStart,
+            $publicStatusEnd - $publicStatusStart,
         )
         : '';
-if ($publicStatsSource === '') {
-    $developerDashboardFailures[] = 'public_stats_page_boundary';
+if ($publicStatusSource === '') {
+    $developerDashboardFailures[] = 'public_status_page_boundary';
 } else {
     foreach ([
         'require_can(',
@@ -1547,10 +1549,10 @@ if ($publicStatsSource === '') {
         'page_head(',
         'admin-telemetry-card',
         'priority-actions',
-    ] as $publicStatsForbiddenToken) {
-        if (str_contains($publicStatsSource, $publicStatsForbiddenToken)) {
+    ] as $publicStatusForbiddenToken) {
+        if (str_contains($publicStatusSource, $publicStatusForbiddenToken)) {
             $developerDashboardFailures[] =
-                'public_stats_forbidden_token:' . $publicStatsForbiddenToken;
+                'public_status_forbidden_token:' . $publicStatusForbiddenToken;
         }
     }
 }
@@ -1561,6 +1563,11 @@ if (substr_count(
     $developerDashboardFailures[] = 'developer_dashboard_shared_renderer_call_count';
 }
 foreach ([
+    'function page_stats(): void',
+    'https://prontoo.app/stats',
+    'stats-public',
+    'data-route="stats"',
+    'RewriteRule ^stats/?$ index.php?r=stats',
     'function admin_metric_dual_count_chart(',
     'metric-dual-count-chart',
     'metric-count-pill',
@@ -1600,20 +1607,21 @@ $developerDashboardCharacterization = [
     'failed' => $developerDashboardFailures,
 ];
 
-$statsWideLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
-$statsWideLayoutFailures = [];
+$statusPublicLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
+$statusPublicLayoutFailures = [];
 foreach ([
-    'body.stats-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:0!important;}',
-    'body.stats-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}',
-    'body.stats-public .global-performance-charts{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;gap:0!important;}',
-    'body.stats-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}',
-] as $statsWideLayoutToken) {
-    if (!str_contains($statsWideLayoutCss, $statsWideLayoutToken)) {
-        $statsWideLayoutFailures[] = $statsWideLayoutToken;
+    'body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}',
+    'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;',
+    'body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}',
+    'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
+    'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
+] as $statusPublicLayoutToken) {
+    if (!str_contains($statusPublicLayoutCss, $statusPublicLayoutToken)) {
+        $statusPublicLayoutFailures[] = $statusPublicLayoutToken;
     }
 }
-if ($statsWideLayoutFailures !== []) {
-    fwrite(STDERR, "Stats wide layout contract failed: " . implode(', ', $statsWideLayoutFailures) . PHP_EOL);
+if ($statusPublicLayoutFailures !== []) {
+    fwrite(STDERR, "Status public layout contract failed: " . implode(', ', $statusPublicLayoutFailures) . PHP_EOL);
     exit(1);
 }
 

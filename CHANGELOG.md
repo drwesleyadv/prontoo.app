@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.15 — Status público com bordas e cores correspondentes
+
+- renomeia a página pública de `/stats` para `/status`;
+- restaura bordas no card externo, no agrupamento dos gráficos e em cada gráfico público;
+- mantém 95% da largura da viewport com espaçamento responsivo;
+- aplica às áreas de Requisições e Registros a mesma cor-base de suas respectivas linhas;
+- preserva o gráfico Velocidade, as métricas, o banco e o schema.
+
 ## 1.7.30.14 — Stats amplo e sem bordas
 
 - remove bordas, raios, sombras e espaçamentos externos do card e dos gráficos somente em `/stats`;

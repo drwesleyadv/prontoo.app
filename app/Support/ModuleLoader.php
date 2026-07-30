@@ -74,7 +74,7 @@ function prontoo_boot_requested_route(): string
 function prontoo_public_light_routes(): array
 {
 
-    return ['stats', 'login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
+    return ['status', 'login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
 }
 
 function prontoo_use_light_boot(): bool
@@ -214,10 +214,10 @@ function prontoo_route_module_groups(string $route): array
     $clinic = ['clinic' => ['Domain/Clinic/ClinicConfig.php', 'Domain/Clinic/SubscriptionSettings.php']];
     $users = ['users' => ['Domain/Appointments/Appointments.php', 'Domain/Permissions/UsersPermissions.php']];
     $admin = ['admin' => ['Domain/Leads/Leads.php', 'Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
-    $stats = ['stats' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
+    $status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
     $map = [
         'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
-        'stats' => $stats,
+        'status' => $status,
         'painel' => $commonClinic + $appointments + $patients + $leads + $tasks + $financial + $documents,
         'login' => [], 'login_autotest' => [], 'mfa' => [], 'signup' => [], 'logout' => [], 'switch' => [], 'profile' => [], 'global_reauth' => [], 'onboarding' => [], 'mobile_web_access' => [],
         'patient_lookup' => $patients, 'patient_suggest' => $patients, 'person_lookup' => $patients,
