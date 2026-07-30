@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.5 — Evolução do servidor, Fase 5: comando de contato do paciente
+
+- move a atualização de contato para porta, serviço e adaptador PDO;
+- adiciona bloqueio pessimista da linha ativa do paciente;
+- mantém a persistência em transação curta com rollback;
+- preserva autorização, auditoria, mensagens e campos existentes;
+- não altera banco, schema ou interface.
+
 ## 1.7.30.4 — Evolução do servidor, Fase 4: read model da recepção
 
 - consolida interessados, eventos e autores em uma única leitura;

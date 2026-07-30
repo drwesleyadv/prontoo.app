@@ -1,3 +1,7 @@
+Prontoo 1.7.30.5 — Evolução do servidor, Fase 5: comando de contato do paciente
+
+- Torna a atualização do contato tenant-scoped, bloqueada e transacional.
+- Mantém banco, schema, interface, permissões e comportamento funcional.
 Prontoo 1.7.30.4 — Evolução do servidor, Fase 4: read model da recepção
 
 - Consolida o histórico da recepção em uma leitura isolada por consultório.

@@ -2922,21 +2922,21 @@ function page_patient(): void
             }
             $contact = patient_invoice_contact_from_post();
             $loc = patient_location_from_post($cid);
-            q(
-                "UPDATE pi_patients SET phone=?,email=?,address=?,address_zip=?,address_number=?,address_neighborhood=?,address_complement=?,address_state=?,address_city=?,address_city_ibge=?,registration_needs_update=0,updated_at=NOW() WHERE id=? AND clinic_id=?",
+            prontoo_update_patient_contact_command(
+                $cid,
+                $id,
+                (int) $c["user"]["id"],
                 [
-                    $contact["phone"],
-                    $contact["email"],
-                    $loc["address"],
-                    $loc["address_zip"],
-                    $loc["address_number"],
-                    $loc["address_neighborhood"],
-                    $loc["address_complement"],
-                    $loc["address_state"],
-                    $loc["address_city"],
-                    $loc["address_city_ibge"],
-                    $id,
-                    $cid,
+                    "phone" => $contact["phone"],
+                    "email" => $contact["email"],
+                    "address" => $loc["address"],
+                    "address_zip" => $loc["address_zip"],
+                    "address_number" => $loc["address_number"],
+                    "address_neighborhood" => $loc["address_neighborhood"],
+                    "address_complement" => $loc["address_complement"],
+                    "address_state" => $loc["address_state"],
+                    "address_city" => $loc["address_city"],
+                    "address_city_ibge" => $loc["address_city_ibge"],
                 ],
             );
             audit("paciente_contato_atualizado", "paciente", $id, [

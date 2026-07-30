@@ -1,10 +1,10 @@
 {
-    "version": "1.7.30.4",
+    "version": "1.7.30.5",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 33,
+    "native_files_min": 36,
     "transitional_files_max": 80,
     "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_file_count_must_not_increase",
     "layers": {
@@ -90,9 +90,9 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-30T13:14:09+00:00",
-    "updated_at": "2026-07-30T13:14:09+00:00",
-    "baseline_source": "1.7.30.3",
+    "generated_at": "2026-07-30T13:20:19+00:00",
+    "updated_at": "2026-07-30T13:20:19+00:00",
+    "baseline_source": "1.7.30.4",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
     "documentation_check": "tools/documentation-check.php",
@@ -153,5 +153,12 @@
         "app/Application/Patients/PatientReceptionHistoryReadService.php",
         "app/Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php"
     ],
-    "server_evolution_phase_four_check": "tools/architecture-check.php"
+    "server_evolution_phase_four_check": "tools/architecture-check.php",
+    "server_evolution_phase_five_policy": "patient_contact_update_is_tenant_locked_transactional_and_audited_by_http_facade",
+    "server_evolution_phase_five_components": [
+        "app/Application/Patients/PatientContactCommandPort.php",
+        "app/Application/Patients/PatientContactCommandService.php",
+        "app/Infrastructure/Patients/PdoPatientContactCommandRepository.php"
+    ],
+    "server_evolution_phase_five_check": "tools/architecture-check.php"
 }

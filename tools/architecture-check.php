@@ -1248,6 +1248,70 @@ $serverPhaseFourCharacterization = [
     'ok' => $serverPhaseFourFailures === [],
     'failed' => $serverPhaseFourFailures,
 ];
+require_once $root . '/app/Application/Patients/PatientContactCommandPort.php';
+require_once $root . '/app/Application/Patients/PatientContactCommandService.php';
+require_once $root . '/app/Infrastructure/Patients/PdoPatientContactCommandRepository.php';
+
+$serverPhaseFiveFailures = [];
+$contactPort = new class implements \Prontoo\Application\Patients\PatientContactCommandPort {
+    public array $received = [];
+    public function update(
+        int $clinicId,
+        int $patientId,
+        int $userId,
+        array $contact,
+    ): array {
+        $this->received = [$clinicId, $patientId, $userId, $contact];
+        return ['status' => 'updated', 'patient_id' => $patientId];
+    }
+};
+$contactService = new \Prontoo\Application\Patients\PatientContactCommandService($contactPort);
+$contactResult = $contactService->update(2, 3, 4, [
+    'phone' => ' 65999990000 ',
+    'email' => ' contato@example.com ',
+    'address' => ' Rua A ',
+]);
+if ($contactResult !== ['status' => 'updated', 'patient_id' => 3] ||
+    ($contactPort->received[3]['phone'] ?? '') !== '65999990000' ||
+    ($contactPort->received[3]['email'] ?? '') !== 'contato@example.com') {
+    $serverPhaseFiveFailures[] = 'patient_contact_command_behavior';
+}
+$serverPhaseFiveSources = [
+    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientContactCommandService.php'),
+    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientContactCommandRepository.php'),
+    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
+    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
+];
+foreach ([
+    'repository' => ['FOR UPDATE', '$pdo->beginTransaction()', '$pdo->commit()', '$pdo->rollBack()', 'WHERE id=? AND clinic_id=? AND active=1'],
+    'patients' => ['prontoo_update_patient_contact_command('],
+    'runner' => ['PdoPatientContactCommandRepository', 'PatientContactCommandService'],
+] as $sourceKey => $tokens) {
+    foreach ($tokens as $token) {
+        if (!str_contains($serverPhaseFiveSources[$sourceKey], $token)) {
+            $serverPhaseFiveFailures[] = $sourceKey . ':missing:' . $token;
+        }
+    }
+}
+foreach (['SELECT ', 'UPDATE ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'] as $token) {
+    if (str_contains($serverPhaseFiveSources['service'], $token)) {
+        $serverPhaseFiveFailures[] = 'service:forbidden:' . $token;
+    }
+}
+$contactActionStart = strpos($serverPhaseFiveSources['patients'], 'if ($act === "update_patient_contact")');
+$contactActionEnd = $contactActionStart === false
+    ? false
+    : strpos($serverPhaseFiveSources['patients'], 'if ($act === "patient_revenue_receive")', $contactActionStart);
+$contactAction = $contactActionStart !== false && $contactActionEnd !== false
+    ? substr($serverPhaseFiveSources['patients'], $contactActionStart, $contactActionEnd - $contactActionStart)
+    : '';
+if ($contactAction === '' || str_contains($contactAction, 'UPDATE pi_patients')) {
+    $serverPhaseFiveFailures[] = 'legacy_contact_sql_not_removed';
+}
+$serverPhaseFiveCharacterization = [
+    'ok' => $serverPhaseFiveFailures === [],
+    'failed' => $serverPhaseFiveFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1265,7 +1329,8 @@ $result = [
         !empty($serverPhaseOneCharacterization['ok']) &&
         !empty($serverPhaseTwoCharacterization['ok']) &&
         !empty($serverPhaseThreeCharacterization['ok']) &&
-        !empty($serverPhaseFourCharacterization['ok']),
+        !empty($serverPhaseFourCharacterization['ok']) &&
+        !empty($serverPhaseFiveCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1282,6 +1347,7 @@ $result = [
     'server_phase_two_characterization' => $serverPhaseTwoCharacterization,
     'server_phase_three_characterization' => $serverPhaseThreeCharacterization,
     'server_phase_four_characterization' => $serverPhaseFourCharacterization,
+    'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
 ];
 
 echo json_encode(
