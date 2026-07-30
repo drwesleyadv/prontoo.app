@@ -1,9 +1,11 @@
 name: Publish Administrator Daily Agenda
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
@@ -21,6 +23,7 @@ env:
 
 jobs:
   publish:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -37,10 +40,10 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout main
+      - name: Checkout pull request branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -304,4 +307,4 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -m "Suprimir painel do Administrador"
-          git push origin HEAD:main
+          git push origin HEAD:${GITHUB_HEAD_REF}
