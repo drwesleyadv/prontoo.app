@@ -15054,3 +15054,11 @@ body[data-route="global_reauth"] .pagehead,body[data-route="global_reauth"] .sec
   .security-reauth-actions{display:grid!important;grid-template-columns:1fr}
   .security-reauth-actions :is(a,button){width:100%;justify-content:center}
 }
+
+body.stats-public{margin:0!important;padding:0!important;}
+body.stats-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:0!important;}
+body.stats-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}
+body.stats-public .admin-performance-card>.section-head{margin:0!important;padding:0!important;border:0!important;}
+body.stats-public .global-performance-charts{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;gap:0!important;}
+body.stats-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}
+body.stats-public .global-performance-charts>.metric-area-chart svg{display:block;width:100%!important;max-width:none!important;}

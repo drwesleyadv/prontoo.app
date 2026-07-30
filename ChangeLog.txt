@@ -1,3 +1,9 @@
+Prontoo 1.7.30.14 — Stats amplo e sem bordas
+
+- Remove bordas, sombras e espaçamentos externos do card e dos gráficos exclusivamente em prontoo.app/stats.
+- Faz o conteúdo ocupar 95% da largura da tela.
+- Preserva o Painel do Desenvolvedor e mantém banco e schema inalterados.
+
 Prontoo 1.7.30.13 — Renderer único para os gráficos do Painel
 
 - Leitura e gravação passa a usar literalmente o mesmo renderer do gráfico Velocidade.
