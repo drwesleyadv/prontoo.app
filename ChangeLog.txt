@@ -4,6 +4,7 @@ Prontoo 1.7.30.13 — Renderer único para os gráficos do Painel
 - Somente dados, rótulos e unidade são específicos para Requisições e Registros.
 - Remove o renderer e os estilos exclusivos anteriores.
 - Disponibiliza prontoo.app/stats com somente o card de desempenho, em GET público e sem contexto autenticado.
+- Inclui dias sem requisições nas médias diárias de 7 e 30 dias.
 - Mantém banco e schema inalterados.
 Prontoo 1.7.30.12 — Composição visual idêntica entre gráficos
 

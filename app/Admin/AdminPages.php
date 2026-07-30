@@ -1394,19 +1394,28 @@ function admin_metric_dual_area_chart(
             ) .
             "</title></circle>";
     }
-    $recentValue = admin_metric_recent_average($loadSeries, $recentPoints);
-    $loadNonZero = array_values(
-        array_filter($loadValues, static fn($v) => (float) $v > 0),
-    );
-    $overallValue = count($loadNonZero)
-        ? array_sum($loadNonZero) / count($loadNonZero)
+    $recentValues = array_slice($loadValues, -$recentPoints);
+    $recentValue = $valueType === "count"
+        ? ($recentValues
+            ? array_sum($recentValues) / count($recentValues)
+            : 0.0)
+        : admin_metric_recent_average($loadSeries, $recentPoints);
+    $overallAverageValues = $valueType === "count"
+        ? $loadValues
+        : array_values(
+            array_filter($loadValues, static fn($v) => (float) $v > 0),
+        );
+    $overallValue = count($overallAverageValues)
+        ? array_sum($overallAverageValues) / count($overallAverageValues)
         : 0.0;
     $middleValues = array_slice($loadValues, -$middlePoints);
-    $middleNonZero = array_values(
-        array_filter($middleValues, static fn($v) => (float) $v > 0),
-    );
-    $middleValue = count($middleNonZero)
-        ? array_sum($middleNonZero) / count($middleNonZero)
+    $middleAverageValues = $valueType === "count"
+        ? $middleValues
+        : array_values(
+            array_filter($middleValues, static fn($v) => (float) $v > 0),
+        );
+    $middleValue = count($middleAverageValues)
+        ? array_sum($middleAverageValues) / count($middleAverageValues)
         : 0.0;
     $recentCompact = admin_metric_value_compact($recentValue, $valueType);
     $middleCompact = admin_metric_value_compact($middleValue, $valueType);

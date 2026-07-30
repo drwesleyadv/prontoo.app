@@ -7,6 +7,7 @@
 - altera somente dados, rótulos e unidade para Requisições e Registros;
 - remove estilos exclusivos e divergentes do gráfico anterior;
 - disponibiliza `https://prontoo.app/stats` como página pública GET com exclusivamente o card de desempenho, sem contexto autenticado, POST ou criação de schema;
+- inclui dias com zero requisições nas médias diárias de 7 e 30 dias;
 - mantém banco e schema inalterados.
 
 ## 1.7.30.12 — Composição visual idêntica entre gráficos
