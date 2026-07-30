@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.18 — Leitura e gravação como cópia visual de Velocidade
+
+- descarta integralmente a geometria segmentada, a interseção e as classes exclusivas do gráfico Leitura e gravação;
+- reutiliza o mesmo renderer, SVG, classes, ordem de pintura, espessuras, preenchimentos, marcadores e ícone do gráfico Velocidade;
+- altera somente as séries, os rótulos e a formatação numérica para Requisições e Registros;
+- preserva a página pública /status, as métricas, o banco e o schema.
+
 ## 1.7.30.17 — Áreas segmentadas em Leitura e gravação
 
 - separa geometricamente as áreas exclusivas de Requisições e Registros;
