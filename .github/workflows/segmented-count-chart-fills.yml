@@ -104,7 +104,7 @@ jobs:
           test ! -e .github/workflows/segmented-count-chart-fills.yml
           test -z "$(find . -type d -name '__pycache__' -print -quit)"
           grep -F '$segmentedCountAreas = static function (' app/Admin/AdminPages.php
-          grep -F '"intersection" => $intersectionPath' app/Admin/AdminPages.php
+          grep -F '"intersection" => trim($intersectionPath)' app/Admin/AdminPages.php
           grep -F 'class="metric-chart-fill-load-exclusive"' app/Admin/AdminPages.php
           grep -F 'class="metric-chart-fill-response-exclusive"' app/Admin/AdminPages.php
           grep -F 'class="metric-chart-fill-intersection"' app/Admin/AdminPages.php
