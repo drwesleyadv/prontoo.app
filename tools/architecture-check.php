@@ -1154,6 +1154,36 @@ $serverPhaseTwoCharacterization = [
     'ok' => $serverPhaseTwoFailures === [],
     'failed' => $serverPhaseTwoFailures,
 ];
+$serverPhaseThreeFailures = [];
+$telemetryPartitionSource = (string) file_get_contents($root . '/app/Support/Telemetry.php');
+foreach ([
+    'function telemetry_page_partition_file(',
+    'function telemetry_page_partition_files(',
+    'function telemetry_prune_page_partitions(',
+    'new SplFileObject($file, "rb")',
+    '$handle = @fopen($file, "ab")',
+    '"deferred_id" => preg_match(',
+] as $requiredToken) {
+    if (!str_contains($telemetryPartitionSource, $requiredToken)) {
+        $serverPhaseThreeFailures[] = 'telemetry_partition_missing:' . $requiredToken;
+    }
+}
+$appendStart = strpos($telemetryPartitionSource, 'function telemetry_append_page_metric(');
+$appendEnd = $appendStart === false
+    ? false
+    : strpos($telemetryPartitionSource, 'function telemetry_route_perf_file(', $appendStart);
+$appendSource = $appendStart !== false && $appendEnd !== false
+    ? substr($telemetryPartitionSource, $appendStart, $appendEnd - $appendStart)
+    : '';
+foreach (['json_decode($raw', 'ftruncate($fh, 0)', 'stream_get_contents($fh)'] as $forbiddenToken) {
+    if ($appendSource === '' || str_contains($appendSource, $forbiddenToken)) {
+        $serverPhaseThreeFailures[] = 'telemetry_append_forbidden:' . $forbiddenToken;
+    }
+}
+$serverPhaseThreeCharacterization = [
+    'ok' => $serverPhaseThreeFailures === [],
+    'failed' => $serverPhaseThreeFailures,
+];
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&
@@ -1169,7 +1199,8 @@ $result = [
         !empty($phaseFourCharacterization['ok']) &&
         !empty($phaseFiveCharacterization['ok']) &&
         !empty($serverPhaseOneCharacterization['ok']) &&
-        !empty($serverPhaseTwoCharacterization['ok']),
+        !empty($serverPhaseTwoCharacterization['ok']) &&
+        !empty($serverPhaseThreeCharacterization['ok']),
     'architecture' => $architecture,
     'self_test' => $selfTest,
     'dashboard_icon_cascade' => $dashboardIconCascade,
@@ -1184,6 +1215,7 @@ $result = [
     'phase_five_characterization' => $phaseFiveCharacterization,
     'server_phase_one_characterization' => $serverPhaseOneCharacterization,
     'server_phase_two_characterization' => $serverPhaseTwoCharacterization,
+    'server_phase_three_characterization' => $serverPhaseThreeCharacterization,
 ];
 
 echo json_encode(

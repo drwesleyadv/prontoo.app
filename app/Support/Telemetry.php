@@ -574,6 +574,65 @@ function telemetry_page_file(): string
 
     return telemetry_storage_dir() . "/page-load.json";
 }
+
+function telemetry_page_partition_file(int $timestamp): string
+{
+
+    return telemetry_storage_dir() . "/page-load-" . gmdate("Ymd", $timestamp) . ".ndjson";
+}
+
+function telemetry_page_partition_files(int $timestamp): array
+{
+
+    return array_values(array_unique([
+        telemetry_page_partition_file($timestamp),
+        telemetry_page_partition_file($timestamp - 86400),
+        telemetry_page_partition_file($timestamp - 172800),
+    ]));
+}
+
+function telemetry_page_idempotency_dir(int $timestamp): string
+{
+
+    return telemetry_storage_dir() . "/page-idempotency-" . gmdate("Ymd", $timestamp);
+}
+
+function telemetry_page_idempotency_marker(
+    int $timestamp,
+    string $deferredId,
+): string {
+
+    return telemetry_page_idempotency_dir($timestamp) . "/" . $deferredId . ".done";
+}
+
+function telemetry_prune_page_partitions(int $timestamp): int
+{
+
+    $deleted = 0;
+    $minimumDate = gmdate("Ymd", $timestamp - 172800);
+    foreach ((array) glob(telemetry_storage_dir() . "/page-load-*.ndjson") as $file) {
+        if (preg_match('/page-load-(\d{8})\.ndjson$/', basename((string) $file), $match) !== 1) {
+            continue;
+        }
+        if ((string) ($match[1] ?? "") < $minimumDate && @unlink((string) $file)) {
+            $deleted++;
+        }
+    }
+    foreach ((array) glob(telemetry_storage_dir() . "/page-idempotency-*") as $dir) {
+        if (!is_dir((string) $dir) ||
+            preg_match('/page-idempotency-(\d{8})$/', basename((string) $dir), $match) !== 1 ||
+            (string) ($match[1] ?? "") >= $minimumDate) {
+            continue;
+        }
+        foreach ((array) glob((string) $dir . "/*.done") as $markerFile) {
+            @unlink((string) $markerFile);
+        }
+        if (@rmdir((string) $dir)) {
+            $deleted++;
+        }
+    }
+    return $deleted;
+}
 function telemetry_cuiaba_tz(): DateTimeZone
 {
 
@@ -612,21 +671,51 @@ function telemetry_read_events(): array
         return $requestCache;
     }
     try {
-        $file = telemetry_page_file();
-        if (!is_file($file)) {
-            return $requestCache = [];
+        $events = [];
+        $legacyFile = telemetry_page_file();
+        if (is_file($legacyFile)) {
+            $raw = @file_get_contents($legacyFile);
+            $legacy = is_string($raw) && trim($raw) !== ""
+                ? json_decode($raw, true)
+                : null;
+            if (is_array($legacy) && isset($legacy["events"]) && is_array($legacy["events"])) {
+                $events = array_merge($events, $legacy["events"]);
+            }
         }
-        $raw = @file_get_contents($file);
-        if ($raw === false || trim($raw) === "") {
-            return $requestCache = [];
+        foreach (telemetry_page_partition_files(time()) as $file) {
+            if (!is_file($file)) {
+                continue;
+            }
+            $stream = new SplFileObject($file, "rb");
+            while (!$stream->eof()) {
+                $line = trim((string) $stream->fgets());
+                if ($line === "") {
+                    continue;
+                }
+                $event = json_decode($line, true);
+                if (is_array($event)) {
+                    $events[] = $event;
+                }
+            }
         }
-        $json = json_decode($raw, true);
-        if (!is_array($json)) {
-            return $requestCache = [];
+        $deduplicated = [];
+        $seenDeferred = [];
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $deferredId = (string) ($event["deferred_id"] ?? "");
+            if ($deferredId !== "" && isset($seenDeferred[$deferredId])) {
+                continue;
+            }
+            if ($deferredId !== "") {
+                $seenDeferred[$deferredId] = true;
+            }
+            $deduplicated[] = $event;
         }
-        $events = $json["events"] ?? [];
-        return $requestCache = is_array($events) ? $events : [];
-    } catch (Throwable $e) {
+        return $requestCache = telemetry_sanitize_events($deduplicated, time());
+    } catch (Throwable $error) {
+        error_log("[Prontoo telemetry read] " . $error->getMessage());
         return $requestCache = [];
     }
 }
@@ -669,103 +758,72 @@ function telemetry_append_page_metric(array $event): bool
     if (!function_exists("storage_path") || !telemetry_prepare_storage()) {
         return false;
     }
-    $file = telemetry_page_file();
     $nowTs = (int) ($event["ts"] ?? time());
-    $fh = @fopen($file, "c+");
-    if (!$fh) {
+    $row = [
+        "ts" => $nowTs,
+        "route" => mb_substr((string) ($event["route"] ?? ""), 0, 80),
+        "queries" => max(0, (int) ($event["queries"] ?? 0)),
+        "wide_selects" => max(0, (int) ($event["wide_selects"] ?? 0)),
+        "module_bytes" => max(0, (int) ($event["module_bytes"] ?? 0)),
+        "module_files" => max(0, (int) ($event["module_files"] ?? 0)),
+        "elapsed_ms" => max(0.0, round((float) ($event["elapsed_ms"] ?? 0), 3)),
+        "query_ms" => max(0.0, round((float) ($event["query_ms"] ?? 0), 3)),
+        "success" => !empty($event["success"]) ? 1 : 0,
+        "deferred_id" => preg_match(
+            '/^\d{20}-[a-f0-9]{16}$/',
+            (string) ($event["deferred_id"] ?? ""),
+        ) === 1
+            ? (string) $event["deferred_id"]
+            : null,
+    ];
+    $encoded = json_encode(
+        $row,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+    );
+    if (!is_string($encoded)) {
+        return false;
+    }
+    $file = telemetry_page_partition_file($nowTs);
+    $deferredId = is_string($row["deferred_id"] ?? null)
+        ? (string) $row["deferred_id"]
+        : "";
+    $markerFile = $deferredId !== ""
+        ? telemetry_page_idempotency_marker($nowTs, $deferredId)
+        : "";
+    $handle = @fopen($file, "ab");
+    if (!is_resource($handle)) {
         return false;
     }
     $written = false;
     try {
-        if (!flock($fh, LOCK_EX)) {
+        if (!@flock($handle, LOCK_EX)) {
             return false;
         }
-        rewind($fh);
-        $raw = stream_get_contents($fh);
-        $json =
-            is_string($raw) && trim($raw) !== "" ? json_decode($raw, true) : [];
-        $events =
-            is_array($json) &&
-            isset($json["events"]) &&
-            is_array($json["events"])
-                ? $json["events"]
-                : [];
-        $deferredId =
-            preg_match(
-                '/^\d{20}-[a-f0-9]{16}$/',
-                (string) ($event["deferred_id"] ?? ""),
-            ) === 1
-                ? (string) $event["deferred_id"]
-                : "";
-        $deferredIds =
-            is_array($json) &&
-            isset($json["deferred_ids"]) &&
-            is_array($json["deferred_ids"])
-                ? $json["deferred_ids"]
-                : [];
-        foreach ($deferredIds as $id => $ts) {
-            if (
-                preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) $id) !==
-                    1 ||
-                (int) $ts < $nowTs - 25 * 3600
-            ) {
-                unset($deferredIds[$id]);
-            }
-        }
-        if ($deferredId !== "" && isset($deferredIds[$deferredId])) {
+        if ($markerFile !== "" && is_file($markerFile)) {
             return true;
         }
-        $events = telemetry_sanitize_events($events, $nowTs);
-        $events[] = [
-            "ts" => $nowTs,
-            "route" => mb_substr((string) ($event["route"] ?? ""), 0, 80),
-            "queries" => max(0, (int) ($event["queries"] ?? 0)),
-            "wide_selects" => max(
-                0,
-                (int) ($event["wide_selects"] ?? 0),
-            ),
-            "module_bytes" => max(0, (int) ($event["module_bytes"] ?? 0)),
-            "module_files" => max(0, (int) ($event["module_files"] ?? 0)),
-            "elapsed_ms" => max(
-                0.0,
-                round((float) ($event["elapsed_ms"] ?? 0), 3),
-            ),
-            "query_ms" => max(0.0, round((float) ($event["query_ms"] ?? 0), 3)),
-            "success" => !empty($event["success"]) ? 1 : 0,
-        ];
-        if ($deferredId !== "") {
-            $deferredIds[$deferredId] = $nowTs;
+        $line = $encoded . "\n";
+        $written = fwrite($handle, $line) === strlen($line) && fflush($handle);
+        if ($written && $markerFile !== "") {
+            $markerDir = dirname($markerFile);
+            if (!is_dir($markerDir)) {
+                @mkdir($markerDir, 0750, true);
+            }
+            if (is_dir($markerDir)) {
+                @file_put_contents($markerFile, "1\n", LOCK_EX);
+                @chmod($markerFile, 0640);
+            }
         }
-        $payload = [
-            "timezone" => "America/Cuiaba",
-            "retention_hours" => 25,
-            "updated_at" => new DateTimeImmutable("@" . $nowTs)
-                ->setTimezone(telemetry_cuiaba_tz())
-                ->format(DateTimeInterface::ATOM),
-            "deferred_ids" => $deferredIds,
-            "events" => $events,
-        ];
-        $encoded = json_encode(
-            $payload,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-        );
-        if ($encoded !== false) {
-            rewind($fh);
-            ftruncate($fh, 0);
-            $written =
-                fwrite($fh, $encoded) === strlen($encoded) &&
-                fflush($fh);
-        }
-    } catch (Throwable $ignored) {
-        error_log(
-            "[Prontoo recoverable " .
-                __FUNCTION__ .
-                "] " .
-                $ignored->getMessage(),
-        );
+    } catch (Throwable $error) {
+        error_log("[Prontoo telemetry append] " . $error->getMessage());
     } finally {
-        @flock($fh, LOCK_UN);
-        @fclose($fh);
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+    static $pruned = false;
+    if (!$pruned) {
+        telemetry_prune_page_partitions($nowTs);
+        $pruned = true;
     }
     return $written;
 }

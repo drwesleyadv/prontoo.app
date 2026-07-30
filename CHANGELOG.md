@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.3 — Evolução do servidor, Fase 3: telemetria particionada
+
+- substitui reescrita integral do histórico bruto por append NDJSON;
+- particiona eventos por data UTC e mantém leitura do formato legado;
+- deduplica identificadores diferidos durante a leitura;
+- move retenção de partições para o consumidor assíncrono;
+- não altera banco, schema ou interface.
+
 ## 1.7.30.2 — Evolução do servidor, Fase 2: gerações de cache
 
 - substitui a invalidação recursiva por troca atômica de geração;

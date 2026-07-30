@@ -1,5 +1,5 @@
 {
-    "version": "1.7.30.2",
+    "version": "1.7.30.3",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -90,9 +90,9 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-30T12:56:23+00:00",
-    "updated_at": "2026-07-30T12:56:23+00:00",
-    "baseline_source": "1.7.30.1",
+    "generated_at": "2026-07-30T13:06:04+00:00",
+    "updated_at": "2026-07-30T13:06:04+00:00",
+    "baseline_source": "1.7.30.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
     "documentation_check": "tools/documentation-check.php",
@@ -141,5 +141,10 @@
         "app/Support/ServerJsonCache.php",
         "app/Support/Telemetry.php"
     ],
-    "server_evolution_phase_two_check": "tools/architecture-check.php"
+    "server_evolution_phase_two_check": "tools/architecture-check.php",
+    "server_evolution_phase_three_policy": "raw_page_telemetry_is_append_only_partitioned_deduplicated_and_pruned_off_request_path",
+    "server_evolution_phase_three_components": [
+        "app/Support/Telemetry.php"
+    ],
+    "server_evolution_phase_three_check": "tools/architecture-check.php"
 }

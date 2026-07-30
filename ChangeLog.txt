@@ -1,3 +1,7 @@
+Prontoo 1.7.30.3 — Evolução do servidor, Fase 3: telemetria particionada
+
+- Registra eventos brutos em partições NDJSON append-only e mantém compatibilidade de leitura.
+- Mantém banco, schema, interface, permissões e comportamento funcional.
 Prontoo 1.7.30.2 — Evolução do servidor, Fase 2: gerações de cache
 
 - Troca invalidação recursiva por gerações atômicas com fallback seguro.
