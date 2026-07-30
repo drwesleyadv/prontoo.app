@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.7.30.14 — Stats amplo e sem bordas
+
+- remove bordas, raios, sombras e espaçamentos externos do card e dos gráficos somente em `/stats`;
+- faz o conteúdo ocupar 95% da largura da viewport;
+- preserva o layout do Painel do Desenvolvedor;
+- mantém banco e schema inalterados.
+
 ## 1.7.30.13 — Renderer único para os gráficos do Painel
 
 - elimina o renderer específico de Leitura e gravação;

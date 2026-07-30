@@ -1599,6 +1599,24 @@ $developerDashboardCharacterization = [
     'ok' => $developerDashboardFailures === [],
     'failed' => $developerDashboardFailures,
 ];
+
+$statsWideLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
+$statsWideLayoutFailures = [];
+foreach ([
+    'body.stats-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:0!important;}',
+    'body.stats-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}',
+    'body.stats-public .global-performance-charts{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;gap:0!important;}',
+    'body.stats-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;}',
+] as $statsWideLayoutToken) {
+    if (!str_contains($statsWideLayoutCss, $statsWideLayoutToken)) {
+        $statsWideLayoutFailures[] = $statsWideLayoutToken;
+    }
+}
+if ($statsWideLayoutFailures !== []) {
+    fwrite(STDERR, "Stats wide layout contract failed: " . implode(', ', $statsWideLayoutFailures) . PHP_EOL);
+    exit(1);
+}
+
 $result = [
     'ok' =>
         !empty($architecture['ok']) &&

@@ -1,5 +1,5 @@
 {
-    "version": "1.7.30.13",
+    "version": "1.7.30.14",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -91,7 +91,7 @@
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
     "generated_at": "2026-07-30T16:43:22+00:00",
-    "updated_at": "2026-07-30T16:43:22+00:00",
+    "updated_at": "2026-07-30T17:33:31.085273+00:00",
     "baseline_source": "1.7.30.12",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -175,5 +175,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "public_stats_policy": "get_only_prontoo_app_stats_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation"
+    "public_stats_policy": "get_only_prontoo_app_stats_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
+    "release": "1.7.30.14",
+    "build": "1.7.30.14-public-stats-wide-borderless-layout",
+    "public_stats_layout_policy": "viewport_95_percent_borderless_zero_outer_spacing_public_only"
 }
