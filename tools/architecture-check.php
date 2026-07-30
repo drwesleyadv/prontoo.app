@@ -34,6 +34,34 @@ foreach ([
         throw new RuntimeException('Contrato arquitetural divergente entre version.json e architecture.manifest.json: ' . $versionKey);
     }
 }
+$updateManifestMetadata = json_decode(
+    (string) file_get_contents($root . '/app/update.manifest.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+foreach ([
+    'version' => 'version',
+    'release' => 'release',
+    'build' => 'build',
+    'package_type' => 'package_type',
+    'schema_revision' => 'schema_revision',
+    'minimum_php' => 'minimum_php',
+    'minimum_mysql' => 'minimum_mysql',
+    'database_changes' => 'database_changes',
+    'schema_changes' => 'schema_changes',
+    'logic_changes' => 'logic_changes',
+    'visual_changes' => 'visual_changes',
+    'documentation_changes' => 'documentation_changes',
+    'previous_version' => 'previous_version',
+    'deployment_sync_id' => 'deployment_sync_id',
+] as $versionKey => $manifestKey) {
+    if (($versionMetadata[$versionKey] ?? null) !== ($updateManifestMetadata[$manifestKey] ?? null)) {
+        throw new RuntimeException(
+            'Contrato de release divergente entre version.json e app/update.manifest.json: ' . $versionKey,
+        );
+    }
+}
 if (!defined('PRONTOO_VERSION')) {
     define('PRONTOO_VERSION', (string) ($versionMetadata['version'] ?? ''));
 }
