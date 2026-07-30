@@ -30,7 +30,7 @@
     "file_count": 215,
     "total_uncompressed_bytes": 4547747,
     "files": {
-        ".github/read-write-mountain-fills.trigger": "84b085919de102785d4f5e8c5ad471a2109259b3776242176650930b06647499",
+        ".github/read-write-mountain-fills.trigger": "83b6bfadd300e7cd71f3bc66f516c711456c5d7851eb539cbc130008bbee8e79",
         ".github/read_write_mountain_publish.py": "564df8a51458c811bc536704aee8c376124ccbc9e41a3e62ed5dda0b829427ff",
         ".github/workflows/architecture.yml": "c0bb3dfdde3951fc47dbf00a5152ea76d33d6bfe4984ada24a0e4561bcc7c2bd",
         ".github/workflows/documentation.yml": "c1d5dc0ceb274ad0fd8b3948c895709c19b9ea60e24b5e7ec3f4c83e76899f12",
@@ -267,7 +267,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.7.30.19",
-    "updated_at": "2026-07-30T21:35:34+00:00",
+    "updated_at": "2026-07-30T21:36:48+00:00",
     "notes": "O perfil Administrador deixa de exibir e renderizar o Painel e passa a iniciar na visão diária da Agenda.",
     "deployment_sync_id": "github-admin-agenda-entry-no-panel-1-7-30-20",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
