@@ -151,7 +151,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.7.30.7";
+const PRONTOO_VERSION_FALLBACK = "1.7.30.8";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.10";
 function prontoo_release_metadata(): array
 {
@@ -356,6 +356,7 @@ const PRONTOO_ADMIN_ACTIONS = [
     "admin_clinics" => ["label" => "Consultórios", "icon" => "home_health"],
     "admin_health" => ["label" => "Incidentes", "icon" => "crisis_alert"],
     "admin_performance" => ["label" => "Performance", "icon" => "speed"],
+    "admin_telemetry" => ["label" => "Telemetria", "icon" => "monitoring"],
     "admin_alerts" => ["label" => "Avisos", "icon" => "campaign"],
     "admin_maintenance" => ["label" => "Manutenção", "icon" => "construction"],
 ];

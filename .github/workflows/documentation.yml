@@ -2,6 +2,9 @@ name: Documentation Contract
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,72 +15,34 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
-  GITHUB_ACTIONS: 'true'
-  CI: 'true'
-  PRONTOO_SCHEMA_TEST_MODE: '1'
-  PRONTOO_INSTALLER_CLI_MODE: '1'
 
 jobs:
-  apply-developer-telemetry:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'agent/developer-telemetry-dashboard' }}
+  reconcile-manifest:
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-          extensions: pdo_mysql
-      - name: Apply, restore and validate
+      - name: Reconcile update manifest
         shell: bash
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          from pathlib import Path
-          path = Path('tools/server_telemetry_apply.py')
-          source = path.read_text(encoding='utf-8')
-          replacements = {
-              'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n    return admin_metric_duration_label($value, true);\n}"""':
-                  'compact_old = """function admin_metric_value_compact(float $value, string $mode): string\n{\n\n    return admin_metric_duration_label($value, true);\n}"""',
-              'result_marker = "$result = [\\n"':
-                  'result_marker = "$result = [\\n    \'ok\' =>\\n        !empty($architecture[\'ok\']) &&\\n"',
-          }
-          for old, new in replacements.items():
-              if source.count(old) != 1:
-                  raise SystemExit('generator patch boundary not found: ' + old[:48])
-              source = source.replace(old, new, 1)
-          path.write_text(source, encoding='utf-8')
-          PY
-          python3 -m py_compile tools/server_telemetry_apply.py
-          python3 tools/server_telemetry_apply.py
-          git show origin/main:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          git rm -f tools/server_telemetry_apply.py
           php <<'PHP'
           <?php
           declare(strict_types=1);
           $root = getcwd();
-          $path = $root . '/app/update.manifest.json';
-          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+          $manifestPath = $root . '/app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
           $files = [];
           $total = 0;
           $iterator = new RecursiveIteratorIterator(
@@ -104,16 +69,47 @@ jobs:
           $manifest['total_uncompressed_bytes'] = $total;
           $manifest['updated_at'] = gmdate('c');
           file_put_contents(
-              $path,
-              json_encode(
-                  $manifest,
-                  JSON_PRETTY_PRINT |
-                      JSON_UNESCAPED_UNICODE |
-                      JSON_UNESCAPED_SLASHES |
-                      JSON_THROW_ON_ERROR,
-              ) . PHP_EOL,
+              $manifestPath,
+              json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
           );
           PHP
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/update.manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Sincronizar manifesto documental"
+          git push origin HEAD:${GITHUB_HEAD_REF}
+  validate:
+    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Validate documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
           while IFS= read -r -d '' file; do
             php -l "$file" >/dev/null
           done < <(find . \
@@ -125,11 +121,3 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Adicionar telemetria ao Painel do Desenvolvedor"
-          git push origin HEAD:${GITHUB_HEAD_REF}

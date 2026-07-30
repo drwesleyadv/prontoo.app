@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.8 — Telemetria no Painel do Desenvolvedor
+
+- adiciona o item Telemetria à navegação global do Desenvolvedor;
+- apresenta gráficos de resposta, banco, volume e falhas em janelas selecionáveis;
+- mostra eficiência do cache, rotas lentas, comparação entre versões e saúde da fila diferida;
+- mantém a tela estritamente somente leitura e sem dados clínicos ou pessoais;
+- não altera banco ou schema.
+
 ## 1.7.30.7 — Sincronização final dos contratos arquiteturais
 
 - sincroniza a baseline nativa em 37 nos contratos de versão e arquitetura;

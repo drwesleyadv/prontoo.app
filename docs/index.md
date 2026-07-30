@@ -65,6 +65,7 @@
 - [Orçamentos de desempenho](performance/performance-budgets.md)
 - [Invalidação de cache por geração](performance/cache-generations.md)
 - [Telemetria particionada](performance/telemetry-partitions.md)
+- [Painel de telemetria do Desenvolvedor](performance/developer-telemetry-dashboard.md)
 - [Read model do histórico da recepção](performance/patient-reception-read-model.md)
 - [Comando de contato do paciente](architecture/patient-contact-command.md)
 - [View de contato do paciente](architecture/patient-contact-view.md)

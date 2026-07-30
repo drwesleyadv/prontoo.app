@@ -1,5 +1,5 @@
 {
-    "version": "1.7.30.7",
+    "version": "1.7.30.8",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -49,7 +49,7 @@
     ],
     "database_changes": false,
     "schema_changes": false,
-    "visual_changes": false,
+    "visual_changes": true,
     "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
     "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
     "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
@@ -71,7 +71,7 @@
     "function_documentation_closures": 0,
     "function_documentation_arrows": 0,
     "function_documentation_ci": ".github/workflows/architecture.yml",
-    "logic_changes": false,
+    "logic_changes": true,
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
     "commissioned_installation_lockdown": {
@@ -90,9 +90,9 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-30T13:32:22+00:00",
-    "updated_at": "2026-07-30T13:32:22+00:00",
-    "baseline_source": "1.7.30.6",
+    "generated_at": "2026-07-30T14:02:58+00:00",
+    "updated_at": "2026-07-30T14:02:58+00:00",
+    "baseline_source": "1.7.30.7",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
     "documentation_check": "tools/documentation-check.php",
@@ -167,5 +167,11 @@
     ],
     "server_evolution_phase_six_check": "tools/architecture-check.php",
     "contract_consistency_policy": "version_and_architecture_manifests_must_match_version_native_min_and_transitional_max",
-    "contract_consistency_check": "tools/architecture-check.php"
+    "contract_consistency_check": "tools/architecture-check.php",
+    "developer_telemetry_dashboard_policy": "global_developer_read_only_runtime_metrics_without_clinical_or_personal_payloads",
+    "developer_telemetry_dashboard_components": [
+        "app/Admin/AdminPages.php",
+        "app/Support/Telemetry.php"
+    ],
+    "developer_telemetry_dashboard_check": "tools/architecture-check.php"
 }
