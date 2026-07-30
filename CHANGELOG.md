@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.30.2 — Evolução do servidor, Fase 2: gerações de cache
+
+- substitui a invalidação recursiva por troca atômica de geração;
+- mantém fallback físico fail-safe quando a geração não pode ser persistida;
+- adiciona métricas de troca e fallback;
+- preserva TTL, chaves, isolamento e invalidação após mutações;
+- não altera banco, schema ou interface.
+
 ## 1.7.30.1 — Evolução do servidor, Fase 1: orçamentos de desempenho
 
 - cria contrato versionado de custo por rota;
