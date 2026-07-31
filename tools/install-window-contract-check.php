@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+$sources = [
+    'install_access' => (string) file_get_contents($root . '/app/Core/Install/InstallAccess.php'),
+    'schema_mutation_lock' => (string) file_get_contents($root . '/app/Core/Database/SchemaMutationLock.php'),
+];
+$windows = [];
+foreach ($sources as $name => $source) {
+    if (!preg_match('/PUBLIC_INSTALL_WINDOW_START_UNIX\s*=\s*(\d+)\s*;/', $source, $start) ||
+        !preg_match('/PUBLIC_INSTALL_WINDOW_END_UNIX\s*=\s*(\d+)\s*;/', $source, $end)) {
+        throw new RuntimeException('Contrato de janela ausente: ' . $name);
+    }
+    $windows[$name] = [
+        'start' => (int) $start[1],
+        'end' => (int) $end[1],
+    ];
+}
+if ($windows['install_access'] !== $windows['schema_mutation_lock']) {
+    throw new RuntimeException('Janelas do instalador e do bloqueio estrutural divergentes.');
+}
+if ($windows['install_access']['end'] - $windows['install_access']['start'] !== 14400) {
+    throw new RuntimeException('A janela pública deve durar exatamente quatro horas.');
+}
+
+echo json_encode(
+    [
+        'ok' => true,
+        'start_unix' => $windows['install_access']['start'],
+        'end_unix' => $windows['install_access']['end'],
+        'duration_seconds' => 14400,
+    ],
+    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+) . PHP_EOL;
