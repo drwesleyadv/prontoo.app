@@ -1,0 +1,143 @@
+name: Rewrite Prontoo Baseline And Delete Main
+
+on:
+  push:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  rewrite:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout prontoo
+        uses: actions/checkout@v4
+        with:
+          ref: prontoo
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Rewrite operational baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib
+          import json
+
+          for name in [
+              '.github/workflows/architecture.yml',
+              '.github/workflows/documentation.yml',
+          ]:
+              path = Path(name)
+              text = path.read_text(encoding='utf-8')
+              old = '    branches:\n      - main\n'
+              new = '    branches:\n      - prontoo\n'
+              if text.count(old) != 1:
+                  raise RuntimeError(f'Gatilho main não canônico em {name}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          Path('.github/workflows/rewrite-prontoo-and-delete-main.yml').unlink()
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          files = {}
+          total = 0
+          excluded = ('.git/', 'ssd/', 'vendor/', 'node_modules/')
+          for file in Path('.').rglob('*'):
+              if not file.is_file() or file.is_symlink():
+                  continue
+              relative = file.as_posix()
+              if relative == 'app/update.manifest.json' or relative.startswith(excluded):
+                  continue
+              data = file.read_bytes()
+              files[relative] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = dict(sorted(files.items()))
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest['updated_at'] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=4) + '\n',
+              encoding='utf-8',
+          )
+          PY
+      - name: Validate rewritten baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+      - name: Publish prontoo baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Estabelecer prontoo como baseline operacional"
+          git push origin HEAD:prontoo
+      - name: Delete main permanently
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /tmp/delete-main-response -w '%{http_code}' \
+            -X DELETE \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/heads/main")
+          if [ "$status" != "204" ]; then
+            cat /tmp/delete-main-response
+            exit 1
+          fi
