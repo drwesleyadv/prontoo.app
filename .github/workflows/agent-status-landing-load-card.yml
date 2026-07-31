@@ -41,7 +41,7 @@ jobs:
 
           path = Path('app/Admin/AdminPages.php')
           text = path.read_text(encoding='utf-8')
-          old = '''function admin_performance_card_content_html(bool $public = false): string
+          shared_original = '''function admin_performance_card_content_html(bool $public = false): string
           {
               return '<div class="section-head admin-performance-head"><h2>Desempenho geral</h2>' .
                   admin_maestro_health_pill_html(!$public) .
@@ -49,7 +49,7 @@ jobs:
                   admin_global_perf_charts_html();
           }
           '''
-          new = '''function admin_performance_card_content_html(bool $public = false): string
+          shared_modified = '''function admin_performance_card_content_html(bool $public = false): string
           {
               $landingCard = "";
               if ($public) {
@@ -84,13 +84,49 @@ jobs:
                   admin_global_perf_charts_html();
           }
           '''
-          if old in text:
-              path.write_text(text.replace(old, new, 1), encoding='utf-8')
-          elif new not in text:
-              raise SystemExit('Contrato de função inesperado.')
-          marker = Path('ssd/.status-landing-load-card-ci')
-          if marker.exists():
-              marker.unlink()
+          if shared_modified in text:
+              text = text.replace(shared_modified, shared_original, 1)
+          elif shared_original not in text:
+              raise SystemExit('Componente compartilhado em estado inesperado.')
+
+          old_status = '''    $card = admin_performance_card_html(true);
+          '''
+          new_status = '''    $summary = function_exists("telemetry_route_performance_summary")
+              ? telemetry_route_performance_summary(24)
+              : ["routes" => []];
+              $landingRequests24h = 0;
+              foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
+                  if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+                      continue;
+                  }
+                  $landingRequests24h = max(
+                      0,
+                      (int) ($routePerformance["count"] ?? 0),
+                  );
+                  break;
+              }
+              $landingCard = card(
+                  '<div class="stats-grid admin-overview-kpis status-landing-kpi">' .
+                      stat_card(
+                          "Landing Page",
+                          $landingRequests24h,
+                          "web",
+                          "carregamentos nas últimas 24 horas",
+                      ) .
+                      "</div>",
+                  "status-landing-load-card",
+              );
+              $card = $landingCard . admin_performance_card_html(true);
+          '''
+          if old_status in text:
+              text = text.replace(old_status, new_status, 1)
+          elif new_status not in text:
+              raise SystemExit('Ponto de inserção da tela status não encontrado.')
+          path.write_text(text, encoding='utf-8')
+          for marker_name in ['ssd/.status-landing-load-card-ci', 'ssd/.status-landing-verify']:
+              marker = Path(marker_name)
+              if marker.exists():
+                  marker.unlink()
           PY
             php -l app/Admin/AdminPages.php >/dev/null
             php <<'PHP'
@@ -118,11 +154,11 @@ jobs:
           PHP
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add app/Admin/AdminPages.php app/update.manifest.json ssd/.status-landing-load-card-ci 2>/dev/null || true
+            git add app/Admin/AdminPages.php app/update.manifest.json ssd/.status-landing-load-card-ci ssd/.status-landing-verify 2>/dev/null || true
             if git diff --cached --quiet; then
               exit 0
             fi
-            git commit -m "Exibir carregamentos da landing na tela status"
+            git commit -m "Exibir carregamentos da landing somente na tela status"
             if git push origin HEAD:"$HEAD_BRANCH"; then
               exit 0
             fi
