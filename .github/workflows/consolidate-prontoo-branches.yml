@@ -1,0 +1,208 @@
+name: Consolidate Prontoo Branches
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  consolidate:
+    if: ${{ github.head_ref == 'agent/trigger-consolidate-all-branches' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout canonical baseline
+        uses: actions/checkout@v4
+        with:
+          ref: prontoo
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Reconcile manifest for consolidation state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib
+          import json
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          files = {}
+          total = 0
+          excluded = ('.git/', 'ssd/', 'vendor/', 'node_modules/')
+          for file in Path('.').rglob('*'):
+              if not file.is_file() or file.is_symlink():
+                  continue
+              relative = file.as_posix()
+              if relative == 'app/update.manifest.json' or relative.startswith(excluded):
+                  continue
+              data = file.read_bytes()
+              files[relative] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['files'] = dict(sorted(files.items()))
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest['updated_at'] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=4) + '\n',
+              encoding='utf-8',
+          )
+          PY
+      - name: Validate canonical baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+      - name: Consolidate all branch histories
+        id: consolidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/update.manifest.json
+          git commit -m "Reconciliar manifesto para consolidação dos branches" || true
+
+          current=$(git rev-parse HEAD)
+          baseline_tree=$(git rev-parse "${current}^{tree}")
+          parent_args=(-p "$current")
+          declare -A seen
+          seen["$current"]=1
+          : > /tmp/branches-to-delete
+          : > /tmp/consolidated-tips
+
+          while IFS= read -r ref; do
+            branch=${ref#refs/remotes/origin/}
+            case "$branch" in
+              HEAD|prontoo|agent/trigger-consolidate-all-branches)
+                continue
+                ;;
+            esac
+            tip=$(git rev-parse "$ref")
+            printf '%s\n' "$branch" >> /tmp/branches-to-delete
+            printf '%s %s\n' "$branch" "$tip" >> /tmp/consolidated-tips
+            if [[ -z "${seen[$tip]+x}" ]]; then
+              parent_args+=(-p "$tip")
+              seen["$tip"]=1
+            fi
+          done < <(git for-each-ref --format='%(refname)' refs/remotes/origin/ | sort)
+
+          branch_count=$(wc -l < /tmp/branches-to-delete | tr -d ' ')
+          unique_tip_count=$((${#seen[@]} - 1))
+          if [[ "$branch_count" -lt 1 ]]; then
+            echo "Nenhum branch auxiliar encontrado para consolidação."
+            exit 1
+          fi
+
+          new_commit=$(printf '%s\n\n%s\n%s\n' \
+            'Consolidar todos os branches na baseline prontoo' \
+            'Preserva integralmente o snapshot oficial e incorpora os tips históricos dos branches auxiliares como ancestrais.' \
+            "Referências consolidadas: ${branch_count}; tips únicos: ${unique_tip_count}." \
+            | git commit-tree "$baseline_tree" "${parent_args[@]}")
+          git reset --hard "$new_commit"
+
+          if [[ "$(git rev-parse HEAD^{tree})" != "$baseline_tree" ]]; then
+            echo "A consolidação alterou o snapshot da baseline."
+            exit 1
+          fi
+          while read -r branch tip; do
+            git merge-base --is-ancestor "$tip" HEAD
+          done < /tmp/consolidated-tips
+
+          git push origin HEAD:prontoo
+          echo "commit=$new_commit" >> "$GITHUB_OUTPUT"
+          echo "branches=$branch_count" >> "$GITHUB_OUTPUT"
+          echo "unique_tips=$unique_tip_count" >> "$GITHUB_OUTPUT"
+      - name: Delete every non-canonical branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' 'agent/trigger-consolidate-all-branches' >> /tmp/branches-to-delete
+          sort -u /tmp/branches-to-delete -o /tmp/branches-to-delete
+          deleted=0
+          while IFS= read -r branch; do
+            status=$(curl -sS -o /tmp/delete-branch-response -w '%{http_code}' \
+              -X DELETE \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/heads/${branch}")
+            if [[ "$status" != "204" ]]; then
+              echo "Falha ao excluir ${branch}; HTTP ${status}."
+              cat /tmp/delete-branch-response
+              exit 1
+            fi
+            deleted=$((deleted + 1))
+          done < /tmp/branches-to-delete
+
+          mapfile -t remaining < <(git ls-remote --heads origin | awk '{sub("refs/heads/", "", $2); print $2}')
+          if [[ "${#remaining[@]}" -ne 1 || "${remaining[0]}" != "prontoo" ]]; then
+            printf 'Branches remanescentes:\n%s\n' "${remaining[*]}"
+            exit 1
+          fi
+
+          {
+            echo '## Consolidação definitiva concluída'
+            echo
+            echo "- Commit canônico: \`${{ steps.consolidate.outputs.commit }}\`"
+            echo "- Referências históricas consolidadas: ${{ steps.consolidate.outputs.branches }}"
+            echo "- Tips únicos incorporados: ${{ steps.consolidate.outputs.unique_tips }}"
+            echo "- Branches excluídos nesta execução: ${deleted}"
+            echo '- Branch remanescente: `prontoo`'
+          } >> "$GITHUB_STEP_SUMMARY"
