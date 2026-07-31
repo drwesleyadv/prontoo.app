@@ -1755,36 +1755,9 @@ function admin_global_perf_charts_html(): string
 }
 function admin_performance_card_content_html(bool $public = false): string
 {
-    $landingCard = "";
-    if ($public) {
-        $summary = function_exists("telemetry_route_performance_summary")
-            ? telemetry_route_performance_summary(24)
-            : ["routes" => []];
-        $landingRequests24h = 0;
-        foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
-            if ((string) ($routePerformance["route"] ?? "") !== "landing") {
-                continue;
-            }
-            $landingRequests24h = max(
-                0,
-                (int) ($routePerformance["count"] ?? 0),
-            );
-            break;
-        }
-        $landingCard =
-            '<div class="stats-grid admin-overview-kpis status-landing-kpi">' .
-            stat_card(
-                "Landing Page",
-                $landingRequests24h,
-                "web",
-                "carregamentos nas últimas 24 horas",
-            ) .
-            "</div>";
-    }
     return '<div class="section-head admin-performance-head"><h2>Desempenho geral</h2>' .
         admin_maestro_health_pill_html(!$public) .
         "</div>" .
-        $landingCard .
         admin_global_perf_charts_html();
 }
 function admin_performance_card_html(bool $public = false): string
@@ -1807,7 +1780,27 @@ function page_status(): void
     $assetRevision = defined("PRONTOO_ASSET_REV")
         ? (string) PRONTOO_ASSET_REV
         : (string) PRONTOO_VERSION;
-    $card = admin_performance_card_html(true);
+    $summary = function_exists("telemetry_route_performance_summary")
+    ? telemetry_route_performance_summary(24)
+    : ["routes" => []];
+    $landingRequests24h = 0;
+    foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
+        if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+            continue;
+        }
+        $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
+        break;
+    }
+    $landingCard = card(
+        stat_card(
+            "Carregamentos da landing page",
+            $landingRequests24h,
+            "web",
+            "carregamentos nas últimas 24 horas",
+        ),
+        "status-landing-load-card",
+    );
+    $card = $landingCard . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
         '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
