@@ -1,1 +1,1 @@
-trigger=prontoo-baseline-rewrite-and-main-deletion
+trigger=delete-main-reference
