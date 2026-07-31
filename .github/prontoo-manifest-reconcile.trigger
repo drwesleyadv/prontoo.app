@@ -1,1 +1,0 @@
-trigger=prontoo-manifest-reconcile
