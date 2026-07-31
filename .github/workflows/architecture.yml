@@ -1,14 +1,13 @@
-name: Publish Smooth Performance Mountains
+name: Architecture Contract
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+  push:
+    branches:
+      - main
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -22,8 +21,7 @@ env:
   PRONTOO_INSTALLER_CLI_MODE: '1'
 
 jobs:
-  publish:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/smooth-overlapping-mountains' }}
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -40,11 +38,8 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout pull request branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -52,16 +47,7 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql
-      - name: Apply smooth overlapping mountains
-        shell: bash
-        run: |
-          set -euo pipefail
-          sleep 25
-          git fetch origin "${GITHUB_HEAD_REF}"
-          git reset --hard "origin/${GITHUB_HEAD_REF}"
-          sed -i 's/flags=re.S)/flags=re.S | re.M)/' .github/smooth_mountain_publish.py
-          python3 .github/smooth_mountain_publish.py
-      - name: Validate publication
+      - name: PHP syntax
         shell: bash
         run: |
           set -euo pipefail
@@ -73,20 +59,62 @@ jobs:
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
             -name '*.php' -print0)
-          git diff --check
-          php tools/documentation-check.php
-          php tools/code-comment-check.php
-          php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-      - name: Commit publication
+      - name: Canonical JSON contracts
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet && exit 0
-          git commit -m "Suavizar montanhas dos gráficos de performance"
-          git push origin HEAD:${GITHUB_HEAD_REF}
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $contracts = [];
+          foreach (['version.json', 'app/update.manifest.json', 'app/architecture.manifest.json'] as $file) {
+              $contracts[$file] = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($contracts[$file])) {
+                  throw new RuntimeException('Contrato JSON inválido: ' . $file);
+              }
+          }
+          $version = trim((string) ($contracts['version.json']['version'] ?? ''));
+          if ($version === '' ||
+              trim((string) ($contracts['version.json']['release'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/update.manifest.json']['version'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/update.manifest.json']['release'] ?? '')) !== $version ||
+              trim((string) ($contracts['app/architecture.manifest.json']['version'] ?? '')) !== $version) {
+              throw new RuntimeException('Contrato canônico de versão divergente');
+          }
+          foreach ([
+              'app/prontoo.php' => 'PRONTOO_VERSION_FALLBACK',
+              'br/index.php' => 'BR_LANDING_VERSION_FALLBACK',
+          ] as $file => $constant) {
+              $source = (string) file_get_contents($file);
+              $pattern = '/const\s+' . preg_quote($constant, '/') . '\s*=\s*["\x27]([^"\x27]+)["\x27]\s*;/';
+              if (!preg_match($pattern, $source, $match) || trim((string) ($match[1] ?? '')) !== $version) {
+                  throw new RuntimeException('Fallback de versão divergente: ' . $file);
+              }
+          }
+          PHP
+      - name: Documentation and comment contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+      - name: Security regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/security-regression-check.php
+      - name: Architecture invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/architecture-check.php
+      - name: Schema contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/schema-check.php
+      - name: Installer security
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/install-security-check.php
