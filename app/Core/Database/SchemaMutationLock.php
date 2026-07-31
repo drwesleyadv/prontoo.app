@@ -5,8 +5,8 @@ namespace Prontoo\Core\Database;
 
 final class SchemaMutationLock
 {
-    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785186607;
-    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785190207;
+    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785500520;
+    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785514920;
 
     private static int $depth = 0;
     private static ?string $nonce = null;
