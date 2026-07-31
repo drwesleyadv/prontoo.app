@@ -59,6 +59,7 @@ jobs:
           sleep 25
           git fetch origin "${GITHUB_HEAD_REF}"
           git reset --hard "origin/${GITHUB_HEAD_REF}"
+          sed -i 's/flags=re.S)/flags=re.S | re.M)/' .github/smooth_mountain_publish.py
           python3 .github/smooth_mountain_publish.py
       - name: Validate publication
         shell: bash
