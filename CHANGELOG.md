@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.31.2 — Janela de quatro horas para instalação limpa
+
+- abre o instalador público de 31/07/2026 12:22 UTC até 16:22 UTC;
+- restringe o acesso a HTTPS no domínio canônico prontoo.app;
+- permite a execução somente em estado novo, sem app/config.php e sem ssd/install.lock;
+- mantém a exigência de banco de dados vazio e encerra o acesso automaticamente com resposta 404;
+- não altera banco de dados nem schema.
+
 ## 1.7.31.1 — Montanhas sobrepostas e suavizadas nos gráficos de performance
 
 - renderiza, em Velocidade e Leitura e gravação, duas montanhas completas até a linha de base;

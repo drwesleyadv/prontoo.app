@@ -151,9 +151,17 @@ if (str_contains($runtime, 'Location: /install.php') ||
 }
 
 $htaccess = (string) file_get_contents($root . '/.htaccess');
-if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+denied\s*<\/Files>/s', $htaccess) ||
-    preg_match('/<Files\s+"install\.php">\s*Require\s+all\s+granted\s*<\/Files>/s', $htaccess)) {
-    $errors[] = 'webserver_install_not_denied';
+if (!preg_match('/<Files\s+"install\.php">\s*(?:#[^\n]*\s*)*Require\s+all\s+granted\s*<\/Files>/s', $htaccess) ||
+    preg_match('/<Files\s+"install\.php">\s*Require\s+all\s+denied\s*<\/Files>/s', $htaccess)) {
+    $errors[] = 'webserver_install_window_entry_not_reachable';
+}
+if (!preg_match('/PUBLIC_INSTALL_WINDOW_START_UNIX\s*=\s*(\d+)\s*;/', $installAccessSource, $installWindowStartMatch) ||
+    !preg_match('/PUBLIC_INSTALL_WINDOW_END_UNIX\s*=\s*(\d+)\s*;/', $installAccessSource, $installWindowEndMatch) ||
+    (int) ($installWindowEndMatch[1] ?? 0) - (int) ($installWindowStartMatch[1] ?? 0) !== 14400 ||
+    !str_contains($installAccessSource, "self::requestHostFrom(\$request) !== 'prontoo.app'") ||
+    !str_contains($installAccessSource, "!is_file(\$root . '/app/config.php')") ||
+    !str_contains($installAccessSource, "!is_file(\$root . '/ssd/install.lock')")) {
+    $errors[] = 'guarded_four_hour_clean_install_window_policy';
 }
 if (substr_count($htaccess, '[R=308,L]') < 2 ||
     !str_contains($htaccess, 'Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"') ||

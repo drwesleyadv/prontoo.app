@@ -14,7 +14,7 @@ FileETag None
 
 
 <Files "install.php">
-    Require all denied
+    Require all granted
 </Files>
 
 <IfModule mod_rewrite.c>

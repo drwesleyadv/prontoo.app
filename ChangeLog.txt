@@ -1,3 +1,10 @@
+Prontoo 1.7.31.2 — Janela de quatro horas para instalação limpa
+
+- Instalador público disponível de 31/07/2026 12:22 UTC até 16:22 UTC.
+- Acesso somente por HTTPS em prontoo.app e apenas em instalação nova.
+- Banco vazio continua obrigatório; após a janela, o acesso retorna 404 automaticamente.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.7.31.1 — Montanhas sobrepostas e suavizadas nos gráficos de performance
 
 - Velocidade e Leitura e gravação passam a ter duas montanhas completas até a base.
