@@ -1738,7 +1738,7 @@ function telemetry_route_requests_series_30d(): array
         $key = $day->format("Y-m-d");
         $days[$key] = [
             "key" => $key,
-            "label" => $day->format("d/m"),
+            "label" => $day->format("d"),
             "tooltip" => $day->format("d/m/Y"),
             "value" => 0,
         ];
