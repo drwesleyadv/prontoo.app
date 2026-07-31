@@ -118,4 +118,4 @@ jobs:
         run: |
           set -euo pipefail
           php tools/install-security-check.php
-          php tools/install-window-contract-check.php
+          php tools/install-window-contract-check
