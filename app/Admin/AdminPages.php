@@ -1782,25 +1782,36 @@ function page_status(): void
         : (string) PRONTOO_VERSION;
     $summary = function_exists("telemetry_route_performance_summary")
     ? telemetry_route_performance_summary(24)
-    : ["routes" => []];
-    $landingRequests24h = 0;
-    foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
-        if ((string) ($routePerformance["route"] ?? "") !== "landing") {
-            continue;
-        }
-        $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
-        break;
+    : ["total" => 0, "avg_ms" => 0.0, "routes" => []];
+$requests24h = max(0, (int) ($summary["total"] ?? 0));
+$averageResponseMs = max(0.0, (float) ($summary["avg_ms"] ?? 0.0));
+$landingRequests24h = 0;
+foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
+    if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+        continue;
     }
-    $landingCard = card(
+    $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
+    break;
+}
+$overviewCards = card(
+    '<div class="stats-grid admin-overview-kpis status-three-kpis">' .
+        stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+        stat_card(
+            "Tempo Médio",
+            number_format($averageResponseMs, 1, ",", ".") . " ms",
+            "speed",
+            "tempo médio nas últimas 24 horas",
+        ) .
         stat_card(
             "Carregamentos da landing page",
             $landingRequests24h,
             "web",
             "carregamentos nas últimas 24 horas",
-        ),
-        "status-landing-load-card",
-    );
-    $card = $landingCard . admin_performance_card_html(true);
+        ) .
+        "</div>",
+    "status-overview-kpis-card",
+);
+$card = $overviewCards . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
         '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
