@@ -1,3 +1,10 @@
+Prontoo 1.7.31.1 — Montanhas sobrepostas e suavizadas nos gráficos de performance
+
+- Velocidade e Leitura e gravação passam a ter duas montanhas completas até a base.
+- A montanha escura fica ao fundo e a clara à frente, sem transparência.
+- Os vértices são suavizados por curvas Bézier.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.7.30.22 — Camadas corretas em Leitura e gravação
 
 - Registros preenche da sua linha até a base com verde claro opaco.

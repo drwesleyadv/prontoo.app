@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.7.31.1 — Montanhas sobrepostas e suavizadas nos gráficos de performance
+
+- renderiza, em Velocidade e Leitura e gravação, duas montanhas completas até a linha de base;
+- mantém a série escura ao fundo e a série clara à frente, ambas sem transparência;
+- usa exatamente as cores dos respectivos contornos nos preenchimentos;
+- substitui segmentos angulosos por curvas Bézier com controles limitados entre os pontos métricos;
+- não altera banco de dados nem schema.
+
 ## 1.7.30.22 — Camadas corretas em Leitura e gravação
 
 - mantém as cores e espessuras atuais das linhas de Requisições e Registros;

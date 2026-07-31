@@ -14122,10 +14122,8 @@ body[data-route="painel"] .timeline small{
 @media(max-width:760px){.admin-performance-table{min-width:680px}.admin-performance-table th,.admin-performance-table td{padding:10px 12px}.admin-performance-screen{gap:14px}}
 
 
-.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 30%,#111827 18%);opacity:.38}
-.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 18%,white 72%);opacity:.78}
-.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}
-.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}
+.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}
+.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}
 .metric-dual-time-chart .metric-chart-line-load{fill:none;stroke:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
 .metric-dual-time-chart .metric-chart-line-response{fill:none;stroke:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .metric-dual-time-chart .metric-chart-dot-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%)}
