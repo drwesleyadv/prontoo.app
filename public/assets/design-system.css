@@ -15063,3 +15063,6 @@ body.status-public .global-performance-charts{width:auto!important;max-width:non
 body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:16px!important;box-shadow:none!important;background:var(--md-sys-color-surface-container-lowest)!important;}
 body.status-public .global-performance-charts>.metric-area-chart svg{display:block;width:100%!important;max-width:none!important;}
 @media(max-width:760px){body.status-public #conteudo{width:100%!important;padding:10px!important;}body.status-public .admin-performance-card{border-radius:18px!important;}body.status-public .admin-performance-card>.section-head{padding:15px!important;}body.status-public .global-performance-charts{margin:10px!important;padding:10px!important;gap:10px!important;border-radius:16px!important;}body.status-public .global-performance-charts>.metric-area-chart{padding:12px!important;border-radius:14px!important;}}
+
+body.status-public .status-three-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;}
+body.status-public .status-three-kpis>.stat-card{min-width:0!important;}
