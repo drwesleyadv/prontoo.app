@@ -51,9 +51,9 @@ replace_once(
 if (!preg_match('/PUBLIC_INSTALL_WINDOW_START_UNIX\\s*=\\s*(\\d+)\\s*;/', $installAccessSource, $installWindowStartMatch) ||
     !preg_match('/PUBLIC_INSTALL_WINDOW_END_UNIX\\s*=\\s*(\\d+)\\s*;/', $installAccessSource, $installWindowEndMatch) ||
     (int) ($installWindowEndMatch[1] ?? 0) - (int) ($installWindowStartMatch[1] ?? 0) !== 14400 ||
-    !str_contains($installAccessSource, "self::requestHostFrom($request) !== 'prontoo.app'") ||
-    !str_contains($installAccessSource, "!is_file($root . '/app/config.php')") ||
-    !str_contains($installAccessSource, "!is_file($root . '/ssd/install.lock')")) {
+    !str_contains($installAccessSource, "self::requestHostFrom(\$request) !== 'prontoo.app'") ||
+    !str_contains($installAccessSource, "!is_file(\$root . '/app/config.php')") ||
+    !str_contains($installAccessSource, "!is_file(\$root . '/ssd/install.lock')")) {
     $errors[] = 'guarded_four_hour_clean_install_window_policy';
 }
 ''',
