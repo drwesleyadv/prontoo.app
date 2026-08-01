@@ -15064,5 +15064,5 @@ body.status-public .global-performance-charts>.metric-area-chart{width:100%!impo
 body.status-public .global-performance-charts>.metric-area-chart svg{display:block;width:100%!important;max-width:none!important;}
 @media(max-width:760px){body.status-public #conteudo{width:100%!important;padding:10px!important;}body.status-public .admin-performance-card{border-radius:18px!important;}body.status-public .admin-performance-card>.section-head{padding:15px!important;}body.status-public .global-performance-charts{margin:10px!important;padding:10px!important;gap:10px!important;border-radius:16px!important;}body.status-public .global-performance-charts>.metric-area-chart{padding:12px!important;border-radius:14px!important;}}
 
-body.status-public .status-three-kpis{grid-template-columns:minmax(0,1fr)!important;width:100%!important;}
-body.status-public .status-three-kpis>.stat-card{min-width:0!important;}
+
+body.status-public #conteudo>.stat-card{width:100%!important;max-width:none!important;margin:0!important;}
