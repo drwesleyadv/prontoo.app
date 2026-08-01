@@ -1,0 +1,35 @@
+name: Execute telemetry 14d transformation
+
+on:
+  push:
+    branches: [agent/telemetry-14d-comparison]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Apply and validate
+        run: |
+          set -euo pipefail
+          python3 tools/agent-telemetry-14d.py
+          php -l app/Support/Telemetry.php >/dev/null
+          php -l app/Admin/AdminPages.php >/dev/null
+          rm -f tools/agent-telemetry-14d.py
+          rm -f ssd/.telemetry-14d-comparison
+          rm -f .github/workflows/agent-telemetry-14d-comparison.yml
+          rm -f .github/workflows/agent-telemetry-14d-push.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Reter 14 dias e comparar telemetria semanal"
+          git push
