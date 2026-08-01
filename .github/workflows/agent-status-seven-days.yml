@@ -21,7 +21,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-      - name: Apply seven-day timeframe
+      - name: Restrict seven-day timeframe to public status
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
@@ -33,19 +33,25 @@ jobs:
 
           path = Path('app/Admin/AdminPages.php')
           text = path.read_text(encoding='utf-8')
-          replacements = {
-              'telemetry_route_performance_summary(24)': 'telemetry_route_performance_summary(168)',
-              '$requests24h': '$requests7d',
-              '$landingRequests24h': '$landingRequests7d',
-              'Visão operacional das últimas 24 horas': 'Visão operacional dos últimos 7 dias',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'Trecho não localizado: {old}')
-              text = text.replace(old, new)
+          start = text.index('function page_status(): void')
+          end = text.index('function page_admin_operations(): void', start)
+          before = text[:start]
+          status = text[start:end]
+          after = text[end:]
+
+          status = status.replace('telemetry_route_performance_summary(24)', 'telemetry_route_performance_summary(168)')
+          status = status.replace('$requests24h', '$requests7d')
+          status = status.replace('$landingRequests24h', '$landingRequests7d')
+          status = status.replace('Visão operacional das últimas 24 horas', 'Visão operacional dos últimos 7 dias')
+
+          after = after.replace('telemetry_route_performance_summary(168)', 'telemetry_route_performance_summary(24)')
+          after = after.replace('$requests7d', '$requests24h')
+          after = after.replace('$landingRequests7d', '$landingRequests24h')
+
+          text = before + status + after
           path.write_text(text, encoding='utf-8')
 
-          for marker in [Path('ssd/.status-seven-days'), Path('.github/workflows/agent-status-seven-days.yml')]:
+          for marker in [Path('ssd/.status-seven-days'), Path('ssd/.status-seven-days-fix'), Path('.github/workflows/agent-status-seven-days.yml')]:
               if marker.exists():
                   marker.unlink()
           PY
@@ -76,5 +82,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Usar sete dias nos cards da tela status"
+          git commit -m "Restringir sete dias aos cards públicos do status"
           git push origin HEAD:"$HEAD_BRANCH"
