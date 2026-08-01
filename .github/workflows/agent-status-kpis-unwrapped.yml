@@ -35,37 +35,53 @@ jobs:
             git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
             python3 <<'PY'
           from pathlib import Path
-          import re
 
           admin = Path('app/Admin/AdminPages.php')
           text = admin.read_text(encoding='utf-8')
-          start = text.index('function page_status(): void')
-          end = text.index('function page_admin_operations(): void', start)
-          section = text[start:end]
-          pattern = re.compile(
-              r'\$overviewCards = card\(\n\s+\'\<div class="stats-grid admin-overview-kpis status-three-kpis"\>\' \.\n(.*?)\n\s+"\</div\>",\n\s+"status-overview-kpis-card",\n\);',
-              re.S,
-          )
-          match = pattern.search(section)
-          if not match:
-              if '$overviewCards = stat_card(' not in section:
-                  raise SystemExit('Bloco agrupado dos indicadores não localizado.')
-          else:
-              cards = match.group(1)
-              cards = re.sub(r'^\s{8}', '', cards, flags=re.M)
-              replacement = '$overviewCards = ' + cards.strip() + ';'
-              section = section[:match.start()] + replacement + section[match.end():]
-              text = text[:start] + section + text[end:]
-              admin.write_text(text, encoding='utf-8')
+          old = '''$overviewCards = card(
+              '<div class="stats-grid admin-overview-kpis status-three-kpis">' .
+                  stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+                  stat_card(
+                      "Tempo Médio",
+                      number_format($averageResponseMs, 1, ",", ".") . " ms",
+                      "speed",
+                      "tempo médio nas últimas 24 horas",
+                  ) .
+                  stat_card(
+                      "Carregamentos da landing page",
+                      $landingRequests24h,
+                      "web",
+                      "carregamentos nas últimas 24 horas",
+                  ) .
+                  "</div>",
+              "status-overview-kpis-card",
+          );'''
+          new = '''$overviewCards =
+              stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+              stat_card(
+                  "Tempo Médio",
+                  number_format($averageResponseMs, 1, ",", ".") . " ms",
+                  "speed",
+                  "tempo médio nas últimas 24 horas",
+              ) .
+              stat_card(
+                  "Carregamentos da landing page",
+                  $landingRequests24h,
+                  "web",
+                  "carregamentos nas últimas 24 horas",
+              );'''
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif new not in text:
+              raise SystemExit('Bloco agrupado dos indicadores não localizado.')
+          admin.write_text(text, encoding='utf-8')
 
           css = Path('public/assets/design-system.css')
           css_text = css.read_text(encoding='utf-8')
-          css_text = re.sub(
-              r'\nbody\.status-public \.status-three-kpis\{[^\n]*\}\nbody\.status-public \.status-three-kpis>\.stat-card\{[^\n]*\}\n?',
-              '\n',
-              css_text,
-              count=1,
-          )
+          old_css = '''
+          body.status-public .status-three-kpis{grid-template-columns:minmax(0,1fr)!important;width:100%!important;}
+          body.status-public .status-three-kpis>.stat-card{min-width:0!important;}'''
+          css_text = css_text.replace(old_css, '', 1)
           rule = '\nbody.status-public #conteudo>.stat-card{width:100%!important;max-width:none!important;margin:0!important;}\n'
           if 'body.status-public #conteudo>.stat-card{' not in css_text:
               css_text += rule
@@ -73,6 +89,7 @@ jobs:
 
           for path in [
               Path('ssd/.status-kpis-unwrapped'),
+              Path('ssd/.status-kpis-unwrapped-retry'),
               Path('.github/workflows/agent-status-kpis-unwrapped.yml'),
           ]:
               if path.exists():
@@ -105,13 +122,9 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -A
-            if git diff --cached --quiet; then
-              exit 0
-            fi
+            if git diff --cached --quiet; then exit 0; fi
             git commit -m "Remover agrupador dos indicadores da tela status"
-            if git push origin HEAD:"$HEAD_BRANCH"; then
-              exit 0
-            fi
+            if git push origin HEAD:"$HEAD_BRANCH"; then exit 0; fi
             sleep 3
           done
           exit 1
