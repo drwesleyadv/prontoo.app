@@ -1,0 +1,84 @@
+name: Apply telemetry 14d comparison
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/telemetry-14d-comparison' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Apply telemetry retention and comparison
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+          telemetry = Path('app/Support/Telemetry.php')
+          text = telemetry.read_text(encoding='utf-8')
+          text = text.replace('$cut = $nowTs - 25 * 3600;', '$cut = $nowTs - 14 * 86400;', 1)
+          text = text.replace('"retention_hours" => 25,', '"retention_hours" => 336,', 1)
+          marker = 'function telemetry_route_count_last_days(string $route, int $days = 7): int\n'
+          helper = '''function telemetry_period_variation(float $current, float $previous): ?float\n{\n    if ($previous <= 0.0) {\n        return $current <= 0.0 ? 0.0 : null;\n    }\n    return round((($current - $previous) / $previous) * 100, 1);\n}\nfunction telemetry_seven_day_comparison(): array\n{\n    $nowTs = time();\n    $currentCut = $nowTs - 7 * 86400;\n    $previousCut = $nowTs - 14 * 86400;\n    $periods = [\n        "current" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],\n        "previous" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],\n    ];\n    $json = telemetry_route_perf_snapshot();\n    $buckets = isset($json["buckets"]) && is_array($json["buckets"]) ? $json["buckets"] : [];\n    foreach ($buckets as $bucketTs => $routes) {\n        $ts = (int) $bucketTs;\n        if ($ts < $previousCut || $ts > $nowTs || !is_array($routes)) continue;\n        $period = $ts >= $currentCut ? "current" : "previous";\n        foreach ($routes as $route => $row) {\n            if (!is_array($row)) continue;\n            $count = max(0, (int) ($row["count"] ?? 0));\n            $periods[$period]["total"] += $count;\n            $periods[$period]["total_ms"] += max(0.0, (float) ($row["total_ms"] ?? 0));\n            if (telemetry_route_perf_safe_route((string) $route) === "landing") $periods[$period]["landing"] += $count;\n        }\n    }\n    foreach (["current", "previous"] as $period) {\n        $count = max(0, (int) $periods[$period]["total"]);\n        $periods[$period]["avg_ms"] = $count > 0 ? round((float) $periods[$period]["total_ms"] / $count, 1) : 0.0;\n    }\n    return [\n        "days" => 7, "retention_days" => 14,\n        "current" => $periods["current"], "previous" => $periods["previous"],\n        "variation" => [\n            "total" => telemetry_period_variation((float) $periods["current"]["total"], (float) $periods["previous"]["total"]),\n            "avg_ms" => telemetry_period_variation((float) $periods["current"]["avg_ms"], (float) $periods["previous"]["avg_ms"]),\n            "landing" => telemetry_period_variation((float) $periods["current"]["landing"], (float) $periods["previous"]["landing"]),\n        ],\n        "updated_at" => (string) ($json["updated_at"] ?? ""),\n    ];\n}\n\n'''
+          if 'function telemetry_seven_day_comparison()' not in text:
+              if marker not in text: raise SystemExit('Marcador de telemetria ausente')
+              text = text.replace(marker, helper + marker, 1)
+          telemetry.write_text(text, encoding='utf-8')
+
+          admin = Path('app/Admin/AdminPages.php')
+          text = admin.read_text(encoding='utf-8')
+          marker = 'function page_status(): void\n'
+          helper = '''function admin_telemetry_variation_text(?float $variation): string\n{\n    if ($variation === null) return "sem base comparável nos 7 dias anteriores";\n    $signal = $variation > 0 ? "+" : "";\n    return $signal . number_format($variation, 1, ",", ".") . "% vs. 7 dias anteriores";\n}\nfunction admin_telemetry_seven_day_cards_html(array $comparison): string\n{\n    $current = isset($comparison["current"]) && is_array($comparison["current"]) ? $comparison["current"] : [];\n    $variation = isset($comparison["variation"]) && is_array($comparison["variation"]) ? $comparison["variation"] : [];\n    return stat_card("Requisições", max(0, (int) ($current["total"] ?? 0)), "sync_alt", admin_telemetry_variation_text(array_key_exists("total", $variation) ? ($variation["total"] === null ? null : (float) $variation["total"]) : null)) .\n        stat_card("Tempo Médio", number_format(max(0.0, (float) ($current["avg_ms"] ?? 0.0)), 1, ",", ".") . " ms", "speed", admin_telemetry_variation_text(array_key_exists("avg_ms", $variation) ? ($variation["avg_ms"] === null ? null : (float) $variation["avg_ms"]) : null)) .\n        stat_card("Carregamentos da landing page", max(0, (int) ($current["landing"] ?? 0)), "web", admin_telemetry_variation_text(array_key_exists("landing", $variation) ? ($variation["landing"] === null ? null : (float) $variation["landing"]) : null));\n}\n'''
+          if 'function admin_telemetry_seven_day_cards_html' not in text:
+              text = text.replace(marker, helper + marker, 1)
+          start = text.index('function page_status(): void')
+          end = text.index('function page_admin_operations(): void', start)
+          section = text[start:end]
+          a = section.index('    $summary = function_exists("telemetry_route_performance_summary")')
+          b = section.index('$statusHeader =', a)
+          section = section[:a] + '    $comparison = function_exists("telemetry_seven_day_comparison")\n        ? telemetry_seven_day_comparison()\n        : ["current" => [], "variation" => []];\n    $overviewCards = admin_telemetry_seven_day_cards_html($comparison);\n' + section[b:]
+          text = text[:start] + section + text[end:]
+          old = '''    $performance24h = function_exists("telemetry_route_performance_summary")\n        ? telemetry_route_performance_summary(24)\n        : ["routes" => [], "total" => 0];\n    $requests24h = max(0, (int) ($performance24h["total"] ?? 0));\n    $averageResponseMs = max(0.0, (float) ($performance24h["avg_ms"] ?? 0));\n    $landingRequests24h = 0;\n    foreach ((array) ($performance24h["routes"] ?? []) as $routePerformance) {\n        if ((string) ($routePerformance["route"] ?? "") !== "landing") {\n            continue;\n        }\n        $landingRequests24h = max(\n            0,\n            (int) ($routePerformance["count"] ?? 0),\n        );\n        break;\n    }\n'''
+          new = '    $telemetryComparison = function_exists("telemetry_seven_day_comparison")\n        ? telemetry_seven_day_comparison()\n        : ["current" => [], "variation" => []];\n'
+          if old not in text: raise SystemExit('Bloco do painel ausente')
+          text = text.replace(old, new, 1)
+          a = text.index('    $telemetry =\n        \'<div class="stats-grid admin-overview-kpis global-telemetry-grid">\' .')
+          b = text.index('    $actionsCard =', a)
+          block = '''    $telemetry =\n        '<div class="stats-grid admin-overview-kpis global-telemetry-grid telemetry-comparison-cards">' .\n        admin_telemetry_seven_day_cards_html($telemetryComparison) .\n        stat_card("Usuários Ativos", $activeUsers24h, "person_check", "últimas 24 horas") .\n        "</div>";\n'''
+          text = text[:a] + block + text[b:]
+          admin.write_text(text, encoding='utf-8')
+
+          css = Path('public/assets/design-system.css')
+          c = css.read_text(encoding='utf-8')
+          old = 'body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:none!important;}'
+          new = 'body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:block!important;grid-column:2/4!important;margin:4px 0 0!important;color:var(--md-sys-color-on-surface-variant)!important;font:var(--md-sys-typescale-label-medium)!important;}'
+          if old in c: c = c.replace(old, new, 1)
+          extra = '\nbody.status-public #conteudo>.stat-card{grid-template-rows:auto auto!important;}\nbody.status-public #conteudo>.stat-card .stat-icon{grid-row:1/3!important;}\nbody.status-public #conteudo>.stat-card .stat-title,body.status-public #conteudo>.stat-card .stat-value{grid-row:1!important;}\nbody.status-public #conteudo>.stat-card .stat-subtitle{grid-row:2!important;}\n.telemetry-comparison-cards>.stat-card .stat-subtitle{font-variant-numeric:tabular-nums;}\n'
+          if 'telemetry-comparison-cards>.stat-card .stat-subtitle' not in c: c += extra
+          css.write_text(c, encoding='utf-8')
+          for p in [Path('ssd/.telemetry-14d-comparison'), Path('.github/workflows/agent-telemetry-14d-comparison.yml')]:
+              if p.exists(): p.unlink()
+          PY
+          php -l app/Support/Telemetry.php >/dev/null
+          php -l app/Admin/AdminPages.php >/dev/null
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Reter 14 dias e comparar telemetria semanal"
+          git push origin HEAD:"$HEAD_BRANCH"
