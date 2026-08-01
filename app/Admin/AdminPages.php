@@ -1794,18 +1794,18 @@ foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
     break;
 }
 $overviewCards =
-    stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+    stat_card("Requisições", $requests24h, "sync_alt", "") .
     stat_card(
         "Tempo Médio",
         number_format($averageResponseMs, 1, ",", ".") . " ms",
         "speed",
-        "tempo médio nas últimas 24 horas",
+        "",
     ) .
     stat_card(
         "Carregamentos da landing page",
         $landingRequests24h,
         "web",
-        "carregamentos nas últimas 24 horas",
+        "",
     );
 $card = $overviewCards . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .

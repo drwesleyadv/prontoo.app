@@ -15066,3 +15066,9 @@ body.status-public .global-performance-charts>.metric-area-chart svg{display:blo
 
 
 body.status-public #conteudo>.stat-card{width:100%!important;max-width:none!important;margin:0!important;}
+
+body.status-public #conteudo>.stat-card{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;column-gap:16px!important;min-height:96px!important;padding:18px 20px!important;}
+body.status-public #conteudo>.stat-card .stat-icon{grid-column:1!important;align-self:center!important;margin:0!important;}
+body.status-public #conteudo>.stat-card .stat-title{grid-column:2!important;align-self:center!important;margin:0!important;}
+body.status-public #conteudo>.stat-card .stat-value{grid-column:3!important;align-self:center!important;margin:0!important;text-align:right!important;}
+body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:none!important;}
