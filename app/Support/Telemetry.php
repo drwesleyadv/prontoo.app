@@ -969,6 +969,11 @@ function telemetry_cache_add_metrics(array $row, array $metrics): array
     }
     return $row;
 }
+function telemetry_route_perf_retention_seconds(): int
+{
+    return 14 * 86400;
+}
+
 function telemetry_append_route_performance_metric(array $event): bool
 {
 
@@ -1061,7 +1066,7 @@ function telemetry_append_route_performance_metric(array $event): bool
         $cacheBuckets = isset($json["cache_buckets"]) && is_array($json["cache_buckets"])
             ? $json["cache_buckets"]
             : [];
-        $cut = $nowTs - 25 * 3600;
+        $cut = $nowTs - telemetry_route_perf_retention_seconds();
         foreach ([&$buckets, &$releaseBuckets, &$cacheBuckets] as &$bucketSet) {
             foreach (array_keys($bucketSet) as $key) {
                 if ((int) $key < $cut) {
@@ -1203,7 +1208,7 @@ function telemetry_append_route_performance_metric(array $event): bool
             "timezone" => "America/Cuiaba",
             "storage" => "json",
             "bucket_seconds" => telemetry_route_perf_bucket_seconds(),
-            "retention_hours" => 336,
+            "retention_hours" => intdiv(telemetry_route_perf_retention_seconds(), 3600),
             "daily_retention_days" => 35,
             "release_measurement" => true,
             "cache_measurement" => true,
