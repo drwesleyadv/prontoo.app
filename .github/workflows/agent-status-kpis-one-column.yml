@@ -30,9 +30,10 @@ jobs:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          git fetch origin "$HEAD_BRANCH"
-          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
-          python3 <<'PY'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "$HEAD_BRANCH"
+            git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+            python3 <<'PY'
           from pathlib import Path
 
           css = Path('public/assets/design-system.css')
@@ -47,12 +48,14 @@ jobs:
 
           for path in [
               Path('ssd/.status-kpis-one-column'),
+              Path('ssd/.status-kpis-one-column-trigger'),
+              Path('ssd/.status-kpis-one-column-final-trigger'),
               Path('.github/workflows/agent-status-kpis-one-column.yml'),
           ]:
               if path.exists():
                   path.unlink()
           PY
-          php <<'PHP'
+            php <<'PHP'
           <?php
           declare(strict_types=1);
           $root = getcwd();
@@ -75,8 +78,16 @@ jobs:
           $manifest['updated_at'] = gmdate('c');
           file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
           PHP
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Exibir um indicador por linha na tela status"
-          git push origin HEAD:"$HEAD_BRANCH"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if git diff --cached --quiet; then
+              exit 0
+            fi
+            git commit -m "Exibir um indicador por linha na tela status"
+            if git push origin HEAD:"$HEAD_BRANCH"; then
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
