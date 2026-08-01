@@ -722,7 +722,7 @@ function telemetry_read_events(): array
 function telemetry_sanitize_events(array $events, int $nowTs): array
 {
 
-    $cut = $nowTs - 25 * 3600;
+    $cut = $nowTs - 14 * 86400;
     $out = [];
     foreach ($events as $ev) {
         if (!is_array($ev)) {
@@ -1203,7 +1203,7 @@ function telemetry_append_route_performance_metric(array $event): bool
             "timezone" => "America/Cuiaba",
             "storage" => "json",
             "bucket_seconds" => telemetry_route_perf_bucket_seconds(),
-            "retention_hours" => 25,
+            "retention_hours" => 336,
             "daily_retention_days" => 35,
             "release_measurement" => true,
             "cache_measurement" => true,
@@ -1651,6 +1651,58 @@ function telemetry_route_performance_summary(int $hours = 24): array
         "total" => $totalCount,
         "avg_ms" => $totalCount > 0 ? round($totalMs / $totalCount, 1) : 0.0,
         "routes" => $rows,
+    ];
+}
+
+function telemetry_period_variation(float $current, float $previous): ?float
+{
+    if ($previous <= 0.0) {
+        return $current <= 0.0 ? 0.0 : null;
+    }
+    return round((($current - $previous) / $previous) * 100, 1);
+}
+function telemetry_seven_day_comparison(): array
+{
+    $nowTs = time();
+    $currentCut = $nowTs - 7 * 86400;
+    $previousCut = $nowTs - 14 * 86400;
+    $periods = [
+        "current" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],
+        "previous" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],
+    ];
+    $json = telemetry_route_perf_snapshot();
+    $buckets = isset($json["buckets"]) && is_array($json["buckets"]) ? $json["buckets"] : [];
+    foreach ($buckets as $bucketTs => $routes) {
+        $ts = (int) $bucketTs;
+        if ($ts < $previousCut || $ts > $nowTs || !is_array($routes)) continue;
+        $period = $ts >= $currentCut ? "current" : "previous";
+        foreach ($routes as $route => $row) {
+            if (!is_array($row)) continue;
+            $count = max(0, (int) ($row["count"] ?? 0));
+            $periods[$period]["total"] += $count;
+            $periods[$period]["total_ms"] += max(0.0, (float) ($row["total_ms"] ?? 0));
+            if (telemetry_route_perf_safe_route((string) $route) === "landing") {
+                $periods[$period]["landing"] += $count;
+            }
+        }
+    }
+    foreach (["current", "previous"] as $period) {
+        $count = max(0, (int) $periods[$period]["total"]);
+        $periods[$period]["avg_ms"] = $count > 0
+            ? round((float) $periods[$period]["total_ms"] / $count, 1)
+            : 0.0;
+    }
+    return [
+        "days" => 7,
+        "retention_days" => 14,
+        "current" => $periods["current"],
+        "previous" => $periods["previous"],
+        "variation" => [
+            "total" => telemetry_period_variation((float) $periods["current"]["total"], (float) $periods["previous"]["total"]),
+            "avg_ms" => telemetry_period_variation((float) $periods["current"]["avg_ms"], (float) $periods["previous"]["avg_ms"]),
+            "landing" => telemetry_period_variation((float) $periods["current"]["landing"], (float) $periods["previous"]["landing"]),
+        ],
+        "updated_at" => (string) ($json["updated_at"] ?? ""),
     ];
 }
 
