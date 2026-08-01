@@ -1793,24 +1793,20 @@ foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
     $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
     break;
 }
-$overviewCards = card(
-    '<div class="stats-grid admin-overview-kpis status-three-kpis">' .
-        stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
-        stat_card(
-            "Tempo Médio",
-            number_format($averageResponseMs, 1, ",", ".") . " ms",
-            "speed",
-            "tempo médio nas últimas 24 horas",
-        ) .
-        stat_card(
-            "Carregamentos da landing page",
-            $landingRequests24h,
-            "web",
-            "carregamentos nas últimas 24 horas",
-        ) .
-        "</div>",
-    "status-overview-kpis-card",
-);
+$overviewCards =
+    stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+    stat_card(
+        "Tempo Médio",
+        number_format($averageResponseMs, 1, ",", ".") . " ms",
+        "speed",
+        "tempo médio nas últimas 24 horas",
+    ) .
+    stat_card(
+        "Carregamentos da landing page",
+        $landingRequests24h,
+        "web",
+        "carregamentos nas últimas 24 horas",
+    );
 $card = $overviewCards . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
