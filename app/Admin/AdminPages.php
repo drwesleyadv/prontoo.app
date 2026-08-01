@@ -1807,7 +1807,12 @@ $overviewCards =
         "web",
         "",
     );
-$card = $overviewCards . admin_performance_card_html(true);
+$statusHeader =
+    '<header class="status-page-header">' .
+    '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
+    '<div><h1>Status do Prontoo</h1><p>Visão operacional das últimas 24 horas</p></div>' .
+    "</header>";
+$card = $statusHeader . $overviewCards . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
         '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
@@ -1822,7 +1827,7 @@ $card = $overviewCards . admin_performance_card_html(true);
         rawurlencode(PRONTOO_VERSION) .
         '"></script></head><body class="public scope-global status-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="status" data-app-version="' .
         e(PRONTOO_VERSION) .
-        '"><main id="conteudo" tabindex="-1">' .
+        '"><main id="conteudo" tabindex="-1" aria-label="Status operacional do Prontoo">' .
         $card .
         "</main></body></html>";
 }
