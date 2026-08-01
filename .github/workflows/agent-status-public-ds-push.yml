@@ -1,0 +1,36 @@
+name: Run public status design
+
+on:
+  push:
+    branches: [agent/status-public-ds]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Execute canonical transformation
+        env:
+          HEAD_BRANCH: agent/status-public-ds
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/agent-status-public-ds.yml').read_text(encoding='utf-8').splitlines()
+          start = next(i for i, line in enumerate(source) if line.strip() == 'run: |') + 1
+          lines = []
+          for line in source[start:]:
+              if line and not line.startswith('          '):
+                  break
+              lines.append(line[10:] if line.startswith('          ') else '')
+          Path('/tmp/apply-status.sh').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          HEAD_BRANCH="$HEAD_BRANCH" bash /tmp/apply-status.sh
