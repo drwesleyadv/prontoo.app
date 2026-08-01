@@ -1,0 +1,69 @@
+name: Apply clean status KPI labels
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/status-kpis-clean-labels' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Apply status card cleanup
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+
+          admin = Path('app/Admin/AdminPages.php')
+          text = admin.read_text(encoding='utf-8')
+          replacements = {
+              'stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas")':
+                  'stat_card("Requisições", $requests24h, "sync_alt", "")',
+              '"tempo médio nas últimas 24 horas",': '"",',
+              '"carregamentos nas últimas 24 horas",': '"",',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Trecho não localizado: {old}')
+              text = text.replace(old, new, 1)
+          admin.write_text(text, encoding='utf-8')
+
+          css = Path('public/assets/design-system.css')
+          css_text = css.read_text(encoding='utf-8')
+          rule = '''
+          body.status-public #conteudo>.stat-card{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:center!important;column-gap:16px!important;min-height:96px!important;padding:18px 20px!important;}
+          body.status-public #conteudo>.stat-card .stat-icon{grid-column:1!important;align-self:center!important;margin:0!important;}
+          body.status-public #conteudo>.stat-card .stat-title{grid-column:2!important;align-self:center!important;margin:0!important;}
+          body.status-public #conteudo>.stat-card .stat-value{grid-column:3!important;align-self:center!important;margin:0!important;text-align:right!important;}
+          body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:none!important;}
+          '''
+          if 'body.status-public #conteudo>.stat-card .stat-subtitle' not in css_text:
+              css_text += rule
+          css.write_text(css_text, encoding='utf-8')
+
+          for path in [Path('ssd/.status-kpis-clean-labels'), Path('.github/workflows/agent-status-kpis-clean-labels.yml')]:
+              if path.exists():
+                  path.unlink()
+          PY
+          php -l app/Admin/AdminPages.php >/dev/null
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remover labels auxiliares e alinhar cards do status"
+          git push origin HEAD:"$HEAD_BRANCH"
