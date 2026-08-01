@@ -1799,12 +1799,25 @@ function page_status(): void
         ? telemetry_seven_day_comparison()
         : ["current" => [], "variation" => []];
     $overviewCards = admin_telemetry_seven_day_cards_html($comparison);
-$statusHeader =
-    '<header class="status-page-header">' .
-    '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
-    '<div><h1>Status do Prontoo</h1><p>Visão operacional dos últimos 7 dias</p></div>' .
-    "</header>";
-$card = $statusHeader . $overviewCards . admin_performance_card_html(true);
+    $statusHeader =
+        '<header class="status-page-header">' .
+        '<div class="status-page-brand">' .
+        '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
+        '<div><span class="status-page-eyebrow">Transparência operacional</span><h1>Status do Prontoo</h1><p>Acompanhe a estabilidade e o desempenho recente da plataforma.</p></div>' .
+        "</div>" .
+        '<span class="status-operational-state"><span aria-hidden="true"></span>Operação normal</span>' .
+        "</header>";
+    $statusSummary =
+        '<section class="status-summary" aria-labelledby="status-summary-title">' .
+        '<div class="status-section-heading"><div><span>Últimos 7 dias</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Comparação automática com os 7 dias anteriores.</p></div>' .
+        '<div class="status-summary-grid">' . $overviewCards . "</div>" .
+        "</section>";
+    $statusPerformance =
+        '<section class="status-performance" aria-labelledby="status-performance-title">' .
+        '<div class="status-section-heading"><div><span>Histórico recente</span><h2 id="status-performance-title">Desempenho da plataforma</h2></div><p>Leituras consolidadas para acompanhamento público.</p></div>' .
+        admin_performance_card_html(true) .
+        "</section>";
+    $card = '<div class="status-public-shell">' . $statusHeader . $statusSummary . $statusPerformance . "</div>";
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
         e(PRONTOO_VERSION) .
         '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
