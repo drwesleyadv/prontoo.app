@@ -1781,20 +1781,20 @@ function page_status(): void
         ? (string) PRONTOO_ASSET_REV
         : (string) PRONTOO_VERSION;
     $summary = function_exists("telemetry_route_performance_summary")
-    ? telemetry_route_performance_summary(24)
+    ? telemetry_route_performance_summary(168)
     : ["total" => 0, "avg_ms" => 0.0, "routes" => []];
-$requests24h = max(0, (int) ($summary["total"] ?? 0));
+$requests7d = max(0, (int) ($summary["total"] ?? 0));
 $averageResponseMs = max(0.0, (float) ($summary["avg_ms"] ?? 0.0));
-$landingRequests24h = 0;
+$landingRequests7d = 0;
 foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
     if ((string) ($routePerformance["route"] ?? "") !== "landing") {
         continue;
     }
-    $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
+    $landingRequests7d = max(0, (int) ($routePerformance["count"] ?? 0));
     break;
 }
 $overviewCards =
-    stat_card("Requisições", $requests24h, "sync_alt", "") .
+    stat_card("Requisições", $requests7d, "sync_alt", "") .
     stat_card(
         "Tempo Médio",
         number_format($averageResponseMs, 1, ",", ".") . " ms",
@@ -1803,14 +1803,14 @@ $overviewCards =
     ) .
     stat_card(
         "Carregamentos da landing page",
-        $landingRequests24h,
+        $landingRequests7d,
         "web",
         "",
     );
 $statusHeader =
     '<header class="status-page-header">' .
     '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
-    '<div><h1>Status do Prontoo</h1><p>Visão operacional das últimas 24 horas</p></div>' .
+    '<div><h1>Status do Prontoo</h1><p>Visão operacional dos últimos 7 dias</p></div>' .
     "</header>";
 $card = $statusHeader . $overviewCards . admin_performance_card_html(true);
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
