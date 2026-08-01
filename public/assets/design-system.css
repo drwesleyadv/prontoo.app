@@ -15072,3 +15072,5 @@ body.status-public #conteudo>.stat-card .stat-icon{grid-column:1!important;align
 body.status-public #conteudo>.stat-card .stat-title{grid-column:2!important;align-self:center!important;margin:0!important;}
 body.status-public #conteudo>.stat-card .stat-value{grid-column:3!important;align-self:center!important;margin:0!important;text-align:right!important;}
 body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:none!important;}
+
+body.status-public #conteudo>.stat-card+.stat-card{margin-top:16px!important;}
