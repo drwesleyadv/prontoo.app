@@ -8,6 +8,7 @@ if (!function_exists("storage_path")) {
 try {
     $configFile = dirname(__DIR__) . "/app/config.php";
     if (is_file($configFile)) {
+        require_once dirname(__DIR__) . "/app/Support/PhpCompat.php";
         require_once dirname(__DIR__) . "/app/Support/Telemetry.php";
         if (function_exists("telemetry_route_cycle_register")) telemetry_route_cycle_register("landing");
     }
