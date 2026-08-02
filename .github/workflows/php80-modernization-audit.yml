@@ -1,0 +1,102 @@
+name: PHP 8.0 Modernization Audit
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php80:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+          extensions: pdo_mysql
+          tools: composer
+
+      - name: Install PHPCompatibility
+        run: |
+          composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --no-interaction --no-progress \
+            squizlabs/php_codesniffer:^3.10 \
+            phpcompatibility/php-compatibility:^9.3 \
+            dealerdirect/phpcodesniffer-composer-installer:^1.0
+
+      - name: PHP 8.0 syntax for every tracked PHP file
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(git ls-files -z '*.php')
+
+      - name: PHPCompatibility 8.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(git ls-files -z '*.php')
+          phpcs \
+            --standard=PHPCompatibility \
+            --runtime-set testVersion 8.0-8.0 \
+            --extensions=php \
+            --report=full \
+            "${files[@]}"
+
+      - name: Reject legacy and unsafe PHP constructs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+
+          files = subprocess.check_output(['git', 'ls-files', '-z', '*.php']).split(b'\0')
+          patterns = {
+              'removed_each': re.compile(r'\beach\s*\('),
+              'removed_create_function': re.compile(r'\bcreate_function\s*\('),
+              'removed_mysql_extension': re.compile(r'\bmysql_(?:connect|query|fetch_|real_escape_string|select_db|num_rows)\b'),
+              'removed_curly_string_offset': re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*\s*\{[^\n{}]+\}'),
+              'deprecated_implode_order': re.compile(r'\b(?:implode|join)\s*\(\s*\$[A-Za-z_]'),
+              'suppressed_eval': re.compile(r'@?\beval\s*\('),
+              'assert_string_code': re.compile(r'\bassert\s*\(\s*["\']'),
+          }
+          findings = []
+          for raw in files:
+              if not raw:
+                  continue
+              path = Path(raw.decode())
+              text = path.read_text(encoding='utf-8')
+              for name, pattern in patterns.items():
+                  for match in pattern.finditer(text):
+                      line = text.count('\n', 0, match.start()) + 1
+                      findings.append(f'{path}:{line}: {name}: {match.group(0)[:120]}')
+          if findings:
+              print('\n'.join(findings))
+              sys.exit(1)
+          print('No forbidden legacy constructs found.')
+          PY
+
+      - name: Existing repository contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php -d auto_prepend_file=app/Support/PhpCompat.php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
