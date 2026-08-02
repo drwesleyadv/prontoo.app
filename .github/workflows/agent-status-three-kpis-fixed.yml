@@ -1,4 +1,4 @@
-name: Apply route cycle reset once
+name: Apply status three KPIs fixed
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/reset-route-cycle-once' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/status-three-kpis' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,38 +20,102 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-      - name: Apply one-time reset generation
+      - name: Apply indicators
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
           git fetch origin "$HEAD_BRANCH"
           git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
-          python3 .github/scripts/apply_route_cycle_reset_once.py
-          php -l app/Support/Telemetry.php
-          grep -Fq 'function telemetry_route_cycle_reset_generation' app/Support/Telemetry.php
-          grep -Fq 'route-cycles-reset-2026-08-02-1' app/Support/Telemetry.php
-          grep -Fq '$state["pending"] = [];' app/Support/Telemetry.php
-          grep -Fq '$state["days"] = [];' app/Support/Telemetry.php
-          grep -Fq 'reset_applied_at_us' app/Support/Telemetry.php
           python3 <<'PY'
           from pathlib import Path
-          p=Path('app/Support/Telemetry.php')
-          t=p.read_text(encoding='utf-8')
-          assert t.count('route-cycles-reset-2026-08-02-1') == 1
-          assert t.count('reset_applied_at_us') == 1
+          import re
+
+          admin = Path('app/Admin/AdminPages.php')
+          text = admin.read_text(encoding='utf-8')
+          start = text.index('function page_status(): void')
+          end = text.index('function page_admin_operations(): void', start)
+          section = text[start:end]
+          pattern = re.compile(
+              r'    \$summary = function_exists\("telemetry_route_performance_summary"\).*?'
+              r'    \$card = \$landingCard \. admin_performance_card_html\(true\);\n',
+              re.S,
+          )
+          replacement = '''    $summary = function_exists("telemetry_route_performance_summary")
+              ? telemetry_route_performance_summary(24)
+              : ["total" => 0, "avg_ms" => 0.0, "routes" => []];
+          $requests24h = max(0, (int) ($summary["total"] ?? 0));
+          $averageResponseMs = max(0.0, (float) ($summary["avg_ms"] ?? 0.0));
+          $landingRequests24h = 0;
+          foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
+              if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+                  continue;
+              }
+              $landingRequests24h = max(0, (int) ($routePerformance["count"] ?? 0));
+              break;
+          }
+          $overviewCards = card(
+              '<div class="stats-grid admin-overview-kpis status-three-kpis">' .
+                  stat_card("Requisições", $requests24h, "sync_alt", "requisições nas últimas 24 horas") .
+                  stat_card(
+                      "Tempo Médio",
+                      number_format($averageResponseMs, 1, ",", ".") . " ms",
+                      "speed",
+                      "tempo médio nas últimas 24 horas",
+                  ) .
+                  stat_card(
+                      "Carregamentos da landing page",
+                      $landingRequests24h,
+                      "web",
+                      "carregamentos nas últimas 24 horas",
+                  ) .
+                  "</div>",
+              "status-overview-kpis-card",
+          );
+          $card = $overviewCards . admin_performance_card_html(true);
+          '''
+          section, count = pattern.subn(replacement, section, count=1)
+          if count != 1:
+              raise SystemExit('Bloco atual de indicadores da tela status não localizado.')
+          admin.write_text(text[:start] + section + text[end:], encoding='utf-8')
+
+          css = Path('public/assets/design-system.css')
+          css_text = css.read_text(encoding='utf-8')
+          if 'body.status-public .status-three-kpis{' not in css_text:
+              css_text += '\nbody.status-public .status-three-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;}\nbody.status-public .status-three-kpis>.stat-card{min-width:0!important;}\n'
+          css.write_text(css_text, encoding='utf-8')
+
+          marker = Path('ssd/.status-three-kpis')
+          if marker.exists():
+              marker.unlink()
           PY
-          rm -f .github/scripts/apply_route_cycle_reset_once.py
-          git show feec3d785c402ea7a5fd09d981a95ad6560b4609:.github/workflows/agent-status-three-kpis-fixed.yml > .github/workflows/agent-status-three-kpis-fixed.yml
+          php -l app/Admin/AdminPages.php
           php <<'PHP'
           <?php
-          $root=getcwd();$path=$root.'/app/update.manifest.json';$m=json_decode((string)file_get_contents($path),true,512,JSON_THROW_ON_ERROR);$files=[];$total=0;
-          $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root,FilesystemIterator::SKIP_DOTS));
-          foreach($it as $f){if(!$f->isFile()||$f->isLink())continue;$r=str_replace('\\','/',substr($f->getPathname(),strlen($root)+1));if($r==='app/update.manifest.json'||str_starts_with($r,'.git/')||str_starts_with($r,'ssd/')||str_starts_with($r,'vendor/')||str_starts_with($r,'node_modules/'))continue;$files[$r]=hash_file('sha256',$f->getPathname());$total+=$f->getSize();}
-          ksort($files,SORT_STRING);$m['files']=$files;$m['file_count']=count($files);$m['total_uncompressed_bytes']=$total;$m['updated_at']=gmdate('c');file_put_contents($path,json_encode($m,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL);
+          declare(strict_types=1);
+          $root = getcwd();
+          $manifestPath = $root . '/app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+          $files = [];
+          $total = 0;
+          $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+          foreach ($iterator as $file) {
+              if (!$file->isFile() || $file->isLink()) continue;
+              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+              if ($relative === 'app/update.manifest.json' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) continue;
+              $files[$relative] = hash_file('sha256', $file->getPathname());
+              $total += $file->getSize();
+          }
+          ksort($files, SORT_STRING);
+          $manifest['files'] = $files;
+          $manifest['file_count'] = count($files);
+          $manifest['total_uncompressed_bytes'] = $total;
+          $manifest['updated_at'] = gmdate('c');
+          file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
           PHP
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Zerar estatísticas uma única vez na próxima execução"
+          git add app/Admin/AdminPages.php public/assets/design-system.css app/update.manifest.json
+          git add -u ssd/.status-three-kpis
+          git commit -m "Exibir três indicadores na mesma linha da tela status"
           git push origin HEAD:"$HEAD_BRANCH"
