@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import _csv
 import os
-import re
 import subprocess
 from pathlib import Path
 
@@ -26,15 +25,17 @@ TARGET = ROOT / "app/Domain/Audit/AuditActivity.php"
 if os.getenv("GITHUB_ACTIONS") == "true" and os.getenv("GITHUB_HEAD_REF") == BRANCH:
     text = TARGET.read_text(encoding="utf-8")
     if "$environmentLabel = activity_environment_label($ctx);" not in text:
-        header_pattern = re.compile(
-            r"\s*\$windowLabel = activity_text_value\(\$ctx\[\"janela\"\] \?\? \$title\);\n"
-            r"\s*if \(\$windowLabel === \"\"\) \{\n"
-            r"\s*\$windowLabel = \"do sistema\";\n"
-            r"\s*\}\n"
-            r"\s*return match \(\$event\) \{"
-        )
-        header_replacement = '''
-    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+        start = text.index("function activity_human_sentence(")
+        end = text.index("function activity_direct_body(", start)
+        section = text[start:end]
+
+        old_header = '''    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+if ($windowLabel === "") {
+    $windowLabel = "do sistema";
+}
+    return match ($event) {
+'''
+        new_header = '''    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
     if ($windowLabel === "") {
         $windowLabel = "do sistema";
     }
@@ -51,24 +52,36 @@ if os.getenv("GITHUB_ACTIONS") == "true" and os.getenv("GITHUB_HEAD_REF") == BRA
             " pelo dispositivo reconhecido";
         $exitSentence = $who . " saiu do ambiente " . $environmentLabel;
     }
-    return match ($event) {'''
-        text, count = header_pattern.subn(header_replacement, text, count=1)
-        if count != 1:
-            raise RuntimeError(f"Cabeçalho esperado uma vez; encontrado {count}.")
-        sentence_pattern = re.compile(
-            r"\s*\"entrada_realizada\" => .*?"
-            r"\s*\"saida_realizada\" => .*?"
-            r": \$who \. \" saiu do sistema\",",
-            re.DOTALL,
-        )
-        sentence_replacement = '''
-        "entrada_realizada" => $entrySentence,
+    return match ($event) {
+'''
+        if section.count(old_header) != 1:
+            raise RuntimeError(f"Cabeçalho esperado uma vez; encontrado {section.count(old_header)}.")
+        section = section.replace(old_header, new_header, 1)
+
+        old_sentences = '''        "entrada_realizada" => ($env = activity_environment_label($ctx)) !== ""
+            ? $who . " entrou no ambiente " . $env
+            : $who . " entrou no sistema",
+        "entrada_automatica_dispositivo" => ($env = activity_environment_label(
+            $ctx,
+        )) !== ""
+            ? $who .
+                " entrou no ambiente " .
+                $env .
+                " pelo dispositivo reconhecido"
+            : $who . " entrou pelo dispositivo reconhecido",
+        "saida_realizada" => ($env = activity_environment_label($ctx)) !== ""
+            ? $who . " saiu do ambiente " . $env
+            : $who . " saiu do sistema",
+'''
+        new_sentences = '''        "entrada_realizada" => $entrySentence,
         "entrada_automatica_dispositivo" => $automaticEntrySentence,
-        "saida_realizada" => $exitSentence,'''
-        text, count = sentence_pattern.subn(sentence_replacement, text, count=1)
-        if count != 1:
-            raise RuntimeError(f"Bloco de frases esperado uma vez; encontrado {count}.")
-        TARGET.write_text(text, encoding="utf-8")
+        "saida_realizada" => $exitSentence,
+'''
+        if section.count(old_sentences) != 1:
+            raise RuntimeError(f"Bloco de frases esperado uma vez; encontrado {section.count(old_sentences)}.")
+        section = section.replace(old_sentences, new_sentences, 1)
+
+        TARGET.write_text(text[:start] + section + text[end:], encoding="utf-8")
         subprocess.run(["php", "-l", str(TARGET)], cwd=ROOT, check=True)
         subprocess.run(["git", "config", "user.name", "github-actions[bot]"], cwd=ROOT, check=True)
         subprocess.run(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], cwd=ROOT, check=True)
