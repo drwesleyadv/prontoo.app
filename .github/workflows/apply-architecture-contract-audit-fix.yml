@@ -22,7 +22,7 @@ jobs:
         with:
           php-version: '8.0'
           coverage: none
-      - name: Update public status layout contract
+      - name: Update audited architecture contracts
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
@@ -34,14 +34,22 @@ jobs:
 
           path = Path('tools/architecture-check.php')
           text = path.read_text(encoding='utf-8')
-          old = '''foreach ([
+
+          def replace_once(old: str, new: str, label: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: esperado uma vez; encontrado {count}.')
+              text = text.replace(old, new, 1)
+
+          old_layout = '''foreach ([
               'body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}',
               'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;',
               'body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}',
               'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
               'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
           ] as $statusPublicLayoutToken) {'''
-          new = '''foreach ([
+          new_layout = '''foreach ([
               'body.status-public #conteudo{width:100%!important;max-width:none!important;margin:0!important;padding:clamp(18px,4vw,52px) clamp(14px,4vw,48px) 56px!important;}',
               'body.status-public .status-public-shell{width:min(1180px,100%);margin-inline:auto;display:grid;gap:28px;}',
               'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;border-radius:28px!important;',
@@ -49,9 +57,35 @@ jobs:
               'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:0!important;padding:16px!important;gap:14px!important;border:0!important;border-radius:0!important;background:transparent!important;}',
               'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:18px!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;border-radius:20px!important;',
           ] as $statusPublicLayoutToken) {'''
-          if text.count(old) != 1:
-              raise SystemExit(f'Contrato antigo esperado uma vez; encontrado {text.count(old)}.')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          replace_once(old_layout, new_layout, 'layout público de status')
+
+          replace_once(
+              ": strpos($telemetryPartitionSource, 'function telemetry_route_perf_file(', $appendStart);",
+              ": strpos($telemetryPartitionSource, 'function telemetry_route_cycle_file(', $appendStart);",
+              'escopo append-only de métricas de página',
+          )
+          replace_once(
+              "foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {",
+              "foreach (['page_admin_telemetry'] as $token) {",
+              'tokens realmente obsoletos do painel',
+          )
+
+          replacements = [
+              ("'\\\"Landing Page\\\"',", "'\\\"Carregamentos da landing page\\\"',", 1, 'título landing requerido'),
+              ("'landing' => '\\\"Landing Page\\\"',", "'landing' => '\\\"Carregamentos da landing page\\\"',", 1, 'posição do card landing'),
+              ("'$averageResponseMs',", "'function admin_telemetry_variation_text(?float $variation): string',", 1, 'helper da variação de sete dias'),
+              ("'$landingRequests24h',", "'admin_telemetry_today_cards_html($telemetryComparison)',", 1, 'cards internos de sete dias'),
+              ("'(int) ($routePerformance[\\\"count\\\"] ?? 0)',", "'admin_telemetry_today_cards_html($comparison)',", 1, 'cards públicos de sete dias'),
+              ("'\\\"requisições nas últimas 24 horas\\\"',", "'\\\"últimos 7 dias · \\\"',", 1, 'rótulo temporal móvel'),
+              ("'telemetry_route_performance_summary(24)',", "'telemetry_status_cards_snapshot()',", 1, 'fonte transacional dos cards'),
+          ]
+          for old, new, expected, label in replacements:
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f'{label}: esperado {expected}; encontrado {count}.')
+              text = text.replace(old, new, expected)
+
+          path.write_text(text, encoding='utf-8')
           PY
           php <<'PHP'
           <?php
@@ -81,5 +115,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tools/architecture-check.php app/update.manifest.json
-          git commit -m "Atualizar contrato do layout público de status"
+          git commit -m "Atualizar contratos após refatorações auditadas"
           git push origin HEAD:"$HEAD_BRANCH"
