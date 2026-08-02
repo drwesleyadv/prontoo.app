@@ -1767,27 +1767,12 @@ function admin_performance_card_html(bool $public = false): string
         "admin-performance-card",
     );
 }
-function admin_telemetry_variation_text(?float $variation, bool $comparisonReady): string
+function admin_telemetry_today_cards_html(array $snapshot): string
 {
-    if (!$comparisonReady) return "comparação indisponível até haver 14 dias completos";
-    if ($variation === null) return "sem base matemática no período anterior";
-    $signal = $variation > 0 ? "+" : "";
-    return $signal . number_format($variation, 1, ",", ".") . "% vs. 7 dias completos anteriores";
-}
-function admin_telemetry_seven_day_cards_html(array $comparison): string
-{
-    $current = isset($comparison["current"]) && is_array($comparison["current"]) ? $comparison["current"] : [];
-    $variation = isset($comparison["variation"]) && is_array($comparison["variation"]) ? $comparison["variation"] : [];
-    $coverage = max(0, min(7, (int) ($current["coverage_days"] ?? 0)));
-    $currentReady = !empty($comparison["current_ready"]);
-    $comparisonReady = !empty($comparison["comparison_ready"]);
-    $coverageText = $currentReady ? "7 dias civis completos" : $coverage . " de 7 dias completos coletados";
-    $detail = static function (?float $value) use ($coverageText, $comparisonReady): string {
-        return $coverageText . " · " . admin_telemetry_variation_text($value, $comparisonReady);
-    };
-    return stat_card("Requisições", max(0, (int) ($current["total"] ?? 0)), "sync_alt", $detail(array_key_exists("total", $variation) && $variation["total"] !== null ? (float) $variation["total"] : null)) .
-        stat_card("Tempo Médio", number_format(max(0.0, (float) ($current["avg_ms"] ?? 0.0)), 1, ",", ".") . " ms", "speed", $detail(array_key_exists("avg_ms", $variation) && $variation["avg_ms"] !== null ? (float) $variation["avg_ms"] : null)) .
-        stat_card("Carregamentos da landing page", max(0, (int) ($current["landing"] ?? 0)), "web", $detail(array_key_exists("landing", $variation) && $variation["landing"] !== null ? (float) $variation["landing"] : null));
+    $detail = "hoje · ciclos completos entre marcador inicial e final";
+    return stat_card("Requisições", max(0, (int) ($snapshot["total"] ?? 0)), "sync_alt", $detail) .
+        stat_card("Tempo Médio", number_format(max(0.0, (float) ($snapshot["avg_ms"] ?? 0.0)), 3, ",", ".") . " ms", "speed", $detail) .
+        stat_card("Carregamentos da landing page", max(0, (int) ($snapshot["landing"] ?? 0)), "web", $detail);
 }
 function page_status(): void
 {
@@ -1803,9 +1788,9 @@ function page_status(): void
         ? (string) PRONTOO_ASSET_REV
         : (string) PRONTOO_VERSION;
     $comparison = function_exists("telemetry_seven_day_comparison")
-        ? telemetry_seven_day_comparison()
-        : ["current" => [], "variation" => []];
-    $overviewCards = admin_telemetry_seven_day_cards_html($comparison);
+        ? telemetry_status_cards_snapshot()
+        : ["total" => 0, "avg_ms" => 0.0, "landing" => 0];
+    $overviewCards = admin_telemetry_today_cards_html($comparison);
     $statusHeader =
         '<header class="status-page-header">' .
         '<div class="status-page-brand">' .
@@ -1816,7 +1801,7 @@ function page_status(): void
         "</header>";
     $statusSummary =
         '<section class="status-summary" aria-labelledby="status-summary-title">' .
-        '<div class="status-section-heading"><div><span>Últimos 7 dias</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Comparação automática com os 7 dias anteriores.</p></div>' .
+        '<div class="status-section-heading"><div><span>Últimos 7 dias</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Medição exata dos ciclos concluídos no dia atual.</p></div>' .
         '<div class="status-summary-grid">' . $overviewCards . "</div>" .
         "</section>";
     $statusPerformance =
@@ -2928,8 +2913,8 @@ function page_admin_painel(): void
         "SELECT COUNT(DISTINCT user_id) FROM pi_audit WHERE user_id IS NOT NULL AND created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) $modelAuditWhere",
     );
     $telemetryComparison = function_exists("telemetry_seven_day_comparison")
-        ? telemetry_seven_day_comparison()
-        : ["current" => [], "variation" => []];
+        ? telemetry_status_cards_snapshot()
+        : ["total" => 0, "avg_ms" => 0.0, "landing" => 0];
     $locks = $qInt(
         "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
     );
@@ -3147,7 +3132,7 @@ function page_admin_painel(): void
     $charts = admin_performance_card_html();
     $telemetry =
         '<div class="stats-grid admin-overview-kpis global-telemetry-grid telemetry-comparison-cards">' .
-        admin_telemetry_seven_day_cards_html($telemetryComparison) .
+        admin_telemetry_today_cards_html($telemetryComparison) .
         stat_card("Usuários Ativos", $activeUsers24h, "person_check", "últimas 24 horas") .
         "</div>";
     $actionsCard = $actions

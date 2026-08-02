@@ -403,6 +403,7 @@ function prontoo_run(bool $installMode = false): void
         boot_security();
         guard_request();
         $r = route();
+        if (function_exists("telemetry_route_cycle_register")) telemetry_route_cycle_register($r);
         $publicStatus = $r === "status";
         $publicHome = false;
         headers_secure($publicStatus);
