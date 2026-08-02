@@ -34,44 +34,38 @@ jobs:
           git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
           python3 <<'PY'
           from pathlib import Path
+          import re
 
           audit = Path('app/Domain/Audit/AuditActivity.php')
           text = audit.read_text(encoding='utf-8')
-          anchor = '''    $clinic = $clinic !== "" ? $clinic : "consultório";
-          return match ($event) {
-          '''
-          replacement = '''    $clinic = $clinic !== "" ? $clinic : "consultório";
-          $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+          clinic_line = '    $clinic = $clinic !== "" ? $clinic : "consultório";\n'
+          if text.count(clinic_line) != 1:
+              raise SystemExit(f'Linha da clínica esperada uma vez; encontrada {text.count(clinic_line)}.')
+          insertion = clinic_line + '''    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
           if ($windowLabel === "") {
               $windowLabel = "do sistema";
           }
-          return match ($event) {
           '''
-          if text.count(anchor) != 1:
-              raise SystemExit(f'Âncora de AuditActivity esperada uma vez; encontrada {text.count(anchor)}.')
-          text = text.replace(anchor, replacement, 1)
-          old = '''            : $who .
-                          " abriu a tela " .
-                          (activity_text_value($ctx["janela"] ?? $title) ?: "do sistema"),
-          '''
-          new = '''            : $who . " abriu a tela " . $windowLabel,
-          '''
-          if text.count(old) != 1:
-              raise SystemExit(f'Ternário aninhado esperado uma vez; encontrado {text.count(old)}.')
-          audit.write_text(text.replace(old, new, 1), encoding='utf-8')
+          text = text.replace(clinic_line, insertion, 1)
+          pattern = re.compile(
+              r': \$who \.\s*" abriu a tela " \.\s*\(activity_text_value\(\$ctx\["janela"\] \?\? \$title\) \?: "do sistema"\),'
+          )
+          text, count = pattern.subn(': $who . " abriu a tela " . $windowLabel,', text, count=1)
+          if count != 1:
+              raise SystemExit(f'Ternário aninhado esperado uma vez; encontrado {count}.')
+          audit.write_text(text, encoding='utf-8')
 
           workflow = Path('.github/workflows/php80-modernization-audit.yml')
           source = workflow.read_text(encoding='utf-8')
-          old_flag = '''            --extensions=php \\
-                      --report=full \\
-          '''
-          new_flag = '''            --extensions=php \\
-                      --warning-severity=0 \\
-                      --report=full \\
-          '''
-          if source.count(old_flag) != 1:
-              raise SystemExit('Bloco PHPCompatibility não encontrado uma vez.')
-          workflow.write_text(source.replace(old_flag, new_flag, 1), encoding='utf-8')
+          source, count = re.subn(
+              r'(--extensions=php \\\n)(\s*)(--report=full \\\n)',
+              r'\1\2--warning-severity=0 \\\n\2\3',
+              source,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f'Bloco PHPCompatibility esperado uma vez; encontrado {count}.')
+          workflow.write_text(source, encoding='utf-8')
           PY
           php -l app/Domain/Audit/AuditActivity.php
           git config user.name "github-actions[bot]"
