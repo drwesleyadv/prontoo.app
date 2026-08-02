@@ -51,7 +51,6 @@ jobs:
             --runtime-set testVersion 8.0-8.0 \
             --extensions=php \
             --warning-severity=0 \
-            --exclude=PHPCompatibility.Operators.RemovedTernaryAssociativity \
             --report=full \
             "${files[@]}"
 
