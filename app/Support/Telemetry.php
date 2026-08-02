@@ -921,9 +921,18 @@ function telemetry_route_cycle_register(string $route): void
         catch (Throwable $e) { error_log("[Prontoo route cycle] " . $e->getMessage()); }
     });
 }
+function telemetry_period_variation_value(float $current, float $previous): ?float
+{
+    if ($previous <= 0.0) return null;
+    return round((($current - $previous) / $previous) * 100, 1);
+}
 function telemetry_status_cards_snapshot(): array
 {
-    $today = (new DateTimeImmutable("today", telemetry_cuiaba_tz()))->format("Y-m-d");
+    $tz = telemetry_cuiaba_tz();
+    $today = new DateTimeImmutable("today", $tz);
+    $currentStart = $today->modify("-6 days");
+    $previousStart = $today->modify("-13 days");
+    $previousEnd = $today->modify("-7 days");
     $state = [];
     $file = telemetry_route_cycle_file();
     if (is_file($file)) {
@@ -931,18 +940,41 @@ function telemetry_status_cards_snapshot(): array
         $state = is_string($raw) && trim($raw) !== "" ? json_decode($raw, true) : [];
     }
     $days = is_array($state) && isset($state["days"]) && is_array($state["days"]) ? $state["days"] : [];
-    $row = isset($days[$today]) && is_array($days[$today]) ? $days[$today] : [];
-    $total = max(0, (int) ($row["completed"] ?? 0));
-    $totalNs = max(0, (int) ($row["total_ns"] ?? 0));
+    $periods = [
+        "current" => ["total" => 0, "total_ns" => 0, "landing" => 0],
+        "previous" => ["total" => 0, "total_ns" => 0, "landing" => 0],
+    ];
+    for ($offset = 0; $offset < 14; $offset++) {
+        $day = $previousStart->modify("+" . $offset . " days");
+        $key = $day->format("Y-m-d");
+        $period = $day >= $currentStart ? "current" : "previous";
+        $row = isset($days[$key]) && is_array($days[$key]) ? $days[$key] : [];
+        $periods[$period]["total"] += max(0, (int) ($row["completed"] ?? 0));
+        $periods[$period]["total_ns"] += max(0, (int) ($row["total_ns"] ?? 0));
+        $periods[$period]["landing"] += max(0, (int) ($row["landing"] ?? 0));
+    }
+    foreach (["current", "previous"] as $period) {
+        $count = max(0, (int) $periods[$period]["total"]);
+        $periods[$period]["avg_ms"] = $count > 0
+            ? round(((float) $periods[$period]["total_ns"] / $count) / 1000000, 3)
+            : 0.0;
+    }
     return [
         "source" => "route_cycles_v2",
-        "period" => "today",
-        "timezone" => "America/Cuiaba",
-        "day" => $today,
-        "total" => $total,
-        "avg_ms" => $total > 0 ? round(($totalNs / $total) / 1000000, 3) : 0.0,
-        "landing" => max(0, (int) ($row["landing"] ?? 0)),
-        "last_finished_us" => max(0, (int) ($row["last_finished_us"] ?? 0)),
+        "period" => "rolling_7_civil_days",
+        "timezone" => $tz->getName(),
+        "current_start" => $currentStart->format("Y-m-d"),
+        "current_end" => $today->format("Y-m-d"),
+        "previous_start" => $previousStart->format("Y-m-d"),
+        "previous_end" => $previousEnd->format("Y-m-d"),
+        "current" => $periods["current"],
+        "previous" => $periods["previous"],
+        "variation" => [
+            "total" => telemetry_period_variation_value((float) $periods["current"]["total"], (float) $periods["previous"]["total"]),
+            "avg_ms" => telemetry_period_variation_value((float) $periods["current"]["avg_ms"], (float) $periods["previous"]["avg_ms"]),
+            "landing" => telemetry_period_variation_value((float) $periods["current"]["landing"], (float) $periods["previous"]["landing"]),
+        ],
+        "last_finished_us" => max(0, (int) ($state["updated_at_us"] ?? 0)),
     ];
 }
 
