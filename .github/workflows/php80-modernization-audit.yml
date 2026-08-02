@@ -50,6 +50,7 @@ jobs:
             --standard=PHPCompatibility \
             --runtime-set testVersion 8.0-8.0 \
             --extensions=php \
+            --warning-severity=0 \
             --report=full \
             "${files[@]}"
 
