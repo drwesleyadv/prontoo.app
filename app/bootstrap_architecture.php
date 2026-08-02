@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 $__prontoo_core_files = [
+    __DIR__ . '/Support/PhpCompat.php',
     __DIR__ . '/Core/Support/Check.php',
     __DIR__ . '/Core/Architecture/LayerMap.php',
     __DIR__ . '/Core/Tenant/TenantRegistry.php',
