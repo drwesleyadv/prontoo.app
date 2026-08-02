@@ -1154,9 +1154,22 @@ function activity_human_sentence(
     $clinic = trim(str_replace("Consultório", "", audit_clinic_target($ctx)));
     $clinic = $clinic !== "" ? $clinic : "consultório";
     $windowLabel = activity_text_value($ctx["janela"] ?? $title);
-if ($windowLabel === "") {
-    $windowLabel = "do sistema";
-}
+    if ($windowLabel === "") {
+        $windowLabel = "do sistema";
+    }
+    $environmentLabel = activity_environment_label($ctx);
+    $entrySentence = $who . " entrou no sistema";
+    $automaticEntrySentence = $who . " entrou pelo dispositivo reconhecido";
+    $exitSentence = $who . " saiu do sistema";
+    if ($environmentLabel !== "") {
+        $entrySentence = $who . " entrou no ambiente " . $environmentLabel;
+        $automaticEntrySentence =
+            $who .
+            " entrou no ambiente " .
+            $environmentLabel .
+            " pelo dispositivo reconhecido";
+        $exitSentence = $who . " saiu do ambiente " . $environmentLabel;
+    }
     return match ($event) {
         "janela_aberta" => $entity === "paciente" ||
         trim((string) ($ctx["patient_name"] ?? "")) !== ""
@@ -1164,20 +1177,9 @@ if ($windowLabel === "") {
             : $who . " abriu a tela " . $windowLabel,
         "login_carregado" => $who . " abriu a tela de entrada",
         "autoteste_aviso" => $who . " recebeu um aviso técnico na entrada",
-        "entrada_realizada" => ($env = activity_environment_label($ctx)) !== ""
-            ? $who . " entrou no ambiente " . $env
-            : $who . " entrou no sistema",
-        "entrada_automatica_dispositivo" => ($env = activity_environment_label(
-            $ctx,
-        )) !== ""
-            ? $who .
-                " entrou no ambiente " .
-                $env .
-                " pelo dispositivo reconhecido"
-            : $who . " entrou pelo dispositivo reconhecido",
-        "saida_realizada" => ($env = activity_environment_label($ctx)) !== ""
-            ? $who . " saiu do ambiente " . $env
-            : $who . " saiu do sistema",
+        "entrada_realizada" => $entrySentence,
+        "entrada_automatica_dispositivo" => $automaticEntrySentence,
+        "saida_realizada" => $exitSentence,
         "falha_entrada" => $who . " tentou entrar e não conseguiu",
         "login_clinica_pendente" => $who .
             " escolheu um consultório para entrar",
