@@ -18,7 +18,6 @@ final class LayerMap
         'app/Core/Install/InstallAccess.php',
         'app/Core/Database/SchemaMutationLock.php',
         'app/Core/Database/SchemaHardening.php',
-        'app/Support/PhpCompat.php',
         'app/Domain/Authorization/',
         'app/Domain/Identity/',
         'app/Domain/Patients/PatientPure.php',
@@ -29,6 +28,7 @@ final class LayerMap
 
     private const ENVIRONMENT_PHP_PATHS = [
         'app/config.php',
+        'app/Support/PhpCompat.php',
     ];
 
     private function __construct() {
