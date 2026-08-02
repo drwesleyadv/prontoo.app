@@ -36,7 +36,7 @@ jobs:
           from pathlib import Path
           text = Path('app/Support/Telemetry.php').read_text(encoding='utf-8')
           assert text.count('route-cycles-reset-2026-08-02-2') == 1
-          assert text.count('reset_discard_next') == 2
+          assert text.count('reset_discard_next') == 3
           assert text.count('reset_completed_at_us') == 1
           PY
           rm -f .github/scripts/apply_route_cycle_reset_once_v2.py .github/workflows/agent-reset-route-cycle-once-v2.yml
