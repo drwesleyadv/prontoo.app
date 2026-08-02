@@ -4288,35 +4288,6 @@ body[data-route="appointments"] .agenda-day-empty.agenda-day-empty-icon .pt-icon
   body[data-route="appointments"] .agenda-day-empty.agenda-day-empty-icon .material-symbols-rounded,
   body[data-route="appointments"] .agenda-day-empty.agenda-day-empty-icon .pt-icon-glyph{font-size:22px!important}
 }
-  content:""!important;
-  position:absolute!important;
-  inset:auto auto 0 0!important;
-  width:var(--agenda-occupancy-progress,1%)!important;
-  height:4px!important;
-  min-width:1%!important;
-  max-width:100%!important;
-  border-radius:0!important;
-  background:var(--md-sys-color-primary)!important;
-  opacity:.96!important;
-  pointer-events:none!important;
-  z-index:3!important;
-}
-  display:none!important;
-  content:none!important;
-}
-  position:relative!important;
-  z-index:4!important;
-}
-@media(max-width:720px){
-    min-height:34px!important;
-    padding:5px 6px 9px!important;
-    border-radius:14px 14px 0 0!important;
-  }
-    height:3px!important;
-  }
-}
-
-
 body[data-route="appointments"] .agenda-week-view{
   overflow-x:auto!important;
   overflow-y:visible;
@@ -5529,7 +5500,7 @@ body.scope-clinic .top .brand b{
 .billing-readonly-copy{display:grid;gap:2px;min-width:0}.billing-readonly-copy .eyebrow{font-size:.68rem;line-height:1}.billing-readonly-copy b{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface);letter-spacing:-.015em}.billing-readonly-copy small{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);line-height:1.3}.billing-readonly-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.billing-readonly-actions a{text-decoration:none;white-space:nowrap}.billing-readonly-actions .billing-support-link{background:var(--md-sys-color-surface-container-lowest)}
 .readonly-scope-note{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));border-radius:22px;background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-on-surface);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.readonly-scope-note>.material-symbols-rounded,.readonly-scope-note>.pt-icon-glyph{width:40px;height:40px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.readonly-scope-note div{display:grid;gap:2px;min-width:0}.readonly-scope-note strong{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.readonly-scope-note span{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);line-height:1.35}.readonly-support-screen .readonly-support-compose{border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.readonly-support-help{color:var(--md-sys-color-on-surface-variant)}.readonly-support-row .notice-minimal-sender{color:var(--md-sys-color-primary);font-weight:900}
 @media(max-width:760px){.billing-readonly-banner.ds-readonly-banner{grid-template-columns:auto minmax(0,1fr);margin-inline:10px}.billing-readonly-actions{grid-column:1/-1;width:100%;justify-content:stretch}.billing-readonly-actions a{flex:1 1 0;justify-content:center}.readonly-scope-note{grid-template-columns:auto minmax(0,1fr);align-items:start}.readonly-scope-note a{grid-column:1/-1;width:100%;justify-content:center}}
-.billing-readonly-banner nav{width:100%}.billing-readonly-banner a{flex:1;text-align:center}.readonly-scope-note{align-items:flex-start;flex-wrap:wrap}.readonly-scope-note a{width:100%;justify-content:center}}
+@media(max-width:760px){.billing-readonly-banner nav{width:100%}.billing-readonly-banner a{flex:1;text-align:center}.readonly-scope-note{align-items:flex-start;flex-wrap:wrap}.readonly-scope-note a{width:100%;justify-content:center}}
 
 
 body.is-read-only .readonly-scope-note{display:none!important}

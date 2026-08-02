@@ -1968,10 +1968,10 @@ function financial_default_drawer_unlock_local(
     $locked =
         (string) ($d["drawer_locked_business_date"] ?? financial_today($cid));
     try {
-        $dt = new DateTimeImmutable(
+        $dt = (new DateTimeImmutable(
             $locked . " 08:00:00",
             new DateTimeZone(app_context_timezone(null, $cid)),
-        )->modify("+1 day");
+        ))->modify("+1 day");
     } catch (Throwable $e) {
         $dt = app_now_in_timezone($cid)->modify("+1 day")->setTime(8, 0);
     }
@@ -6107,7 +6107,7 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
         "</form>";
     $today = financial_today($cid);
     try {
-        $yesterday = new DateTimeImmutable($today)
+        $yesterday = (new DateTimeImmutable($today))
             ->modify("-1 day")
             ->format("Y-m-d");
     } catch (Throwable $e) {

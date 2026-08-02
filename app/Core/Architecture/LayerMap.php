@@ -28,6 +28,7 @@ final class LayerMap
 
     private const ENVIRONMENT_PHP_PATHS = [
         'app/config.php',
+        'app/Support/PhpCompat.php',
     ];
 
     private function __construct() {

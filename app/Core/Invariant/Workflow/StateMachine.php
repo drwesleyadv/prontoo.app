@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Prontoo\Core\Invariant\Workflow;
 
-final readonly class StateMachine
+final class StateMachine
 {
     public function __construct(
         private array $transitions,

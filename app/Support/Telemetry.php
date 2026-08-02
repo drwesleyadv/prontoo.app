@@ -1181,7 +1181,7 @@ function telemetry_append_route_performance_metric(array $event): bool
     $cacheCategories = isset($cache["categories"]) && is_array($cache["categories"])
         ? $cache["categories"]
         : [];
-    $dayKey = new DateTimeImmutable("@" . $nowTs)
+    $dayKey = (new DateTimeImmutable("@" . $nowTs))
         ->setTimezone(telemetry_cuiaba_tz())
         ->format("Y-m-d");
     $fh = @fopen($file, "c+");
@@ -1314,7 +1314,7 @@ function telemetry_append_route_performance_metric(array $event): bool
         $daily = isset($json["daily_requests"]) && is_array($json["daily_requests"])
             ? $json["daily_requests"]
             : [];
-        $dailyCut = new DateTimeImmutable("@" . $nowTs)
+        $dailyCut = (new DateTimeImmutable("@" . $nowTs))
             ->setTimezone(telemetry_cuiaba_tz())
             ->modify("-35 days")
             ->format("Y-m-d");
@@ -1354,7 +1354,7 @@ function telemetry_append_route_performance_metric(array $event): bool
                 if ($ts <= 0 || !is_array($routes)) {
                     continue;
                 }
-                $bucketDay = new DateTimeImmutable("@" . $ts)
+                $bucketDay = (new DateTimeImmutable("@" . $ts))
                     ->setTimezone(telemetry_cuiaba_tz())
                     ->format("Y-m-d");
                 if ($bucketDay !== $dayKey) {
@@ -1388,7 +1388,7 @@ function telemetry_append_route_performance_metric(array $event): bool
             "daily_retention_days" => 35,
             "release_measurement" => true,
             "cache_measurement" => true,
-            "updated_at" => new DateTimeImmutable("@" . $nowTs)
+            "updated_at" => (new DateTimeImmutable("@" . $nowTs))
                 ->setTimezone(telemetry_cuiaba_tz())
                 ->format(DateTimeInterface::ATOM),
             "deferred_ids" => $deferredIds,
@@ -1889,7 +1889,7 @@ function telemetry_route_count_last_days(string $route, int $days = 7): int
             if ($ts <= 0 || !is_array($routes)) {
                 continue;
             }
-            $key = new DateTimeImmutable("@" . $ts)
+            $key = (new DateTimeImmutable("@" . $ts))
                 ->setTimezone($tz)
                 ->format("Y-m-d");
             if (
@@ -1960,7 +1960,7 @@ function telemetry_route_requests_series_30d(): array
                     if ($ts <= 0 || !is_array($routes)) {
                         continue;
                     }
-                    $key = new DateTimeImmutable("@" . $ts)
+                    $key = (new DateTimeImmutable("@" . $ts))
                         ->setTimezone($tz)
                         ->format("Y-m-d");
                     if (!isset($days[$key])) {

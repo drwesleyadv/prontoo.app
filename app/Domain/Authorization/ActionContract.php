@@ -5,7 +5,7 @@ namespace Prontoo\Domain\Authorization;
 
 use Prontoo\Core\Invariant\Canonical;
 
-final readonly class ActionContract
+final class ActionContract
 {
 
     public function __construct(

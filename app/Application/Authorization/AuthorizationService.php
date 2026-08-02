@@ -7,7 +7,7 @@ use Prontoo\Core\Invariant\Canonical;
 use Prontoo\Core\Invariant\Decision;
 use Prontoo\Domain\Authorization\ActionContract;
 
-final readonly class AuthorizationService
+final class AuthorizationService
 {
     public function __construct(private CapabilityProvider $capabilities) {
 

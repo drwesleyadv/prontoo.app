@@ -180,11 +180,11 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
 
-        return new DateTimeImmutable("@" . $ts)
+        return (new DateTimeImmutable("@" . $ts))
             ->setTimezone($zone)
             ->format("H:i");
     };
-    $wd = (int) new DateTimeImmutable($day . " 00:00:00", $zone)->format("w");
+    $wd = (int) (new DateTimeImmutable($day . " 00:00:00", $zone))->format("w");
     $hours = user_work_hours($cid, $doctorId);
     $r = $hours[$wd] ?? null;
     if (!$r || empty($r["active"])) {
@@ -195,14 +195,14 @@ function doctor_work_ranges_for_day(int $cid, int $doctorId, string $day): array
     if ($start === "" || $end === "") {
         return [];
     }
-    $s = new DateTimeImmutable(
+    $s = (new DateTimeImmutable(
         $day . " " . $start . ":00",
         $zone,
-    )->getTimestamp();
-    $e = new DateTimeImmutable(
+    ))->getTimestamp();
+    $e = (new DateTimeImmutable(
         $day . " " . $end . ":00",
         $zone,
-    )->getTimestamp();
+    ))->getTimestamp();
     return $s && $e && $e > $s ? [[$s, $e, $start, $end]] : [];
 }
 function doctor_work_hours_label(int $cid, int $doctorId, string $day): string
@@ -4160,19 +4160,19 @@ function page_appointments(): void
     $zone = new DateTimeZone(app_context_timezone(null, $cid));
     $fmtLocal = function (int $ts) use ($zone): string {
 
-        return new DateTimeImmutable("@" . $ts)
+        return (new DateTimeImmutable("@" . $ts))
             ->setTimezone($zone)
             ->format("H:i");
     };
     if (!$workRanges) {
-        $fallbackStart = new DateTimeImmutable(
+        $fallbackStart = (new DateTimeImmutable(
             $day . " 08:00:00",
             $zone,
-        )->getTimestamp();
-        $fallbackEnd = new DateTimeImmutable(
+        ))->getTimestamp();
+        $fallbackEnd = (new DateTimeImmutable(
             $day . " 17:00:00",
             $zone,
-        )->getTimestamp();
+        ))->getTimestamp();
         $workRanges = [[$fallbackStart, $fallbackEnd, "08:00", "17:00"]];
     }
     $workStartTs = (int) $workRanges[0][0];
@@ -4534,14 +4534,14 @@ function page_appointments(): void
                 : [];
         $zone = new DateTimeZone(app_context_timezone(null, $cid));
         if (!$ranges) {
-            $fallbackStart = new DateTimeImmutable(
+            $fallbackStart = (new DateTimeImmutable(
                 $renderDay . " 08:00:00",
                 $zone,
-            )->getTimestamp();
-            $fallbackEnd = new DateTimeImmutable(
+            ))->getTimestamp();
+            $fallbackEnd = (new DateTimeImmutable(
                 $renderDay . " 17:00:00",
                 $zone,
-            )->getTimestamp();
+            ))->getTimestamp();
             $ranges = [[$fallbackStart, $fallbackEnd, "08:00", "17:00"]];
         }
         $startTs = (int) $ranges[0][0];

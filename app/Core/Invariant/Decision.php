@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Prontoo\Core\Invariant;
 
-final readonly class Decision
+final class Decision
 {
     public function __construct(
         public bool $allowed,

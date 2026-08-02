@@ -1235,7 +1235,7 @@ foreach ([
 $appendStart = strpos($telemetryPartitionSource, 'function telemetry_append_page_metric(');
 $appendEnd = $appendStart === false
     ? false
-    : strpos($telemetryPartitionSource, 'function telemetry_route_perf_file(', $appendStart);
+    : strpos($telemetryPartitionSource, 'function telemetry_route_cycle_file(', $appendStart);
 $appendSource = $appendStart !== false && $appendEnd !== false
     ? substr($telemetryPartitionSource, $appendStart, $appendEnd - $appendStart)
     : '';
@@ -1436,7 +1436,7 @@ $developerDashboardSources = [
     'htaccess' => (string) file_get_contents($root . '/.htaccess'),
 ];
 foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
-    foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {
+    foreach (['page_admin_telemetry'] as $token) {
         if (str_contains($developerDashboardSources[$sourceKey], $token)) {
             $developerDashboardFailures[] =
                 $sourceKey . ':obsolete_telemetry_token:' . $token;
@@ -1454,7 +1454,7 @@ foreach ([
         'https://prontoo.app/status',
         '"Requisições"',
         '"Tempo Médio"',
-        '"Landing Page"',
+        '"Carregamentos da landing page"',
         '"Usuários Ativos"',
         '"Leitura e gravação"',
         '"primary_label" => "Requisições"',
@@ -1473,11 +1473,11 @@ foreach ([
         '$recentValue = $valueType === "count"',
         '$overallAverageValues = $valueType === "count"',
         '$middleAverageValues = $valueType === "count"',
-        '$averageResponseMs',
-        '$landingRequests24h',
-        '(int) ($routePerformance["count"] ?? 0)',
-        '"requisições nas últimas 24 horas"',
-        'telemetry_route_performance_summary(24)',
+        'function admin_telemetry_variation_text(?float $variation): string',
+        'admin_telemetry_today_cards_html($telemetryComparison)',
+        'admin_telemetry_today_cards_html($comparison)',
+        '"últimos 7 dias · "',
+        'telemetry_status_cards_snapshot()',
     ],
     'css' => [
         'grid-template-columns:repeat(4,minmax(0,1fr))!important',
@@ -1514,7 +1514,7 @@ $cardPositions = [];
 foreach ([
     'requests' => '"Requisições"',
     'average' => '"Tempo Médio"',
-    'landing' => '"Landing Page"',
+    'landing' => '"Carregamentos da landing page"',
     'users' => '"Usuários Ativos"',
 ] as $key => $token) {
     $cardPositions[$key] = strpos($developerDashboardSources['admin'], $token);
@@ -1679,11 +1679,12 @@ $developerDashboardCharacterization = [
 $statusPublicLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
 $statusPublicLayoutFailures = [];
 foreach ([
-    'body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}',
-    'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;',
-    'body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}',
-    'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
-    'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
+    'body.status-public #conteudo{width:100%!important;max-width:none!important;margin:0!important;padding:clamp(18px,4vw,52px) clamp(14px,4vw,48px) 56px!important;}',
+    'body.status-public .status-public-shell{width:min(1180px,100%);margin-inline:auto;display:grid;gap:28px;}',
+    'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;border-radius:28px!important;',
+    'body.status-public .admin-performance-card>.section-head{display:none!important;}',
+    'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:0!important;padding:16px!important;gap:14px!important;border:0!important;border-radius:0!important;background:transparent!important;}',
+    'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:18px!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;border-radius:20px!important;',
 ] as $statusPublicLayoutToken) {
     if (!str_contains($statusPublicLayoutCss, $statusPublicLayoutToken)) {
         $statusPublicLayoutFailures[] = $statusPublicLayoutToken;

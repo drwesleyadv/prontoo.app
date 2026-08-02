@@ -911,7 +911,7 @@ function admin_global_metric_series_24h(string $metric): array
         $requestSeries = ["query_ms" => [], "load" => [], "queries" => []];
         for ($i = 0; $i <= 1440; $i++) {
             $ts = $startTs + $i * 60;
-            $dt = new DateTimeImmutable("@" . $ts)->setTimezone($tz);
+            $dt = (new DateTimeImmutable("@" . $ts))->setTimezone($tz);
             $baseRow = [
                 "ts" => $ts,
                 "label" => $dt->format("H:i"),
@@ -1608,11 +1608,11 @@ function admin_global_sequence_series_30d(): array
             " FROM pi_action_ledger WHERE created_at>=? AND created_at<?";
         $first = array_key_first($days);
         $last = array_key_last($days);
-        $params[] = new DateTimeImmutable(
+        $params[] = (new DateTimeImmutable(
             $first . " 00:00:00",
             $tz,
-        )->getTimestamp();
-        $params[] = new DateTimeImmutable($last . " 00:00:00", $tz)
+        ))->getTimestamp();
+        $params[] = (new DateTimeImmutable($last . " 00:00:00", $tz))
             ->modify("+1 day")
             ->getTimestamp();
         $row = q($sql, $params)->fetch() ?: [];
