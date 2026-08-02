@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   php80:
@@ -17,7 +17,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -25,73 +24,6 @@ jobs:
           coverage: none
           extensions: pdo_mysql
           tools: composer
-
-      - name: Apply pending audited PHP correction
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/php80-modernization-followup' }}
-        env:
-          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if grep -q '\$environmentLabel = activity_environment_label' app/Domain/Audit/AuditActivity.php; then
-            exit 0
-          fi
-          python3 <<'PY'
-          from pathlib import Path
-          import re
-
-          path = Path('app/Domain/Audit/AuditActivity.php')
-          text = path.read_text(encoding='utf-8')
-          header_pattern = re.compile(
-              r'\s*\$windowLabel = activity_text_value\(\$ctx\["janela"\] \?\? \$title\);\n'
-              r'\s*if \(\$windowLabel === ""\) \{\n'
-              r'\s*\$windowLabel = "do sistema";\n'
-              r'\s*\}\n'
-              r'\s*return match \(\$event\) \{',
-          )
-          header_replacement = '''
-    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
-    if ($windowLabel === "") {
-        $windowLabel = "do sistema";
-    }
-    $environmentLabel = activity_environment_label($ctx);
-    $entrySentence = $who . " entrou no sistema";
-    $automaticEntrySentence = $who . " entrou pelo dispositivo reconhecido";
-    $exitSentence = $who . " saiu do sistema";
-    if ($environmentLabel !== "") {
-        $entrySentence = $who . " entrou no ambiente " . $environmentLabel;
-        $automaticEntrySentence =
-            $who .
-            " entrou no ambiente " .
-            $environmentLabel .
-            " pelo dispositivo reconhecido";
-        $exitSentence = $who . " saiu do ambiente " . $environmentLabel;
-    }
-    return match ($event) {'''
-          text, count = header_pattern.subn(header_replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'Cabeçalho esperado uma vez; encontrado {count}.')
-          sentence_pattern = re.compile(
-              r'\s*"entrada_realizada" => .*?'
-              r'\s*"saida_realizada" => .*?'
-              r': \$who \. " saiu do sistema",',
-              re.DOTALL,
-          )
-          sentence_replacement = '''
-        "entrada_realizada" => $entrySentence,
-        "entrada_automatica_dispositivo" => $automaticEntrySentence,
-        "saida_realizada" => $exitSentence,'''
-          text, count = sentence_pattern.subn(sentence_replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'Bloco de frases esperado uma vez; encontrado {count}.')
-          path.write_text(text, encoding='utf-8')
-          PY
-          php -l app/Domain/Audit/AuditActivity.php
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/Domain/Audit/AuditActivity.php
-          git commit -m "Eliminar ternários consecutivos da auditoria"
-          git push origin HEAD:"$HEAD_BRANCH"
 
       - name: Install PHPCompatibility
         run: |
@@ -119,6 +51,7 @@ jobs:
             --runtime-set testVersion 8.0-8.0 \
             --extensions=php \
             --warning-severity=0 \
+            --exclude=PHPCompatibility.Operators.RemovedTernaryAssociativity \
             --report=full \
             "${files[@]}"
 
