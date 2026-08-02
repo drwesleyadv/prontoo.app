@@ -9,7 +9,7 @@ use Prontoo\Application\Authorization\CapabilityProvider;
 use Prontoo\Core\Invariant\Decision;
 use Prontoo\Domain\Authorization\ActionContract;
 
-final readonly class ActionMiddleware
+final class ActionMiddleware
 {
     public function __construct(
         private AuthorizationService $authorization,

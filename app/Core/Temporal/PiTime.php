@@ -530,16 +530,16 @@ final class PiTime
                 is_int($value) ||
                 (is_string($value) && preg_match('/^-?\d+$/', trim($value)))
             ) {
-                return new \DateTimeImmutable("@" . (int) $value)->setTimezone(
+                return (new \DateTimeImmutable("@" . (int) $value))->setTimezone(
                     new \DateTimeZone(
                         self::safeTimezone($tz ?? self::contextTimezone()),
                     ),
                 );
             }
-            return new \DateTimeImmutable(
+            return (new \DateTimeImmutable(
                 (string) $value,
                 new \DateTimeZone("UTC"),
-            )->setTimezone(
+            ))->setTimezone(
                 new \DateTimeZone(
                     self::safeTimezone($tz ?? self::contextTimezone()),
                 ),

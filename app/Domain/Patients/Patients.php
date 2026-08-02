@@ -1484,7 +1484,7 @@ function patient_reception_story_time(null|string|int $value): string
     if (!$dt) {
         try {
             $dt = preg_match('/^-?\d+$/', $raw)
-                ? new DateTimeImmutable("@" . (int) $raw)->setTimezone(
+                ? (new DateTimeImmutable("@" . (int) $raw))->setTimezone(
                     new DateTimeZone(date_default_timezone_get() ?: "UTC"),
                 )
                 : new DateTimeImmutable($raw);

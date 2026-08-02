@@ -63,7 +63,7 @@ final class PatientPure
         }
         try {
             $date = preg_match('/^-?\d+$/', $birth)
-                ? new \DateTimeImmutable('@' . (int) $birth)->setTimezone(new \DateTimeZone('UTC'))
+                ? (new \DateTimeImmutable('@' . (int) $birth))->setTimezone(new \DateTimeZone('UTC'))
                 : new \DateTimeImmutable($birth);
             $today = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
             if ($date > $today) {
