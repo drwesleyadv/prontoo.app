@@ -1,0 +1,52 @@
+name: Apply PhpCompat Layer Classification
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/full-repository-audit-2026-08-02' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+      - name: Classify global polyfill as environment bootstrap
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('app/Core/Architecture/LayerMap.php')
+          text = path.read_text(encoding='utf-8')
+          native = "        'app/Support/PhpCompat.php',\n"
+          if text.count(native) != 1:
+              raise SystemExit(f'Entrada nativa esperada uma vez; encontrada {text.count(native)}.')
+          text = text.replace(native, '', 1)
+          anchor = "        'app/config.php',\n"
+          if text.count(anchor) != 1:
+              raise SystemExit(f'Âncora de ambiente esperada uma vez; encontrada {text.count(anchor)}.')
+          text = text.replace(anchor, anchor + "        'app/Support/PhpCompat.php',\n", 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+          php -l app/Core/Architecture/LayerMap.php
+          php tools/architecture-check.php
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Core/Architecture/LayerMap.php
+          git commit -m "Classificar polyfill como bootstrap de ambiente"
+          git push origin HEAD:"$HEAD_BRANCH"
