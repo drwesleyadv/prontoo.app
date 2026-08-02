@@ -1,0 +1,56 @@
+name: Apply PHP 8.0 Follow-up
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/php80-modernization-followup' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+      - name: Normalize audited PHP block
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('app/Domain/Audit/AuditActivity.php')
+          text = path.read_text(encoding='utf-8')
+          old = '''    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+          if ($windowLabel === "") {
+              $windowLabel = "do sistema";
+          }
+          '''
+          new = '''    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+    if ($windowLabel === "") {
+        $windowLabel = "do sistema";
+    }
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Bloco esperado uma vez; encontrado {text.count(old)}.')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          php -l app/Domain/Audit/AuditActivity.php
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Domain/Audit/AuditActivity.php
+          git commit -m "Normalizar bloco auditado no PHP 8.0"
+          git push origin HEAD:"$HEAD_BRANCH"
