@@ -16,7 +16,7 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,7 +38,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install audit parsers
-        run: python -m pip install --disable-pip-version-check --no-cache-dir PyYAML Pillow
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir PyYAML Pillow
+          npm install --prefix "$RUNNER_TEMP/postcss" --no-save --ignore-scripts --no-package-lock postcss@8
 
       - name: Synchronize update manifest in working tree
         run: |
@@ -69,20 +71,42 @@ jobs:
       - name: Audit every tracked file
         run: python tools/full-repository-audit.py
 
+      - name: Parse every CSS file with PostCSS
+        env:
+          NODE_PATH: ${{ runner.temp }}/postcss/node_modules
+        run: |
+          node <<'NODE'
+          const child = require('child_process');
+          const fs = require('fs');
+          const postcss = require('postcss');
+          const files = child.execFileSync('git', ['ls-files', '*.css'], {encoding: 'utf8'})
+            .split(/\r?\n/).filter(Boolean);
+          for (const file of files) {
+            postcss.parse(fs.readFileSync(file, 'utf8'), {from: file});
+            console.log(`CSS OK: ${file}`);
+          }
+          NODE
+
       - name: Validate repository whitespace and patches
         run: git diff --check
 
-      - name: Run architecture contract
+      - name: Run all repository contracts
         run: |
-          if [ -f tools/architecture-check.php ]; then
-            php tools/architecture-check.php
-          fi
-
-      - name: Run security regression contract
-        run: |
-          if [ -f tools/security-regression-check.php ]; then
-            php tools/security-regression-check.php
-          fi
+          set -euo pipefail
+          for check in \
+            tools/architecture-check.php \
+            tools/code-comment-check.php \
+            tools/documentation-check.php \
+            tools/install-security-check.php \
+            tools/install-window-contract-check \
+            tools/schema-check.php \
+            tools/security-regression-check.php
+          do
+            if [ -f "$check" ]; then
+              echo "Running $check"
+              php "$check"
+            fi
+          done
 
       - name: Validate Composer metadata
         run: |
