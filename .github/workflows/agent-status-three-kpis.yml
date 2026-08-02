@@ -1,16 +1,20 @@
-name: Apply status daily comparison
+name: Apply status three KPIs
 
 on:
   pull_request:
-    branches: [prontoo]
-    types: [opened, synchronize, reopened]
+    branches:
+      - prontoo
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/fix-status-daily-comparison' }}
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/status-three-kpis' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -21,7 +25,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-      - name: Consolidate status cards by civil day
+      - name: Apply indicators
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
@@ -32,116 +36,75 @@ jobs:
           from pathlib import Path
           import re
 
-          path = Path('app/Support/Telemetry.php')
-          text = path.read_text(encoding='utf-8')
+          admin = Path('app/Admin/AdminPages.php')
+          text = admin.read_text(encoding='utf-8')
+          start = text.index('function page_status(): void')
+          end = text.index('function page_admin_operations(): void', start)
+          section = text[start:end]
           pattern = re.compile(
-              r'function telemetry_seven_day_comparison\(\): array\n\{.*?\n\}\n\nfunction telemetry_route_count_last_days',
+              r'    \$summary = function_exists\("telemetry_route_performance_summary"\).*?'
+              r'    \$card = \$landingCard \. admin_performance_card_html\(true\);\n',
               re.S,
           )
-          replacement = '''function telemetry_seven_day_comparison(): array
-{
-    $tz = telemetry_cuiaba_tz();
-    $today = new DateTimeImmutable("today", $tz);
-    $currentStart = $today->modify("-6 days");
-    $previousStart = $today->modify("-13 days");
-    $previousEnd = $today->modify("-7 days");
-    $periods = [
-        "current" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],
-        "previous" => ["total" => 0, "total_ms" => 0.0, "landing" => 0],
-    ];
-    $json = telemetry_route_perf_snapshot();
-    $dailyRequests = isset($json["daily_requests"]) && is_array($json["daily_requests"])
-        ? $json["daily_requests"]
-        : [];
-    $dailyRoutes = isset($json["daily_routes"]) && is_array($json["daily_routes"])
-        ? $json["daily_routes"]
-        : [];
-    $bucketFallback = [];
-    $buckets = isset($json["buckets"]) && is_array($json["buckets"])
-        ? $json["buckets"]
-        : [];
-    foreach ($buckets as $bucketTs => $routes) {
-        $ts = (int) $bucketTs;
-        if ($ts <= 0 || !is_array($routes)) {
-            continue;
-        }
-        $key = (new DateTimeImmutable("@" . $ts))->setTimezone($tz)->format("Y-m-d");
-        if (!isset($bucketFallback[$key])) {
-            $bucketFallback[$key] = ["total" => 0, "total_ms" => 0.0, "landing" => 0];
-        }
-        foreach ($routes as $route => $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            $count = max(0, (int) ($row["count"] ?? 0));
-            $bucketFallback[$key]["total"] += $count;
-            $bucketFallback[$key]["total_ms"] += max(0.0, (float) ($row["total_ms"] ?? 0));
-            if (telemetry_route_perf_safe_route((string) $route) === "landing") {
-                $bucketFallback[$key]["landing"] += $count;
-            }
-        }
-    }
-    for ($offset = 0; $offset < 14; $offset++) {
-        $day = $previousStart->modify("+" . $offset . " days");
-        $key = $day->format("Y-m-d");
-        $period = $day >= $currentStart ? "current" : "previous";
-        $requestRow = isset($dailyRequests[$key]) && is_array($dailyRequests[$key])
-            ? $dailyRequests[$key]
-            : null;
-        if ($requestRow !== null) {
-            $periods[$period]["total"] += max(0, (int) ($requestRow["count"] ?? 0));
-            $periods[$period]["total_ms"] += max(0.0, (float) ($requestRow["total_ms"] ?? 0));
-        } else {
-            $periods[$period]["total"] += max(0, (int) ($bucketFallback[$key]["total"] ?? 0));
-            $periods[$period]["total_ms"] += max(0.0, (float) ($bucketFallback[$key]["total_ms"] ?? 0));
-        }
-        $routeRow = isset($dailyRoutes[$key]) && is_array($dailyRoutes[$key])
-            ? $dailyRoutes[$key]
-            : null;
-        $periods[$period]["landing"] += $routeRow !== null
-            ? max(0, (int) ($routeRow["landing"] ?? 0))
-            : max(0, (int) ($bucketFallback[$key]["landing"] ?? 0));
-    }
-    foreach (["current", "previous"] as $period) {
-        $count = max(0, (int) $periods[$period]["total"]);
-        $periods[$period]["avg_ms"] = $count > 0
-            ? round((float) $periods[$period]["total_ms"] / $count, 1)
-            : 0.0;
-    }
-    return [
-        "days" => 7,
-        "retention_days" => 14,
-        "period_mode" => "civil_days",
-        "timezone" => $tz->getName(),
-        "current_start" => $currentStart->format("Y-m-d"),
-        "current_end" => $today->format("Y-m-d"),
-        "previous_start" => $previousStart->format("Y-m-d"),
-        "previous_end" => $previousEnd->format("Y-m-d"),
-        "current" => $periods["current"],
-        "previous" => $periods["previous"],
-        "variation" => [
-            "total" => telemetry_period_variation((float) $periods["current"]["total"], (float) $periods["previous"]["total"]),
-            "avg_ms" => telemetry_period_variation((float) $periods["current"]["avg_ms"], (float) $periods["previous"]["avg_ms"]),
-            "landing" => telemetry_period_variation((float) $periods["current"]["landing"], (float) $periods["previous"]["landing"]),
-        ],
-        "updated_at" => (string) ($json["updated_at"] ?? ""),
-    ];
-}
-
-function telemetry_route_count_last_days'''
-          text, count = pattern.subn(replacement, text, count=1)
+          replacement = '''    $summary = function_exists("telemetry_route_performance_summary")
+              ? telemetry_route_performance_summary(24)
+              : ["total" => 0, "avg_ms" => 0.0, "routes" => []];
+          $requests24h = max(0, (int) ($summary["total"] ?? 0));
+          $averageResponseMs = max(0.0, (float) ($summary["avg_ms"] ?? 0.0));
+          $landingRequests24h = 0;
+          foreach ((array) ($summary["routes"] ?? []) as $routePerformance) {
+              if ((string) ($routePerformance["route"] ?? "") !== "landing") {
+                  continue;
+              }
+              $landingRequests24h = max(
+                  0,
+                  (int) ($routePerformance["count"] ?? 0),
+              );
+              break;
+          }
+          $overviewCards = card(
+              '<div class="stats-grid admin-overview-kpis status-three-kpis">' .
+                  stat_card(
+                      "Requisições",
+                      $requests24h,
+                      "sync_alt",
+                      "requisições nas últimas 24 horas",
+                  ) .
+                  stat_card(
+                      "Tempo Médio",
+                      number_format($averageResponseMs, 1, ",", ".") . " ms",
+                      "speed",
+                      "tempo médio nas últimas 24 horas",
+                  ) .
+                  stat_card(
+                      "Carregamentos da landing page",
+                      $landingRequests24h,
+                      "web",
+                      "carregamentos nas últimas 24 horas",
+                  ) .
+                  "</div>",
+              "status-overview-kpis-card",
+          );
+          $card = $overviewCards . admin_performance_card_html(true);
+          '''
+          section, count = pattern.subn(replacement, section, count=1)
           if count != 1:
-              raise SystemExit('Função comparativa atual não localizada.')
-          path.write_text(text, encoding='utf-8')
+              raise SystemExit('Bloco atual de indicadores da tela status não localizado.')
+          text = text[:start] + section + text[end:]
+          admin.write_text(text, encoding='utf-8')
+
+          css = Path('public/assets/design-system.css')
+          css_text = css.read_text(encoding='utf-8')
+          rule = '\nbody.status-public .status-three-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;}\nbody.status-public .status-three-kpis>.stat-card{min-width:0!important;}\n'
+          if 'body.status-public .status-three-kpis{' not in css_text:
+              css_text += rule
+          css.write_text(css_text, encoding='utf-8')
+
+          marker = Path('ssd/.status-three-kpis')
+          if marker.exists():
+              marker.unlink()
           PY
-          php -l app/Support/Telemetry.php >/dev/null
-          grep -q '"period_mode" => "civil_days"' app/Support/Telemetry.php
-          grep -q '$dailyRequests' app/Support/Telemetry.php
-          grep -q '$dailyRoutes' app/Support/Telemetry.php
-          grep -q '$bucketFallback' app/Support/Telemetry.php
-          php -r '$today=new DateTimeImmutable("2026-08-01",new DateTimeZone("America/Cuiaba"));$cs=$today->modify("-6 days");$ps=$today->modify("-13 days");$pe=$today->modify("-7 days");if($cs->format("Y-m-d")!=="2026-07-26"||$ps->format("Y-m-d")!=="2026-07-19"||$pe->format("Y-m-d")!=="2026-07-25")exit(1);'
-          rm -f ssd/.fix-status-daily-comparison
-          git show ea604535307f763a35ddb4573369d69ad9e44cce:.github/workflows/agent-status-three-kpis.yml > .github/workflows/agent-status-three-kpis.yml
+          php -l app/Admin/AdminPages.php
           php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -167,6 +130,6 @@ function telemetry_route_count_last_days'''
           PHP
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Corrigir consolidação dos cards de status"
+          git add app/Admin/AdminPages.php public/assets/design-system.css app/update.manifest.json ssd/.status-three-kpis
+          git commit -m "Exibir três indicadores na mesma linha da tela status"
           git push origin HEAD:"$HEAD_BRANCH"
