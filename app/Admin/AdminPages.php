@@ -1767,20 +1767,27 @@ function admin_performance_card_html(bool $public = false): string
         "admin-performance-card",
     );
 }
-function admin_telemetry_variation_text(?float $variation): string
+function admin_telemetry_variation_text(?float $variation, bool $comparisonReady): string
 {
-    if ($variation === null) return "sem base comparável nos 7 dias anteriores";
+    if (!$comparisonReady) return "comparação indisponível até haver 14 dias completos";
+    if ($variation === null) return "sem base matemática no período anterior";
     $signal = $variation > 0 ? "+" : "";
-    return $signal . number_format($variation, 1, ",", ".") . "% vs. 7 dias anteriores";
+    return $signal . number_format($variation, 1, ",", ".") . "% vs. 7 dias completos anteriores";
 }
 function admin_telemetry_seven_day_cards_html(array $comparison): string
 {
     $current = isset($comparison["current"]) && is_array($comparison["current"]) ? $comparison["current"] : [];
     $variation = isset($comparison["variation"]) && is_array($comparison["variation"]) ? $comparison["variation"] : [];
-    $v = static fn(string $key): ?float => !array_key_exists($key, $variation) || $variation[$key] === null ? null : (float) $variation[$key];
-    return stat_card("Requisições", max(0, (int) ($current["total"] ?? 0)), "sync_alt", admin_telemetry_variation_text($v("total"))) .
-        stat_card("Tempo Médio", number_format(max(0.0, (float) ($current["avg_ms"] ?? 0.0)), 1, ",", ".") . " ms", "speed", admin_telemetry_variation_text($v("avg_ms"))) .
-        stat_card("Carregamentos da landing page", max(0, (int) ($current["landing"] ?? 0)), "web", admin_telemetry_variation_text($v("landing")));
+    $coverage = max(0, min(7, (int) ($current["coverage_days"] ?? 0)));
+    $currentReady = !empty($comparison["current_ready"]);
+    $comparisonReady = !empty($comparison["comparison_ready"]);
+    $coverageText = $currentReady ? "7 dias civis completos" : $coverage . " de 7 dias completos coletados";
+    $detail = static function (?float $value) use ($coverageText, $comparisonReady): string {
+        return $coverageText . " · " . admin_telemetry_variation_text($value, $comparisonReady);
+    };
+    return stat_card("Requisições", max(0, (int) ($current["total"] ?? 0)), "sync_alt", $detail(array_key_exists("total", $variation) && $variation["total"] !== null ? (float) $variation["total"] : null)) .
+        stat_card("Tempo Médio", number_format(max(0.0, (float) ($current["avg_ms"] ?? 0.0)), 1, ",", ".") . " ms", "speed", $detail(array_key_exists("avg_ms", $variation) && $variation["avg_ms"] !== null ? (float) $variation["avg_ms"] : null)) .
+        stat_card("Carregamentos da landing page", max(0, (int) ($current["landing"] ?? 0)), "web", $detail(array_key_exists("landing", $variation) && $variation["landing"] !== null ? (float) $variation["landing"] : null));
 }
 function page_status(): void
 {
