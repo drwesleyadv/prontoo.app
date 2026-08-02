@@ -1787,7 +1787,7 @@ function page_status(): void
     $assetRevision = defined("PRONTOO_ASSET_REV")
         ? (string) PRONTOO_ASSET_REV
         : (string) PRONTOO_VERSION;
-    $comparison = function_exists("telemetry_seven_day_comparison")
+    $comparison = function_exists("telemetry_status_cards_snapshot")
         ? telemetry_status_cards_snapshot()
         : ["total" => 0, "avg_ms" => 0.0, "landing" => 0];
     $overviewCards = admin_telemetry_today_cards_html($comparison);
@@ -1801,7 +1801,7 @@ function page_status(): void
         "</header>";
     $statusSummary =
         '<section class="status-summary" aria-labelledby="status-summary-title">' .
-        '<div class="status-section-heading"><div><span>Últimos 7 dias</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Medição exata dos ciclos concluídos no dia atual.</p></div>' .
+        '<div class="status-section-heading"><div><span>Hoje</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Medição exata dos ciclos concluídos no dia atual.</p></div>' .
         '<div class="status-summary-grid">' . $overviewCards . "</div>" .
         "</section>";
     $statusPerformance =
@@ -2912,7 +2912,7 @@ function page_admin_painel(): void
     $activeUsers24h = $qInt(
         "SELECT COUNT(DISTINCT user_id) FROM pi_audit WHERE user_id IS NOT NULL AND created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) $modelAuditWhere",
     );
-    $telemetryComparison = function_exists("telemetry_seven_day_comparison")
+    $telemetryComparison = function_exists("telemetry_status_cards_snapshot")
         ? telemetry_status_cards_snapshot()
         : ["total" => 0, "avg_ms" => 0.0, "landing" => 0];
     $locks = $qInt(
