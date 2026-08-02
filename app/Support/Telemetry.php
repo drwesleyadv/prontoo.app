@@ -833,7 +833,7 @@ function telemetry_route_cycle_file(): string
 }
 function telemetry_route_cycle_reset_generation(): string
 {
-    return "route-cycles-reset-2026-08-02-1";
+    return "route-cycles-reset-2026-08-02-2";
 }
 function telemetry_route_cycle_mutate(callable $mutator): mixed
 {
@@ -853,6 +853,7 @@ function telemetry_route_cycle_mutate(callable $mutator): mixed
         if (!hash_equals($resetGeneration, (string) ($state["reset_generation"] ?? ""))) {
             $state["pending"] = [];
             $state["days"] = [];
+            $state["reset_discard_next"] = true;
             $state["reset_generation"] = $resetGeneration;
             $state["reset_applied_at_us"] = (int) round(microtime(true) * 1000000);
         }
@@ -880,7 +881,14 @@ function telemetry_route_cycle_begin(string $route): ?array
         foreach ($pending as $key => $row) {
             if (!is_array($row) || (int) ($row["started_us"] ?? 0) < $expiry) unset($pending[$key]);
         }
-        $pending[$id] = ["route" => $route, "started_ns" => $startedNs, "started_us" => $startedUs];
+        $discard = !empty($state["reset_discard_next"]);
+        unset($state["reset_discard_next"]);
+        $pending[$id] = [
+            "route" => $route,
+            "started_ns" => $startedNs,
+            "started_us" => $startedUs,
+            "discard" => $discard ? 1 : 0,
+        ];
         $state["pending"] = $pending;
         $state["updated_at_us"] = $startedUs;
         return true;
@@ -905,6 +913,12 @@ function telemetry_route_cycle_finish(array $token): bool
             return false;
         }
         $durationNs = $finishedNs - $startedNs;
+        if (!empty($row["discard"])) {
+            $state["pending"] = $pending;
+            $state["updated_at_us"] = $finishedUs;
+            $state["reset_completed_at_us"] = $finishedUs;
+            return true;
+        }
         $day = (new DateTimeImmutable("@" . intdiv($finishedUs, 1000000)))->setTimezone(telemetry_cuiaba_tz())->format("Y-m-d");
         $days = isset($state["days"]) && is_array($state["days"]) ? $state["days"] : [];
         $cut = (new DateTimeImmutable("today", telemetry_cuiaba_tz()))->modify("-35 days")->format("Y-m-d");
