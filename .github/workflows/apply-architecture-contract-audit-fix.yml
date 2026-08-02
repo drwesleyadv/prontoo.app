@@ -58,7 +58,6 @@ jobs:
               'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:18px!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;border-radius:20px!important;',
           ] as $statusPublicLayoutToken) {'''
           replace_once(old_layout, new_layout, 'layout público de status')
-
           replace_once(
               ": strpos($telemetryPartitionSource, 'function telemetry_route_perf_file(', $appendStart);",
               ": strpos($telemetryPartitionSource, 'function telemetry_route_cycle_file(', $appendStart);",
@@ -70,21 +69,29 @@ jobs:
               'tokens realmente obsoletos do painel',
           )
 
-          replacements = [
-              ("'\\\"Landing Page\\\"',", "'\\\"Carregamentos da landing page\\\"',", 1, 'título landing requerido'),
-              ("'landing' => '\\\"Landing Page\\\"',", "'landing' => '\\\"Carregamentos da landing page\\\"',", 1, 'posição do card landing'),
-              ("'$averageResponseMs',", "'function admin_telemetry_variation_text(?float $variation): string',", 1, 'helper da variação de sete dias'),
-              ("'$landingRequests24h',", "'admin_telemetry_today_cards_html($telemetryComparison)',", 1, 'cards internos de sete dias'),
-              ("'(int) ($routePerformance[\\\"count\\\"] ?? 0)',", "'admin_telemetry_today_cards_html($comparison)',", 1, 'cards públicos de sete dias'),
-              ("'\\\"requisições nas últimas 24 horas\\\"',", "'\\\"últimos 7 dias · \\\"',", 1, 'rótulo temporal móvel'),
-              ("'telemetry_route_performance_summary(24)',", "'telemetry_status_cards_snapshot()',", 1, 'fonte transacional dos cards'),
-          ]
-          for old, new, expected, label in replacements:
-              count = text.count(old)
-              if count != expected:
-                  raise SystemExit(f'{label}: esperado {expected}; encontrado {count}.')
-              text = text.replace(old, new, expected)
+          if text.count('Landing Page') != 2:
+              raise SystemExit(f'Landing Page: esperado 2; encontrado {text.count("Landing Page")}.')
+          text = text.replace('Landing Page', 'Carregamentos da landing page')
 
+          line_updates = {
+              '$averageResponseMs': "        'function admin_telemetry_variation_text(?float $variation): string',",
+              '$landingRequests24h': "        'admin_telemetry_today_cards_html($telemetryComparison)',",
+              '$routePerformance': "        'admin_telemetry_today_cards_html($comparison)',",
+              'requisições nas últimas 24 horas': "        '\"últimos 7 dias · \"',",
+              'telemetry_route_performance_summary(24)': "        'telemetry_status_cards_snapshot()',",
+          }
+          lines = text.splitlines()
+          found = {needle: 0 for needle in line_updates}
+          for index, line in enumerate(lines):
+              for needle, replacement in line_updates.items():
+                  if needle in line:
+                      found[needle] += 1
+                      lines[index] = replacement
+                      break
+          invalid = {needle: count for needle, count in found.items() if count != 1}
+          if invalid:
+              raise SystemExit(f'Contagens inesperadas nas linhas do contrato: {invalid}')
+          text = '\n'.join(lines) + ('\n' if text.endswith('\n') else '')
           path.write_text(text, encoding='utf-8')
           PY
           php <<'PHP'
