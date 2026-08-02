@@ -1,0 +1,122 @@
+name: Apply PHP 8.0 Array List Fix
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/full-repository-audit-2026-08-02' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+      - name: Replace PHP 8.1-only array_is_list
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+
+          def patch_class(path_text: str, negative: bool) -> None:
+              path = root / path_text
+              text = path.read_text(encoding='utf-8')
+              old = 'if (!array_is_list($value)) {' if negative else 'if (array_is_list($value)) {'
+              new = 'if (!self::isList($value)) {' if negative else 'if (self::isList($value)) {'
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path_text}: ocorrência esperada uma vez, encontrada {text.count(old)}.')
+              text = text.replace(old, new, 1)
+              canonical = text.find('private static function canonicalize(')
+              if canonical < 0:
+                  canonical = text.find('public static function value(')
+              if canonical < 0:
+                  raise SystemExit(f'{path_text}: função canônica não localizada.')
+              next_method = text.find('\n    private static function ', canonical + 1)
+              if next_method < 0:
+                  next_method = text.find('\n    public static function ', canonical + 1)
+              if next_method < 0:
+                  raise SystemExit(f'{path_text}: limite de inserção não localizado.')
+              helper = '''
+    private static function isList(array $value): bool
+    {
+
+        return array_keys($value) === array_keys(array_values($value));
+    }
+'''
+              text = text[:next_method] + helper + text[next_method:]
+              path.write_text(text, encoding='utf-8')
+
+          patch_class('app/Core/Invariant/Canonical.php', False)
+          patch_class('app/Core/Integrity/AuditChain.php', True)
+          patch_class('app/Core/Integrity/PiIntegrity.php', True)
+
+          telemetry_path = root / 'app/Support/Telemetry.php'
+          telemetry = telemetry_path.read_text(encoding='utf-8')
+          old = 'if (array_is_list($value)) {'
+          if telemetry.count(old) != 1:
+              raise SystemExit(f'Telemetry.php: ocorrência esperada uma vez, encontrada {telemetry.count(old)}.')
+          telemetry = telemetry.replace(old, 'if (maestro_deferred_array_is_list($value)) {', 1)
+          anchor = 'function maestro_deferred_canonicalize(mixed $value): mixed\n'
+          if telemetry.count(anchor) != 1:
+              raise SystemExit('Telemetry.php: âncora canônica não localizada uma vez.')
+          helper = '''function maestro_deferred_array_is_list(array $value): bool
+{
+
+    return array_keys($value) === array_keys(array_values($value));
+}
+'''
+          telemetry = telemetry.replace(anchor, helper + anchor, 1)
+          telemetry_path.write_text(telemetry, encoding='utf-8')
+          PY
+          if grep -R --line-number --include='*.php' 'array_is_list(' app; then
+            echo 'Dependência PHP 8.1 array_is_list ainda presente.' >&2
+            exit 1
+          fi
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find app tools br cron -type f -name '*.php' -print0)
+          php tools/security-regression-check.php
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root = getcwd();
+          $path = $root . '/app/update.manifest.json';
+          $manifest = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+          $files = [];
+          $total = 0;
+          $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+          foreach ($iterator as $file) {
+              if (!$file->isFile() || $file->isLink()) continue;
+              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+              if ($relative === 'app/update.manifest.json' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/') || str_starts_with($relative, 'audit-output/')) continue;
+              $files[$relative] = hash_file('sha256', $file->getPathname());
+              $total += $file->getSize();
+          }
+          ksort($files, SORT_STRING);
+          $manifest['files'] = $files;
+          $manifest['file_count'] = count($files);
+          $manifest['total_uncompressed_bytes'] = $total;
+          $manifest['updated_at'] = gmdate('c');
+          file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
+          PHP
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app app/update.manifest.json
+          git commit -m "Compatibilizar listas canônicas com PHP 8.0"
+          git push origin HEAD:"$HEAD_BRANCH"
