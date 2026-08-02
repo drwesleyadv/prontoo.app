@@ -18,6 +18,7 @@ final class LayerMap
         'app/Core/Install/InstallAccess.php',
         'app/Core/Database/SchemaMutationLock.php',
         'app/Core/Database/SchemaHardening.php',
+        'app/Support/PhpCompat.php',
         'app/Domain/Authorization/',
         'app/Domain/Identity/',
         'app/Domain/Patients/PatientPure.php',
