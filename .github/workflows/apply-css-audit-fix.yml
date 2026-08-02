@@ -30,39 +30,18 @@ jobs:
           git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
           python3 <<'PY'
           from pathlib import Path
+          import re
+
           path = Path('public/assets/design-system.css')
           text = path.read_text(encoding='utf-8')
-          orphan = '''  content:""!important;
-          position:absolute!important;
-          inset:auto auto 0 0!important;
-          width:var(--agenda-occupancy-progress,1%)!important;
-          height:4px!important;
-          min-width:1%!important;
-          max-width:100%!important;
-          border-radius:0!important;
-          background:var(--md-sys-color-primary)!important;
-          opacity:.96!important;
-          pointer-events:none!important;
-          z-index:3!important;
-          }
-          display:none!important;
-          content:none!important;
-          }
-          position:relative!important;
-          z-index:4!important;
-          }
-          @media(max-width:720px){
-              min-height:34px!important;
-              padding:5px 6px 9px!important;
-              border-radius:14px 14px 0 0!important;
-            }
-              height:3px!important;
-            }
-          }
-          '''
-          if text.count(orphan) != 1:
-              raise SystemExit(f'Fragmento CSS órfão esperado uma vez; encontrado {text.count(orphan)}.')
-          path.write_text(text.replace(orphan, '', 1), encoding='utf-8')
+          pattern = re.compile(
+              r'^\s*content:""!important;\n.*?(?=^body\[data-route="appointments"\] \.agenda-week-view\{)',
+              re.MULTILINE | re.DOTALL,
+          )
+          updated, count = pattern.subn('', text, count=1)
+          if count != 1:
+              raise SystemExit(f'Fragmento CSS órfão esperado uma vez; encontrado {count}.')
+          path.write_text(updated, encoding='utf-8')
           PY
           npm install --prefix "$RUNNER_TEMP/postcss" --no-save --ignore-scripts --no-package-lock postcss@8
           NODE_PATH="$RUNNER_TEMP/postcss/node_modules" node <<'NODE'
