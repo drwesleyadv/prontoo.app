@@ -15,6 +15,9 @@ env:
   DB_DATABASE: prontoo_schema
   DB_USERNAME: root
   DB_PASSWORD: root
+  PRONTOO_SCHEMA_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=prontoo_schema;charset=utf8mb4'
+  PRONTOO_SCHEMA_USER: root
+  PRONTOO_SCHEMA_PASS: root
   GITHUB_ACTIONS: 'true'
   CI: 'true'
   PRONTOO_SCHEMA_TEST_MODE: '1'
