@@ -87,4 +87,6 @@ if ($windowLabel === "") {
         subprocess.run(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], cwd=ROOT, check=True)
         subprocess.run(["git", "add", "app/Domain/Audit/AuditActivity.php"], cwd=ROOT, check=True)
         subprocess.run(["git", "commit", "-m", "Eliminar ternários consecutivos da auditoria"], cwd=ROOT, check=True)
+        subprocess.run(["git", "fetch", "origin", BRANCH], cwd=ROOT, check=True)
+        subprocess.run(["git", "rebase", f"origin/{BRANCH}"], cwd=ROOT, check=True)
         subprocess.run(["git", "push", "origin", f"HEAD:{BRANCH}"], cwd=ROOT, check=True)
