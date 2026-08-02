@@ -30,17 +30,22 @@ jobs:
           git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
           python3 <<'PY'
           from pathlib import Path
-          import re
 
           path = Path('public/assets/design-system.css')
           text = path.read_text(encoding='utf-8')
-          pattern = re.compile(
-              r'^\s*content:""!important;\n.*?(?=^body\[data-route="appointments"\] \.agenda-week-view\{)',
-              re.MULTILINE | re.DOTALL,
-          )
-          updated, count = pattern.subn('', text, count=1)
-          if count != 1:
-              raise SystemExit(f'Fragmento CSS órfão esperado uma vez; encontrado {count}.')
+          marker = 'width:var(--agenda-occupancy-progress,1%)!important;'
+          marker_at = text.find(marker)
+          if marker_at < 0:
+              raise SystemExit('Marcador exclusivo do fragmento CSS órfão não encontrado.')
+          start_token = '\n  content:""!important;\n'
+          start = text.rfind(start_token, 0, marker_at)
+          end_token = '\nbody[data-route="appointments"] .agenda-week-view{'
+          end = text.find(end_token, marker_at)
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit(f'Limites do fragmento CSS inválidos: start={start}, end={end}.')
+          updated = text[:start + 1] + text[end + 1:]
+          if marker in updated:
+              raise SystemExit('O marcador órfão permaneceu após a correção.')
           path.write_text(updated, encoding='utf-8')
           PY
           npm install --prefix "$RUNNER_TEMP/postcss" --no-save --ignore-scripts --no-package-lock postcss@8
