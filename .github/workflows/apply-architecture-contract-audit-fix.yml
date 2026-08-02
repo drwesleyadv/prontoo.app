@@ -1,0 +1,62 @@
+name: Apply Architecture Contract Audit Fix
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/full-repository-audit-2026-08-02' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+      - name: Update public status layout contract
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/architecture-check.php')
+          text = path.read_text(encoding='utf-8')
+          old = '''foreach ([
+              'body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}',
+              'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;',
+              'body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}',
+              'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
+              'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
+          ] as $statusPublicLayoutToken) {'''
+          new = '''foreach ([
+              'body.status-public #conteudo{width:100%!important;max-width:none!important;margin:0!important;padding:clamp(18px,4vw,52px) clamp(14px,4vw,48px) 56px!important;}',
+              'body.status-public .status-public-shell{width:min(1180px,100%);margin-inline:auto;display:grid;gap:28px;}',
+              'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;border-radius:28px!important;',
+              'body.status-public .admin-performance-card>.section-head{display:none!important;}',
+              'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:0!important;padding:16px!important;gap:14px!important;border:0!important;border-radius:0!important;background:transparent!important;}',
+              'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:18px!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;border-radius:20px!important;',
+          ] as $statusPublicLayoutToken) {'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Contrato antigo esperado uma vez; encontrado {text.count(old)}.')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          php -l tools/architecture-check.php
+          php tools/architecture-check.php
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/architecture-check.php
+          git commit -m "Atualizar contrato do layout público de status"
+          git push origin HEAD:"$HEAD_BRANCH"
