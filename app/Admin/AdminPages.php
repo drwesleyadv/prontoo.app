@@ -1767,12 +1767,23 @@ function admin_performance_card_html(bool $public = false): string
         "admin-performance-card",
     );
 }
+function admin_telemetry_variation_text(?float $variation): string
+{
+    if ($variation === null) return "sem base comparável no período anterior";
+    $signal = $variation > 0 ? "+" : "";
+    return $signal . number_format($variation, 1, ",", ".") . "% vs. 7 dias anteriores";
+}
 function admin_telemetry_today_cards_html(array $snapshot): string
 {
-    $detail = "hoje · ciclos completos entre marcador inicial e final";
-    return stat_card("Requisições", max(0, (int) ($snapshot["total"] ?? 0)), "sync_alt", $detail) .
-        stat_card("Tempo Médio", number_format(max(0.0, (float) ($snapshot["avg_ms"] ?? 0.0)), 3, ",", ".") . " ms", "speed", $detail) .
-        stat_card("Carregamentos da landing page", max(0, (int) ($snapshot["landing"] ?? 0)), "web", $detail);
+    $current = isset($snapshot["current"]) && is_array($snapshot["current"]) ? $snapshot["current"] : [];
+    $variation = isset($snapshot["variation"]) && is_array($snapshot["variation"]) ? $snapshot["variation"] : [];
+    $detail = static function (string $key) use ($variation): string {
+        $value = array_key_exists($key, $variation) && $variation[$key] !== null ? (float) $variation[$key] : null;
+        return "últimos 7 dias · " . admin_telemetry_variation_text($value);
+    };
+    return stat_card("Requisições", max(0, (int) ($current["total"] ?? 0)), "sync_alt", $detail("total")) .
+        stat_card("Tempo Médio", number_format(max(0.0, (float) ($current["avg_ms"] ?? 0.0)), 3, ",", ".") . " ms", "speed", $detail("avg_ms")) .
+        stat_card("Carregamentos da landing page", max(0, (int) ($current["landing"] ?? 0)), "web", $detail("landing"));
 }
 function page_status(): void
 {
@@ -1801,7 +1812,7 @@ function page_status(): void
         "</header>";
     $statusSummary =
         '<section class="status-summary" aria-labelledby="status-summary-title">' .
-        '<div class="status-section-heading"><div><span>Hoje</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Medição exata dos ciclos concluídos no dia atual.</p></div>' .
+        '<div class="status-section-heading"><div><span>Últimos 7 dias</span><h2 id="status-summary-title">Resumo operacional</h2></div><p>Comparação automática com os 7 dias anteriores.</p></div>' .
         '<div class="status-summary-grid">' . $overviewCards . "</div>" .
         "</section>";
     $statusPerformance =
