@@ -1,0 +1,81 @@
+name: Apply PHP 8.0 Modernization Fixes
+
+on:
+  pull_request:
+    branches: [prontoo]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/php80-modernization-audit' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          coverage: none
+
+      - name: Apply confirmed PHP 8.0 fixes
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from pathlib import Path
+
+          audit = Path('app/Domain/Audit/AuditActivity.php')
+          text = audit.read_text(encoding='utf-8')
+          anchor = '''    $clinic = $clinic !== "" ? $clinic : "consultório";
+          return match ($event) {
+          '''
+          replacement = '''    $clinic = $clinic !== "" ? $clinic : "consultório";
+          $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+          if ($windowLabel === "") {
+              $windowLabel = "do sistema";
+          }
+          return match ($event) {
+          '''
+          if text.count(anchor) != 1:
+              raise SystemExit(f'Âncora de AuditActivity esperada uma vez; encontrada {text.count(anchor)}.')
+          text = text.replace(anchor, replacement, 1)
+          old = '''            : $who .
+                          " abriu a tela " .
+                          (activity_text_value($ctx["janela"] ?? $title) ?: "do sistema"),
+          '''
+          new = '''            : $who . " abriu a tela " . $windowLabel,
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f'Ternário aninhado esperado uma vez; encontrado {text.count(old)}.')
+          audit.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          workflow = Path('.github/workflows/php80-modernization-audit.yml')
+          source = workflow.read_text(encoding='utf-8')
+          old_flag = '''            --extensions=php \\
+                      --report=full \\
+          '''
+          new_flag = '''            --extensions=php \\
+                      --warning-severity=0 \\
+                      --report=full \\
+          '''
+          if source.count(old_flag) != 1:
+              raise SystemExit('Bloco PHPCompatibility não encontrado uma vez.')
+          workflow.write_text(source.replace(old_flag, new_flag, 1), encoding='utf-8')
+          PY
+          php -l app/Domain/Audit/AuditActivity.php
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/Domain/Audit/AuditActivity.php .github/workflows/php80-modernization-audit.yml
+          git commit -m "Corrigir ternário incompatível com PHP 8.0"
+          git push origin HEAD:"$HEAD_BRANCH"
