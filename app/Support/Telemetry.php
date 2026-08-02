@@ -831,6 +831,10 @@ function telemetry_route_cycle_file(): string
 {
     return telemetry_storage_dir() . "/route-cycles-v2.json";
 }
+function telemetry_route_cycle_reset_generation(): string
+{
+    return "route-cycles-reset-2026-08-02-1";
+}
 function telemetry_route_cycle_mutate(callable $mutator): mixed
 {
     if (!telemetry_prepare_storage()) return null;
@@ -844,6 +848,13 @@ function telemetry_route_cycle_mutate(callable $mutator): mixed
         $state = is_string($raw) && trim($raw) !== "" ? json_decode($raw, true) : [];
         if (!is_array($state) || (int) ($state["version"] ?? 0) !== 2) {
             $state = ["version" => 2, "timezone" => "America/Cuiaba", "pending" => [], "days" => []];
+        }
+        $resetGeneration = telemetry_route_cycle_reset_generation();
+        if (!hash_equals($resetGeneration, (string) ($state["reset_generation"] ?? ""))) {
+            $state["pending"] = [];
+            $state["days"] = [];
+            $state["reset_generation"] = $resetGeneration;
+            $state["reset_applied_at_us"] = (int) round(microtime(true) * 1000000);
         }
         $result = $mutator($state);
         $encoded = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
