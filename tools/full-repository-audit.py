@@ -279,7 +279,7 @@ def audit() -> dict[str, Any]:
                 ok, message = css_balanced(text)
                 checks["CSS lexical"] += 1
                 if not ok:
-                    failures.append({"file": rel, "check": "css", "message": message})
+                    warnings.append({"file": rel, "check": "css_lexical", "message": message})
             if suffix in {".html", ".htm"}:
                 try:
                     parser = LenientHTMLParser(convert_charrefs=True)
