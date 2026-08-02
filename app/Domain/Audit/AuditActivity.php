@@ -1153,13 +1153,15 @@ function activity_human_sentence(
     $title = activity_title_from_ctx($ctx, "");
     $clinic = trim(str_replace("Consultório", "", audit_clinic_target($ctx)));
     $clinic = $clinic !== "" ? $clinic : "consultório";
+    $windowLabel = activity_text_value($ctx["janela"] ?? $title);
+if ($windowLabel === "") {
+    $windowLabel = "do sistema";
+}
     return match ($event) {
         "janela_aberta" => $entity === "paciente" ||
         trim((string) ($ctx["patient_name"] ?? "")) !== ""
             ? $who . " abriu a ficha do paciente " . $patient
-            : $who .
-                " abriu a tela " .
-                (activity_text_value($ctx["janela"] ?? $title) ?: "do sistema"),
+            : $who . " abriu a tela " . $windowLabel,
         "login_carregado" => $who . " abriu a tela de entrada",
         "autoteste_aviso" => $who . " recebeu um aviso técnico na entrada",
         "entrada_realizada" => ($env = activity_environment_label($ctx)) !== ""
