@@ -43,22 +43,29 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.0.30'
           coverage: none
           tools: none
           extensions: pdo_mysql
-      - name: PHP syntax
+      - name: PHP 8.0.30 syntax audit
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          failed=0
+          count=0
           while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
+            count=$((count + 1))
+            if ! php -l "$file"; then
+              failed=1
+            fi
           done < <(find . \
             -path './.git' -prune -o \
             -path './ssd' -prune -o \
             -path './vendor' -prune -o \
             -path './node_modules' -prune -o \
             -name '*.php' -print0)
+          echo "Arquivos PHP auditados: $count"
+          exit "$failed"
       - name: Canonical JSON contracts
         shell: bash
         run: |
