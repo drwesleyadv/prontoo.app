@@ -1,0 +1,254 @@
+name: Telemetry Display Precision V2
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  apply_change:
+    if: github.head_ref == 'agent/telemetry-display-two-decimals-20260803'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply two-decimal display and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path('.')
+          version = '1.8.3.5'
+          previous = '1.8.3.4'
+          build = '1.8.3.5-telemetry-display-two-decimals'
+          sync_id = 'github-telemetry-display-two-decimals-1-8-3-5'
+          now = datetime.now(timezone.utc)
+          now_iso = now.isoformat(timespec='microseconds')
+          now_unix = int(now.timestamp())
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = root / path
+              text = target.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f'{path}: substituição esperava 1 ocorrência e encontrou {count}')
+              target.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'app/Admin/AdminPages.php',
+              'return number_format(max(0.0, $milliseconds), 6, ",", ".") . " ms";',
+              'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
+          )
+          replace_once(
+              'app/Admin/AdminPages.php',
+              'return number_format(max(0.0, $ms), 6, ",", ".") . " ms";',
+              'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
+          )
+          replace_once(
+              'tools/architecture-check.php',
+              """        'telemetry_route_performance_summary(240)',
+""",
+              """        'telemetry_route_performance_summary(240)',
+        'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
+        'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
+""",
+          )
+
+          changelog = root / 'CHANGELOG.md'
+          changelog_text = changelog.read_text(encoding='utf-8')
+          header = '# Histórico de versões\n\n'
+          if not changelog_text.startswith(header):
+              raise RuntimeError('Cabeçalho inesperado em CHANGELOG.md')
+          entry = '''## 1.8.3.5 — Tempos médios com duas casas decimais\n\n- limita a apresentação dos tempos médios de telemetria a duas casas decimais;\n- aplica o padrão aos cards, indicadores e tooltips dos gráficos de velocidade;\n- preserva a coleta e os cálculos internos em nanossegundos, sem reduzir a precisão da fonte;\n- não altera banco de dados nem schema.\n\n'''
+          changelog.write_text(header + entry + changelog_text[len(header):], encoding='utf-8')
+
+          changelog_txt = root / 'ChangeLog.txt'
+          old_txt = changelog_txt.read_text(encoding='utf-8')
+          entry_txt = '''Prontoo 1.8.3.5 — Tempos médios com duas casas decimais\n\n- Os tempos médios passam a ser exibidos com duas casas decimais.\n- Cards, indicadores e tooltips usam o mesmo padrão visual.\n- A telemetria mantém sua precisão interna em nanossegundos.\n- Banco de dados e schema permanecem inalterados.\n\n'''
+          changelog_txt.write_text(entry_txt + old_txt, encoding='utf-8')
+
+          replace_once(
+              'app/prontoo.php',
+              'const PRONTOO_VERSION_FALLBACK = "1.8.3.4";',
+              'const PRONTOO_VERSION_FALLBACK = "1.8.3.5";',
+          )
+          replace_once(
+              'app/prontoo.php',
+              'const PRONTOO_PREVIOUS_VERSION = "1.8.3.3";',
+              'const PRONTOO_PREVIOUS_VERSION = "1.8.3.4";',
+          )
+          replace_once(
+              'br/index.php',
+              'const BR_LANDING_VERSION_FALLBACK = "1.8.3.4";',
+              'const BR_LANDING_VERSION_FALLBACK = "1.8.3.5";',
+          )
+
+          version_path = root / 'version.json'
+          version_data = json.loads(version_path.read_text(encoding='utf-8'))
+          version_data.update({
+              'version': version,
+              'release': version,
+              'generated_at_unix': now_unix,
+              'generated_at': now_iso,
+              'updated_at': now_iso,
+              'build': build,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': False,
+              'visual_changes': True,
+              'functional_equivalence_policy': 'preserves_telemetry_collection_and_weighted_calculations_while_formatting_average_duration_outputs_to_two_decimal_places',
+              'notes': 'Os tempos médios de telemetria são exibidos com duas casas decimais, mantendo a precisão interna.',
+              'previous_version': previous,
+              'documentation_changes': True,
+              'deployment_sync_id': sync_id,
+              'deployment_sync_requested_at': now_iso,
+              'rewrite_scope': 'telemetry_average_duration_display_precision',
+          })
+          version_path.write_text(json.dumps(version_data, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          architecture.update({
+              'version': version,
+              'release': version,
+              'build': build,
+              'generated_at': now_iso,
+              'updated_at': now_iso,
+              'previous_version': previous,
+              'deployment_sync_id': sync_id,
+              'notes': 'A apresentação de tempos médios usa duas casas decimais sem alterar a precisão matemática da telemetria.',
+          })
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+
+          workflow_path = root / '.github/workflows/telemetry-display-two-decimals-v2.yml'
+          if workflow_path.exists():
+              workflow_path.unlink()
+
+          manifest_path = root / 'app/update.manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          manifest.update({
+              'version': version,
+              'release': version,
+              'build': build,
+              'generated_at': now_iso,
+              'generated_at_unix': now_unix,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': False,
+              'visual_changes': True,
+              'documentation_changes': True,
+              'previous_version': previous,
+              'updated_at': now_iso,
+              'notes': 'Os tempos médios são apresentados com duas casas decimais, preservando os cálculos internos.',
+              'deployment_sync_id': sync_id,
+              'deployment_sync_requested_at': now_iso,
+              'rewrite_scope': 'telemetry_average_duration_display_precision',
+              'functional_equivalence_policy': 'preserves_telemetry_collection_and_weighted_calculations_while_formatting_average_duration_outputs_to_two_decimal_places',
+          })
+          files = dict(manifest.get('files') or {})
+          files.pop('.github/workflows/telemetry-display-two-decimals-v2.yml', None)
+          missing = [relative for relative in files if not (root / relative).is_file()]
+          if missing:
+              raise RuntimeError('Arquivos ausentes no manifesto: ' + ', '.join(missing))
+          refreshed = {}
+          total_bytes = 0
+          for relative in sorted(files):
+              data = (root / relative).read_bytes()
+              refreshed[relative] = hashlib.sha256(data).hexdigest()
+              total_bytes += len(data)
+          manifest['files'] = refreshed
+          manifest['file_count'] = len(refreshed)
+          manifest['total_uncompressed_bytes'] = total_bytes
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          PY
+
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $admin = (string) file_get_contents('app/Admin/AdminPages.php');
+          foreach ([
+              'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
+              'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
+              '? round(($row["sum"] / $row["count"]) / 1000000, 6)',
+              'return round(($durationNs / $weightedCount) / 1000000, 6);',
+          ] as $token) {
+              if (!str_contains($admin, $token)) {
+                  throw new RuntimeException('Contrato ausente na precisão da telemetria: ' . $token);
+              }
+          }
+          foreach ([
+              'return number_format(max(0.0, $milliseconds), 6, ",", ".") . " ms";',
+              'return number_format(max(0.0, $ms), 6, ",", ".") . " ms";',
+          ] as $token) {
+              if (str_contains($admin, $token)) {
+                  throw new RuntimeException('Formatação antiga com seis casas permanece: ' . $token);
+              }
+          }
+          PHP
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+          git diff --check
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Exibir tempos médios com duas casas decimais'
+          git push origin HEAD:${{ github.head_ref }}
