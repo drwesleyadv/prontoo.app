@@ -1,5 +1,16 @@
 <?php
 declare(strict_types=1);
+$brRouteStartedMonotonicNs = hrtime(true);
+$brRouteStartedUnixUs = (int) floor(microtime(true) * 1000000);
+require_once dirname(__DIR__) . "/app/Support/Telemetry.php";
+telemetry_route_start_marker(
+    (string) ($_GET["asset"] ?? "") !== ""
+        ? "landing_" . (string) $_GET["asset"]
+        : "landing",
+    $brRouteStartedMonotonicNs,
+    $brRouteStartedUnixUs,
+);
+unset($brRouteStartedMonotonicNs, $brRouteStartedUnixUs);
 require_once dirname(__DIR__) . "/app/Support/SecurityPrivacy.php";
 if (PHP_SAPI !== "cli") {
     
@@ -19,9 +30,8 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.7.31.2";
+const BR_LANDING_VERSION_FALLBACK = "1.8.3.1";
 require __DIR__ . "/runtime-core.php";
-require __DIR__ . "/runtime-telemetry.php";
 require __DIR__ . "/runtime-data.php";
 require __DIR__ . "/runtime-schema.php";
 require __DIR__ . "/landing/view-head.php";

@@ -16,7 +16,10 @@ Conjunto de verificações responsáveis por integridade, isolamento e detecçã
 Registro transacional que comprova uma mutação protegida e compartilha o mesmo commit da alteração.
 
 **Maestro**  
-Processo supervisionado que executa tarefas secundárias, filas duráveis, telemetria e verificações fora do caminho crítico HTTP.
+Processo supervisionado que executa tarefas secundárias, filas duráveis de auditoria e verificações fora do caminho crítico HTTP.
+
+**Telemetria de rotas**  
+Medição do intervalo monotônico entre o início e o fim de cada rota HTTP, persistida como evento independente na fonte canônica `ssd/telemetry/telemetria.json`.
 
 **Seq**  
 Identificador interno não nulo e único, gerado nativamente pelo banco.

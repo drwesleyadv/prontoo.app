@@ -5,7 +5,6 @@
 O Maestro executa atividades que não devem ampliar o caminho crítico HTTP:
 
 - auditoria adiada;
-- telemetria;
 - integridade;
 - regras agendadas;
 - recuperação de filas;
@@ -24,3 +23,5 @@ O Maestro executa atividades que não devem ampliar o caminho crítico HTTP:
 ## Persistência
 
 Filas primária e emergencial ficam em armazenamento persistente. Estado de saúde deve distinguir atraso, corrupção, indisponibilidade e fila morta.
+
+A telemetria de rotas não integra essas filas. Ela é concluída no encerramento de cada requisição e persistida diretamente na fonte canônica descrita em [Telemetria de rotas](../performance/telemetry.md).

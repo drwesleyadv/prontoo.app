@@ -28,7 +28,7 @@ Senha, estado do usuário, bloqueios e MFA são avaliados antes da criação da 
 
 ## Logout
 
-A geração canônica do usuário é rotacionada e a sessão local é destruída. Auditoria e telemetria secundárias seguem por fila durável.
+A geração canônica do usuário é rotacionada e a sessão local é destruída. A auditoria secundária segue por fila durável. A telemetria da rota é concluída separadamente pelo marcador de encerramento da própria requisição.
 
 ## Maestro
 

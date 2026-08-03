@@ -10,59 +10,6 @@ function server_json_cache_enabled(): bool
     return (string) getenv("PRONTOO_DISABLE_SERVER_JSON_CACHE") !== "1";
 }
 
-function server_json_cache_metric_add(
-    string $category,
-    string $metric,
-    int|float $value = 1,
-): void {
-
-    $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
-    $metric = preg_replace("/[^a-z0-9_\-]/i", "_", $metric) ?: "unknown";
-    if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]) ||
-        !is_array($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"])) {
-        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"] = [
-            "totals" => [],
-            "categories" => [],
-        ];
-    }
-    if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["totals"][$metric])) {
-        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["totals"][$metric] = 0;
-    }
-    $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["totals"][$metric] += $value;
-    if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category]) ||
-        !is_array($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category])) {
-        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category] = [];
-    }
-    if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category][$metric])) {
-        $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category][$metric] = 0;
-    }
-    $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"]["categories"][$category][$metric] += $value;
-}
-
-function server_json_cache_metric_result(string $category, string $result): void
-{
-
-    server_json_cache_metric_add($category, "lookups");
-    server_json_cache_metric_add($category, $result);
-}
-
-function server_json_cache_metrics_snapshot(): array
-{
-
-    $metrics = $GLOBALS["PRONTOO_SERVER_JSON_CACHE_METRICS"] ?? [];
-    if (!is_array($metrics)) {
-        return ["totals" => [], "categories" => []];
-    }
-    return [
-        "totals" => isset($metrics["totals"]) && is_array($metrics["totals"])
-            ? $metrics["totals"]
-            : [],
-        "categories" => isset($metrics["categories"]) && is_array($metrics["categories"])
-            ? $metrics["categories"]
-            : [],
-    ];
-}
-
 function server_json_cache_root(): string
 {
 
@@ -139,7 +86,6 @@ function server_json_cache_bump_generation(string $category): int
         @mkdir($dir, 0750, true);
         @file_put_contents($file, "1\n", LOCK_EX);
         $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
-        server_json_cache_metric_add($category, "generation_fallback_clears");
         return 1;
     }
     try {
@@ -156,7 +102,6 @@ function server_json_cache_bump_generation(string $category): int
             throw new RuntimeException("Não foi possível persistir a geração do cache.");
         }
         $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = $next;
-        server_json_cache_metric_add($category, "generation_bumps");
         return $next;
     } catch (Throwable $error) {
         @flock($handle, LOCK_UN);
@@ -165,7 +110,6 @@ function server_json_cache_bump_generation(string $category): int
         @mkdir($dir, 0750, true);
         @file_put_contents($file, "1\n", LOCK_EX);
         $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
-        server_json_cache_metric_add($category, "generation_fallback_clears");
         error_log("[Prontoo cache generation] " . $error->getMessage());
         return 1;
     } finally {
@@ -294,7 +238,6 @@ function server_json_cache_get(
 ): mixed {
 
     if (!server_json_cache_read_allowed()) {
-        server_json_cache_metric_add($category, "bypasses");
         return null;
     }
     $ttl = $ttlSeconds ?? server_json_cache_ttl($category);
@@ -305,48 +248,35 @@ function server_json_cache_get(
     $memoryFound = false;
     $memoryValue = server_json_cache_memory_get($file, $memoryFound);
     if ($memoryFound) {
-        server_json_cache_metric_result($category, "memory_hits");
         return $memoryValue;
     }
     if (!is_file($file)) {
-        server_json_cache_metric_result($category, "misses");
         return null;
     }
     $mtime = @filemtime($file);
     if ($mtime === false || time() - $mtime > $ttl) {
         @unlink($file);
-        server_json_cache_metric_result($category, "misses");
-        server_json_cache_metric_add($category, "expired");
         return null;
     }
     $raw = @file_get_contents($file);
     if (!is_string($raw) || trim($raw) === "") {
         @unlink($file);
-        server_json_cache_metric_result($category, "misses");
-        server_json_cache_metric_add($category, "invalid");
         return null;
     }
     $json = json_decode($raw, true);
     if (!is_array($json) || !array_key_exists("value", $json)) {
         @unlink($file);
-        server_json_cache_metric_result($category, "misses");
-        server_json_cache_metric_add($category, "invalid");
         return null;
     }
     if (($json["server_side_only"] ?? "") !== "storage-json") {
         @unlink($file);
-        server_json_cache_metric_result($category, "misses");
-        server_json_cache_metric_add($category, "invalid");
         return null;
     }
     if ((int) ($json["expires_at"] ?? 0) < time()) {
         @unlink($file);
-        server_json_cache_metric_result($category, "misses");
-        server_json_cache_metric_add($category, "expired");
         return null;
     }
     server_json_cache_memory_set($file, $json["value"]);
-    server_json_cache_metric_result($category, "file_hits");
     return $json["value"];
 }
 
@@ -395,16 +325,11 @@ function server_json_cache_set(
         @chmod($tmp, 0640);
         if (@rename($tmp, $file)) {
             @chmod($file, 0640);
-            server_json_cache_metric_add($category, "writes");
         } else {
             @unlink($tmp);
-            server_json_cache_metric_add($category, "write_errors");
         }
     } elseif (is_file($tmp)) {
         @unlink($tmp);
-        server_json_cache_metric_add($category, "write_errors");
-    } else {
-        server_json_cache_metric_add($category, "write_errors");
     }
     server_json_cache_memory_set($file, $value);
     return $value;
@@ -423,14 +348,12 @@ function server_json_cache_remember(
         return $cached;
     }
     if (!server_json_cache_read_allowed()) {
-        server_json_cache_metric_add($category, "loaders");
         return $loader();
     }
 
     $file = server_json_cache_file($category, $key);
     $lock = @fopen($file . ".lock", "c");
     $locked = false;
-    $lockStartedAt = microtime(true);
     if (is_resource($lock)) {
         @chmod($file . ".lock", 0640);
         $deadline = microtime(true) + 0.05;
@@ -440,13 +363,6 @@ function server_json_cache_remember(
                 usleep(5000);
             }
         } while (!$locked && microtime(true) < $deadline);
-        $waitMs = max(0.0, (microtime(true) - $lockStartedAt) * 1000);
-        if ($waitMs > 0) {
-            server_json_cache_metric_add($category, "lock_wait_ms", round($waitMs, 3));
-        }
-        if (!$locked) {
-            server_json_cache_metric_add($category, "lock_timeouts");
-        }
     }
     if ($locked && is_resource($lock)) {
         try {
@@ -455,7 +371,6 @@ function server_json_cache_remember(
             if ($cached !== null) {
                 return $cached;
             }
-            server_json_cache_metric_add($category, "loaders");
             $value = $loader();
             return server_json_cache_set(
                 $category,
@@ -472,7 +387,6 @@ function server_json_cache_remember(
     if (is_resource($lock)) {
         fclose($lock);
     }
-    server_json_cache_metric_add($category, "loaders");
     return $loader();
 }
 
@@ -503,12 +417,7 @@ function server_json_cache_clear_categories(array $categories): void
 {
 
     $categories = array_values(array_unique(array_map("strval", $categories)));
-    if ($categories) {
-        server_json_cache_metric_add("invalidation", "invalidations");
-        server_json_cache_metric_add("invalidation", "invalidated_categories", count($categories));
-    }
     foreach ($categories as $category) {
-        server_json_cache_metric_add($category, "invalidations");
         $dir = server_json_cache_category_dir($category);
         server_json_cache_bump_generation($category);
         server_json_cache_memory_forget_prefix($dir . "/");
@@ -574,8 +483,6 @@ function server_json_cache_clear_all_json_files(): int
     };
     $walk($root);
     $GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"] = [];
-    server_json_cache_metric_add("invalidation", "first_developer_login");
-    server_json_cache_metric_add("invalidation", "json_files_deleted", $deleted);
     return $deleted;
 }
 

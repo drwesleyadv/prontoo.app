@@ -206,37 +206,6 @@ function pdo(): PDO
     return $connection;
 }
 
-function db_query_metric_record(
-    string $sql,
-    float $elapsedMs,
-    bool $success,
-    ?Throwable $error = null,
-): void {
-
-    $GLOBALS["PRONTOO_QUERY_COUNT"] =
-        (int) ($GLOBALS["PRONTOO_QUERY_COUNT"] ?? 0) + 1;
-    $GLOBALS["PRONTOO_QUERY_TOTAL_MS"] =
-        (float) ($GLOBALS["PRONTOO_QUERY_TOTAL_MS"] ?? 0.0) +
-        max(0.0, $elapsedMs);
-    if (preg_match("/^\s*SELECT\s+(.*?)\s+FROM\b/is", $sql, $match)) {
-        $selectList = preg_replace(
-            "/^(?:DISTINCT|SQL_CALC_FOUND_ROWS)\s+/i",
-            "",
-            trim((string) ($match[1] ?? "")),
-        );
-        if (
-            is_string($selectList) &&
-            preg_match(
-                "/(?:^|,)\s*(?:`?[a-z0-9_]+`?\.)?\*\s*(?:,|$)/i",
-                $selectList,
-            )
-        ) {
-            $GLOBALS["PRONTOO_QUERY_WIDE_SELECT_COUNT"] =
-                (int) ($GLOBALS["PRONTOO_QUERY_WIDE_SELECT_COUNT"] ?? 0) + 1;
-        }
-    }
-}
-
 function db_retryable_conflict(Throwable $error): bool
 {
 
@@ -345,7 +314,6 @@ function q(string $sql, array $params = []): PDOStatement
             }
 
             $elapsedMs = (microtime(true) - $startedAt) * 1000;
-            db_query_metric_record($runtimeSql, $elapsedMs, true);
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
                 \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
                     $sql,
@@ -367,7 +335,6 @@ function q(string $sql, array $params = []): PDOStatement
             $lastError = $error;
             if (!$queryCompleted) {
                 $elapsedMs = (microtime(true) - $startedAt) * 1000;
-                db_query_metric_record($runtimeSql, $elapsedMs, false, $error);
                 if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
                     \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
                         $sql,

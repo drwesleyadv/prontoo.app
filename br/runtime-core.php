@@ -30,7 +30,6 @@ if (!preg_match('/^1\.\d{1,2}\.\d{1,2}\.\d+$/', $brLandingAssetRevision)) {
 }
 define("BR_LANDING_VERSION", $brLandingVersion);
 unset($brLandingReleaseMetadata, $brLandingVersion);
-$brLandingRequestStartedAt = microtime(true);
 
 function br_h(string $value): string
 {
