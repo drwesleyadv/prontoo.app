@@ -91,8 +91,12 @@ jobs:
           )
           replace_once(
               'tools/architecture-check.php',
-              "        'telemetry_route_performance_summary(240)',\n",
-              "        'telemetry_route_performance_summary(240)',\n        'return number_format(max(0.0, $milliseconds), 2, \\",\\\", \\\".\\\") . \\\" ms\\\";',\n        'return number_format(max(0.0, $ms), 2, \\",\\\", \\\".\\\") . \\\" ms\\\";',\n",
+              """        'telemetry_route_performance_summary(240)',
+""",
+              """        'telemetry_route_performance_summary(240)',
+        'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
+        'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
+""",
           )
 
           changelog = root / 'CHANGELOG.md'
