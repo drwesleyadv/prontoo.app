@@ -1,3 +1,10 @@
+Prontoo 1.8.3.2 — Janela de duas horas para instalação limpa
+
+- Instalador público disponível em 03/08/2026 10:20 até 12:20 (America/Cuiaba) (03/08/2026 14:20 UTC até 16:20 UTC).
+- Acesso somente por HTTPS em prontoo.app e apenas em instalação nova.
+- Banco vazio continua obrigatório; após a janela, o acesso retorna 404 automaticamente.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.3.1 — Telemetria de rotas como fonte única e matematicamente precisa
 
 - Remove a telemetria legada, partições, agregados, amostragem e processamento pelo Maestro.
