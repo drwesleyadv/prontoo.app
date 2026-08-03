@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.3.2 — Janela de duas horas para instalação limpa
+
+- abre o instalador público em `03/08/2026 10:20 até 12:20 (America/Cuiaba)` (`03/08/2026 14:20 UTC até 16:20 UTC`);
+- restringe o acesso a HTTPS no domínio canônico `prontoo.app`;
+- permite a execução somente em estado novo, sem `app/config.php` e sem `ssd/install.lock`;
+- mantém a exigência de banco de dados vazio e encerra o acesso automaticamente com resposta 404;
+- não altera banco de dados nem schema.
+
 ## 1.8.3.1 — Telemetria de rotas como fonte única e matematicamente precisa
 
 - remove integralmente a telemetria legada, suas partições, agregados, amostragem e processamento pelo Maestro;
