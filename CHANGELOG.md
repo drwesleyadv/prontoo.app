@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.3.3 — Correção da janela estrutural do instalador
+
+- reabre uma janela integral em `03/08/2026 11:20 até 13:20 (America/Cuiaba)` (`03/08/2026 15:20 UTC até 17:20 UTC`);
+- sincroniza os timestamps de `InstallAccess` e `SchemaMutationLock`;
+- reconhece tanto `/install.php` quanto `/?r=install` como entradas autorizadas;
+- corrige o contrato automatizado para duração exata de 7.200 segundos;
+- mantém HTTPS, host canônico, banco vazio e fechamento automático por 404;
+- não altera banco de dados nem schema.
+
 ## 1.8.3.2 — Janela de duas horas para instalação limpa
 
 - abre o instalador público em `03/08/2026 10:20 até 12:20 (America/Cuiaba)` (`03/08/2026 14:20 UTC até 16:20 UTC`);

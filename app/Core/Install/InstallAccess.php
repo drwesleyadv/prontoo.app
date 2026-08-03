@@ -13,8 +13,8 @@ final class InstallAccess
         'HTTP_CF_CONNECTING_IP',
         'HTTP_TRUE_CLIENT_IP',
     ];
-    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785766800;
-    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785774000;
+    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785770400;
+    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785777600;
 
     private function __construct() {
 

@@ -5,8 +5,8 @@ namespace Prontoo\Core\Database;
 
 final class SchemaMutationLock
 {
-    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785500520;
-    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785514920;
+    private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785770400;
+    private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785777600;
 
     private static int $depth = 0;
     private static ?string $nonce = null;
@@ -82,7 +82,10 @@ final class SchemaMutationLock
         if (strtoupper(trim((string) ($_SERVER['REQUEST_METHOD'] ?? ''))) !== 'POST') {
             return false;
         }
-        if ((string) ($_GET['r'] ?? '') !== 'install') {
+        $route = trim((string) ($_GET['r'] ?? ''));
+        $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $requestPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+        if ($route !== 'install' && $script !== 'install.php' && $requestPath !== '/install.php') {
             return false;
         }
 
