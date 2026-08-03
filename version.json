@@ -23,7 +23,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "O card da Landing Page mostra execuções da rota nos últimos 10 dias e compara com os 10 dias anteriores.",
+    "notes": "Gatilho transitório para executar o ajuste visual; será substituído automaticamente.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
