@@ -972,7 +972,7 @@ function admin_metric_duration_label(
     bool $compact = false,
 ): string {
 
-    return number_format(max(0.0, $milliseconds), 6, ",", ".") . " ms";
+    return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";
 }
 function admin_metric_value_label(float $value, string $mode): string
 {
@@ -4605,7 +4605,7 @@ function page_admin_alerts(): void
 function admin_performance_format_ms(float $ms): string
 {
 
-    return number_format(max(0.0, $ms), 6, ",", ".") . " ms";
+    return number_format(max(0.0, $ms), 2, ",", ".") . " ms";
 }
 function admin_performance_rows_html(array $rows): string
 {

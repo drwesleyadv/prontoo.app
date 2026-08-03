@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.8.3.5 — Tempos médios com duas casas decimais
+
+- limita a apresentação dos tempos médios de telemetria a duas casas decimais;
+- aplica o padrão aos cards, indicadores e tooltips dos gráficos de velocidade;
+- preserva a coleta e os cálculos internos em nanossegundos, sem reduzir a precisão da fonte;
+- não altera banco de dados nem schema.
+
 ## 1.8.3.4 — Execuções da Landing Page no comparativo
 
 - substitui o KPI de tempo médio da Landing Page pela quantidade de execuções da rota `landing`;

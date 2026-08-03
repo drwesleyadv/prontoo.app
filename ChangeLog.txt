@@ -1,3 +1,10 @@
+Prontoo 1.8.3.5 — Tempos médios com duas casas decimais
+
+- Os tempos médios passam a ser exibidos com duas casas decimais.
+- Cards, indicadores e tooltips usam o mesmo padrão visual.
+- A telemetria mantém sua precisão interna em nanossegundos.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.3.4 — Execuções da Landing Page no comparativo
 
 - O card da Landing Page passa a mostrar a quantidade de execuções da rota nos últimos 10 dias.
