@@ -163,6 +163,11 @@ if (!preg_match('/PUBLIC_INSTALL_WINDOW_START_UNIX\s*=\s*(\d+)\s*;/', $installAc
     !str_contains($installAccessSource, "!is_file(\$root . '/ssd/install.lock')")) {
     $errors[] = 'guarded_two_hour_clean_install_window_policy';
 }
+if (!str_contains($schemaLockSource, "$route !== 'install'") ||
+    !str_contains($schemaLockSource, "$script !== 'install.php'") ||
+    !str_contains($schemaLockSource, "$requestPath !== '/install.php'")) {
+    $errors[] = 'schema_window_install_route_contract';
+}
 if (substr_count($htaccess, '[R=308,L]') < 2 ||
     !str_contains($htaccess, 'Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"') ||
     !str_contains($htaccess, 'Content-Security-Policy "upgrade-insecure-requests; block-all-mixed-content"')) {

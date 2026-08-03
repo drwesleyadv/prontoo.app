@@ -1,3 +1,11 @@
+Prontoo 1.8.3.3 — Correção da janela estrutural do instalador
+
+- Janela integral disponível em 03/08/2026 11:20 até 13:20 (America/Cuiaba) (03/08/2026 15:20 UTC até 17:20 UTC).
+- InstallAccess e SchemaMutationLock passam a usar os mesmos timestamps.
+- /install.php e /?r=install são reconhecidos como entradas autorizadas.
+- O acesso volta a responder 404 automaticamente após o término.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.3.2 — Janela de duas horas para instalação limpa
 
 - Instalador público disponível em 03/08/2026 10:20 até 12:20 (America/Cuiaba) (03/08/2026 14:20 UTC até 16:20 UTC).

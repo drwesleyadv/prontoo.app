@@ -25,8 +25,8 @@ foreach ($sources as $name => $source) {
 if ($windows['install_access'] !== $windows['schema_mutation_lock']) {
     throw new RuntimeException('Janelas do instalador e do bloqueio estrutural divergentes.');
 }
-if ($windows['install_access']['end'] - $windows['install_access']['start'] !== 14400) {
-    throw new RuntimeException('A janela pública deve durar exatamente quatro horas.');
+if ($windows['install_access']['end'] - $windows['install_access']['start'] !== 7200) {
+    throw new RuntimeException('A janela pública deve durar exatamente duas horas.');
 }
 
 echo json_encode(
@@ -34,7 +34,7 @@ echo json_encode(
         'ok' => true,
         'start_unix' => $windows['install_access']['start'],
         'end_unix' => $windows['install_access']['end'],
-        'duration_seconds' => 14400,
+        'duration_seconds' => 7200,
     ],
     JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
 ) . PHP_EOL;
