@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -55,6 +56,28 @@ jobs:
           tools: none
           extensions: pdo_mysql
       - name: Apply and validate display precision
+        id: execute
+        continue-on-error: true
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
-        run: python3 tools/telemetry-display-two-decimals-executor.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 tools/telemetry-display-two-decimals-executor.py 2>&1 | tee /tmp/telemetry-executor.log
+      - name: Report executor failure
+        if: steps.execute.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          {
+            printf 'O executor da precisão visual falhou. Saída técnica:\n\n```text\n'
+            tail -c 45000 /tmp/telemetry-executor.log
+            printf '\n```\n'
+          } > /tmp/executor-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -f body="$(cat /tmp/executor-comment.md)"
+      - name: Enforce executor success
+        if: steps.execute.outcome == 'failure'
+        run: exit 1
