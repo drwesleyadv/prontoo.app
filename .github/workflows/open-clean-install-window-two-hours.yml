@@ -1,0 +1,278 @@
+name: Open clean install window for two hours
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/install-window-two-hours-20260803' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Apply guarded two-hour commissioning window
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_BRANCH"
+          git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
+          python3 <<'PY'
+          from __future__ import annotations
+
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib
+          import json
+          import re
+
+          root = Path.cwd()
+          window_start = 1785766800
+          window_end = 1785774000
+          if window_end - window_start != 7200:
+              raise SystemExit('A janela precisa ter exatamente 7200 segundos.')
+
+          version_path = root / 'version.json'
+          version_data = json.loads(version_path.read_text(encoding='utf-8'))
+          previous_version = str(version_data['version'])
+          prefix = '1.8.3.'
+          if previous_version.startswith(prefix):
+              sequence = int(previous_version.removeprefix(prefix)) + 1
+          else:
+              sequence = 1
+          version = f'{prefix}{sequence}'
+          build = f'{version}-clean-install-window-two-hours'
+          generated = datetime.now(timezone.utc).isoformat(timespec='microseconds')
+          generated_unix = int(datetime.now(timezone.utc).timestamp())
+          policy = 'temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404'
+          deployment_sync_id = f'github-clean-install-window-two-hours-{version.replace(".", "-")}'
+          window_utc = '03/08/2026 14:20 UTC até 16:20 UTC'
+          window_local = '03/08/2026 10:20 até 12:20 (America/Cuiaba)'
+
+          def replace_once(path: Path, pattern: str, replacement: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              updated, count = re.subn(pattern, replacement, text, count=1)
+              if count != 1:
+                  raise SystemExit(f'Padrão não localizado em {path}: {pattern}')
+              path.write_text(updated, encoding='utf-8')
+
+          install_access = root / 'app/Core/Install/InstallAccess.php'
+          replace_once(
+              install_access,
+              r'private const PUBLIC_INSTALL_WINDOW_START_UNIX = \d+;',
+              f'private const PUBLIC_INSTALL_WINDOW_START_UNIX = {window_start};',
+          )
+          replace_once(
+              install_access,
+              r'private const PUBLIC_INSTALL_WINDOW_END_UNIX = \d+;',
+              f'private const PUBLIC_INSTALL_WINDOW_END_UNIX = {window_end};',
+          )
+
+          security_check = root / 'tools/install-security-check.php'
+          security_text = security_check.read_text(encoding='utf-8')
+          security_text, duration_count = re.subn(
+              r'\(int\) \(\$installWindowEndMatch\[1\] \?\? 0\) - \(int\) \(\$installWindowStartMatch\[1\] \?\? 0\) !== \d+',
+              '(int) ($installWindowEndMatch[1] ?? 0) - (int) ($installWindowStartMatch[1] ?? 0) !== 7200',
+              security_text,
+              count=1,
+          )
+          if duration_count != 1:
+              raise SystemExit('Contrato de duração do instalador não localizado.')
+          security_text = security_text.replace(
+              "guarded_four_hour_clean_install_window_policy",
+              "guarded_two_hour_clean_install_window_policy",
+              1,
+          )
+          security_check.write_text(security_text, encoding='utf-8')
+
+          prontoo_php = root / 'app/prontoo.php'
+          replace_once(
+              prontoo_php,
+              r'const PRONTOO_VERSION_FALLBACK = "[^"]+";',
+              f'const PRONTOO_VERSION_FALLBACK = "{version}";',
+          )
+          replace_once(
+              prontoo_php,
+              r'const PRONTOO_PREVIOUS_VERSION = "[^"]+";',
+              f'const PRONTOO_PREVIOUS_VERSION = "{previous_version}";',
+          )
+
+          landing_php = root / 'br/index.php'
+          replace_once(
+              landing_php,
+              r'const BR_LANDING_VERSION_FALLBACK = "[^"]+";',
+              f'const BR_LANDING_VERSION_FALLBACK = "{version}";',
+          )
+
+          changelog = root / 'CHANGELOG.md'
+          changelog_text = changelog.read_text(encoding='utf-8')
+          heading = f'## {version} — Janela de duas horas para instalação limpa'
+          if heading not in changelog_text:
+              marker = '# Histórico de versões\n\n'
+              entry = (
+                  f'{heading}\n\n'
+                  f'- abre o instalador público em `{window_local}` (`{window_utc}`);\n'
+                  '- restringe o acesso a HTTPS no domínio canônico `prontoo.app`;\n'
+                  '- permite a execução somente em estado novo, sem `app/config.php` e sem `ssd/install.lock`;\n'
+                  '- mantém a exigência de banco de dados vazio e encerra o acesso automaticamente com resposta 404;\n'
+                  '- não altera banco de dados nem schema.\n\n'
+              )
+              if not changelog_text.startswith(marker):
+                  raise SystemExit('Cabeçalho do CHANGELOG.md não localizado.')
+              changelog.write_text(marker + entry + changelog_text[len(marker):], encoding='utf-8')
+
+          legacy_changelog = root / 'ChangeLog.txt'
+          legacy_text = legacy_changelog.read_text(encoding='utf-8')
+          legacy_heading = f'Prontoo {version} — Janela de duas horas para instalação limpa'
+          if legacy_heading not in legacy_text:
+              legacy_entry = (
+                  f'{legacy_heading}\n\n'
+                  f'- Instalador público disponível em {window_local} ({window_utc}).\n'
+                  '- Acesso somente por HTTPS em prontoo.app e apenas em instalação nova.\n'
+                  '- Banco vazio continua obrigatório; após a janela, o acesso retorna 404 automaticamente.\n'
+                  '- Banco de dados e schema permanecem inalterados.\n\n'
+              )
+              legacy_changelog.write_text(legacy_entry + legacy_text, encoding='utf-8')
+
+          version_data.update({
+              'version': version,
+              'release': version,
+              'generated_at_unix': generated_unix,
+              'generated_at': generated,
+              'updated_at': generated,
+              'build': build,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+              'functional_equivalence_policy': 'preserves_application_runtime_and_schema_while_temporarily_exposing_the_guarded_clean_installer_for_exactly_two_hours',
+              'notes': f'Janela de duas horas aberta para instalação limpa em banco vazio, de {window_local}, exclusivamente por HTTPS no domínio canônico e somente sem configuração ou lock existentes.',
+              'previous_version': previous_version,
+              'documentation_changes': True,
+              'installer_locked': False,
+              'installer_access_policy': policy,
+              'public_install_window_start_unix': window_start,
+              'public_install_window_end_unix': window_end,
+              'public_install_route': '/install.php',
+              'post_window_policy': 'automatic_404_without_manual_intervention',
+              'deployment_sync_id': deployment_sync_id,
+              'deployment_sync_requested_at': generated,
+              'rewrite_scope': 'guarded_clean_install_public_window_two_hours',
+          })
+          version_path.write_text(
+              json.dumps(version_data, ensure_ascii=False, indent=4) + '\n',
+              encoding='utf-8',
+          )
+
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          architecture.update({
+              'version': version,
+              'release': version,
+              'build': build,
+              'database_changes': False,
+              'schema_changes': False,
+              'visual_changes': False,
+              'generated_at': generated,
+              'updated_at': generated,
+              'installer_locked': False,
+              'installer_access_policy': policy,
+              'public_install_window_start_unix': window_start,
+              'public_install_window_end_unix': window_end,
+              'public_install_route': '/install.php',
+              'post_window_policy': 'automatic_404_without_manual_intervention',
+              'clean_install_schema': True,
+              'requires_empty_database': True,
+              'previous_version': previous_version,
+              'deployment_sync_id': deployment_sync_id,
+              'notes': 'Janela de duas horas aberta para instalação limpa em banco de dados zerado.',
+          })
+          architecture_path.write_text(
+              json.dumps(architecture, ensure_ascii=False, indent=4) + '\n',
+              encoding='utf-8',
+          )
+
+          update_manifest_path = root / 'app/update.manifest.json'
+          update_manifest = json.loads(update_manifest_path.read_text(encoding='utf-8'))
+          update_manifest.update({
+              'version': version,
+              'release': version,
+              'build': build,
+              'generated_at': generated,
+              'updated_at': generated,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': False,
+              'clean_install_schema': True,
+              'requires_empty_database': True,
+              'installer_policy': policy,
+              'installer_access_policy': policy,
+              'installer_locked': False,
+              'public_install_window_start_unix': window_start,
+              'public_install_window_end_unix': window_end,
+              'public_install_route': '/install.php',
+              'post_window_policy': 'automatic_404_without_manual_intervention',
+              'previous_version': previous_version,
+              'deployment_sync_id': deployment_sync_id,
+              'deployment_sync_requested_at': generated,
+              'rewrite_scope': 'guarded_clean_install_public_window_two_hours',
+              'functional_equivalence_policy': 'preserves_application_runtime_and_schema_while_temporarily_exposing_the_guarded_clean_installer_for_exactly_two_hours',
+              'notes': 'Janela de duas horas aberta para instalação limpa em banco vazio, com fechamento automático por 404.',
+          })
+
+          workflow_path = root / '.github/workflows/open-clean-install-window-two-hours.yml'
+          workflow_path.unlink()
+
+          files: dict[str, str] = {}
+          total = 0
+          excluded_roots = {'.git', 'ssd', 'vendor', 'node_modules'}
+          for path in root.rglob('*'):
+              if not path.is_file() or path.is_symlink():
+                  continue
+              relative = path.relative_to(root).as_posix()
+              if relative == 'app/update.manifest.json':
+                  continue
+              if relative.split('/', 1)[0] in excluded_roots:
+                  continue
+              payload = path.read_bytes()
+              files[relative] = hashlib.sha256(payload).hexdigest()
+              total += len(payload)
+          update_manifest['files'] = dict(sorted(files.items()))
+          update_manifest['file_count'] = len(files)
+          update_manifest['total_uncompressed_bytes'] = total
+          update_manifest_path.write_text(
+              json.dumps(update_manifest, ensure_ascii=False, indent=4) + '\n',
+              encoding='utf-8',
+          )
+          PY
+          php -l app/Core/Install/InstallAccess.php
+          php -l app/prontoo.php
+          php -l br/index.php
+          php -l tools/install-security-check.php
+          php tools/install-security-check.php
+          php tools/architecture-check.php
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Abrir janela de duas horas para instalação limpa"
+          git push origin HEAD:"$HEAD_BRANCH"
