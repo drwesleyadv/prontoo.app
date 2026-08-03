@@ -1,3 +1,12 @@
+Prontoo 1.8.3.1 — Telemetria de rotas como fonte única e matematicamente precisa
+
+- Remove a telemetria legada, partições, agregados, amostragem e processamento pelo Maestro.
+- Mede toda rota com relógio monotônico, preserva nanossegundos e exibe milissegundos com seis casas.
+- Usa exclusivamente ssd/telemetry/telemetria.json, com um evento por linha e retenção exata de 20 dias.
+- Compartilha entre o Painel do Desenvolvedor e /status os cards comparativos de 10 dias e as fontes dos gráficos.
+- Calcula médias diretamente sobre todas as amostras e trata períodos sem base comparável sem inventar percentuais.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.7.31.2 — Janela de quatro horas para instalação limpa
 
 - Instalador público disponível de 31/07/2026 12:22 UTC até 16:22 UTC.

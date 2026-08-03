@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.3.1 — Telemetria de rotas como fonte única e matematicamente precisa
+
+- remove integralmente a telemetria legada, suas partições, agregados, amostragem e processamento pelo Maestro;
+- mede cada rota entre marcadores monotônicos de início e fim, preservando nanossegundos e exibindo milissegundos com precisão de seis casas;
+- persiste um evento JSON por linha em `ssd/telemetry/telemetria.json` e mantém exatamente os últimos 20 dias;
+- calcula cards compartilhados pelo Painel do Desenvolvedor e `/status` para os últimos 10 dias contra os 10 dias anteriores, sem médias de médias;
+- alimenta Velocidade com durações das rotas e da Landing Page e Leitura e gravação com requisições canônicas e registros efetivamente alterados;
+- documenta a remoção manual dos arquivos JSON legados, sem alterar banco de dados ou schema.
+
 ## 1.7.31.2 — Janela de quatro horas para instalação limpa
 
 - abre o instalador público de 31/07/2026 12:22 UTC até 16:22 UTC;

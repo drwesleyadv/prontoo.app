@@ -141,112 +141,86 @@ security_regression_assert(
     "A interface interna de autoria não preservou origem confiável.",
 );
 
-$telemetryEvent = [
-    "ts" => time(),
-    "route" => "logout",
-    "release" => "1.7.27.3",
-    "elapsed_ms" => 12.5,
-    "query_ms" => 2.0,
-    "queries" => 1,
-    "success" => 1,
-];
-$deferredId = maestro_deferred_enqueue("telemetry", [
-    "event" => $telemetryEvent,
-    "include_page_metric" => true,
-]);
-security_regression_assert(
-    is_string($deferredId) && $deferredId !== "",
-    "Não foi possível criar envelope de telemetria.",
-);
-$deferredFile =
-    maestro_deferred_storage_dir() . "/" . $deferredId . ".json";
-$deferredRaw = file_get_contents($deferredFile);
-security_regression_assert(
-    is_string($deferredRaw) && $deferredRaw !== "",
-    "Envelope de telemetria não foi persistido.",
-);
-$partialEvent = $telemetryEvent;
-$partialEvent["deferred_id"] = $deferredId;
-security_regression_assert(
-    telemetry_append_route_performance_metric($partialEvent),
-    "Não foi possível simular interrupção após a métrica de rota.",
-);
-$firstPass = maestro_process_deferred_work(5000, 10);
-security_regression_assert(
-    (int) ($firstPass["processed"] ?? 0) === 1,
-    "Retomada idempotente após materialização parcial falhou.",
-);
-file_put_contents($deferredFile, $deferredRaw);
-$replayPass = maestro_process_deferred_work(5000, 10);
-security_regression_assert(
-    (int) ($replayPass["processed"] ?? 0) === 1,
-    "Replay idempotente da telemetria não foi concluído.",
-);
-$routePayload = json_decode(
-    (string) file_get_contents(telemetry_route_perf_file()),
-    true,
-    512,
-    JSON_THROW_ON_ERROR,
-);
-$pageEvents = telemetry_read_events();
-$pageDeferredIds = [];
-foreach ($pageEvents as $pageEvent) {
-    if (!is_array($pageEvent)) {
-        continue;
-    }
-    $pageDeferredId = (string) ($pageEvent["deferred_id"] ?? "");
-    if ($pageDeferredId !== "") {
-        $pageDeferredIds[$pageDeferredId] = true;
-    }
+$telemetryNowUs = 2000000000000000;
+$telemetryWindowUs = telemetry_comparison_microseconds();
+$telemetryPreviousStartUs = $telemetryNowUs - 2 * $telemetryWindowUs;
+$telemetryCurrentStartUs = $telemetryNowUs - $telemetryWindowUs;
+$telemetryEvent = static function (
+    string $route,
+    int $finishedUs,
+    int $durationNs,
+): array {
+    $startedNs = 1000000000000;
+    return telemetry_build_event(
+        $route,
+        $startedNs,
+        $startedNs + $durationNs,
+        $finishedUs - intdiv($durationNs, 1000),
+        $finishedUs,
+        200,
+        null,
+        "test",
+    );
+};
+foreach ([
+    $telemetryEvent("patient", $telemetryPreviousStartUs, 200000000),
+    $telemetryEvent("landing", $telemetryCurrentStartUs - 1, 500000000),
+    $telemetryEvent("patient", $telemetryCurrentStartUs, 100000000),
+    $telemetryEvent("landing", $telemetryNowUs - 1, 300000000),
+    $telemetryEvent("old", $telemetryPreviousStartUs - 1, 999000000),
+    $telemetryEvent("future_boundary", $telemetryNowUs, 400000000),
+] as $event) {
+    security_regression_assert(
+        telemetry_append_event($event),
+        "Evento canônico de telemetria não foi persistido.",
+    );
 }
-$routeCount = 0;
-foreach ((array) ($routePayload["daily_requests"] ?? []) as $row) {
-    $routeCount += (int) ($row["count"] ?? 0);
+$telemetrySummary = telemetry_comparative_summary($telemetryNowUs);
+$telemetryCurrent = (array) ($telemetrySummary["current"] ?? []);
+$telemetryPrevious = (array) ($telemetrySummary["previous"] ?? []);
+$telemetryVariations = (array) ($telemetrySummary["variations"] ?? []);
+security_regression_assert(
+    (int) ($telemetryCurrent["requests"] ?? -1) === 2 &&
+        (int) ($telemetryPrevious["requests"] ?? -1) === 2,
+    "Janelas móveis sobrepuseram ou perderam eventos de fronteira.",
+);
+security_regression_assert(
+    abs((float) ($telemetryCurrent["average_ms"] ?? 0) - 200.0) < 0.000001 &&
+        abs((float) ($telemetryPrevious["average_ms"] ?? 0) - 350.0) < 0.000001,
+    "Média ponderada das rotas está matematicamente incorreta.",
+);
+security_regression_assert(
+    abs((float) ($telemetryCurrent["landing_average_ms"] ?? 0) - 300.0) < 0.000001 &&
+        abs((float) ($telemetryPrevious["landing_average_ms"] ?? 0) - 500.0) < 0.000001,
+    "Média isolada da Landing Page está matematicamente incorreta.",
+);
+security_regression_assert(
+    abs((float) ($telemetryVariations["requests_pct"] ?? 999) - 0.0) < 0.000001 &&
+        abs((float) ($telemetryVariations["average_ms_pct"] ?? 999) + 42.857143) < 0.000001 &&
+        abs((float) ($telemetryVariations["landing_average_ms_pct"] ?? 999) + 40.0) < 0.000001,
+    "Variações percentuais da telemetria estão incorretas.",
+);
+security_regression_assert(
+    telemetry_nullable_percentage_variation(10.0, null) === null &&
+        telemetry_percentage_variation(0, 0) === 0.0 &&
+        telemetry_percentage_variation(1, 0) === null,
+    "Denominador zero foi apresentado como percentual definido.",
+);
+$removedTelemetryEvents = telemetry_prune($telemetryNowUs);
+$telemetryLines = file(telemetry_file(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+security_regression_assert(
+    $removedTelemetryEvents === 1 &&
+        is_array($telemetryLines) &&
+        count($telemetryLines) === 5,
+    "Retenção exata de 20 dias não removeu somente o evento antigo.",
+);
+foreach ($telemetryLines as $line) {
+    $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+    security_regression_assert(
+        is_array($decoded) && telemetry_normalize_event($decoded) !== null,
+        "telemetria.json não contém exatamente um evento JSON válido por linha.",
+    );
 }
-security_regression_assert(
-    $routeCount === 1 &&
-        count($pageEvents) === 1 &&
-        count((array) ($routePayload["deferred_ids"] ?? [])) === 1 &&
-        count($pageDeferredIds) <= 1,
-    "Replay duplicou métricas de rota ou página.",
-);
-
-file_put_contents(
-    maestro_deferred_storage_dir() . "/invalid.json",
-    '{"tampered":true}',
-);
-$invalidPass = maestro_process_deferred_work(5000, 10);
-security_regression_assert(
-    (int) ($invalidPass["invalid"] ?? 0) === 1 &&
-        (int) ($invalidPass["dead_letter"] ?? 0) >= 1 &&
-        !empty($invalidPass["alert"]),
-    "Envelope inválido não foi supervisionado em fila morta.",
-);
-$retryId = maestro_deferred_enqueue("telemetry", [
-    "event" => [],
-    "include_page_metric" => false,
-]);
-security_regression_assert(
-    is_string($retryId) && $retryId !== "",
-    "Não foi possível criar envelope para prova de tentativas.",
-);
-for ($attempt = 0; $attempt < 5; $attempt++) {
-    maestro_process_deferred_work(5000, 10);
-}
-$healthPayload = json_decode(
-    (string) file_get_contents(
-        maestro_deferred_storage_dir() .
-            "/state/deferred-work.json",
-    ),
-    true,
-    512,
-    JSON_THROW_ON_ERROR,
-);
-security_regression_assert(
-    ($healthPayload["status"] ?? "") === "attention" &&
-        (int) ($healthPayload["stats"]["dead_letter"] ?? 0) >= 2,
-    "Supervisão persistente não registrou tentativas esgotadas.",
-);
 
 $authSource = (string) file_get_contents(
     dirname(__DIR__) . "/app/Auth/AuthOnboarding.php",
@@ -285,10 +259,9 @@ echo json_encode(
         "ok" => true,
         "mfa_states" => ["inactive", "active", "unavailable"],
         "audit_public_origin_rejected" => true,
-        "telemetry_replay_count" => $routeCount,
-        "dead_letter" => (int) (
-            $healthPayload["stats"]["dead_letter"] ?? 0
-        ),
+        "telemetry_current_requests" => (int) $telemetryCurrent["requests"],
+        "telemetry_previous_requests" => (int) $telemetryPrevious["requests"],
+        "telemetry_retention_removed" => $removedTelemetryEvents,
         "mfa_lifecycle_actions" => 5,
         "maestro_shared_budget" => true,
     ],

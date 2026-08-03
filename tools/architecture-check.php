@@ -150,6 +150,7 @@ $logoutCascadeSources = [
     'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
     'audit' => (string) file_get_contents($root . '/app/Domain/Audit/AuditActivity.php'),
     'audit_chain' => (string) file_get_contents($root . '/app/Core/Integrity/AuditChain.php'),
+    'deferred_audit' => (string) file_get_contents($root . '/app/Support/DeferredAudit.php'),
     'telemetry' => (string) file_get_contents($root . '/app/Support/Telemetry.php'),
     'cron' => (string) file_get_contents($root . '/cron/maestro.php'),
     'logout' => $logoutPageSource,
@@ -182,16 +183,18 @@ foreach ([
         '?array $proofContext = null',
         '$proofContext ?? self::runtimeProofContext()',
     ],
-    'telemetry' => [
+    'deferred_audit' => [
         'maestro_deferred_enqueue("audit"',
-        'maestro_deferred_enqueue("telemetry"',
-        'in_array($event["route"], ["login", "logout"], true)',
-        'maestro_defer_telemetry_event($event, $includePageMetric);',
         'function maestro_process_deferred_work(',
         'JSON_UNQUOTE(JSON_EXTRACT(context_json',
-        '$event["deferred_id"] = $id;',
         '"dead_letter" => 0',
         '$stateDir . "/deferred-work.json"',
+    ],
+    'telemetry' => [
+        'function telemetry_route_start_marker(',
+        'function telemetry_route_finish_marker(',
+        'function telemetry_comparative_summary(',
+        '"/telemetria.json"',
     ],
     'cron' => [
         'maestro_process_deferred_work($deferredBudget, 1000)',
@@ -1219,29 +1222,36 @@ $serverPhaseTwoCharacterization = [
     'failed' => $serverPhaseTwoFailures,
 ];
 $serverPhaseThreeFailures = [];
-$telemetryPartitionSource = (string) file_get_contents($root . '/app/Support/Telemetry.php');
+$telemetrySource = (string) file_get_contents($root . '/app/Support/Telemetry.php');
 foreach ([
-    'function telemetry_page_partition_file(',
-    'function telemetry_page_partition_files(',
-    'function telemetry_prune_page_partitions(',
-    'new SplFileObject($file, "rb")',
-    '$handle = @fopen($file, "ab")',
-    '"deferred_id" => preg_match(',
+    'function telemetry_route_start_marker(',
+    'function telemetry_route_finish_marker(',
+    'hrtime(true)',
+    '"duracao_ms" => round($durationNs / 1000000, 6)',
+    'return telemetry_storage_dir() . "/telemetria.json";',
+    'function telemetry_append_event(',
+    '$handle = @fopen(telemetry_file(), "ab")',
+    'flock($handle, LOCK_EX)',
+    'function telemetry_prune(',
+    '20 * 86400 * 1000000',
+    'function telemetry_comparative_summary(',
+    '10 * 86400 * 1000000',
+    'function telemetry_route_requests_series_20d(',
 ] as $requiredToken) {
-    if (!str_contains($telemetryPartitionSource, $requiredToken)) {
-        $serverPhaseThreeFailures[] = 'telemetry_partition_missing:' . $requiredToken;
+    if (!str_contains($telemetrySource, $requiredToken)) {
+        $serverPhaseThreeFailures[] = 'telemetry_contract_missing:' . $requiredToken;
     }
 }
-$appendStart = strpos($telemetryPartitionSource, 'function telemetry_append_page_metric(');
-$appendEnd = $appendStart === false
-    ? false
-    : strpos($telemetryPartitionSource, 'function telemetry_route_perf_file(', $appendStart);
-$appendSource = $appendStart !== false && $appendEnd !== false
-    ? substr($telemetryPartitionSource, $appendStart, $appendEnd - $appendStart)
-    : '';
-foreach (['json_decode($raw', 'ftruncate($fh, 0)', 'stream_get_contents($fh)'] as $forbiddenToken) {
-    if ($appendSource === '' || str_contains($appendSource, $forbiddenToken)) {
-        $serverPhaseThreeFailures[] = 'telemetry_append_forbidden:' . $forbiddenToken;
+foreach ([
+    'page-load',
+    'route-performance.json',
+    'telemetry_append_page_metric',
+    'telemetry_append_route_performance_metric',
+    'maestro_defer_telemetry_event',
+    'PRONTOO_TELEMETRY_SAMPLE_RATE',
+] as $forbiddenToken) {
+    if (str_contains($telemetrySource, $forbiddenToken)) {
+        $serverPhaseThreeFailures[] = 'legacy_telemetry_present:' . $forbiddenToken;
     }
 }
 $serverPhaseThreeCharacterization = [
@@ -1436,7 +1446,7 @@ $developerDashboardSources = [
     'htaccess' => (string) file_get_contents($root . '/.htaccess'),
 ];
 foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
-    foreach (['admin_telemetry', 'page_admin_telemetry', 'function admin_telemetry_'] as $token) {
+    foreach (['page_admin_telemetry'] as $token) {
         if (str_contains($developerDashboardSources[$sourceKey], $token)) {
             $developerDashboardFailures[] =
                 $sourceKey . ':obsolete_telemetry_token:' . $token;
@@ -1447,55 +1457,64 @@ foreach ([
     'admin' => [
         'function admin_metric_dual_area_chart(',
         'array $presentation = []',
+        'function admin_telemetry_kpi_cards_html(bool $linked = false): string',
+        '$summary = telemetry_comparative_summary();',
+        'function admin_telemetry_variation_note(?float $variation): string',
         'function admin_performance_card_content_html(bool $public = false): string',
         'function admin_performance_card_html(bool $public = false): string',
         'function page_status(): void',
+        '$overviewCards = admin_telemetry_kpi_cards_html();',
         'admin_performance_card_html(true)',
         'https://prontoo.app/status',
         '"Requisições"',
-        '"Tempo Médio"',
-        '"Landing Page"',
-        '"Usuários Ativos"',
+        '"Tempo médio das rotas"',
+        '"Tempo médio da Landing Page"',
+        '"últimos 10 dias · sem base comparável no período anterior"',
         '"Leitura e gravação"',
         '"primary_label" => "Requisições"',
         '"secondary_label" => "Registros"',
         '"value_type" => "count"',
+        '$duration = admin_global_metric_series_24h("duration");',
+        '$landingDuration = admin_global_metric_series_24h("landing_duration");',
+        '$row["sum_ns"] = (int) $row["sum"];',
+        '$durationNs += $sumNs;',
+        '$requests = telemetry_route_requests_series_20d();',
+        '$records = admin_global_sequence_series_20d();',
         'data-metric-value-type="',
         '$tension = 0.72;',
         '" C " .',
         '$loadFill = $fill($loadD, $loadPoints, $baseline);',
         '$responseFill = $fill($responseD, $responsePoints, $baseline);',
         '$fillAreas = $loadArea . $responseArea;',
-        'admin_metric_dual_area_chart("Velocidade", $load, $response, "speed")',
+        '"Velocidade",',
         '"Leitura e gravação",',
         '$requests,',
         '$records,',
         '$recentValue = $valueType === "count"',
-        '$overallAverageValues = $valueType === "count"',
-        '$middleAverageValues = $valueType === "count"',
-        '$averageResponseMs',
-        '$landingRequests24h',
-        '(int) ($routePerformance["count"] ?? 0)',
-        '"requisições nas últimas 24 horas"',
-        'telemetry_route_performance_summary(24)',
+        ': admin_metric_recent_average($loadSeries, count($loadSeries));',
+        ': admin_metric_recent_average($loadSeries, $middlePoints);',
+        'telemetry_route_performance_summary(240)',
     ],
     'css' => [
-        'grid-template-columns:repeat(4,minmax(0,1fr))!important',
+        'grid-template-columns:repeat(3,minmax(0,1fr))!important',
+        'body.status-public #conteudo>.stat-card small{display:block!important;',
         '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
         '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
         '.metric-dual-time-chart .metric-chart-line-load',
         '.metric-dual-time-chart .metric-chart-line-response',
     ],
     'bootstrap' => [
-        'dual-area-single-renderer-two-opaque-overlapping-smooth-mountains-dark-back-light-front-data-specific-labels-one-row',
+        'canonical-route-telemetry-velocity-and-ledger-write-series-20d',
     ],
     'runner' => [
+        'telemetry_route_identify($r);',
         '$publicStatus = $r === "status"',
         'headers_secure($publicStatus)',
         '$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx()',
         'if ($r !== "logout" && !$publicStatus)',
     ],
     'loader' => [
+        "'Support/DeferredAudit.php'",
         '$status = [\'status\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
         '\'status\' => $status',
     ],
@@ -1509,24 +1528,6 @@ foreach ([
                 $sourceKey . ':missing:' . $token;
         }
     }
-}
-$cardPositions = [];
-foreach ([
-    'requests' => '"Requisições"',
-    'average' => '"Tempo Médio"',
-    'landing' => '"Landing Page"',
-    'users' => '"Usuários Ativos"',
-] as $key => $token) {
-    $cardPositions[$key] = strpos($developerDashboardSources['admin'], $token);
-}
-if ($cardPositions['requests'] === false ||
-    $cardPositions['average'] === false ||
-    $cardPositions['landing'] === false ||
-    $cardPositions['users'] === false ||
-    !($cardPositions['requests'] < $cardPositions['average'] &&
-        $cardPositions['average'] < $cardPositions['landing'] &&
-        $cardPositions['landing'] < $cardPositions['users'])) {
-    $developerDashboardFailures[] = 'developer_dashboard_card_order';
 }
 $developerPanelStart = strpos(
     $developerDashboardSources['admin'],

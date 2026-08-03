@@ -1,5 +1,5 @@
 {
-    "version": "1.7.31.2",
+    "version": "1.8.3.1",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -49,7 +49,7 @@
     ],
     "database_changes": false,
     "schema_changes": false,
-    "visual_changes": false,
+    "visual_changes": true,
     "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
     "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
     "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
@@ -86,13 +86,13 @@
         "developer_panel_icon": "network_ping"
     },
     "logout_cascade_policy": "rotate_one_user_generation_then_reject_sessions_contexts_and_legacy_credentials_on_next_use",
-    "logout_secondary_work_policy": "signed_primary_and_emergency_spool_with_retry_dead_letter_health_and_idempotent_route_page_telemetry_consumed_by_next_maestro_cycle",
+    "logout_secondary_work_policy": "signed_primary_and_emergency_audit_spool_with_retry_dead_letter_health_and_idempotent_maestro_consumption",
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-07-31T12:33:05.369893+00:00",
-    "updated_at": "2026-07-31T12:33:05.369893+00:00",
-    "baseline_source": "1.7.30.12",
+    "generated_at": "2026-08-03T12:57:09.000000+00:00",
+    "updated_at": "2026-08-03T12:57:09.000000+00:00",
+    "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
     "documentation_check": "tools/documentation-check.php",
@@ -142,11 +142,13 @@
         "app/Support/Telemetry.php"
     ],
     "server_evolution_phase_two_check": "tools/architecture-check.php",
-    "server_evolution_phase_three_policy": "raw_page_telemetry_is_append_only_partitioned_deduplicated_and_pruned_off_request_path",
+    "server_evolution_phase_three_policy": "every_completed_http_route_is_measured_by_monotonic_markers_and_persisted_as_one_canonical_json_line_with_exact_twenty_day_retention",
     "server_evolution_phase_three_components": [
         "app/Support/Telemetry.php"
     ],
     "server_evolution_phase_three_check": "tools/architecture-check.php",
+    "route_telemetry_source_policy": "ssd_telemetry_telemetria_json_is_the_only_source_and_legacy_json_files_are_ignored",
+    "route_telemetry_math_policy": "integer_monotonic_nanosecond_differences_half_open_windows_direct_weighted_means_and_explicit_undefined_zero_baselines",
     "server_evolution_phase_four_policy": "patient_reception_history_is_one_tenant_scoped_read_model",
     "server_evolution_phase_four_components": [
         "app/Application/Patients/PatientReceptionHistoryReadPort.php",
@@ -168,15 +170,15 @@
     "server_evolution_phase_six_check": "tools/architecture-check.php",
     "contract_consistency_policy": "version_architecture_and_update_manifests_must_match_canonical_release_metadata_and_architecture_limits",
     "contract_consistency_check": "tools/architecture-check.php",
-    "developer_dashboard_observability_policy": "single_global_dashboard_four_kpis_two_charts_one_shared_renderer_two_opaque_overlapping_smooth_mountains_dark_back_light_front_data_specific_labels_and_public_read_only_status_card_without_authenticated_context",
+    "developer_dashboard_observability_policy": "developer_and_public_status_share_three_exact_ten_day_comparative_kpis_and_canonical_route_telemetry_sources_velocity_and_request_series",
     "developer_dashboard_observability_components": [
         "app/Admin/AdminPages.php",
         "public/assets/design-system.css",
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.7.31.2",
-    "build": "1.7.31.2-clean-install-window-four-hours",
+    "release": "1.8.3.1",
+    "build": "1.8.3.1-route-telemetry-single-source",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",

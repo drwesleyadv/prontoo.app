@@ -30,24 +30,7 @@ function prontoo_require_module(string $relative): void
         );
     }
     $layer = prontoo_module_layer($relative);
-    $key = realpath($file) ?: $file;
-    if (!isset($GLOBALS['PRONTOO_LOADED_MODULE_FILES']) || !is_array($GLOBALS['PRONTOO_LOADED_MODULE_FILES'])) {
-        $GLOBALS['PRONTOO_LOADED_MODULE_FILES'] = [];
-    }
-    if (!isset($GLOBALS['PRONTOO_LOADED_MODULE_LAYERS']) || !is_array($GLOBALS['PRONTOO_LOADED_MODULE_LAYERS'])) {
-        $GLOBALS['PRONTOO_LOADED_MODULE_LAYERS'] = [];
-    }
-    $measured = &$GLOBALS['PRONTOO_LOADED_MODULE_FILES'];
     require_once $file;
-    if (!isset($measured[$key])) {
-        $measured[$key] = true;
-        $GLOBALS['PRONTOO_LOADED_MODULE_LAYERS'][$layer] =
-            (int) ($GLOBALS['PRONTOO_LOADED_MODULE_LAYERS'][$layer] ?? 0) + 1;
-        $GLOBALS['PRONTOO_MODULE_FILES_LOADED'] = count($measured);
-        $GLOBALS['PRONTOO_MODULE_BYTES_LOADED'] =
-            (int) ($GLOBALS['PRONTOO_MODULE_BYTES_LOADED'] ?? 0) +
-            max(0, (int) (@filesize($file) ?: 0));
-    }
 }
 
 function prontoo_require_modules(array $files): void
@@ -93,6 +76,7 @@ function prontoo_runtime_core_modules(): array
         'Support/ServerJsonCache.php',
         'Core/Performance/PerformanceBudget.php',
         'Support/Telemetry.php',
+        'Support/DeferredAudit.php',
         'Database/DatabaseSchema.php',
         'Support/SecurityAccess.php',
         'Support/FinancialGuard.php',

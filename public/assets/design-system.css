@@ -5154,7 +5154,7 @@ body.scope-global .priority-actions > h2{
 }
 body.scope-global .global-telemetry-grid{
   display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:10px!important;
 }
 body.scope-global .admin-overview-kpis .stat-card{
@@ -15071,7 +15071,8 @@ body.status-public #conteudo>.stat-card{display:grid!important;grid-template-col
 body.status-public #conteudo>.stat-card .stat-icon{grid-column:1!important;align-self:center!important;margin:0!important;}
 body.status-public #conteudo>.stat-card .stat-title{grid-column:2!important;align-self:center!important;margin:0!important;}
 body.status-public #conteudo>.stat-card .stat-value{grid-column:3!important;align-self:center!important;margin:0!important;text-align:right!important;}
-body.status-public #conteudo>.stat-card .stat-subtitle,body.status-public #conteudo>.stat-card small{display:none!important;}
+body.status-public #conteudo>.stat-card .stat-subtitle{display:none!important;}
+body.status-public #conteudo>.stat-card small{display:block!important;margin-top:5px!important;color:var(--md-sys-color-on-surface-variant)!important;font:var(--md-sys-typescale-body-small)!important;line-height:1.35!important;}
 
 body.status-public #conteudo>.stat-card+.stat-card{margin-top:16px!important;}
 
