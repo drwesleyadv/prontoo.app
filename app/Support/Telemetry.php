@@ -428,6 +428,10 @@ function telemetry_comparative_summary(?int $nowUnixUs = null): array
                     ? (float) $previous["average_ms"]
                     : null,
             ),
+            "landing_requests_pct" => telemetry_percentage_variation(
+                $current["landing_requests"],
+                $previous["landing_requests"],
+            ),
             "landing_average_ms_pct" => telemetry_nullable_percentage_variation(
                 isset($current["landing_average_ms"])
                     ? (float) $current["landing_average_ms"]

@@ -1,3 +1,10 @@
+Prontoo 1.8.3.4 — Execuções da Landing Page no comparativo
+
+- O card da Landing Page passa a mostrar a quantidade de execuções da rota nos últimos 10 dias.
+- A nota compara o resultado com os 10 dias imediatamente anteriores.
+- O gráfico de velocidade preserva a duração da Landing Page.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.3.3 — Correção da janela estrutural do instalador
 
 - Janela integral disponível em 03/08/2026 11:20 até 13:20 (America/Cuiaba) (03/08/2026 15:20 UTC até 17:20 UTC).

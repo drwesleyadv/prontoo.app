@@ -1797,9 +1797,10 @@ function admin_telemetry_kpi_cards_html(bool $linked = false): string
     $averageMs = isset($current["average_ms"])
         ? admin_performance_format_ms((float) $current["average_ms"])
         : "—";
-    $landingAverageMs = isset($current["landing_average_ms"])
-        ? admin_performance_format_ms((float) $current["landing_average_ms"])
-        : "—";
+    $landingRequests = max(
+        0,
+        (int) ($current["landing_requests"] ?? 0),
+    );
     return $card(
         "Requisições",
         max(0, (int) ($current["requests"] ?? 0)),
@@ -1821,12 +1822,12 @@ function admin_telemetry_kpi_cards_html(bool $linked = false): string
             ),
         ) .
         $card(
-            "Tempo médio da Landing Page",
-            $landingAverageMs,
+            "Execuções da Landing Page",
+            $landingRequests,
             "web",
             admin_telemetry_variation_note(
-                isset($variations["landing_average_ms_pct"])
-                    ? (float) $variations["landing_average_ms_pct"]
+                isset($variations["landing_requests_pct"])
+                    ? (float) $variations["landing_requests_pct"]
                     : null,
             ),
         );

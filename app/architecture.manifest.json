@@ -1,5 +1,5 @@
 {
-    "version": "1.8.3.3",
+    "version": "1.8.3.4",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-08-03T15:18:41.800321+00:00",
-    "updated_at": "2026-08-03T15:18:41.800321+00:00",
+    "generated_at": "2026-08-03T15:39:55.283564+00:00",
+    "updated_at": "2026-08-03T15:39:55.283564+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -177,8 +177,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.3.3",
-    "build": "1.8.3.3-installer-structural-window-fix",
+    "release": "1.8.3.4",
+    "build": "1.8.3.4-landing-route-executions-kpi",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -188,7 +188,7 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.3.2",
-    "deployment_sync_id": "github-installer-structural-window-fix-1-8-3-3",
-    "notes": "Corrige a divergência entre a janela pública e a janela estrutural do instalador."
+    "previous_version": "1.8.3.3",
+    "deployment_sync_id": "github-landing-route-executions-kpi-1-8-3-4",
+    "notes": "O KPI da Landing Page usa volume de execuções em janelas móveis de 10 dias."
 }
