@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.8.3.4 — Execuções da Landing Page no comparativo
+
+- substitui o KPI de tempo médio da Landing Page pela quantidade de execuções da rota `landing`;
+- mostra o total registrado nos últimos 10 dias e a variação percentual contra os 10 dias anteriores;
+- mantém o tempo da Landing Page disponível no gráfico de velocidade, sem alterar sua série histórica;
+- não altera banco de dados nem schema.
+
 ## 1.8.3.3 — Correção da janela estrutural do instalador
 
 - reabre uma janela integral em `03/08/2026 11:20 até 13:20 (America/Cuiaba)` (`03/08/2026 15:20 UTC até 17:20 UTC`);

@@ -1238,6 +1238,9 @@ foreach ([
     '20 * 86400 * 1000000',
     'function telemetry_comparative_summary(',
     '10 * 86400 * 1000000',
+    '"landing_requests_pct" => telemetry_percentage_variation(',
+    '$current["landing_requests"]',
+    '$previous["landing_requests"]',
     'function telemetry_route_requests_series_20d(',
 ] as $requiredToken) {
     if (!str_contains($telemetrySource, $requiredToken)) {
@@ -1470,7 +1473,9 @@ foreach ([
         'https://prontoo.app/status',
         '"Requisições"',
         '"Tempo médio das rotas"',
-        '"Tempo médio da Landing Page"',
+        '"Execuções da Landing Page"',
+        '$current["landing_requests"] ?? 0',
+        '$variations["landing_requests_pct"]',
         '"últimos 10 dias · sem base comparável no período anterior"',
         '"Leitura e gravação"',
         '"primary_label" => "Requisições"',
