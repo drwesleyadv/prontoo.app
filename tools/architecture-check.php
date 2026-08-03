@@ -1198,7 +1198,6 @@ foreach ([
     '"/generation-"',
     'ftruncate($handle, 0)',
     'server_json_cache_bump_generation($category)',
-    'generation_fallback_clears',
 ] as $requiredToken) {
     if (!str_contains($cacheGenerationSource, $requiredToken)) {
         $serverPhaseTwoFailures[] = 'cache_generation_missing:' . $requiredToken;
@@ -1216,6 +1215,9 @@ if ($clearSource === '' || str_contains($clearSource, 'server_json_cache_rrmdir(
 }
 if (str_contains($cacheGenerationSource, 'return server_json_cache_category_dir($category) . "/" . $key . ".json";')) {
     $serverPhaseTwoFailures[] = 'cache_key_without_generation';
+}
+if (str_contains($cacheGenerationSource, 'telemetry_')) {
+    $serverPhaseTwoFailures[] = 'cache_still_emits_legacy_telemetry';
 }
 $serverPhaseTwoCharacterization = [
     'ok' => $serverPhaseTwoFailures === [],
@@ -1566,7 +1568,6 @@ foreach ([
     'metric-chart-line-records',
     'metric-chart-dot-requests',
     'metric-chart-dot-records',
-    '$landingAverageMs',
     '"Requisições e registros"',
     'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
     'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
