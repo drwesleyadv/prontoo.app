@@ -59,7 +59,6 @@ jobs:
 
           import hashlib
           import json
-          import os
           from datetime import datetime, timezone
           from pathlib import Path
 
@@ -85,7 +84,6 @@ jobs:
               '''            "average_ms_pct" => telemetry_nullable_percentage_variation(\n                isset($current["average_ms"])\n                    ? (float) $current["average_ms"]\n                    : null,\n                isset($previous["average_ms"])\n                    ? (float) $previous["average_ms"]\n                    : null,\n            ),\n            "landing_average_ms_pct" => telemetry_nullable_percentage_variation(''',
               '''            "average_ms_pct" => telemetry_nullable_percentage_variation(\n                isset($current["average_ms"])\n                    ? (float) $current["average_ms"]\n                    : null,\n                isset($previous["average_ms"])\n                    ? (float) $previous["average_ms"]\n                    : null,\n            ),\n            "landing_requests_pct" => telemetry_percentage_variation(\n                $current["landing_requests"],\n                $previous["landing_requests"],\n            ),\n            "landing_average_ms_pct" => telemetry_nullable_percentage_variation(''',
           )
-
           replace_once(
               'app/Admin/AdminPages.php',
               '''    $landingAverageMs = isset($current["landing_average_ms"])\n        ? admin_performance_format_ms((float) $current["landing_average_ms"])\n        : "—";''',
@@ -95,6 +93,16 @@ jobs:
               'app/Admin/AdminPages.php',
               '''        $card(\n            "Tempo médio da Landing Page",\n            $landingAverageMs,\n            "web",\n            admin_telemetry_variation_note(\n                isset($variations["landing_average_ms_pct"])\n                    ? (float) $variations["landing_average_ms_pct"]\n                    : null,\n            ),\n        );''',
               '''        $card(\n            "Execuções da Landing Page",\n            $landingRequests,\n            "web",\n            admin_telemetry_variation_note(\n                isset($variations["landing_requests_pct"])\n                    ? (float) $variations["landing_requests_pct"]\n                    : null,\n            ),\n        );''',
+          )
+          replace_once(
+              'tools/architecture-check.php',
+              '''        '"Tempo médio da Landing Page"',\n''',
+              '''        '"Execuções da Landing Page"',\n        '$current["landing_requests"] ?? 0',\n        '$variations["landing_requests_pct"]',\n''',
+          )
+          replace_once(
+              'tools/architecture-check.php',
+              '''    '10 * 86400 * 1000000',\n    'function telemetry_route_requests_series_20d(',''',
+              '''    '10 * 86400 * 1000000',\n    '"landing_requests_pct" => telemetry_percentage_variation(',\n    '$current["landing_requests"]',\n    '$previous["landing_requests"]',\n    'function telemetry_route_requests_series_20d(',''',
           )
 
           changelog = root / 'CHANGELOG.md'
@@ -110,21 +118,9 @@ jobs:
           entry_txt = '''Prontoo 1.8.3.4 — Execuções da Landing Page no comparativo\n\n- O card da Landing Page passa a mostrar a quantidade de execuções da rota nos últimos 10 dias.\n- A nota compara o resultado com os 10 dias imediatamente anteriores.\n- O gráfico de velocidade preserva a duração da Landing Page.\n- Banco de dados e schema permanecem inalterados.\n\n'''
           changelog_txt.write_text(entry_txt + old_txt, encoding='utf-8')
 
-          replace_once(
-              'app/prontoo.php',
-              'const PRONTOO_VERSION_FALLBACK = "1.8.3.3";',
-              'const PRONTOO_VERSION_FALLBACK = "1.8.3.4";',
-          )
-          replace_once(
-              'app/prontoo.php',
-              'const PRONTOO_PREVIOUS_VERSION = "1.8.3.2";',
-              'const PRONTOO_PREVIOUS_VERSION = "1.8.3.3";',
-          )
-          replace_once(
-              'br/index.php',
-              'const BR_LANDING_VERSION_FALLBACK = "1.8.3.3";',
-              'const BR_LANDING_VERSION_FALLBACK = "1.8.3.4";',
-          )
+          replace_once('app/prontoo.php', 'const PRONTOO_VERSION_FALLBACK = "1.8.3.3";', 'const PRONTOO_VERSION_FALLBACK = "1.8.3.4";')
+          replace_once('app/prontoo.php', 'const PRONTOO_PREVIOUS_VERSION = "1.8.3.2";', 'const PRONTOO_PREVIOUS_VERSION = "1.8.3.3";')
+          replace_once('br/index.php', 'const BR_LANDING_VERSION_FALLBACK = "1.8.3.3";', 'const BR_LANDING_VERSION_FALLBACK = "1.8.3.4";')
 
           version_path = root / 'version.json'
           version_data = json.loads(version_path.read_text(encoding='utf-8'))
@@ -206,6 +202,7 @@ jobs:
 
           php -l app/Support/Telemetry.php >/dev/null
           php -l app/Admin/AdminPages.php >/dev/null
+          php -l tools/architecture-check.php >/dev/null
           php -l app/prontoo.php >/dev/null
           php -l br/index.php >/dev/null
           php <<'PHP'
@@ -213,6 +210,7 @@ jobs:
           declare(strict_types=1);
           $telemetry = (string) file_get_contents('app/Support/Telemetry.php');
           $admin = (string) file_get_contents('app/Admin/AdminPages.php');
+          $architecture = (string) file_get_contents('tools/architecture-check.php');
           foreach ([
               '"landing_requests_pct" => telemetry_percentage_variation(',
               '$current["landing_requests"]',
@@ -227,12 +225,12 @@ jobs:
               '$current["landing_requests"] ?? 0',
               '$variations["landing_requests_pct"]',
           ] as $token) {
-              if (!str_contains($admin, $token)) {
-                  throw new RuntimeException('Contrato ausente no card: ' . $token);
+              if (!str_contains($admin, $token) || !str_contains($architecture, $token)) {
+                  throw new RuntimeException('Contrato ausente no KPI ou na arquitetura: ' . $token);
               }
           }
-          if (str_contains($admin, '"Tempo médio da Landing Page"')) {
-              throw new RuntimeException('O KPI antigo de tempo médio da Landing Page permanece no card.');
+          if (str_contains($admin, '"Tempo médio da Landing Page"') || str_contains($architecture, '\'"Tempo médio da Landing Page"\'')) {
+              throw new RuntimeException('O contrato antigo de tempo médio da Landing Page permanece ativo.');
           }
           PHP
           php tools/documentation-check.php
