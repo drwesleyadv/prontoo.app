@@ -1501,6 +1501,8 @@ foreach ([
         ': admin_metric_recent_average($loadSeries, count($loadSeries));',
         ': admin_metric_recent_average($loadSeries, $middlePoints);',
         'telemetry_route_performance_summary(240)',
+        'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
+        'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
     ],
     'css' => [
         'grid-template-columns:repeat(3,minmax(0,1fr))!important',
