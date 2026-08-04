@@ -1,0 +1,63 @@
+name: Appointment Price Snapshot PR
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  apply_change:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/appointment-price-snapshot-20260804'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout functional branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply business rule
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '
+            /python3 <<.PY./ { capture=1; next }
+            capture && /^          PY$/ { capture=0; exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/appointment-price-snapshot-executor.yml > /tmp/appointment-price-snapshot.py
+          test -s /tmp/appointment-price-snapshot.py
+          python3 /tmp/appointment-price-snapshot.py
+      - name: Validate change
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Domain/Appointments/Appointments.php
+          php -l app/Domain/Financial/Financial.php
+          php -l tools/appointment-price-snapshot-check.php
+          php tools/appointment-price-snapshot-check.php
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+      - name: Commit functional branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/appointment-price-snapshot-executor.yml
+          rm -f .github/workflows/appointment-price-snapshot-pr.yml
+          rm -f tools/appointment-price-snapshot-trigger.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fixar preço vigente no agendamento"
+          git push origin HEAD:agent/appointment-price-snapshot-20260804
