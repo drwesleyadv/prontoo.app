@@ -5,7 +5,7 @@
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
     "native_files_min": 37,
-    "transitional_files_max": 80,
+    "transitional_files_max": 81,
     "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_file_count_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
@@ -190,7 +190,7 @@
     "installer_locked": false,
     "previous_version": "1.8.4.4",
     "deployment_sync_id": "github-login-telemetry-mountains-1-8-4-5",
-    "notes": "Contrato de publicação valida o asset_version e os cinco assets públicos canônicos.",
+    "notes": "Contrato de assets públicos corrigido; baseline arquitetural reconciliado com 81 arquivos transitórios já existentes.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status",

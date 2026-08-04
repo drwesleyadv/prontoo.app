@@ -3,6 +3,7 @@
 - Corrige o bloqueio de runtime provocado por assets públicos inexistentes.
 - Adiciona verificação automática dos cinco arquivos versionados e da referência CSS.
 - Preserva as ondas de telemetria da versão anterior.
+- Reconcilia o baseline arquitetural preexistente em 81 arquivos transitórios.
 - Sem alteração de banco de dados ou schema.
 
 1.8.4.6 - Ondas autenticadas na paleta do consultório
