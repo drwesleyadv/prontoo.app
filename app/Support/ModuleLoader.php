@@ -57,7 +57,7 @@ function prontoo_boot_requested_route(): string
 function prontoo_public_light_routes(): array
 {
 
-    return ['status', 'login', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
+    return ['status', 'login', 'login_telemetry_wave', 'login_autotest', 'mfa', 'mobile_web_access', 'signup', 'logout'];
 }
 
 function prontoo_use_light_boot(): bool
@@ -203,7 +203,7 @@ function prontoo_route_module_groups(string $route): array
         'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
         'status' => $status,
         'painel' => $commonClinic + $appointments + $patients + $leads + $tasks + $financial + $documents,
-        'login' => [], 'login_autotest' => [], 'mfa' => [], 'signup' => [], 'logout' => [], 'switch' => [], 'profile' => [], 'global_reauth' => [], 'onboarding' => [], 'mobile_web_access' => [],
+        'login' => [], 'login_telemetry_wave' => [], 'login_autotest' => [], 'mfa' => [], 'signup' => [], 'logout' => [], 'switch' => [], 'profile' => [], 'global_reauth' => [], 'onboarding' => [], 'mobile_web_access' => [],
         'patient_lookup' => $patients, 'patient_suggest' => $patients, 'person_lookup' => $patients,
         'lead_lookup' => $leads, 'lead_patient_lookup' => $leads + $patients, 'leads' => $leads,
         'appointments' => $appointments + $patients + $tasks + $financial,

@@ -1,3 +1,13 @@
+Prontoo 1.8.4.4 — Ondulação dinâmica no login
+
+- O rodapé visual do login passa a ocupar os 25% inferiores da tela.
+- Duas curvas discretas representam Requisições e Registros.
+- Não há eixos, escalas, grades, pontos, legendas ou tooltips.
+- As cores são #1f6f56 e #347963.
+- Os dados são atualizados a cada 15 minutos.
+- O formulário e a autenticação permanecem inalterados.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.4.3 — Tons exatos em Leitura e gravação
 
 - Requisições passa a usar o tom escuro #1f6f56.

@@ -1372,6 +1372,7 @@ function page_login(): void
     $submitLabel = $mfaStage ? "Validar e entrar" : "Entrar";
     $submitIcon = $mfaStage ? "verified_user" : "hourglass_top";
     $form =
+        login_telemetry_wave_html() .
         '<section class="auth login-card login-shell"><div class="auth-titleline login-titleline"><div class="auth-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon" src="/public/assets/app-icon-' .
         e(PRONTOO_ASSET_REV) .
         '.png" alt="" aria-hidden="true"></div><div><span class="eyebrow">Prontoo</span><h1>Meu Consultório</h1></div></div>' .
@@ -3599,4 +3600,148 @@ function save_person_by_document(
         return db_last_insert_id();
     }
     throw new RuntimeException("Informe CPF ou CNPJ válido.");
+}
+
+function login_telemetry_wave_values(array $series): array
+{
+    return array_values(
+        array_map(
+  static fn($row): float => max(
+      0.0,
+      (float) ($row["value"] ?? 0),
+  ),
+  $series,
+        ),
+    );
+}
+
+function login_telemetry_wave_path(
+    array $values,
+    float $maximum,
+    int $width = 1000,
+    int $height = 250,
+): string {
+    $values = array_values($values);
+    $count = count($values);
+    if ($count === 0) {
+        return "";
+    }
+    $maximum = max(1.0, $maximum);
+    $top = 10.0;
+    $bottom = 14.0;
+    $plotHeight = max(1.0, $height - $top - $bottom);
+    $format = static function (float $value): string {
+        $formatted = number_format($value, 2, ".", "");
+        return rtrim(rtrim($formatted, "0"), ".");
+    };
+    $points = [];
+    foreach ($values as $index => $value) {
+        $x =
+  $count <= 1
+      ? 0.0
+      : $index * ($width / ($count - 1));
+        $y =
+  $top +
+  $plotHeight -
+  (max(0.0, (float) $value) / $maximum) * $plotHeight;
+        $points[] = [$x, $y];
+    }
+    if ($count === 1) {
+        $y = $format($points[0][1]);
+        return "M 0 " . $y . " L " . $format((float) $width) . " " . $y;
+    }
+    $path =
+        "M " .
+        $format($points[0][0]) .
+        " " .
+        $format($points[0][1]);
+    for ($index = 1; $index < $count; $index++) {
+        $previous = $points[$index - 1];
+        $current = $points[$index];
+        $middleX = ($previous[0] + $current[0]) / 2;
+        $path .=
+  " C " .
+  $format($middleX) .
+  " " .
+  $format($previous[1]) .
+  " " .
+  $format($middleX) .
+  " " .
+  $format($current[1]) .
+  " " .
+  $format($current[0]) .
+  " " .
+  $format($current[1]);
+    }
+    return $path;
+}
+
+function login_telemetry_wave_data(): array
+{
+    try {
+        $requests = function_exists("telemetry_route_requests_series_20d")
+  ? telemetry_route_requests_series_20d()
+  : [];
+        $records = function_exists(
+  "telemetry_sequence_records_series_20d",
+        )
+  ? telemetry_sequence_records_series_20d()
+  : [];
+        return [
+  "requests" => login_telemetry_wave_values($requests),
+  "records" => login_telemetry_wave_values($records),
+        ];
+    } catch (Throwable $error) {
+        error_log(
+  "[Prontoo login telemetry wave] " . $error->getMessage(),
+        );
+        return ["requests" => [], "records" => []];
+    }
+}
+
+function login_telemetry_wave_html(): string
+{
+    $data = login_telemetry_wave_data();
+    $requests = $data["requests"];
+    $records = $data["records"];
+    $maximum = max(
+        1.0,
+        $requests ? max($requests) : 0.0,
+        $records ? max($records) : 0.0,
+    );
+    $requestsPath = login_telemetry_wave_path(
+        $requests,
+        $maximum,
+    );
+    $recordsPath = login_telemetry_wave_path(
+        $records,
+        $maximum,
+    );
+    return '<div class="login-telemetry-wave" data-login-telemetry-wave data-refresh-url="' .
+        e(href("login_telemetry_wave")) .
+        '" data-refresh-ms="900000" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d="' .
+        e($requestsPath) .
+        '"/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d="' .
+        e($recordsPath) .
+        '"/></svg></div>';
+}
+
+function page_login_telemetry_wave(): void
+{
+    if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
+        http_response_code(405);
+        header("Allow: GET");
+        header("Content-Type: application/json; charset=utf-8");
+        echo '{"error":"method_not_allowed"}';
+        return;
+    }
+    header("Content-Type: application/json; charset=utf-8");
+    header("Cache-Control: public, max-age=60, stale-while-revalidate=300");
+    header("X-Content-Type-Options: nosniff");
+    echo json_encode(
+        login_telemetry_wave_data(),
+        JSON_UNESCAPED_UNICODE |
+  JSON_UNESCAPED_SLASHES |
+  JSON_PRESERVE_ZERO_FRACTION,
+    );
 }
