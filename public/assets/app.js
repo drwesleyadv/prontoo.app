@@ -2669,9 +2669,27 @@
   }
   function initLoginTelemetryWave(root = d) {
     let wrap = $("[data-login-telemetry-wave]", root);
-    if (!wrap && d.body && !d.body.classList.contains("public")) {
+    const loginTelemetryPublic =
+      d.body &&
+      d.body.classList.contains("public") &&
+      d.body.dataset.route === "login";
+    const clinicCreateTelemetry =
+      !!$("[data-onboarding-wizard],.signup-steps-card,[data-clinic-create]", root);
+    const telemetryEligible =
+      d.body &&
+      (loginTelemetryPublic ||
+        !d.body.classList.contains("public") ||
+        clinicCreateTelemetry);
+    if (telemetryEligible) d.body.classList.add("has-telemetry-mountains");
+    if (wrap)
+      wrap.classList.toggle("is-clinic-themed", !loginTelemetryPublic);
+    if (
+      !wrap &&
+      d.body &&
+      (!d.body.classList.contains("public") || clinicCreateTelemetry)
+    ) {
       wrap = d.createElement("div");
-      wrap.className = "login-telemetry-wave app-telemetry-mountains";
+      wrap.className = "login-telemetry-wave app-telemetry-mountains is-clinic-themed";
       wrap.dataset.loginTelemetryWave = "1";
       wrap.dataset.refreshMs = "900000";
       const endpoint = new URL(w.location.href);

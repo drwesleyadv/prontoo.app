@@ -15147,3 +15147,28 @@ body.public[data-route="login"] .login-telemetry-wave-path.is-records{
 body:not(.public){isolation:isolate;overflow-x:hidden;}
 body:not(.public) :where(.top,.side,main#conteudo){position:relative;z-index:1;}
 body:not(.public) .login-telemetry-wave{z-index:0;}
+
+
+body.has-telemetry-mountains{isolation:isolate;overflow-x:hidden}
+body.has-telemetry-mountains :where(.top,.side,main#conteudo,.signup-shell,.onboarding-shell,.auth-shell){position:relative;z-index:1}
+body.has-telemetry-mountains .login-telemetry-wave{
+  position:fixed;
+  right:0;
+  bottom:0;
+  left:0;
+  z-index:0;
+  display:block;
+  width:100%;
+  height:15vh;
+  min-height:64px;
+  max-height:180px;
+  overflow:hidden;
+  pointer-events:none;
+  user-select:none;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%);
+}
+body.has-telemetry-mountains .login-telemetry-wave svg{display:block;width:100%;height:100%;overflow:visible}
+body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.3}
+body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-requests{fill:var(--clinic-accent-strong,var(--brand-dark,#1f6f56))}
+body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-records{fill:var(--clinic-accent,var(--brand,#347963))}

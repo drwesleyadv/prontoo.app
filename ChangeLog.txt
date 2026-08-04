@@ -1,3 +1,10 @@
+1.8.4.6 - Ondas autenticadas na paleta do consultório
+- Corrige a exibição das montanhas na área logada e na tela Criar Consultório.
+- Mantém o login com os verdes aprovados.
+- Usa a paleta dinâmica de destaque do consultório nas duas áreas preenchidas.
+- Preserva 15% da viewport, 70% de transparência e ausência de interação.
+- Sem alteração de banco de dados ou schema.
+
 Prontoo 1.8.4.5 — Montanhas de telemetria no login
 
 - A altura da composição passa de 25% para 15% da viewport.
