@@ -18,17 +18,22 @@ jobs:
         with:
           ref: agent/chart-read-write-fill-20260804
           fetch-depth: 0
-      - name: Capture chart implementation
+      - name: Capture exact chart styles
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
 
-          pattern = re.compile(r'Requisições|Registros|Leitura e gravação|primary_label|secondary_label|metric-chart-(?:fill|line|dot)-(?:load|response)|metric-dual-time-chart', re.I)
+          needles = (
+              'metric-chart-fill-load',
+              'metric-chart-fill-response',
+              'metric-chart-line-load',
+              'metric-chart-line-response',
+          )
           out = []
           for path in Path('.').rglob('*'):
-              if not path.is_file() or path.suffix.lower() not in {'.php', '.js', '.css', '.md'}:
+              if not path.is_file() or path.suffix.lower() not in {'.php', '.js', '.css'}:
                   continue
               if '.git' in path.parts or 'vendor' in path.parts:
                   continue
@@ -36,21 +41,16 @@ jobs:
                   lines = path.read_text(encoding='utf-8').splitlines()
               except Exception:
                   continue
-              hits = [i for i, line in enumerate(lines) if pattern.search(line)]
-              emitted = set()
+              hits = [i for i, line in enumerate(lines) if any(needle in line for needle in needles)]
               for i in hits:
-                  start = max(0, i - 45)
-                  end = min(len(lines), i + 70)
-                  key = (start, end)
-                  if key in emitted:
-                      continue
-                  emitted.add(key)
+                  start = max(0, i - 12)
+                  end = min(len(lines), i + 18)
                   out.append(f'===== {path}:{i+1} =====')
                   for n in range(start, end):
                       out.append(f'{n+1:06d}: {lines[n]}')
           Path('tools/chart-read-write-inspection.txt').write_text('\n'.join(out) + '\n', encoding='utf-8')
           if not out:
-              raise SystemExit('No matching chart context found')
+              raise SystemExit('No matching chart styles found')
           PY
       - name: Commit inspection report
         shell: bash
@@ -61,5 +61,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Expand read write chart inspection"
+          git commit -m "Inspect exact read write chart styles"
           git push origin HEAD:agent/chart-read-write-fill-20260804
