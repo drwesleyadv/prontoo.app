@@ -91,7 +91,7 @@
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
     "generated_at": "2026-08-04T20:32:41.033506+00:00",
-    "updated_at": "2026-08-04T20:32:41.033506+00:00",
+    "updated_at": "2026-08-04T20:42:46.704903+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -190,11 +190,11 @@
     "installer_locked": false,
     "previous_version": "1.8.4.8",
     "deployment_sync_id": "github-auth-telemetry-route-contract-1-8-4-9",
-    "notes": "Endpoint das faixas registrado como rota executável, pública, JSON e de boot leve; resposta não passa por page_home.",
+    "notes": "Rota JSON das faixas registrada sem ampliar o baseline arquitetural; contrato integrado ao verificador de assets.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status",
     "login_telemetry_wave_policy": "public_and_authenticated_bottom_15dvh_route_registered_json_light_boot_immediate_authenticated_fetch_refresh_15m",
     "login_telemetry_route_contract_policy": "runner_map_public_json_light_boot_context_integrity_maintenance_and_flush_bypass_verified_by_dedicated_contract",
-    "login_telemetry_route_contract_check": "tools/auth-telemetry-route-contract-check.php"
+    "login_telemetry_route_contract_check": "tools/version-asset-contract-check.php"
 }

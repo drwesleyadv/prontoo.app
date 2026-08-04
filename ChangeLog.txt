@@ -2,7 +2,7 @@
 - Registra login_telemetry_wave no mapa executável do Runner.
 - Corrige a resposta HTML de page_home que impedia o preenchimento dos paths SVG.
 - Trata o endpoint como público, JSON e de boot leve.
-- Adiciona contrato regressivo exclusivo para a cadeia das faixas.
+- Integra ao contrato de assets a verificação regressiva da cadeia das faixas.
 - Mantém os assets 1.7.15.11 e não altera banco ou schema.
 
 1.8.4.8 - Carga inicial das faixas autenticadas
