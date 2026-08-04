@@ -43,7 +43,8 @@ jobs:
           from pathlib import Path
 
           root = Path('.')
-          version = json.loads((root / 'version.json').read_text(encoding='utf-8'))
+          version_path = root / 'version.json'
+          version = json.loads(version_path.read_text(encoding='utf-8'))
           architecture_path = root / 'app/architecture.manifest.json'
           architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
           update_path = root / 'app/update.manifest.json'
@@ -65,6 +66,8 @@ jobs:
           update['minimum_mysql'] = version['minimum_mysql']
           update['previous_version'] = version['previous_version']
           update['deployment_sync_id'] = version['deployment_sync_id']
+          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           files = dict(update.get('files') or {})
           files['tools/appointment-price-snapshot-check.php'] = ''
           total = 0
@@ -79,8 +82,6 @@ jobs:
           update['files'] = normalized
           update['file_count'] = len(normalized)
           update['total_uncompressed_bytes'] = total
-          (root / 'version.json').write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
-          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           update_path.write_text(json.dumps(update, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           PY
       - name: Validate change
