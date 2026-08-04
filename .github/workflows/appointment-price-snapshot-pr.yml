@@ -43,9 +43,6 @@ jobs:
           from pathlib import Path
 
           root = Path('.')
-          check_path = root / 'tools/appointment-price-snapshot-check.php'
-          if check_path.exists():
-              check_path.unlink()
           architecture_workflow = root / '.github/workflows/architecture.yml'
           workflow_text = architecture_workflow.read_text(encoding='utf-8')
           workflow_text = workflow_text.replace(
@@ -54,6 +51,17 @@ jobs:
               1,
           )
           architecture_workflow.write_text(workflow_text, encoding='utf-8')
+
+          temporary_paths = [
+              '.github/workflows/appointment-price-snapshot-executor.yml',
+              '.github/workflows/appointment-price-snapshot-pr.yml',
+              'tools/appointment-price-snapshot-trigger.txt',
+              'tools/appointment-price-snapshot-check.php',
+          ]
+          for relative in temporary_paths:
+              path = root / relative
+              if path.exists():
+                  path.unlink()
 
           version_path = root / 'version.json'
           version = json.loads(version_path.read_text(encoding='utf-8'))
@@ -80,8 +88,10 @@ jobs:
           update['deployment_sync_id'] = version['deployment_sync_id']
           version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+
           files = dict(update.get('files') or {})
-          files.pop('tools/appointment-price-snapshot-check.php', None)
+          for relative in temporary_paths:
+              files.pop(relative, None)
           total = 0
           normalized = {}
           for relative in sorted(files):
@@ -121,6 +131,14 @@ jobs:
               raise RuntimeError('A interface não identifica o valor contratual fixado.')
           if 'return [false, "", 0, 0, null];' in appointments:
               raise RuntimeError('Agendamento sem pagamento ainda descarta o preço vigente.')
+          for temporary in [
+              '.github/workflows/appointment-price-snapshot-executor.yml',
+              '.github/workflows/appointment-price-snapshot-pr.yml',
+              'tools/appointment-price-snapshot-trigger.txt',
+              'tools/appointment-price-snapshot-check.php',
+          ]:
+              if Path(temporary).exists():
+                  raise RuntimeError('Instrumentação temporária ainda presente: ' + temporary)
           print('appointment-price-snapshot: ok')
           PY
           php tools/documentation-check.php
@@ -131,13 +149,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/appointment-price-snapshot-executor.yml
-          rm -f .github/workflows/appointment-price-snapshot-pr.yml
-          rm -f tools/appointment-price-snapshot-trigger.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Fixar preço vigente no agendamento"
-          git fetch origin agent/appointment-price-snapshot-20260804
-          remote_sha="$(git rev-parse FETCH_HEAD)"
-          git push --force-with-lease=refs/heads/agent/appointment-price-snapshot-20260804:${remote_sha} origin HEAD:agent/appointment-price-snapshot-20260804
+          git push --force origin HEAD:agent/appointment-price-snapshot-20260804
