@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.4.2 — Áreas translúcidas em Leitura e gravação
+
+- remove os contornos das séries Requisições e Registros no gráfico Leitura e gravação;
+- remove os marcadores finais dessas duas séries para preservar a leitura exclusivamente por área;
+- aplica 50% de opacidade aos dois preenchimentos inferiores;
+- mantém o gráfico Velocidade com suas linhas e opacidades atuais;
+- aplica a mesma composição no Painel do Desenvolvedor e na página pública `/status`;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.1 — Preço fixado no agendamento
 
 - grava no agendamento o preço vigente do procedimento no momento da marcação;
