@@ -27,6 +27,14 @@ new_open = '''  function initLoginTelemetryWave(root = d) {
       d.body.dataset.route === "login";
     const clinicCreateTelemetry =
       !!$("[data-onboarding-wizard],.signup-steps-card,[data-clinic-create]", root);
+    const telemetryEligible =
+      d.body &&
+      (loginTelemetryPublic ||
+        !d.body.classList.contains("public") ||
+        clinicCreateTelemetry);
+    if (telemetryEligible) d.body.classList.add("has-telemetry-mountains");
+    if (wrap)
+      wrap.classList.toggle("is-clinic-themed", !loginTelemetryPublic);
     if (
       !wrap &&
       d.body &&
@@ -36,14 +44,14 @@ if old_open not in app_js:
     raise SystemExit('initLoginTelemetryWave opening not found')
 app_js = app_js.replace(old_open, new_open, 1)
 start = app_js.index('  function initLoginTelemetryWave(root = d) {')
-return_token = '    if (!wrap) return;'
-pos = app_js.index(return_token, start)
-enhancer = '''    if (wrap && d.body) {
-      d.body.classList.add("has-telemetry-mountains");
-      wrap.classList.toggle("is-clinic-themed", !loginTelemetryPublic);
-    }
-'''
-app_js = app_js[:pos] + enhancer + app_js[pos:]
+class_token = '      wrap.className = "login-telemetry-wave app-telemetry-mountains";'
+class_pos = app_js.find(class_token, start)
+if class_pos < 0:
+    raise SystemExit('dynamic telemetry wrapper class not found')
+app_js = app_js[:class_pos] + class_token.replace(
+    'app-telemetry-mountains',
+    'app-telemetry-mountains is-clinic-themed',
+) + app_js[class_pos + len(class_token):]
 app_js_path.write_text(app_js)
 
 css_path = root / 'public/assets/design-system.css'
