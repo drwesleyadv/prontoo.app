@@ -1,0 +1,56 @@
+name: Inspect read write chart
+
+on:
+  push:
+    branches:
+      - agent/chart-read-write-fill-20260804
+    paths:
+      - tools/chart-read-write-inspect-trigger.txt
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chart-read-write-fill-20260804
+          fetch-depth: 0
+      - name: Capture chart implementation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          out = []
+          for path in Path('.').rglob('*'):
+              if not path.is_file() or path.suffix.lower() not in {'.php', '.js', '.css', '.md'}:
+                  continue
+              if '.git' in path.parts or 'vendor' in path.parts:
+                  continue
+              try:
+                  lines = path.read_text(encoding='utf-8').splitlines()
+              except Exception:
+                  continue
+              hits = [i for i, line in enumerate(lines) if re.search(r'Requisições|Registros|Leitura e gravação|primary_label|secondary_label', line, re.I)]
+              for i in hits:
+                  start = max(0, i - 90)
+                  end = min(len(lines), i + 130)
+                  out.append(f'===== {path}:{i+1} =====')
+                  for n in range(start, end):
+                      out.append(f'{n+1:06d}: {lines[n]}')
+          Path('tools/chart-read-write-inspection.txt').write_text('\n'.join(out) + '\n', encoding='utf-8')
+          if not out:
+              raise SystemExit('No matching chart context found')
+          PY
+      - name: Commit inspection report
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/chart-read-write-inspection.txt
+          git commit -m "Inspect read write chart implementation"
+          git push origin HEAD:agent/chart-read-write-fill-20260804
