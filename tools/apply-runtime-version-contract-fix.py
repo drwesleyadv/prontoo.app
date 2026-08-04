@@ -3,7 +3,6 @@ import datetime
 import hashlib
 import json
 import re
-import subprocess
 import time
 
 root = Path('.')
@@ -136,25 +135,6 @@ legacy.write_text('''1.8.4.7 - Correção do contrato de assets públicos
 - Sem alteração de banco de dados ou schema.
 
 ''' + legacy_text)
-
-base_architecture = subprocess.check_output(
-    ['git', 'show', 'origin/prontoo:.github/workflows/architecture.yml'],
-    text=True,
-)
-needle = '''          PHP
-      - name: Documentation and comment contracts'''
-replacement = '''          PHP
-          php tools/version-asset-contract-check.php
-      - name: Documentation and comment contracts'''
-if needle not in base_architecture:
-    raise SystemExit('architecture workflow insertion point not found')
-(root / '.github/workflows/architecture.yml').write_text(
-    base_architecture.replace(needle, replacement, 1)
-)
-
-for temp in [root / 'tools/apply-runtime-version-contract-fix.py']:
-    if temp.exists():
-        temp.unlink()
 
 update_path = root / 'app/update.manifest.json'
 update = json.loads(update_path.read_text())
