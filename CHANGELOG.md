@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.4.1 — Preço fixado no agendamento
+
+- grava no agendamento o preço vigente do procedimento no momento da marcação;
+- preserva esse valor quando o catálogo do procedimento é reajustado posteriormente;
+- mantém o valor fixado na confirmação do pagamento e na integração financeira;
+- atualiza o preço somente quando o próprio procedimento do agendamento é substituído;
+- identifica na interface que o valor foi fixado no agendamento;
+- não altera banco de dados nem schema.
+
 ## 1.8.3.5 — Tempos médios com duas casas decimais
 
 - limita a apresentação dos tempos médios de telemetria a duas casas decimais;
