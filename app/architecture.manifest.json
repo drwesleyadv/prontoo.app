@@ -1,5 +1,5 @@
 {
-    "version": "1.8.4.7",
+    "version": "1.8.4.8",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -49,7 +49,7 @@
     ],
     "database_changes": false,
     "schema_changes": false,
-    "visual_changes": false,
+    "visual_changes": true,
     "runtime_profile_policy": "environment_php_excluded_and_repository_migration_metrics_non_fatal_at_boot",
     "database_architecture": "clean_schema_with_native_seq_and_layer2_action_ledger",
     "sequence_policy": "every_table_generates_non_null_unique_Seq_with_UUID_SHORT_default_no_sequence_table",
@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-08-04T19:40:48.739821+00:00",
-    "updated_at": "2026-08-04T19:40:48.739821+00:00",
+    "generated_at": "2026-08-04T20:15:27.667886+00:00",
+    "updated_at": "2026-08-04T20:15:27.667886+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -177,8 +177,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.4.6",
-    "build": "1.8.4.5-login-telemetry-mountains",
+    "release": "1.8.4.8",
+    "build": "1.8.4.8-auth-telemetry-initial-fetch",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -188,11 +188,11 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.4.4",
-    "deployment_sync_id": "github-login-telemetry-mountains-1-8-4-5",
-    "notes": "Contrato de assets públicos corrigido; baseline arquitetural reconciliado com 81 arquivos transitórios já existentes.",
+    "previous_version": "1.8.4.7",
+    "deployment_sync_id": "github-auth-telemetry-initial-fetch-1-8-4-8",
+    "notes": "Faixas autenticadas executam carga inicial imediata; revisão física de assets 1.7.15.11 evita cache obsoleto.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status",
-    "login_telemetry_wave_policy": "public_and_authenticated_bottom_15dvh_full_width_requests_1f6f56_records_347963_filled_without_stroke_30_percent_opacity_refresh_15m"
+    "login_telemetry_wave_policy": "public_server_rendered_and_authenticated_dynamic_bottom_15dvh_full_width_requests_and_records_authenticated_initial_fetch_immediate_refresh_15m"
 }

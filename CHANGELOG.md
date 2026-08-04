@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.4.8 — Carga inicial das faixas autenticadas
+
+- corrige a área autenticada, que criava o SVG com caminhos vazios e aguardava até 15 minutos para consultar a telemetria;
+- executa a primeira consulta imediatamente após a montagem dinâmica das faixas;
+- mantém o login com os caminhos inicialmente renderizados pelo PHP, sem requisição inicial duplicada;
+- publica a revisão física de assets `1.7.15.11` para invalidar JavaScript e CSS armazenados em cache;
+- inclui os cinco arquivos públicos canônicos correspondentes à nova revisão;
+- preserva cores, opacidade, dimensões, dados e intervalo de atualização de 15 minutos;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.7 — Correção do contrato de assets públicos
 
 - corrige o bloqueio de runtime causado por `asset_version` sem arquivos públicos correspondentes;
