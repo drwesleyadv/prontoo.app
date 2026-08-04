@@ -1,5 +1,5 @@
 {
-    "version": "1.8.4.2",
+    "version": "1.8.4.3",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "one_residual_deadline_from_preflight_across_deferred_integrity_and_rules",
-    "generated_at": "2026-08-04T17:21:17.811362+00:00",
-    "updated_at": "2026-08-04T17:21:17.811362+00:00",
+    "generated_at": "2026-08-04T18:20:21.746725+00:00",
+    "updated_at": "2026-08-04T18:20:21.746725+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -177,8 +177,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.4.2",
-    "build": "1.8.4.2-read-write-half-opacity",
+    "release": "1.8.4.3",
+    "build": "1.8.4.3-read-write-exact-colors",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -188,10 +188,10 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.4.1",
-    "deployment_sync_id": "github-read-write-half-opacity-1-8-4-2",
-    "notes": "Leitura e gravação usa áreas a 50% de opacidade sem contornos ou marcadores finais, de forma compartilhada entre o painel e o status.",
+    "previous_version": "1.8.4.2",
+    "deployment_sync_id": "github-read-write-exact-colors-1-8-4-3",
+    "notes": "Leitura e gravação usa os tons exatos #1f6f56 e #347963 nas áreas compartilhadas pelo painel e status.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
-    "read_write_chart_visual_policy": "count_series_areas_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status"
+    "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status"
 }

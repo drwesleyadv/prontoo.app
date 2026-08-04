@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.4.3 — Tons exatos em Leitura e gravação
+
+- define o preenchimento de Requisições no tom escuro `#1f6f56`;
+- define o preenchimento de Registros no tom claro `#347963`;
+- preserva 50% de opacidade e a ausência de contornos e marcadores finais;
+- aplica as mesmas cores no Painel do Desenvolvedor e na página pública `/status`;
+- mantém o gráfico Velocidade inalterado;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.2 — Áreas translúcidas em Leitura e gravação
 
 - remove os contornos das séries Requisições e Registros no gráfico Leitura e gravação;
