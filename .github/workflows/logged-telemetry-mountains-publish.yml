@@ -1,0 +1,32 @@
+name: Publish logged telemetry mountains
+
+on:
+  push:
+    branches:
+      - agent/login-telemetry-mountains-20260804
+    paths:
+      - tools/logged-telemetry-mountains-publish-trigger.txt
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/login-telemetry-mountains-20260804
+          fetch-depth: 0
+      - name: Apply and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '/python3 <<'"'"'PY'"'"'/{capture=1;next} capture && /^          PY$/{exit} capture{sub(/^          /,"");print}' .github/workflows/logged-telemetry-mountains-builder.yml > /tmp/logged-mountains.py
+          python3 /tmp/logged-mountains.py
+          php -l app/Auth/AuthOnboarding.php >/dev/null
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add public/assets/app.js public/assets/design-system.css tools/architecture-check.php CHANGELOG.md ChangeLog.txt version.json app/architecture.manifest.json app/update.manifest.json
+          git commit -m "Expandir montanhas para a área logada"
+          git push
