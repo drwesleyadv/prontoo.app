@@ -1,0 +1,282 @@
+name: Apply exact read write colors
+
+on:
+  push:
+    branches:
+      - agent/read-write-exact-colors-20260804
+    paths:
+      - tools/read-write-exact-colors-trigger.txt
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/read-write-exact-colors-20260804
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply exact colors and release metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from datetime import datetime, timezone
+          import hashlib
+          import json
+          import re
+          import subprocess
+
+          NEW_VERSION = '1.8.4.3'
+          PREVIOUS_VERSION = '1.8.4.2'
+          BUILD = '1.8.4.3-read-write-exact-colors'
+          DEPLOYMENT = 'github-read-write-exact-colors-1-8-4-3'
+          DARK = '#1f6f56'
+          LIGHT = '#347963'
+          now_dt = datetime.now(timezone.utc)
+          now = now_dt.isoformat()
+          now_unix = int(now_dt.timestamp())
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, content):
+              Path(path).write_text(content, encoding='utf-8')
+
+          def replace_once(source, old, new, label):
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one occurrence, found {count}')
+              return source.replace(old, new, 1)
+
+          css_path = 'public/assets/design-system.css'
+          css = read(css_path)
+          old_css = '''.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load,
+.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{opacity:.5}
+'''
+          new_css = f'''.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{{fill:{DARK};opacity:.5}}
+.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{{fill:{LIGHT};opacity:.5}}
+'''
+          css = replace_once(css, old_css, new_css, 'count fill colors')
+          write(css_path, css)
+
+          architecture_check_path = 'tools/architecture-check.php'
+          architecture_check = read(architecture_check_path)
+          old_tokens = '''        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load,',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{opacity:.5}',
+'''
+          new_tokens = f'''        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{{fill:{DARK};opacity:.5}}',
+        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{{fill:{LIGHT};opacity:.5}}',
+'''
+          architecture_check = replace_once(architecture_check, old_tokens, new_tokens, 'architecture color tokens')
+          write(architecture_check_path, architecture_check)
+
+          changelog_path = 'CHANGELOG.md'
+          changelog = read(changelog_path)
+          changelog_entry = '''## 1.8.4.3 — Tons exatos em Leitura e gravação
+
+- define o preenchimento de Requisições no tom escuro `#1f6f56`;
+- define o preenchimento de Registros no tom claro `#347963`;
+- preserva 50% de opacidade e a ausência de contornos e marcadores finais;
+- aplica as mesmas cores no Painel do Desenvolvedor e na página pública `/status`;
+- mantém o gráfico Velocidade inalterado;
+- não altera banco de dados nem schema.
+
+'''
+          changelog = replace_once(changelog, '# Histórico de versões\n\n', '# Histórico de versões\n\n' + changelog_entry, 'CHANGELOG heading')
+          write(changelog_path, changelog)
+
+          legacy_path = 'ChangeLog.txt'
+          legacy = read(legacy_path)
+          legacy_entry = '''Prontoo 1.8.4.3 — Tons exatos em Leitura e gravação
+
+- Requisições passa a usar o tom escuro #1f6f56.
+- Registros passa a usar o tom claro #347963.
+- Permanecem a opacidade de 50% e a ausência de contornos e marcadores finais.
+- A alteração vale para o Painel do Desenvolvedor e para `/status`.
+- Banco de dados e schema permanecem inalterados.
+
+'''
+          write(legacy_path, legacy_entry + legacy)
+
+          prontoo_path = 'app/prontoo.php'
+          prontoo = read(prontoo_path)
+          prontoo = re.sub(r'const PRONTOO_VERSION_FALLBACK = "[^"]+";', f'const PRONTOO_VERSION_FALLBACK = "{NEW_VERSION}";', prontoo, count=1)
+          prontoo = re.sub(r'const PRONTOO_PREVIOUS_VERSION = "[^"]+";', f'const PRONTOO_PREVIOUS_VERSION = "{PREVIOUS_VERSION}";', prontoo, count=1)
+          write(prontoo_path, prontoo)
+
+          landing_path = 'br/index.php'
+          landing = read(landing_path)
+          landing = re.sub(r'const BR_LANDING_VERSION_FALLBACK = "[^"]+";', f'const BR_LANDING_VERSION_FALLBACK = "{NEW_VERSION}";', landing, count=1)
+          write(landing_path, landing)
+
+          version_path = 'version.json'
+          version = json.loads(read(version_path))
+          version.update({
+              'version': NEW_VERSION,
+              'release': NEW_VERSION,
+              'generated_at_unix': now_unix,
+              'generated_at': now,
+              'updated_at': now,
+              'build': BUILD,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': False,
+              'visual_changes': True,
+              'functional_equivalence_policy': 'preserves_telemetry_values_velocity_chart_half_opacity_and_outline_free_read_write_areas_while_assigning_exact_dark_and_light_green_fills',
+              'notes': 'Leitura e gravação usa #1f6f56 em Requisições e #347963 em Registros, com 50% de opacidade.',
+              'previous_version': PREVIOUS_VERSION,
+              'documentation_changes': True,
+              'deployment_sync_id': DEPLOYMENT,
+              'deployment_sync_requested_at': now,
+              'rewrite_scope': 'read_write_chart_exact_green_fills',
+          })
+          write(version_path, json.dumps(version, ensure_ascii=False, indent=4) + '\n')
+
+          architecture_manifest_path = 'app/architecture.manifest.json'
+          architecture_manifest = json.loads(read(architecture_manifest_path))
+          architecture_manifest.update({
+              'version': NEW_VERSION,
+              'release': NEW_VERSION,
+              'build': BUILD,
+              'generated_at': now,
+              'updated_at': now,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': False,
+              'visual_changes': True,
+              'previous_version': PREVIOUS_VERSION,
+              'deployment_sync_id': DEPLOYMENT,
+              'notes': 'Leitura e gravação usa os tons exatos #1f6f56 e #347963 nas áreas compartilhadas pelo painel e status.',
+              'documentation_changes': True,
+              'read_write_chart_visual_policy': 'requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status',
+          })
+          write(architecture_manifest_path, json.dumps(architecture_manifest, ensure_ascii=False, indent=4) + '\n')
+
+          update_manifest_path = 'app/update.manifest.json'
+          update_manifest = json.loads(read(update_manifest_path))
+          update_manifest.update({
+              'version': NEW_VERSION,
+              'release': NEW_VERSION,
+              'build': BUILD,
+              'generated_at': now,
+              'updated_at': now,
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': False,
+              'visual_changes': True,
+              'documentation_changes': True,
+              'previous_version': PREVIOUS_VERSION,
+              'deployment_sync_id': DEPLOYMENT,
+              'notes': 'Leitura e gravação passa a usar #1f6f56 em Requisições e #347963 em Registros.',
+          })
+
+          for temporary in (
+              '.github/workflows/read-write-exact-colors-executor.yml',
+              'tools/read-write-exact-colors-trigger.txt',
+          ):
+              path = Path(temporary)
+              if path.exists():
+                  path.unlink()
+
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
+          files = {}
+          total = 0
+          for raw in tracked:
+              if not raw:
+                  continue
+              relative = raw.decode('utf-8')
+              if relative == update_manifest_path or relative in {
+                  '.github/workflows/read-write-exact-colors-executor.yml',
+                  'tools/read-write-exact-colors-trigger.txt',
+              }:
+                  continue
+              if relative.startswith(('.git/', 'ssd/', 'vendor/', 'node_modules/')):
+                  continue
+              path = Path(relative)
+              if not path.is_file() or path.is_symlink():
+                  continue
+              data = path.read_bytes()
+              files[relative] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          update_manifest['files'] = dict(sorted(files.items()))
+          update_manifest['file_count'] = len(files)
+          update_manifest['total_uncompressed_bytes'] = total
+          write(update_manifest_path, json.dumps(update_manifest, ensure_ascii=False, indent=4) + '\n')
+          PY
+      - name: Validate release
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          python3 - <<'PY'
+          from pathlib import Path
+          css = Path('public/assets/design-system.css').read_text(encoding='utf-8')
+          required = [
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-line-response{stroke:none}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-dot-response{display:none}',
+          ]
+          for token in required:
+              if token not in css:
+                  raise SystemExit('Missing visual token: ' + token)
+          if '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}' not in css:
+              raise SystemExit('Velocity/shared base fill changed unexpectedly')
+          PY
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+      - name: Commit validated release
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Definir tons exatos de leitura e gravação"
+          git push origin HEAD:agent/read-write-exact-colors-20260804
