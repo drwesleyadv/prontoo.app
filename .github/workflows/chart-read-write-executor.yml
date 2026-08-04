@@ -1,0 +1,32 @@
+name: Execute read write chart release
+
+on:
+  push:
+    branches:
+      - agent/chart-read-write-fill-20260804
+    paths:
+      - tools/chart-read-write-execute-trigger.txt
+
+permissions:
+  contents: write
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chart-read-write-fill-20260804
+          fetch-depth: 0
+      - name: Apply release
+        shell: bash
+        run: python3 tools/chart-read-write-release.py
+      - name: Commit release candidate
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Ajustar áreas de leitura e gravação"
+          git push origin HEAD:agent/chart-read-write-fill-20260804
