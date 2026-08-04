@@ -1,0 +1,107 @@
+name: Apply exact read write colors from PR
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: prontoo_schema
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      GITHUB_ACTIONS: 'true'
+      CI: 'true'
+      PRONTOO_SCHEMA_TEST_MODE: '1'
+      PRONTOO_INSTALLER_CLI_MODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Extract and apply release script
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '/^          python3 - <<.PY./{capture=1;next} capture && /^          PY$/{exit} capture{sub(/^          /,"");print}' .github/workflows/read-write-exact-colors-executor.yml > /tmp/apply.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/apply.py')
+          source = path.read_text(encoding='utf-8')
+          needle = "              '.github/workflows/read-write-exact-colors-executor.yml',\n"
+          replacement = needle + "              '.github/workflows/read-write-exact-colors-pr.yml',\n"
+          count = source.count(needle)
+          if count != 2:
+              raise SystemExit(f'expected two temporary path anchors, found {count}')
+          path.write_text(source.replace(needle, replacement), encoding='utf-8')
+          PY
+          python3 /tmp/apply.py
+      - name: Validate release
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          python3 - <<'PY'
+          from pathlib import Path
+          css = Path('public/assets/design-system.css').read_text(encoding='utf-8')
+          required = [
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-line-response{stroke:none}',
+              '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-dot-response{display:none}',
+          ]
+          for token in required:
+              if token not in css:
+                  raise SystemExit('Missing visual token: ' + token)
+          PY
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+      - name: Commit validated release
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Definir tons exatos de leitura e gravação"
+          git push origin HEAD:${GITHUB_HEAD_REF}
