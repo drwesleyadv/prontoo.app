@@ -7,6 +7,7 @@ function prontoo_route_map(): array
         "home",
         "status",
         "login",
+        "login_telemetry_wave",
         "login_autotest",
         "mfa",
         "mobile_web_access",
@@ -74,6 +75,7 @@ function prontoo_public_runtime_routes(): array
     return [
         "status",
         "login",
+        "login_telemetry_wave",
         "login_autotest",
         "mfa",
         "mobile_web_access",
@@ -85,6 +87,7 @@ function prontoo_json_runtime_routes(): array
 {
 
     return [
+        "login_telemetry_wave",
         "patient_lookup",
         "patient_suggest",
         "person_lookup",
@@ -144,7 +147,7 @@ function prontoo_json_failure_message(
 function prontoo_route_is_public_light(string $route): bool
 {
 
-    if (in_array($route, ["login", "login_autotest", "mfa", "logout"], true)) {
+    if (in_array($route, ["login", "login_telemetry_wave", "login_autotest", "mfa", "logout"], true)) {
         return true;
     }
     return in_array(
@@ -405,8 +408,9 @@ function prontoo_run(bool $installMode = false): void
         $r = route();
         telemetry_route_identify($r);
         $publicStatus = $r === "status";
+        $publicTelemetry = $r === "login_telemetry_wave";
         $publicHome = false;
-        headers_secure($publicStatus);
+        headers_secure($publicStatus || $publicTelemetry);
         if (!has_cfg() && !$installMode && !$publicHome) {
             throw new ProntooHttpError(
                 503,
@@ -432,9 +436,11 @@ function prontoo_run(bool $installMode = false): void
         ) {
             ensure_clinic_trial_active((int) $_SESSION["clinic_id"], true);
         }
-        $cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();
-        enforce_read_only($cNow, $r);
-        if ($r !== "logout") {
+        $cNow = $publicStatus || $publicTelemetry || $publicHome || $r === "logout" ? [] : ctx();
+        if (!$publicTelemetry) {
+            enforce_read_only($cNow, $r);
+        }
+        if ($r !== "logout" && !$publicTelemetry) {
             enforce_action_integrity($cNow, $r);
         }
         if ($isPost) {
@@ -454,6 +460,7 @@ function prontoo_run(bool $installMode = false): void
         }
         if (
             !$publicStatus &&
+            !$publicTelemetry &&
             !$publicHome &&
             function_exists("maintenance_active") &&
             maintenance_active() &&
@@ -527,7 +534,7 @@ function prontoo_run(bool $installMode = false): void
             redirect("financial");
         }
         prontoo_load_route_modules($r);
-        if ($r !== "logout" && !$publicStatus) {
+        if ($r !== "logout" && !$publicStatus && !$publicTelemetry) {
             prontoo_flush_integrity_before_render();
         }
         $fn = in_array($r, $map, true) ? "page_" . $r : "page_home";
