@@ -15142,3 +15142,8 @@ body.public[data-route="login"] .login-telemetry-wave-path.is-requests{
 body.public[data-route="login"] .login-telemetry-wave-path.is-records{
   fill:#347963;
 }
+
+
+body:not(.public){isolation:isolate;overflow-x:hidden;}
+body:not(.public) :where(.top,.side,main#conteudo){position:relative;z-index:1;}
+body:not(.public) .login-telemetry-wave{z-index:0;}

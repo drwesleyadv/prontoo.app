@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": true,
-    "functional_equivalence_policy": "preserves_authentication_behavior_and_public_telemetry_values_while_rendering_requests_and_records_as_bottom_filled_login_mountains_without_strokes_at_thirty_percent_opacity",
+    "functional_equivalence_policy": "preserves_authentication_and_application_behavior_while_projecting_shared_noninteractive_request_and_record_mountains_on_public_and_authenticated_footers",
     "architecture_policy": "php-layered-invariants-v2",
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
@@ -23,7 +23,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "O login exibe Requisições e Registros como montanhas preenchidas nos 15% inferiores da viewport, sem contorno e com 70% de transparência.",
+    "notes": "Login e área logada exibem Requisições e Registros como montanhas preenchidas nos 15% inferiores da viewport, com 70% de transparência.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -54,7 +54,7 @@
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "login_telemetry_filled_mountains",
+    "rewrite_scope": "shared_login_and_authenticated_telemetry_mountains",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments"
 }

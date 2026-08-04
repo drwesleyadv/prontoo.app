@@ -1514,6 +1514,8 @@ foreach ([
         '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
         '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
         'body.public[data-route="login"] .login-telemetry-wave{',
+        'body:not(.public){isolation:isolate',
+        'body:not(.public) .login-telemetry-wave{z-index:0}',
         'height:15dvh',
         'pointer-events:none',
         '.login-telemetry-wave-path.is-requests{',

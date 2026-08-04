@@ -2668,7 +2668,20 @@
       );
   }
   function initLoginTelemetryWave(root = d) {
-    const wrap = $("[data-login-telemetry-wave]", root);
+    let wrap = $("[data-login-telemetry-wave]", root);
+    if (!wrap && d.body && !d.body.classList.contains("public")) {
+      wrap = d.createElement("div");
+      wrap.className = "login-telemetry-wave app-telemetry-mountains";
+      wrap.dataset.loginTelemetryWave = "1";
+      wrap.dataset.refreshMs = "900000";
+      const endpoint = new URL(w.location.href);
+      endpoint.search = "";
+      endpoint.searchParams.set("r", "login_telemetry_wave");
+      wrap.dataset.refreshUrl = endpoint.toString();
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d=""/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d=""/></svg>';
+      d.body.appendChild(wrap);
+    }
     if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
     wrap.dataset.loginTelemetryWaveReady = "1";
     const endpoint = String(wrap.dataset.refreshUrl || "");

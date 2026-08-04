@@ -190,9 +190,9 @@
     "installer_locked": false,
     "previous_version": "1.8.4.4",
     "deployment_sync_id": "github-login-telemetry-mountains-1-8-4-5",
-    "notes": "O login converte as séries públicas em montanhas preenchidas, sem contorno, limitadas aos 15% inferiores da viewport.",
+    "notes": "Login e área autenticada compartilham montanhas públicas e não interativas de Requisições e Registros.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status",
-    "login_telemetry_wave_policy": "bottom_15dvh_full_width_requests_fill_1f6f56_records_fill_347963_no_strokes_seventy_percent_transparency_no_axes_grid_points_labels_or_tooltips_refresh_15m"
+    "login_telemetry_wave_policy": "public_and_authenticated_bottom_15dvh_full_width_requests_1f6f56_records_347963_filled_without_stroke_30_percent_opacity_refresh_15m"
 }

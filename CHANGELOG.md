@@ -12,7 +12,7 @@
 
 ## 1.8.4.4 — Ondulação dinâmica no login
 
-- ocupa os 25% inferiores da viewport do login com duas curvas decorativas;
+- ocupa os 25% inferiores da viewport do login e da área autenticada e da área logada com duas curvas decorativas;
 - reutiliza as séries públicas de Requisições e Registros dos últimos 20 dias;
 - remove eixos, escalas, grades, pontos, legendas e tooltips;
 - usa `#1f6f56` para Requisições e `#347963` para Registros;
