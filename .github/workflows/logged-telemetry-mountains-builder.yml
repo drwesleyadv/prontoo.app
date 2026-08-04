@@ -1,0 +1,122 @@
+name: Build logged telemetry mountains
+
+on:
+  push:
+    branches:
+      - agent/login-telemetry-mountains-20260804
+    paths:
+      - tools/logged-telemetry-mountains-trigger.txt
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/login-telemetry-mountains-20260804
+          fetch-depth: 0
+      - name: Expand mountains to authenticated area
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import json, hashlib
+
+          js_path = Path('public/assets/app.js')
+          js = js_path.read_text()
+          old = '''  function initLoginTelemetryWave(root = d) {
+    const wrap = $("[data-login-telemetry-wave]", root);
+    if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
+    wrap.dataset.loginTelemetryWaveReady = "1";'''
+          new = '''  function initLoginTelemetryWave(root = d) {
+    let wrap = $("[data-login-telemetry-wave]", root);
+    if (!wrap && d.body && !d.body.classList.contains("public")) {
+      wrap = d.createElement("div");
+      wrap.className = "login-telemetry-wave app-telemetry-mountains";
+      wrap.dataset.loginTelemetryWave = "1";
+      wrap.dataset.refreshMs = "900000";
+      const endpoint = new URL(w.location.href);
+      endpoint.search = "";
+      endpoint.searchParams.set("r", "login_telemetry_wave");
+      wrap.dataset.refreshUrl = endpoint.toString();
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d=""/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d=""/></svg>';
+      d.body.appendChild(wrap);
+    }
+    if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
+    wrap.dataset.loginTelemetryWaveReady = "1";'''
+          if old not in js:
+              raise SystemExit('initLoginTelemetryWave anchor not found')
+          js_path.write_text(js.replace(old, new, 1))
+
+          css_path = Path('public/assets/design-system.css')
+          css = css_path.read_text()
+          css += '''
+
+body:not(.public){isolation:isolate;overflow-x:hidden;}
+body:not(.public) :where(.top,.side,main#conteudo){position:relative;z-index:1;}
+body:not(.public) .login-telemetry-wave{z-index:0;}
+'''
+          css_path.write_text(css)
+
+          checks_path = Path('tools/architecture-check.php')
+          checks = checks_path.read_text()
+          anchor = "        'body.public[data-route=\"login\"] .login-telemetry-wave{',"
+          if anchor in checks and "body:not(.public){isolation:isolate" not in checks:
+              checks = checks.replace(anchor, anchor + "\n        'body:not(.public){isolation:isolate',\n        'body:not(.public) .login-telemetry-wave{z-index:0}',", 1)
+          checks_path.write_text(checks)
+
+          for filename in ['CHANGELOG.md', 'ChangeLog.txt']:
+              p = Path(filename)
+              s = p.read_text()
+              s = s.replace('no rodapé do login', 'nos rodapés do login e da área logada')
+              s = s.replace('do login com', 'do login e da área logada com')
+              s = s.replace('da viewport do login', 'da viewport do login e da área autenticada')
+              s = s.replace('inferiores da tela de login', 'inferiores das telas pública e autenticada')
+              p.write_text(s)
+
+          version_path = Path('version.json')
+          version = json.loads(version_path.read_text())
+          version['notes'] = 'Login e área logada exibem Requisições e Registros como montanhas preenchidas nos 15% inferiores da viewport, com 70% de transparência.'
+          version['functional_equivalence_policy'] = 'preserves_authentication_and_application_behavior_while_projecting_shared_noninteractive_request_and_record_mountains_on_public_and_authenticated_footers'
+          version['rewrite_scope'] = 'shared_login_and_authenticated_telemetry_mountains'
+          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
+
+          arch_path = Path('app/architecture.manifest.json')
+          arch = json.loads(arch_path.read_text())
+          arch['notes'] = 'Login e área autenticada compartilham montanhas públicas e não interativas de Requisições e Registros.'
+          arch['login_telemetry_wave_policy'] = 'public_and_authenticated_bottom_15dvh_full_width_requests_1f6f56_records_347963_filled_without_stroke_30_percent_opacity_refresh_15m'
+          arch_path.write_text(json.dumps(arch, ensure_ascii=False, indent=4) + '\n')
+
+          manifest_path = Path('app/update.manifest.json')
+          manifest = json.loads(manifest_path.read_text())
+          manifest['notes'] = 'Login e área logada recebem montanhas preenchidas compartilhadas nos 15% inferiores da viewport.'
+          files = manifest['files']
+          total = 0
+          for rel in files:
+              data = Path(rel).read_bytes()
+              files[rel] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          manifest['total_uncompressed_bytes'] = total
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+
+          data = manifest_path.read_bytes()
+          manifest = json.loads(manifest_path.read_text())
+          if 'app/update.manifest.json' in manifest['files']:
+              manifest['files']['app/update.manifest.json'] = hashlib.sha256(data).hexdigest()
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+          PY
+          php -l app/Auth/AuthOnboarding.php >/dev/null
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add public/assets/app.js public/assets/design-system.css tools/architecture-check.php CHANGELOG.md ChangeLog.txt version.json app/architecture.manifest.json app/update.manifest.json
+          git commit -m "Expandir montanhas para a área logada"
+          git push
