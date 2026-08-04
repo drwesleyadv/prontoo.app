@@ -1,3 +1,11 @@
+1.8.4.7 - Correção do contrato de assets públicos
+- Restaura o asset_version canônico 1.7.15.10.
+- Corrige o bloqueio de runtime provocado por assets públicos inexistentes.
+- Adiciona verificação automática dos cinco arquivos versionados e da referência CSS.
+- Preserva as ondas de telemetria da versão anterior.
+- Reconcilia o baseline arquitetural preexistente em 81 arquivos transitórios.
+- Sem alteração de banco de dados ou schema.
+
 1.8.4.6 - Ondas autenticadas na paleta do consultório
 - Corrige a exibição das montanhas na área logada e na tela Criar Consultório.
 - Mantém o login com os verdes aprovados.

@@ -92,6 +92,7 @@ jobs:
               }
           }
           PHP
+          php tools/version-asset-contract-check.php
       - name: Documentation and comment contracts
         shell: bash
         run: |

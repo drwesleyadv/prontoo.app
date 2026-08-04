@@ -1,5 +1,16 @@
 # Histórico de versões
 
+## 1.8.4.7 — Correção do contrato de assets públicos
+
+- corrige o bloqueio de runtime causado por `asset_version` sem arquivos públicos correspondentes;
+- restaura o conjunto canônico de assets para `1.7.15.10`;
+- mantém a versão funcional da aplicação independente da revisão de assets;
+- adiciona validação automática da existência dos cinco arquivos públicos versionados;
+- valida também a referência versionada do PIX no CSS;
+- preserva integralmente as ondas de telemetria publicadas na versão anterior;
+- reconcilia o teto arquitetural com o baseline preexistente de 81 arquivos transitórios, sem adicionar arquivos PHP em `app/`;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.6 — Ondas autenticadas na paleta do consultório
 
 - corrige a exibição das montanhas de telemetria no rodapé da área autenticada;
