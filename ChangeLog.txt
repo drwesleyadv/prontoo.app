@@ -1,3 +1,11 @@
+Prontoo 1.8.4.1 — Preço fixado no agendamento
+
+- O valor vigente do procedimento passa a ser gravado no momento do agendamento.
+- Reajustes posteriores no cadastro não alteram o valor já informado ao paciente.
+- A cobrança e o lançamento financeiro preservam o preço acordado.
+- A troca do procedimento atualiza o valor para o preço vigente da nova escolha.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.3.5 — Tempos médios com duas casas decimais
 
 - Os tempos médios passam a ser exibidos com duas casas decimais.

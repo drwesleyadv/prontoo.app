@@ -370,7 +370,7 @@ function appointment_payment_form_html(int $cid, array $appt = []): string
         $detailsAttr .
         ">" .
         form_row(
-            "Valor do Procedimento",
+            "Valor fixado no agendamento",
             '<input type="text" value="' .
                 e($amountText) .
                 '" readonly aria-readonly="true" data-appointment-payment-amount-display><input type="hidden" name="payment_amount" value="' .

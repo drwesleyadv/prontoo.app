@@ -2744,7 +2744,7 @@ function page_appointments(): void
         if ($act === "update_appointment") {
             $id = (int) ($_POST["id"] ?? 0);
             $a = one(
-                "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
+                "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
                 [$id, $cid],
             );
             if (!$a) {
@@ -2857,7 +2857,9 @@ function page_appointments(): void
                 ] = appointment_payment_post_context(
                     $cid,
                     $procId,
-                    (int) ($a["payment_amount_cents"] ?? 0),
+                    (int) ($a["procedure_id"] ?? 0) === (int) $procId
+                ? (int) ($a["payment_amount_cents"] ?? 0)
+                : 0,
                 );
                 if ($paymentError) {
                     flash($paymentError, "bad");
@@ -4940,8 +4942,12 @@ function appointment_procedure_price_cents(
     int $fallback = 0,
 ): int {
 
+    $fallback = max(0, $fallback);
+    if ($fallback > 0) {
+        return $fallback;
+    }
     if (!$procedureId) {
-        return max(0, $fallback);
+        return 0;
     }
     $price =
         (int) (val(
@@ -4949,7 +4955,7 @@ function appointment_procedure_price_cents(
             [$procedureId, $cid],
         ) ?:
         0);
-    return $price > 0 ? $price : max(0, $fallback);
+    return max(0, $price);
 }
 function appointment_payment_post_context(
     int $cid,
@@ -4957,9 +4963,14 @@ function appointment_payment_post_context(
     int $fallbackAmount = 0,
 ): array {
 
+    $amount = appointment_procedure_price_cents(
+        $cid,
+        $procedureId,
+        $fallbackAmount,
+    );
     $paid = isset($_POST["payment_confirmed"]);
     if (!$paid) {
-        return [false, "", 0, 0, null];
+        return [false, "", $amount, 0, null];
     }
     if (!$procedureId) {
         return [
@@ -4970,11 +4981,6 @@ function appointment_payment_post_context(
             "Selecione um Procedimento para registrar pagamento.",
         ];
     }
-    $amount = appointment_procedure_price_cents(
-        $cid,
-        $procedureId,
-        $fallbackAmount,
-    );
     $method = normalize_payment_method(
         (string) ($_POST["payment_method"] ?? ""),
     );
