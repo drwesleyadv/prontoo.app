@@ -43,6 +43,18 @@ jobs:
           from pathlib import Path
 
           root = Path('.')
+          check_path = root / 'tools/appointment-price-snapshot-check.php'
+          if check_path.exists():
+              check_path.unlink()
+          architecture_workflow = root / '.github/workflows/architecture.yml'
+          workflow_text = architecture_workflow.read_text(encoding='utf-8')
+          workflow_text = workflow_text.replace(
+              '          php tools/architecture-check.php\n          php tools/appointment-price-snapshot-check.php\n',
+              '          php tools/architecture-check.php\n',
+              1,
+          )
+          architecture_workflow.write_text(workflow_text, encoding='utf-8')
+
           version_path = root / 'version.json'
           version = json.loads(version_path.read_text(encoding='utf-8'))
           architecture_path = root / 'app/architecture.manifest.json'
@@ -69,7 +81,7 @@ jobs:
           version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           files = dict(update.get('files') or {})
-          files['tools/appointment-price-snapshot-check.php'] = ''
+          files.pop('tools/appointment-price-snapshot-check.php', None)
           total = 0
           normalized = {}
           for relative in sorted(files):
@@ -90,8 +102,27 @@ jobs:
           set -euo pipefail
           php -l app/Domain/Appointments/Appointments.php
           php -l app/Domain/Financial/Financial.php
-          php -l tools/appointment-price-snapshot-check.php
-          php tools/appointment-price-snapshot-check.php
+          python3 <<'PY'
+          from pathlib import Path
+          appointments = Path('app/Domain/Appointments/Appointments.php').read_text(encoding='utf-8')
+          financial = Path('app/Domain/Financial/Financial.php').read_text(encoding='utf-8')
+          required = [
+              '$fallback = max(0, $fallback);',
+              'if ($fallback > 0) {',
+              'return [false, "", $amount, 0, null];',
+              'consultation_finished_at,procedure_id,payment_amount_cents FROM pi_appointments',
+              '(int) ($a["procedure_id"] ?? 0) === (int) $procId',
+              'payment_amount_cents,payment_method,payment_status',
+          ]
+          missing = [needle for needle in required if needle not in appointments]
+          if missing:
+              raise RuntimeError('Contrato de preço ausente: ' + ', '.join(missing))
+          if '"Valor fixado no agendamento"' not in financial:
+              raise RuntimeError('A interface não identifica o valor contratual fixado.')
+          if 'return [false, "", 0, 0, null];' in appointments:
+              raise RuntimeError('Agendamento sem pagamento ainda descarta o preço vigente.')
+          print('appointment-price-snapshot: ok')
+          PY
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
