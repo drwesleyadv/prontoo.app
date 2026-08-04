@@ -37,6 +37,52 @@ jobs:
           ' .github/workflows/appointment-price-snapshot-executor.yml > /tmp/appointment-price-snapshot.py
           test -s /tmp/appointment-price-snapshot.py
           python3 /tmp/appointment-price-snapshot.py
+          python3 <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          version = json.loads((root / 'version.json').read_text(encoding='utf-8'))
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          update_path = root / 'app/update.manifest.json'
+          update = json.loads(update_path.read_text(encoding='utf-8'))
+          flags = {
+              'database_changes': False,
+              'schema_changes': False,
+              'logic_changes': True,
+              'visual_changes': True,
+              'documentation_changes': True,
+          }
+          version.update(flags)
+          architecture.update(flags)
+          architecture['appointment_price_snapshot_policy'] = 'price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes'
+          update.update(flags)
+          update['package_type'] = version['package_type']
+          update['schema_revision'] = version['schema_revision']
+          update['minimum_php'] = version['minimum_php']
+          update['minimum_mysql'] = version['minimum_mysql']
+          update['previous_version'] = version['previous_version']
+          update['deployment_sync_id'] = version['deployment_sync_id']
+          files = dict(update.get('files') or {})
+          files['tools/appointment-price-snapshot-check.php'] = ''
+          total = 0
+          normalized = {}
+          for relative in sorted(files):
+              path = root / relative
+              if not path.is_file():
+                  raise RuntimeError('Arquivo do manifesto ausente: ' + relative)
+              payload = path.read_bytes()
+              normalized[relative] = hashlib.sha256(payload).hexdigest()
+              total += len(payload)
+          update['files'] = normalized
+          update['file_count'] = len(normalized)
+          update['total_uncompressed_bytes'] = total
+          (root / 'version.json').write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          update_path.write_text(json.dumps(update, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          PY
       - name: Validate change
         shell: bash
         run: |
