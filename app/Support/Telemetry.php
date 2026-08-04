@@ -531,3 +531,71 @@ function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array
     }
     return array_values($days);
 }
+
+function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
+{
+    $timezone = telemetry_cuiaba_tz();
+    $today = $nowUnix === null
+        ? new DateTimeImmutable("today", $timezone)
+        : (new DateTimeImmutable("@" . max(0, $nowUnix)))
+  ->setTimezone($timezone)
+  ->setTime(0, 0);
+    $days = [];
+    $select = [];
+    $params = [];
+    for ($i = 19; $i >= 0; $i--) {
+        $day = $today->modify("-" . $i . " days");
+        $next = $day->modify("+1 day");
+        $key = $day->format("Y-m-d");
+        $days[$key] = [
+  "key" => $key,
+  "label" => $day->format("d"),
+  "tooltip" => $day->format("d/m/Y"),
+  "value" => 0,
+        ];
+        $select[] =
+  "SUM(CASE WHEN created_at>=? AND created_at<? AND status='committed' THEN mutation_count ELSE 0 END) AS d" .
+  (19 - $i);
+        $params[] = $day->getTimestamp();
+        $params[] = $next->getTimestamp();
+    }
+    if (
+        !function_exists("has_cfg") ||
+        !has_cfg() ||
+        !function_exists("db_table_exists") ||
+        !db_table_exists("pi_action_ledger")
+    ) {
+        return array_values($days);
+    }
+    try {
+        $sql =
+  "SELECT " .
+  implode(",", $select) .
+  " FROM pi_action_ledger WHERE created_at>=? AND created_at<?";
+        $first = array_key_first($days);
+        $last = array_key_last($days);
+        $params[] = new DateTimeImmutable(
+  $first . " 00:00:00",
+  $timezone,
+        )->getTimestamp();
+        $params[] = (new DateTimeImmutable(
+  $last . " 00:00:00",
+  $timezone,
+        ))
+  ->modify("+1 day")
+  ->getTimestamp();
+        $row = q($sql, $params)->fetch() ?: [];
+        $index = 0;
+        foreach ($days as &$day) {
+  $day["value"] = max(0, (int) ($row["d" . $index] ?? 0));
+  $index++;
+        }
+        unset($day);
+    } catch (Throwable $error) {
+        error_log(
+  "[Prontoo login telemetry records] " .
+      $error->getMessage(),
+        );
+    }
+    return array_values($days);
+}

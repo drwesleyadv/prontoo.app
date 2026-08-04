@@ -2614,6 +2614,102 @@
     };
     schedule();
   }
+
+  function loginTelemetryWavePath(values, maximum, width = 1000, height = 250) {
+    const clean = Array.isArray(values)
+      ? values.map((value) => Math.max(0, Number(value) || 0))
+      : [];
+    if (!clean.length) return "";
+    const top = 10;
+    const bottom = 14;
+    const plotHeight = Math.max(1, height - top - bottom);
+    const max = Math.max(1, Number(maximum) || 1);
+    const points = clean.map((value, index) => ({
+      x: clean.length <= 1 ? 0 : index * (width / (clean.length - 1)),
+      y: top + plotHeight - (value / max) * plotHeight,
+    }));
+    const format = (value) => Number(value.toFixed(2)).toString();
+    if (points.length === 1) {
+      const y = format(points[0].y);
+      return `M 0 ${y} L ${width} ${y}`;
+    }
+    let path = `M ${format(points[0].x)} ${format(points[0].y)}`;
+    for (let index = 1; index < points.length; index += 1) {
+      const previous = points[index - 1];
+      const current = points[index];
+      const middleX = (previous.x + current.x) / 2;
+      path += ` C ${format(middleX)} ${format(previous.y)} ${format(middleX)} ${format(current.y)} ${format(current.x)} ${format(current.y)}`;
+    }
+    return path;
+  }
+  function renderLoginTelemetryWave(wrap, payload) {
+    const requests = Array.isArray(payload?.requests)
+      ? payload.requests
+      : [];
+    const records = Array.isArray(payload?.records)
+      ? payload.records
+      : [];
+    const maximum = Math.max(
+      1,
+      ...requests.map((value) => Math.max(0, Number(value) || 0)),
+      ...records.map((value) => Math.max(0, Number(value) || 0)),
+    );
+    const requestPath = $('[data-wave-series="requests"]', wrap);
+    const recordPath = $('[data-wave-series="records"]', wrap);
+    if (requestPath)
+      requestPath.setAttribute(
+        "d",
+        loginTelemetryWavePath(requests, maximum),
+      );
+    if (recordPath)
+      recordPath.setAttribute(
+        "d",
+        loginTelemetryWavePath(records, maximum),
+      );
+  }
+  function initLoginTelemetryWave(root = d) {
+    const wrap = $("[data-login-telemetry-wave]", root);
+    if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
+    wrap.dataset.loginTelemetryWaveReady = "1";
+    const endpoint = String(wrap.dataset.refreshUrl || "");
+    if (!endpoint) return;
+    const interval = Math.max(
+      60000,
+      Number(wrap.dataset.refreshMs) || 900000,
+    );
+    let lastRefresh = Date.now();
+    let refreshing = false;
+    const refresh = async (force = false) => {
+      if (refreshing) return;
+      if (d.visibilityState && d.visibilityState !== "visible") return;
+      if (!force && Date.now() - lastRefresh < interval) return;
+      refreshing = true;
+      try {
+        const response = await fetch(endpoint, {
+method: "GET",
+credentials: "same-origin",
+cache: "no-store",
+headers: { Accept: "application/json" },
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        renderLoginTelemetryWave(wrap, payload);
+        lastRefresh = Date.now();
+      } catch (_) {
+      } finally {
+        refreshing = false;
+      }
+    };
+    w.setInterval(refresh, interval);
+    d.addEventListener(
+      "visibilitychange",
+      () => {
+        if (!d.visibilityState || d.visibilityState === "visible")
+refresh();
+      },
+      { passive: true },
+    );
+  }
   function initAdminGlobalChartsRefresh(root = d) {
     const wrap = $("[data-admin-global-charts]", root);
     if (!wrap || wrap.dataset.adminChartRefreshReady) return;
@@ -2748,6 +2844,7 @@
     });
   }
   function init(root = d) {
+    initLoginTelemetryWave(root);
     initAdminGlobalChartsRefresh(root);
     initDeviceFingerprint(root);
     initVersionGate(root);

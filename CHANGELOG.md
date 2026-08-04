@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.4.4 — Ondulação dinâmica no login
+
+- ocupa os 25% inferiores da viewport do login com duas curvas decorativas;
+- reutiliza as séries públicas de Requisições e Registros dos últimos 20 dias;
+- remove eixos, escalas, grades, pontos, legendas e tooltips;
+- usa `#1f6f56` para Requisições e `#347963` para Registros;
+- atualiza os dados discretamente a cada 15 minutos, sem bloquear ou receber interação;
+- preserva integralmente o formulário de autenticação;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.3 — Tons exatos em Leitura e gravação
 
 - define o preenchimento de Requisições no tom escuro `#1f6f56`;
