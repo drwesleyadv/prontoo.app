@@ -147,7 +147,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.4.8";
+const PRONTOO_VERSION_FALLBACK = "1.8.4.9";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.11";
 function prontoo_release_metadata(): array
 {
@@ -269,8 +269,8 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.8.4.7";
-const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.10";
+const PRONTOO_PREVIOUS_VERSION = "1.8.4.8";
+const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.11";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
 const PRONTOO_MIN_MYSQL_VERSION = "8.0.30";

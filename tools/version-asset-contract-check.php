@@ -28,20 +28,79 @@ foreach ($assets as $assetFile) {
         throw new RuntimeException('Asset público ausente: ' . $assetFile);
     }
 }
-$css = @file_get_contents($root . '/public/assets/design-system.css');
-if (!is_string($css) || !str_contains($css, 'pix-' . $assetRevision . '.svg')) {
+$css = (string) @file_get_contents($root . '/public/assets/design-system.css');
+if (!str_contains($css, 'pix-' . $assetRevision . '.svg')) {
     throw new RuntimeException('CSS diverge do asset_version.');
 }
-$javascript = @file_get_contents($root . '/public/assets/app.js');
-if (!is_string($javascript) ||
-    !str_contains($javascript, 'let needsInitialRefresh = false;') ||
-    !str_contains($javascript, 'needsInitialRefresh = true;') ||
-    !str_contains($javascript, 'if (needsInitialRefresh) refresh(true);')) {
-    throw new RuntimeException('Carga inicial das faixas autenticadas ausente.');
+$javascript = (string) @file_get_contents($root . '/public/assets/app.js');
+foreach ([
+    'let needsInitialRefresh = false;',
+    'needsInitialRefresh = true;',
+    'if (needsInitialRefresh) refresh(true);',
+    'endpoint.searchParams.set("r", "login_telemetry_wave");',
+    'renderLoginTelemetryWave(wrap, payload);',
+] as $contract) {
+    if (!str_contains($javascript, $contract)) {
+        throw new RuntimeException('Contrato JavaScript das faixas ausente: ' . $contract);
+    }
+}
+$runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
+$loader = (string) @file_get_contents($root . '/app/Support/ModuleLoader.php');
+$auth = (string) @file_get_contents($root . '/app/Auth/AuthOnboarding.php');
+$section = static function (string $source, string $start, string $end): string {
+    $from = strpos($source, $start);
+    $to = $from === false ? false : strpos($source, $end, $from + strlen($start));
+    if ($from === false || $to === false || $to <= $from) {
+        throw new RuntimeException('Seção de contrato ausente: ' . $start);
+    }
+    return substr($source, $from, $to - $from);
+};
+foreach ([
+    'mapa executável' => $section($runner, 'function prontoo_route_map(): array', 'function prontoo_public_runtime_routes(): array'),
+    'mapa público' => $section($runner, 'function prontoo_public_runtime_routes(): array', 'function prontoo_json_runtime_routes(): array'),
+    'mapa JSON' => $section($runner, 'function prontoo_json_runtime_routes(): array', 'function prontoo_route_wants_json(string $route): bool'),
+    'boot público leve' => $section($runner, 'function prontoo_route_is_public_light(string $route): bool', 'function prontoo_schema_boot_marker_path(): string'),
+] as $label => $source) {
+    if (!str_contains($source, '"login_telemetry_wave"')) {
+        throw new RuntimeException('Rota das faixas ausente em ' . $label . '.');
+    }
+}
+$run = $section($runner, 'function prontoo_run(bool $installMode = false): void', 'function prontoo_patient_tab_active_rows(');
+foreach ([
+    '$publicTelemetry = $r === "login_telemetry_wave";',
+    '$publicStatus = $r === "status" || $publicTelemetry;',
+    'headers_secure($publicStatus);',
+    '$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();',
+    'if (!$publicTelemetry) {',
+    'if ($r !== "logout") {',
+    'if ($r !== "logout" && !$publicStatus) {',
+] as $contract) {
+    if (!str_contains($run, $contract)) {
+        throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
+    }
+}
+if (!str_contains($loader, "'login_telemetry_wave' => []")) {
+    throw new RuntimeException('ModuleLoader não reconhece a rota das faixas.');
+}
+if (!str_contains($auth, 'function page_login_telemetry_wave(): void')) {
+    throw new RuntimeException('Endpoint JSON das faixas ausente.');
+}
+foreach ([
+    'body.has-telemetry-mountains .login-telemetry-wave{',
+    'display:block;',
+    'height:15vh;',
+    'pointer-events:none;',
+    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.3}',
+] as $contract) {
+    if (!str_contains($css, $contract)) {
+        throw new RuntimeException('Contrato CSS das faixas ausente: ' . $contract);
+    }
 }
 echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
     'assets_verified' => count($assets),
     'authenticated_initial_refresh' => true,
+    'telemetry_route_registered' => true,
+    'telemetry_route_public_json' => true,
 ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;

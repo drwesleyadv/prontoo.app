@@ -1,5 +1,16 @@
 # Histórico de versões
 
+## 1.8.4.9 — Rota efetiva das faixas autenticadas
+
+- corrige exclusivamente a cadeia de exibição das faixas na área autenticada;
+- registra `login_telemetry_wave` no mapa executável do `Runner`, evitando o fallback silencioso para `page_home`;
+- registra o endpoint como rota pública, JSON e de boot leve;
+- impede que a consulta agregada passe por contexto autenticado, integridade de ação, manutenção de tela ou flush de renderização;
+- preserva a montagem imediata, as séries, as cores, a opacidade, a altura e o intervalo de atualização;
+- integra ao contrato de assets a verificação regressiva da rota, do endpoint, do JavaScript e do CSS das faixas;
+- mantém a revisão de assets `1.7.15.11` porque JavaScript e CSS não foram alterados;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.8 — Carga inicial das faixas autenticadas
 
 - corrige a área autenticada, que criava o SVG com caminhos vazios e aguardava até 15 minutos para consultar a telemetria;
