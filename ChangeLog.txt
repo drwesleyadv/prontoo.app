@@ -1,3 +1,11 @@
+Prontoo 1.8.4.3 — Tons exatos em Leitura e gravação
+
+- Requisições passa a usar o tom escuro #1f6f56.
+- Registros passa a usar o tom claro #347963.
+- Permanecem a opacidade de 50% e a ausência de contornos e marcadores finais.
+- A alteração vale para o Painel do Desenvolvedor e para `/status`.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.4.2 — Áreas translúcidas em Leitura e gravação
 
 - As séries Requisições e Registros deixam de exibir contornos e marcadores finais.
