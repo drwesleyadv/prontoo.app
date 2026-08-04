@@ -2669,6 +2669,7 @@
   }
   function initLoginTelemetryWave(root = d) {
     let wrap = $("[data-login-telemetry-wave]", root);
+    let needsInitialRefresh = false;
     const loginTelemetryPublic =
       d.body &&
       d.body.classList.contains("public") &&
@@ -2699,6 +2700,7 @@
       wrap.setAttribute("aria-hidden", "true");
       wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d=""/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d=""/></svg>';
       d.body.appendChild(wrap);
+      needsInitialRefresh = true;
     }
     if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
     wrap.dataset.loginTelemetryWaveReady = "1";
@@ -2740,6 +2742,7 @@ refresh();
       },
       { passive: true },
     );
+    if (needsInitialRefresh) refresh(true);
   }
   function initAdminGlobalChartsRefresh(root = d) {
     const wrap = $("[data-admin-global-charts]", root);

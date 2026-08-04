@@ -32,8 +32,16 @@ $css = @file_get_contents($root . '/public/assets/design-system.css');
 if (!is_string($css) || !str_contains($css, 'pix-' . $assetRevision . '.svg')) {
     throw new RuntimeException('CSS diverge do asset_version.');
 }
+$javascript = @file_get_contents($root . '/public/assets/app.js');
+if (!is_string($javascript) ||
+    !str_contains($javascript, 'let needsInitialRefresh = false;') ||
+    !str_contains($javascript, 'needsInitialRefresh = true;') ||
+    !str_contains($javascript, 'if (needsInitialRefresh) refresh(true);')) {
+    throw new RuntimeException('Carga inicial das faixas autenticadas ausente.');
+}
 echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
     'assets_verified' => count($assets),
+    'authenticated_initial_refresh' => true,
 ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;
