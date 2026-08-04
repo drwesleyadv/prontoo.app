@@ -25,6 +25,7 @@ jobs:
           from pathlib import Path
           import re
 
+          pattern = re.compile(r'Requisições|Registros|Leitura e gravação|primary_label|secondary_label|metric-chart-(?:fill|line|dot)-(?:load|response)|metric-dual-time-chart', re.I)
           out = []
           for path in Path('.').rglob('*'):
               if not path.is_file() or path.suffix.lower() not in {'.php', '.js', '.css', '.md'}:
@@ -35,10 +36,15 @@ jobs:
                   lines = path.read_text(encoding='utf-8').splitlines()
               except Exception:
                   continue
-              hits = [i for i, line in enumerate(lines) if re.search(r'Requisições|Registros|Leitura e gravação|primary_label|secondary_label', line, re.I)]
+              hits = [i for i, line in enumerate(lines) if pattern.search(line)]
+              emitted = set()
               for i in hits:
-                  start = max(0, i - 90)
-                  end = min(len(lines), i + 130)
+                  start = max(0, i - 45)
+                  end = min(len(lines), i + 70)
+                  key = (start, end)
+                  if key in emitted:
+                      continue
+                  emitted.add(key)
                   out.append(f'===== {path}:{i+1} =====')
                   for n in range(start, end):
                       out.append(f'{n+1:06d}: {lines[n]}')
@@ -52,5 +58,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tools/chart-read-write-inspection.txt
-          git commit -m "Inspect read write chart implementation"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Expand read write chart inspection"
           git push origin HEAD:agent/chart-read-write-fill-20260804
