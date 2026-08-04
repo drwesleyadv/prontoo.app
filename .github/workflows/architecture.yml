@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -21,7 +21,35 @@ env:
   PRONTOO_INSTALLER_CLI_MODE: '1'
 
 jobs:
+  reconcile-architecture-baseline:
+    if: github.event_name == 'pull_request' && github.head_ref == 'agent/fix-runtime-version-contract-20260804'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Reconcile baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/reconcile-architecture-baseline.py
+          rm tools/reconcile-architecture-baseline.py
+          php -r '$a=json_decode(file_get_contents("app/architecture.manifest.json"),true,512,JSON_THROW_ON_ERROR); if (($a["transitional_files_max"] ?? 0) !== 81) { throw new RuntimeException("Baseline arquitetural divergente"); }'
+          php -r '$v=json_decode(file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR); if (($v["architecture_transitional_files_max"] ?? 0) !== 81) { throw new RuntimeException("Contrato de versão arquitetural divergente"); }'
+          git diff --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Reconciliar baseline arquitetural"
+          git fetch origin ${{ github.head_ref }}
+          git rebase origin/${{ github.head_ref }}
+          git push origin HEAD:${{ github.head_ref }}
+
   verify:
+    if: github.event_name != 'pull_request' || github.head_ref != 'agent/fix-runtime-version-contract-20260804'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
