@@ -1,0 +1,46 @@
+name: Fix Auth Telemetry Route
+
+on:
+  push:
+    branches:
+      - agent/fix-auth-telemetry-route-20260804
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/fix-auth-telemetry-route-20260804
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply focused correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/apply-auth-telemetry-route-fix.py
+          php -l app/Runtime/Runner.php
+          php -l tools/auth-telemetry-route-contract-check.php
+          php -l app/prontoo.php
+          php -l br/index.php
+          node --check public/assets/app.js
+          php tools/auth-telemetry-route-contract-check.php
+          php tools/version-asset-contract-check.php
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          git diff --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Corrigir rota das faixas autenticadas"
+          git push origin HEAD:agent/fix-auth-telemetry-route-20260804
