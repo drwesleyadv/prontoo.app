@@ -57,8 +57,8 @@ jobs:
           from pathlib import Path
           path = Path('/tmp/apply.py')
           source = path.read_text(encoding='utf-8')
-          needle = "              '.github/workflows/read-write-exact-colors-executor.yml',\n"
-          replacement = needle + "              '.github/workflows/read-write-exact-colors-pr.yml',\n"
+          needle = "    '.github/workflows/read-write-exact-colors-executor.yml',\n"
+          replacement = needle + "    '.github/workflows/read-write-exact-colors-pr.yml',\n"
           count = source.count(needle)
           if count != 2:
               raise SystemExit(f'expected two temporary path anchors, found {count}')
