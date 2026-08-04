@@ -1,3 +1,12 @@
+Prontoo 1.8.4.5 — Montanhas de telemetria no login
+
+- A altura da composição passa de 25% para 15% da viewport.
+- As duas curvas passam a preencher toda a área abaixo do traçado.
+- Os contornos são removidos.
+- Requisições permanece em #1f6f56 e Registros em #347963.
+- Cada montanha usa 70% de transparência, ou opacidade 0,30.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.4.4 — Ondulação dinâmica no login
 
 - O rodapé visual do login passa a ocupar os 25% inferiores da tela.

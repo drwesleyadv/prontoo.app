@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.4.5 — Montanhas de telemetria no login
+
+- limita a composição dinâmica aos 15% inferiores da viewport;
+- transforma as curvas em áreas preenchidas até a margem inferior;
+- remove integralmente o contorno das duas séries;
+- mantém `#1f6f56` em Requisições e `#347963` em Registros;
+- aplica 70% de transparência, equivalente a opacidade `0.30`, em cada montanha;
+- preserva dados, atualização e ausência de interação;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.4 — Ondulação dinâmica no login
 
 - ocupa os 25% inferiores da viewport do login com duas curvas decorativas;

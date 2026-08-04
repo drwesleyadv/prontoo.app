@@ -3637,18 +3637,32 @@ function login_telemetry_wave_path(
     $points = [];
     foreach ($values as $index => $value) {
         $x =
-  $count <= 1
-      ? 0.0
-      : $index * ($width / ($count - 1));
+            $count <= 1
+                ? 0.0
+                : $index * ($width / ($count - 1));
         $y =
-  $top +
-  $plotHeight -
-  (max(0.0, (float) $value) / $maximum) * $plotHeight;
+            $top +
+            $plotHeight -
+            (max(0.0, (float) $value) / $maximum) * $plotHeight;
         $points[] = [$x, $y];
     }
+    $widthValue = $format((float) $width);
+    $heightValue = $format((float) $height);
     if ($count === 1) {
         $y = $format($points[0][1]);
-        return "M 0 " . $y . " L " . $format((float) $width) . " " . $y;
+        return "M 0 " .
+            $y .
+            " L " .
+            $widthValue .
+            " " .
+            $y .
+            " L " .
+            $widthValue .
+            " " .
+            $heightValue .
+            " L 0 " .
+            $heightValue .
+            " Z";
     }
     $path =
         "M " .
@@ -3656,24 +3670,31 @@ function login_telemetry_wave_path(
         " " .
         $format($points[0][1]);
     for ($index = 1; $index < $count; $index++) {
-        $previous = $points[$index - 1];
+        $previousPoint = $points[$index - 1];
         $current = $points[$index];
-        $middleX = ($previous[0] + $current[0]) / 2;
+        $middleX = ($previousPoint[0] + $current[0]) / 2;
         $path .=
-  " C " .
-  $format($middleX) .
-  " " .
-  $format($previous[1]) .
-  " " .
-  $format($middleX) .
-  " " .
-  $format($current[1]) .
-  " " .
-  $format($current[0]) .
-  " " .
-  $format($current[1]);
+            " C " .
+            $format($middleX) .
+            " " .
+            $format($previousPoint[1]) .
+            " " .
+            $format($middleX) .
+            " " .
+            $format($current[1]) .
+            " " .
+            $format($current[0]) .
+            " " .
+            $format($current[1]);
     }
-    return $path;
+    return $path .
+        " L " .
+        $widthValue .
+        " " .
+        $heightValue .
+        " L 0 " .
+        $heightValue .
+        " Z";
 }
 
 function login_telemetry_wave_data(): array

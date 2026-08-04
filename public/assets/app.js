@@ -2631,7 +2631,7 @@
     const format = (value) => Number(value.toFixed(2)).toString();
     if (points.length === 1) {
       const y = format(points[0].y);
-      return `M 0 ${y} L ${width} ${y}`;
+      return `M 0 ${y} L ${width} ${y} L ${width} ${height} L 0 ${height} Z`;
     }
     let path = `M ${format(points[0].x)} ${format(points[0].y)}`;
     for (let index = 1; index < points.length; index += 1) {
@@ -2640,7 +2640,7 @@
       const middleX = (previous.x + current.x) / 2;
       path += ` C ${format(middleX)} ${format(previous.y)} ${format(middleX)} ${format(current.y)} ${format(current.x)} ${format(current.y)}`;
     }
-    return path;
+    return `${path} L ${width} ${height} L 0 ${height} Z`;
   }
   function renderLoginTelemetryWave(wrap, payload) {
     const requests = Array.isArray(payload?.requests)
