@@ -1,5 +1,16 @@
 # Histórico de versões
 
+## 1.8.4.6 — Ondas autenticadas na paleta do consultório
+
+- corrige a exibição das montanhas de telemetria no rodapé da área autenticada;
+- aplica à camada autenticada as mesmas dimensões, recorte e opacidade usadas no login;
+- inclui a tela Criar Consultório na inicialização das faixas dinâmicas;
+- mantém no login as cores verdes já aprovadas;
+- usa `--clinic-accent-strong` em Requisições e `--clinic-accent` em Registros na área logada e na criação do consultório;
+- acompanha dinamicamente a cor de destaque selecionada para o consultório;
+- preserva a camada sem interação, contornos, eixos, escalas ou tooltips;
+- não altera banco de dados nem schema.
+
 ## 1.8.4.5 — Montanhas de telemetria no login
 
 - limita a composição dinâmica aos 15% inferiores da viewport;
