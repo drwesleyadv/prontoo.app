@@ -273,7 +273,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.8.4.6",
-    "updated_at": "2026-08-04T20:05:12+00:00",
+    "updated_at": "2026-08-04T20:05:41+00:00",
     "notes": "Contrato de publicação corrigido para o conjunto real de assets públicos 1.7.15.10.",
     "deployment_sync_id": "github-runtime-version-contract-assets-1-8-4-7",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
