@@ -272,7 +272,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.8.3.5",
-    "updated_at": "2026-08-04T13:50:11.973521+00:00",
+    "updated_at": "2026-08-04T13:50:20+00:00",
     "notes": "O preço informado no agendamento torna-se o valor contratual da cobrança e não acompanha reajustes posteriores do procedimento.",
     "deployment_sync_id": "github-appointment-price-snapshot-1-8-4-1",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
