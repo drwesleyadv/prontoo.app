@@ -2631,7 +2631,7 @@
     const format = (value) => Number(value.toFixed(2)).toString();
     if (points.length === 1) {
       const y = format(points[0].y);
-      return `M 0 ${y} L ${width} ${y}`;
+      return `M 0 ${y} L ${width} ${y} L ${width} ${height} L 0 ${height} Z`;
     }
     let path = `M ${format(points[0].x)} ${format(points[0].y)}`;
     for (let index = 1; index < points.length; index += 1) {
@@ -2640,7 +2640,7 @@
       const middleX = (previous.x + current.x) / 2;
       path += ` C ${format(middleX)} ${format(previous.y)} ${format(middleX)} ${format(current.y)} ${format(current.x)} ${format(current.y)}`;
     }
-    return path;
+    return `${path} L ${width} ${height} L 0 ${height} Z`;
   }
   function renderLoginTelemetryWave(wrap, payload) {
     const requests = Array.isArray(payload?.requests)
@@ -2668,7 +2668,20 @@
       );
   }
   function initLoginTelemetryWave(root = d) {
-    const wrap = $("[data-login-telemetry-wave]", root);
+    let wrap = $("[data-login-telemetry-wave]", root);
+    if (!wrap && d.body && !d.body.classList.contains("public")) {
+      wrap = d.createElement("div");
+      wrap.className = "login-telemetry-wave app-telemetry-mountains";
+      wrap.dataset.loginTelemetryWave = "1";
+      wrap.dataset.refreshMs = "900000";
+      const endpoint = new URL(w.location.href);
+      endpoint.search = "";
+      endpoint.searchParams.set("r", "login_telemetry_wave");
+      wrap.dataset.refreshUrl = endpoint.toString();
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d=""/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d=""/></svg>';
+      d.body.appendChild(wrap);
+    }
     if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
     wrap.dataset.loginTelemetryWaveReady = "1";
     const endpoint = String(wrap.dataset.refreshUrl || "");
