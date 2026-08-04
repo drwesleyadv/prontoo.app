@@ -1,3 +1,11 @@
+Prontoo 1.8.4.2 — Áreas translúcidas em Leitura e gravação
+
+- As séries Requisições e Registros deixam de exibir contornos e marcadores finais.
+- As áreas preenchidas passam a usar 50% de opacidade.
+- A alteração vale igualmente para o Painel do Desenvolvedor e para `/status`.
+- O gráfico Velocidade permanece inalterado.
+- Banco de dados e schema permanecem inalterados.
+
 Prontoo 1.8.4.1 — Preço fixado no agendamento
 
 - O valor vigente do procedimento passa a ser gravado no momento do agendamento.
