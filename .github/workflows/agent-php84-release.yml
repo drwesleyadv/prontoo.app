@@ -55,7 +55,7 @@ jobs:
           tools: none
           extensions: pdo_mysql
       - name: Generate release
-        run: python3 .agent-php84-architecture-fix.py
+        run: python3 .agent-php84-inline-fix.py
       - name: Assert current runtime family
         shell: bash
         run: |
