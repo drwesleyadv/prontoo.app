@@ -55,7 +55,7 @@ jobs:
           tools: none
           extensions: pdo_mysql
       - name: Generate release
-        run: python3 .agent-php84-fix.py
+        run: python3 .agent-php84-architecture-fix.py
       - name: Assert current runtime family
         shell: bash
         run: |
@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          php tools/php84-runtime-contract-check.php
+          php tools/php84-runtime-contract-check
           php tools/version-asset-contract-check.php
           php tools/documentation-check.php
           php tools/code-comment-check.php
