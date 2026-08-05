@@ -9,7 +9,7 @@ on:
       - prontoo
 
 concurrency:
-  group: php84-exclusive-${{ github.event.pull_request.number || github.ref }}
+  group: php84-exclusive-runtime-1-8-5-2
   cancel-in-progress: true
 
 permissions:
