@@ -281,7 +281,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.8.5.1",
-    "updated_at": "2026-08-05T23:31:14+00:00",
+    "updated_at": "2026-08-05T23:31:26+00:00",
     "notes": "Runtime web, cron e CI limitado exclusivamente à família PHP 8.4.",
     "deployment_sync_id": "github-prontoo-1.8.5.2-php84-exclusive-runtime",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
