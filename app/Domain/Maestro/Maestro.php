@@ -696,11 +696,36 @@ function maestro_priority(mixed $v): int
 
     return max(1, min(100, (int) $v));
 }
-function maestro_due_dt(int $offsetDays = 0): ?string
+function maestro_local_day(int $clinicId, int $offsetDays = 0): string
 {
-
+    $offsetDays = max(-365, min(365, $offsetDays));
+    $modifier = ($offsetDays >= 0 ? "+" : "") . $offsetDays . " days";
+    return app_now_in_timezone($clinicId)
+        ->setTime(0, 0, 0)
+        ->modify($modifier)
+        ->format("Y-m-d");
+}
+function maestro_local_day_utc_range(int $clinicId, string $day): array
+{
+    [$start, $end] = app_local_day_utc_range($day, $clinicId);
+    return [
+        gmdate("Y-m-d H:i:s", (int) $start),
+        gmdate("Y-m-d H:i:s", (int) $end),
+    ];
+}
+function maestro_due_dt(int $offsetDays = 0, int $clinicId = 0): ?string
+{
     $offsetDays = max(0, min(365, $offsetDays));
-    return date("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days"));
+    if ($clinicId <= 0) {
+        return gmdate("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days UTC"));
+    }
+    $local = new DateTimeImmutable(
+        maestro_local_day($clinicId, $offsetDays) . " 17:00:00",
+        new DateTimeZone(app_context_timezone(null, $clinicId)),
+    );
+    return $local
+        ->setTimezone(new DateTimeZone("UTC"))
+        ->format("Y-m-d H:i:s");
 }
 function maestro_apply_placeholders(string $template, array $vars): string
 {
@@ -740,7 +765,7 @@ function maestro_save_rule(array $c): void
         (string) ($_POST["action_type"] ??
             ($item["default_action"] ?? "create_task"));
     if (!isset($actions[$action])) {
-        $action = "create_task";
+        throw new RuntimeException("Ação da rotina inválida.");
     }
     $name = maestro_text((string) ($_POST["name"] ?? ""), 160);
     if ($name === "") {
@@ -764,18 +789,18 @@ function maestro_save_rule(array $c): void
     );
     $targetScope = (string) ($_POST["target_scope"] ?? "role");
     if (!in_array($targetScope, ["clinic", "role", "user"], true)) {
-        $targetScope = "clinic";
+        throw new RuntimeException("Escopo de destinatário inválido.");
     }
     $targetRole =
         (string) ($_POST["target_role"] ??
             ($item["default_target_role"] ?? "recepcionista"));
     $roleOpts = clinic_role_options($cid, true);
     if ($targetScope === "role" && !isset($roleOpts[$targetRole])) {
-        $targetRole = array_key_first($roleOpts) ?: "recepcionista";
+        throw new RuntimeException("Cargo destinatário inválido para o consultório.");
     }
     $targetUserId = max(0, (int) ($_POST["target_user_id"] ?? 0));
     if ($targetScope === "user" && !clinic_user_exists($cid, $targetUserId)) {
-        $targetScope = "clinic";
+        throw new RuntimeException("Pessoa destinatária inválida para o consultório.");
     }
     if ($targetScope !== "role") {
         $targetRole = null;
@@ -1339,11 +1364,8 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
     $activeTask = "'aberta','em_andamento','aguardando'";
     try {
         if ($trigger === "appointment_before_start") {
-            $start = date("Y-m-d 00:00:00", strtotime("+" . $amount . " days"));
-            $end = date(
-                "Y-m-d 00:00:00",
-                strtotime("+" . ($amount + 1) . " days"),
-            );
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
                 "SELECT a.id,a.patient_link_id,a.doctor_user_id,a.start_at,a.reason,p.full_name AS patient_name,u.name AS doctor_name FROM pi_appointments a LEFT JOIN pi_patients pl ON pl.id=a.patient_link_id AND pl.clinic_id=a.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id LEFT JOIN pi_users u ON u.id=a.doctor_user_id AND EXISTS (SELECT 1 FROM pi_user_roles ur_doc WHERE ur_doc.user_id=u.id AND ur_doc.clinic_id=a.clinic_id AND ur_doc.active=1) WHERE a.clinic_id=? AND a.start_at>=? AND a.start_at<? AND a.status NOT IN ('cancelado','nao_compareceu','reagendado','atendimento_concluido','finalizado') ORDER BY a.start_at ASC LIMIT $limit",
                 [$cid, $start, $end],
@@ -1498,9 +1520,13 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "appointment_today_without_patient") {
+            [$start, $end] = maestro_local_day_utc_range(
+                $cid,
+                maestro_local_day($cid),
+            );
             $rows = q(
-                "SELECT id,start_at,reason FROM pi_appointments WHERE clinic_id=? AND DATE(start_at)=CURDATE() AND patient_link_id IS NULL AND status<>'cancelado' ORDER BY start_at ASC LIMIT $limit",
-                [$cid],
+                "SELECT id,start_at,reason FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND patient_link_id IS NULL AND status<>'cancelado' ORDER BY start_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $ts = app_storage_timestamp($r["start_at"]);
@@ -1547,14 +1573,15 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "lead_next_action_before_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,name,next_action_at,interest FROM pi_leads WHERE clinic_id=? AND stage NOT IN ('convertido','arquivado','descartado') AND next_action_at IS NOT NULL AND DATE(next_action_at)=? ORDER BY next_action_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,name,next_action_at,interest FROM pi_leads WHERE clinic_id=? AND stage NOT IN ('convertido','arquivado','descartado') AND next_action_at IS NOT NULL AND next_action_at>=? AND next_action_at<? ORDER BY next_action_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $ts = app_storage_timestamp($r["next_action_at"]);
-                $occ = $ts ? date("Ymd", $ts) : str_replace("-", "", $day);
+                $occ = str_replace("-", "", $day);
                 $out[] = maestro_match_base(
                     [
                         "origem" => "interessado",
@@ -1693,9 +1720,9 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "patient_birthday_before_days") {
-            $target = date("Y-m-d", strtotime("+" . $amount . " days"));
-            $md = date("m-d", strtotime($target));
-            $year = date("Y", strtotime($target));
+            $target = maestro_local_day($cid, $amount);
+            $md = substr($target, 5, 5);
+            $year = substr($target, 0, 4);
             $rows = q(
                 "SELECT pl.id AS patient_link_id, p.full_name, p.birth_date FROM pi_patients pl INNER JOIN pi_persons p ON p.id=pl.person_id WHERE pl.clinic_id=? AND pl.active=1 AND pl.deleted_at IS NULL AND p.birth_date IS NOT NULL AND DATE_FORMAT(p.birth_date,'%m-%d')=? ORDER BY p.full_name ASC LIMIT $limit",
                 [$cid, $md],
@@ -1707,9 +1734,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                         "origem" => "paciente",
                         "consultorio" => $clinic,
                         "paciente" => $r["full_name"] ?: "paciente",
-                        "data" => $birthTs
-                            ? date("d/m", $birthTs) . "/" . $year
-                            : date("d/m/Y", strtotime($target)),
+                        "data" => substr($target, 8, 2) .
+                            "/" .
+                            substr($target, 5, 2) .
+                            "/" .
+                            $year,
                         "hora" => "",
                         "dias" => $prazo,
                         "prazo" => $prazo,
@@ -1810,10 +1839,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "document_issued_after_days") {
-            $day = date("Y-m-d", strtotime("-" . $amount . " days"));
+            $day = maestro_local_day($cid, -$amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,patient_link_id,issued_at,document_identifier FROM pi_documents WHERE clinic_id=? AND document_status='emitido' AND DATE(issued_at)=? ORDER BY issued_at DESC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,patient_link_id,issued_at,document_identifier FROM pi_documents WHERE clinic_id=? AND document_status='emitido' AND issued_at>=? AND issued_at<? ORDER BY issued_at DESC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -1843,10 +1873,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "task_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,due_at FROM pi_tasks WHERE clinic_id=? AND status IN ($activeTask) AND due_at IS NOT NULL AND DATE(due_at)=? ORDER BY due_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,due_at FROM pi_tasks WHERE clinic_id=? AND status IN ($activeTask) AND due_at IS NOT NULL AND due_at>=? AND due_at<? ORDER BY due_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -1937,10 +1968,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "revenue_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,patient_link_id,expected_at,amount_cents FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND DATE(expected_at)=? ORDER BY expected_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,patient_link_id,expected_at,amount_cents FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND expected_at>=? AND expected_at<? ORDER BY expected_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -2001,7 +2033,7 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "expense_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
             $rows = q(
                 "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at=? ORDER BY due_at ASC LIMIT $limit",
                 [$cid, $day],
@@ -2027,9 +2059,10 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "expense_overdue_after_days") {
+            $cutoff = maestro_local_day($cid, -$amount);
             $rows = q(
-                "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at IS NOT NULL AND due_at<=DATE_SUB(CURDATE(), INTERVAL ? DAY) ORDER BY due_at ASC LIMIT $limit",
-                [$cid, $amount],
+                "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at IS NOT NULL AND due_at<=? ORDER BY due_at ASC LIMIT $limit",
+                [$cid, $cutoff],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -2174,16 +2207,17 @@ function maestro_create_action(array $rule, array $match): array
     $userId = isset($act["target_user_id"])
         ? (int) $act["target_user_id"]
         : null;
+    if (!in_array($scope, ["clinic", "role", "user"], true)) {
+        throw new RuntimeException("Escopo de destinatário inválido para a ação.");
+    }
     if (
         $scope === "role" &&
         !array_key_exists((string) $role, clinic_role_options($cid, true))
     ) {
-        $scope = "clinic";
-        $role = null;
+        throw new RuntimeException("Cargo destinatário indisponível para a ação.");
     }
     if ($scope === "user" && (!$userId || !clinic_user_exists($cid, $userId))) {
-        $scope = "clinic";
-        $userId = null;
+        throw new RuntimeException("Pessoa destinatária indisponível para a ação.");
     }
     if ($scope !== "role") {
         $role = null;
@@ -2229,7 +2263,7 @@ function maestro_create_action(array $rule, array $match): array
         $sourceEvent,
         $sourceEntity,
         $sourceId,
-        maestro_due_dt((int) ($act["due_offset_days"] ?? 0)),
+        maestro_due_dt((int) ($act["due_offset_days"] ?? 0), $cid),
         $scope,
         $role,
         true,
@@ -2452,20 +2486,19 @@ function maestro_supervised_remaining_ms(float $deadline): int
 function maestro_supervised_with_clinic_timezone(int $clinicId, callable $callback): mixed
 {
     $previousTimezone = date_default_timezone_get();
+    $hadDisplayTimezone = array_key_exists("PRONTOO_DISPLAY_TIMEZONE", $GLOBALS);
+    $previousDisplayTimezone = $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? null;
     $timezone = app_context_timezone(null, $clinicId);
-    $offset = app_timezone_offset_string($timezone);
     try {
+        $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = $timezone;
         @date_default_timezone_set($timezone);
-        $statement = pdo()->prepare("SET time_zone=?");
-        $statement->execute([$offset]);
         return $callback();
     } finally {
         @date_default_timezone_set($previousTimezone ?: "UTC");
-        try {
-            $statement = pdo()->prepare("SET time_zone=?");
-            $statement->execute(["+00:00"]);
-        } catch (Throwable $error) {
-            error_log("[Prontoo Maestro timezone restore] " . $error->getMessage());
+        if ($hadDisplayTimezone) {
+            $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = $previousDisplayTimezone;
+        } else {
+            unset($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"]);
         }
     }
 }

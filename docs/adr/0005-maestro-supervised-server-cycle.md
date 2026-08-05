@@ -21,7 +21,7 @@ O ciclo passa a usar:
 - estado pai com saúde independente;
 - rodízio entre consultórios;
 - destinatários fail-closed;
-- fuso do consultório durante avaliação e materialização;
+- datas civis calculadas no fuso do consultório e convertidas para UTC sem alterar a sessão MySQL;
 - retries com backoff para auditoria e ações;
 - distinção entre falha atual e inventário histórico;
 - invalidação seletiva de cache;

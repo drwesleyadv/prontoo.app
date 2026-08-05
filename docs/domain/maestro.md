@@ -31,7 +31,7 @@ Cada execução possui orçamento global e reservas independentes:
 4. flush de integridade;
 5. manutenção transitória.
 
-O resultado pai é persistido em `ssd/maestro/state/latest.json`. Cada estágio informa saúde, duração e contadores próprios.
+O resultado pai é persistido em `ssd/maestro/state/latest.json`. Cada estágio informa saúde, duração e contadores próprios. A sessão MySQL permanece em UTC durante todo o ciclo.
 
 ## Regras agendadas
 
@@ -40,7 +40,7 @@ A seleção aplica rodízio entre consultórios antes de preencher a capacidade 
 A materialização possui estas garantias:
 
 - isolamento explícito pelo `clinic_id`;
-- cálculo de janelas e vencimentos no fuso do consultório;
+- cálculo de janelas no fuso do consultório, convertido explicitamente para UTC antes da consulta ou persistência;
 - destinatário validado em modo fail-closed;
 - ledger idempotente por regra, origem e ação;
 - retomada de estados `running` interrompidos;

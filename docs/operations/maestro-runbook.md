@@ -36,7 +36,7 @@ Eventos com `skipped_policy` foram consumidos porque a política atual não perm
 
 `retrying` representa ações retomadas após falha. `terminal` representa ações que atingiram cinco falhas e exigem intervenção. `candidate_window_saturated` indica que a regra encontrou o limite de 300 candidatos e deve ser revisada para confirmar progressão.
 
-Uma regra com cargo sem colaborador ativo ou usuário inválido falha de modo explícito. Corrija o destinatário; não amplie manualmente para toda a clínica como solução automática.
+Uma regra com cargo sem colaborador ativo ou usuário inválido falha de modo explícito. Corrija o destinatário; não amplie manualmente para toda a clínica como solução automática. Janelas locais são convertidas para UTC; a sessão MySQL não muda de fuso.
 
 ## Incidente
 

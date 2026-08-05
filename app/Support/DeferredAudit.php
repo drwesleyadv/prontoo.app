@@ -453,7 +453,11 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
         foreach ((array) glob($dir . "/*.json") as $file) {
             $remainingFiles[] = $file;
         }
-        $deadLetter += count((array) glob($dir . "/dead-letter/*.json"));
+        foreach ((array) glob($dir . "/dead-letter/*") as $deadFile) {
+            if (is_file($deadFile)) {
+                $deadLetter++;
+            }
+        }
     }
     $stats["remaining"] = count($remainingFiles);
     $stats["dead_letter"] = $deadLetter;

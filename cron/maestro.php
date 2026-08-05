@@ -400,8 +400,19 @@ try {
         );
         exit(1);
     }
-    $rulesBudget = min(45000, max(5000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
-    $rules = maestro_supervised_cron_run($rulesBudget);
+    $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));
+    $rules = $rulesBudget >= 5000
+        ? maestro_supervised_cron_run($rulesBudget)
+        : [
+            "success" => true,
+            "status" => "attention",
+            "rules_seen" => 0,
+            "rules_run" => 0,
+            "actions_created" => 0,
+            "deferred" => 1,
+            "errors" => 0,
+            "note" => "Regras adiadas por orçamento residual insuficiente.",
+        ];
     $deferredBudget = min(20000, max(250, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
     $deferredWork = maestro_process_deferred_work($deferredBudget, 1000);
     $integrityBudget = min(10000, max(0, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
