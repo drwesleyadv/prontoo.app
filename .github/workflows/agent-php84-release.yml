@@ -8,6 +8,10 @@ on:
     branches:
       - prontoo
 
+concurrency:
+  group: php84-exclusive-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -96,4 +100,6 @@ jobs:
           git add -A
           git diff --cached --check
           git commit -m "Publicar 1.8.5.2 com runtime exclusivo PHP 8.4 [php84-generated]"
+          git fetch origin ${RELEASE_HEAD_BRANCH}
+          git rebase origin/${RELEASE_HEAD_BRANCH}
           git push origin HEAD:${RELEASE_HEAD_BRANCH}
