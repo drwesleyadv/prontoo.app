@@ -2,7 +2,7 @@ name: Agent speed chart final
 on:
   push:
     branches:
-      - agent/straight-speed-chart-20260804
+      - prontoo
     paths:
       - .agent-speed-chart-final
 permissions:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/straight-speed-chart-20260804
+          ref: prontoo
           fetch-depth: 0
       - name: Apply scoped refinement
         run: |
@@ -86,4 +86,4 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
           git commit -m "Refinar gráfico de velocidade"
-          git push origin HEAD:agent/straight-speed-chart-20260804
+          git push origin HEAD:prontoo
