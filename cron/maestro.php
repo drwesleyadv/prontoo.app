@@ -1,19 +1,96 @@
 <?php
 declare(strict_types=1);
+
 if (PHP_SAPI !== "cli") {
     http_response_code(403);
     echo "CLI only\n";
     exit(1);
 }
+
+$__prontooCronRoot = dirname(__DIR__);
+$__prontooCronBootstrapLog = $__prontooCronRoot . "/ssd/logs/maestro-bootstrap.log";
+$__prontooCronFinished = false;
+
+function prontoo_cron_bootstrap_log(string $message): void
+{
+    global $__prontooCronBootstrapLog;
+    $dir = dirname($__prontooCronBootstrapLog);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    $line = gmdate("c") . " " . preg_replace('/\s+/u', " ", trim($message)) . PHP_EOL;
+    @file_put_contents($__prontooCronBootstrapLog, $line, FILE_APPEND | LOCK_EX);
+}
+
+register_shutdown_function(static function (): void {
+    global $__prontooCronFinished;
+    if ($__prontooCronFinished) {
+        return;
+    }
+    $error = error_get_last();
+    if (is_array($error)) {
+        prontoo_cron_bootstrap_log(
+            "shutdown type=" . (int) ($error["type"] ?? 0) .
+            " file=" . basename((string) ($error["file"] ?? "")) .
+            " line=" . (int) ($error["line"] ?? 0) .
+            " message=" . (string) ($error["message"] ?? ""),
+        );
+    }
+});
+
+if (version_compare(PHP_VERSION, "8.4.0", "<")) {
+    prontoo_cron_bootstrap_log("PHP CLI incompatível: " . PHP_VERSION);
+    fwrite(STDERR, "Prontoo requer PHP 8.4.0 ou superior. PHP atual: " . PHP_VERSION . PHP_EOL);
+    exit(1);
+}
+
 define("PRONTOO_CRON", true);
 @ini_set("memory_limit", "96M");
+@ini_set("log_errors", "1");
 @set_time_limit(120);
-require dirname(__DIR__) . "/app/prontoo.php";
-prontoo_load_full_runtime_modules();
+
+try {
+    require $__prontooCronRoot . "/app/prontoo.php";
+    prontoo_load_full_runtime_modules();
+} catch (Throwable $error) {
+    prontoo_cron_bootstrap_log("bootstrap " . $error->getMessage());
+    fwrite(
+        STDERR,
+        json_encode(
+            ["ok" => false, "stage" => "bootstrap", "error" => $error->getMessage()],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        ) . PHP_EOL,
+    );
+    exit(1);
+}
+
+function prontoo_cron_record_failure(float $startedAt, string $note): void
+{
+    if (!function_exists("maestro_supervised_record_job_run")) {
+        return;
+    }
+    maestro_supervised_record_job_run($startedAt, [
+        "success" => false,
+        "status" => "failed",
+        "rules_seen" => 0,
+        "rules_run" => 0,
+        "actions_created" => 0,
+        "deferred" => 0,
+        "errors" => 1,
+        "duration_ms" => (int) max(0, round((microtime(true) - $startedAt) * 1000)),
+        "load_score" => 0,
+        "note" => "falha: " . mb_substr(preg_replace("/\s+/u", " ", trim($note)) ?: "erro", 0, 232),
+    ]);
+}
+
+function prontoo_cron_remaining_budget_ms(float $deadline): int
+{
+    return max(0, (int) floor(($deadline - microtime(true)) * 1000));
+}
+
 function prontoo_cron_preflight_marker_path(): string
 {
-
-    $rev = defined("PRONTOO_SCHEMA_REV")
+    $revision = defined("PRONTOO_SCHEMA_REV")
         ? (string) PRONTOO_SCHEMA_REV
         : "sem_revisao";
     $version = defined("PRONTOO_VERSION")
@@ -23,14 +100,11 @@ function prontoo_cron_preflight_marker_path(): string
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }
-    return $dir .
-        "/cron_preflight_" .
-        hash("sha256", $version . "|" . $rev) .
-        ".done.json";
+    return $dir . "/cron_preflight_" . hash("sha256", $version . "|" . $revision) . ".done.json";
 }
+
 function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 {
-
     $dir = storage_path("logs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
@@ -38,31 +112,28 @@ function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
     $suffix = preg_replace("/[^a-zA-Z0-9_\-\.]/", "_", $suffix) ?: "latest";
     return $dir . "/cron_preflight_" . $suffix . ".json";
 }
-function prontoo_cron_auth_permission_reset_revision(): string
-{
 
-    return defined("PRONTOO_SCHEMA_REV")
-        ? (string) PRONTOO_SCHEMA_REV
-        : "auth_permission_reset";
-}
 function prontoo_cron_preflight_once(): array
 {
-
     $marker = prontoo_cron_preflight_marker_path();
     if (is_file($marker) && getenv("PRONTOO_CRON_PREFLIGHT_FORCE") !== "1") {
-        return ["ran" => false, "ok" => true, "marker" => basename($marker)];
+        return [
+            "ran" => false,
+            "ok" => true,
+            "warning" => false,
+            "marker" => basename($marker),
+        ];
     }
     $started = microtime(true);
     $checks = [];
-    $fail = false;
-    $warn = false;
+    $failed = false;
+    $warning = false;
     $add = static function (
         string $key,
         bool $ok,
         string $message,
         string $level = "error",
-    ) use (&$checks, &$fail, &$warn): void {
-
+    ) use (&$checks, &$failed, &$warning): void {
         $checks[] = [
             "key" => $key,
             "ok" => $ok,
@@ -70,34 +141,26 @@ function prontoo_cron_preflight_once(): array
             "message" => $message,
         ];
         if (!$ok && $level === "error") {
-            $fail = true;
+            $failed = true;
         }
         if (!$ok && $level === "warn") {
-            $warn = true;
+            $warning = true;
         }
     };
     $add("php_sapi", PHP_SAPI === "cli", "Executado por CLI.");
-    $add(
-        "php_version",
-        prontoo_php_runtime_ok(),
-        prontoo_php_runtime_message(),
-    );
-    foreach (
-        ["pdo", "pdo_mysql", "json", "openssl", "date", "hash", "session"]
-        as $ext
-    ) {
+    $add("php_version", prontoo_php_runtime_ok(), prontoo_php_runtime_message());
+    foreach (["pdo", "pdo_mysql", "json", "openssl", "date", "hash", "session"] as $extension) {
         $add(
-            "ext_" . $ext,
-            extension_loaded($ext),
-            "Extensão " . $ext . " disponível.",
+            "ext_" . $extension,
+            extension_loaded($extension),
+            "Extensão " . $extension . " disponível.",
         );
     }
-    $memRaw = prontoo_memory_limit_label();
-    $memOk = prontoo_memory_limit_meets(96 * 1024 * 1024);
+    $memoryLabel = prontoo_memory_limit_label();
     $add(
         "memory_limit",
-        $memOk,
-        "memory_limit do cron: " . $memRaw . ".",
+        prontoo_memory_limit_meets(96 * 1024 * 1024),
+        "memory_limit do cron: " . $memoryLabel . ".",
         "warn",
     );
     $free = @disk_free_space(app_root());
@@ -105,30 +168,24 @@ function prontoo_cron_preflight_once(): array
         "disk_free",
         $free !== false && $free > 1024 * 1024 * 1024,
         "Espaço livre: " .
-            ($free === false
-                ? "indisponível"
-                : round($free / 1024 / 1024, 1) . " MB") .
+            ($free === false ? "indisponível" : round($free / 1024 / 1024, 1) . " MB") .
             ".",
     );
-    $writableDirs = [
+    foreach ([
         storage_path(),
         storage_path("cache"),
-        storage_path("telemetry"),
         storage_path("logs"),
         storage_path("tmp"),
         storage_path("maestro-deferred"),
-        document_pdf_dir(),
-    ];
-    foreach ($writableDirs as $dir) {
+    ] as $dir) {
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
-        $test = rtrim($dir, "/") . "/.cron_preflight_" . getmypid();
-        $ok =
-            is_dir($dir) &&
+        $probe = rtrim($dir, "/") . "/.cron_preflight_" . getmypid();
+        $ok = is_dir($dir) &&
             is_writable($dir) &&
-            @file_put_contents($test, "ok", LOCK_EX) !== false;
-        @unlink($test);
+            @file_put_contents($probe, "ok", LOCK_EX) !== false;
+        @unlink($probe);
         $label = str_replace(app_root() . "/", "", $dir);
         $add(
             "write_" . preg_replace("/[^a-zA-Z0-9_\-]/", "_", $label),
@@ -137,110 +194,73 @@ function prontoo_cron_preflight_once(): array
         );
     }
     if (!has_cfg()) {
-        $add("config", false, "app/config.php não encontrado.");
+        $add("config", false, "Configuração não encontrada.");
     } else {
         $add("config", true, "Configuração encontrada.");
         try {
-            $pdo = pdo();
             $add(
                 "db_connect",
-                (int) $pdo->query("SELECT 1")->fetchColumn() === 1,
+                (int) pdo()->query("SELECT 1")->fetchColumn() === 1,
                 "Conexão com banco confirmada.",
             );
-            ensure_runtime_schema_minimum();
-            maestro_runtime_upgrade();
-            if (function_exists("clinic_auto_assign_missing_managers")) {
-                clinic_auto_assign_missing_managers(200);
-            }
-            $add(
-                "schema_apply",
-                true,
-                "Schema mínimo verificado pelo cron sem rotina de migração incremental.",
-            );
-            $add(
-                "auth_permission_reset",
-                true,
-                "Normalização de autenticação/permissões ocorre no index, antes da liberação do botão Entrar.",
-            );
-            $tables = [
-                "pi_users",
-                "pi_clinics",
-                "pi_patients",
-                "pi_appointments",
-                "pi_documents",
-                "pi_document_templates",
-                "pi_tasks",
+            foreach ([
                 "pi_audit",
                 "pi_maestro_rules",
+                "pi_maestro_executions",
                 "pi_maestro_job_runs",
-            ];
-            foreach ($tables as $t) {
+                "pi_maestro_job_stats",
+            ] as $table) {
                 $add(
-                    "table_" . $t,
-                    db_table_exists($t),
-                    "Tabela " . $t . " presente.",
-                    $t === "pi_maestro_rules" ? "warn" : "error",
+                    "table_" . $table,
+                    db_table_exists($table),
+                    "Tabela " . $table . " presente.",
                 );
             }
-            foreach (
-                [
-                    ["pi_documents", "context_json"],
-                    ["pi_maestro_rules", "min_interval_minutes"],
-                    ["pi_maestro_rules", "next_run_at"],
-                    ["pi_maestro_job_runs", "duration_ms"],
-                    ["pi_clinics", "monthly_price_cents"],
-                    ["pi_clinics", "document_sequence"],
-                ]
-                as [$t, $c]
-            ) {
-                if (db_table_exists($t)) {
-                    $add(
-                        "column_" . $t . "_" . $c,
-                        db_column_exists($t, $c),
-                        "Coluna " . $t . "." . $c . " presente.",
-                        "warn",
-                    );
-                }
+            foreach ([
+                ["pi_maestro_rules", "min_interval_minutes"],
+                ["pi_maestro_rules", "next_run_at"],
+                ["pi_maestro_job_runs", "duration_ms"],
+                ["pi_maestro_job_runs", "success"],
+            ] as [$table, $column]) {
+                $add(
+                    "column_" . $table . "_" . $column,
+                    db_table_exists($table) && db_column_exists($table, $column),
+                    "Coluna " . $table . "." . $column . " presente.",
+                );
             }
-        } catch (Throwable $e) {
+        } catch (Throwable $error) {
             $add(
                 "db_runtime",
                 false,
-                "Falha de banco/runtime durante conferência automática: " .
-                    $e->getMessage(),
+                "Falha de banco durante conferência somente leitura: " . $error->getMessage(),
             );
         }
     }
     $report = [
-        "ok" => !$fail,
-        "warning" => $warn,
+        "ok" => !$failed,
+        "warning" => $warning,
         "ran" => true,
         "automatic" => true,
-        "schema_revision" => defined("PRONTOO_SCHEMA_REV")
-            ? PRONTOO_SCHEMA_REV
-            : null,
+        "mutation_free" => true,
+        "schema_revision" => defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : null,
         "version" => defined("PRONTOO_VERSION") ? PRONTOO_VERSION : null,
         "duration_ms" => (int) round((microtime(true) - $started) * 1000),
-        "checked_at" => date("c"),
+        "checked_at" => gmdate("c"),
         "checks" => $checks,
     ];
-    @file_put_contents(
-        prontoo_cron_preflight_report_path("latest"),
-        json_encode(
-            $report,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
-        ),
-        LOCK_EX,
+    $encoded = json_encode(
+        $report,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
     );
-    @file_put_contents(
-        prontoo_cron_preflight_report_path(date("Ymd_His")),
-        json_encode(
-            $report,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
-        ),
-        LOCK_EX,
-    );
-    if (!$fail) {
+    if (is_string($encoded)) {
+        @file_put_contents(prontoo_cron_preflight_report_path("latest"), $encoded, LOCK_EX);
+        @file_put_contents(
+            prontoo_cron_preflight_report_path(gmdate("Ymd_His")),
+            $encoded,
+            LOCK_EX,
+        );
+    }
+    if (!$failed) {
         @file_put_contents(
             $marker,
             json_encode(
@@ -257,11 +277,101 @@ function prontoo_cron_preflight_once(): array
     }
     return $report;
 }
+
+function prontoo_cron_integrity_flush(int $budgetMs): array
+{
+    $started = microtime(true);
+    if (
+        $budgetMs < 250 ||
+        !class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")
+    ) {
+        return [
+            "ok" => $budgetMs < 250,
+            "complete" => false,
+            "mode" => "runtime-event-flush",
+            "note" => $budgetMs < 250
+                ? "Flush adiado por orçamento insuficiente."
+                : "Núcleo de integridade indisponível.",
+            "duration_ms" => 0,
+        ];
+    }
+    try {
+        \Prontoo\Core\Integrity\PiIntegrity::flushFastEvents();
+        return [
+            "ok" => true,
+            "complete" => true,
+            "mode" => "runtime-event-flush",
+            "note" => "Eventos pendentes do processo atual descarregados.",
+            "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+        ];
+    } catch (Throwable $error) {
+        return [
+            "ok" => false,
+            "complete" => false,
+            "mode" => "runtime-event-flush",
+            "note" => mb_substr($error->getMessage(), 0, 220),
+            "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+        ];
+    }
+}
+
+function prontoo_cron_maintenance(): array
+{
+    $started = microtime(true);
+    $removed = 0;
+    $cutoff = time() - 30 * 86400;
+    foreach ((array) glob(storage_path("logs/cron_preflight_*.json")) as $file) {
+        if (str_ends_with($file, "cron_preflight_latest.json")) {
+            continue;
+        }
+        if ((int) @filemtime($file) > 0 && (int) @filemtime($file) < $cutoff && @unlink($file)) {
+            $removed++;
+        }
+    }
+    $bootstrap = storage_path("logs/maestro-bootstrap.log");
+    if (is_file($bootstrap) && (int) @filesize($bootstrap) > 2 * 1024 * 1024) {
+        for ($index = 4; $index >= 1; $index--) {
+            $source = $bootstrap . "." . $index;
+            $target = $bootstrap . "." . ($index + 1);
+            if (is_file($source)) {
+                $index === 4 ? @unlink($source) : @rename($source, $target);
+            }
+        }
+        @rename($bootstrap, $bootstrap . ".1");
+    }
+    return [
+        "ok" => true,
+        "removed_transient_files" => $removed,
+        "authoritative_records_preserved" => true,
+        "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+    ];
+}
+
+function prontoo_cron_cycle_state_write(array $cycle): void
+{
+    $dir = storage_path("maestro/state");
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0750, true);
+    }
+    if (!is_dir($dir) || !is_writable($dir)) {
+        return;
+    }
+    $encoded = json_encode(
+        $cycle,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
+    );
+    if (!is_string($encoded)) {
+        return;
+    }
+    @file_put_contents($dir . "/latest.json", $encoded, LOCK_EX);
+}
+
 $__prontooCronStarted = microtime(true);
-$__prontooCronDeadline =
-    $__prontooCronStarted + PRONTOO_MAESTRO_CRON_BUDGET_MS / 1000;
+$__prontooCronDeadline = $__prontooCronStarted + PRONTOO_MAESTRO_CRON_BUDGET_MS / 1000;
+
 try {
     if (!has_cfg()) {
+        $__prontooCronFinished = true;
         echo json_encode(
             ["ok" => true, "note" => "Prontoo ainda não configurado"],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
@@ -270,146 +380,80 @@ try {
     }
     $preflight = prontoo_cron_preflight_once();
     if (!($preflight["ok"] ?? false)) {
-        error_log(
-            "[Prontoo cron preflight] Conferência automática falhou; Maestro não será executado neste ciclo.",
-        );
-        maestro_record_cron_failure(
+        prontoo_cron_record_failure(
             $__prontooCronStarted,
-            "preflight: conferência automática falhou",
+            "preflight somente leitura falhou",
         );
+        $payload = [
+            "ok" => false,
+            "stage" => "preflight",
+            "preflight" => $preflight,
+        ];
+        prontoo_cron_cycle_state_write($payload + [
+            "version" => PRONTOO_VERSION,
+            "finished_at_utc" => gmdate("c"),
+        ]);
+        $__prontooCronFinished = true;
         fwrite(
             STDERR,
-            json_encode(
-                [
-                    "ok" => false,
-                    "stage" => "preflight",
-                    "preflight" => $preflight,
-                ],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            ) . PHP_EOL,
+            json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL,
         );
         exit(1);
     }
-    ensure_runtime_schema_minimum();
-    maestro_runtime_upgrade();
-    $remainingBudget = max(
-        0,
-        (int) floor(
-            ($__prontooCronDeadline - microtime(true)) * 1000,
-        ),
-    );
-    $deferredBudget = min(
-        10000,
-        $remainingBudget,
-        max(250, (int) (PRONTOO_MAESTRO_CRON_BUDGET_MS / 10)),
-    );
-    $deferredWork =
-        $deferredBudget >= 250 &&
-        function_exists("maestro_process_deferred_work")
-        ? maestro_process_deferred_work($deferredBudget, 1000)
-        : [
-            "success" => false,
-            "errors" => 1,
-            "remaining" => 0,
-            "note" =>
-                $deferredBudget < 250
-                    ? "Orçamento global esgotado antes das rotinas secundárias."
-                    : "Consumidor de rotinas secundárias indisponível.",
-        ];
-    $remainingBudget = max(
-        0,
-        (int) floor(
-            ($__prontooCronDeadline - microtime(true)) * 1000,
-        ),
-    );
-    if (
-        $remainingBudget >= 1000 &&
-        function_exists("clinic_auto_assign_missing_managers")
-    ) {
-        clinic_auto_assign_missing_managers(200);
-    }
-    $remainingBudget = max(
-        0,
-        (int) floor(
-            ($__prontooCronDeadline - microtime(true)) * 1000,
-        ),
-    );
-    $configuredPiBudget = defined("PRONTOO_MAESTRO_PI_BUDGET_MS")
-        ? (int) PRONTOO_MAESTRO_PI_BUDGET_MS
-        : (int) max(15000, PRONTOO_MAESTRO_CRON_BUDGET_MS / 2);
-    $piBudget = min(
-        $configuredPiBudget,
-        max(0, (int) floor($remainingBudget / 2)),
-    );
-    $piResult =
-        $piBudget >= 1000 &&
-        class_exists("\Prontoo\Core\Integrity\PiIntegrity")
-        ? \Prontoo\Core\Integrity\PiIntegrity::runMaestroCycle($piBudget)
-        : [
-            "ok" => $piBudget < 1000,
-            "complete" => false,
-            "note" =>
-                $piBudget < 1000
-                    ? "Integridade adiada por esgotamento do orçamento global."
-                    : "Núcleo de integridade indisponível.",
-        ];
-    $jobBudget = max(
-        0,
-        (int) floor(
-            ($__prontooCronDeadline - microtime(true)) * 1000,
-        ),
-    );
-    $result = $jobBudget >= 5000
-        ? maestro_cron_run($jobBudget)
-        : [
-            "success" => false,
-            "rules_seen" => 0,
-            "rules_run" => 0,
-            "actions_created" => 0,
-            "deferred" => 0,
-            "errors" => 1,
-            "note" => "Regras adiadas por esgotamento do orçamento global.",
-        ];
-    $ok =
-        (bool) ($result["success"] ?? true) &&
-        (bool) ($piResult["ok"] ?? true) &&
-        (bool) ($deferredWork["success"] ?? false);
-    if (function_exists("server_json_cache_clear_categories")) {
-        server_json_cache_clear_categories([
-            "hot",
-            "agenda",
-            "recepcao",
-            "warm",
-            "kpi",
-            "cards",
-            "dashboard",
-            "lookup",
-            "auxiliary",
-            "context",
-            "permissions",
-            "cmdbar",
-        ]);
-    }
+    $rulesBudget = min(45000, max(5000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
+    $rules = maestro_supervised_cron_run($rulesBudget);
+    $deferredBudget = min(20000, max(250, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
+    $deferredWork = maestro_process_deferred_work($deferredBudget, 1000);
+    $integrityBudget = min(10000, max(0, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
+    $piResult = prontoo_cron_integrity_flush($integrityBudget);
+    $maintenance = prontoo_cron_maintenance();
+    $ok = (bool) ($rules["success"] ?? false) &&
+        (bool) ($deferredWork["success"] ?? false) &&
+        (bool) ($piResult["ok"] ?? false) &&
+        (bool) ($maintenance["ok"] ?? false);
+    $attention = (string) ($rules["status"] ?? "") === "attention" ||
+        (string) ($deferredWork["status"] ?? "") === "attention" ||
+        !empty($preflight["warning"]);
+    $cycle = [
+        "ok" => $ok,
+        "status" => $ok ? ($attention ? "attention" : "healthy") : "failed",
+        "version" => PRONTOO_VERSION,
+        "started_at_utc" => gmdate("c", (int) $__prontooCronStarted),
+        "finished_at_utc" => gmdate("c"),
+        "duration_ms" => (int) round((microtime(true) - $__prontooCronStarted) * 1000),
+        "preflight" => [
+            "ran" => (bool) ($preflight["ran"] ?? false),
+            "ok" => (bool) ($preflight["ok"] ?? false),
+            "warning" => (bool) ($preflight["warning"] ?? false),
+            "duration_ms" => $preflight["duration_ms"] ?? null,
+        ],
+        "rules" => $rules,
+        "deferred_work" => $deferredWork,
+        "pi_integrity" => $piResult,
+        "maintenance" => $maintenance,
+    ];
+    prontoo_cron_cycle_state_write($cycle);
+    $__prontooCronFinished = true;
     echo json_encode(
         [
             "ok" => $ok,
-            "preflight" => [
-                "ran" => (bool) ($preflight["ran"] ?? false),
-                "duration_ms" => $preflight["duration_ms"] ?? null,
-            ],
+            "status" => $cycle["status"],
+            "preflight" => $cycle["preflight"],
             "deferred_work" => $deferredWork,
             "pi_integrity" => $piResult,
-        ] + $result,
+            "maintenance" => $maintenance,
+        ] + $rules,
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
     ) . PHP_EOL;
     exit($ok ? 0 : 1);
-} catch (Throwable $e) {
-    error_log("[Prontoo cron Maestro] " . $e->getMessage());
-    maestro_record_cron_failure($__prontooCronStarted, $e->getMessage());
+} catch (Throwable $error) {
+    prontoo_cron_bootstrap_log("runtime " . $error->getMessage());
+    prontoo_cron_record_failure($__prontooCronStarted, $error->getMessage());
+    $__prontooCronFinished = true;
     fwrite(
         STDERR,
         json_encode(
-            ["ok" => false, "error" => $e->getMessage()],
+            ["ok" => false, "stage" => "runtime", "error" => $error->getMessage()],
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
         ) . PHP_EOL,
     );
