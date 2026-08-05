@@ -643,6 +643,9 @@ function create_workflow_task(
                     ? "user"
                     : "clinic");
         if (!in_array($targetScope, ["clinic", "role", "user"], true)) {
+            if ($strict) {
+                throw new RuntimeException("Escopo de destinatário inválido para a tarefa.");
+            }
             $targetScope = "clinic";
         }
         if (
@@ -652,13 +655,22 @@ function create_workflow_task(
                 clinic_role_options($cid, true),
             )
         ) {
+            if ($strict) {
+                throw new RuntimeException("Cargo destinatário inválido para a tarefa.");
+            }
             $targetScope = "clinic";
             $targetRole = null;
         }
         if ($assignedTo !== null && !clinic_user_exists($cid, $assignedTo)) {
+            if ($strict) {
+                throw new RuntimeException("Pessoa destinatária inválida para a tarefa.");
+            }
             $assignedTo = null;
         }
         if ($targetScope === "user" && $assignedTo === null) {
+            if ($strict) {
+                throw new RuntimeException("A tarefa exige uma pessoa destinatária ativa.");
+            }
             $targetScope = "clinic";
             $targetRole = null;
         }

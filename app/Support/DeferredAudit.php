@@ -135,6 +135,10 @@ function maestro_defer_audit_event(
         0,
         180,
     );
+    $clinicId = (int) ($_SESSION["clinic_id"] ?? 0);
+    if ($clinicId > 0 && empty($context["clinic_id"])) {
+        $context["clinic_id"] = $clinicId;
+    }
     return maestro_deferred_enqueue("audit", [
         "event" => mb_substr($event, 0, 80),
         "entity" => $entity !== null ? mb_substr($entity, 0, 80) : null,
@@ -152,9 +156,7 @@ function maestro_defer_audit_event(
                 : (string) ($_GET["r"] ?? ""),
             "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
             "scope" => (string) ($_SESSION["scope"] ?? ""),
-            "clinic_id" => (int) ($_SESSION["clinic_id"] ?? 0) > 0
-                ? (int) $_SESSION["clinic_id"]
-                : null,
+            "clinic_id" => $clinicId > 0 ? $clinicId : null,
             "role" => (string) ($_SESSION["role_code"] ?? ""),
         ],
     ]) !== null;
@@ -182,6 +184,31 @@ function maestro_deferred_envelope_valid(array $envelope): bool
     }
 }
 
+function maestro_deferred_policy_allows(array $envelope): bool
+{
+    $payload = (array) ($envelope["payload"] ?? []);
+    $event = mb_substr((string) ($payload["event"] ?? ""), 0, 80);
+    return $event !== "" && (!function_exists("audit_should_write") || audit_should_write($event));
+}
+
+function maestro_deferred_restore_scope(array $envelope): array
+{
+    $payload = (array) ($envelope["payload"] ?? []);
+    $context = isset($payload["context"]) && is_array($payload["context"])
+        ? $payload["context"]
+        : [];
+    $proof = isset($payload["proof_context"]) && is_array($payload["proof_context"])
+        ? $payload["proof_context"]
+        : [];
+    $clinicId = (int) ($context["clinic_id"] ?? ($proof["clinic_id"] ?? 0));
+    if ($clinicId > 0) {
+        $context["clinic_id"] = $clinicId;
+    }
+    $payload["context"] = $context;
+    $envelope["payload"] = $payload;
+    return $envelope;
+}
+
 function maestro_process_deferred_audit(array $envelope): bool
 {
     if (
@@ -190,10 +217,11 @@ function maestro_process_deferred_audit(array $envelope): bool
     ) {
         return false;
     }
+    $envelope = maestro_deferred_restore_scope($envelope);
     $id = (string) ($envelope["id"] ?? "");
     $payload = (array) ($envelope["payload"] ?? []);
     $event = mb_substr((string) ($payload["event"] ?? ""), 0, 80);
-    if ($event === "") {
+    if ($event === "" || !maestro_deferred_policy_allows($envelope)) {
         return false;
     }
     $existing = one(
@@ -210,6 +238,7 @@ function maestro_process_deferred_audit(array $envelope): bool
     $context["occurred_at_utc"] = (string) (
         $payload["occurred_at_utc"] ?? ($envelope["queued_at_utc"] ?? "")
     );
+    $context["system_origin"] = "maestro";
     return audit(
         $event,
         isset($payload["entity"]) ? (string) $payload["entity"] : null,
@@ -231,6 +260,65 @@ function maestro_process_deferred_audit(array $envelope): bool
     );
 }
 
+function maestro_deferred_retry_metadata(string $file): array
+{
+    $name = basename($file);
+    $attempt = 0;
+    $nextAt = 0;
+    if (preg_match('/\.retry-(\d+)(?:-at-(\d+))?\.json$/', $name, $match) === 1) {
+        $attempt = max(0, (int) ($match[1] ?? 0));
+        $nextAt = max(0, (int) ($match[2] ?? 0));
+    }
+    return ["attempt" => $attempt, "next_at" => $nextAt];
+}
+
+function maestro_deferred_retry_delay_seconds(int $attempt): int
+{
+    $schedule = [600, 1800, 3600, 10800, 21600, 43200, 86400, 172800];
+    return $schedule[max(0, min(count($schedule) - 1, $attempt - 1))];
+}
+
+function maestro_deferred_dead_letter(
+    string $claimed,
+    string $dir,
+    string $id,
+    string $reason,
+): bool {
+    $deadDir = $dir . "/dead-letter";
+    if (!is_dir($deadDir)) {
+        @mkdir($deadDir, 0750, true);
+    }
+    if (!is_dir($deadDir) || !is_writable($deadDir)) {
+        return false;
+    }
+    $safeReason = preg_replace('/[^a-z0-9_\-]/i', "_", $reason) ?: "error";
+    $target = $deadDir . "/" . $id . "." . $safeReason . "." . time() . ".json";
+    return @rename($claimed, $target);
+}
+
+function maestro_deferred_state_write(array $stats): void
+{
+    $stateDir = maestro_deferred_storage_dir() . "/state";
+    if (!is_dir($stateDir)) {
+        @mkdir($stateDir, 0750, true);
+    }
+    if (!is_dir($stateDir) || !is_writable($stateDir)) {
+        return;
+    }
+    @file_put_contents(
+        $stateDir . "/deferred-work.json",
+        json_encode(
+            [
+                "updated_at_utc" => gmdate("Y-m-d H:i:s"),
+                "status" => $stats["status"] ?? "unknown",
+                "stats" => $stats,
+            ],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        ),
+        LOCK_EX,
+    );
+}
+
 function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): array
 {
     $started = microtime(true);
@@ -238,13 +326,18 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
     $limit = max(1, min(5000, $limit));
     $stats = [
         "success" => true,
+        "status" => "healthy",
         "queued" => 0,
+        "ready" => 0,
         "processed" => 0,
         "audit" => 0,
+        "skipped_policy" => 0,
         "invalid" => 0,
         "errors" => 0,
         "retrying" => 0,
+        "waiting_retry" => 0,
         "dead_letter" => 0,
+        "dead_letter_new" => 0,
         "remaining" => 0,
         "oldest_age_seconds" => 0,
         "alert" => false,
@@ -255,6 +348,7 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
         static fn(string $dir): bool => is_dir($dir),
     ));
     if ($dirs === []) {
+        maestro_deferred_state_write($stats);
         return $stats;
     }
     $files = [];
@@ -270,7 +364,17 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
     }
     sort($files, SORT_STRING);
     $stats["queued"] = count($files);
-    foreach (array_slice($files, 0, $limit) as $file) {
+    $ready = [];
+    foreach ($files as $file) {
+        $retry = maestro_deferred_retry_metadata($file);
+        if ((int) $retry["next_at"] > time()) {
+            $stats["waiting_retry"]++;
+            continue;
+        }
+        $ready[] = $file;
+    }
+    $stats["ready"] = count($ready);
+    foreach (array_slice($ready, 0, $limit) as $file) {
         if ((microtime(true) - $started) * 1000 >= $budgetMs) {
             break;
         }
@@ -281,12 +385,11 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
         if (!@rename($file, $claimed)) {
             continue;
         }
+        $retry = maestro_deferred_retry_metadata($file);
+        $attempt = (int) $retry["attempt"];
         $completed = false;
-        $invalid = false;
-        $expired = $queuedAge > 86400;
-        $attempt = preg_match('/\.retry-(\d+)\.json$/', basename($file), $match) === 1
-            ? max(0, (int) ($match[1] ?? 0))
-            : 0;
+        $terminal = false;
+        $reason = "processing";
         $envelope = null;
         try {
             $raw = @file_get_contents($claimed);
@@ -294,10 +397,13 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
                 ? json_decode($raw, true)
                 : null;
             if (!is_array($envelope) || !maestro_deferred_envelope_valid($envelope)) {
-                $invalid = true;
                 $stats["invalid"]++;
-            } elseif ($expired) {
-                $stats["errors"]++;
+                $terminal = true;
+                $reason = "invalid";
+            } elseif (!maestro_deferred_policy_allows($envelope)) {
+                $completed = true;
+                $stats["processed"]++;
+                $stats["skipped_policy"]++;
             } else {
                 $completed = maestro_process_deferred_audit($envelope);
                 if ($completed) {
@@ -305,10 +411,12 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
                     $stats["audit"]++;
                 } else {
                     $stats["errors"]++;
+                    $reason = "audit_write";
                 }
             }
         } catch (Throwable $error) {
             $stats["errors"]++;
+            $reason = "exception";
             error_log("[Prontoo Maestro deferred] " . $error->getMessage());
         }
         if ($completed) {
@@ -316,32 +424,22 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
             continue;
         }
         $attempt++;
-        $deadReason = $invalid
-            ? "invalid"
-            : ($expired ? "expired" : ($attempt >= 5 ? "retries" : ""));
-        if ($deadReason !== "") {
-            $deadDir = $dir . "/dead-letter";
-            if (!is_dir($deadDir)) {
-                @mkdir($deadDir, 0750, true);
-            }
-            $deadName = (string) (
-                is_array($envelope)
-                    ? ($envelope["id"] ?? basename($file, ".json"))
-                    : basename($file, ".json")
-            ) . "." . $deadReason . "." . time();
-            if (@rename($claimed, $deadDir . "/" . $deadName)) {
-                $stats["dead_letter"]++;
+        $id = is_array($envelope) &&
+            preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) ($envelope["id"] ?? "")) === 1
+                ? (string) $envelope["id"]
+                : preg_replace('/\.retry-\d+(?:-at-\d+)?$/', "", basename($file, ".json"));
+        $id = preg_replace('/[^a-z0-9\-]/i', "_", (string) $id) ?: "unknown";
+        if ($terminal || $attempt >= 8) {
+            if (maestro_deferred_dead_letter($claimed, $dir, $id, $reason)) {
+                $stats["dead_letter_new"]++;
             } else {
                 @rename($claimed, $file);
                 $stats["errors"]++;
             }
             continue;
         }
-        $id = is_array($envelope) &&
-            preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) ($envelope["id"] ?? "")) === 1
-                ? (string) $envelope["id"]
-                : basename($file, ".json");
-        $retryFile = $dir . "/" . $id . ".retry-" . $attempt . ".json";
+        $nextAt = time() + maestro_deferred_retry_delay_seconds($attempt);
+        $retryFile = $dir . "/" . $id . ".retry-" . $attempt . "-at-" . $nextAt . ".json";
         if (@rename($claimed, $retryFile)) {
             $stats["retrying"]++;
         } else {
@@ -355,7 +453,11 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
         foreach ((array) glob($dir . "/*.json") as $file) {
             $remainingFiles[] = $file;
         }
-        $deadLetter += count((array) glob($dir . "/dead-letter/*"));
+        foreach ((array) glob($dir . "/dead-letter/*") as $deadFile) {
+            if (is_file($deadFile)) {
+                $deadLetter++;
+            }
+        }
     }
     $stats["remaining"] = count($remainingFiles);
     $stats["dead_letter"] = $deadLetter;
@@ -366,28 +468,16 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
         );
     }
     $stats["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
-    $stats["alert"] = $stats["errors"] > 0 ||
+    $cycleFailure = $stats["errors"] > 0 ||
         $stats["invalid"] > 0 ||
+        $stats["dead_letter_new"] > 0;
+    $stats["success"] = !$cycleFailure;
+    $stats["alert"] = $cycleFailure ||
         $stats["dead_letter"] > 0 ||
         $stats["oldest_age_seconds"] > 3600;
-    $stats["success"] = !$stats["alert"];
-    $stateDir = maestro_deferred_storage_dir() . "/state";
-    if (!is_dir($stateDir)) {
-        @mkdir($stateDir, 0750, true);
-    }
-    if (is_dir($stateDir) && is_writable($stateDir)) {
-        @file_put_contents(
-            $stateDir . "/deferred-work.json",
-            json_encode(
-                [
-                    "updated_at_utc" => gmdate("Y-m-d H:i:s"),
-                    "status" => $stats["alert"] ? "attention" : "healthy",
-                    "stats" => $stats,
-                ],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            ),
-            LOCK_EX,
-        );
-    }
+    $stats["status"] = $cycleFailure
+        ? "failed"
+        : ($stats["alert"] ? "attention" : "healthy");
+    maestro_deferred_state_write($stats);
     return $stats;
 }

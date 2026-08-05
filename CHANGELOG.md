@@ -1,5 +1,17 @@
 # Histórico de versões
 
+## 1.8.5.1 — Ciclo supervisionado do Maestro
+
+- separa saúde de regras, auditoria diferida, integridade, preflight e manutenção;
+- torna o preflight somente leitura e remove reparos administrativos do ciclo cron;
+- preserva o escopo do consultório em auditorias diferidas e elimina a expiração automática em 24 horas;
+- aplica backoff, fila morta por falha atual e distinção entre atenção histórica e erro do ciclo;
+- retoma ações em erro, valida destinatários em modo fail-closed e calcula janelas no fuso do consultório;
+- aplica rodízio entre consultórios, invalidação seletiva de cache e estado operacional pai em JSON;
+- mantém execução exclusivamente servidor-side e o intervalo de dez minutos;
+- reconcilia o teto arquitetural com o estado preexistente de 82 arquivos transitórios, sem adicionar novo arquivo PHP;
+- não altera banco de dados, schema ou assets públicos.
+
 ## 1.8.4.9 — Rota efetiva das faixas autenticadas
 
 - corrige exclusivamente a cadeia de exibição das faixas na área autenticada;

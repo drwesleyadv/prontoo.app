@@ -696,11 +696,36 @@ function maestro_priority(mixed $v): int
 
     return max(1, min(100, (int) $v));
 }
-function maestro_due_dt(int $offsetDays = 0): ?string
+function maestro_local_day(int $clinicId, int $offsetDays = 0): string
 {
-
+    $offsetDays = max(-365, min(365, $offsetDays));
+    $modifier = ($offsetDays >= 0 ? "+" : "") . $offsetDays . " days";
+    return app_now_in_timezone($clinicId)
+        ->setTime(0, 0, 0)
+        ->modify($modifier)
+        ->format("Y-m-d");
+}
+function maestro_local_day_utc_range(int $clinicId, string $day): array
+{
+    [$start, $end] = app_local_day_utc_range($day, $clinicId);
+    return [
+        gmdate("Y-m-d H:i:s", (int) $start),
+        gmdate("Y-m-d H:i:s", (int) $end),
+    ];
+}
+function maestro_due_dt(int $offsetDays = 0, int $clinicId = 0): ?string
+{
     $offsetDays = max(0, min(365, $offsetDays));
-    return date("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days"));
+    if ($clinicId <= 0) {
+        return gmdate("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days UTC"));
+    }
+    $local = new DateTimeImmutable(
+        maestro_local_day($clinicId, $offsetDays) . " 17:00:00",
+        new DateTimeZone(app_context_timezone(null, $clinicId)),
+    );
+    return $local
+        ->setTimezone(new DateTimeZone("UTC"))
+        ->format("Y-m-d H:i:s");
 }
 function maestro_apply_placeholders(string $template, array $vars): string
 {
@@ -740,7 +765,7 @@ function maestro_save_rule(array $c): void
         (string) ($_POST["action_type"] ??
             ($item["default_action"] ?? "create_task"));
     if (!isset($actions[$action])) {
-        $action = "create_task";
+        throw new RuntimeException("Ação da rotina inválida.");
     }
     $name = maestro_text((string) ($_POST["name"] ?? ""), 160);
     if ($name === "") {
@@ -764,18 +789,18 @@ function maestro_save_rule(array $c): void
     );
     $targetScope = (string) ($_POST["target_scope"] ?? "role");
     if (!in_array($targetScope, ["clinic", "role", "user"], true)) {
-        $targetScope = "clinic";
+        throw new RuntimeException("Escopo de destinatário inválido.");
     }
     $targetRole =
         (string) ($_POST["target_role"] ??
             ($item["default_target_role"] ?? "recepcionista"));
     $roleOpts = clinic_role_options($cid, true);
     if ($targetScope === "role" && !isset($roleOpts[$targetRole])) {
-        $targetRole = array_key_first($roleOpts) ?: "recepcionista";
+        throw new RuntimeException("Cargo destinatário inválido para o consultório.");
     }
     $targetUserId = max(0, (int) ($_POST["target_user_id"] ?? 0));
     if ($targetScope === "user" && !clinic_user_exists($cid, $targetUserId)) {
-        $targetScope = "clinic";
+        throw new RuntimeException("Pessoa destinatária inválida para o consultório.");
     }
     if ($targetScope !== "role") {
         $targetRole = null;
@@ -1339,11 +1364,8 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
     $activeTask = "'aberta','em_andamento','aguardando'";
     try {
         if ($trigger === "appointment_before_start") {
-            $start = date("Y-m-d 00:00:00", strtotime("+" . $amount . " days"));
-            $end = date(
-                "Y-m-d 00:00:00",
-                strtotime("+" . ($amount + 1) . " days"),
-            );
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
                 "SELECT a.id,a.patient_link_id,a.doctor_user_id,a.start_at,a.reason,p.full_name AS patient_name,u.name AS doctor_name FROM pi_appointments a LEFT JOIN pi_patients pl ON pl.id=a.patient_link_id AND pl.clinic_id=a.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id LEFT JOIN pi_users u ON u.id=a.doctor_user_id AND EXISTS (SELECT 1 FROM pi_user_roles ur_doc WHERE ur_doc.user_id=u.id AND ur_doc.clinic_id=a.clinic_id AND ur_doc.active=1) WHERE a.clinic_id=? AND a.start_at>=? AND a.start_at<? AND a.status NOT IN ('cancelado','nao_compareceu','reagendado','atendimento_concluido','finalizado') ORDER BY a.start_at ASC LIMIT $limit",
                 [$cid, $start, $end],
@@ -1498,9 +1520,13 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "appointment_today_without_patient") {
+            [$start, $end] = maestro_local_day_utc_range(
+                $cid,
+                maestro_local_day($cid),
+            );
             $rows = q(
-                "SELECT id,start_at,reason FROM pi_appointments WHERE clinic_id=? AND DATE(start_at)=CURDATE() AND patient_link_id IS NULL AND status<>'cancelado' ORDER BY start_at ASC LIMIT $limit",
-                [$cid],
+                "SELECT id,start_at,reason FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND patient_link_id IS NULL AND status<>'cancelado' ORDER BY start_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $ts = app_storage_timestamp($r["start_at"]);
@@ -1547,14 +1573,15 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "lead_next_action_before_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,name,next_action_at,interest FROM pi_leads WHERE clinic_id=? AND stage NOT IN ('convertido','arquivado','descartado') AND next_action_at IS NOT NULL AND DATE(next_action_at)=? ORDER BY next_action_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,name,next_action_at,interest FROM pi_leads WHERE clinic_id=? AND stage NOT IN ('convertido','arquivado','descartado') AND next_action_at IS NOT NULL AND next_action_at>=? AND next_action_at<? ORDER BY next_action_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $ts = app_storage_timestamp($r["next_action_at"]);
-                $occ = $ts ? date("Ymd", $ts) : str_replace("-", "", $day);
+                $occ = str_replace("-", "", $day);
                 $out[] = maestro_match_base(
                     [
                         "origem" => "interessado",
@@ -1693,9 +1720,9 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "patient_birthday_before_days") {
-            $target = date("Y-m-d", strtotime("+" . $amount . " days"));
-            $md = date("m-d", strtotime($target));
-            $year = date("Y", strtotime($target));
+            $target = maestro_local_day($cid, $amount);
+            $md = substr($target, 5, 5);
+            $year = substr($target, 0, 4);
             $rows = q(
                 "SELECT pl.id AS patient_link_id, p.full_name, p.birth_date FROM pi_patients pl INNER JOIN pi_persons p ON p.id=pl.person_id WHERE pl.clinic_id=? AND pl.active=1 AND pl.deleted_at IS NULL AND p.birth_date IS NOT NULL AND DATE_FORMAT(p.birth_date,'%m-%d')=? ORDER BY p.full_name ASC LIMIT $limit",
                 [$cid, $md],
@@ -1707,9 +1734,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                         "origem" => "paciente",
                         "consultorio" => $clinic,
                         "paciente" => $r["full_name"] ?: "paciente",
-                        "data" => $birthTs
-                            ? date("d/m", $birthTs) . "/" . $year
-                            : date("d/m/Y", strtotime($target)),
+                        "data" => substr($target, 8, 2) .
+                            "/" .
+                            substr($target, 5, 2) .
+                            "/" .
+                            $year,
                         "hora" => "",
                         "dias" => $prazo,
                         "prazo" => $prazo,
@@ -1810,10 +1839,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "document_issued_after_days") {
-            $day = date("Y-m-d", strtotime("-" . $amount . " days"));
+            $day = maestro_local_day($cid, -$amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,patient_link_id,issued_at,document_identifier FROM pi_documents WHERE clinic_id=? AND document_status='emitido' AND DATE(issued_at)=? ORDER BY issued_at DESC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,patient_link_id,issued_at,document_identifier FROM pi_documents WHERE clinic_id=? AND document_status='emitido' AND issued_at>=? AND issued_at<? ORDER BY issued_at DESC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -1843,10 +1873,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "task_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,due_at FROM pi_tasks WHERE clinic_id=? AND status IN ($activeTask) AND due_at IS NOT NULL AND DATE(due_at)=? ORDER BY due_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,due_at FROM pi_tasks WHERE clinic_id=? AND status IN ($activeTask) AND due_at IS NOT NULL AND due_at>=? AND due_at<? ORDER BY due_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -1937,10 +1968,11 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "revenue_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
+            [$start, $end] = maestro_local_day_utc_range($cid, $day);
             $rows = q(
-                "SELECT id,title,patient_link_id,expected_at,amount_cents FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND DATE(expected_at)=? ORDER BY expected_at ASC LIMIT $limit",
-                [$cid, $day],
+                "SELECT id,title,patient_link_id,expected_at,amount_cents FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND expected_at>=? AND expected_at<? ORDER BY expected_at ASC LIMIT $limit",
+                [$cid, $start, $end],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -2001,7 +2033,7 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "expense_due_in_days") {
-            $day = date("Y-m-d", strtotime("+" . $amount . " days"));
+            $day = maestro_local_day($cid, $amount);
             $rows = q(
                 "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at=? ORDER BY due_at ASC LIMIT $limit",
                 [$cid, $day],
@@ -2027,9 +2059,10 @@ function maestro_fetch_candidates(array $rule, int $limit = 120): array
                 );
             }
         } elseif ($trigger === "expense_overdue_after_days") {
+            $cutoff = maestro_local_day($cid, -$amount);
             $rows = q(
-                "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at IS NOT NULL AND due_at<=DATE_SUB(CURDATE(), INTERVAL ? DAY) ORDER BY due_at ASC LIMIT $limit",
-                [$cid, $amount],
+                "SELECT id,title,due_at,amount_cents FROM pi_financial_expenses WHERE clinic_id=? AND status='prevista' AND due_at IS NOT NULL AND due_at<=? ORDER BY due_at ASC LIMIT $limit",
+                [$cid, $cutoff],
             )->fetchAll();
             foreach ($rows as $r) {
                 $out[] = maestro_match_base(
@@ -2174,16 +2207,17 @@ function maestro_create_action(array $rule, array $match): array
     $userId = isset($act["target_user_id"])
         ? (int) $act["target_user_id"]
         : null;
+    if (!in_array($scope, ["clinic", "role", "user"], true)) {
+        throw new RuntimeException("Escopo de destinatário inválido para a ação.");
+    }
     if (
         $scope === "role" &&
         !array_key_exists((string) $role, clinic_role_options($cid, true))
     ) {
-        $scope = "clinic";
-        $role = null;
+        throw new RuntimeException("Cargo destinatário indisponível para a ação.");
     }
     if ($scope === "user" && (!$userId || !clinic_user_exists($cid, $userId))) {
-        $scope = "clinic";
-        $userId = null;
+        throw new RuntimeException("Pessoa destinatária indisponível para a ação.");
     }
     if ($scope !== "role") {
         $role = null;
@@ -2229,7 +2263,7 @@ function maestro_create_action(array $rule, array $match): array
         $sourceEvent,
         $sourceEntity,
         $sourceId,
-        maestro_due_dt((int) ($act["due_offset_days"] ?? 0)),
+        maestro_due_dt((int) ($act["due_offset_days"] ?? 0), $cid),
         $scope,
         $role,
         true,
@@ -2444,6 +2478,632 @@ function maestro_run_rule_scoped(array $rule, float $deadline): array
         "duration_ms" => (int) round((microtime(true) - $started) * 1000),
     ];
 }
+function maestro_supervised_remaining_ms(float $deadline): int
+{
+    return max(0, (int) floor(($deadline - microtime(true)) * 1000));
+}
+
+function maestro_supervised_with_clinic_timezone(int $clinicId, callable $callback): mixed
+{
+    $previousTimezone = date_default_timezone_get();
+    $hadDisplayTimezone = array_key_exists("PRONTOO_DISPLAY_TIMEZONE", $GLOBALS);
+    $previousDisplayTimezone = $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? null;
+    $timezone = app_context_timezone(null, $clinicId);
+    try {
+        $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = $timezone;
+        @date_default_timezone_set($timezone);
+        return $callback();
+    } finally {
+        @date_default_timezone_set($previousTimezone ?: "UTC");
+        if ($hadDisplayTimezone) {
+            $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = $previousDisplayTimezone;
+        } else {
+            unset($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"]);
+        }
+    }
+}
+
+function maestro_supervised_candidate_result(array $rule, int $limit = 300): array
+{
+    $tmpDir = storage_path("tmp");
+    if (!is_dir($tmpDir)) {
+        @mkdir($tmpDir, 0750, true);
+    }
+    $tmp = is_dir($tmpDir) && is_writable($tmpDir)
+        ? tempnam($tmpDir, ".maestro-candidates-")
+        : false;
+    $previousLog = ini_get("error_log");
+    if (is_string($tmp) && $tmp !== "") {
+        @ini_set("log_errors", "1");
+        @ini_set("error_log", $tmp);
+    }
+    try {
+        $matches = maestro_fetch_candidates($rule, max(1, min(300, $limit)));
+    } finally {
+        if (is_string($previousLog)) {
+            @ini_set("error_log", $previousLog);
+        }
+    }
+    $diagnostic = is_string($tmp) && is_file($tmp)
+        ? trim((string) @file_get_contents($tmp))
+        : "";
+    if (is_string($tmp) && is_file($tmp)) {
+        @unlink($tmp);
+    }
+    if (str_contains($diagnostic, "[Prontoo Maestro candidates]")) {
+        $line = "";
+        foreach (preg_split('/\R/u', $diagnostic) ?: [] as $candidate) {
+            if (str_contains((string) $candidate, "[Prontoo Maestro candidates]")) {
+                $line = trim((string) $candidate);
+                break;
+            }
+        }
+        throw new RuntimeException(
+            mb_substr($line !== "" ? $line : "Falha ao consultar candidatos da rotina.", 0, 240),
+        );
+    }
+    return is_array($matches) ? $matches : [];
+}
+
+function maestro_supervised_execution_key(string $entity, string $id): string
+{
+    return $entity . "\x1f" . $id;
+}
+
+function maestro_supervised_execution_rows(
+    int $clinicId,
+    int $ruleId,
+    string $actionKey,
+    array $matches,
+): array {
+    $ids = [];
+    foreach ($matches as $match) {
+        $id = (string) ($match["source_entity_id"] ?? "0");
+        if ($id !== "") {
+            $ids[$id] = true;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+    $values = array_keys($ids);
+    $placeholders = implode(",", array_fill(0, count($values), "?"));
+    $params = array_merge([$clinicId, $ruleId, $actionKey], $values);
+    $rows = q(
+        "SELECT source_entity,source_entity_id,status,message,executed_at FROM pi_maestro_executions WHERE clinic_id=? AND rule_id=? AND action_key=? AND source_entity_id IN ($placeholders)",
+        $params,
+    )->fetchAll();
+    $map = [];
+    foreach ($rows as $row) {
+        $map[maestro_supervised_execution_key(
+            (string) ($row["source_entity"] ?? ""),
+            (string) ($row["source_entity_id"] ?? ""),
+        )] = $row;
+    }
+    return $map;
+}
+
+function maestro_supervised_execution_retry_state(?array $row): array
+{
+    if (!$row) {
+        return ["attempt" => 0, "next_at" => 0, "terminal" => false];
+    }
+    $message = (string) ($row["message"] ?? "");
+    $attempt = preg_match('/(?:^|;)attempt:(\d+)/', $message, $match) === 1
+        ? max(0, (int) ($match[1] ?? 0))
+        : ((string) ($row["status"] ?? "") === "error" ? 1 : 0);
+    $nextAt = preg_match('/(?:^|;)next:(\d+)/', $message, $match) === 1
+        ? max(0, (int) ($match[1] ?? 0))
+        : 0;
+    return [
+        "attempt" => $attempt,
+        "next_at" => $nextAt,
+        "terminal" => str_starts_with($message, "terminal;") || $attempt >= 5,
+    ];
+}
+
+function maestro_supervised_retry_delay_seconds(int $attempt): int
+{
+    $schedule = [600, 1800, 3600, 10800, 21600];
+    return $schedule[max(0, min(count($schedule) - 1, $attempt - 1))];
+}
+
+function maestro_supervised_claim_execution(
+    array $rule,
+    array $match,
+    ?array $existing,
+): array {
+    $clinicId = (int) $rule["clinic_id"];
+    $ruleId = (int) $rule["id"];
+    $source = (string) ($match["source_entity"] ?? "registro");
+    $sourceId = (string) ($match["source_entity_id"] ?? "0");
+    $actionKey = (string) $rule["action_type"] . ":" . $ruleId;
+    if (!$existing) {
+        $insert = q(
+            "INSERT IGNORE INTO pi_maestro_executions (clinic_id,rule_id,source_entity,source_entity_id,action_key,status,message,executed_at) VALUES (?,?,?,?,?,'running','attempt:0;Em processamento',NOW())",
+            [$clinicId, $ruleId, $source, $sourceId, $actionKey],
+        );
+        return [
+            "claimed" => $insert->rowCount() > 0,
+            "attempt" => 0,
+            "terminal" => false,
+        ];
+    }
+    $status = (string) ($existing["status"] ?? "");
+    if ($status === "created") {
+        return ["claimed" => false, "attempt" => 0, "terminal" => false];
+    }
+    $retry = maestro_supervised_execution_retry_state($existing);
+    if ($retry["terminal"]) {
+        return [
+            "claimed" => false,
+            "attempt" => (int) $retry["attempt"],
+            "terminal" => true,
+        ];
+    }
+    if ($status === "running") {
+        $executedAt = app_storage_timestamp($existing["executed_at"] ?? null);
+        if ($executedAt > 0 && $executedAt > time() - 900) {
+            return [
+                "claimed" => false,
+                "attempt" => (int) $retry["attempt"],
+                "terminal" => false,
+            ];
+        }
+        $update = q(
+            "UPDATE pi_maestro_executions SET message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND status='running'",
+            [
+                "attempt:" . (int) $retry["attempt"] . ";Retomada determinística",
+                $clinicId,
+                $ruleId,
+                $source,
+                $sourceId,
+                $actionKey,
+            ],
+        );
+        return [
+            "claimed" => $update->rowCount() > 0,
+            "attempt" => (int) $retry["attempt"],
+            "terminal" => false,
+        ];
+    }
+    if ($status !== "error") {
+        return ["claimed" => false, "attempt" => 0, "terminal" => false];
+    }
+    $nextAt = (int) $retry["next_at"];
+    if ($nextAt <= 0) {
+        $executedAt = app_storage_timestamp($existing["executed_at"] ?? null);
+        $nextAt = $executedAt > 0 ? $executedAt + 1800 : 0;
+    }
+    if ($nextAt > time()) {
+        return [
+            "claimed" => false,
+            "attempt" => (int) $retry["attempt"],
+            "terminal" => false,
+        ];
+    }
+    $update = q(
+        "UPDATE pi_maestro_executions SET status='running',message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND status='error'",
+        [
+            "attempt:" . (int) $retry["attempt"] . ";Nova tentativa supervisionada",
+            $clinicId,
+            $ruleId,
+            $source,
+            $sourceId,
+            $actionKey,
+        ],
+    );
+    return [
+        "claimed" => $update->rowCount() > 0,
+        "attempt" => (int) $retry["attempt"],
+        "terminal" => false,
+    ];
+}
+
+function maestro_supervised_target_assert(array $rule): void
+{
+    $clinicId = (int) $rule["clinic_id"];
+    $action = maestro_decode_json($rule["action_json"] ?? "");
+    $scope = (string) ($action["target_scope"] ?? "clinic");
+    if ($scope === "clinic") {
+        return;
+    }
+    if ($scope === "role") {
+        $role = trim((string) ($action["target_role"] ?? ""));
+        $roles = clinic_role_options($clinicId, true);
+        if ($role === "" || !array_key_exists($role, $roles)) {
+            throw new RuntimeException("Destinatário da rotina inválido: cargo não disponível.");
+        }
+        $recipients = function_exists("team_user_ids_for_roles")
+            ? team_user_ids_for_roles($clinicId, [$role])
+            : [];
+        if ($recipients === []) {
+            throw new RuntimeException("Destinatário da rotina indisponível: cargo sem colaborador ativo.");
+        }
+        return;
+    }
+    if ($scope === "user") {
+        $userId = (int) ($action["target_user_id"] ?? 0);
+        if ($userId <= 0 || !clinic_user_exists($clinicId, $userId)) {
+            throw new RuntimeException("Destinatário da rotina inválido: pessoa não está ativa no consultório.");
+        }
+        return;
+    }
+    throw new RuntimeException("Escopo de destinatário inválido para a rotina.");
+}
+
+function maestro_supervised_action_failure(
+    array $rule,
+    array $match,
+    int $previousAttempt,
+    Throwable $error,
+): void {
+    $attempt = max(1, $previousAttempt + 1);
+    $terminal = $attempt >= 5;
+    $nextAt = $terminal ? 0 : time() + maestro_supervised_retry_delay_seconds($attempt);
+    $message = ($terminal ? "terminal;" : "retry;") .
+        "attempt:" . $attempt .
+        ";next:" . $nextAt .
+        ";error:" . mb_substr(preg_replace('/\s+/u', " ", trim($error->getMessage())) ?: "erro", 0, 170);
+    q(
+        "UPDATE pi_maestro_executions SET status='error',message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=?",
+        [
+            $message,
+            (int) $rule["clinic_id"],
+            (int) $rule["id"],
+            (string) ($match["source_entity"] ?? "registro"),
+            (string) ($match["source_entity_id"] ?? "0"),
+            (string) $rule["action_type"] . ":" . (int) $rule["id"],
+        ],
+    );
+}
+
+function maestro_supervised_run_rule(array $rule, float $deadline): array
+{
+    $started = microtime(true);
+    $clinicId = (int) ($rule["clinic_id"] ?? 0);
+    $ruleId = (int) ($rule["id"] ?? 0);
+    $result = [
+        "created" => 0,
+        "seen" => 0,
+        "errors" => 0,
+        "retrying" => 0,
+        "terminal" => 0,
+        "skipped_existing" => 0,
+        "skipped_read_only" => 0,
+        "candidate_window_saturated" => false,
+        "changed_categories" => [],
+        "duration_ms" => 0,
+    ];
+    if ($clinicId <= 0 || $ruleId <= 0) {
+        $result["errors"] = 1;
+        return $result;
+    }
+    return maestro_with_guarded_clinic(
+        $clinicId,
+        static function () use ($rule, $deadline, $started, $clinicId, $ruleId, $result): array {
+            if (clinic_read_only_db($clinicId)) {
+                q(
+                    "UPDATE pi_maestro_rules SET last_run_at=NOW(),next_run_at=DATE_ADD(NOW(),INTERVAL min_interval_minutes MINUTE),run_count=run_count+1,updated_at=NOW() WHERE id=? AND clinic_id=?",
+                    [$ruleId, $clinicId],
+                );
+                $result["skipped_read_only"] = 1;
+                $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+                return $result;
+            }
+            try {
+                maestro_supervised_target_assert($rule);
+                $matches = maestro_supervised_with_clinic_timezone(
+                    $clinicId,
+                    static fn(): array => maestro_supervised_candidate_result($rule, 300),
+                );
+                $result["candidate_window_saturated"] = count($matches) >= 300;
+                $actionKey = (string) $rule["action_type"] . ":" . $ruleId;
+                $existing = maestro_supervised_execution_rows(
+                    $clinicId,
+                    $ruleId,
+                    $actionKey,
+                    $matches,
+                );
+                $pending = [];
+                foreach ($matches as $match) {
+                    $key = maestro_supervised_execution_key(
+                        (string) ($match["source_entity"] ?? "registro"),
+                        (string) ($match["source_entity_id"] ?? "0"),
+                    );
+                    $row = $existing[$key] ?? null;
+                    if ((string) ($row["status"] ?? "") === "created") {
+                        $result["skipped_existing"]++;
+                        continue;
+                    }
+                    $pending[] = [$match, $row];
+                }
+                foreach (array_slice($pending, 0, 20) as [$match, $row]) {
+                    if (microtime(true) >= $deadline) {
+                        break;
+                    }
+                    $result["seen"]++;
+                    $claim = maestro_supervised_claim_execution($rule, $match, $row);
+                    if (!empty($claim["terminal"])) {
+                        $result["terminal"]++;
+                        continue;
+                    }
+                    if (empty($claim["claimed"])) {
+                        continue;
+                    }
+                    if ((int) ($claim["attempt"] ?? 0) > 0) {
+                        $result["retrying"]++;
+                    }
+                    try {
+                        db_begin_transaction();
+                        $created = maestro_supervised_with_clinic_timezone(
+                            $clinicId,
+                            static fn(): array => maestro_create_action($rule, $match),
+                        );
+                        q(
+                            "UPDATE pi_maestro_executions SET status='created',action_entity=?,action_entity_id=?,message='Ação criada pelo Maestro',executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=?",
+                            [
+                                $created["entity"] ?? null,
+                                $created["id"] ?? null,
+                                $clinicId,
+                                $ruleId,
+                                (string) ($match["source_entity"] ?? "registro"),
+                                (string) ($match["source_entity_id"] ?? "0"),
+                                $actionKey,
+                            ],
+                        );
+                        db_commit();
+                        $result["created"]++;
+                        $result["changed_categories"][] =
+                            (string) $rule["action_type"] === "create_notice"
+                                ? "notices"
+                                : "tasks";
+                    } catch (Throwable $error) {
+                        if (pdo()->inTransaction()) {
+                            db_rollback();
+                        }
+                        $result["errors"]++;
+                        maestro_supervised_action_failure(
+                            $rule,
+                            $match,
+                            (int) ($claim["attempt"] ?? 0),
+                            $error,
+                        );
+                        error_log("[Prontoo Maestro action] " . $error->getMessage());
+                    }
+                }
+                q(
+                    "UPDATE pi_maestro_rules SET last_run_at=NOW(),next_run_at=DATE_ADD(NOW(),INTERVAL min_interval_minutes MINUTE),run_count=run_count+1,updated_at=NOW() WHERE id=? AND clinic_id=?",
+                    [$ruleId, $clinicId],
+                );
+            } catch (Throwable $error) {
+                $result["errors"]++;
+                q(
+                    "UPDATE pi_maestro_rules SET next_run_at=DATE_ADD(NOW(),INTERVAL " .
+                        (int) PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES .
+                        " MINUTE),updated_at=NOW() WHERE id=? AND clinic_id=?",
+                    [$ruleId, $clinicId],
+                );
+                error_log("[Prontoo Maestro supervised rule] " . $error->getMessage());
+            }
+            $result["changed_categories"] = array_values(array_unique(
+                $result["changed_categories"],
+            ));
+            $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+            return $result;
+        },
+    );
+}
+
+function maestro_supervised_fair_rules(array $rules, array $stats, int $limit = 80): array
+{
+    $queues = [];
+    foreach ($rules as $rule) {
+        $clinicId = (int) ($rule["clinic_id"] ?? 0);
+        if ($clinicId > 0) {
+            $queues[$clinicId][] = $rule;
+        }
+    }
+    foreach ($queues as $clinicId => $clinicRules) {
+        usort($clinicRules, static function (array $left, array $right) use ($stats): int {
+            return maestro_rule_score(
+                $right,
+                $stats[maestro_routine_key($right)] ?? null,
+            ) <=> maestro_rule_score(
+                $left,
+                $stats[maestro_routine_key($left)] ?? null,
+            );
+        });
+        $queues[$clinicId] = array_values($clinicRules);
+    }
+    ksort($queues, SORT_NUMERIC);
+    $selected = [];
+    while ($queues !== [] && count($selected) < $limit) {
+        foreach (array_keys($queues) as $clinicId) {
+            if (count($selected) >= $limit) {
+                break 2;
+            }
+            $rule = array_shift($queues[$clinicId]);
+            if (is_array($rule)) {
+                $selected[] = $rule;
+            }
+            if ($queues[$clinicId] === []) {
+                unset($queues[$clinicId]);
+            }
+        }
+    }
+    return $selected;
+}
+
+function maestro_supervised_record_job_run(float $startedAt, array $result): void
+{
+    try {
+        q(
+            "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,?,?,?,?,?,?,?,?)",
+            [
+                $startedAt,
+                (int) ($result["duration_ms"] ?? 0),
+                (int) ($result["rules_seen"] ?? 0),
+                (int) ($result["rules_run"] ?? 0),
+                (int) ($result["actions_created"] ?? 0),
+                (int) ($result["deferred"] ?? 0),
+                (int) ($result["errors"] ?? 0),
+                !empty($result["success"]) ? 1 : 0,
+                (float) ($result["load_score"] ?? 0),
+                mb_substr((string) ($result["note"] ?? ""), 0, 255),
+            ],
+        );
+    } catch (Throwable $error) {
+        error_log("[Prontoo Maestro job run] " . $error->getMessage());
+    }
+}
+
+function maestro_supervised_cron_run(
+    int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS,
+): array {
+    $startedAt = microtime(true);
+    $result = [
+        "success" => true,
+        "status" => "healthy",
+        "rules_seen" => 0,
+        "rules_run" => 0,
+        "actions_created" => 0,
+        "deferred" => 0,
+        "errors" => 0,
+        "retrying" => 0,
+        "terminal" => 0,
+        "read_only" => 0,
+        "candidate_window_saturated" => 0,
+        "changed_categories" => [],
+        "duration_ms" => 0,
+        "load_score" => 0,
+        "note" => "ok",
+    ];
+    if (!has_cfg()) {
+        $result["note"] = "sem configuração";
+        return $result;
+    }
+    $maxCycleSeconds = max(30, PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES * 60 - 30);
+    $deadline = $startedAt + max(5, min($maxCycleSeconds, $budgetMs / 1000));
+    $lockPath = storage_path("maestro.lock");
+    $lock = @fopen($lockPath, "c");
+    if (!$lock) {
+        $result["success"] = false;
+        $result["status"] = "unavailable";
+        $result["errors"] = 1;
+        $result["note"] = "falha: arquivo de lock indisponível";
+        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+        maestro_supervised_record_job_run($startedAt, $result);
+        return $result;
+    }
+    if (!flock($lock, LOCK_EX | LOCK_NB)) {
+        fclose($lock);
+        $result["status"] = "overlap";
+        $result["note"] = "execução anterior em andamento";
+        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+        maestro_supervised_record_job_run($startedAt, $result);
+        return $result;
+    }
+    try {
+        $rules = q(
+            "SELECT * FROM pi_maestro_rules WHERE active=1 AND (next_run_at IS NULL OR next_run_at<=NOW()) ORDER BY COALESCE(next_run_at,created_at) ASC,priority DESC,id ASC LIMIT 400",
+        )->fetchAll();
+        $stats = [];
+        if ($rules !== []) {
+            $keys = array_values(array_unique(array_map("maestro_routine_key", $rules)));
+            $placeholders = implode(",", array_fill(0, count($keys), "?"));
+            foreach (
+                q(
+                    "SELECT * FROM pi_maestro_job_stats WHERE routine_key IN ($placeholders)",
+                    $keys,
+                )->fetchAll()
+                as $row
+            ) {
+                $stats[(string) $row["routine_key"]] = $row;
+            }
+        }
+        $rules = maestro_supervised_fair_rules($rules, $stats, 80);
+        $result["rules_seen"] = count($rules);
+        foreach ($rules as $rule) {
+            if (maestro_supervised_remaining_ms($deadline) < 1000) {
+                $result["deferred"]++;
+                maestro_stats_update(
+                    maestro_routine_key($rule),
+                    0,
+                    0,
+                    maestro_rule_score(
+                        $rule,
+                        $stats[maestro_routine_key($rule)] ?? null,
+                    ),
+                    true,
+                );
+                continue;
+            }
+            $key = maestro_routine_key($rule);
+            $score = maestro_rule_score($rule, $stats[$key] ?? null);
+            $expected = max(80.0, (float) ($stats[$key]["ewma_duration_ms"] ?? 80));
+            if ($expected > maestro_supervised_remaining_ms($deadline) && $score < 90) {
+                $result["deferred"]++;
+                maestro_stats_update($key, 0, 0, $score, true);
+                continue;
+            }
+            $ruleResult = maestro_supervised_run_rule($rule, $deadline);
+            $result["rules_run"]++;
+            $result["actions_created"] += (int) ($ruleResult["created"] ?? 0);
+            $result["errors"] += (int) ($ruleResult["errors"] ?? 0);
+            $result["retrying"] += (int) ($ruleResult["retrying"] ?? 0);
+            $result["terminal"] += (int) ($ruleResult["terminal"] ?? 0);
+            $result["read_only"] += (int) ($ruleResult["skipped_read_only"] ?? 0);
+            $result["candidate_window_saturated"] += !empty(
+                $ruleResult["candidate_window_saturated"]
+            ) ? 1 : 0;
+            $result["changed_categories"] = array_merge(
+                $result["changed_categories"],
+                (array) ($ruleResult["changed_categories"] ?? []),
+            );
+            maestro_stats_update(
+                $key,
+                (float) ($ruleResult["duration_ms"] ?? 0),
+                (int) ($ruleResult["created"] ?? 0),
+                $score,
+                false,
+            );
+        }
+    } catch (Throwable $error) {
+        $result["errors"]++;
+        $result["note"] = "falha: " . mb_substr($error->getMessage(), 0, 232);
+        error_log("[Prontoo Maestro supervised cron] " . $error->getMessage());
+    } finally {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    }
+    $result["success"] = $result["errors"] === 0;
+    $result["status"] = $result["success"]
+        ? (($result["terminal"] > 0 || $result["candidate_window_saturated"] > 0)
+            ? "attention"
+            : "healthy")
+        : "failed";
+    if ($result["errors"] > 0 && $result["note"] === "ok") {
+        $result["note"] = "falha: " . $result["errors"] . " erro(s) em rotinas";
+    }
+    $result["changed_categories"] = array_values(array_unique(array_merge(
+        $result["changed_categories"],
+        $result["actions_created"] > 0 ? ["hot", "dashboard"] : [],
+    )));
+    if (
+        $result["changed_categories"] !== [] &&
+        function_exists("server_json_cache_clear_categories")
+    ) {
+        server_json_cache_clear_categories($result["changed_categories"]);
+    }
+    $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+    $result["load_score"] = $result["duration_ms"] > 0
+        ? round($result["actions_created"] / max(1, $result["duration_ms"] / 1000), 3)
+        : 0;
+    maestro_supervised_record_job_run($startedAt, $result);
+    return $result;
+}
+
 function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 {
 
