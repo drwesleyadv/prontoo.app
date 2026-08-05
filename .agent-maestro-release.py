@@ -12,6 +12,7 @@ VERSION = "1.8.5.1"
 PREVIOUS_VERSION = "1.8.4.9"
 BUILD = "1.8.5.1-maestro-supervised-server-cycle"
 SYNC_ID = "github-prontoo-1.8.5.1-maestro-supervised-server-cycle"
+TRIGGER = "2026-08-05T22:30:00Z"
 FRAGMENT = ROOT / ".agent-maestro-supervisor.fragment"
 WORKFLOW = ROOT / ".github/workflows/agent-maestro-release.yml"
 SCRIPT = ROOT / ".agent-maestro-release.py"
@@ -178,4 +179,5 @@ print(json.dumps({
     "files": len(files),
     "bytes": total,
     "maestro_supervisor_inserted": "function maestro_supervised_cron_run(" in maestro_source,
+    "trigger": TRIGGER,
 }, ensure_ascii=False))
