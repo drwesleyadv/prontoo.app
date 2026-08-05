@@ -1,0 +1,89 @@
+name: Agent speed chart final
+on:
+  push:
+    branches:
+      - agent/straight-speed-chart-20260804
+    paths:
+      - .agent-speed-chart-final
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/straight-speed-chart-20260804
+          fetch-depth: 0
+      - name: Apply scoped refinement
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import json,re
+          from datetime import datetime,timezone
+          p=Path('app/Admin/AdminPages.php');s=p.read_text()
+          s,n=re.subn(r'(if \(!in_array\(\$valueType, \["ms", "count"\], true\)\) \{\s*\$valueType = "ms";\s*\})',r'\1\n    $straightEdges = (bool) ($presentation["straight_edges"] ?? false);\n    $showOutline = (bool) ($presentation["show_outline"] ?? true);',s,count=1)
+          if n!=1: raise SystemExit(f'presentation options: {n}')
+          pat=re.compile(r'    \$path = static function \(array \$points\): string \{.*?^    \};\n    \$fill = static function',re.S|re.M)
+          repl='''    $path = static function (array $points) use ($straightEdges): string {
+
+              $count = count($points);
+              if ($count === 0) {
+                  return "";
+              }
+              if ($count === 1) {
+                  return "M" . $points[0][0] . " " . $points[0][1];
+              }
+              $d = "M" . $points[0][0] . " " . $points[0][1];
+              if ($straightEdges) {
+                  for ($i = 1; $i < $count; $i++) {
+                      $d .= " L " . $points[$i][0] . " " . $points[$i][1];
+                  }
+                  return $d;
+              }
+              $tension = 0.72;
+              for ($i = 0; $i < $count - 1; $i++) {
+                  $p0 = $points[max(0, $i - 1)];
+                  $p1 = $points[$i];
+                  $p2 = $points[$i + 1];
+                  $p3 = $points[min($count - 1, $i + 2)];
+                  $cp1x = $p1[0] + (($p2[0] - $p0[0]) * $tension) / 6;
+                  $cp1y = $p1[1] + (($p2[1] - $p0[1]) * $tension) / 6;
+                  $cp2x = $p2[0] - (($p3[0] - $p1[0]) * $tension) / 6;
+                  $cp2y = $p2[1] - (($p3[1] - $p1[1]) * $tension) / 6;
+                  $segmentMinY = min($p1[1], $p2[1]);
+                  $segmentMaxY = max($p1[1], $p2[1]);
+                  $cp1y = max($segmentMinY, min($segmentMaxY, $cp1y));
+                  $cp2y = max($segmentMinY, min($segmentMaxY, $cp2y));
+                  $d .= " C " . round($cp1x, 2) . " " . round($cp1y, 2) . " " . round($cp2x, 2) . " " . round($cp2y, 2) . " " . $p2[0] . " " . $p2[1];
+              }
+              return $d;
+          };
+          $fill = static function'''
+          s,n=pat.subn(repl,s,count=1)
+          if n!=1: raise SystemExit(f'path block: {n}')
+          s,n=re.subn(r'\(\$loadD !== ""\)', '($showOutline && $loadD !== "")', s, count=1)
+          if n!=1: raise SystemExit(f'load outline: {n}')
+          s,n=re.subn(r'\(\$responseD !== ""\)', '($showOutline && $responseD !== "")', s, count=1)
+          if n!=1: raise SystemExit(f'response outline: {n}')
+          needle='                "summary_lead" => "dados de duração de rotas e da Landing Page.",'
+          if needle not in s: raise SystemExit('speed marker')
+          s=s.replace(needle,needle+'\n                "straight_edges" => true,\n                "show_outline" => false,',1)
+          p.write_text(s)
+          now=datetime.now(timezone.utc).isoformat();ts=int(datetime.now(timezone.utc).timestamp());v='1.8.4.10';b='1.8.4.10-straight-speed-chart'
+          q=Path('version.json');d=json.loads(q.read_text());d.update({'version':v,'release':v,'generated_at_unix':ts,'generated_at':now,'updated_at':now,'build':b,'previous_version':'1.8.4.9','functional_equivalence_policy':'preserves_telemetry_data_and_interactions_while_rendering_the_speed_areas_with_straight_edges_and_without_outline','notes':'Remove os contornos e aplica segmentos retos exclusivamente ao gráfico Velocidade compartilhado entre Desenvolvedor e Status.','deployment_sync_id':'github-straight-speed-chart-1-8-4-10','deployment_sync_requested_at':now,'rewrite_scope':'shared_speed_chart_visual_geometry_only','database_changes':False,'schema_changes':False,'logic_changes':True,'visual_changes':True,'documentation_changes':True});q.write_text(json.dumps(d,ensure_ascii=False,indent=4)+'\n')
+          for f in ['app/prontoo.php','br/index.php']:
+              q=Path(f);q.write_text(q.read_text().replace('1.8.4.9-auth-telemetry-route-contract',b).replace('1.8.4.9',v))
+          q=Path('CHANGELOG.md');t=q.read_text();e='## 1.8.4.10 — 04/08/2026\n\n- Gráfico **Velocidade** nas telas Desenvolvedor e Status passa a usar arestas retas.\n- Removidos os contornos das duas áreas, preservando preenchimentos, dados, tooltips e demais gráficos.\n- Sem alterações de banco de dados ou schema.\n\n';q.write_text(t if '## 1.8.4.10' in t else e+t)
+          q=Path('ChangeLog.txt');t=q.read_text();e='1.8.4.10 - 04/08/2026\n- Velocidade: áreas com arestas retas e sem contorno no Desenvolvedor e Status.\n- Dados, preenchimentos e demais gráficos preservados.\n- Sem alterações de banco de dados ou schema.\n\n';q.write_text(t if '1.8.4.10 - 04/08/2026' in t else e+t)
+          Path('.agent-speed-chart-final').unlink(missing_ok=True)
+          Path('.github/workflows/agent-speed-chart-final.yml').unlink(missing_ok=True)
+          PY
+          php -l app/Admin/AdminPages.php
+          php -l app/prontoo.php
+          php -l br/index.php
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Refinar gráfico de velocidade"
+          git push origin HEAD:agent/straight-speed-chart-20260804
