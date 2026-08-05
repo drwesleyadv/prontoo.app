@@ -12,7 +12,8 @@ VERSION = "1.8.5.1"
 PREVIOUS_VERSION = "1.8.4.9"
 BUILD = "1.8.5.1-maestro-supervised-server-cycle"
 SYNC_ID = "github-prontoo-1.8.5.1-maestro-supervised-server-cycle"
-TRIGGER = "2026-08-05T22:30:00Z"
+TRANSITIONAL_FILES_MAX = 82
+TRIGGER = "2026-08-05T22:38:00Z"
 FRAGMENT = ROOT / ".agent-maestro-supervisor.fragment"
 WORKFLOW = ROOT / ".github/workflows/agent-maestro-release.yml"
 SCRIPT = ROOT / ".agent-maestro-release.py"
@@ -78,6 +79,7 @@ version.update({
     "build": BUILD,
     "generated_at": now_iso,
     "generated_at_unix": now_unix,
+    "updated_at": now_iso,
     "release_date": "2026-08-05",
     "database_changes": False,
     "schema_changes": False,
@@ -86,7 +88,11 @@ version.update({
     "documentation_changes": True,
     "previous_version": PREVIOUS_VERSION,
     "deployment_sync_id": SYNC_ID,
+    "deployment_sync_requested_at": now_iso,
+    "architecture_transitional_files_max": TRANSITIONAL_FILES_MAX,
     "functional_equivalence_policy": "maestro-supervised-server-cycle-no-client-trigger",
+    "notes": "Ciclo Maestro supervisionado exclusivamente no servidor, com saúde separada por estágio e sem alteração de schema.",
+    "rewrite_scope": "maestro_cron_deferred_audit_rule_execution_observability_and_process_design",
 })
 version_path.write_text(
     json.dumps(version, ensure_ascii=False, indent=4, sort_keys=False) + "\n",
@@ -95,9 +101,24 @@ version_path.write_text(
 
 architecture_path = ROOT / "app/architecture.manifest.json"
 architecture = json.loads(architecture_path.read_text(encoding="utf-8"))
-architecture["version"] = VERSION
-if "generated_at" in architecture:
-    architecture["generated_at"] = now_iso
+architecture.update({
+    "version": VERSION,
+    "release": VERSION,
+    "build": BUILD,
+    "generated_at": now_iso,
+    "updated_at": now_iso,
+    "transitional_files_max": TRANSITIONAL_FILES_MAX,
+    "database_changes": False,
+    "schema_changes": False,
+    "logic_changes": True,
+    "visual_changes": False,
+    "documentation_changes": True,
+    "previous_version": PREVIOUS_VERSION,
+    "deployment_sync_id": SYNC_ID,
+    "notes": "Ciclo Maestro supervisionado sem novo arquivo PHP; teto transitório reconciliado com o estado preexistente de 82 arquivos.",
+    "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_baseline_82_must_not_increase",
+    "maestro_budget_policy": "server_only_supervised_parent_cycle_with_read_only_preflight_reserved_rule_budget_and_independent_stage_health",
+})
 architecture_path.write_text(
     json.dumps(architecture, ensure_ascii=False, indent=4, sort_keys=False) + "\n",
     encoding="utf-8",
@@ -114,6 +135,7 @@ entry = """## 1.8.5.1 — Ciclo supervisionado do Maestro
 - retoma ações em erro, valida destinatários em modo fail-closed e calcula janelas no fuso do consultório;
 - aplica rodízio entre consultórios, invalidação seletiva de cache e estado operacional pai em JSON;
 - mantém execução exclusivamente servidor-side e o intervalo de dez minutos;
+- reconcilia o teto arquitetural com o estado preexistente de 82 arquivos transitórios, sem adicionar novo arquivo PHP;
 - não altera banco de dados, schema ou assets públicos.
 
 """
@@ -138,6 +160,7 @@ manifest.update({
     "package_type": version["package_type"],
     "generated_at": now_iso,
     "generated_at_unix": now_unix,
+    "updated_at": now_iso,
     "version_format": version["version_format"],
     "minimum_php": version["minimum_php"],
     "minimum_mysql": version["minimum_mysql"],
@@ -149,6 +172,7 @@ manifest.update({
     "previous_version": PREVIOUS_VERSION,
     "deployment_sync_id": SYNC_ID,
     "functional_equivalence_policy": "maestro-supervised-server-cycle-no-client-trigger",
+    "notes": "Ciclo Maestro supervisionado exclusivamente no servidor, sem alteração de schema ou assets.",
 })
 tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).split(b"\0")
 files: dict[str, str] = {}
@@ -179,5 +203,6 @@ print(json.dumps({
     "files": len(files),
     "bytes": total,
     "maestro_supervisor_inserted": "function maestro_supervised_cron_run(" in maestro_source,
+    "transitional_files_max": TRANSITIONAL_FILES_MAX,
     "trigger": TRIGGER,
 }, ensure_ascii=False))
