@@ -1,5 +1,22 @@
 <?php
 declare(strict_types=1);
+if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
+    $prontooPhpRuntimeMessage = "Prontoo exige exclusivamente PHP 8.4. Runtime atual: " . PHP_VERSION . ".";
+    error_log("[Prontoo PHP runtime] " . $prontooPhpRuntimeMessage);
+    if (PHP_SAPI === "cli") {
+        fwrite(STDERR, $prontooPhpRuntimeMessage . PHP_EOL);
+    } else {
+        if (!headers_sent()) {
+            http_response_code(503);
+            header("Content-Type: text/plain; charset=utf-8");
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Retry-After: 300");
+        }
+        echo $prontooPhpRuntimeMessage;
+    }
+    unset($prontooPhpRuntimeMessage);
+    exit(1);
+}
 if (!defined("PRONTOO_ROOT")) {
     define("PRONTOO_ROOT", dirname(__DIR__));
 }
@@ -147,7 +164,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.5.1";
+const PRONTOO_VERSION_FALLBACK = "1.8.5.2";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.11";
 function prontoo_release_metadata(): array
 {
@@ -269,7 +286,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.8.4.9";
+const PRONTOO_PREVIOUS_VERSION = "1.8.5.1";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.11";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";

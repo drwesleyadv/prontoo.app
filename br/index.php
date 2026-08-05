@@ -1,5 +1,22 @@
 <?php
 declare(strict_types=1);
+if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
+    $prontooPhpRuntimeMessage = "Prontoo exige exclusivamente PHP 8.4. Runtime atual: " . PHP_VERSION . ".";
+    error_log("[Prontoo PHP runtime] " . $prontooPhpRuntimeMessage);
+    if (PHP_SAPI === "cli") {
+        fwrite(STDERR, $prontooPhpRuntimeMessage . PHP_EOL);
+    } else {
+        if (!headers_sent()) {
+            http_response_code(503);
+            header("Content-Type: text/plain; charset=utf-8");
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Retry-After: 300");
+        }
+        echo $prontooPhpRuntimeMessage;
+    }
+    unset($prontooPhpRuntimeMessage);
+    exit(1);
+}
 $brRouteStartedMonotonicNs = hrtime(true);
 $brRouteStartedUnixUs = (int) floor(microtime(true) * 1000000);
 require_once dirname(__DIR__) . "/app/Support/Telemetry.php";
@@ -30,7 +47,7 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.8.5.1";
+const BR_LANDING_VERSION_FALLBACK = "1.8.5.2";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-data.php";
 require __DIR__ . "/runtime-schema.php";

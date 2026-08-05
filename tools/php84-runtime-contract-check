@@ -1,0 +1,127 @@
+<?php
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+$failures = [];
+$requiredFamily = "8.4";
+$requiredMinimum = "8.4.0";
+
+$read = static function (string $path) use ($root, &$failures): string {
+    $absolute = $root . "/" . ltrim($path, "/");
+    $content = @file_get_contents($absolute);
+    if (!is_string($content)) {
+        $failures[] = "Arquivo obrigatório ausente ou ilegível: " . $path;
+        return "";
+    }
+    return $content;
+};
+
+$version = json_decode($read("version.json"), true);
+$manifest = json_decode($read("app/update.manifest.json"), true);
+if (!is_array($version) || !is_array($manifest)) {
+    $failures[] = "Contratos JSON de versão inválidos.";
+} else {
+    foreach ([
+        "version.json" => $version,
+        "app/update.manifest.json" => $manifest,
+    ] as $label => $contract) {
+        if ((string) ($contract["minimum_php"] ?? "") !== $requiredMinimum) {
+            $failures[] = $label . " deve declarar minimum_php=" . $requiredMinimum;
+        }
+        if ((string) ($contract["required_php_family"] ?? "") !== $requiredFamily) {
+            $failures[] = $label . " deve declarar required_php_family=" . $requiredFamily;
+        }
+    }
+}
+
+$tracked = [];
+exec("git -C " . escapeshellarg($root) . " ls-files", $tracked, $gitStatus);
+if ($gitStatus !== 0) {
+    $failures[] = "Não foi possível enumerar os arquivos rastreados.";
+}
+$handlerFiles = [];
+foreach ($tracked as $path) {
+    if (basename($path) !== ".htaccess" || !is_file($root . "/" . $path)) {
+        continue;
+    }
+    $handlerFiles[] = $path;
+    $source = $read($path);
+    if (preg_match_all('/application\/x-httpd-ea-php(\d+)(?:___lsphp)?/i', $source, $matches)) {
+        foreach ($matches[1] as $versionCode) {
+            if ((string) $versionCode !== "84") {
+                $failures[] = "Handler PHP divergente em " . $path . ": php" . $versionCode;
+            }
+        }
+    }
+}
+$rootHtaccess = $read(".htaccess");
+if (!str_contains($rootHtaccess, "AddHandler application/x-httpd-ea-php84___lsphp .php .php8 .phtml")) {
+    $failures[] = "O .htaccess raiz não fixa .php, .php8 e .phtml no handler ea-php84.";
+}
+if ($handlerFiles === []) {
+    $failures[] = "Nenhum .htaccess rastreado foi encontrado para auditoria.";
+}
+
+$entryPaths = ["app/prontoo.php", "br/index.php", "cron/maestro.php"];
+foreach ($entryPaths as $path) {
+    $source = $read($path);
+    foreach ([
+        "PHP_MAJOR_VERSION !== 8",
+        "PHP_MINOR_VERSION !== 4",
+        "Prontoo exige exclusivamente PHP 8.4",
+        "http_response_code(503)",
+        "exit(1)",
+    ] as $token) {
+        if (!str_contains($source, $token)) {
+            $failures[] = "Gate PHP 8.4 incompleto em " . $path . ": " . $token;
+        }
+    }
+    $gatePosition = strpos($source, "PHP_MAJOR_VERSION !== 8");
+    $requirePosition = preg_match('/\brequire(?:_once)?\b/', $source, $match, PREG_OFFSET_CAPTURE)
+        ? (int) $match[0][1]
+        : null;
+    if ($gatePosition === false || ($requirePosition !== null && $gatePosition > $requirePosition)) {
+        $failures[] = "Gate PHP 8.4 deve anteceder o primeiro require em " . $path;
+    }
+}
+
+foreach (["index.php", "install.php"] as $path) {
+    $source = $read($path);
+    if (!str_contains($source, "app/prontoo.php")) {
+        $failures[] = "Entrada pública não encadeada ao runtime central: " . $path;
+    }
+}
+
+$workflowPaths = array_values(array_filter(
+    $tracked,
+    static fn(string $path): bool => str_starts_with($path, ".github/workflows/") &&
+        preg_match('/\.ya?ml$/', $path) === 1 &&
+        is_file($root . "/" . $path),
+));
+foreach ($workflowPaths as $path) {
+    $source = $read($path);
+    if (!preg_match_all('/php-version:\s*["\x27]?([^"\x27\s]+)["\x27]?/i', $source, $matches)) {
+        continue;
+    }
+    foreach ($matches[1] as $declared) {
+        if ((string) $declared !== $requiredFamily) {
+            $failures[] = "Workflow " . $path . " usa php-version=" . $declared;
+        }
+    }
+}
+
+$architectureWorkflow = $read(".github/workflows/architecture.yml");
+if (!str_contains($architectureWorkflow, "php tools/php84-runtime-contract-check")) {
+    $failures[] = "A auditoria PHP 8.4 não está integrada ao contrato de arquitetura.";
+}
+$cronRunbook = $read("docs/operations/maestro-runbook.md");
+if (!str_contains($cronRunbook, "/opt/cpanel/ea-php84/root/usr/bin/php")) {
+    $failures[] = "O runbook do Maestro não fixa o binário CLI do PHP 8.4.";
+}
+
+if ($failures !== []) {
+    fwrite(STDERR, "Contrato exclusivo PHP 8.4 falhou:\n- " . implode("\n- ", $failures) . "\n");
+    exit(1);
+}
+
+echo "Contrato exclusivo PHP 8.4 validado.\n";
