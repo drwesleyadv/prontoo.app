@@ -22,7 +22,7 @@ env:
   PRONTOO_SCHEMA_TEST_MODE: '1'
   PRONTOO_INSTALLER_CLI_MODE: '1'
   RELEASE_HEAD_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
-  HARDENING_TRIGGER: '2026-08-05T22:48:00Z'
+  HARDENING_TRIGGER: '2026-08-05T22:52:00Z'
 
 jobs:
   harden:
@@ -56,7 +56,7 @@ jobs:
           tools: none
           extensions: pdo_mysql
       - name: Apply hardening
-        run: python3 .agent-maestro-hardening.py
+        run: python3 .agent-maestro-hardening-fix.py
       - name: PHP syntax
         shell: bash
         run: |
