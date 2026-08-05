@@ -1,0 +1,100 @@
+name: Agent Maestro Hardening
+
+on:
+  push:
+    branches:
+      - agent/maestro-supervised-cycle-1-8-5-1
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  harden:
+    if: ${{ !contains(github.event.head_commit.message, '[hardening-generated]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql
+      - name: Apply hardening
+        run: python3 .agent-maestro-hardening.py
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+      - name: Static Maestro contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -q 'DATE(start_at)=CURDATE()' app/Domain/Maestro/Maestro.php
+          ! grep -q 'DATE(next_action_at)=?' app/Domain/Maestro/Maestro.php
+          ! grep -q 'DATE(issued_at)=?' app/Domain/Maestro/Maestro.php
+          ! grep -q 'DATE(expected_at)=?' app/Domain/Maestro/Maestro.php
+          ! grep -q 'DATE_SUB(CURDATE(), INTERVAL ? DAY)' app/Domain/Maestro/Maestro.php
+          sed -n '/function maestro_supervised_with_clinic_timezone/,/function maestro_supervised_candidate_result/p' app/Domain/Maestro/Maestro.php | grep -qv 'SET time_zone'
+          grep -q 'maestro_due_dt((int) ($act\["due_offset_days"\] ?? 0), $cid)' app/Domain/Maestro/Maestro.php
+          grep -q 'glob($dir . "/dead-letter/\*")' app/Support/DeferredAudit.php
+          grep -q 'Cargo destinatário inválido para a tarefa' app/Domain/Tasks/TasksNotices.php
+      - name: Contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/version-asset-contract-check.php
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+      - name: Commit hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "prontoo-agent"
+          git config user.email "prontoo-agent@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Endurecer contratos do Maestro 1.8.5.1 [hardening-generated]"
+          git push origin HEAD:${GITHUB_REF_NAME}
