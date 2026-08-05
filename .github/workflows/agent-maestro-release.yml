@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - agent/maestro-supervised-cycle-1-8-5-1
+  pull_request:
+    branches:
+      - prontoo
+
+enpermissions:
+  contents: write
 
 permissions:
   contents: write
@@ -18,10 +24,11 @@ env:
   CI: 'true'
   PRONTOO_SCHEMA_TEST_MODE: '1'
   PRONTOO_INSTALLER_CLI_MODE: '1'
+  RELEASE_HEAD_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
 jobs:
   finalize:
-    if: ${{ !contains(github.event.head_commit.message, '[release-generated]') }}
+    if: ${{ !contains(github.event.head_commit.message || '', '[release-generated]') && !contains(github.event.pull_request.title || '', '[release-generated]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -38,10 +45,11 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - name: Checkout
+      - name: Checkout head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_HEAD_BRANCH }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -84,4 +92,4 @@ jobs:
           git add -A
           git diff --cached --check
           git commit -m "Publicar 1.8.5.1 com Maestro supervisionado [release-generated]"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${RELEASE_HEAD_BRANCH}
