@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.5.2 — Runtime exclusivo PHP 8.4
+
+- fixa o handler público da Hostoo em `ea-php84` para `.php`, `.php8` e `.phtml`;
+- bloqueia, antes do bootstrap, qualquer runtime cuja família não seja exatamente PHP 8.4;
+- aplica o mesmo contrato à aplicação, landing page, instalador por encadeamento e cron CLI;
+- valida metadados de versão, workflows e documentação operacional por teste permanente;
+- substitui a política anterior de versão mínima por família exclusiva, impedindo execução acidental em PHP 8.5 ou superior;
+- não altera banco de dados, schema, layout ou assets públicos.
+
 ## 1.8.5.1 — Ciclo supervisionado do Maestro
 
 - separa saúde de regras, auditoria diferida, integridade, preflight e manutenção;

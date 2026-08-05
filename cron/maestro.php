@@ -6,6 +6,23 @@ if (PHP_SAPI !== "cli") {
     echo "CLI only\n";
     exit(1);
 }
+if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
+    $prontooPhpRuntimeMessage = "Prontoo exige exclusivamente PHP 8.4. Runtime atual: " . PHP_VERSION . ".";
+    error_log("[Prontoo PHP runtime] " . $prontooPhpRuntimeMessage);
+    if (PHP_SAPI === "cli") {
+        fwrite(STDERR, $prontooPhpRuntimeMessage . PHP_EOL);
+    } else {
+        if (!headers_sent()) {
+            http_response_code(503);
+            header("Content-Type: text/plain; charset=utf-8");
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Retry-After: 300");
+        }
+        echo $prontooPhpRuntimeMessage;
+    }
+    unset($prontooPhpRuntimeMessage);
+    exit(1);
+}
 
 $__prontooCronRoot = dirname(__DIR__);
 $__prontooCronBootstrapLog = $__prontooCronRoot . "/ssd/logs/maestro-bootstrap.log";
@@ -38,11 +55,6 @@ register_shutdown_function(static function (): void {
     }
 });
 
-if (version_compare(PHP_VERSION, "8.4.0", "<")) {
-    prontoo_cron_bootstrap_log("PHP CLI incompatível: " . PHP_VERSION);
-    fwrite(STDERR, "Prontoo requer PHP 8.4.0 ou superior. PHP atual: " . PHP_VERSION . PHP_EOL);
-    exit(1);
-}
 
 define("PRONTOO_CRON", true);
 @ini_set("memory_limit", "96M");
