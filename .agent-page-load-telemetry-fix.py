@@ -17,6 +17,10 @@ source = source.replace(
     r'            \\\\RoundingMode::HalfAwayFromZero,',
     r'            \\RoundingMode::HalfAwayFromZero,',
 )
+source = source.replace(
+    '''# ADR 0007 — Carregamento de página como fonte de verdade da telemetria\n\n## Status\n\nAceito na versão 1.8.6.2.\n''',
+    '''# ADR 0007 — Carregamento de página como fonte de verdade da telemetria\n\n**Status:** aceito\n\n**Data:** 2026-08-06\n''',
+)
 old = """landing = replace_once(
     landing,
     '''declare(strict_types=1);
