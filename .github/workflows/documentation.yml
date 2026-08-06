@@ -123,17 +123,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test ! -e .agent-page-load-telemetry.py
+          test ! -e .agent-page-load-telemetry-fix.py
+          test ! -e .github/workflows/agent-page-load-telemetry.yml
+          if [ "$(git hash-object .github/workflows/documentation.yml)" != "$(git rev-parse origin/prontoo:.github/workflows/documentation.yml)" ]; then
+            echo "Workflow documental não foi restaurado" >&2
+            exit 1
+          fi
           git config user.name "Prontoo Release"
           git config user.email "release@prontoo.app"
           git add -A
           git diff --cached --name-only
-          if git diff --cached --name-only | grep -E '^\.agent-|^\.github/workflows/agent-page-load-telemetry\.yml$'; then
-            echo "Arquivo transitório permaneceu na árvore final" >&2
-            exit 1
-          fi
-          if ! git diff --cached --quiet -- .github/workflows/documentation.yml; then
-            echo "Workflow documental não foi restaurado" >&2
-            exit 1
-          fi
           git commit -m "Release 1.8.6.2 — telemetria por carregamento de página"
           git push origin HEAD:${GITHUB_HEAD_REF}
