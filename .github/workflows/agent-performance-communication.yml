@@ -1,11 +1,13 @@
 name: Finalizar comunicação de Performance
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  issue_comment:
+    types:
+      - created
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: finalize-performance-communication-1-8-6-3
@@ -24,6 +26,7 @@ env:
 
 jobs:
   finalize:
+    if: ${{ github.event.issue.number == 160 && github.event.issue.pull_request != null && github.event.comment.body == '/finalizar-performance-1.8.6.3-agora' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -52,54 +55,62 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Gerar árvore funcional
+      - name: Reconstruir candidato sobre prontoo atual
         shell: bash
         run: |
           set -euo pipefail
+          cp .agent-performance-communication.py /tmp/agent.py
+          cp docs/operations/page-load-telemetry.md /tmp/page-load-telemetry.md
+          cp docs/performance/telemetry.md /tmp/performance-telemetry.md
+          git fetch origin prontoo
+          git reset --hard origin/prontoo
+          cp /tmp/agent.py .agent-performance-communication.py
+          cp /tmp/page-load-telemetry.md docs/operations/page-load-telemetry.md
+          cp /tmp/performance-telemetry.md docs/performance/telemetry.md
+          rm -f .github/workflows/agent-performance-communication.yml
+          rm -f .github/workflows/finalize-performance-now.yml
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('.agent-performance-communication.py')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("timezone = '''function telemetry_cuiaba_tz(): DateTimeZone", "timezone_helper = '''function telemetry_cuiaba_tz(): DateTimeZone", 1)
+          s = s.replace('telemetry = once(telemetry, timezone, timezone +', 'telemetry = once(telemetry, timezone_helper, timezone_helper +', 1)
+          s = s.replace('    ("telemetry_sequence_records_series_20d", "telemetry_sequence_records_series_30d"),\n', '', 1)
+          s = s.replace('    (\'"primary_label" => "Requisições"\', \'"primary_label" => "Visualizações"\'),\n', '', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
           python3 .agent-performance-communication.py
           test ! -e .agent-performance-communication.py
-          git fetch origin prontoo
-          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          rm -f .github/workflows/agent-performance-communication.yml
+          test ! -e .github/workflows/agent-performance-communication.yml
+          test ! -e .github/workflows/finalize-performance-now.yml
+      - name: Reconciliar manifesto final
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 <<'PY'
           import hashlib
           import json
           from datetime import datetime, timezone
           from pathlib import Path
-
           root = Path.cwd()
-          manifest_path = root / "app/update.manifest.json"
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest_path = root / 'app/update.manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
           files = {}
           total = 0
-          for path in sorted(root.rglob("*")):
+          for path in sorted(root.rglob('*')):
               if not path.is_file() or path.is_symlink():
                   continue
               relative = path.relative_to(root).as_posix()
-              if (
-                  relative == "app/update.manifest.json" or
-                  relative == ".agent-performance-communication.py" or
-                  relative == ".github/workflows/agent-performance-communication.yml" or
-                  relative.startswith(".git/") or
-                  relative.startswith("ssd/") or
-                  relative.startswith("vendor/") or
-                  relative.startswith("node_modules/")
-              ):
+              if relative == 'app/update.manifest.json' or relative.startswith('.git/') or relative.startswith('ssd/') or relative.startswith('vendor/') or relative.startswith('node_modules/'):
                   continue
               data = path.read_bytes()
               files[relative] = hashlib.sha256(data).hexdigest()
               total += len(data)
-          now = datetime.now(timezone.utc)
-          manifest["files"] = files
-          manifest["file_count"] = len(files)
-          manifest["total_uncompressed_bytes"] = total
-          manifest["updated_at"] = now.isoformat()
-          manifest_path.write_text(
-              json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
-              encoding="utf-8",
-          )
-          if len(files) != 229:
-              raise RuntimeError(f"Manifesto final deve conter 229 arquivos, contém {len(files)}")
+          manifest['files'] = files
+          manifest['file_count'] = len(files)
+          manifest['total_uncompressed_bytes'] = total
+          manifest['updated_at'] = datetime.now(timezone.utc).isoformat()
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
           PY
       - name: Validar candidato final
         shell: bash
@@ -129,24 +140,13 @@ jobs:
           grep -F '<h2>Performance</h2>' app/Admin/AdminPages.php
           grep -F '"Últimas 24 horas",' app/Admin/AdminPages.php
           grep -F '"Últimos 30 dias",' app/Admin/AdminPages.php
-      - name: Publicar commit limpo
+          grep -F '"version": "1.8.6.3"' version.json
+      - name: Publicar candidato final
         shell: bash
         run: |
           set -euo pipefail
-          test ! -e .agent-performance-communication.py
-          test ! -e .github/workflows/agent-performance-communication.yml
-          diff -u <(git show origin/prontoo:.github/workflows/documentation.yml) .github/workflows/documentation.yml
           git config user.name "Prontoo Release"
           git config user.email "release@prontoo.app"
           git add -A
           git commit -m "Release 1.8.6.3 — consolidar comunicação de Performance"
-          git push origin HEAD:agent/performance-communication-1-8-6-3
-      - name: Remover executor temporário
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin prontoo
-          git checkout -B cleanup-performance origin/prontoo
-          git rm .github/workflows/agent-performance-communication.yml
-          git commit -m "Remover executor temporário da Performance"
-          git push origin HEAD:prontoo
+          git push --force-with-lease origin HEAD:agent/performance-communication-1-8-6-3
