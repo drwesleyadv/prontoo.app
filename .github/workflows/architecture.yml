@@ -50,8 +50,8 @@ jobs:
           tools: none
           extensions: pdo_mysql, mbstring
       - name: Generate PHP 8.4 conformance candidate
-        if: ${{ hashFiles('.agent-php84-conformance.py') != '' }}
-        run: python3 .agent-php84-conformance.py
+        if: ${{ hashFiles('.agent-php84-conformance-fix.py') != '' }}
+        run: python3 .agent-php84-conformance-fix.py
       - name: PHP syntax and deprecations
         shell: bash
         run: |
