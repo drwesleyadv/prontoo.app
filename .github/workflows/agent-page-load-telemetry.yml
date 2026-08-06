@@ -1,0 +1,95 @@
+name: Agent Page Load Telemetry
+
+on:
+  push:
+    branches:
+      - agent/page-load-telemetry-1-8-6-2
+
+concurrency:
+  group: page-load-telemetry-1-8-6-2
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  finalize:
+    if: ${{ !contains(github.event.head_commit.message, '[page-load-generated]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Generate page-load telemetry release
+        run: python3 .agent-page-load-telemetry-fix.py
+      - name: PHP syntax and deprecations
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            output="$(php -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l "$file" 2>&1)"
+            printf '%s\n' "$output"
+            if grep -qi 'deprecated' <<<"$output"; then
+              echo "Depreciação PHP 8.4 em $file" >&2
+              exit 1
+            fi
+          done < <(git ls-files -z '*.php')
+      - name: Page-load telemetry contract
+        run: php tools/page-load-telemetry-contract-check
+      - name: Canonical contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/version-asset-contract-check.php
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+      - name: Commit generated release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "prontoo-agent"
+          git config user.email "prontoo-agent@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Publicar 1.8.6.2 com telemetria por página [page-load-generated]"
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
+          git push origin HEAD:${GITHUB_REF_NAME}
