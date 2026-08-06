@@ -1,12 +1,15 @@
 name: Finalizar comunicação de Performance
 
 on:
-  issue_comment:
-    types:
-      - created
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
+
+concurrency:
+  group: finalize-performance-communication-1-8-6-3
+  cancel-in-progress: false
 
 env:
   DB_HOST: 127.0.0.1
@@ -21,7 +24,6 @@ env:
 
 jobs:
   finalize:
-    if: ${{ github.event.issue.number == 160 && github.event.issue.pull_request != null && github.event.comment.body == '/finalizar-performance-1.8.6.3' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -139,3 +141,12 @@ jobs:
           git add -A
           git commit -m "Release 1.8.6.3 — consolidar comunicação de Performance"
           git push origin HEAD:agent/performance-communication-1-8-6-3
+      - name: Remover executor temporário
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo
+          git checkout -B cleanup-performance origin/prontoo
+          git rm .github/workflows/agent-performance-communication.yml
+          git commit -m "Remover executor temporário da Performance"
+          git push origin HEAD:prontoo
