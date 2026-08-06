@@ -44,6 +44,11 @@ replacements = [
         '''foreach ($phpFiles as $path) {\n    $source = $read($path);\n    foreach (token_get_all($source, TOKEN_PARSE) as $sourceToken) {\n        if (is_array($sourceToken) &&\n            $sourceToken[0] === T_STRING &&\n            strtoupper((string) $sourceToken[1]) === "E_STRICT") {\n            $failures[] = "Constante E_STRICT descontinuada em " . $path;\n        }\n    }\n    $lint = [];''',
         "detecção tokenizada de E_STRICT",
     ),
+    (
+        '''financial_path.write_text(financial, encoding="utf-8")\n\n# Inserções por offsets em bytes, nunca por índices Unicode.''',
+        '''financial_path.write_text(financial, encoding="utf-8")\n\narchitecture_check_path = ROOT / "tools/architecture-check.php"\narchitecture_check = architecture_check_path.read_text(encoding="utf-8")\narchitecture_check = replace_once(\n    architecture_check,\n    '\"duracao_ms\" => round($durationNs / 1000000, 6)',\n    '\"duracao_ms\" => round($durationNs / 1000000, 6, \\\\RoundingMode::HalfAwayFromZero)',\n    "telemetry_rounding_characterization",\n    changes["tools/architecture-check.php"],\n)\narchitecture_check_path.write_text(architecture_check, encoding="utf-8")\n\n# Inserções por offsets em bytes, nunca por índices Unicode.''',
+        "atualizar caracterização do arredondamento",
+    ),
 ]
 for old, new, label in replacements:
     count = source.count(old)
