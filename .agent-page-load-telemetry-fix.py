@@ -62,6 +62,50 @@ if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
 if old not in source:
     raise RuntimeError("Bloco de reposicionamento da landing não reconhecido")
 source = source.replace(old, new, 1)
+
+architecture_write = 'write("tools/architecture-check.php", architecture_check)\n'
+architecture_patch = r'''architecture_check = replace_once(
+    architecture_check,
+    '''"/telemetria.json"''',
+    '''"/page-loads.jsonl"''',
+    "fonte da verdade no contrato de logout",
+)
+architecture_check = replace_once(
+    architecture_check,
+    '''    '"duracao_ms" => round($durationNs / 1000000, 6, \\RoundingMode::HalfAwayFromZero)',
+    'return telemetry_storage_dir() . "/telemetria.json";',
+''',
+    '''    '"duracao_ms" => round(',
+    '\\RoundingMode::HalfAwayFromZero',
+    'return telemetry_storage_dir() . "/page-loads.jsonl";',
+    'return "prontoo.telemetria.pagina.v2";',
+    'function telemetry_page_request_candidate(',
+    'function telemetry_page_response_candidate(',
+    '"tipo" => "page_load"',
+    '"marco_inicial" => "front_controller_first_executable_line"',
+    '"front_controller_last_useful_line"',
+    '"shutdown_fallback"',
+''',
+    "caracterização da telemetria de página",
+)
+architecture_check = replace_once(
+    architecture_check,
+    '''foreach ([
+    'page-load',
+    'route-performance.json',
+''',
+    '''foreach ([
+    'prontoo.telemetria.rota.v1',
+    '"/telemetria.json"',
+    'route-performance.json',
+''',
+    "remoção da proibição do contrato page-load",
+)
+write("tools/architecture-check.php", architecture_check)
+'''
+if architecture_write not in source:
+    raise RuntimeError("Ponto de fechamento do contrato arquitetural não encontrado")
+source = source.replace(architecture_write, architecture_patch, 1)
 target.write_text(source, encoding="utf-8")
 
 doc_source = documentation_check.read_text(encoding="utf-8")
