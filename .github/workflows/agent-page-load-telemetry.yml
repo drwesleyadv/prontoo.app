@@ -3,7 +3,7 @@ name: Finalizar telemetria de carregamento de página
 on:
   push:
     branches:
-      - agent/page-load-telemetry-clean-1-8-6-2
+      - agent/page-load-telemetry-final-1-8-6-2
     paths:
       - .github/workflows/agent-page-load-telemetry.yml
 
@@ -42,7 +42,7 @@ jobs:
       - name: Checkout do branch
         uses: actions/checkout@v4
         with:
-          ref: agent/page-load-telemetry-clean-1-8-6-2
+          ref: agent/page-load-telemetry-final-1-8-6-2
           fetch-depth: 0
       - name: PHP 8.4
         uses: shivammathur/setup-php@v2
@@ -95,4 +95,4 @@ jobs:
             exit 1
           fi
           git commit -m "Release 1.8.6.2 — telemetria por carregamento de página"
-          git push origin HEAD:agent/page-load-telemetry-clean-1-8-6-2
+          git push origin HEAD:agent/page-load-telemetry-final-1-8-6-2
