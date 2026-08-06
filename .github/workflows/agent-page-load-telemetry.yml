@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/page-load-telemetry-1-8-6-2
+  pull_request:
+    branches:
+      - prontoo
 
 concurrency:
   group: page-load-telemetry-1-8-6-2
@@ -22,10 +25,11 @@ env:
   CI: 'true'
   PRONTOO_SCHEMA_TEST_MODE: '1'
   PRONTOO_INSTALLER_CLI_MODE: '1'
+  RELEASE_HEAD_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
 jobs:
   finalize:
-    if: ${{ !contains(github.event.head_commit.message, '[page-load-generated]') }}
+    if: ${{ !contains(github.event.head_commit.message || '', '[page-load-generated]') && !contains(github.event.pull_request.title || '', '[page-load-generated]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -46,6 +50,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_HEAD_BRANCH }}
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -90,6 +95,6 @@ jobs:
           git add -A
           git diff --cached --check
           git commit -m "Publicar 1.8.6.2 com telemetria por página [page-load-generated]"
-          git fetch origin ${GITHUB_REF_NAME}
-          git rebase origin/${GITHUB_REF_NAME}
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git fetch origin ${RELEASE_HEAD_BRANCH}
+          git rebase origin/${RELEASE_HEAD_BRANCH}
+          git push origin HEAD:${RELEASE_HEAD_BRANCH}
