@@ -79,23 +79,23 @@ final class SchemaMutationLock
             return false;
         }
 
-        if (strtoupper(trim((string) ($_SERVER['REQUEST_METHOD'] ?? ''))) !== 'POST') {
+        if (strtoupper(mb_trim((string) ($_SERVER['REQUEST_METHOD'] ?? ''))) !== 'POST') {
             return false;
         }
-        $route = trim((string) ($_GET['r'] ?? ''));
+        $route = mb_trim((string) ($_GET['r'] ?? ''));
         $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
         $requestPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
         if ($route !== 'install' && $script !== 'install.php' && $requestPath !== '/install.php') {
             return false;
         }
 
-        $https = strtolower(trim((string) ($_SERVER['HTTPS'] ?? '')));
+        $https = strtolower(mb_trim((string) ($_SERVER['HTTPS'] ?? '')));
         if (!in_array($https, ['on', '1'], true) &&
             (string) ($_SERVER['SERVER_PORT'] ?? '') !== '443') {
             return false;
         }
 
-        $host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '')));
+        $host = strtolower(mb_trim((string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '')));
         $host = preg_replace('/:\d+$/', '', $host) ?? '';
         if ($host !== 'prontoo.app') {
             return false;

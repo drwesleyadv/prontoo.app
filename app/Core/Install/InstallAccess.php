@@ -36,7 +36,7 @@ final class InstallAccess
     public static function requestHostFrom(array $server): string
     {
 
-        $host = strtolower(trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
+        $host = strtolower(mb_trim((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? '')));
         if ($host === '') {
             return '';
         }
@@ -60,7 +60,7 @@ final class InstallAccess
             return false;
         }
         foreach (self::FORWARDED_HEADERS as $header) {
-            if (trim((string) ($server[$header] ?? '')) !== '') {
+            if (mb_trim((string) ($server[$header] ?? '')) !== '') {
                 return false;
             }
         }
@@ -93,11 +93,11 @@ final class InstallAccess
         }
 
         $request = $_SERVER;
-        $method = strtoupper(trim((string) ($request['REQUEST_METHOD'] ?? 'GET')));
+        $method = strtoupper(mb_trim((string) ($request['REQUEST_METHOD'] ?? 'GET')));
         if (!in_array($method, ['GET', 'POST'], true)) {
             return false;
         }
-        $https = strtolower(trim((string) ($request['HTTPS'] ?? '')));
+        $https = strtolower(mb_trim((string) ($request['HTTPS'] ?? '')));
         if (!in_array($https, ['on', '1'], true) &&
             (string) ($request['SERVER_PORT'] ?? '') !== '443') {
             return false;

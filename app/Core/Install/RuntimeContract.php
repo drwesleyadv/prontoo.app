@@ -103,7 +103,7 @@ final class RuntimeContract
         ];
         if (\function_exists('prontoo_full_runtime_modules')) {
             foreach (\prontoo_full_runtime_modules() as $module) {
-                $files[] = 'app/' . ltrim((string) $module, '/');
+                $files[] = 'app/' . mb_ltrim((string) $module, '/');
             }
         }
         return array_values(array_unique(array_map(

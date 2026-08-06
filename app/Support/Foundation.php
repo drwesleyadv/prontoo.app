@@ -9,7 +9,7 @@ function app_root(): string
 function cfg_file(): string
 {
 
-    $env = trim((string) (getenv("PRONTOO_CONFIG_PATH") ?: ""));
+    $env = mb_trim((string) (getenv("PRONTOO_CONFIG_PATH") ?: ""));
     if ($env !== "" && str_starts_with($env, "/")) {
         return $env;
     }
@@ -120,7 +120,7 @@ function app_context_timezone(?array $context = null, int $clinicId = 0): string
 
     if (
         is_array($context) &&
-        trim((string) ($context["timezone"] ?? "")) !== ""
+        mb_trim((string) ($context["timezone"] ?? "")) !== ""
     ) {
         return app_timezone_safe((string) $context["timezone"]);
     }
@@ -220,7 +220,7 @@ function app_local_month_utc_range(
 function app_parse_db_utc(null|string|int $value): ?DateTimeImmutable
 {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return null;
     }
@@ -253,7 +253,7 @@ function app_local_to_db_utc(
     ?array $context = null,
 ): string {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return "";
     }
@@ -280,7 +280,7 @@ function app_storage_timestamp(
     bool $endOfDay = false,
 ): int {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return 0;
     }
@@ -299,7 +299,7 @@ function app_storage_timestamp(
 function app_date_input_from_storage(null|string|int $value): string
 {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return "";
     }
@@ -378,7 +378,7 @@ function app_datetime_br(
 
     $dt = app_db_utc_to_local($value, $clinicId, $context);
     if (!$dt) {
-        return trim((string) ($value ?? "")) ?: "—";
+        return mb_trim((string) ($value ?? "")) ?: "—";
     }
     $m = prontoo_months_br();
     $year = (int) $dt->format("Y");
@@ -395,7 +395,7 @@ function patient_display_name(int $patientLinkId, ?int $cid = null): string
 
     try {
         if (function_exists("audit_patient_name_by_link")) {
-            $name = trim((string) audit_patient_name_by_link($patientLinkId, $cid));
+            $name = mb_trim((string) audit_patient_name_by_link($patientLinkId, $cid));
             if ($name !== "") {
                 return $name;
             }
@@ -406,7 +406,7 @@ function patient_display_name(int $patientLinkId, ?int $cid = null): string
             $where .= " AND pp.clinic_id=?";
             $params[] = $cid;
         }
-        $name = trim((string) (val(
+        $name = mb_trim((string) (val(
             "SELECT p.full_name FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE $where LIMIT 1",
             $params,
         ) ?: ""));
@@ -466,7 +466,7 @@ function app_config_string(string $key, string $default = ""): string
         if (function_exists("cfg") && has_cfg()) {
             $c = cfg();
             if (isset($c[$key]) && is_scalar($c[$key])) {
-                return trim((string) $c[$key]);
+                return mb_trim((string) $c[$key]);
             }
         }
     } catch (Throwable $e) {
@@ -950,7 +950,7 @@ function person_signature_value(
         "|" .
         mb_strtolower(trim($name), "UTF-8") .
         "|" .
-        trim((string) $date);
+        mb_trim((string) $date);
     return hash_hmac("sha256", $base, secret_key());
 }
 function person_signature_sync(int $personId, bool $verify = false): void
@@ -975,7 +975,7 @@ function person_signature_sync(int $personId, bool $verify = false): void
             (string) ($person["full_name"] ?? ""),
             (string) ($person["birth_date"] ?? ""),
         );
-        $current = trim((string) ($person["assinatura"] ?? ""));
+        $current = mb_trim((string) ($person["assinatura"] ?? ""));
         if ($current === "" || !hash_equals($expected, $current)) {
             q(
                 "UPDATE pi_persons SET assinatura=?, updated_at=COALESCE(updated_at,NOW()) WHERE id=?",
@@ -983,7 +983,7 @@ function person_signature_sync(int $personId, bool $verify = false): void
             );
         }
         if ($verify) {
-            $stored = trim((string) val(
+            $stored = mb_trim((string) val(
                 "SELECT assinatura FROM pi_persons WHERE id=?",
                 [$personId],
             ));
@@ -1025,10 +1025,10 @@ function person_identity_immutable_values(
             [])
             : [];
     $currentCpf = only_digits((string) ($current["cpf"] ?? ""));
-    $currentBirthRaw = trim((string) ($current["birth_date"] ?? ""));
+    $currentBirthRaw = mb_trim((string) ($current["birth_date"] ?? ""));
     $currentBirth = app_date_input_from_storage($currentBirthRaw);
     $newCpf = only_digits((string) ($cpfInput ?? ""));
-    $newBirth = app_date_input_from_storage(trim((string) ($birthInput ?? "")));
+    $newBirth = app_date_input_from_storage(mb_trim((string) ($birthInput ?? "")));
     if ($currentCpf !== "") {
         if ($newCpf !== "" && $newCpf !== $currentCpf) {
             throw new RuntimeException(
@@ -1238,7 +1238,7 @@ function person_common_profile_from_array(
 
     $k = function (string $name) use ($data, $prefix) {
 
-        return trim((string) ($data[$prefix . $name] ?? ""));
+        return mb_trim((string) ($data[$prefix . $name] ?? ""));
     };
     $doc = only_digits($k("legal_document"));
     $type = $k("legal_type");

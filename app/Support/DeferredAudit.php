@@ -33,7 +33,7 @@ function maestro_deferred_sign(array $envelope): string
 {
     static $key = null;
     if (!is_string($key) || $key === "") {
-        $configSecret = trim((string) (cfg()["secret"] ?? ""));
+        $configSecret = mb_trim((string) (cfg()["secret"] ?? ""));
         $source = strlen($configSecret) >= 32 ? $configSecret : secret_key();
         $key = hash("sha256", "prontoo|maestro-deferred|" . $source, true);
     }
@@ -91,7 +91,7 @@ function maestro_deferred_enqueue(string $type, array $payload): ?string
         return null;
     }
     try {
-        $id = sprintf("%020d", (int) round(microtime(true) * 1000000)) .
+        $id = sprintf("%020d", (int) round(microtime(true) * 1000000, 0, \RoundingMode::HalfAwayFromZero)) .
             "-" .
             bin2hex(random_bytes(8));
         $unsigned = [
@@ -131,7 +131,7 @@ function maestro_defer_audit_event(
 ): bool {
     $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
     $userAgent = mb_substr(
-        trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")),
+        mb_trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")),
         0,
         180,
     );
@@ -164,7 +164,7 @@ function maestro_defer_audit_event(
 
 function maestro_deferred_envelope_valid(array $envelope): bool
 {
-    $signature = strtolower(trim((string) ($envelope["signature"] ?? "")));
+    $signature = strtolower(mb_trim((string) ($envelope["signature"] ?? "")));
     if (
         (int) ($envelope["version"] ?? 0) !== 1 ||
         preg_match('/^\d{20}-[a-f0-9]{16}$/', (string) ($envelope["id"] ?? "")) !== 1 ||
@@ -467,7 +467,7 @@ function maestro_process_deferred_work(int $budgetMs = 5000, int $limit = 500): 
             max(0, time() - (int) @filemtime($file)),
         );
     }
-    $stats["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+    $stats["duration_ms"] = (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero);
     $cycleFailure = $stats["errors"] > 0 ||
         $stats["invalid"] > 0 ||
         $stats["dead_letter_new"] > 0;

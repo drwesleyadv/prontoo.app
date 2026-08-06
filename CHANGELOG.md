@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.6.1 — Conformidade integral PHP 8.4
+
+- revisa individualmente todos os arquivos PHP rastreados;
+- preserva quantidade e assinaturas de funções, métodos, closures e arrow functions;
+- adota normalização multibyte, modo de arredondamento explícito, `PDO::connect()`, `DateTimeImmutable::createFromTimestamp()` e escape CSV explícito;
+- alinha o helper interno à família exclusiva PHP 8.4;
+- amplia o contrato permanente contra depreciações;
+- não altera banco, schema, rotas, funções, layout ou assets.
+
 ## 1.8.5.2 — Runtime exclusivo PHP 8.4
 
 - fixa o handler público da Hostoo em `ea-php84` para `.php`, `.php8` e `.phtml`;

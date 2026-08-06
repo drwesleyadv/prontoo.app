@@ -89,7 +89,7 @@ function prontoo_cron_record_failure(float $startedAt, string $note): void
         "actions_created" => 0,
         "deferred" => 0,
         "errors" => 1,
-        "duration_ms" => (int) max(0, round((microtime(true) - $startedAt) * 1000)),
+        "duration_ms" => (int) max(0, round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero)),
         "load_score" => 0,
         "note" => "falha: " . mb_substr(preg_replace("/\s+/u", " ", trim($note)) ?: "erro", 0, 232),
     ]);
@@ -180,7 +180,7 @@ function prontoo_cron_preflight_once(): array
         "disk_free",
         $free !== false && $free > 1024 * 1024 * 1024,
         "Espaço livre: " .
-            ($free === false ? "indisponível" : round($free / 1024 / 1024, 1) . " MB") .
+            ($free === false ? "indisponível" : round($free / 1024 / 1024, 1, \RoundingMode::HalfAwayFromZero) . " MB") .
             ".",
     );
     foreach ([
@@ -256,7 +256,7 @@ function prontoo_cron_preflight_once(): array
         "mutation_free" => true,
         "schema_revision" => defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : null,
         "version" => defined("PRONTOO_VERSION") ? PRONTOO_VERSION : null,
-        "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+        "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
         "checked_at" => gmdate("c"),
         "checks" => $checks,
     ];
@@ -314,7 +314,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
             "complete" => true,
             "mode" => "runtime-event-flush",
             "note" => "Eventos pendentes do processo atual descarregados.",
-            "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+            "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
         ];
     } catch (Throwable $error) {
         return [
@@ -322,7 +322,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
             "complete" => false,
             "mode" => "runtime-event-flush",
             "note" => mb_substr($error->getMessage(), 0, 220),
-            "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+            "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
         ];
     }
 }
@@ -355,7 +355,7 @@ function prontoo_cron_maintenance(): array
         "ok" => true,
         "removed_transient_files" => $removed,
         "authoritative_records_preserved" => true,
-        "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+        "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
     ];
 }
 
@@ -443,7 +443,7 @@ try {
         "version" => PRONTOO_VERSION,
         "started_at_utc" => gmdate("c", (int) $__prontooCronStarted),
         "finished_at_utc" => gmdate("c"),
-        "duration_ms" => (int) round((microtime(true) - $__prontooCronStarted) * 1000),
+        "duration_ms" => (int) round((microtime(true) - $__prontooCronStarted) * 1000, 0, \RoundingMode::HalfAwayFromZero),
         "preflight" => [
             "ran" => (bool) ($preflight["ran"] ?? false),
             "ok" => (bool) ($preflight["ok"] ?? false),

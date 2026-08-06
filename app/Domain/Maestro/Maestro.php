@@ -651,7 +651,7 @@ function maestro_decode_json(mixed $raw): array
     if (is_array($raw)) {
         return $raw;
     }
-    $txt = trim((string) ($raw ?? ""));
+    $txt = mb_trim((string) ($raw ?? ""));
     if ($txt === "") {
         return [];
     }
@@ -953,7 +953,7 @@ function maestro_duration_label(int $ms): string
         return number_format($seconds, 1, ",", ".") . " s";
     }
     $minutes = floor($seconds / 60);
-    $rest = (int) round($seconds - $minutes * 60);
+    $rest = (int) round($seconds - $minutes * 60, 0, \RoundingMode::HalfAwayFromZero);
     return (int) $minutes . " min " . $rest . " s";
 }
 function maestro_unit_label(
@@ -1017,13 +1017,13 @@ function maestro_target_label(array $act, int $cid): string
 function maestro_last_label(?string $value): string
 {
 
-    $value = trim((string) $value);
+    $value = mb_trim((string) $value);
     return $value !== "" ? dt_br($value) : "Ainda não afinada";
 }
 function maestro_next_label(?string $value): string
 {
 
-    $value = trim((string) $value);
+    $value = mb_trim((string) $value);
     if ($value === "") {
         return "No próximo ciclo";
     }
@@ -1099,7 +1099,7 @@ function page_maestro(): void
         (float) (val(
             "SELECT AVG(duration_ms) FROM pi_maestro_job_runs WHERE finished_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
         ) ?? 0),
-    );
+    0, \RoundingMode::HalfAwayFromZero);
     if ($avgDuration24Ms <= 0 && $lastRun) {
         $avgDuration24Ms = (int) ($lastRun["duration_ms"] ?? 0);
     }
@@ -2475,7 +2475,7 @@ function maestro_run_rule_scoped(array $rule, float $deadline): array
         "created" => $created,
         "seen" => $seen,
         "errors" => $errors,
-        "duration_ms" => (int) round((microtime(true) - $started) * 1000),
+        "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
     ];
 }
 function maestro_supervised_remaining_ms(float $deadline): int
@@ -2525,7 +2525,7 @@ function maestro_supervised_candidate_result(array $rule, int $limit = 300): arr
         }
     }
     $diagnostic = is_string($tmp) && is_file($tmp)
-        ? trim((string) @file_get_contents($tmp))
+        ? mb_trim((string) @file_get_contents($tmp))
         : "";
     if (is_string($tmp) && is_file($tmp)) {
         @unlink($tmp);
@@ -2534,7 +2534,7 @@ function maestro_supervised_candidate_result(array $rule, int $limit = 300): arr
         $line = "";
         foreach (preg_split('/\R/u', $diagnostic) ?: [] as $candidate) {
             if (str_contains((string) $candidate, "[Prontoo Maestro candidates]")) {
-                $line = trim((string) $candidate);
+                $line = mb_trim((string) $candidate);
                 break;
             }
         }
@@ -2709,7 +2709,7 @@ function maestro_supervised_target_assert(array $rule): void
         return;
     }
     if ($scope === "role") {
-        $role = trim((string) ($action["target_role"] ?? ""));
+        $role = mb_trim((string) ($action["target_role"] ?? ""));
         $roles = clinic_role_options($clinicId, true);
         if ($role === "" || !array_key_exists($role, $roles)) {
             throw new RuntimeException("Destinatário da rotina inválido: cargo não disponível.");
@@ -2788,7 +2788,7 @@ function maestro_supervised_run_rule(array $rule, float $deadline): array
                     [$ruleId, $clinicId],
                 );
                 $result["skipped_read_only"] = 1;
-                $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+                $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero);
                 return $result;
             }
             try {
@@ -2889,7 +2889,7 @@ function maestro_supervised_run_rule(array $rule, float $deadline): array
             $result["changed_categories"] = array_values(array_unique(
                 $result["changed_categories"],
             ));
-            $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000);
+            $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero);
             return $result;
         },
     );
@@ -2992,7 +2992,7 @@ function maestro_supervised_cron_run(
         $result["status"] = "unavailable";
         $result["errors"] = 1;
         $result["note"] = "falha: arquivo de lock indisponível";
-        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero);
         maestro_supervised_record_job_run($startedAt, $result);
         return $result;
     }
@@ -3000,7 +3000,7 @@ function maestro_supervised_cron_run(
         fclose($lock);
         $result["status"] = "overlap";
         $result["note"] = "execução anterior em andamento";
-        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero);
         maestro_supervised_record_job_run($startedAt, $result);
         return $result;
     }
@@ -3096,9 +3096,9 @@ function maestro_supervised_cron_run(
     ) {
         server_json_cache_clear_categories($result["changed_categories"]);
     }
-    $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+    $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero);
     $result["load_score"] = $result["duration_ms"] > 0
-        ? round($result["actions_created"] / max(1, $result["duration_ms"] / 1000), 3)
+        ? round($result["actions_created"] / max(1, $result["duration_ms"] / 1000), 3, \RoundingMode::HalfAwayFromZero)
         : 0;
     maestro_supervised_record_job_run($startedAt, $result);
     return $result;
@@ -3222,7 +3222,7 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
             fclose($fh);
         }
     }
-    $duration = (int) round((microtime(true) - $start) * 1000);
+    $duration = (int) round((microtime(true) - $start) * 1000, 0, \RoundingMode::HalfAwayFromZero);
     q(
         "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,?,?,?,?,?,?,?,?)",
         [
@@ -3234,7 +3234,7 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
             $deferred,
             $errors,
             $success ? 1 : 0,
-            $duration > 0 ? round($created / max(1, $duration / 1000), 3) : 0,
+            $duration > 0 ? round($created / max(1, $duration / 1000), 3, \RoundingMode::HalfAwayFromZero) : 0,
             $note,
         ],
     );
@@ -3267,7 +3267,7 @@ function maestro_record_cron_failure(float $startedAt, string $note): void
                     232,
                 ),
             );
-        $duration = (int) max(0, round((microtime(true) - $startedAt) * 1000));
+        $duration = (int) max(0, round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero));
         q(
             "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,0,0,0,0,1,0,0,?)",
             [$startedAt, $duration, $note],

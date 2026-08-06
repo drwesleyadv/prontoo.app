@@ -45,7 +45,7 @@ final class IdentityDocumentValidator
 
     public static function birthDate(null|string|int $birth): bool
     {
-        $raw = trim((string) $birth);
+        $raw = mb_trim((string) $birth);
         if ($raw === '') {
             return false;
         }

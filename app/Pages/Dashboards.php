@@ -33,7 +33,7 @@ function page_medico_painel(array $c): void
             $delayCount++;
         }
     }
-    $avgDelay = $delayCount ? (int) round($delaySum / $delayCount) : null;
+    $avgDelay = $delayCount ? (int) round($delaySum / $delayCount, 0, \RoundingMode::HalfAwayFromZero) : null;
     $lateTasks =
         (int) (val(
             "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status='aberta' AND due_at IS NOT NULL AND due_at<NOW() AND (assigned_to IS NULL OR assigned_to=?)",
@@ -266,7 +266,7 @@ function page_recepcao_painel(array $c): void
         $period =
             app_time_br((string) $a["start_at"]) .
             ($compact ? "" : "–" . app_time_br((string) $a["end_at"]));
-        $reason = trim((string) ($a["reason"] ?? ""));
+        $reason = mb_trim((string) ($a["reason"] ?? ""));
         $meta = trim(
             ($doctor !== ""
                 ? "Profissional: " . first_name($doctor)
@@ -543,7 +543,7 @@ function page_triagem_painel(array $c): void
         $ts = app_storage_timestamp($a["start_at"]);
         $pid = (int) ($a["patient_link_id"] ?? 0);
         $doctor = $users[(int) ($a["doctor_user_id"] ?? 0)]["name"] ?? "";
-        $reason = trim((string) ($a["reason"] ?? ""));
+        $reason = mb_trim((string) ($a["reason"] ?? ""));
         $m = appointment_journey_meta($a, "assistente");
         $rowClass = $m["class"] ?: $class;
         $measure = appointment_journey_compact_html($a, "assistente");
@@ -764,7 +764,7 @@ function page_gerente_painel(array $c): void
     $estimatedOcc = (float) round(
         min(100, ($todayTotal / $estimatedCapacity) * 100),
         1,
-    );
+    \RoundingMode::HalfAwayFromZero);
     $activeLeads = manager_metric_val(
         "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
             lead_active_stage_sql("stage"),
@@ -825,7 +825,7 @@ function page_gerente_painel(array $c): void
     $monthDay = (int) $localNow->format("j");
     $monthDays = (int) $localNow->format("t");
     $expectedPct =
-        $target > 0 ? (float) round(($monthDay / $monthDays) * 100, 1) : 0.0;
+        $target > 0 ? (float) round(($monthDay / $monthDays) * 100, 1, \RoundingMode::HalfAwayFromZero) : 0.0;
     $businessLeft = max(
         1,
         manager_count_business_days($localNow->format("Y-m-d"), $monthEnd),
@@ -844,7 +844,7 @@ function page_gerente_painel(array $c): void
         [$cid, $monthStart, $nextMonth],
     );
     $ticket =
-        $finishedMonth > 0 ? (int) round($receivedRevenue / $finishedMonth) : 0;
+        $finishedMonth > 0 ? (int) round($receivedRevenue / $finishedMonth, 0, \RoundingMode::HalfAwayFromZero) : 0;
     $procedureRows = [];
     try {
         $procedureRows = q(

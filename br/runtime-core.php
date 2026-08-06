@@ -20,8 +20,8 @@ function br_landing_release_metadata(): array
     return $metadata;
 }
 $brLandingReleaseMetadata = br_landing_release_metadata();
-$brLandingVersion = trim((string) ($brLandingReleaseMetadata["version"] ?? ""));
-$brLandingAssetRevision = trim((string) ($brLandingReleaseMetadata["asset_version"] ?? ""));
+$brLandingVersion = mb_trim((string) ($brLandingReleaseMetadata["version"] ?? ""));
+$brLandingAssetRevision = mb_trim((string) ($brLandingReleaseMetadata["asset_version"] ?? ""));
 if (!preg_match('/^1\.\d{1,2}\.\d{1,2}\.\d+$/', $brLandingVersion)) {
     $brLandingVersion = BR_LANDING_VERSION_FALLBACK;
 }

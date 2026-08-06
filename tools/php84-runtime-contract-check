@@ -119,6 +119,96 @@ if (!str_contains($cronRunbook, "/opt/cpanel/ea-php84/root/usr/bin/php")) {
     $failures[] = "O runbook do Maestro não fixa o binário CLI do PHP 8.4.";
 }
 
+
+$sourceConformancePolicy = "php84-source-conformance-1.8.6.1";
+$phpFiles = [];
+foreach ($tracked as $path) {
+    if (str_ends_with(strtolower($path), ".php") && is_file($root . "/" . $path)) {
+        $phpFiles[] = $path;
+    }
+}
+sort($phpFiles, SORT_STRING);
+$audit = json_decode($read("docs/audits/php84-conformance-1.8.6.1.json"), true);
+if (!is_array($audit) || empty($audit["function_contract_preserved"])) {
+    $failures[] = "Auditoria integral PHP 8.4 ausente ou inválida.";
+} else {
+    $reported = [];
+    foreach ((array) ($audit["files"] ?? []) as $item) {
+        if (is_array($item) && isset($item["path"])) {
+            $reported[] = (string) $item["path"];
+        }
+    }
+    sort($reported, SORT_STRING);
+    if ($reported !== $phpFiles) {
+        $failures[] = "Auditoria PHP 8.4 não cobre exatamente os arquivos PHP rastreados.";
+    }
+}
+$features = ["mb_trim" => 0, "rounding_mode" => 0, "pdo_connect" => 0, "datetime_timestamp" => 0];
+$deprecatedFragments = [
+    "mysqli_ping" => "mysqli_" . "ping(",
+    "mysqli_kill" => "mysqli_" . "kill(",
+    "mysqli_refresh" => "mysqli_" . "refresh(",
+    "curl_binary" => "CURLOPT_" . "BINARYTRANSFER",
+    "dom_php_error" => "DOM_" . "PHP_ERR",
+    "xml_set_object" => "xml_" . "set_object(",
+];
+foreach ($phpFiles as $path) {
+    $source = $read($path);
+    foreach (token_get_all($source, TOKEN_PARSE) as $sourceToken) {
+        if (is_array($sourceToken) &&
+            $sourceToken[0] === T_STRING &&
+            strtoupper((string) $sourceToken[1]) === "E_STRICT") {
+            $failures[] = "Constante E_STRICT descontinuada em " . $path;
+        }
+    }
+    $lint = [];
+    $status = 0;
+    exec(
+        escapeshellarg(PHP_BINARY) . " -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l " . escapeshellarg($root . "/" . $path) . " 2>&1",
+        $lint,
+        $status,
+    );
+    $lintText = implode("\n", $lint);
+    if ($status !== 0) {
+        $failures[] = "Lint PHP 8.4 falhou em " . $path . ": " . $lintText;
+    }
+    if (stripos($lintText, "deprecated") !== false) {
+        $failures[] = "Depreciação PHP 8.4 em " . $path . ": " . $lintText;
+    }
+    if ($path !== "tools/php84-runtime-contract-check") {
+        foreach ($deprecatedFragments as $label => $fragment) {
+            if (stripos($source, $fragment) !== false) {
+                $failures[] = "API descontinuada PHP 8.4 em " . $path . ": " . $label;
+            }
+        }
+        if (preg_match('/\btrigger_error\s*\([^;]*E_USER_ERROR/is', $source)) {
+            $failures[] = "trigger_error com E_USER_ERROR em " . $path;
+        }
+        if (preg_match('/(?<![A-Za-z0-9_])(?:trim|ltrim|rtrim)\(\(string\)/', $source)) {
+            $failures[] = "Texto convertido para string ainda usa trim não multibyte em " . $path;
+        }
+        if (preg_match('/\bnew\s+\\?PDO\s*\(/', $source)) {
+            $failures[] = "PDO ainda é instanciado sem PDO::connect em " . $path;
+        }
+        if (preg_match('/\bnew\s+\\?DateTimeImmutable\s*\(\s*["\x27]@/', $source)) {
+            $failures[] = "Timestamp ainda usa string @ em " . $path;
+        }
+    }
+    $features["mb_trim"] += substr_count($source, "mb_trim(");
+    $features["rounding_mode"] += substr_count($source, "RoundingMode::");
+    $features["pdo_connect"] += substr_count($source, "PDO::connect(");
+    $features["datetime_timestamp"] += substr_count($source, "DateTimeImmutable::createFromTimestamp(");
+}
+foreach ($features as $feature => $count) {
+    if ($count <= 0) {
+        $failures[] = "Recurso PHP 8.4 esperado não adotado: " . $feature;
+    }
+}
+$runtimeHelper = $read("app/Support/Runtime.php");
+if (!str_contains($runtimeHelper, '(int) $match[1] === 8') || !str_contains($runtimeHelper, '(int) $match[2] === 4')) {
+    $failures[] = "Helper interno não restringe a família PHP 8.4.";
+}
+
 if ($failures !== []) {
     fwrite(STDERR, "Contrato exclusivo PHP 8.4 falhou:\n- " . implode("\n- ", $failures) . "\n");
     exit(1);

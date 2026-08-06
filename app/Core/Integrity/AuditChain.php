@@ -67,12 +67,12 @@ final class AuditChain
     public static function verifyRow(array $row, string $secret): bool
     {
 
-        $integrity = strtolower(trim((string) ($row["integrity_hash"] ?? "")));
-        $previous = strtolower(trim((string) ($row["previous_hash"] ?? "")));
-        $proof = strtolower(trim((string) ($row["proof_hash"] ?? "")));
-        $chain = strtolower(trim((string) ($row["chain_hash"] ?? "")));
+        $integrity = strtolower(mb_trim((string) ($row["integrity_hash"] ?? "")));
+        $previous = strtolower(mb_trim((string) ($row["previous_hash"] ?? "")));
+        $proof = strtolower(mb_trim((string) ($row["proof_hash"] ?? "")));
+        $chain = strtolower(mb_trim((string) ($row["chain_hash"] ?? "")));
         $proofJson = (string) ($row["proof_json"] ?? "");
-        $policy = trim((string) ($row["policy_version"] ?? ""));
+        $policy = mb_trim((string) ($row["policy_version"] ?? ""));
         foreach ([$integrity, $proof, $chain] as $requiredHash) {
             if (preg_match('/^[a-f0-9]{64}$/', $requiredHash) !== 1) {
                 return false;
@@ -165,8 +165,8 @@ final class AuditChain
         $latest = \one(
             "SELECT chain_hash,policy_version FROM pi_audit ORDER BY id DESC LIMIT 1",
         );
-        $stored = trim((string) ($head["meta_value"] ?? ""));
-        $actual = trim((string) ($latest["chain_hash"] ?? ""));
+        $stored = mb_trim((string) ($head["meta_value"] ?? ""));
+        $actual = mb_trim((string) ($latest["chain_hash"] ?? ""));
         if ($stored === "" && $actual === "") {
             return true;
         }
@@ -215,13 +215,13 @@ final class AuditChain
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
-        if (trim((string) ($head["meta_value"] ?? "")) !== "") {
+        if (mb_trim((string) ($head["meta_value"] ?? "")) !== "") {
             return;
         }
         $latest = \one(
             "SELECT chain_hash FROM pi_audit WHERE chain_hash IS NOT NULL AND chain_hash<>'' ORDER BY id DESC LIMIT 1",
         );
-        $legacyHead = trim((string) ($latest["chain_hash"] ?? ""));
+        $legacyHead = mb_trim((string) ($latest["chain_hash"] ?? ""));
         \q(
             "UPDATE pi_meta SET meta_value=?,updated_at=NOW() WHERE meta_key=?",
             [$legacyHead !== "" ? $legacyHead : null, self::META_KEY],
@@ -235,7 +235,7 @@ final class AuditChain
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
-        return trim((string) ($row["meta_value"] ?? ""));
+        return mb_trim((string) ($row["meta_value"] ?? ""));
     }
     private static function advanceHead(string $hash): void
     {

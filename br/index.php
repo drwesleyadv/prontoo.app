@@ -32,7 +32,7 @@ require_once dirname(__DIR__) . "/app/Support/SecurityPrivacy.php";
 if (PHP_SAPI !== "cli") {
     
     $brSecure = security_https_active();
-    $brHost = strtolower(trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
+    $brHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $brHost = preg_replace('/:\d+$/', '', $brHost) ?? "";
     if (!$brSecure || $brHost !== "prontoo.app") {
         $brUri = (string) ($_SERVER["REQUEST_URI"] ?? "/");
@@ -47,7 +47,7 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.8.5.2";
+const BR_LANDING_VERSION_FALLBACK = "1.8.6.1";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-data.php";
 require __DIR__ . "/runtime-schema.php";

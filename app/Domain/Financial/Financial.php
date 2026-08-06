@@ -4,7 +4,7 @@ const PRONTOO_FINANCIAL_MAX_CENTS = 2147483647;
 function parse_money_cents(string $v): int
 {
 
-    $v = trim(str_replace("\u{00A0}", " ", $v));
+    $v = mb_trim($v);
     if ($v === "") {
         return 0;
     }
@@ -432,7 +432,7 @@ function financial_sync_appointment(
         !empty($a["payment_confirmed_at"]) ||
         ($a["payment_status"] ?? "") === "efetivada";
     $status = $paid ? "efetivada" : "prevista";
-    $title = trim((string) ($a["reason"] ?? "Atendimento agendado"));
+    $title = mb_trim((string) ($a["reason"] ?? "Atendimento agendado"));
     if ($title === "") {
         $title = "Atendimento agendado";
     }
@@ -537,7 +537,7 @@ function monthly_goal_status(int $cid): array
                 ) ?? 0);
         }
         $pct = $target > 0
-            ? min(999, round(($done / $target) * 100, 1))
+            ? min(999, round(($done / $target) * 100, 1, \RoundingMode::HalfAwayFromZero))
             : 0;
         return [
             "month" => $month,
@@ -740,10 +740,10 @@ function posted_counterparty_search_value(): string
 
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "counterparty_search")) {
-            return trim((string) $v);
+            return mb_trim((string) $v);
         }
     }
-    return trim((string) ($_POST["counterparty_search"] ?? ""));
+    return mb_trim((string) ($_POST["counterparty_search"] ?? ""));
 }
 function resolve_counterparty_lookup_id(
     int $cid,
@@ -908,7 +908,7 @@ function page_counterparty_suggest(): void
 
     $c = require_can("financial");
     $cid = (int) $c["clinic_id"];
-    $q = trim((string) ($_GET["q"] ?? ""));
+    $q = mb_trim((string) ($_GET["q"] ?? ""));
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -1784,7 +1784,7 @@ function financial_drawer_auto_unlock_row_if_due(int $cid, array $d): array
         return $d;
     }
     $status = (string) ($d["drawer_lock_status"] ?? "unlocked");
-    $unlockAt = trim((string) ($d["drawer_unlock_at"] ?? ""));
+    $unlockAt = mb_trim((string) ($d["drawer_unlock_at"] ?? ""));
     if ($status === "locked" && $unlockAt !== "") {
         $unlock = app_parse_db_utc($unlockAt);
         $now = app_now_utc();
@@ -1825,7 +1825,7 @@ function financial_drawer_lock_label(array $drawer, int $cid): string
     if ($status !== "locked") {
         return "Destrancada";
     }
-    $unlock = trim((string) ($drawer["drawer_unlock_at"] ?? ""));
+    $unlock = mb_trim((string) ($drawer["drawer_unlock_at"] ?? ""));
     if ($unlock !== "") {
         return "Trancada até " . dt_br($unlock);
     }
@@ -1840,7 +1840,7 @@ function financial_drawer_guard_can_use(int $cid, int $drawerId): void
     }
     if ((string) ($d["drawer_lock_status"] ?? "unlocked") === "locked") {
         $lockedDay = (string) ($d["drawer_locked_business_date"] ?? "");
-        $unlock = trim((string) ($d["drawer_unlock_at"] ?? ""));
+        $unlock = mb_trim((string) ($d["drawer_unlock_at"] ?? ""));
         if ($unlock !== "") {
             throw new RuntimeException(
                 "Esta Gaveta está trancada para conferência da Gerência até " .
@@ -3752,7 +3752,7 @@ function financial_ensure_closing_adjustment(
             $difference,
             "closing",
             $status,
-            trim((string) ($session["closing_notes"] ?? "")),
+            mb_trim((string) ($session["closing_notes"] ?? "")),
             true,
         );
     }
@@ -4568,7 +4568,7 @@ function financial_appointment_payment_state(array $a): array
 {
 
     $amount = (int) ($a["payment_amount_cents"] ?? 0);
-    $status = mb_strtolower(trim((string) ($a["payment_status"] ?? "")));
+    $status = mb_strtolower(mb_trim((string) ($a["payment_status"] ?? "")));
     $method = normalize_payment_method((string) ($a["payment_method"] ?? ""));
     $paid =
         !empty($a["payment_confirmed_at"]) ||
@@ -4835,7 +4835,7 @@ function financial_cashier_pending_receipts_html(int $cid): string
     $h = '<div class="finance-reception-pending">';
     foreach ($rows as $r) {
         $patient =
-            trim((string) ($r["patient_name"] ?? "Paciente")) ?: "Paciente";
+            mb_trim((string) ($r["patient_name"] ?? "Paciente")) ?: "Paciente";
         $proc =
             trim(
                 (string) ($r["procedure_title"] ??
@@ -4924,7 +4924,7 @@ function financial_office_destination_options(int $cid, int $uid = 0): array
             $type === "admin_safe"
                 ? "Cofre do Consultório"
                 : "Conta do Consultório";
-        $detail = trim((string) ($r["name"] ?? ""));
+        $detail = mb_trim((string) ($r["name"] ?? ""));
         if ($type === "bank_account" && !empty($r["bank_name"])) {
             $detail .= " · " . (string) $r["bank_name"];
         }
@@ -4955,7 +4955,7 @@ function financial_expected_appointment_revenue_options(int $cid): array
     $out = ["" => "Selecione o atendimento"];
     foreach ($rows as $r) {
         $patient =
-            trim((string) ($r["patient_name"] ?? "Paciente")) ?: "Paciente";
+            mb_trim((string) ($r["patient_name"] ?? "Paciente")) ?: "Paciente";
         $proc =
             trim(
                 (string) ($r["procedure_title"] ??
@@ -5365,7 +5365,7 @@ function financial_cashier_drawer_summary(
         }
     }
     $rawStatus = $source ? (string) ($source["status"] ?? "") : "";
-    $drawerName = trim((string) ($drawer["name"] ?? ""));
+    $drawerName = mb_trim((string) ($drawer["name"] ?? ""));
     $drawerLocked =
         $drawer &&
         (string) ($drawer["drawer_lock_status"] ?? "unlocked") === "locked";
@@ -5542,7 +5542,7 @@ function financial_cashier_page(array $c): void
                     (int) ($_POST["revenue_id"] ?? 0),
                     (string) ($_POST["payment_method"] ?? ""),
                     (int) ($_POST["destination_location_id"] ?? 0),
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                 );
                 $method = normalize_payment_method(
                     (string) ($_POST["payment_method"] ?? ""),
@@ -5570,7 +5570,7 @@ function financial_cashier_page(array $c): void
                     $uid,
                     $title,
                     "dinheiro",
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                     "pending_review",
                     "cash_session",
                     (int) $s["id"],
@@ -5593,7 +5593,7 @@ function financial_cashier_page(array $c): void
                             ($_POST["transfer_to_safe"] ?? "0")),
                     ),
                     (int) ($_POST["withdrawal_destination_location_id"] ?? 0),
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                 );
                 flash("Gaveta enviada para conferência da Gerência.");
                 redirect("financial");
@@ -5677,7 +5677,7 @@ function financial_cashier_page(array $c): void
         $drawerState ?: null,
     );
     if ($drawerLocked) {
-        $unlock = trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
+        $unlock = mb_trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
         $lockedMsg =
             $unlock !== ""
                 ? "A Gaveta está trancada para conferência da Gerência e será destrancada em <strong>" .
@@ -6186,7 +6186,7 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
                 e(first_name((string) ($open["user_name"] ?? "Atendimento"))) .
                 "</span>";
         } elseif ($locked) {
-            $unlock = trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
+            $unlock = mb_trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
             $status =
                 '<span class="pill bad">' .
                 icon("lock") .
@@ -6294,7 +6294,7 @@ function financial_admin_drawers_panel(int $cid, int $uid): string
             "</div></details>";
         $lockInfo = "";
         if ($locked) {
-            $unlock = trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
+            $unlock = mb_trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
             $lockInfo =
                 " · trancada desde " .
                 date_br(
@@ -6379,8 +6379,8 @@ function financial_admin_daily_ledger_timeline(int $cid): string
     foreach ($rows as $r) {
         $type = (string) ($r["movement_type"] ?? "");
         $status = (string) ($r["status"] ?? "");
-        $from = trim((string) ($r["from_name"] ?? ""));
-        $to = trim((string) ($r["to_name"] ?? ""));
+        $from = mb_trim((string) ($r["from_name"] ?? ""));
+        $to = mb_trim((string) ($r["to_name"] ?? ""));
         $path =
             ($from !== "" ? $from : "Origem externa") .
             " → " .
@@ -6395,7 +6395,7 @@ function financial_admin_daily_ledger_timeline(int $cid): string
         ) {
             $kind = "transfer";
         }
-        $method = trim((string) ($r["payment_method"] ?? ""));
+        $method = mb_trim((string) ($r["payment_method"] ?? ""));
         $user = first_name((string) ($r["user_name"] ?? ""));
         $statusPill =
             $status === "confirmed"
@@ -7118,7 +7118,7 @@ function financial_admin_save_receipt(int $cid, int $uid): void
             $revenueId,
             $method,
             $to,
-            trim((string) ($_POST["notes"] ?? "")),
+            mb_trim((string) ($_POST["notes"] ?? "")),
         );
         return;
     }
@@ -7126,7 +7126,7 @@ function financial_admin_save_receipt(int $cid, int $uid): void
     $avulso =
         isset($_POST["receipt_without_appointment"]) &&
         (string) ($_POST["receipt_without_appointment"] ?? "") === "1";
-    $notes = trim((string) ($_POST["notes"] ?? ""));
+    $notes = mb_trim((string) ($_POST["notes"] ?? ""));
     if (!$avulso) {
         throw new RuntimeException(
             "Selecione uma pendência de agendamento ou marque recebimento sem agendamento vinculado com motivo.",
@@ -7221,11 +7221,11 @@ function financial_admin_save_payment(int $cid, int $uid): void
     if (!array_key_exists($category, financial_expense_category_options())) {
         $category = "outras";
     }
-    $title = trim((string) ($_POST["title"] ?? "Pagamento ao credor"));
+    $title = mb_trim((string) ($_POST["title"] ?? "Pagamento ao credor"));
     if ($title === "") {
         $title = "Pagamento ao credor";
     }
-    $notes = trim((string) ($_POST["notes"] ?? ""));
+    $notes = mb_trim((string) ($_POST["notes"] ?? ""));
     $accountId = financial_location_account_id($cid, $from);
     q(
         "INSERT INTO pi_financial_expenses (clinic_id,counterparty_id,account_id,title,expense_category,amount_cents,status,due_at,paid_at,payment_method,notes,created_by,created_at) VALUES (?,?,?,?,?,?,'paga',CURDATE(),NOW(),?,?,?,NOW())",
@@ -7288,11 +7288,11 @@ function financial_admin_save_transfer(int $cid, int $uid): void
     if ($amount <= 0) {
         throw new RuntimeException("Informe o valor da transferência.");
     }
-    $title = trim((string) ($_POST["title"] ?? "Transferência entre locais"));
+    $title = mb_trim((string) ($_POST["title"] ?? "Transferência entre locais"));
     if ($title === "") {
         $title = "Transferência entre locais";
     }
-    $notes = trim((string) ($_POST["notes"] ?? ""));
+    $notes = mb_trim((string) ($_POST["notes"] ?? ""));
     $mid = financial_create_movement(
         $cid,
         "transfer",
@@ -7577,10 +7577,10 @@ function financial_creditor_upsert_from_post(int $cid, int $uid): int
 {
 
     person_common_profile_schema_ready();
-    $name = trim((string) ($_POST["creditor_name"] ?? ""));
+    $name = mb_trim((string) ($_POST["creditor_name"] ?? ""));
     $type = (string) ($_POST["creditor_legal_type"] ?? "cpf");
     $doc = only_digits((string) ($_POST["creditor_legal_document"] ?? ""));
-    $birth = trim((string) ($_POST["creditor_birth_date"] ?? "")) ?: null;
+    $birth = mb_trim((string) ($_POST["creditor_birth_date"] ?? "")) ?: null;
     if ($name === "") {
         throw new RuntimeException("Informe o nome do Credor.");
     }
@@ -7599,7 +7599,7 @@ function financial_creditor_upsert_from_post(int $cid, int $uid): int
     $profile["legal_type"] = $type === "cnpj" ? "cnpj" : "cpf";
     $profile["legal_document"] = $doc;
     person_common_profile_update($pid, $profile);
-    $notes = trim((string) ($_POST["creditor_notes"] ?? ""));
+    $notes = mb_trim((string) ($_POST["creditor_notes"] ?? ""));
     q(
         "INSERT INTO pi_financial_counterparties (clinic_id,person_id,kind,notes,active,created_by,created_at) VALUES (?,?,?,?,1,?,NOW()) ON DUPLICATE KEY UPDATE notes=VALUES(notes), active=1, updated_at=NOW()",
         [$cid, $pid, "credor", $notes ?: null, $uid],
@@ -7627,15 +7627,15 @@ function financial_creditor_directory_card(array $r, int $cid): string
     $docLabel = $doc !== "" ? mask($doc) : "CPF/CNPJ não informado";
     $phone = phone_br((string) ($r["phone"] ?? ""));
     $phoneLabel = trim($phone) !== "" ? $phone : "Sem telefone";
-    $email = trim((string) ($r["email"] ?? ""));
-    $city = trim((string) ($r["address_city"] ?? ""));
-    $state = trim((string) ($r["address_state"] ?? ""));
+    $email = mb_trim((string) ($r["email"] ?? ""));
+    $city = mb_trim((string) ($r["address_city"] ?? ""));
+    $state = mb_trim((string) ($r["address_state"] ?? ""));
     $cityLabel =
         $city !== ""
             ? $city . ($state !== "" ? " / " . $state : "")
             : "Endereço não informado";
     $paidTotal = (int) ($r["paid_total_cents"] ?? 0);
-    $lastPaid = trim((string) ($r["last_paid_at"] ?? ""));
+    $lastPaid = mb_trim((string) ($r["last_paid_at"] ?? ""));
     $lastPaidLabel =
         $lastPaid !== ""
             ? (function_exists("app_date_br")
@@ -7771,7 +7771,7 @@ function page_creditors(): void
             redirect("creditors");
         }
     }
-    $search = trim((string) ($_GET["q"] ?? ""));
+    $search = mb_trim((string) ($_GET["q"] ?? ""));
     $newMode = isset($_GET["new"]) && (string) $_GET["new"] !== "0";
     $formActions =
         '<div class="form-actions"><a class="ghost" href="' .
@@ -8155,7 +8155,7 @@ function financial_admin_page(array $c): void
                     (int) ($_POST["drawer_id"] ?? 0),
                     $uid,
                     (string) ($_POST["drawer_unlock_at"] ?? ""),
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                 );
                 flash("Destravamento da Gaveta agendado.");
                 redirect("financial", ["tab" => "locais"]);
@@ -8186,7 +8186,7 @@ function financial_admin_page(array $c): void
                     $uid,
                     (int) ($_POST["session_id"] ?? 0),
                     (string) ($_POST["decision"] ?? "approve"),
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                     (string) ($_POST["drawer_unlock_at"] ?? ""),
                 );
                 flash("Conferência registrada.");
@@ -8198,7 +8198,7 @@ function financial_admin_page(array $c): void
                     $uid,
                     (int) ($_POST["session_id"] ?? 0),
                     (string) ($_POST["decision"] ?? "approve"),
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                 );
                 flash("Autorização de abertura registrada.");
                 redirect("financial", ["tab" => "conferencias"]);
@@ -8234,7 +8234,7 @@ function financial_admin_page(array $c): void
                 redirect("financial", ["tab" => "painel"]);
             }
             if ($act === "bank_account") {
-                $name = trim((string) ($_POST["name"] ?? ""));
+                $name = mb_trim((string) ($_POST["name"] ?? ""));
                 if ($name === "") {
                     throw new RuntimeException(
                         "Informe o nome da conta bancária.",
@@ -8245,7 +8245,7 @@ function financial_admin_page(array $c): void
                     [
                         $cid,
                         $name,
-                        trim((string) ($_POST["bank_name"] ?? "")),
+                        mb_trim((string) ($_POST["bank_name"] ?? "")),
                         "conta_corrente",
                         $uid,
                     ],
@@ -8278,7 +8278,7 @@ function financial_admin_page(array $c): void
                     $uid,
                     "Depósito em conta bancária",
                     "transferencia",
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                 );
                 flash("Depósito registrado.");
                 redirect("financial", ["tab" => "locais"]);

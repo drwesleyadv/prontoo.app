@@ -20,7 +20,7 @@ final class PatientPure
 
     public static function cleanTabLabel(string $label): string
     {
-        $label = trim(preg_replace('/\s+/u', ' ', strip_tags($label)) ?? '');
+        $label = mb_trim(preg_replace('/\s+/u', ' ', strip_tags($label)) ?? '');
         return mb_substr($label, 0, 60, 'UTF-8');
     }
 
@@ -49,7 +49,7 @@ final class PatientPure
 
     public static function normalizeGuardianRelationship(string $value): string
     {
-        $value = preg_replace('/[^a-z0-9_]+/i', '', strtolower(trim($value))) ?: '';
+        $value = preg_replace('/[^a-z0-9_]+/i', '', strtolower(mb_trim($value))) ?: '';
         return array_key_exists($value, self::guardianRelationshipOptions())
             ? $value
             : 'outro';
@@ -57,13 +57,13 @@ final class PatientPure
 
     public static function ageYears(null|string|int $birth): ?int
     {
-        $birth = trim((string) ($birth ?? ''));
+        $birth = mb_trim((string) ($birth ?? ''));
         if ($birth === '') {
             return null;
         }
         try {
             $date = preg_match('/^-?\d+$/', $birth)
-                ? new \DateTimeImmutable('@' . (int) $birth)->setTimezone(new \DateTimeZone('UTC'))
+                ? \DateTimeImmutable::createFromTimestamp((int) $birth)->setTimezone(new \DateTimeZone('UTC'))
                 : new \DateTimeImmutable($birth);
             $today = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
             if ($date > $today) {

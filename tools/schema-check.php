@@ -30,7 +30,7 @@ if (!function_exists('storage_path')) {
     function storage_path(string $path = ''): string
     {
 
-        $base = rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
+        $base = mb_rtrim((string) ($GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] ?? sys_get_temp_dir()), '/');
         return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
 }
@@ -131,7 +131,7 @@ $normalize = static function (string $block): string {
         '`Seq` <native-seq>',
         $block,
     ) ?? $block;
-    return trim(preg_replace('/\s+/', ' ', $block) ?? $block);
+    return mb_trim(preg_replace('/\s+/', ' ', $block) ?? $block);
 };
 $retained = (array) ($contract['tables'] ?? []);
 if (count($retained) !== (int) ($contract['retained_table_count'] ?? -1)) {
@@ -163,7 +163,7 @@ foreach (['event_key', 'event_label', 'event_icon', 'entity_key', 'entity_label'
 $dbResult = ['executed' => false];
 $dsn = getenv('PRONTOO_SCHEMA_DSN') ?: '';
 if ($dsn !== '') {
-    $pdo = new PDO($dsn, getenv('PRONTOO_SCHEMA_USER') ?: 'root', getenv('PRONTOO_SCHEMA_PASS') ?: '', [
+    $pdo = PDO::connect($dsn, getenv('PRONTOO_SCHEMA_USER') ?: 'root', getenv('PRONTOO_SCHEMA_PASS') ?: '', [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,

@@ -56,13 +56,13 @@ function trial_period_label(int $days): string
 function subscription_pix_key(): string
 {
 
-    $key = trim((string) meta_get("subscription_pix_key", "pix@prontoo.app"));
+    $key = mb_trim((string) meta_get("subscription_pix_key", "pix@prontoo.app"));
     return $key !== "" ? $key : "pix@prontoo.app";
 }
 function normalize_subscription_pix_key(string $key): string
 {
 
-    $key = trim($key);
+    $key = mb_trim($key);
     if ($key === "") {
         throw new RuntimeException("Informe a chave Pix da assinatura.");
     }
@@ -191,7 +191,7 @@ function clinic_subscription_kind(array $cl): string
     if (
         $status === "active" &&
         ($paid === null ||
-            trim((string) $paid) === "" ||
+            mb_trim((string) $paid) === "" ||
             subscription_paid_is_active($paid, (int) ($cl["id"] ?? 0), $cl))
     ) {
         return "active";
@@ -222,8 +222,8 @@ function clinic_subscription_status_card(array $cl): string
     if ($price <= 0) {
         $price = default_monthly_price_cents();
     }
-    $until = trim((string) ($cl["paid_until"] ?? ""));
-    $trial = trim((string) ($cl["trial_ends_at"] ?? ""));
+    $until = mb_trim((string) ($cl["paid_until"] ?? ""));
+    $trial = mb_trim((string) ($cl["trial_ends_at"] ?? ""));
     if ($kind === "active") {
         $isExempt = (string) ($cl["subscription_status"] ?? "") === "exempt";
         $title = $isExempt ? "Assinatura isenta" : "Assinatura ativa";
@@ -312,7 +312,7 @@ function subscription_payment_proof_validate_image(
     if ((int) $info[0] > 6000 || (int) $info[1] > 6000) {
         throw new RuntimeException("Imagem muito grande em dimensões.");
     }
-    $detectedMime = strtolower(trim((string) ($info["mime"] ?? "")));
+    $detectedMime = strtolower(mb_trim((string) ($info["mime"] ?? "")));
     if (!in_array($detectedMime, ["image/jpeg", "image/png", "image/webp"], true)) {
         throw new RuntimeException("Formato de imagem não permitido.");
     }
@@ -499,7 +499,7 @@ function subscription_payment_proof_upload(int $cid, int $uid): ?string
 function subscription_payment_proof_absolute_path(?string $proofPath): ?string
 {
 
-    $proofPath = trim((string) $proofPath);
+    $proofPath = mb_trim((string) $proofPath);
     if ($proofPath === "") {
         return null;
     }
@@ -558,7 +558,7 @@ function subscription_payment_delete_proof(?string $proofPath): bool
 function subscription_payment_proof_view_link(array $payment): string
 {
 
-    if (trim((string) ($payment["proof_path"] ?? "")) === "") {
+    if (mb_trim((string) ($payment["proof_path"] ?? "")) === "") {
         return "";
     }
     return '<a class="ghost small" target="_blank" rel="noopener" href="' .
@@ -579,7 +579,7 @@ function page_admin_payment_proof(): void
                 [$pid],
             )
             : null;
-    if (!$p || trim((string) ($p["proof_path"] ?? "")) === "") {
+    if (!$p || mb_trim((string) ($p["proof_path"] ?? "")) === "") {
         flash("Comprovante não encontrado para este pagamento.", "bad");
         redirect("admin_painel");
     }
@@ -640,7 +640,7 @@ function clinic_subscription_pending_payment(int $cid): ?array
 function subscription_payment_is_proof_review(array $payment): bool
 {
 
-    return trim((string) ($payment["proof_path"] ?? "")) !== "";
+    return mb_trim((string) ($payment["proof_path"] ?? "")) !== "";
 }
 function subscription_trust_release_until(): string
 {
@@ -650,7 +650,7 @@ function subscription_trust_release_until(): string
 function subscription_renewal_until(array $cl): string
 {
 
-    $base = trim((string) ($cl["paid_until"] ?? ""));
+    $base = mb_trim((string) ($cl["paid_until"] ?? ""));
     $baseTs = $base !== "" ? strtotime($base . " 23:59:59") : 0;
     $startDate =
         $baseTs !== false && $baseTs >= strtotime("today")
@@ -661,8 +661,8 @@ function subscription_renewal_until(array $cl): string
 function later_date(?string $a, ?string $b): string
 {
 
-    $a = trim((string) $a);
-    $b = trim((string) $b);
+    $a = mb_trim((string) $a);
+    $b = mb_trim((string) $b);
     if ($a === "") {
         return $b;
     }
@@ -733,7 +733,7 @@ function clinic_subscription_cta(array $cl, string $tab = "assinatura"): string
     }
     $kind = clinic_subscription_kind($cl);
     $label = clinic_subscription_action_label($kind);
-    $blocked = trim((string) ($cl["subscription_trust_blocked_until"] ?? ""));
+    $blocked = mb_trim((string) ($cl["subscription_trust_blocked_until"] ?? ""));
     $blockedActive = $blocked !== "" && strtotime($blocked) > time();
     $needProof = $blockedActive;
     $headline = $needProof ? "Enviar comprovante" : $label;
@@ -883,7 +883,7 @@ function clinic_subscription_register_claim(
             "Continue trabalhando enquanto confirmamos o recebimento. Nenhuma providência é necessária neste momento.",
         );
     }
-    $blocked = trim((string) ($cl["subscription_trust_blocked_until"] ?? ""));
+    $blocked = mb_trim((string) ($cl["subscription_trust_blocked_until"] ?? ""));
     $blockedActive = $blocked !== "" && strtotime($blocked) > time();
     $proof = null;
     if ($blockedActive) {
@@ -901,7 +901,7 @@ function clinic_subscription_register_claim(
         }
     }
     $own = isset($_POST["paid_own_account"]) ? 1 : 0;
-    $holder = trim((string) ($_POST["payment_holder_name"] ?? ""));
+    $holder = mb_trim((string) ($_POST["payment_holder_name"] ?? ""));
     if (!$blockedActive && !$own && $holder === "") {
         throw new RuntimeException(
             "Informe o nome do titular da conta usada no pagamento.",
@@ -1049,9 +1049,9 @@ function page_settings(): void
         try {
             if ($act === "profile") {
                 $uf = strtoupper(
-                    trim((string) ($_POST["address_state"] ?? "")),
+                    mb_trim((string) ($_POST["address_state"] ?? "")),
                 );
-                $city = trim((string) ($_POST["address_city"] ?? ""));
+                $city = mb_trim((string) ($_POST["address_city"] ?? ""));
                 $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
                 if (
                     !isset(br_states()[$uf]) ||
@@ -1083,12 +1083,12 @@ function page_settings(): void
                 q(
                     "UPDATE pi_clinics SET display_name=?, legal_name=?, legal_document=?, phone=?, responsible_profession=?, address_line=?, address_state=?, address_city=?, address_city_ibge=?, timezone=?, updated_at=NOW() WHERE id=?",
                     [
-                        trim((string) $_POST["display_name"]),
-                        trim((string) $_POST["legal_name"]),
+                        mb_trim((string) $_POST["display_name"]),
+                        mb_trim((string) $_POST["legal_name"]),
                         $legalDoc,
                         phone_br((string) $_POST["phone"]),
                         $profession,
-                        trim((string) ($_POST["address_line"] ?? "")),
+                        mb_trim((string) ($_POST["address_line"] ?? "")),
                         $uf,
                         $city,
                         $cityIbge,
@@ -1115,7 +1115,7 @@ function page_settings(): void
                 $i = 1;
                 foreach ($defs as $role => $fallback) {
                     $opts = role_icon_options($role);
-                    $label = trim((string) ($roleLabels[$role] ?? ""));
+                    $label = mb_trim((string) ($roleLabels[$role] ?? ""));
                     if ($label === "") {
                         $label = $fallback;
                     }

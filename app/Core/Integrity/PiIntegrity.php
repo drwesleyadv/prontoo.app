@@ -147,7 +147,7 @@ final class PiIntegrity
             max(0, $rowCount),
             hash('sha256', self::normalizeSql($runtimeSql)),
             hash('sha256', self::canonicalJson($params)),
-            (int) round(max(0.0, $elapsedMs)),
+            (int) round(max(0.0, $elapsedMs), 0, \RoundingMode::HalfAwayFromZero),
             $error ? mb_substr($error->getMessage(), 0, 220, 'UTF-8') : null,
         );
     }
@@ -327,7 +327,7 @@ final class PiIntegrity
             $createdAt = time();
             $tables = [];
             foreach ($events as $event) {
-                $table = trim((string) ($event['table_name'] ?? ''));
+                $table = mb_trim((string) ($event['table_name'] ?? ''));
                 if ($table !== '') {
                     $tables[$table] = true;
                 }
@@ -556,7 +556,7 @@ final class PiIntegrity
     private static function normalizeSql(string $sql): string
     {
 
-        return strtolower(trim(preg_replace('/\s+/', ' ', $sql) ?? $sql));
+        return strtolower(mb_trim(preg_replace('/\s+/', ' ', $sql) ?? $sql));
     }
 
     private static function recordPkForEvent(string $kind, string $table): ?string

@@ -76,7 +76,7 @@ function document_identifier_encode(int $sequence, string $alphabet): string
 function document_identifier_display(?string $identifier): string
 {
 
-    $identifier = strtoupper(trim((string) $identifier));
+    $identifier = strtoupper(mb_trim((string) $identifier));
     return preg_match('/^[A-Z]{3,12}$/', $identifier) ? $identifier : "";
 }
 function document_identifier_capacity_for_length(int $length = 3): int
@@ -118,7 +118,7 @@ function document_assign_identifier(int $cid, int $docId): string
             );
         }
         $alphabet = strtoupper(
-            trim((string) ($clinic["document_code_alphabet"] ?? "")),
+            mb_trim((string) ($clinic["document_code_alphabet"] ?? "")),
         );
         if (!document_identifier_valid_alphabet($alphabet)) {
             $alphabet = document_identifier_random_alphabet();
@@ -702,11 +702,11 @@ function document_ds_recent_row(array $d, array $typeOptions): string
 
     $st = (string) ($d["document_status"] ?? "emitido");
     $idText = document_identifier_display($d["document_identifier"] ?? "");
-    $patient = trim((string) ($d["patient_name"] ?? ""));
+    $patient = mb_trim((string) ($d["patient_name"] ?? ""));
     if ($patient === "") {
         $patient = "Paciente";
     }
-    $actor = trim((string) ($d["issued_name"] ?? ""));
+    $actor = mb_trim((string) ($d["issued_name"] ?? ""));
     $type = document_ds_type_label(
         $typeOptions,
         (string) ($d["type_key"] ?? ""),
@@ -1102,7 +1102,7 @@ function document_print_document_shell_html(
     string $mode = "print",
 ): string {
 
-    $title = trim((string) ($doc["title"] ?? "Documento"));
+    $title = mb_trim((string) ($doc["title"] ?? "Documento"));
     if ($title === "") {
         $title = "Documento";
     }
@@ -1147,9 +1147,9 @@ function document_issue_meta_sentence(
     string $status = "emitido",
 ): string {
 
-    $actor = trim((string) ($issuedName ?? ""));
+    $actor = mb_trim((string) ($issuedName ?? ""));
     $actor = $actor !== "" ? first_name($actor) : "Colaborador";
-    $patient = trim((string) ($patientName ?? ""));
+    $patient = mb_trim((string) ($patientName ?? ""));
     $patient = $patient !== "" ? $patient : "paciente";
     $when = dt_br($issuedAt);
     $verb =
@@ -1238,8 +1238,8 @@ function document_appointment_options(
         $patient = trim(
             (string) ($a["patient_name"] ?? "Paciente não vinculado"),
         );
-        $proc = trim((string) ($a["procedure_title"] ?? "Consulta"));
-        $doctor = trim((string) ($a["doctor_name"] ?? "Profissional"));
+        $proc = mb_trim((string) ($a["procedure_title"] ?? "Consulta"));
+        $doctor = mb_trim((string) ($a["doctor_name"] ?? "Profissional"));
         $out[$id] = $when . " · " . $patient . " · " . $proc . " · " . $doctor;
     }
     if ($selectedId > 0 && !isset($out[$selectedId])) {
@@ -1276,7 +1276,7 @@ function document_context_json_decode(mixed $raw): array
     if (is_array($raw)) {
         return $raw;
     }
-    $raw = trim((string) ($raw ?? ""));
+    $raw = mb_trim((string) ($raw ?? ""));
     if ($raw === "") {
         return [];
     }
@@ -1378,7 +1378,7 @@ function document_context_select_options(
                         (string) ($r["stage"] ?? ""),
                     ]);
                     $out[(int) $r["id"]] =
-                        trim((string) $r["name"]) .
+                        mb_trim((string) $r["name"]) .
                         ($meta ? " · " . implode(" · ", $meta) : "");
                 }
                 break;
@@ -1393,7 +1393,7 @@ function document_context_select_options(
                             : "",
                     ]);
                     $out[(int) $r["id"]] =
-                        trim((string) $r["title"]) .
+                        mb_trim((string) $r["title"]) .
                         ($meta ? " · " . implode(" · ", $meta) : "");
                 }
                 break;
@@ -1412,7 +1412,7 @@ function document_context_select_options(
                         (string) ($r["assigned_name"] ?? ""),
                     ]);
                     $out[(int) $r["id"]] =
-                        trim((string) $r["title"]) .
+                        mb_trim((string) $r["title"]) .
                         ($meta ? " · " . implode(" · ", $meta) : "");
                 }
                 break;
@@ -1423,7 +1423,7 @@ function document_context_select_options(
                     [$cid],
                 )->fetchAll();
                 foreach ($rows as $r) {
-                    $title = trim((string) ($r["title"] ?? ""));
+                    $title = mb_trim((string) ($r["title"] ?? ""));
                     if ($title === "") {
                         $title = "Atividade";
                     }
@@ -1459,7 +1459,7 @@ function document_context_select_options(
                         (string) ($r["email"] ?? ""),
                     ]);
                     $out[(int) $r["id"]] =
-                        trim((string) $r["name"]) .
+                        mb_trim((string) $r["name"]) .
                         ($meta ? " · " . implode(" · ", $meta) : "");
                 }
                 break;
@@ -1924,7 +1924,7 @@ function patient_summary_excerpt(string $text, int $limit = 220): string
         ENT_QUOTES | ENT_SUBSTITUTE,
         "UTF-8",
     );
-    $plain = trim((string) preg_replace("/\s+/u", " ", $plain));
+    $plain = mb_trim((string) preg_replace("/\s+/u", " ", $plain));
     if ($plain === "") {
         return "Sem conteúdo registrado.";
     }
@@ -2504,7 +2504,7 @@ function page_documents(): void
         $act = (string) ($_POST["act"] ?? "");
         if ($act === "save_template") {
             $id = (int) ($_POST["id"] ?? 0);
-            $title = trim((string) ($_POST["title"] ?? ""));
+            $title = mb_trim((string) ($_POST["title"] ?? ""));
             $body = document_body_to_html((string) ($_POST["body"] ?? ""));
             $type = (string) ($_POST["type_key"] ?? "declaracao");
             if (!isset($typeOptions[$type])) {
@@ -2752,7 +2752,7 @@ function page_documents(): void
         "SELECT dt.id,dt.owner_user_id,dt.owner_role,dt.type_key,dt.title,dt.status,u.name AS owner_name,(SELECT MAX(d.issued_at) FROM pi_documents d WHERE d.clinic_id=dt.clinic_id AND d.template_id=dt.id) AS last_used_at FROM pi_document_templates dt LEFT JOIN pi_users u ON u.id=dt.owner_user_id WHERE dt.clinic_id=? AND $where ORDER BY FIELD(dt.status,'pending_approval','approved','rejected','archived'), IF(dt.owner_role=?,0,1), COALESCE(last_used_at,dt.updated_at,dt.created_at) DESC, dt.title ASC LIMIT 240",
         array_merge([$cid], $params, [$role]),
     )->fetchAll();
-    $modelSearch = trim((string) ($_GET["model_q"] ?? ""));
+    $modelSearch = mb_trim((string) ($_GET["model_q"] ?? ""));
     $createTemplates = [];
     $pending = 0;
     $approved = 0;
@@ -2837,7 +2837,7 @@ function page_documents(): void
             $docParams[] = $role;
         }
     }
-    $docSearch = trim((string) ($_GET["doc_q"] ?? ($_GET["q"] ?? "")));
+    $docSearch = mb_trim((string) ($_GET["doc_q"] ?? ($_GET["q"] ?? "")));
     $docListWhere = $docWhere . " AND d.document_status='emitido'";
     $docListParams = $docParams;
     if ($docSearch !== "") {
@@ -3294,18 +3294,18 @@ function page_procedures(): void
             }
             redirect("procedures");
         }
-        $title = trim((string) ($_POST["title"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
         if ($title === "") {
             flash("Informe o nome do procedimento.", "bad");
             redirect("procedures", $backParams);
         }
         $duration = max(5, min(600, (int) ($_POST["duration_minutes"] ?? 30)));
         $price = parse_money_cents((string) ($_POST["price"] ?? "0"));
-        $category = trim((string) ($_POST["category"] ?? ""));
-        $description = trim((string) ($_POST["description"] ?? ""));
-        $payments = trim((string) ($_POST["payment_methods"] ?? ""));
-        $pre = trim((string) ($_POST["pre_instructions"] ?? ""));
-        $post = trim((string) ($_POST["post_care"] ?? ""));
+        $category = mb_trim((string) ($_POST["category"] ?? ""));
+        $description = mb_trim((string) ($_POST["description"] ?? ""));
+        $payments = mb_trim((string) ($_POST["payment_methods"] ?? ""));
+        $pre = mb_trim((string) ($_POST["pre_instructions"] ?? ""));
+        $post = mb_trim((string) ($_POST["post_care"] ?? ""));
         if ($id > 0) {
             $p = one(
                 "SELECT id FROM pi_procedures WHERE id=? AND clinic_id=?",
@@ -3592,7 +3592,7 @@ function page_procedures(): void
         return;
     }
     $allRows = procedure_options($cid, false);
-    $search = trim((string) ($_GET["q"] ?? ""));
+    $search = mb_trim((string) ($_GET["q"] ?? ""));
     $rows = $allRows;
     if ($search !== "") {
         $needle = mb_strtolower($search);
@@ -3632,7 +3632,7 @@ function page_procedures(): void
         }
     }
     $avgDuration =
-        $durationCount > 0 ? (int) round($durationSum / $durationCount) : 0;
+        $durationCount > 0 ? (int) round($durationSum / $durationCount, 0, \RoundingMode::HalfAwayFromZero) : 0;
     $stats =
         '<div class="kpis procedure-kpis procedure-kpis-refined procedure-ds-kpis"><div>' .
         icon("event_available") .
@@ -3671,8 +3671,8 @@ function page_procedures(): void
         $id = (int) $r["id"];
         $isActive = (int) $r["active"] === 1;
         $status = $isActive ? "Ativo" : "Inativo";
-        $category = trim((string) ($r["category"] ?? ""));
-        $payments = trim((string) ($r["payment_methods"] ?? ""));
+        $category = mb_trim((string) ($r["category"] ?? ""));
+        $payments = mb_trim((string) ($r["payment_methods"] ?? ""));
         $priceLabel =
             (int) $r["price_cents"] > 0
                 ? money_br((int) $r["price_cents"])

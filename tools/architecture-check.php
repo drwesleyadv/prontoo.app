@@ -71,7 +71,7 @@ if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles
 }
 $manifestBytes = 0;
 foreach ($manifestFiles as $relativePath => $expectedHash) {
-    $absolutePath = $root . '/' . ltrim((string) $relativePath, '/');
+    $absolutePath = $root . '/' . mb_ltrim((string) $relativePath, '/');
     if (!is_file($absolutePath)) {
         throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
     }
@@ -1229,7 +1229,7 @@ foreach ([
     'function telemetry_route_start_marker(',
     'function telemetry_route_finish_marker(',
     'hrtime(true)',
-    '"duracao_ms" => round($durationNs / 1000000, 6)',
+    '"duracao_ms" => round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero)',
     'return telemetry_storage_dir() . "/telemetria.json";',
     'function telemetry_append_event(',
     '$handle = @fopen(telemetry_file(), "ab")',

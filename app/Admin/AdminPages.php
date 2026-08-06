@@ -269,24 +269,24 @@ function admin_scope_evidence_html(array $row, bool $compact = false): string
     $payload = function_exists("scope_violation_detail_decode")
         ? scope_violation_detail_decode($row["details"] ?? "")
         : ["reason" => (string) ($row["details"] ?? "")];
-    $clinic = trim((string) ($row["clinic_name"] ?? ""));
+    $clinic = mb_trim((string) ($row["clinic_name"] ?? ""));
     if ($clinic === "") {
         $clinic = "Consultório #" . (int) ($row["clinic_id"] ?? 0);
     }
-    $actor = trim((string) ($row["user_name"] ?? ""));
+    $actor = mb_trim((string) ($row["user_name"] ?? ""));
     $actor = $actor !== "" ? first_name($actor) : "usuário não identificado";
     $context = array_values(
         array_filter([
-            trim((string) ($payload["method"] ?? "")),
-            trim((string) ($row["route"] ?? "")),
-            trim((string) ($payload["action"] ?? "")),
-            trim((string) ($payload["operation"] ?? "")),
-            trim((string) ($payload["table"] ?? "")),
+            mb_trim((string) ($payload["method"] ?? "")),
+            mb_trim((string) ($row["route"] ?? "")),
+            mb_trim((string) ($payload["action"] ?? "")),
+            mb_trim((string) ($payload["operation"] ?? "")),
+            mb_trim((string) ($payload["table"] ?? "")),
         ]),
     );
     $fingerprint = substr((string) ($row["sql_fingerprint"] ?? ""), 0, 16);
-    $shape = trim((string) ($payload["sql_shape"] ?? ""));
-    $recordedReason = trim((string) ($payload["reason"] ?? ""));
+    $shape = mb_trim((string) ($payload["sql_shape"] ?? ""));
+    $recordedReason = mb_trim((string) ($payload["reason"] ?? ""));
     $html =
         '<details class="scope-evidence"><summary>' .
         ($compact ? "Como e por que foi bloqueado" : "Ver prova técnica e contexto seguro") .
@@ -328,12 +328,12 @@ function admin_scope_guard_timeline_item(array $row): array
     $definition = admin_scope_guard_definition(
         (string) ($row["violation_key"] ?? ""),
     );
-    $clinic = trim((string) ($row["clinic_name"] ?? ""));
+    $clinic = mb_trim((string) ($row["clinic_name"] ?? ""));
     if ($clinic === "") {
         $clinic = "Consultório #" . (int) ($row["clinic_id"] ?? 0);
     }
     $occurrences = max(1, (int) ($row["occurrences"] ?? 1));
-    $routeName = trim((string) ($row["route"] ?? ""));
+    $routeName = mb_trim((string) ($row["route"] ?? ""));
     return [
         "icon" => (string) $definition["icon"],
         "time" => dt_br((string) ($row["last_at"] ?? "")),
@@ -949,7 +949,7 @@ function admin_global_metric_series_24h(string $metric): array
         foreach (["duration", "landing_duration"] as $averageSeries) {
             foreach ($series[$averageSeries] as &$row) {
                 $row["value"] = $row["count"] > 0
-                    ? round(($row["sum"] / $row["count"]) / 1000000, 6)
+                    ? round(($row["sum"] / $row["count"]) / 1000000, 6, \RoundingMode::HalfAwayFromZero)
                     : 0.0;
                 $row["samples"] = (int) $row["count"];
                 $row["sum_ns"] = (int) $row["sum"];
@@ -1011,9 +1011,9 @@ function admin_metric_recent_average(array $series, int $minutes = 5): float
         }
     }
     if ($weightedCount > 0) {
-        return round(($durationNs / $weightedCount) / 1000000, 6);
+        return round(($durationNs / $weightedCount) / 1000000, 6, \RoundingMode::HalfAwayFromZero);
     }
-    return $values ? round(array_sum($values) / count($values), 6) : 0.0;
+    return $values ? round(array_sum($values) / count($values), 6, \RoundingMode::HalfAwayFromZero) : 0.0;
 }
 function admin_metric_line_chart(
     string $title,
@@ -1046,8 +1046,8 @@ function admin_metric_line_chart(
         $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
         $y = $padT + $plotH - ($v / $max) * $plotH;
         $points[] = [
-            round($x, 2),
-            round($y, 2),
+            round($x, 2, \RoundingMode::HalfAwayFromZero),
+            round($y, 2, \RoundingMode::HalfAwayFromZero),
             $v,
             (string) ($row["label"] ?? ""),
             (string) ($row["tooltip"] ?? ($row["label"] ?? "")),
@@ -1067,11 +1067,11 @@ function admin_metric_line_chart(
             " L " .
             $lastSeriesPt[0] .
             " " .
-            round($baseline, 2) .
+            round($baseline, 2, \RoundingMode::HalfAwayFromZero) .
             " L " .
             $firstPt[0] .
             " " .
-            round($baseline, 2) .
+            round($baseline, 2, \RoundingMode::HalfAwayFromZero) .
             " Z";
     }
     $last = $points ? $points[count($points) - 1][2] : 0.0;
@@ -1095,13 +1095,13 @@ function admin_metric_line_chart(
             '<line x1="' .
             $padL .
             '" y1="' .
-            round($gy, 2) .
+            round($gy, 2, \RoundingMode::HalfAwayFromZero) .
             '" x2="' .
             ($w - $padR) .
             '" y2="' .
-            round($gy, 2) .
+            round($gy, 2, \RoundingMode::HalfAwayFromZero) .
             '" class="metric-grid-line"/><text x="6" y="' .
-            round($gy + 4, 2) .
+            round($gy + 4, 2, \RoundingMode::HalfAwayFromZero) .
             '" class="metric-axis-label">' .
             e(number_format($gv, 0, ",", ".")) .
             "</text>";
@@ -1215,8 +1215,8 @@ function admin_metric_dual_area_chart(
     array $presentation = [],
 ): string {
 
-    $primaryLabel = trim((string) ($presentation["primary_label"] ?? "Carregamento"));
-    $secondaryLabel = trim((string) ($presentation["secondary_label"] ?? "Resposta"));
+    $primaryLabel = mb_trim((string) ($presentation["primary_label"] ?? "Carregamento"));
+    $secondaryLabel = mb_trim((string) ($presentation["secondary_label"] ?? "Resposta"));
     $valueType = (string) ($presentation["value_type"] ?? "ms");
     if ($primaryLabel === "") {
         $primaryLabel = "Carregamento";
@@ -1229,10 +1229,10 @@ function admin_metric_dual_area_chart(
     }
     $recentPoints = max(1, (int) ($presentation["recent_points"] ?? 5));
     $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));
-    $recentTitle = trim((string) ($presentation["recent_title"] ?? "Carregamento médio dos últimos 5 minutos"));
-    $middleTitle = trim((string) ($presentation["middle_title"] ?? "Carregamento médio dos últimos 30 minutos"));
-    $overallTitle = trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
-    $summaryLead = trim((string) ($presentation["summary_lead"] ?? "indicadores exibem somente o tempo de carregamento."));
+    $recentTitle = mb_trim((string) ($presentation["recent_title"] ?? "Carregamento médio dos últimos 5 minutos"));
+    $middleTitle = mb_trim((string) ($presentation["middle_title"] ?? "Carregamento médio dos últimos 30 minutos"));
+    $overallTitle = mb_trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
+    $summaryLead = mb_trim((string) ($presentation["summary_lead"] ?? "indicadores exibem somente o tempo de carregamento."));
     $loadValues = array_map( fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
     $responseValues = array_map(
          fn($r) => (float) ($r["value"] ?? 0),
@@ -1272,8 +1272,8 @@ function admin_metric_dual_area_chart(
             $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
             $y = $padT + $plotH - ($v / $max) * $plotH;
             $points[] = [
-                round($x, 2),
-                round($y, 2),
+                round($x, 2, \RoundingMode::HalfAwayFromZero),
+                round($y, 2, \RoundingMode::HalfAwayFromZero),
                 $v,
                 (string) ($row["label"] ?? ""),
                 (string) ($row["tooltip"] ?? ($row["label"] ?? "")),
@@ -1307,13 +1307,13 @@ function admin_metric_dual_area_chart(
             $cp2y = max($segmentMinY, min($segmentMaxY, $cp2y));
             $d .=
                 " C " .
-                round($cp1x, 2) .
+                round($cp1x, 2, \RoundingMode::HalfAwayFromZero) .
                 " " .
-                round($cp1y, 2) .
+                round($cp1y, 2, \RoundingMode::HalfAwayFromZero) .
                 " " .
-                round($cp2x, 2) .
+                round($cp2x, 2, \RoundingMode::HalfAwayFromZero) .
                 " " .
-                round($cp2y, 2) .
+                round($cp2y, 2, \RoundingMode::HalfAwayFromZero) .
                 " " .
                 $p2[0] .
                 " " .
@@ -1336,11 +1336,11 @@ function admin_metric_dual_area_chart(
             " L " .
             $last[0] .
             " " .
-            round($baseline, 2) .
+            round($baseline, 2, \RoundingMode::HalfAwayFromZero) .
             " L " .
             $first[0] .
             " " .
-            round($baseline, 2) .
+            round($baseline, 2, \RoundingMode::HalfAwayFromZero) .
             " Z";
     };
     $loadPoints = $makePoints($loadSeries);
@@ -1357,13 +1357,13 @@ function admin_metric_dual_area_chart(
             '<line x1="' .
             $padL .
             '" y1="' .
-            round($gy, 2) .
+            round($gy, 2, \RoundingMode::HalfAwayFromZero) .
             '" x2="' .
             ($w - $padR) .
             '" y2="' .
-            round($gy, 2) .
+            round($gy, 2, \RoundingMode::HalfAwayFromZero) .
             '" class="metric-grid-line"/><text x="6" y="' .
-            round($gy + 4, 2) .
+            round($gy + 4, 2, \RoundingMode::HalfAwayFromZero) .
             '" class="metric-axis-label">' .
             e(number_format($gv, 0, ",", ".")) .
             "</text>";
@@ -1610,7 +1610,7 @@ function admin_global_sequence_series_20d(): array
 function admin_maestro_health_time_label(?string $value): string
 {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return "--h--";
     }
@@ -1661,10 +1661,10 @@ function admin_maestro_health_pill_html(bool $allowSchemaEnsure = true): string
                 "SELECT $cols FROM pi_maestro_job_runs ORDER BY id DESC LIMIT 1",
             )->fetch();
             if ($latest) {
-                $finished = trim((string) ($latest["finished_at"] ?? ""));
-                $started = trim((string) ($latest["started_at"] ?? ""));
+                $finished = mb_trim((string) ($latest["finished_at"] ?? ""));
+                $started = mb_trim((string) ($latest["started_at"] ?? ""));
                 $note = mb_strtolower(
-                    trim((string) ($latest["note"] ?? "")),
+                    mb_trim((string) ($latest["note"] ?? "")),
                     "UTF-8",
                 );
                 if ($hasSuccess) {
@@ -2332,7 +2332,7 @@ function page_admin_errors(): void
             flash("Incidente não informado.", "bad");
             redirect("admin_errors");
         }
-        $note = trim((string) ($_POST["notes"] ?? ""));
+        $note = mb_trim((string) ($_POST["notes"] ?? ""));
         $updated = q(
             "UPDATE pi_error_events SET resolved_at=NOW(), notes=? WHERE id=? AND resolved_at IS NULL",
             [$note, $id],
@@ -2577,7 +2577,7 @@ function page_admin_maintenance(): void
             meta_set("maintenance_active", isset($_POST["active"]) ? "1" : "0");
             meta_set(
                 "maintenance_message",
-                trim((string) ($_POST["message"] ?? "")) ?:
+                mb_trim((string) ($_POST["message"] ?? "")) ?:
                 "Estamos fazendo uma manutenção rápida para melhorar o serviço. Tente novamente em instantes.",
             );
             audit("manutencao_atualizada", "manutencao", null, $_POST);
@@ -2589,7 +2589,7 @@ function page_admin_maintenance(): void
                 ["support_email", "support_phone", "session_policy_note"]
                 as $k
             ) {
-                meta_set($k, trim((string) ($_POST[$k] ?? "")));
+                meta_set($k, mb_trim((string) ($_POST[$k] ?? "")));
             }
             $adminTimezone = app_timezone_safe(
                 (string) ($_POST["global_admin_timezone"] ??
@@ -2611,7 +2611,7 @@ function page_admin_maintenance(): void
                                 "",
                             )),
                     )) * 100,
-                ),
+                0, \RoundingMode::HalfAwayFromZero),
             );
             if ($defaultPrice <= 0) {
                 $defaultPrice = PRONTOO_MONTHLY_PRICE_CENTS;
@@ -2850,7 +2850,7 @@ function page_admin_painel(): void
             }
             $adminId = (int) (ctx()["user"]["id"] ?? 0);
             $cid = (int) $p["clinic_id"];
-            $hadProof = trim((string) ($p["proof_path"] ?? "")) !== "";
+            $hadProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
             if ($act === "confirm_subscription_payment") {
                 $reviewNote = $hadProof
                     ? "Comprovante aprovado."
@@ -2976,7 +2976,7 @@ function page_admin_painel(): void
             "SELECT sp.id,sp.clinic_id,sp.amount_cents,sp.account_self,sp.account_holder_name,sp.proof_path,sp.applied_until,sp.created_at,c.display_name,(SELECT COUNT(*) FROM pi_subscription_payments spr WHERE spr.clinic_id=sp.clinic_id AND spr.status='rejected') AS rejected_count FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.status='pending_admin' $pendingModelWhere ORDER BY sp.created_at ASC LIMIT 20",
         )->fetchAll();
         foreach ($pending as $p) {
-            $hasProof = trim((string) ($p["proof_path"] ?? "")) !== "";
+            $hasProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
             $hadRejected = (int) ($p["rejected_count"] ?? 0) > 0;
             $holder =
                 (int) $p["account_self"] === 1
@@ -3204,7 +3204,7 @@ function page_admin_people(): void
                 " · " .
                 ((int) $r["vinculos"]) .
                 " vínculo(s) com consultórios",
-            "meta" => trim((string) ($r["email"] ?? "")) ?: "sem e-mail",
+            "meta" => mb_trim((string) ($r["email"] ?? "")) ?: "sem e-mail",
         ];
     }
     page(
@@ -3371,7 +3371,7 @@ function admin_clinic_detail_page(int $id): void
     }
     $rolesText = $roleLabels ? implode(" · ", array_unique($roleLabels)) : "Sem cargo ativo";
 
-    $clinicDocument = trim((string) ($clinic["legal_document"] ?? ""));
+    $clinicDocument = mb_trim((string) ($clinic["legal_document"] ?? ""));
     if ($clinicDocument !== "" && (string) ($clinic["legal_type"] ?? "") === "cpf") {
         $clinicDocument = cpf_br($clinicDocument);
     } elseif (preg_match('/^\d{14}$/', $clinicDocument)) {
@@ -3382,28 +3382,28 @@ function admin_clinic_detail_page(int $id): void
         ) ?: $clinicDocument;
     }
     $addressParts = array_filter([
-        trim((string) ($clinic["address_line"] ?? "")),
-        trim((string) ($clinic["address_city"] ?? "")),
-        trim((string) ($clinic["address_state"] ?? "")),
+        mb_trim((string) ($clinic["address_line"] ?? "")),
+        mb_trim((string) ($clinic["address_city"] ?? "")),
+        mb_trim((string) ($clinic["address_state"] ?? "")),
     ]);
     $clinicAddress = implode(" · ", $addressParts);
     $ownerAddressParts = array_filter([
-        trim((string) ($clinic["owner_address"] ?? "")) .
-            (trim((string) ($clinic["owner_address_number"] ?? "")) !== ""
-                ? ", " . trim((string) $clinic["owner_address_number"])
+        mb_trim((string) ($clinic["owner_address"] ?? "")) .
+            (mb_trim((string) ($clinic["owner_address_number"] ?? "")) !== ""
+                ? ", " . mb_trim((string) $clinic["owner_address_number"])
                 : ""),
-        trim((string) ($clinic["owner_address_neighborhood"] ?? "")),
-        trim((string) ($clinic["owner_address_city"] ?? "")),
-        trim((string) ($clinic["owner_address_state"] ?? "")),
+        mb_trim((string) ($clinic["owner_address_neighborhood"] ?? "")),
+        mb_trim((string) ($clinic["owner_address_city"] ?? "")),
+        mb_trim((string) ($clinic["owner_address_state"] ?? "")),
     ]);
     $ownerAddress = implode(" · ", $ownerAddressParts);
-    $ownerEmail = trim((string) ($clinic["owner_person_email"] ?? "")) ?:
-        trim((string) ($clinic["owner_email"] ?? ""));
-    $ownerName = trim((string) ($clinic["owner_person_name"] ?? "")) ?:
-        trim((string) ($clinic["owner_name"] ?? ""));
+    $ownerEmail = mb_trim((string) ($clinic["owner_person_email"] ?? "")) ?:
+        mb_trim((string) ($clinic["owner_email"] ?? ""));
+    $ownerName = mb_trim((string) ($clinic["owner_person_name"] ?? "")) ?:
+        mb_trim((string) ($clinic["owner_name"] ?? ""));
     $dueLabel = !empty($billing["exempt"])
         ? "Isento"
-        : (trim((string) ($billing["paid_until"] ?? "")) !== ""
+        : (mb_trim((string) ($billing["paid_until"] ?? "")) !== ""
             ? date_br($billing["paid_until"])
             : (!empty($billing["trial_active"])
                 ? date_br($billing["trial_ends_at"] ?? "")
@@ -3462,7 +3462,7 @@ function admin_clinic_detail_page(int $id): void
             "verified_user",
             "Conta",
             (int) $clinic["owner_active"] === 1 ? "Ativa" : "Inativa",
-            trim((string) ($clinic["owner_last_login_at"] ?? "")) !== ""
+            mb_trim((string) ($clinic["owner_last_login_at"] ?? "")) !== ""
                 ? "Último acesso: " . dt_br($clinic["owner_last_login_at"])
                 : "Ainda não acessou",
         ) .
@@ -3650,7 +3650,7 @@ function page_admin_clinics(): void
                                 "",
                             )),
                     )) * 100,
-                ),
+                0, \RoundingMode::HalfAwayFromZero),
             );
             if ($price <= 0) {
                 $price = PRONTOO_MONTHLY_PRICE_CENTS;
@@ -3722,7 +3722,7 @@ function page_admin_clinics(): void
             if (!in_array($status, ["active", "read_only", "exempt"], true)) {
                 $status = "active";
             }
-            $paid = trim((string) ($_POST["paid_until"] ?? "")) ?: null;
+            $paid = mb_trim((string) ($_POST["paid_until"] ?? "")) ?: null;
             if ($status === "exempt") {
                 $paid = null;
             }
@@ -3886,13 +3886,13 @@ function page_admin_clinics(): void
         $createdLabel = date_br($r["created_at"] ?? "");
         $dueLabel = !empty($billing["exempt"])
             ? "Isento"
-            : (trim((string) ($billing["paid_until"] ?? "")) !== ""
+            : (mb_trim((string) ($billing["paid_until"] ?? "")) !== ""
                 ? date_br($billing["paid_until"])
                 : (!empty($billing["trial_active"])
                     ? date_br($billing["trial_ends_at"] ?? "")
                     : "Sem vencimento"));
         $professionLabel =
-            trim((string) ($r["responsible_profession"] ?? "")) ?:
+            mb_trim((string) ($r["responsible_profession"] ?? "")) ?:
             "Área não informada";
         $adminStatsNote =
             !empty($billing["exempt"]) && clinic_is_global_admin_owned($id)
@@ -4175,7 +4175,7 @@ function admin_alert_contact_label(
     if ($asSupport) {
         return "Suporte";
     }
-    $name = trim((string) ($user["name"] ?? ""));
+    $name = mb_trim((string) ($user["name"] ?? ""));
     if ($name === "") {
         return "Desenvolvedor";
     }
@@ -4209,8 +4209,8 @@ function page_admin_alerts(): void
             }
             redirect("admin_alerts", ["view" => $view, "alert" => $id]);
         }
-        $title = trim((string) ($_POST["title"] ?? ""));
-        $body = trim((string) ($_POST["body"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
+        $body = mb_trim((string) ($_POST["body"] ?? ""));
         $severity = (string) ($_POST["severity"] ?? "info");
         if (!in_array($severity, ["info", "warning", "critical"], true)) {
             $severity = "info";

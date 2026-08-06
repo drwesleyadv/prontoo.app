@@ -84,7 +84,7 @@ function onboarding_tip_dismiss(): void
 
     $c = need_login();
     $uid = (int) ($c["user"]["id"] ?? 0);
-    $key = mb_substr(trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
+    $key = mb_substr(mb_trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
     if ($uid > 0 && $key !== "") {
         try {
             onboarding_tips_ensure_schema();
@@ -794,7 +794,7 @@ function page_mfa(): void
     if (!$enrolled) {
         $secret = (string) $_SESSION["mfa_enrollment_secret"];
         $account =
-            trim((string) ($user["email"] ?? "")) ?:
+            mb_trim((string) ($user["email"] ?? "")) ?:
             ((string) ($user["name"] ?? "Desenvolvedor") . " #" . $uid);
         $uri = mfa_otpauth_uri($account, $secret);
         $body =
@@ -1684,8 +1684,8 @@ function page_signup(): void
             flash("Informe CNPJ válido para o consultório.", "bad");
             redirect("signup");
         }
-        $uf = strtoupper(trim((string) ($_POST["address_state"] ?? "")));
-        $city = trim((string) ($_POST["address_city"] ?? ""));
+        $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
+        $city = mb_trim((string) ($_POST["address_city"] ?? ""));
         $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
         if (!isset(br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
             flash("Escolha a cidade de atuação na lista do IBGE.", "bad");
@@ -1696,7 +1696,7 @@ function page_signup(): void
         db_begin_transaction();
         try {
             $pid = upsert_person(
-                trim((string) $_POST["doctor_name"]),
+                mb_trim((string) $_POST["doctor_name"]),
                 $cpf,
                 (string) $_POST["birth_date"],
             );
@@ -1722,7 +1722,7 @@ function page_signup(): void
                     redirect("signup");
                 }
                 $uid = (int) $existing["id"];
-                $email = trim((string) $_POST["email"]);
+                $email = mb_trim((string) $_POST["email"]);
                 if ($email !== "" && empty($existing["email"])) {
                     q(
                         "UPDATE pi_users SET email=?,updated_at=NOW() WHERE id=?",
@@ -1742,8 +1742,8 @@ function page_signup(): void
                     "INSERT INTO pi_users (person_id,name,email,password_hash,active,created_at) VALUES (?,?,?,?,1,NOW())",
                     [
                         $pid,
-                        trim((string) $_POST["doctor_name"]),
-                        trim((string) $_POST["email"]) ?: null,
+                        mb_trim((string) $_POST["doctor_name"]),
+                        mb_trim((string) $_POST["email"]) ?: null,
                         password_hash_secure($pass),
                     ],
                 );
@@ -1761,15 +1761,15 @@ function page_signup(): void
                 "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
                 [
                     $legalType,
-                    trim((string) $_POST["legal_name"]),
+                    mb_trim((string) $_POST["legal_name"]),
                     $doc,
-                    trim((string) $_POST["display_name"]),
+                    mb_trim((string) $_POST["display_name"]),
                     phone_br((string) $_POST["phone"]),
                     $profession,
                     $uid,
                     $uid,
                     $accentColor,
-                    trim((string) ($_POST["address_line"] ?? "")),
+                    mb_trim((string) ($_POST["address_line"] ?? "")),
                     $uf,
                     $city,
                     $cityIbge,
@@ -2040,7 +2040,7 @@ function upsert_person(string $name, string $cpf, string $birth): int
         ) ?: [];
         $sets = [];
         $params = [];
-        if (trim((string) ($current["full_name"] ?? "")) === "") {
+        if (mb_trim((string) ($current["full_name"] ?? "")) === "") {
             $sets[] = "full_name=?";
             $params[] = $name;
         }
@@ -2105,7 +2105,7 @@ function save_person_flexible(
 
     $name = trim($name);
     $cpf = only_digits((string) ($cpf ?? ""));
-    $birth = trim((string) ($birth ?? "")) ?: null;
+    $birth = mb_trim((string) ($birth ?? "")) ?: null;
     if ($name === "") {
         throw new RuntimeException("Nome da pessoa não informado.");
     }
@@ -2140,7 +2140,7 @@ function save_person_flexible(
                 $sets[] = "clinic_id=?";
                 $params[] = $clinicId;
             }
-            if (trim((string) ($current["full_name"] ?? "")) === "") {
+            if (mb_trim((string) ($current["full_name"] ?? "")) === "") {
                 $sets[] = "full_name=?";
                 $params[] = $name;
             }
@@ -2417,8 +2417,8 @@ function page_profile(): void
         }
         try {
             if ($act === "profile_update_user") {
-                $name = trim((string) ($_POST["name"] ?? ""));
-                $email = trim((string) ($_POST["email"] ?? ""));
+                $name = mb_trim((string) ($_POST["name"] ?? ""));
+                $email = mb_trim((string) ($_POST["email"] ?? ""));
                 if ($name === "" || mb_strlen($name) < 3) {
                     throw new RuntimeException("Informe o nome completo.");
                 }
@@ -2986,7 +2986,7 @@ function page_profile(): void
     );
     if ($profileMfaSecret !== "") {
         $account =
-            trim((string) ($u["email"] ?? "")) ?:
+            mb_trim((string) ($u["email"] ?? "")) ?:
             ((string) ($u["name"] ?? "Usuário") . " #" . $uid);
         $uri = mfa_otpauth_uri($account, $profileMfaSecret);
         $isReplacement = $profileMfaMode === "replace";
@@ -3285,8 +3285,8 @@ function page_onboarding(): void
         $rolesEnabled["gerente"] = 1;
         db_begin_transaction();
         try {
-            $uf = strtoupper(trim((string) ($_POST["address_state"] ?? "")));
-            $city = trim((string) ($_POST["address_city"] ?? ""));
+            $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
+            $city = mb_trim((string) ($_POST["address_city"] ?? ""));
             $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
             if (!isset(br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
                 throw new RuntimeException(
@@ -3314,12 +3314,12 @@ function page_onboarding(): void
             q(
                 "UPDATE pi_clinics SET display_name=?, phone=?, responsible_profession=?, clinic_icon=?, accent_color=?, address_line=?, address_state=?, address_city=?, address_city_ibge=?, timezone=?, onboarding_done=1, onboarding_completed_at=NOW(), subscription_status='trial', trial_started_at=COALESCE(NULLIF(trial_started_at,0),?), trial_ends_at=IF(trial_ends_at IS NULL OR trial_ends_at=0 OR trial_ends_at<NOW(),?,trial_ends_at), paid_until=NULL, updated_at=NOW() WHERE id=?",
                 [
-                    trim((string) $_POST["display_name"]),
+                    mb_trim((string) $_POST["display_name"]),
                     phone_br((string) $_POST["phone"]),
                     $profession,
                     $clinicIcon,
                     $accentColor,
-                    trim((string) ($_POST["address_line"] ?? "")),
+                    mb_trim((string) ($_POST["address_line"] ?? "")),
                     $uf,
                     $city,
                     $cityIbge,

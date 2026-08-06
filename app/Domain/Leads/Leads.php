@@ -43,7 +43,7 @@ function lead_stage_icons(): array
 function lead_stage_normalize(?string $stage): string
 {
 
-    $candidate = trim((string) $stage);
+    $candidate = mb_trim((string) $stage);
     return array_key_exists($candidate, lead_stage_options())
         ? $candidate
         : "em_aberto";
@@ -153,9 +153,9 @@ function lead_prepare_person_for_patient(
 ): int {
 
     $leadId = (int) ($lead["id"] ?? 0);
-    $name = trim((string) ($data["name"] ?? ($lead["name"] ?? "")));
+    $name = mb_trim((string) ($data["name"] ?? ($lead["name"] ?? "")));
     $cpf = only_digits((string) ($data["cpf"] ?? ""));
-    $birth = trim((string) ($data["birth_date"] ?? ""));
+    $birth = mb_trim((string) ($data["birth_date"] ?? ""));
     if ($name === "") {
         throw new RuntimeException(
             "Informe o nome do interessado antes de tornar paciente.",
@@ -261,7 +261,7 @@ function lead_history_html(
         );
         $when = dt_notice_br((string) ($ev["created_at"] ?? ""));
         $type = (string) ($ev["event_type"] ?? "contato");
-        $body = trim((string) ($ev["body"] ?? ""));
+        $body = mb_trim((string) ($ev["body"] ?? ""));
         if ($body === "") {
             $body = "Sem observações.";
         }
@@ -492,7 +492,7 @@ function page_leads(): void
     };
     $leadTime = function (?string $v) use ($cid, $c): string {
 
-        $v = trim((string) $v);
+        $v = mb_trim((string) $v);
         if ($v === "") {
             return "";
         }
@@ -565,7 +565,7 @@ function page_leads(): void
                         $cid,
                         $pid,
                         phone_br((string) ($lead["phone"] ?? "")),
-                        trim((string) ($lead["notes"] ?? "")),
+                        mb_trim((string) ($lead["notes"] ?? "")),
                         $uid,
                     ],
                 );
@@ -689,16 +689,16 @@ function page_leads(): void
                 );
                 redirect("leads");
             }
-            $name = trim((string) ($_POST["name"] ?? ($lead["name"] ?? "")));
+            $name = mb_trim((string) ($_POST["name"] ?? ($lead["name"] ?? "")));
             if ($name === "") {
                 $name = (string) ($lead["name"] ?? "Interessado");
             }
             $phone = phone_br((string) ($lead["phone"] ?? ""));
-            $source = trim((string) ($_POST["source"] ?? ""));
-            $interest = trim((string) ($_POST["interest"] ?? ""));
+            $source = mb_trim((string) ($_POST["source"] ?? ""));
+            $interest = mb_trim((string) ($_POST["interest"] ?? ""));
             $next =
                 $leadTime((string) ($_POST["next_action_at"] ?? "")) ?: null;
-            $notes = trim((string) ($_POST["notes"] ?? ""));
+            $notes = mb_trim((string) ($_POST["notes"] ?? ""));
             q(
                 "UPDATE pi_leads SET name=?, source=?, interest=?, stage=?, next_action_at=?, notes=COALESCE(NULLIF(?,''),notes), phone_digits=COALESCE(NULLIF(phone_digits,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [
@@ -750,7 +750,7 @@ function page_leads(): void
                 );
                 redirect("leads");
             }
-            $name = trim((string) ($_POST["name"] ?? ""));
+            $name = mb_trim((string) ($_POST["name"] ?? ""));
             $cpfOmitted = isset($_POST["cpf_omitted"]);
             $birthOmitted = isset($_POST["birth_omitted"]);
             $cpf = $cpfOmitted
@@ -758,7 +758,7 @@ function page_leads(): void
                 : only_digits((string) ($_POST["cpf"] ?? ""));
             $birth = $birthOmitted
                 ? ""
-                : trim((string) ($_POST["birth_date"] ?? ""));
+                : mb_trim((string) ($_POST["birth_date"] ?? ""));
             if (!$cpfOmitted && $cpf !== "" && !valid_cpf($cpf)) {
                 flash("Este CPF não existe.", "bad");
                 redirect("leads");
@@ -782,9 +782,9 @@ function page_leads(): void
                 $next =
                     $leadTime((string) ($_POST["next_action_at"] ?? "")) ?:
                     null;
-                $source = trim((string) ($_POST["source"] ?? ""));
-                $interest = trim((string) ($_POST["interest"] ?? ""));
-                $notes = trim((string) ($_POST["notes"] ?? ""));
+                $source = mb_trim((string) ($_POST["source"] ?? ""));
+                $interest = mb_trim((string) ($_POST["interest"] ?? ""));
+                $notes = mb_trim((string) ($_POST["notes"] ?? ""));
                 $patientByPhone = !$existing
                     ? lead_patient_by_phone($cid, $phoneDigits)
                     : null;
@@ -933,7 +933,7 @@ function page_leads(): void
     }
     $statusRaw = (string) ($_GET["status"] ?? "em_aberto");
     $status = lead_stage_normalize($statusRaw);
-    $qTerm = trim((string) ($_GET["q"] ?? ""));
+    $qTerm = mb_trim((string) ($_GET["q"] ?? ""));
     $leadSearchMode = $qTerm !== "";
     $where = "clinic_id=?";
     $params = [$cid];
@@ -1423,10 +1423,10 @@ function page_leads(): void
             form_actions("Atualizar interessado") .
             "</form></details>";
         $interestText =
-            trim((string) ($r["interest"] ?? "")) ?: "Interesse não informado";
-        $phoneText = trim((string) ($r["phone"] ?? "")) ?: "sem telefone";
-        $sourceText = trim((string) ($r["source"] ?? "")) ?: "sem origem";
-        $leadName = trim((string) ($r["name"] ?? "")) ?: "Interessado sem nome";
+            mb_trim((string) ($r["interest"] ?? "")) ?: "Interesse não informado";
+        $phoneText = mb_trim((string) ($r["phone"] ?? "")) ?: "sem telefone";
+        $sourceText = mb_trim((string) ($r["source"] ?? "")) ?: "sem origem";
+        $leadName = mb_trim((string) ($r["name"] ?? "")) ?: "Interessado sem nome";
         $miniMeta =
             '<div class="lead-card-meta lead-card-mini-meta ds-person-meta"><span>' .
             icon("call") .
