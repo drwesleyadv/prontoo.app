@@ -36,4 +36,4 @@ As labels inferiores das séries diárias usam uma inicial do dia da semana segu
 
 ## Séries diárias
 
-As séries usam o fuso `America/Cuiaba`, começam há 29 dias e terminam hoje. Dias sem eventos permanecem visíveis com valor zero. Visualizações vêm de `page-loads.jsonl`; Registros vêm de mutações confirmadas no `pi_action_ledger`.
+As séries usam o fuso `America/Cuiaba` e abrangem hoje e os 29 dias anteriores. Dias sem eventos permanecem visíveis com valor zero. Visualizações vêm de `page-loads.jsonl`; Registros vêm de mutações confirmadas no `pi_action_ledger`.
