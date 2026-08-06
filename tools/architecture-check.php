@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . "/page-load-telemetry-contract-check";
 if (PHP_SAPI !== "cli") {
     http_response_code(404);
     exit;
@@ -194,7 +195,7 @@ foreach ([
         'function telemetry_route_start_marker(',
         'function telemetry_route_finish_marker(',
         'function telemetry_comparative_summary(',
-        '"/telemetria.json"',
+        '"/page-loads.jsonl"',
     ],
     'cron' => [
         'maestro_process_deferred_work($deferredBudget, 1000)',
@@ -1229,8 +1230,16 @@ foreach ([
     'function telemetry_route_start_marker(',
     'function telemetry_route_finish_marker(',
     'hrtime(true)',
-    '"duracao_ms" => round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero)',
-    'return telemetry_storage_dir() . "/telemetria.json";',
+    '"duracao_ms" => round(',
+    '\RoundingMode::HalfAwayFromZero',
+    'return telemetry_storage_dir() . "/page-loads.jsonl";',
+    'return "prontoo.telemetria.pagina.v2";',
+    'function telemetry_page_request_candidate(',
+    'function telemetry_page_response_candidate(',
+    '"tipo" => "page_load"',
+    '"marco_inicial" => "front_controller_first_executable_line"',
+    '"front_controller_last_useful_line"',
+    '"shutdown_fallback"',
     'function telemetry_append_event(',
     '$handle = @fopen(telemetry_file(), "ab")',
     'flock($handle, LOCK_EX)',
@@ -1248,7 +1257,8 @@ foreach ([
     }
 }
 foreach ([
-    'page-load',
+    'prontoo.telemetria.rota.v1',
+    '"/telemetria.json"',
     'route-performance.json',
     'telemetry_append_page_metric',
     'telemetry_append_route_performance_metric',

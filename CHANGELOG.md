@@ -1,5 +1,16 @@
 # Histórico de versões
 
+## 1.8.6.2 — Carregamento de página como fonte de verdade
+
+- contabiliza somente navegações de documento HTML concluídas;
+- exclui `fetch`, XHR, JSON, rotas internas, prefetch, downloads e redirecionamentos;
+- marca o início antes do primeiro `require` dos front controllers;
+- fecha a duração explicitamente após a última etapa útil de renderização;
+- mantém shutdown apenas como fallback identificado;
+- inicia o schema `prontoo.telemetria.pagina.v2` em `ssd/telemetry/page-loads.jsonl`;
+- preserva o arquivo histórico de requisições sem misturá-lo aos novos indicadores;
+- não altera banco de dados, schema, rotas funcionais, layout ou assets.
+
 ## 1.8.6.1 — Conformidade integral PHP 8.4
 
 - revisa individualmente todos os arquivos PHP rastreados;

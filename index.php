@@ -17,8 +17,10 @@ if ((string) ($_GET["r"] ?? "") === "install") {
     require __DIR__ . "/app/prontoo.php";
     prontoo_require_module("Install/Installer.php");
     prontoo_install();
+    telemetry_route_finish_marker();
     exit;
 }
 
 require __DIR__ . "/app/prontoo.php";
 prontoo_run(false);
+telemetry_route_finish_marker();

@@ -11,12 +11,108 @@ function telemetry_storage_dir(): string
 
 function telemetry_file(): string
 {
-    return telemetry_storage_dir() . "/telemetria.json";
+    return telemetry_storage_dir() . "/page-loads.jsonl";
 }
 
 function telemetry_schema(): string
 {
-    return "prontoo.telemetria.rota.v1";
+    return "prontoo.telemetria.pagina.v2";
+}
+
+function telemetry_page_internal_routes(): array
+{
+    return [
+        "login_telemetry_wave",
+        "login_autotest",
+        "goal_status",
+        "patient_lookup",
+        "patient_suggest",
+        "person_lookup",
+        "lead_lookup",
+        "lead_patient_lookup",
+        "counterparty_lookup",
+        "counterparty_suggest",
+    ];
+}
+
+function telemetry_page_request_candidate(string $route): bool
+{
+    $route = telemetry_route_safe($route);
+    if (
+        $route === "unknown" ||
+        str_starts_with($route, "landing_") ||
+        in_array($route, telemetry_page_internal_routes(), true)
+    ) {
+        return false;
+    }
+    $method = strtoupper(mb_trim((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")));
+    if (!in_array($method, ["GET", "POST"], true)) {
+        return false;
+    }
+    $requestedWith = strtolower(mb_trim((string) ($_SERVER["HTTP_X_REQUESTED_WITH"] ?? "")));
+    if ($requestedWith !== "") {
+        return false;
+    }
+    $purpose = strtolower(
+        mb_trim(
+            (string) ($_SERVER["HTTP_PURPOSE"] ?? "") .
+                " " .
+                (string) ($_SERVER["HTTP_SEC_PURPOSE"] ?? ""),
+        ),
+    );
+    if (str_contains($purpose, "prefetch") || str_contains($purpose, "prerender")) {
+        return false;
+    }
+    $mode = strtolower(mb_trim((string) ($_SERVER["HTTP_SEC_FETCH_MODE"] ?? "")));
+    $destination = strtolower(mb_trim((string) ($_SERVER["HTTP_SEC_FETCH_DEST"] ?? "")));
+    if ($mode !== "" || $destination !== "") {
+        if ($mode !== "navigate" || $destination !== "document") {
+            return false;
+        }
+    } elseif ($method !== "GET") {
+        return false;
+    }
+    $accept = strtolower((string) ($_SERVER["HTTP_ACCEPT"] ?? ""));
+    if (
+        str_contains($accept, "application/json") &&
+        !str_contains($accept, "text/html") &&
+        !str_contains($accept, "application/xhtml+xml")
+    ) {
+        return false;
+    }
+    return true;
+}
+
+function telemetry_page_response_candidate(int $statusCode): bool
+{
+    if (
+        $statusCode < 200 ||
+        $statusCode === 204 ||
+        $statusCode === 205 ||
+        $statusCode === 304 ||
+        ($statusCode >= 300 && $statusCode < 400)
+    ) {
+        return false;
+    }
+    $contentType = "";
+    foreach (headers_list() as $header) {
+        $normalized = strtolower(mb_trim($header));
+        if (str_starts_with($normalized, "location:")) {
+            return false;
+        }
+        if (
+            str_starts_with($normalized, "content-disposition:") &&
+            str_contains($normalized, "attachment")
+        ) {
+            return false;
+        }
+        if (str_starts_with($normalized, "content-type:")) {
+            $contentType = mb_trim(substr($normalized, strlen("content-type:")));
+        }
+    }
+    return $contentType === "" ||
+        str_contains($contentType, "text/html") ||
+        str_contains($contentType, "application/xhtml+xml");
 }
 
 function telemetry_retention_microseconds(): int
@@ -76,7 +172,11 @@ function telemetry_route_start_marker(
     ?int $startedMonotonicNs = null,
     ?int $startedUnixUs = null,
 ): void {
-    if (PHP_SAPI === "cli" || !empty($GLOBALS["PRONTOO_TELEMETRY_REGISTERED"])) {
+    if (
+        PHP_SAPI === "cli" ||
+        !empty($GLOBALS["PRONTOO_TELEMETRY_REGISTERED"]) ||
+        !telemetry_page_request_candidate($route)
+    ) {
         return;
     }
     $GLOBALS["PRONTOO_TELEMETRY_REGISTERED"] = true;
@@ -85,7 +185,17 @@ function telemetry_route_start_marker(
         $startedMonotonicNs ?? hrtime(true);
     $GLOBALS["PRONTOO_ROUTE_STARTED_UNIX_US"] =
         $startedUnixUs ?? (int) floor(microtime(true) * 1000000);
-    register_shutdown_function("telemetry_route_finish_marker");
+    $GLOBALS["PRONTOO_PAGE_LOAD_METHOD"] = strtoupper(
+        mb_trim((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")),
+    );
+    $path = parse_url((string) ($_SERVER["REQUEST_URI"] ?? "/"), PHP_URL_PATH);
+    $GLOBALS["PRONTOO_PAGE_LOAD_PATH"] =
+        is_string($path) && str_starts_with($path, "/") ? $path : "/";
+    register_shutdown_function(
+        static function (): void {
+            telemetry_route_finish_marker(true);
+        },
+    );
 }
 
 function telemetry_route_identify(string $route): void
@@ -119,21 +229,50 @@ function telemetry_build_event(
     int $statusCode,
     ?string $fatalError = null,
     ?string $release = null,
+    ?string $method = null,
+    ?string $path = null,
+    string $finishMarker = "front_controller_last_useful_line",
 ): array {
     $durationNs = max(0, $finishedMonotonicNs - $startedMonotonicNs);
     $statusCode = $statusCode >= 100 && $statusCode <= 599 ? $statusCode : 200;
     $route = telemetry_route_safe($route);
+    $method = strtoupper(mb_trim((string) ($method ?? "GET")));
+    $method = in_array($method, ["GET", "POST"], true) ? $method : "GET";
+    $path = mb_trim((string) ($path ?? "/"));
+    $path = str_starts_with($path, "/") ? substr($path, 0, 240) : "/";
+    $finishMarker = in_array(
+        $finishMarker,
+        ["front_controller_last_useful_line", "shutdown_fallback"],
+        true,
+    )
+        ? $finishMarker
+        : "front_controller_last_useful_line";
     return [
         "schema" => telemetry_schema(),
+        "tipo" => "page_load",
         "evento_id" => substr(
             hash(
                 "sha256",
-                $route . "|" . $startedUnixUs . "|" . $finishedUnixUs . "|" . $durationNs,
+                $route .
+                    "|" .
+                    $method .
+                    "|" .
+                    $path .
+                    "|" .
+                    $startedUnixUs .
+                    "|" .
+                    $finishedUnixUs .
+                    "|" .
+                    $durationNs,
             ),
             0,
             32,
         ),
         "rota" => $route,
+        "metodo" => $method,
+        "caminho" => $path,
+        "marco_inicial" => "front_controller_first_executable_line",
+        "marco_final" => $finishMarker,
         "inicio_utc" => telemetry_utc_from_unix_microseconds($startedUnixUs),
         "fim_utc" => telemetry_utc_from_unix_microseconds($finishedUnixUs),
         "inicio_unix_us" => $startedUnixUs,
@@ -141,19 +280,31 @@ function telemetry_build_event(
         "inicio_monotonico_ns" => $startedMonotonicNs,
         "fim_monotonico_ns" => $finishedMonotonicNs,
         "duracao_ns" => $durationNs,
-        "duracao_ms" => round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero),
+        "duracao_ms" => round(
+            $durationNs / 1000000,
+            6,
+            \RoundingMode::HalfAwayFromZero,
+        ),
         "status_http" => $statusCode,
         "sucesso" => $fatalError === null && $statusCode < 500,
         "erro_fatal" => $fatalError,
-        "versao" => mb_trim((string) ($release ??
-            (defined("PRONTOO_VERSION") ? PRONTOO_VERSION :
-                (defined("BR_LANDING_VERSION") ? BR_LANDING_VERSION : "unknown")))),
+        "versao" => mb_trim(
+            (string) ($release ??
+                (defined("PRONTOO_VERSION")
+                    ? PRONTOO_VERSION
+                    : (defined("BR_LANDING_VERSION")
+                        ? BR_LANDING_VERSION
+                        : "unknown"))),
+        ),
     ];
 }
 
 function telemetry_normalize_event(array $event): ?array
 {
-    if ((string) ($event["schema"] ?? "") !== telemetry_schema()) {
+    if (
+        (string) ($event["schema"] ?? "") !== telemetry_schema() ||
+        (string) ($event["tipo"] ?? "") !== "page_load"
+    ) {
         return null;
     }
     $route = telemetry_route_safe((string) ($event["rota"] ?? ""));
@@ -162,19 +313,40 @@ function telemetry_normalize_event(array $event): ?array
     $startedUs = (int) ($event["inicio_unix_us"] ?? 0);
     $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
     $durationNs = (int) ($event["duracao_ns"] ?? -1);
+    $method = strtoupper(mb_trim((string) ($event["metodo"] ?? "")));
+    $path = mb_trim((string) ($event["caminho"] ?? ""));
+    $finishMarker = (string) ($event["marco_final"] ?? "");
     if (
         $route === "unknown" ||
         $startedNs < 0 ||
         $finishedNs < $startedNs ||
         $startedUs <= 0 ||
         $finishedUs <= 0 ||
-        $durationNs !== $finishedNs - $startedNs
+        $durationNs !== $finishedNs - $startedNs ||
+        !in_array($method, ["GET", "POST"], true) ||
+        !str_starts_with($path, "/") ||
+        (string) ($event["marco_inicial"] ?? "") !==
+            "front_controller_first_executable_line" ||
+        !in_array(
+            $finishMarker,
+            ["front_controller_last_useful_line", "shutdown_fallback"],
+            true,
+        )
     ) {
         return null;
     }
     $event["rota"] = $route;
-    $event["duracao_ms"] = round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero);
-    $event["status_http"] = max(100, min(599, (int) ($event["status_http"] ?? 200)));
+    $event["metodo"] = $method;
+    $event["caminho"] = substr($path, 0, 240);
+    $event["duracao_ms"] = round(
+        $durationNs / 1000000,
+        6,
+        \RoundingMode::HalfAwayFromZero,
+    );
+    $event["status_http"] = max(
+        100,
+        min(599, (int) ($event["status_http"] ?? 200)),
+    );
     $event["sucesso"] = (bool) ($event["sucesso"] ?? false);
     return $event;
 }
@@ -299,10 +471,14 @@ function telemetry_prune(?int $nowUnixUs = null): int
     }
 }
 
-function telemetry_route_finish_marker(): void
+function telemetry_route_finish_marker(bool $shutdownFallback = false): void
 {
     static $finished = false;
-    if ($finished || PHP_SAPI === "cli") {
+    if (
+        $finished ||
+        PHP_SAPI === "cli" ||
+        empty($GLOBALS["PRONTOO_TELEMETRY_REGISTERED"])
+    ) {
         return;
     }
     $finished = true;
@@ -315,6 +491,9 @@ function telemetry_route_finish_marker(): void
             return;
         }
         $statusCode = (int) http_response_code();
+        if (!telemetry_page_response_candidate($statusCode)) {
+            return;
+        }
         $fatalError = telemetry_fatal_error(error_get_last());
         $event = telemetry_build_event(
             (string) ($GLOBALS["PRONTOO_ROUTE_NAME"] ?? "unknown"),
@@ -324,9 +503,15 @@ function telemetry_route_finish_marker(): void
             $finishedUnixUs,
             $statusCode,
             $fatalError,
+            null,
+            (string) ($GLOBALS["PRONTOO_PAGE_LOAD_METHOD"] ?? "GET"),
+            (string) ($GLOBALS["PRONTOO_PAGE_LOAD_PATH"] ?? "/"),
+            $shutdownFallback
+                ? "shutdown_fallback"
+                : "front_controller_last_useful_line",
         );
         if (!telemetry_append_event($event)) {
-            error_log("[Prontoo telemetria] Evento de rota não persistido.");
+            error_log("[Prontoo telemetria] Carregamento de página não persistido.");
         }
         telemetry_prune($finishedUnixUs);
     } catch (Throwable $error) {

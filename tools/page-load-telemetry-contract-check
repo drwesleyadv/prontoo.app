@@ -1,0 +1,132 @@
+<?php
+declare(strict_types=1);
+
+$telemetryContractRoot = dirname(__DIR__);
+require_once $telemetryContractRoot . "/app/Support/Telemetry.php";
+$telemetryContractAssert = static function (bool $condition, string $message): void {
+    if (!$condition) {
+        throw new RuntimeException("Contrato de carregamento de página: " . $message);
+    }
+};
+$telemetryContractServer = $_SERVER;
+$telemetryContractScenario = static function (array $server, string $route): bool {
+    $_SERVER = $server;
+    return telemetry_page_request_candidate($route);
+};
+$telemetryContractAssert(
+    $telemetryContractScenario(
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "text/html,application/xhtml+xml",
+            "HTTP_SEC_FETCH_MODE" => "navigate",
+            "HTTP_SEC_FETCH_DEST" => "document",
+        ],
+        "painel",
+    ),
+    "navegação HTML deve ser contabilizada",
+);
+foreach ([
+    [
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "application/json",
+            "HTTP_SEC_FETCH_MODE" => "cors",
+            "HTTP_SEC_FETCH_DEST" => "empty",
+        ],
+        "login_telemetry_wave",
+    ],
+    [
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "application/json",
+            "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+        ],
+        "patient_lookup",
+    ],
+    [
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "text/html",
+            "HTTP_PURPOSE" => "prefetch",
+        ],
+        "patients",
+    ],
+    [
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "text/plain",
+        ],
+        "landing_robots",
+    ],
+] as [$server, $route]) {
+    $telemetryContractAssert(
+        !$telemetryContractScenario($server, $route),
+        "requisição interna não pode ser contabilizada: " . $route,
+    );
+}
+$_SERVER = $telemetryContractServer;
+$telemetryContractEvent = telemetry_build_event(
+    "painel",
+    1000,
+    2001000,
+    1000000,
+    1002000,
+    200,
+    null,
+    "test",
+    "GET",
+    "/",
+);
+$telemetryContractAssert(
+    telemetry_normalize_event($telemetryContractEvent) !== null,
+    "evento v2 válido deve ser aceito",
+);
+$telemetryContractAssert(
+    telemetry_normalize_event([
+        "schema" => "prontoo.telemetria.rota.v1",
+        "tipo" => "route_request",
+    ]) === null,
+    "evento legado de requisição não pode compor a fonte de verdade",
+);
+$telemetryContractAssert(
+    telemetry_page_response_candidate(200),
+    "resposta HTML sem cabeçalho explícito deve ser elegível",
+);
+$telemetryContractAssert(
+    !telemetry_page_response_candidate(302),
+    "redirecionamento não pode ser contabilizado como página carregada",
+);
+foreach (["index.php", "install.php", "br/index.php"] as $path) {
+    $source = (string) file_get_contents($telemetryContractRoot . "/" . $path);
+    $telemetryContractAssert(
+        str_contains($source, "telemetry_route_finish_marker();"),
+        "entrada sem marco final explícito: " . $path,
+    );
+    $telemetryContractAssert(
+        strpos($source, "hrtime(true)") < strpos($source, "require"),
+        "marco inicial deve anteceder o primeiro require: " . $path,
+    );
+}
+$telemetryContractSource = (string) file_get_contents(
+    $telemetryContractRoot . "/app/Support/Telemetry.php",
+);
+foreach ([
+    "prontoo.telemetria.pagina.v2",
+    "page-loads.jsonl",
+    "front_controller_first_executable_line",
+    "front_controller_last_useful_line",
+    "shutdown_fallback",
+] as $token) {
+    $telemetryContractAssert(
+        str_contains($telemetryContractSource, $token),
+        "token obrigatório ausente: " . $token,
+    );
+}
+unset(
+    $telemetryContractRoot,
+    $telemetryContractAssert,
+    $telemetryContractServer,
+    $telemetryContractScenario,
+    $telemetryContractEvent,
+    $telemetryContractSource,
+);
