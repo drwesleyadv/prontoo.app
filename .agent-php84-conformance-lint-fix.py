@@ -34,6 +34,16 @@ replacements = [
         '''        if insertion:\n            if trailing_comma and insertion.startswith(", "):\n                insertion = insertion[2:]\n            insertions.append((int(call["close_offset_bytes"]), insertion.encode("utf-8"), label))''',
         "inserção após vírgula final",
     ),
+    (
+        '''    "strict_level" => "E_" . "STRICT",\n''',
+        '''''',
+        "remover detecção textual de E_STRICT",
+    ),
+    (
+        '''foreach ($phpFiles as $path) {\n    $source = $read($path);\n    $lint = [];''',
+        '''foreach ($phpFiles as $path) {\n    $source = $read($path);\n    foreach (token_get_all($source, TOKEN_PARSE) as $sourceToken) {\n        if (is_array($sourceToken) &&\n            $sourceToken[0] === T_STRING &&\n            strtoupper((string) $sourceToken[1]) === "E_STRICT") {\n            $failures[] = "Constante E_STRICT descontinuada em " . $path;\n        }\n    }\n    $lint = [];''',
+        "detecção tokenizada de E_STRICT",
+    ),
 ]
 for old, new, label in replacements:
     count = source.count(old)
