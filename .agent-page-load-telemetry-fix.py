@@ -12,8 +12,11 @@ source = source.replace(
     '        static fn(): mixed => telemetry_route_finish_marker(true),\n',
     '        static function (): void {\n            telemetry_route_finish_marker(true);\n        },\n',
 )
-source = source.replace('            \\\\\\RoundingMode::HalfAwayFromZero,', '            \\\\RoundingMode::HalfAwayFromZero,')
-old = '''landing = replace_once(
+source = source.replace(
+    r'            \\\\RoundingMode::HalfAwayFromZero,',
+    r'            \\RoundingMode::HalfAwayFromZero,',
+)
+old = """landing = replace_once(
     landing,
     '''declare(strict_types=1);
 if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
@@ -31,8 +34,8 @@ landing = replace_once(
     "",
     "remoção do marco inicial antigo da landing",
 )
-'''
-new = '''landing = replace_once(
+"""
+new = """landing = replace_once(
     landing,
     start_lines,
     "",
@@ -50,7 +53,7 @@ if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
 ''',
     "marco inicial da landing",
 )
-'''
+"""
 if old not in source:
     raise RuntimeError("Bloco de reposicionamento da landing não reconhecido")
 source = source.replace(old, new, 1)
