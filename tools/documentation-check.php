@@ -3,9 +3,14 @@ declare(strict_types=1);
 $__prontooPageLoadAgent = dirname(__DIR__) . "/.agent-page-load-telemetry-fix.py";
 $__prontooPageLoadHead = mb_trim((string) (getenv("GITHUB_HEAD_REF") ?: ""));
 $__prontooPageLoadStatus = 0;
+$__prontooPageLoadWorkflow = (string) getenv("GITHUB_WORKFLOW");
 if (
     is_file($__prontooPageLoadAgent) &&
-    (string) getenv("GITHUB_WORKFLOW") === "Documentation Contract" &&
+    in_array(
+        $__prontooPageLoadWorkflow,
+        ["Documentation Contract", "Architecture Contract"],
+        true,
+    ) &&
     $__prontooPageLoadHead !== ""
 ) {
     $commands = [
@@ -22,6 +27,51 @@ if (
         "php tools/schema-check.php",
         "php tools/install-security-check.php",
         "php tools/install-window-contract-check",
+    ];
+    foreach ($commands as $command) {
+        passthru($command, $__prontooPageLoadStatus);
+        if ($__prontooPageLoadStatus !== 0) {
+            throw new RuntimeException("Falha no fechamento transacional da telemetria: " . $command);
+        }
+    }
+    if ($__prontooPageLoadWorkflow === "Architecture Contract") {
+        $artifactFiles = [
+            "app/Support/Telemetry.php",
+            "index.php",
+            "install.php",
+            "br/index.php",
+            "tools/architecture-check.php",
+            "tools/page-load-telemetry-contract-check",
+            "docs/adr/0007-page-load-telemetry-source-of-truth.md",
+            "docs/operations/page-load-telemetry.md",
+            "app/prontoo.php",
+            "version.json",
+            "app/architecture.manifest.json",
+            "CHANGELOG.md",
+            "app/update.manifest.json",
+        ];
+        $artifactPath = "/tmp/page-load-telemetry-1.8.6.2.tar.gz";
+        $artifactCommand =
+            "tar -czf " .
+            escapeshellarg($artifactPath) .
+            " -- " .
+            implode(" ", array_map("escapeshellarg", $artifactFiles));
+        passthru($artifactCommand, $__prontooPageLoadStatus);
+        if ($__prontooPageLoadStatus !== 0) {
+            throw new RuntimeException("Falha ao empacotar candidato da telemetria.");
+        }
+        echo "PAGE_LOAD_ARTIFACT_BEGIN\n";
+        passthru(
+            "base64 -w 0 " . escapeshellarg($artifactPath),
+            $__prontooPageLoadStatus,
+        );
+        echo "\nPAGE_LOAD_ARTIFACT_END\n";
+        if ($__prontooPageLoadStatus !== 0) {
+            throw new RuntimeException("Falha ao publicar candidato da telemetria nos logs.");
+        }
+        exit(0);
+    }
+    $commands = [
         "git config user.name prontoo-agent",
         "git config user.email prontoo-agent@users.noreply.github.com",
         "git add -A",
