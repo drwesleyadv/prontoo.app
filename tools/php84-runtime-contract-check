@@ -119,6 +119,169 @@ if (!str_contains($cronRunbook, "/opt/cpanel/ea-php84/root/usr/bin/php")) {
     $failures[] = "O runbook do Maestro não fixa o binário CLI do PHP 8.4.";
 }
 
+
+$sourceConformanceAudit = "php84-source-conformance-1.8.6.1";
+$phpFiles = [];
+foreach ($tracked as $path) {
+    if (str_ends_with(strtolower($path), ".php") && is_file($root . "/" . $path)) {
+        $phpFiles[] = $path;
+    }
+}
+sort($phpFiles, SORT_STRING);
+$auditContract = json_decode(
+    $read("docs/audits/php84-conformance-1.8.6.1.json"),
+    true,
+);
+if (!is_array($auditContract) || empty($auditContract["function_contract_preserved"])) {
+    $failures[] = "Relatório integral de conformidade PHP 8.4 ausente ou inválido.";
+} else {
+    $reportedFiles = [];
+    foreach ((array) ($auditContract["files"] ?? []) as $item) {
+        if (is_array($item) && isset($item["path"])) {
+            $reportedFiles[] = (string) $item["path"];
+        }
+    }
+    sort($reportedFiles, SORT_STRING);
+    if ($reportedFiles !== $phpFiles) {
+        $failures[] = "O relatório PHP 8.4 não cobre exatamente todos os arquivos PHP rastreados.";
+    }
+}
+$featureCounters = [
+    "mb_trim" => 0,
+    "rounding_mode" => 0,
+    "pdo_connect" => 0,
+    "datetime_timestamp" => 0,
+];
+$deprecatedFragments = [
+    "strict_level" => "E_" . "STRICT",
+    "mysqli_ping" => "mysqli_" . "ping(",
+    "mysqli_kill" => "mysqli_" . "kill(",
+    "mysqli_refresh" => "mysqli_" . "refresh(",
+    "curl_binary" => "CURLOPT_" . "BINARYTRANSFER",
+    "dom_error" => "DOM_" . "PHP_ERR",
+    "xml_object" => "xml_" . "set_object(",
+];
+foreach ($phpFiles as $path) {
+    $source = $read($path);
+    if (!preg_match('/^<\?php\s+declare\(strict_types=1\);/s', $source)) {
+        $failures[] = "Arquivo PHP sem strict_types=1 no início: " . $path;
+    }
+    $lintOutput = [];
+    $lintStatus = 0;
+    exec(
+        escapeshellarg(PHP_BINARY) .
+            " -d error_reporting=32767 -d display_errors=1 -l " .
+            escapeshellarg($root . "/" . $path) .
+            " 2>&1",
+        $lintOutput,
+        $lintStatus,
+    );
+    $lintText = implode("\n", $lintOutput);
+    if ($lintStatus !== 0) {
+        $failures[] = "Lint PHP 8.4 falhou em " . $path . ": " . $lintText;
+    }
+    if (stripos($lintText, "deprecated") !== false) {
+        $failures[] = "Depreciação PHP 8.4 detectada em " . $path . ": " . $lintText;
+    }
+    if ($path !== "tools/php84-runtime-contract-check") {
+        foreach ($deprecatedFragments as $label => $fragment) {
+            if (stripos($source, $fragment) !== false) {
+                $failures[] = "API descontinuada PHP 8.4 em " . $path . ": " . $label;
+            }
+        }
+        if (preg_match('/\btrigger_error\s*\([^;]*E_USER_ERROR/is', $source)) {
+            $failures[] = "trigger_error com E_USER_ERROR em " . $path;
+        }
+        if (preg_match('/(?<![A-Za-z0-9_])(?:ltrim|rtrim|trim)\(\(string\)/', $source)) {
+            $failures[] = "Normalização textual ainda usa trim não multibyte em " . $path;
+        }
+        if (preg_match('/\bnew\s+\\?PDO\s*\(/', $source)) {
+            $failures[] = "Conexão PDO genérica ainda instanciada diretamente em " . $path;
+        }
+        if (preg_match('/\bnew\s+\\?DateTimeImmutable\s*\(\s*["\x27]@/', $source)) {
+            $failures[] = "Timestamp ainda montado por string @ em " . $path;
+        }
+    }
+    $featureCounters["mb_trim"] += substr_count($source, "mb_trim(");
+    $featureCounters["rounding_mode"] += substr_count($source, "RoundingMode::");
+    $featureCounters["pdo_connect"] += substr_count($source, "PDO::connect(");
+    $featureCounters["pdo_connect"] += substr_count($source, "\\PDO::connect(");
+    $featureCounters["datetime_timestamp"] += substr_count(
+        $source,
+        "DateTimeImmutable::createFromTimestamp(",
+    );
+
+    $tokens = token_get_all($source, TOKEN_PARSE);
+    $tokenCount = count($tokens);
+    for ($index = 0; $index < $tokenCount; $index++) {
+        $token = $tokens[$index];
+        if (!is_array($token) || $token[0] !== T_STRING) {
+            continue;
+        }
+        $name = strtolower($token[1]);
+        if (!in_array($name, ["round", "fgetcsv", "fputcsv", "str_getcsv"], true)) {
+            continue;
+        }
+        $previous = $index - 1;
+        while ($previous >= 0 && is_array($tokens[$previous]) && in_array($tokens[$previous][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            $previous--;
+        }
+        $previousId = $previous >= 0 && is_array($tokens[$previous]) ? $tokens[$previous][0] : null;
+        if (in_array($previousId, [T_FUNCTION, T_FN, T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON], true)) {
+            continue;
+        }
+        $open = $index + 1;
+        while ($open < $tokenCount && is_array($tokens[$open]) && in_array($tokens[$open][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            $open++;
+        }
+        if (($tokens[$open] ?? null) !== "(") {
+            continue;
+        }
+        $depth = 0;
+        $commas = 0;
+        $hasContent = false;
+        for ($cursor = $open; $cursor < $tokenCount; $cursor++) {
+            $current = $tokens[$cursor];
+            $text = is_array($current) ? $current[1] : $current;
+            $currentId = is_array($current) ? $current[0] : null;
+            if (in_array($text, ["(", "[", "{"], true)) {
+                $depth++;
+                continue;
+            }
+            if (in_array($text, [")", "]", "}"], true)) {
+                $depth--;
+                if ($depth === 0 && $text === ")") {
+                    break;
+                }
+                continue;
+            }
+            if ($depth !== 1 || in_array($currentId, [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                continue;
+            }
+            if ($text === ",") {
+                $commas++;
+            } else {
+                $hasContent = true;
+            }
+        }
+        $argumentCount = $hasContent ? $commas + 1 : 0;
+        $required = $name === "round" ? 3 : ($name === "str_getcsv" ? 4 : 5);
+        if ($argumentCount < $required) {
+            $failures[] = $name . " sem contrato explícito PHP 8.4 em " . $path;
+        }
+    }
+}
+foreach ($featureCounters as $feature => $count) {
+    if ($count <= 0) {
+        $failures[] = "Recurso PHP 8.4 esperado não foi adotado: " . $feature;
+    }
+}
+$runtimeSource = $read("app/Support/Runtime.php");
+if (!str_contains($runtimeSource, '(int) $match[1] === 8') ||
+    !str_contains($runtimeSource, '(int) $match[2] === 4')) {
+    $failures[] = "Helper de runtime não confirma exclusivamente a família PHP 8.4.";
+}
+
 if ($failures !== []) {
     fwrite(STDERR, "Contrato exclusivo PHP 8.4 falhou:\n- " . implode("\n- ", $failures) . "\n");
     exit(1);

@@ -51,7 +51,7 @@ function pt_list(array $items): string
 
     $items = array_values(
         array_filter(
-            array_map(static  fn($v) => trim((string) $v), $items),
+            array_map(static  fn($v) => mb_trim((string) $v), $items),
             static  fn($v) => $v !== "",
         ),
     );
@@ -73,7 +73,7 @@ function audit_change_body(array $fields): string
     $fields = array_values(
         array_unique(
             array_filter(
-                array_map(static  fn($v) => trim((string) $v), $fields),
+                array_map(static  fn($v) => mb_trim((string) $v), $fields),
                 static  fn($v) => $v !== "",
             ),
         ),
@@ -92,14 +92,14 @@ function audit_value_present(mixed $v): bool
     if (is_array($v)) {
         return !empty($v);
     }
-    return trim((string) $v) !== "";
+    return mb_trim((string) $v) !== "";
 }
 function audit_field_list(array $ctx, array $labels, array $forced = []): array
 {
 
     $out = [];
     foreach ($forced as $label) {
-        if (trim((string) $label) !== "") {
+        if (mb_trim((string) $label) !== "") {
             $out[] = (string) $label;
         }
     }
@@ -121,7 +121,7 @@ function audit_registered_body(
     $fields = array_values(
         array_unique(
             array_filter(
-                array_map(static  fn($v) => trim((string) $v), $fields),
+                array_map(static  fn($v) => mb_trim((string) $v), $fields),
                 static  fn($v) => $v !== "",
             ),
         ),
@@ -176,26 +176,26 @@ function audit_patient_record_target(array $ctx, mixed $entityId = null): string
 function audit_clinic_target(array $ctx): string
 {
 
-    $name = trim((string) ($ctx["clinic_name"] ?? ($ctx["consultorio"] ?? "")));
+    $name = mb_trim((string) ($ctx["clinic_name"] ?? ($ctx["consultorio"] ?? "")));
     return $name !== "" ? "Consultório " . $name : "Consultório";
 }
 function audit_task_target(array $ctx): string
 {
 
-    $title = trim((string) ($ctx["task_title"] ?? ($ctx["title"] ?? "")));
+    $title = mb_trim((string) ($ctx["task_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Tarefa “" . $title . "”" : "Tarefa";
 }
 function audit_notice_target(array $ctx): string
 {
 
-    $title = trim((string) ($ctx["notice_title"] ?? ($ctx["title"] ?? "")));
+    $title = mb_trim((string) ($ctx["notice_title"] ?? ($ctx["title"] ?? "")));
     return $title !== "" ? "Aviso “" . $title . "”" : "Aviso";
 }
 function audit_appointment_target(array $ctx): string
 {
 
     $patient = audit_patient_name($ctx, $ctx["patient_link_id"] ?? null);
-    $start = trim((string) ($ctx["start_at"] ?? ""));
+    $start = mb_trim((string) ($ctx["start_at"] ?? ""));
     $when = $start !== "" ? " em " . dt_br($start) : "";
     return "consulta de " . $patient . $when;
 }
@@ -204,7 +204,7 @@ function audit_ctx_pick(array $ctx, array $keys): string
 
     foreach ($keys as $key) {
         if (array_key_exists((string) $key, $ctx)) {
-            $v = trim((string) $ctx[(string) $key]);
+            $v = mb_trim((string) $ctx[(string) $key]);
             if ($v !== "" && $v !== "0") {
                 return $v;
             }
@@ -229,7 +229,7 @@ function audit_money_text(
         ) {
             return money_br((int) $v);
         }
-        $text = trim((string) $v);
+        $text = mb_trim((string) $v);
         if ($text !== "") {
             return $text;
         }
@@ -349,7 +349,7 @@ function audit_integrity_base(array $r): string
 function verify_audit_row(array $r): bool
 {
 
-    $hash = trim((string) ($r["integrity_hash"] ?? ""));
+    $hash = mb_trim((string) ($r["integrity_hash"] ?? ""));
     try {
         if (class_exists("\\Prontoo\\Core\\Integrity\\AuditChain")) {
             return \Prontoo\Core\Integrity\AuditChain::verifyRow(
@@ -746,7 +746,7 @@ function activity_time_direct(
     ?array $context = null,
 ): string {
 
-    $raw = trim((string) ($value ?? ""));
+    $raw = mb_trim((string) ($value ?? ""));
     if ($raw === "") {
         return "—";
     }
@@ -780,12 +780,12 @@ function activity_text_value(mixed $v): string
     if (is_array($v)) {
         return trim(implode(", ", array_filter(array_map("strval", $v))));
     }
-    return trim((string) $v);
+    return mb_trim((string) $v);
 }
 function activity_clean_name(string $value, string $fallback = ""): string
 {
 
-    $value = trim(preg_replace("/\s+/", " ", $value));
+    $value = mb_trim(preg_replace("/\s+/", " ", $value));
     return $value !== "" ? $value : $fallback;
 }
 function activity_money_from_ctx(array $ctx): string
@@ -1033,7 +1033,7 @@ function activity_changed_fields(
     }
     return array_values(
         array_unique(
-            array_filter($out, static  fn($v) => trim((string) $v) !== ""),
+            array_filter($out, static  fn($v) => mb_trim((string) $v) !== ""),
         ),
     );
 }
@@ -1116,8 +1116,8 @@ function activity_environment_label(array $ctx): string
     if ($role !== "" && function_exists("role_label_for")) {
         try {
             $resolved = role_label_for($role, $cid > 0 ? $cid : null);
-            if (trim((string) $resolved) !== "") {
-                return trim((string) $resolved);
+            if (mb_trim((string) $resolved) !== "") {
+                return mb_trim((string) $resolved);
             }
         } catch (Throwable $e) {
             error_log(
@@ -1155,7 +1155,7 @@ function activity_human_sentence(
     $clinic = $clinic !== "" ? $clinic : "consultório";
     return match ($event) {
         "janela_aberta" => $entity === "paciente" ||
-        trim((string) ($ctx["patient_name"] ?? "")) !== ""
+        mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
             ? $who . " abriu a ficha do paciente " . $patient
             : $who .
                 " abriu a tela " .
@@ -1227,8 +1227,8 @@ function activity_human_sentence(
         "receita_visualizada" => $who . " abriu a receita de " . $patient,
         "documento_rascunho_criado" => $who .
             " preparou um rascunho de documento" .
-            (trim((string) ($ctx["patient_name"] ?? "")) !== ""
-                ? " para " . trim((string) $ctx["patient_name"])
+            (mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
+                ? " para " . mb_trim((string) $ctx["patient_name"])
                 : ""),
         "documento_emitido" => $who .
             " emitiu " .
@@ -1237,19 +1237,19 @@ function activity_human_sentence(
             ) .
             " " .
             audit_document_type_text($ctx) .
-            (trim((string) ($ctx["patient_name"] ?? "")) !== ""
-                ? " para " . trim((string) $ctx["patient_name"])
+            (mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
+                ? " para " . mb_trim((string) $ctx["patient_name"])
                 : ""),
         "documento_descartado" => $who . " descartou um rascunho de documento",
         "documento_visualizado" => $who .
             " abriu um documento" .
-            (trim((string) ($ctx["patient_name"] ?? "")) !== ""
-                ? " de " . trim((string) $ctx["patient_name"])
+            (mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
+                ? " de " . mb_trim((string) $ctx["patient_name"])
                 : ""),
         "documento_impresso" => $who .
             " imprimiu um documento" .
-            (trim((string) ($ctx["patient_name"] ?? "")) !== ""
-                ? " de " . trim((string) $ctx["patient_name"])
+            (mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
+                ? " de " . mb_trim((string) $ctx["patient_name"])
                 : ""),
         "modelo_documento_criado" => $who .
             " criou o modelo de documento " .
@@ -1407,7 +1407,7 @@ function activity_direct_target(
     $title = activity_title_from_ctx($ctx, "");
     if ($event === "janela_aberta") {
         return $entity === "paciente" ||
-            trim((string) ($ctx["patient_name"] ?? "")) !== ""
+            mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
             ? "a ficha do paciente " . $patient
             : "a tela " .
                     (activity_text_value($ctx["janela"] ?? $title) ?:
@@ -1794,7 +1794,7 @@ function audit_patient_name_by_link(int $patientId, ?int $cid = null): string
         $person = one("SELECT full_name FROM pi_persons WHERE id=?", [
             (int) $pat["person_id"],
         ]);
-        return trim((string) ($person["full_name"] ?? ""));
+        return mb_trim((string) ($person["full_name"] ?? ""));
     } catch (Throwable $e) {
         return "";
     }
@@ -1816,7 +1816,7 @@ function audit_user_name_lookup(int $uid, ?int $cid = null): string
             $u = $cid
                 ? one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
                 : one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
-            return trim((string) ($u["name"] ?? ""));
+            return mb_trim((string) ($u["name"] ?? ""));
         } catch (Throwable $e) {
             error_log("[Prontoo audit user lookup] " . $e->getMessage());
             return "";
@@ -1849,7 +1849,7 @@ function audit_clinic_name_lookup(int $cid): string
 
         try {
             $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
-            return trim((string) ($cl["display_name"] ?? ""));
+            return mb_trim((string) ($cl["display_name"] ?? ""));
         } catch (Throwable $e) {
             error_log("[Prontoo audit clinic lookup] " . $e->getMessage());
             return "";
@@ -2260,7 +2260,7 @@ function audit_trusted_origin_resolve(
         }
     }
     $origin = is_array($trustedOrigin) ? $trustedOrigin : [];
-    $createdAt = trim((string) ($origin["created_at"] ?? ""));
+    $createdAt = mb_trim((string) ($origin["created_at"] ?? ""));
     if (
         preg_match(
             '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
@@ -2269,7 +2269,7 @@ function audit_trusted_origin_resolve(
     ) {
         $createdAt = "";
     }
-    $ipHash = strtolower(trim((string) ($origin["ip_hash"] ?? "")));
+    $ipHash = strtolower(mb_trim((string) ($origin["ip_hash"] ?? "")));
     if (preg_match('/^[a-f0-9]{64}$/', $ipHash) !== 1) {
         $ipHash = "";
     }
@@ -2286,7 +2286,7 @@ function audit_trusted_origin_resolve(
         "ip_hash" => $ipHash,
         "has_user_agent" => array_key_exists("user_agent", $origin),
         "user_agent" => mb_substr(
-            trim((string) ($origin["user_agent"] ?? "")),
+            mb_trim((string) ($origin["user_agent"] ?? "")),
             0,
             180,
         ),
@@ -2365,7 +2365,7 @@ function audit(
                     $cid ? (int) $cid : null,
                 );
             }
-            if (trim((string) ($context["audit_body"] ?? "")) === "") {
+            if (mb_trim((string) ($context["audit_body"] ?? "")) === "") {
                 $context["audit_body"] = audit_body_for_event(
                     $event,
                     $entity,
@@ -2398,7 +2398,7 @@ function audit(
                 : ($ip !== "" ? hash("sha256", $ip . "|ip") : null);
             $userAgent = $hasForcedUserAgent
                 ? $forcedUserAgent
-                : mb_substr(trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")), 0, 180);
+                : mb_substr(mb_trim((string) ($_SERVER["HTTP_USER_AGENT"] ?? "")), 0, 180);
             if ($userAgent === "") {
                 $userAgent = null;
             }
@@ -2450,13 +2450,13 @@ function audit(
 function audit_actor_name(array $ctx, ?int $uid): string
 {
 
-    $actor = trim((string) ($ctx["actor_name"] ?? ""));
+    $actor = mb_trim((string) ($ctx["actor_name"] ?? ""));
     return $actor !== "" ? first_name($actor) : user_name_by_id($uid);
 }
 function audit_document_type_text(array $ctx): string
 {
 
-    $label = trim((string) ($ctx["document_type_label"] ?? ""));
+    $label = mb_trim((string) ($ctx["document_type_label"] ?? ""));
     if ($label === "") {
         $key = (string) ($ctx["document_type"] ?? ($ctx["type_key"] ?? ""));
         $types = function_exists("document_type_options")
@@ -2465,7 +2465,7 @@ function audit_document_type_text(array $ctx): string
         $label = $types[$key] ?? "";
     }
     if ($label === "") {
-        $label = trim((string) ($ctx["titulo"] ?? "Documento"));
+        $label = mb_trim((string) ($ctx["titulo"] ?? "Documento"));
     }
     return $label !== "" ? $label : "Documento";
 }
@@ -2487,7 +2487,7 @@ function audit_document_activity_sentence(
 ): string {
 
     $doc = audit_document_type_text($ctx);
-    $patient = trim((string) ($ctx["patient_name"] ?? ""));
+    $patient = mb_trim((string) ($ctx["patient_name"] ?? ""));
     $txt =
         $who . " " . $action . " " . audit_document_article($doc) . " " . $doc;
     if ($patient !== "") {
@@ -2616,7 +2616,7 @@ function audit_task_sentence(
 
     $task = audit_task_name($ctx);
     $txt = $who . " " . $verb . " tarefa " . $task;
-    $patient = trim((string) ($ctx["patient_name"] ?? ""));
+    $patient = mb_trim((string) ($ctx["patient_name"] ?? ""));
     if (
         $patient !== "" &&
         !str_contains(mb_strtolower($txt), mb_strtolower($patient))
@@ -2654,7 +2654,7 @@ function audit_status_verb(
 ): string {
 
     $s = mb_strtolower(
-        trim((string) ($ctx["status"] ?? ($ctx["active"] ?? ""))),
+        mb_trim((string) ($ctx["status"] ?? ($ctx["active"] ?? ""))),
     );
     if (
         in_array(
@@ -3025,7 +3025,7 @@ function audit_team_filter_options(int $cid): array
         $out = [];
         foreach ($rows as $r) {
             $id = (int) ($r["id"] ?? 0);
-            $name = trim((string) ($r["name"] ?? ""));
+            $name = mb_trim((string) ($r["name"] ?? ""));
             if ($id <= 0 || $name === "") {
                 continue;
             }
@@ -3116,7 +3116,7 @@ function audit_activity_url(array $extra = []): string
 
     $base = ["r" => "audit"];
     foreach (["member", "period", "date"] as $k) {
-        if (isset($_GET[$k]) && trim((string) $_GET[$k]) !== "") {
+        if (isset($_GET[$k]) && mb_trim((string) $_GET[$k]) !== "") {
             $base[$k] = (string) $_GET[$k];
         }
     }

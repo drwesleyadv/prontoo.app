@@ -20,7 +20,7 @@ function clinical_profession_options(): array
 function normalize_profession(string $profession): string
 {
 
-    $profession = trim(preg_replace("/\s+/", " ", $profession) ?? "");
+    $profession = mb_trim(preg_replace("/\s+/", " ", $profession) ?? "");
     if ($profession === "") {
         return "Médico(a)";
     }
@@ -453,7 +453,7 @@ function normalize_clinic_icon(?string $icon): string
 function normalize_accent_color(?string $color): string
 {
 
-    $color = strtolower(trim((string) $color));
+    $color = strtolower(mb_trim((string) $color));
     if (array_key_exists($color, clinic_accent_options())) {
         return $color;
     }
@@ -600,12 +600,12 @@ function clinic_rgb_hex(array $rgb): string
         max(0, min(255, (int) round($rgb[1] ?? 0))),
         max(0, min(255, (int) round($rgb[2] ?? 0))),
     );
-}
-function clinic_mix_hex(string $a, string $b, float $aWeight): string
+, 0, \RoundingMode::HalfAwayFromZero}
+function clinic_mix_hex(string $a, string $b, float, 0, \RoundingMode::HalfAwayFromZero $aWeight): string
 {
 
     $ra = clinic_hex_rgb($a);
-    $rb = clinic_hex_rgb($b);
+ , 0, \RoundingMode::HalfAwayFromZero   $rb = clinic_hex_rgb($b);
     $w = max(0, min(1, $aWeight));
     return clinic_rgb_hex([
         $ra[0] * $w + $rb[0] * (1 - $w),
@@ -1077,7 +1077,7 @@ function clinic_role_label_fields(int $cid): string
     ];
     $html = '<div class="two">';
     foreach ($defs as $role => $label) {
-        $value = trim((string) ($labels[$role] ?? $label));
+        $value = mb_trim((string) ($labels[$role] ?? $label));
         if (isset($old[$role]) && $value === $old[$role]) {
             $value = $label;
         }
@@ -1128,11 +1128,11 @@ function clinic_role_sector_fields(int $cid): string
         '<div class="sector-editor sector-editor-modern sector-editor-compact">';
     foreach ($defs as $role => $fallback) {
         $opts = role_icon_options($role);
-        $label = trim((string) ($labels[$role] ?? $fallback));
+        $label = mb_trim((string) ($labels[$role] ?? $fallback));
         if ($label === "") {
             $label = $fallback;
         }
-        $ico = trim((string) ($icons[$role] ?? default_role_icon($role)));
+        $ico = mb_trim((string) ($icons[$role] ?? default_role_icon($role)));
         if ($ico === "" || !isset($opts[$ico])) {
             $ico = default_role_icon($role);
         }
@@ -1194,7 +1194,7 @@ function clinic_profession(int $clinicId): string
                 "SELECT responsible_profession FROM pi_clinics WHERE id=?",
                 [$clinicId],
             );
-            if ($value !== null && trim((string) $value) !== "") {
+            if ($value !== null && mb_trim((string) $value) !== "") {
                 return normalize_profession((string) $value);
             }
         } catch (Throwable $e) {
@@ -1352,7 +1352,7 @@ function clinic_read_only_db(int $cid): bool
         }
         if (
             $status === "active" &&
-            trim((string) ($row["paid_until"] ?? "")) === ""
+            mb_trim((string) ($row["paid_until"] ?? "")) === ""
         ) {
             return $cache[$cid] = false;
         }
@@ -1489,7 +1489,7 @@ function clinic_role_icons(int $clinicId, bool $enabledOnly = false): array
                 continue;
             }
             $opts = role_icon_options($role);
-            $iconName = trim((string) ($r["icon_name"] ?? ""));
+            $iconName = mb_trim((string) ($r["icon_name"] ?? ""));
             if ($iconName === "" || !isset($opts[$iconName])) {
                 $iconName = default_role_icon($role);
             }
@@ -1694,7 +1694,7 @@ function clinic_choice_card(array $r): string
         (string) ($r["address_city"] ?? "") .
             (!empty($r["address_state"]) ? " / " . $r["address_state"] : ""),
     );
-    $clinic = trim((string) ($r["display_name"] ?? "Consultório"));
+    $clinic = mb_trim((string) ($r["display_name"] ?? "Consultório"));
     $roleCode = (string) ($r["role_code"] ?? "");
     $role = role_label_for($roleCode, (int) $r["clinic_id"]);
     $ico = function_exists("role_icon")

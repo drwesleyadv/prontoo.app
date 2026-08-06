@@ -17,7 +17,7 @@ function financial_movement_write_guard(string $sql, array $params): void
         )
     ) {
         $setClause = (string) ($match[1] ?? "");
-        $whereClause = trim((string) ($match[2] ?? ""));
+        $whereClause = mb_trim((string) ($match[2] ?? ""));
     } elseif (
         preg_match(
             '/^\s*DELETE\s+FROM\s+`?pi_financial_movements`?\s+WHERE\s+(.+)$/is',
@@ -25,7 +25,7 @@ function financial_movement_write_guard(string $sql, array $params): void
             $match,
         )
     ) {
-        $whereClause = trim((string) ($match[1] ?? ""));
+        $whereClause = mb_trim((string) ($match[1] ?? ""));
     } else {
         return;
     }

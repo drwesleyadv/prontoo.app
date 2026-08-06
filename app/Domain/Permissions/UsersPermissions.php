@@ -24,10 +24,10 @@ function require_user_in_clinic(int $cid, int $uid, array $roles = []): void
 function save_team_member(int $cid, array $data): ?int
 {
 
-    $name = trim((string) ($data["team_name"] ?? ""));
+    $name = mb_trim((string) ($data["team_name"] ?? ""));
     $cpf = only_digits((string) ($data["team_cpf"] ?? ""));
-    $birth = trim((string) ($data["team_birth"] ?? ""));
-    $email = trim((string) ($data["team_email"] ?? ($data["email"] ?? "")));
+    $birth = mb_trim((string) ($data["team_birth"] ?? ""));
+    $email = mb_trim((string) ($data["team_email"] ?? ($data["email"] ?? "")));
     $pass = (string) ($data["team_password"] ?? "");
     $hasAny =
         $name !== "" ||
@@ -1343,7 +1343,7 @@ function page_users(): void
             redirect("users");
         }
     }
-    $search = trim((string) ($_GET["q"] ?? ""));
+    $search = mb_trim((string) ($_GET["q"] ?? ""));
     if (function_exists("mb_substr")) {
         $search = mb_substr($search, 0, 90);
     } else {
@@ -1526,7 +1526,7 @@ function page_users(): void
                 ? "Ativo"
                 : "Inativo";
         $statusClass = $status === "Ativo" ? "ok" : "bad";
-        $email = trim((string) ($r["email"] ?? ""));
+        $email = mb_trim((string) ($r["email"] ?? ""));
         $emailLabel = $email !== "" ? $email : "Sem e-mail cadastrado";
         $cpf = mask((string) ($r["cpf"] ?? ""));
         if (trim($cpf) === "") {
@@ -1534,11 +1534,11 @@ function page_users(): void
         }
         $phone = function_exists("phone_br")
             ? phone_br((string) ($r["phone"] ?? ""))
-            : trim((string) ($r["phone"] ?? ""));
+            : mb_trim((string) ($r["phone"] ?? ""));
         if (trim($phone) === "") {
             $phone = "Telefone não informado";
         }
-        $last = trim((string) ($r["last_login_at"] ?? ""));
+        $last = mb_trim((string) ($r["last_login_at"] ?? ""));
         $lastLabel = $last !== "" ? dt_br($last) : "Sem acesso recente";
         $name = (string) ($r["name"] ?? "Colaborador #" . $r["user_id"]);
         $url = href("user", ["id" => (int) $r["user_id"]]);
@@ -1731,8 +1731,8 @@ function page_user(): void
         $act = (string) ($_POST["act"] ?? "update");
         try {
             if ($act === "update") {
-                $name = trim((string) ($_POST["name"] ?? ""));
-                $email = trim((string) ($_POST["email"] ?? ""));
+                $name = mb_trim((string) ($_POST["name"] ?? ""));
+                $email = mb_trim((string) ($_POST["email"] ?? ""));
                 $roles = selected_team_roles($_POST, $cid);
                 if ($name === "") {
                     throw new RuntimeException("Revise nome e cargos.");

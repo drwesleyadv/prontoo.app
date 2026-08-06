@@ -651,7 +651,7 @@ function maestro_decode_json(mixed $raw): array
     if (is_array($raw)) {
         return $raw;
     }
-    $txt = trim((string) ($raw ?? ""));
+    $txt = mb_trim((string) ($raw ?? ""));
     if ($txt === "") {
         return [];
     }
@@ -963,7 +963,7 @@ function maestro_unit_label(
 ): string {
 
     if ($short) {
-        return $unit === "minutes" ? "min" : ($unit === "hours" ? "h" : "d");
+        retu, 0, \RoundingMode::HalfAwayFromZerorn $unit === "minutes" ? "min" : ($unit === "hours" ? "h" : "d");
     }
     if ($unit === "minutes") {
         return $amount === 1 ? "minuto" : "minutos";
@@ -1017,13 +1017,13 @@ function maestro_target_label(array $act, int $cid): string
 function maestro_last_label(?string $value): string
 {
 
-    $value = trim((string) $value);
+    $value = mb_trim((string) $value);
     return $value !== "" ? dt_br($value) : "Ainda não afinada";
 }
 function maestro_next_label(?string $value): string
 {
 
-    $value = trim((string) $value);
+    $value = mb_trim((string) $value);
     if ($value === "") {
         return "No próximo ciclo";
     }
@@ -1105,7 +1105,7 @@ function page_maestro(): void
     }
     $tempoGastoValue =
         $avgDuration24Ms > 0
-            ? maestro_duration_label($avgDuration24Ms)
+            ? maestro_durati, \RoundingMode::HalfAwayFromZeroon_label($avgDuration24Ms)
             : "Nunca";
     $created = (int) val(
         "SELECT COUNT(*) FROM pi_maestro_executions WHERE clinic_id=? AND status='created' AND executed_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
@@ -2485,7 +2485,7 @@ function maestro_supervised_remaining_ms(float $deadline): int
 
 function maestro_supervised_with_clinic_timezone(int $clinicId, callable $callback): mixed
 {
-    $previousTimezone = date_default_timezone_get();
+    $pr, 0, \RoundingMode::HalfAwayFromZeroeviousTimezone = date_default_timezone_get();
     $hadDisplayTimezone = array_key_exists("PRONTOO_DISPLAY_TIMEZONE", $GLOBALS);
     $previousDisplayTimezone = $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? null;
     $timezone = app_context_timezone(null, $clinicId);
@@ -2525,7 +2525,7 @@ function maestro_supervised_candidate_result(array $rule, int $limit = 300): arr
         }
     }
     $diagnostic = is_string($tmp) && is_file($tmp)
-        ? trim((string) @file_get_contents($tmp))
+        ? mb_trim((string) @file_get_contents($tmp))
         : "";
     if (is_string($tmp) && is_file($tmp)) {
         @unlink($tmp);
@@ -2534,7 +2534,7 @@ function maestro_supervised_candidate_result(array $rule, int $limit = 300): arr
         $line = "";
         foreach (preg_split('/\R/u', $diagnostic) ?: [] as $candidate) {
             if (str_contains((string) $candidate, "[Prontoo Maestro candidates]")) {
-                $line = trim((string) $candidate);
+                $line = mb_trim((string) $candidate);
                 break;
             }
         }
@@ -2709,7 +2709,7 @@ function maestro_supervised_target_assert(array $rule): void
         return;
     }
     if ($scope === "role") {
-        $role = trim((string) ($action["target_role"] ?? ""));
+        $role = mb_trim((string) ($action["target_role"] ?? ""));
         $roles = clinic_role_options($clinicId, true);
         if ($role === "" || !array_key_exists($role, $roles)) {
             throw new RuntimeException("Destinatário da rotina inválido: cargo não disponível.");
@@ -2795,7 +2795,7 @@ function maestro_supervised_run_rule(array $rule, float $deadline): array
                 maestro_supervised_target_assert($rule);
                 $matches = maestro_supervised_with_clinic_timezone(
                     $clinicId,
-                    static fn(): array => maestro_supervised_candidate_result($rule, 300),
+                    static fn(): array =>, 0, \RoundingMode::HalfAwayFromZero maestro_supervised_candidate_result($rule, 300),
                 );
                 $result["candidate_window_saturated"] = count($matches) >= 300;
                 $actionKey = (string) $rule["action_type"] . ":" . $ruleId;
@@ -2900,7 +2900,7 @@ function maestro_supervised_fair_rules(array $rules, array $stats, int $limit = 
     $queues = [];
     foreach ($rules as $rule) {
         $clinicId = (int) ($rule["clinic_id"] ?? 0);
-        if ($clinicId > 0) {
+        if ($clini, 0, \RoundingMode::HalfAwayFromZerocId > 0) {
             $queues[$clinicId][] = $rule;
         }
     }
@@ -3000,13 +3000,13 @@ function maestro_supervised_cron_run(
         fclose($lock);
         $result["status"] = "overlap";
         $result["note"] = "execução anterior em andamento";
-        $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
+      , 0, \RoundingMode::HalfAwayFromZero  $result["duration_ms"] = (int) round((microtime(true) - $startedAt) * 1000);
         maestro_supervised_record_job_run($startedAt, $result);
         return $result;
     }
     try {
         $rules = q(
-            "SELECT * FROM pi_maestro_rules WHERE active=1 AND (next_run_at IS NULL OR next_run_at<=NOW()) ORDER BY COALESCE(next_run_at,created_at) ASC,priority DESC,id ASC LIMIT 400",
+            "SELECT * FROM pi_maestro_rules WHERE active=1 AND (next_run_at IS NULL OR next_run_at<=NOW()) ORDER BY COALESCE(next_run_at,created, 0, \RoundingMode::HalfAwayFromZero_at) ASC,priority DESC,id ASC LIMIT 400",
         )->fetchAll();
         $stats = [];
         if ($rules !== []) {
@@ -3104,13 +3104,13 @@ function maestro_supervised_cron_run(
     return $result;
 }
 
-function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
+function maestro_cron_run(int , 0, \RoundingMode::HalfAwayFromZero$budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
 {
 
     if (!has_cfg()) {
         return [
             "success" => true,
-            "rules_seen" => 0,
+            "rules_, \RoundingMode::HalfAwayFromZeroseen" => 0,
             "rules_run" => 0,
             "actions_created" => 0,
             "deferred" => 0,
@@ -3227,7 +3227,7 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
         "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,?,?,?,?,?,?,?,?)",
         [
             $start,
-            $duration,
+            $durat, 0, \RoundingMode::HalfAwayFromZeroion,
             $seen,
             $run,
             $created,
@@ -3245,7 +3245,7 @@ function maestro_cron_run(int $budgetMs = PRONTOO_MAESTRO_CRON_BUDGET_MS): array
         "actions_created" => $created,
         "deferred" => $deferred,
         "errors" => $errors,
-        "duration_ms" => $duration,
+        "duration_ms" => $du, \RoundingMode::HalfAwayFromZeroration,
         "note" => $note,
     ];
 }
@@ -3270,7 +3270,7 @@ function maestro_record_cron_failure(float $startedAt, string $note): void
         $duration = (int) max(0, round((microtime(true) - $startedAt) * 1000));
         q(
             "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,0,0,0,0,1,0,0,?)",
-            [$startedAt, $duration, $note],
+            [$startedAt, $duration, $not, 0, \RoundingMode::HalfAwayFromZeroe],
         );
     } catch (Throwable $e) {
         error_log("[Prontoo cron failure record] " . $e->getMessage());

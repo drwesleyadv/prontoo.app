@@ -6,14 +6,14 @@ $metadata = is_string($raw) ? json_decode($raw, true) : null;
 if (!is_array($metadata)) {
     throw new RuntimeException('version.json inválido.');
 }
-$assetRevision = trim((string) ($metadata['asset_version'] ?? ''));
+$assetRevision = mb_trim((string) ($metadata['asset_version'] ?? ''));
 if (!preg_match('/^1\.\d{1,2}\.\d{1,2}\.\d+$/', $assetRevision)) {
     throw new RuntimeException('asset_version inválido.');
 }
 $app = @file_get_contents($root . '/app/prontoo.php');
 if (!is_string($app) ||
     !preg_match('/PRONTOO_ASSET_REV_FALLBACK\s*=\s*["\x27]([^"\x27]+)["\x27]/', $app, $match) ||
-    trim((string) ($match[1] ?? '')) !== $assetRevision) {
+    mb_trim((string) ($match[1] ?? '')) !== $assetRevision) {
     throw new RuntimeException('Fallback de assets divergente.');
 }
 $assets = [

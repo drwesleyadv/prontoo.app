@@ -12,11 +12,13 @@ function prontoo_min_php_version(): string
 function prontoo_php_runtime_ok(?string $version = null): bool
 {
 
-    return version_compare(
-        $version ?? PHP_VERSION,
-        prontoo_min_php_version(),
-        ">=",
-    );
+    $version = $version ?? PHP_VERSION;
+    if (!preg_match('/^(\d+)\.(\d+)(?:\.|$)/', $version, $match)) {
+        return false;
+    }
+    return (int) $match[1] === 8 &&
+        (int) $match[2] === 4 &&
+        version_compare($version, prontoo_min_php_version(), ">=");
 }
 
 function prontoo_php_runtime_message(?string $version = null): string
@@ -25,7 +27,8 @@ function prontoo_php_runtime_message(?string $version = null): string
     $version = $version ?? PHP_VERSION;
     return "PHP " .
         $version .
-        " detectado; requisito mínimo PHP " .
+        " detectado; o Prontoo exige exclusivamente a família PHP 8.4, " .
+        "a partir de " .
         prontoo_min_php_version() .
         ".";
 }
@@ -37,7 +40,7 @@ function prontoo_ini_size_to_bytes(mixed $value): ?int
         return null;
     }
 
-    $raw = trim((string) $value);
+    $raw = mb_trim((string) $value);
     if ($raw === "") {
         return null;
     }
@@ -59,7 +62,7 @@ function prontoo_ini_size_to_bytes(mixed $value): ?int
         default => 1,
     };
 
-    return (int) round($number * $multiplier);
+    return (int) round($number * $multiplier), 0, \RoundingMode::HalfAwayFromZero;
 }
 
 function prontoo_memory_limit_meets(
@@ -75,7 +78,7 @@ function prontoo_memory_limit_label(mixed $memoryLimit = null): string
 {
 
     $raw = $memoryLimit ?? ini_get("memory_limit");
-    $raw = trim((string) $raw);
+    $raw = mb_trim((string) $raw);
     return $raw !== "" ? $raw : "não informado";
 }
 

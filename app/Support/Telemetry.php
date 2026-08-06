@@ -141,11 +141,11 @@ function telemetry_build_event(
         "inicio_monotonico_ns" => $startedMonotonicNs,
         "fim_monotonico_ns" => $finishedMonotonicNs,
         "duracao_ns" => $durationNs,
-        "duracao_ms" => round($durationNs / 1000000, 6),
+        "duracao_ms" => round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero),
         "status_http" => $statusCode,
         "sucesso" => $fatalError === null && $statusCode < 500,
         "erro_fatal" => $fatalError,
-        "versao" => trim((string) ($release ??
+        "versao" => mb_trim((string) ($release ??
             (defined("PRONTOO_VERSION") ? PRONTOO_VERSION :
                 (defined("BR_LANDING_VERSION") ? BR_LANDING_VERSION : "unknown")))),
     ];
@@ -173,7 +173,7 @@ function telemetry_normalize_event(array $event): ?array
         return null;
     }
     $event["rota"] = $route;
-    $event["duracao_ms"] = round($durationNs / 1000000, 6);
+    $event["duracao_ms"] = round($durationNs / 1000000, 6, \RoundingMode::HalfAwayFromZero);
     $event["status_http"] = max(100, min(599, (int) ($event["status_http"] ?? 200)));
     $event["sucesso"] = (bool) ($event["sucesso"] ?? false);
     return $event;
@@ -339,7 +339,7 @@ function telemetry_percentage_variation(int|float $current, int|float $previous)
     if ((float) $previous === 0.0) {
         return (float) $current === 0.0 ? 0.0 : null;
     }
-    return round((((float) $current - (float) $previous) / (float) $previous) * 100, 6);
+    return round((((float) $current - (float) $previous) / (float) $previous) * 100, 6), \RoundingMode::HalfAwayFromZero;
 }
 
 function telemetry_nullable_percentage_variation(

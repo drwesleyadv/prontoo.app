@@ -51,7 +51,7 @@ foreach ($required as $relative) {
         $errors[] = 'Arquivo ausente: ' . $relative;
         continue;
     }
-    $content = trim((string) file_get_contents($path));
+    $content = mb_trim((string) file_get_contents($path));
     if ($content === '' || !str_starts_with($content, '#')) {
         $errors[] = 'Documento inválido: ' . $relative;
     }
@@ -74,7 +74,7 @@ foreach ($markdown as $path) {
     $content = (string) file_get_contents($path);
     preg_match_all('/\[[^\]]+\]\(([^)]+)\)/', $content, $matches);
     foreach ($matches[1] as $target) {
-        $target = trim((string) $target);
+        $target = mb_trim((string) $target);
         if ($target === '' ||
             str_starts_with($target, '#') ||
             preg_match('~^[a-z][a-z0-9+.-]*://~i', $target) ||

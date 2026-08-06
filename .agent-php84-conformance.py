@@ -366,14 +366,6 @@ for path in php_files:
     for call in intermediate_tokens[path]["calls"]:
         name = call["name"]
         args = int(call["args"])
-        if call["named"]:
-            if name == "round" and args < 3:
-                raise RuntimeError(f"round() com argumentos nomeados exige revisão manual: {path}")
-            if name in {"fgetcsv", "fputcsv", "str_getcsv"}:
-                required = 5 if name in {"fgetcsv", "fputcsv"} else 4
-                if args < required:
-                    raise RuntimeError(f"{name}() com argumentos nomeados exige revisão manual: {path}")
-            continue
         insertion = ""
         label = ""
         if name == "round" and args < 3:

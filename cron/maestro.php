@@ -89,7 +89,7 @@ function prontoo_cron_record_failure(float $startedAt, string $note): void
         "actions_created" => 0,
         "deferred" => 0,
         "errors" => 1,
-        "duration_ms" => (int) max(0, round((microtime(true) - $startedAt) * 1000)),
+        "duration_ms" => (int) max(0, round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero)),
         "load_score" => 0,
         "note" => "falha: " . mb_substr(preg_replace("/\s+/u", " ", trim($note)) ?: "erro", 0, 232),
     ]);
@@ -180,7 +180,7 @@ function prontoo_cron_preflight_once(): array
         "disk_free",
         $free !== false && $free > 1024 * 1024 * 1024,
         "Espaço livre: " .
-            ($free === false ? "indisponível" : round($free / 1024 / 1024, 1) . " MB") .
+            ($free === false ? "indisponível" : round($free / 1024 / 1024, 1) . , \RoundingMode::HalfAwayFromZero" MB") .
             ".",
     );
     foreach ([
@@ -257,7 +257,7 @@ function prontoo_cron_preflight_once(): array
         "schema_revision" => defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : null,
         "version" => defined("PRONTOO_VERSION") ? PRONTOO_VERSION : null,
         "duration_ms" => (int) round((microtime(true) - $started) * 1000),
-        "checked_at" => gmdate("c"),
+        , 0, \RoundingMode::HalfAwayFromZero"checked_at" => gmdate("c"),
         "checks" => $checks,
     ];
     $encoded = json_encode(
@@ -316,7 +316,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
             "note" => "Eventos pendentes do processo atual descarregados.",
             "duration_ms" => (int) round((microtime(true) - $started) * 1000),
         ];
-    } catch (Throwable $error) {
+, 0, \RoundingMode::HalfAwayFromZero    } catch (Throwable $error) {
         return [
             "ok" => false,
             "complete" => false,
@@ -324,7 +324,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
             "note" => mb_substr($error->getMessage(), 0, 220),
             "duration_ms" => (int) round((microtime(true) - $started) * 1000),
         ];
-    }
+, 0, \RoundingMode::HalfAwayFromZero    }
 }
 
 function prontoo_cron_maintenance(): array
@@ -359,7 +359,7 @@ function prontoo_cron_maintenance(): array
     ];
 }
 
-function prontoo_cron_cycle_state_write(array $cycle): void
+f, 0, \RoundingMode::HalfAwayFromZerounction prontoo_cron_cycle_state_write(array $cycle): void
 {
     $dir = storage_path("maestro/state");
     if (!is_dir($dir)) {
@@ -444,7 +444,7 @@ try {
         "started_at_utc" => gmdate("c", (int) $__prontooCronStarted),
         "finished_at_utc" => gmdate("c"),
         "duration_ms" => (int) round((microtime(true) - $__prontooCronStarted) * 1000),
-        "preflight" => [
+        "pref, 0, \RoundingMode::HalfAwayFromZerolight" => [
             "ran" => (bool) ($preflight["ran"] ?? false),
             "ok" => (bool) ($preflight["ok"] ?? false),
             "warning" => (bool) ($preflight["warning"] ?? false),

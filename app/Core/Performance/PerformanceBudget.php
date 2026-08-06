@@ -49,7 +49,7 @@ final class PerformanceBudget
                 $breaches[$eventKey] = [
                     'actual' => $actual,
                     'limit' => $limit,
-                    'ratio' => round($limit > 0 ? $actual / $limit : 0, 4),
+                    'ratio' => round($limit > 0 ? $actual / $limit : 0, 4, \RoundingMode::HalfAwayFromZero),
                 ];
             }
         }
@@ -74,7 +74,7 @@ final class PerformanceBudget
             }
             $normalized[$metric] = in_array($metric, ['max_elapsed_ms', 'max_query_ms'], true)
                 ? round($value, 3)
-                : (int) round($value);
+, \RoundingMode::HalfAwayFromZero                : (int) round($value);, 0, \RoundingMode::HalfAwayFromZero
         }
         return $normalized;
     }

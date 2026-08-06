@@ -24,7 +24,7 @@ require_once __DIR__ . "/Support/SecurityPrivacy.php";
 if (PHP_SAPI !== "cli") {
     
     $prontooRequestSecure = security_https_active();
-    $prontooRequestHost = strtolower(trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
+    $prontooRequestHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $prontooRequestHost = preg_replace('/:\d+$/', '', $prontooRequestHost) ?? "";
     if (!$prontooRequestSecure || $prontooRequestHost !== "prontoo.app") {
         $prontooRequestUri = (string) ($_SERVER["REQUEST_URI"] ?? "/");
@@ -164,7 +164,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.5.2";
+const PRONTOO_VERSION_FALLBACK = "1.8.6.1";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.11";
 function prontoo_release_metadata(): array
 {
@@ -185,9 +185,9 @@ function prontoo_release_metadata(): array
     return $metadata;
 }
 $prontooReleaseMetadata = prontoo_release_metadata();
-$prontooVersion = trim((string) ($prontooReleaseMetadata["version"] ?? ""));
-$prontooRelease = trim((string) ($prontooReleaseMetadata["release"] ?? ""));
-$prontooAssetRevision = trim((string) ($prontooReleaseMetadata["asset_version"] ?? ""));
+$prontooVersion = mb_trim((string) ($prontooReleaseMetadata["version"] ?? ""));
+$prontooRelease = mb_trim((string) ($prontooReleaseMetadata["release"] ?? ""));
+$prontooAssetRevision = mb_trim((string) ($prontooReleaseMetadata["asset_version"] ?? ""));
 if (!preg_match('/^1\.\d{1,2}\.\d{1,2}\.\d+$/', $prontooVersion)) {
     $prontooVersion = PRONTOO_VERSION_FALLBACK;
 }
@@ -212,11 +212,11 @@ function prontoo_version_contract_status(): array
     $expected = (string) PRONTOO_VERSION;
     $assetRevision = (string) PRONTOO_ASSET_REV;
     foreach (["version", "release"] as $key) {
-        if (trim((string) ($metadata[$key] ?? "")) !== $expected) {
+        if (mb_trim((string) ($metadata[$key] ?? "")) !== $expected) {
             $issues[] = "version.json:" . $key;
         }
     }
-    if (trim((string) ($metadata["asset_version"] ?? "")) !== $assetRevision) {
+    if (mb_trim((string) ($metadata["asset_version"] ?? "")) !== $assetRevision) {
         $issues[] = "version.json:asset_version";
     }
     if (PRONTOO_VERSION_FALLBACK !== $expected) {
@@ -237,10 +237,10 @@ function prontoo_version_contract_status(): array
             foreach ([
                 "version" => $expected,
                 "release" => $expected,
-                "build" => trim((string) ($metadata["build"] ?? "")),
-                "schema_revision" => trim((string) ($metadata["schema_revision"] ?? "")),
+                "build" => mb_trim((string) ($metadata["build"] ?? "")),
+                "schema_revision" => mb_trim((string) ($metadata["schema_revision"] ?? "")),
             ] as $key => $canonicalValue) {
-                if (trim((string) ($manifest[$key] ?? "")) !== $canonicalValue) {
+                if (mb_trim((string) ($manifest[$key] ?? "")) !== $canonicalValue) {
                     $issues[] = "app/update.manifest.json:" . $key;
                 }
             }
@@ -253,7 +253,7 @@ function prontoo_version_contract_status(): array
         $landing = @file_get_contents($landingFile);
         if (!is_string($landing) ||
             !preg_match('/BR_LANDING_VERSION_FALLBACK\s*=\s*["\']([^"\']+)["\']/', $landing, $match) ||
-            trim((string) ($match[1] ?? "")) !== $expected) {
+            mb_trim((string) ($match[1] ?? "")) !== $expected) {
             $issues[] = "br/index.php";
         }
     }
@@ -286,7 +286,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.8.5.1";
+const PRONTOO_PREVIOUS_VERSION = "1.8.5.2";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.11";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";

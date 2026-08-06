@@ -8,7 +8,7 @@ function e(mixed $v): string
 function first_name(?string $name): string
 {
 
-    $p = preg_split("/\s+/", trim((string) $name));
+    $p = preg_split("/\s+/", mb_trim((string) $name));
     return $p[0] ?: "Sistema";
 }
 function icon(string $name): string
@@ -97,13 +97,13 @@ function n(mixed $value): string
     if (is_float($value) || is_numeric($value)) {
         return number_format((float) $value, 0, ",", ".");
     }
-    $text = trim((string) $value);
+    $text = mb_trim((string) $value);
     return $text !== "" ? $text : "0";
 }
 function money_br(int|float|string|null $cents): string
 {
 
-    $value = (int) round((float) ($cents ?? 0));
+    $value = (int) round((float) ($cents ?? 0), 0, \RoundingMode::HalfAwayFromZero);
     $sign = $value < 0 ? "-" : "";
     $value = abs($value);
     return $sign . 'R$ ' . number_format($value / 100, 2, ",", ".");
@@ -129,7 +129,7 @@ function prontoo_months_br(): array
 function date_br(null|string|int $value): string
 {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return "—";
     }
@@ -145,7 +145,7 @@ function date_br(null|string|int $value): string
 function date_extenso_br(null|string|int $value): string
 {
 
-    $value = trim((string) ($value ?? ""));
+    $value = mb_trim((string) ($value ?? ""));
     if ($value === "") {
         return "—";
     }
@@ -278,7 +278,7 @@ function shared_goal_cmdbar_html(?array $c = null): string
                     [$cid, $start, $next],
                 ) ?? 0);
         }
-        $pct = $target > 0 ? round(($done / $target) * 100) : 0;
+        $pct = $target > 0 ? round(($done / $target) * 100) : 0, 0, \RoundingMode::HalfAwayFromZero;
         $pct = max(0, min(100, (int) $pct));
         $label = "Meta compartilhada: " . $pct . "%";
         return '<div class="cmdbar-shared-goal" role="group" aria-label="' .
@@ -304,8 +304,8 @@ function shared_goal_cmdbar_html(?array $c = null): string
 function city_state_label(?string $city, ?string $uf): string
 {
 
-    $city = trim((string) ($city ?? ""));
-    $uf = strtoupper(trim((string) ($uf ?? "")));
+    $city = mb_trim((string) ($city ?? ""));
+    $uf = strtoupper(mb_trim((string) ($uf ?? "")));
     if ($city === "" && $uf === "") {
         return "";
     }
@@ -781,7 +781,7 @@ function page(string $title, string $body, array $opts = []): void
     }
     $appName =
         $c && ($c["scope"] ?? "") === "clinic"
-            ? trim((string) ($c["clinic"] ?? ""))
+            ? mb_trim((string) ($c["clinic"] ?? ""))
             : (($c["scope"] ?? "") === "global"
                 ? "Desenvolvedor Prontoo"
                 : PRONTOO_NAME);
@@ -1187,7 +1187,7 @@ function operation_current_match(
         $isDoc = (int) ($_GET["doc"] ?? 0) > 0;
         $isRecent =
             (string) ($_GET["recent"] ?? "") === "1" ||
-            trim((string) ($_GET["doc_q"] ?? ($_GET["q"] ?? ""))) !== "" ||
+            mb_trim((string) ($_GET["doc_q"] ?? ($_GET["q"] ?? ""))) !== "" ||
             (!$isModels && !$isEmit && !$isDoc);
         if (isset($params["models"])) {
             return $isModels;

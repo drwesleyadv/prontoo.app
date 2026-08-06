@@ -71,7 +71,7 @@ if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles
 }
 $manifestBytes = 0;
 foreach ($manifestFiles as $relativePath => $expectedHash) {
-    $absolutePath = $root . '/' . ltrim((string) $relativePath, '/');
+    $absolutePath = $root . '/' . mb_ltrim((string) $relativePath, '/');
     if (!is_file($absolutePath)) {
         throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
     }

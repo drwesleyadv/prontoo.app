@@ -128,7 +128,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             )->fetchAll();
             $roles = [];
             foreach ((array) $rows as $row) {
-                $role = trim((string) ($row['role_code'] ?? ''));
+                $role = mb_trim((string) ($row['role_code'] ?? ''));
                 if ($role !== '') {
                     $roles[$role] = true;
                 }
@@ -154,7 +154,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
         $resolved = is_array($resolved) ? $resolved : [];
         $roles = [];
         foreach ((array) ($resolved['roles'] ?? []) as $role) {
-            $role = trim((string) $role);
+            $role = mb_trim((string) $role);
             if ($role !== '') {
                 $roles[$role] = true;
             }
@@ -206,7 +206,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
     {
 
         $parts = explode(':', $capability, 2);
-        return [trim((string) ($parts[0] ?? '')), trim((string) ($parts[1] ?? ''))];
+        return [mb_trim((string) ($parts[0] ?? '')), mb_trim((string) ($parts[1] ?? ''))];
     }
 
     public static function logicSelfTest(): array
