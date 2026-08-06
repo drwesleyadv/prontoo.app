@@ -1,0 +1,137 @@
+name: Finalizar comunicação de Performance
+
+on:
+  push:
+    branches:
+      - agent/performance-communication-1-8-6-3
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  GITHUB_ACTIONS: true
+  CI: true
+  PRONTOO_SCHEMA_TEST_MODE: 1
+  PRONTOO_INSTALLER_CLI_MODE: 1
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout do branch proposto
+        uses: actions/checkout@v4
+        with:
+          ref: agent/performance-communication-1-8-6-3
+          fetch-depth: 0
+      - name: PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Gerar árvore funcional
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .agent-performance-communication.py
+          test ! -e .agent-performance-communication.py
+          git fetch origin prontoo
+          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          python3 <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          root = Path.cwd()
+          manifest_path = root / "app/update.manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          files = {}
+          total = 0
+          for path in sorted(root.rglob("*")):
+              if not path.is_file() or path.is_symlink():
+                  continue
+              relative = path.relative_to(root).as_posix()
+              if (
+                  relative == "app/update.manifest.json" or
+                  relative == ".agent-performance-communication.py" or
+                  relative.startswith(".git/") or
+                  relative.startswith("ssd/") or
+                  relative.startswith("vendor/") or
+                  relative.startswith("node_modules/")
+              ):
+                  continue
+              data = path.read_bytes()
+              files[relative] = hashlib.sha256(data).hexdigest()
+              total += len(data)
+          now = datetime.now(timezone.utc)
+          manifest["files"] = files
+          manifest["file_count"] = len(files)
+          manifest["total_uncompressed_bytes"] = total
+          manifest["updated_at"] = now.isoformat()
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=4) + "\n",
+              encoding="utf-8",
+          )
+          if len(files) != 229:
+              raise RuntimeError(f"Manifesto final deve conter 229 arquivos, contém {len(files)}")
+          PY
+      - name: Validar candidato final
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            output="$(php -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l "$file" 2>&1)"
+            printf '%s\n' "$output"
+            if grep -qi 'deprecated' <<<"$output"; then
+              echo "Depreciação PHP 8.4 em $file" >&2
+              exit 1
+            fi
+          done < <(git ls-files -z '*.php')
+          php tools/version-asset-contract-check.php
+          php tools/php84-runtime-contract-check
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+          php tools/architecture-check.php
+          php tools/schema-check.php
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+          php -r 'require "app/Support/Telemetry.php"; $series=telemetry_route_requests_series_30d(1786032000000000); if(count($series)!==30){throw new RuntimeException("Série diária divergente");} foreach($series as $row){if(!preg_match("/^[DSTQ][0-9]{2}$/", (string)($row["label"]??""))){throw new RuntimeException("Label SDD divergente");}} if(telemetry_retention_microseconds()!==31*86400*1000000){throw new RuntimeException("Retenção divergente");}'
+          grep -F '"Visualizações",' app/Admin/AdminPages.php
+          grep -F '"Velocidade média",' app/Admin/AdminPages.php
+          grep -F '"Visualizações da Landing",' app/Admin/AdminPages.php
+          grep -F '<h2>Performance</h2>' app/Admin/AdminPages.php
+          grep -F '"Últimas 24 horas",' app/Admin/AdminPages.php
+          grep -F '"Últimos 30 dias",' app/Admin/AdminPages.php
+      - name: Publicar commit limpo
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e .agent-performance-communication.py
+          diff -u <(git show origin/prontoo:.github/workflows/documentation.yml) .github/workflows/documentation.yml
+          git config user.name "Prontoo Release"
+          git config user.email "release@prontoo.app"
+          git add -A
+          git commit -m "Release 1.8.6.3 — consolidar comunicação de Performance"
+          git push origin HEAD:agent/performance-communication-1-8-6-3
