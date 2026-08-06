@@ -23,7 +23,7 @@ env:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     services:
       mysql:
         image: mysql:8.0
@@ -42,15 +42,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup PHP
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Generate PHP 8.4 candidate
-        run: python3 .agent-php84-conformance-lint-fix.py
       - name: PHP syntax and deprecations
         shell: bash
         run: |
@@ -125,15 +123,3 @@ jobs:
           set -euo pipefail
           php tools/install-security-check.php
           php tools/install-window-contract-check
-      - name: Package validated candidate
-        shell: bash
-        run: |
-          set -euo pipefail
-          tar --exclude=.git --exclude=ssd --exclude=vendor --exclude=node_modules -czf /tmp/php84-conformance-1.8.6.1.tar.gz .
-      - name: Upload validated candidate
-        uses: actions/upload-artifact@v4
-        with:
-          name: php84-conformance-1.8.6.1
-          path: /tmp/php84-conformance-1.8.6.1.tar.gz
-          if-no-files-found: error
-          retention-days: 1
