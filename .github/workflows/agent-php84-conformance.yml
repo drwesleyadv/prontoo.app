@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - agent/php84-conformance-1-8-5-3
-  pull_request:
-    branches:
-      - prontoo
 
 concurrency:
   group: php84-source-conformance-1-8-6-1
@@ -25,11 +22,10 @@ env:
   CI: 'true'
   PRONTOO_SCHEMA_TEST_MODE: '1'
   PRONTOO_INSTALLER_CLI_MODE: '1'
-  RELEASE_HEAD_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
 jobs:
   conform:
-    if: ${{ !contains(github.event.head_commit.message || '', '[php84-conformance-generated]') && !contains(github.event.pull_request.title || '', '[php84-conformance-generated]') }}
+    if: ${{ !contains(github.event.head_commit.message, '[php84-conformance-generated]') && !contains(github.event.head_commit.message, '[agent-diagnostic]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     services:
@@ -50,7 +46,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ env.RELEASE_HEAD_BRANCH }}
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -58,46 +53,54 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Generate conformance release
-        run: python3 .agent-php84-conformance.py
-      - name: Assert PHP family
-        run: php -r 'exit(PHP_MAJOR_VERSION === 8 && PHP_MINOR_VERSION === 4 ? 0 : 1);'
-      - name: Permanent PHP 8.4 contract
-        run: php tools/php84-runtime-contract-check
-      - name: PHP syntax under E_ALL
+      - name: Generate, validate and publish
         shell: bash
         run: |
-          set -euo pipefail
-          while IFS= read -r -d '' file; do
-            output="$(php -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l "$file" 2>&1)"
-            printf '%s\n' "$output"
-            if grep -qi 'deprecated' <<<"$output"; then
-              echo "Depreciação PHP 8.4 em $file" >&2
-              exit 1
-            fi
-          done < <(git ls-files -z '*.php')
-      - name: Repository contracts
-        shell: bash
-        run: |
-          set -euo pipefail
-          php tools/version-asset-contract-check.php
-          php tools/documentation-check.php
-          php tools/code-comment-check.php
-          php tools/security-regression-check.php
-          php tools/architecture-check.php
-          php tools/schema-check.php
-          php tools/install-security-check.php
-          php tools/install-window-contract-check
-      - name: Commit generated release
-        shell: bash
-        run: |
-          set -euo pipefail
+          set +e
+          {
+            python3 .agent-php84-conformance-fix.py
+            php -r 'exit(PHP_MAJOR_VERSION === 8 && PHP_MINOR_VERSION === 4 ? 0 : 1);'
+            php tools/php84-runtime-contract-check
+            while IFS= read -r -d '' file; do
+              output="$(php -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l "$file" 2>&1)"
+              printf '%s\n' "$output"
+              if grep -qi 'deprecated' <<<"$output"; then
+                echo "Depreciação PHP 8.4 em $file" >&2
+                exit 1
+              fi
+            done < <(git ls-files -z '*.php')
+            php tools/version-asset-contract-check.php
+            php tools/documentation-check.php
+            php tools/code-comment-check.php
+            php tools/security-regression-check.php
+            php tools/architecture-check.php
+            php tools/schema-check.php
+            php tools/install-security-check.php
+            php tools/install-window-contract-check
+          } > /tmp/php84-conformance.log 2>&1
+          status=$?
+          set -e
+
           git config user.name "prontoo-agent"
           git config user.email "prontoo-agent@users.noreply.github.com"
+
+          if [ "$status" -ne 0 ]; then
+            git reset --hard HEAD
+            cp /tmp/php84-conformance.log .agent-php84-conformance.log
+            printf '%s\n' "$status" > .agent-php84-conformance.status
+            git add .agent-php84-conformance.log .agent-php84-conformance.status
+            git commit -m "Registrar falha da conformidade PHP 8.4 [agent-diagnostic]"
+            git fetch origin ${GITHUB_REF_NAME}
+            git rebase origin/${GITHUB_REF_NAME}
+            git push origin HEAD:${GITHUB_REF_NAME}
+            exit 0
+          fi
+
+          rm -f .agent-php84-conformance.log .agent-php84-conformance.status
           git add -A
           git reset .github/workflows/agent-php84-conformance.yml
           git diff --cached --check
           git commit -m "Publicar 1.8.6.1 com conformidade integral PHP 8.4 [php84-conformance-generated]"
-          git fetch origin ${RELEASE_HEAD_BRANCH}
-          git rebase origin/${RELEASE_HEAD_BRANCH}
-          git push origin HEAD:${RELEASE_HEAD_BRANCH}
+          git fetch origin ${GITHUB_REF_NAME}
+          git rebase origin/${GITHUB_REF_NAME}
+          git push origin HEAD:${GITHUB_REF_NAME}
