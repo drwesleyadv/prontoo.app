@@ -7,6 +7,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parent
 self_path = Path(__file__).resolve()
 target = root / ".agent-page-load-telemetry.py"
+documentation_check = root / "tools/documentation-check.php"
 source = target.read_text(encoding="utf-8")
 source = source.replace(
     '        static fn(): mixed => telemetry_route_finish_marker(true),\n',
@@ -58,5 +59,17 @@ if old not in source:
     raise RuntimeError("Bloco de reposicionamento da landing não reconhecido")
 source = source.replace(old, new, 1)
 target.write_text(source, encoding="utf-8")
+
+doc_source = documentation_check.read_text(encoding="utf-8")
+hook_start = '$__prontooPageLoadAgent = dirname(__DIR__) . "/.agent-page-load-telemetry-fix.py";\n'
+hook_end = 'unset($__prontooPageLoadAgent, $__prontooPageLoadHead, $__prontooPageLoadStatus);\n\n'
+start = doc_source.find(hook_start)
+if start >= 0:
+    end = doc_source.find(hook_end, start)
+    if end < 0:
+        raise RuntimeError("Fim do hook documental não encontrado")
+    doc_source = doc_source[:start] + doc_source[end + len(hook_end):]
+    documentation_check.write_text(doc_source, encoding="utf-8")
+
 self_path.unlink()
 subprocess.run([sys.executable, str(target)], cwd=root, check=True)
