@@ -50,7 +50,7 @@ jobs:
           tools: none
           extensions: pdo_mysql, mbstring
       - name: Generate PHP 8.4 candidate
-        run: python3 .agent-php84-conformance-final.py
+        run: python3 .agent-php84-conformance-lint-fix.py
       - name: PHP syntax and deprecations
         shell: bash
         run: |
