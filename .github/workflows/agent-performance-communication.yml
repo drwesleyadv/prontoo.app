@@ -3,7 +3,7 @@ name: Finalizar comunicação de Performance
 on:
   push:
     branches:
-      - agent/performance-communication-1-8-6-3
+      - prontoo
 
 permissions:
   contents: write
@@ -57,6 +57,7 @@ jobs:
           test ! -e .agent-performance-communication.py
           git fetch origin prontoo
           git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          rm -f .github/workflows/agent-performance-communication.yml
           python3 <<'PY'
           import hashlib
           import json
@@ -75,6 +76,7 @@ jobs:
               if (
                   relative == "app/update.manifest.json" or
                   relative == ".agent-performance-communication.py" or
+                  relative == ".github/workflows/agent-performance-communication.yml" or
                   relative.startswith(".git/") or
                   relative.startswith("ssd/") or
                   relative.startswith("vendor/") or
@@ -129,6 +131,7 @@ jobs:
         run: |
           set -euo pipefail
           test ! -e .agent-performance-communication.py
+          test ! -e .github/workflows/agent-performance-communication.yml
           diff -u <(git show origin/prontoo:.github/workflows/documentation.yml) .github/workflows/documentation.yml
           git config user.name "Prontoo Release"
           git config user.email "release@prontoo.app"
