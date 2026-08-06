@@ -1,5 +1,5 @@
 {
-    "version": "1.8.6.1",
+    "version": "1.8.6.2",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -90,8 +90,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "server_only_supervised_parent_cycle_with_read_only_preflight_reserved_rule_budget_and_independent_stage_health",
-    "generated_at": "2026-08-06T13:12:13.738901+00:00",
-    "updated_at": "2026-08-06T13:12:13.738901+00:00",
+    "generated_at": "2026-08-06T16:12:04.732372+00:00",
+    "updated_at": "2026-08-06T16:12:04.732372+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -177,8 +177,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.6.1",
-    "build": "1.8.6.1-php84-source-conformance",
+    "release": "1.8.6.2",
+    "build": "1.8.6.2-page-load-source-of-truth",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -188,8 +188,8 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.5.2",
-    "deployment_sync_id": "github-prontoo-1.8.6.1-php84-source-conformance",
+    "previous_version": "1.8.6.1",
+    "deployment_sync_id": "github-prontoo-1.8.6.2-page-load-source-of-truth",
     "notes": "Conformidade PHP 8.4 sem novos arquivos PHP e sem alteração do contrato de funções.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
@@ -198,5 +198,7 @@
     "login_telemetry_route_contract_policy": "runner_map_public_json_light_boot_context_integrity_maintenance_and_flush_bypass_verified_by_dedicated_contract",
     "login_telemetry_route_contract_check": "tools/version-asset-contract-check.php",
     "php_runtime_policy": "exact_php_8_4_family_web_cli_ci_fail_closed",
-    "php84_conformance_policy": "every_tracked_php_file_reviewed_function_signatures_and_counts_unchanged"
+    "php84_conformance_policy": "every_tracked_php_file_reviewed_function_signatures_and_counts_unchanged",
+    "telemetry_policy": "one_completed_html_document_navigation_equals_one_page_load_event",
+    "telemetry_timing_policy": "first_front_controller_executable_line_to_last_useful_render_line"
 }

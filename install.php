@@ -14,3 +14,4 @@ require_once __DIR__ . "/app/Core/Install/InstallAccess.php";
 require __DIR__ . "/app/prontoo.php";
 prontoo_require_module("Install/Installer.php");
 prontoo_install();
+telemetry_route_finish_marker();
