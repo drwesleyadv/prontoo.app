@@ -23,7 +23,7 @@ Os cards comparam duas janelas contíguas de 10 dias:
 
 ## Comunicação da interface
 
-A página pública `/status` e o Painel do Desenvolvedor reutilizam o mesmo renderer e os mesmos dados:
+A página pública `/status` e o Painel do Desenvolvedor reutilizam o mesmo renderer, a mesma fonte e os mesmos dados:
 
 - **Visualizações**: páginas HTML concluídas nos últimos 10 dias;
 - **Velocidade média**: duração média das rotas no período;
