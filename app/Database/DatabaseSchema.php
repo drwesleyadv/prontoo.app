@@ -40,7 +40,7 @@ function db_mysql_version(PDO $connection): string
 {
 
     $value = $connection->query("SELECT VERSION()")?->fetchColumn();
-    return trim((string) $value);
+    return mb_trim((string) $value);
 }
 
 function db_assert_mysql_runtime(PDO $connection): void
@@ -178,8 +178,8 @@ function pdo(): PDO
         }
     }
 
-    $host = trim((string) $config["db_host"]);
-    $database = trim((string) $config["db_name"]);
+    $host = mb_trim((string) $config["db_host"]);
+    $database = mb_trim((string) $config["db_name"]);
     if ($host === "" || $database === "") {
         throw new RuntimeException("Host e banco de dados são obrigatórios.");
     }
@@ -195,7 +195,7 @@ function pdo(): PDO
         $options[constant("PDO::MYSQL_ATTR_USE_BUFFERED_QUERY")] = true;
     }
 
-    $connection = new PDO(
+    $connection = PDO::connect(
         "mysql:host={$host};dbname={$database};charset=utf8mb4",
         (string) $config["db_user"],
         (string) $config["db_pass"],
@@ -539,7 +539,7 @@ function prontoo_schema_expected_table_names(): array
     $tables = array_keys((array) ($contract["tables"] ?? []));
     foreach (["redesigned_tables", "new_support_tables"] as $key) {
         foreach ((array) ($contract[$key] ?? []) as $table) {
-            $table = trim((string) $table);
+            $table = mb_trim((string) $table);
             if ($table !== "") {
                 $tables[] = $table;
             }
@@ -1223,7 +1223,7 @@ function schema_validate_complete(): void
 
     $expected = prontoo_schema_definition_map();
     $normalize = static  fn(mixed $value): string => strtolower(
-        trim((string) $value),
+        mb_trim((string) $value),
     );
 
     $actualColumns = [];

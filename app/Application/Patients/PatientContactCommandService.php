@@ -36,7 +36,7 @@ final class PatientContactCommandService
         }
         $normalized = [];
         foreach (self::FIELDS as $field) {
-            $normalized[$field] = trim((string) ($contact[$field] ?? ''));
+            $normalized[$field] = mb_trim((string) ($contact[$field] ?? ''));
         }
         $result = $this->port->update($clinicId, $patientId, $userId, $normalized);
         if ((string) ($result['status'] ?? '') !== 'updated') {

@@ -308,7 +308,7 @@ function prontoo_run_runtime_maintenance_cycle(
         $result["ran"] = true;
         $result["duration_ms"] = (int) round(
             (microtime(true) - $startedAt) * 1000,
-        );
+        0, \RoundingMode::HalfAwayFromZero);
         return $result;
     } finally {
         flock($lockHandle, LOCK_UN);

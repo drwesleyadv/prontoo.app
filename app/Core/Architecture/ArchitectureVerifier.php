@@ -85,7 +85,7 @@ final class ArchitectureVerifier
                 }
             }
             foreach ($contract->producers as $producerPath) {
-                $producer = 'app/' . ltrim((string) $producerPath, '/');
+                $producer = 'app/' . mb_ltrim((string) $producerPath, '/');
                 $sources[$producer] = true;
                 if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
                     $knownBySource[$producer][$contract->action] = true;
@@ -141,9 +141,9 @@ final class ArchitectureVerifier
 
         $total = count($files);
         $covered = count($classified);
-        $coverage = $total > 0 ? round(($covered / $total) * 100, 2) : 0.0;
+        $coverage = $total > 0 ? round(($covered / $total) * 100, 2, \RoundingMode::HalfAwayFromZero) : 0.0;
         $nativeCoverage = $total > 0
-            ? round((count($nativeFiles) / $total) * 100, 2)
+            ? round((count($nativeFiles) / $total) * 100, 2, \RoundingMode::HalfAwayFromZero)
             : 0.0;
         if ($coverage !== 100.0) {
             $errors[] = 'architecture_classification_coverage_below_100:' . $coverage;
@@ -311,7 +311,7 @@ final class ArchitectureVerifier
         foreach ($patterns as $pattern) {
             preg_match_all($pattern, $content, $matches);
             foreach ((array) ($matches[1] ?? []) as $token) {
-                $token = trim((string) $token);
+                $token = mb_trim((string) $token);
                 if ($token !== '' && $token !== '0' && $token !== '1') {
                     $tokens[$token] = true;
                 }

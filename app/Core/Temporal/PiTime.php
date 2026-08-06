@@ -484,7 +484,7 @@ final class PiTime
         if (is_float($value)) {
             return (int) $value;
         }
-        $s = trim((string) $value);
+        $s = mb_trim((string) $value);
         if ($s === "") {
             return $value;
         }
@@ -648,8 +648,8 @@ final class PiTime
                     }
                 }
                 $dt = strtolower((string) ($row["data_type"] ?? ""));
-                $table = trim((string) ($row["table_name"] ?? ""));
-                $column = trim((string) ($row["column_name"] ?? ""));
+                $table = mb_trim((string) ($row["table_name"] ?? ""));
+                $column = mb_trim((string) ($row["column_name"] ?? ""));
                 if ($dt === "" || $table === "" || $column === "") {
                     continue;
                 }

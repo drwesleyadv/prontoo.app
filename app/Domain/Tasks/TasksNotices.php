@@ -211,7 +211,7 @@ function notify_task_personal_assignment(
         $title = "Nova tarefa atribuída a você";
         $body =
             "Você foi nomeado pessoalmente para a tarefa: " . trim($taskTitle);
-        $desc = trim((string) $taskDescription);
+        $desc = mb_trim((string) $taskDescription);
         if ($desc !== "") {
             $body .= "\n\n" . $desc;
         }
@@ -238,7 +238,7 @@ function notify_task_personal_assignment(
 function workflow_valid_role(int $cid, ?string $role): ?string
 {
 
-    $role = trim((string) $role);
+    $role = mb_trim((string) $role);
     if ($role === "") {
         return null;
     }
@@ -994,8 +994,8 @@ function page_admin_global_notices(): void
             flash("Status da aviso atualizado.");
             redirect("admin_global_notices");
         }
-        $title = trim((string) ($_POST["title"] ?? ""));
-        $body = trim((string) ($_POST["body"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
+        $body = mb_trim((string) ($_POST["body"] ?? ""));
         if ($title === "" || $body === "") {
             flash("Informe título e mensagem.", "bad");
             redirect("admin_global_notices");
@@ -1004,8 +1004,8 @@ function page_admin_global_notices(): void
         if (!in_array($severity, ["info", "warning", "critical"], true)) {
             $severity = "info";
         }
-        $startsAt = trim((string) ($_POST["starts_at"] ?? ""));
-        $expiresAt = trim((string) ($_POST["expires_at"] ?? ""));
+        $startsAt = mb_trim((string) ($_POST["starts_at"] ?? ""));
+        $expiresAt = mb_trim((string) ($_POST["expires_at"] ?? ""));
         $startsAt = $startsAt !== "" ? app_local_to_db_utc($startsAt) : null;
         $expiresAt = $expiresAt !== "" ? app_local_to_db_utc($expiresAt) : null;
         if ($startsAt !== null && $expiresAt !== null && $expiresAt <= $startsAt) {
@@ -1206,7 +1206,7 @@ function page_tasks(): void
     };
     $destinationLabel = function (array $task) use ($cid, $users): string {
 
-        $assigned = trim((string) ($task["assigned_name"] ?? ""));
+        $assigned = mb_trim((string) ($task["assigned_name"] ?? ""));
         if ($assigned !== "") {
             return "Responsável: " . first_name($assigned);
         }
@@ -1368,7 +1368,7 @@ function page_tasks(): void
         }
         if ($act === "comment_edit") {
             $commentId = (int) ($_POST["comment_id"] ?? 0);
-            $body = trim((string) ($_POST["comment"] ?? ""));
+            $body = mb_trim((string) ($_POST["comment"] ?? ""));
             if ($body === "") {
                 flash("Informe o novo texto do comentário.", "bad");
                 redirect("tasks");
@@ -1448,7 +1448,7 @@ function page_tasks(): void
         }
         if ($act === "comment") {
             $tid = (int) ($_POST["id"] ?? 0);
-            $body = trim((string) ($_POST["comment"] ?? ""));
+            $body = mb_trim((string) ($_POST["comment"] ?? ""));
             if ($body === "") {
                 flash("Informe o comentário da tarefa.", "bad");
                 redirect("tasks");
@@ -1480,7 +1480,7 @@ function page_tasks(): void
             flash("Comentário registrado.");
             redirect("tasks");
         }
-        $title = trim((string) ($_POST["title"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
         if ($title === "") {
             flash("Informe o título da tarefa.", "bad");
             redirect("tasks");
@@ -1509,8 +1509,8 @@ function page_tasks(): void
             }
             $assigned = $targetUserId;
         }
-        $taskDescription = trim((string) ($_POST["description"] ?? ""));
-        $dueAt = trim((string) ($_POST["due_at"] ?? ""));
+        $taskDescription = mb_trim((string) ($_POST["description"] ?? ""));
+        $dueAt = mb_trim((string) ($_POST["due_at"] ?? ""));
         $dueAt = $dueAt !== "" ? app_local_to_db_utc($dueAt, $cid, $c) : null;
         q(
             "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,due_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
@@ -1634,7 +1634,7 @@ function page_tasks(): void
     if ($view === "") {
         $view = "mine";
     }
-    $qTerm = trim((string) ($_GET["q"] ?? ""));
+    $qTerm = mb_trim((string) ($_GET["q"] ?? ""));
     $taskSearchMode = $qTerm !== "";
     $where = ["t.clinic_id=?"];
     $params = [$cid];
@@ -2003,7 +2003,7 @@ function page_tasks(): void
 
         [$dueTxt, $dueClass, $dueIcon] = $dueLabel($r);
         [$prioTxt, $prioClass] = $priorityLabel($r);
-        $patient = trim((string) ($r["patient_name"] ?? ""));
+        $patient = mb_trim((string) ($r["patient_name"] ?? ""));
         $context = $patient !== "" ? $patient : "Rotina interna";
         $dest = $destinationLabel($r);
         $status = (string) $r["status"];
@@ -2066,7 +2066,7 @@ function page_tasks(): void
             (!empty($r["source_event"])
                 ? "Gerada pelo fluxo operacional."
                 : "Criada manualmente.");
-        $desc = trim((string) ($r["description"] ?? ""));
+        $desc = mb_trim((string) ($r["description"] ?? ""));
         $scope = (string) ($r["target_scope"] ?? "clinic");
         if ($scope === "") {
             $scope = "clinic";
@@ -2376,8 +2376,8 @@ function page_notices(): void
         $act = $_POST["act"] ?? "create";
         if ($readOnly && $act === "support_message") {
             readonly_support_alerts_ensure_schema();
-            $title = trim((string) ($_POST["title"] ?? ""));
-            $body = trim((string) ($_POST["body"] ?? ""));
+            $title = mb_trim((string) ($_POST["title"] ?? ""));
+            $body = mb_trim((string) ($_POST["body"] ?? ""));
             if ($title === "" || $body === "") {
                 flash("Informe assunto e mensagem para o suporte.", "bad");
                 redirect("notices");
@@ -2454,8 +2454,8 @@ function page_notices(): void
             flash("Aviso arquivado.");
             redirect("notices", ["view" => "archived"]);
         }
-        $title = trim((string) ($_POST["title"] ?? ""));
-        $body = trim((string) ($_POST["body"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
+        $body = mb_trim((string) ($_POST["body"] ?? ""));
         $scope = (string) ($_POST["target_scope"] ?? "all");
         if (!in_array($scope, ["all", "role", "user"], true)) {
             $scope = "all";

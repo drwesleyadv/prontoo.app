@@ -1113,7 +1113,7 @@ function session_harden_after_login(
         ? PRONTOO_AUTH_POLICY_GENERATION
         : "password-session-v1";
     if ($uid > 0) {
-        $verifiedUserGeneration = trim((string) $verifiedUserGeneration);
+        $verifiedUserGeneration = mb_trim((string) $verifiedUserGeneration);
         $_SESSION["user_auth_generation"] =
             $verifiedUserGeneration !== "" && $verifiedUserGeneration !== "0"
                 ? $verifiedUserGeneration
@@ -1265,25 +1265,25 @@ function device_fallback_hash(): string
 function device_client_hash_from_post(): string
 {
 
-    $hash = strtolower(trim((string) ($_POST["device_hash"] ?? "")));
+    $hash = strtolower(mb_trim((string) ($_POST["device_hash"] ?? "")));
     return device_hash_is_valid($hash) ? $hash : device_fallback_hash();
 }
 function device_login_payload_from_post(): array
 {
 
-    $meta = trim((string) ($_POST["device_meta"] ?? ""));
+    $meta = mb_trim((string) ($_POST["device_meta"] ?? ""));
     if ($meta !== "" && json_decode($meta, true) === null) {
         $meta = "";
     }
     return [
         "hash" => device_client_hash_from_post(),
         "label" => mb_substr(
-            trim((string) ($_POST["device_label"] ?? "")),
+            mb_trim((string) ($_POST["device_label"] ?? "")),
             0,
             160,
         ),
         "platform" => mb_substr(
-            trim((string) ($_POST["device_platform"] ?? "")),
+            mb_trim((string) ($_POST["device_platform"] ?? "")),
             0,
             120,
         ),
@@ -1441,7 +1441,7 @@ function sql_fingerprint(string $sql): string
 function scope_violation_detail_decode(mixed $details): array
 {
 
-    $raw = trim((string) $details);
+    $raw = mb_trim((string) $details);
     if ($raw === "") {
         return ["v" => 1, "reason" => "Motivo não registrado."];
     }
@@ -1451,24 +1451,24 @@ function scope_violation_detail_decode(mixed $details): array
     }
     return [
         "v" => (int) ($decoded["v"] ?? 2),
-        "reason" => trim((string) ($decoded["reason"] ?? "")),
-        "method" => trim((string) ($decoded["method"] ?? "")),
-        "action" => trim((string) ($decoded["action"] ?? "")),
-        "operation" => trim((string) ($decoded["operation"] ?? "")),
-        "table" => trim((string) ($decoded["table"] ?? "")),
-        "sql_shape" => trim((string) ($decoded["sql_shape"] ?? "")),
+        "reason" => mb_trim((string) ($decoded["reason"] ?? "")),
+        "method" => mb_trim((string) ($decoded["method"] ?? "")),
+        "action" => mb_trim((string) ($decoded["action"] ?? "")),
+        "operation" => mb_trim((string) ($decoded["operation"] ?? "")),
+        "table" => mb_trim((string) ($decoded["table"] ?? "")),
+        "sql_shape" => mb_trim((string) ($decoded["sql_shape"] ?? "")),
     ];
 }
 function scope_violation_detail_summary(mixed $details): string
 {
 
     $payload = scope_violation_detail_decode($details);
-    $summary = trim((string) ($payload["reason"] ?? ""));
+    $summary = mb_trim((string) ($payload["reason"] ?? ""));
     $context = array_values(
         array_filter([
-            trim((string) ($payload["operation"] ?? "")),
-            trim((string) ($payload["table"] ?? "")),
-            trim((string) ($payload["action"] ?? "")),
+            mb_trim((string) ($payload["operation"] ?? "")),
+            mb_trim((string) ($payload["table"] ?? "")),
+            mb_trim((string) ($payload["action"] ?? "")),
         ]),
     );
     if ($context) {
@@ -1517,7 +1517,7 @@ function scope_violation_evidence_payload(string $sql, string $detail): string
     $action = preg_replace(
         '/[^a-z0-9_.:\-]/i',
         "_",
-        trim((string) ($_POST["act"] ?? "")),
+        mb_trim((string) ($_POST["act"] ?? "")),
     ) ?:
         "";
     $method = preg_replace(
@@ -2441,7 +2441,7 @@ function billing_state(array $clinic): array
     $paidActive = $paidUntilTs >= time();
     $exempt = $status === "exempt";
     $activeWithoutDue =
-        $status === "active" && trim((string) $paidUntil) === "";
+        $status === "active" && mb_trim((string) $paidUntil) === "";
     $readOnly =
         $status === "read_only" ||
         !($trialActive || $paidActive || $exempt || $activeWithoutDue);
@@ -2486,7 +2486,7 @@ function billing_notice(array $c): string
     $adminLabel = function_exists("role_label_for")
         ? role_label_for("gerente", $clinicId)
         : PRONTOO_ROLES["gerente"] ?? "Administrador";
-    $adminLabel = trim((string) $adminLabel) ?: "Administrador";
+    $adminLabel = mb_trim((string) $adminLabel) ?: "Administrador";
     if (!$isAdmin) {
         return '<section class="billing-banner billing-readonly-banner ds-readonly-banner billing-user-readonly-banner" role="status" aria-label="Modo somente leitura"><span class="billing-readonly-icon">' .
             icon("lock") .

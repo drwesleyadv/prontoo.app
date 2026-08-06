@@ -42,7 +42,7 @@ final class SqlExpression
     public static function topLevelPhrasePosition(string $sql, string $phrase, int $start = 0): ?int
     {
 
-        $phrase = strtolower(trim(preg_replace('/\s+/', ' ', $phrase) ?? $phrase));
+        $phrase = strtolower(mb_trim(preg_replace('/\s+/', ' ', $phrase) ?? $phrase));
         if ($phrase === "") {
             return null;
         }
@@ -417,7 +417,7 @@ final class SqlExpression
                 continue;
             }
             $column = strtolower((string) $match[1][0]);
-            $expression = trim((string) $match[2][0]);
+            $expression = mb_trim((string) $match[2][0]);
             $expressionOffset = $start + $offset + (int) $match[2][1];
             $assignments[$column] = [
                 "token" => $expression,

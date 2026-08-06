@@ -353,7 +353,7 @@ function document_pdf_html_blocks(string $html): array
                 ENT_QUOTES | ENT_SUBSTITUTE,
                 "UTF-8",
             );
-            $text = trim((string) preg_replace('/[ \t\r]+/u', " ", $text));
+            $text = mb_trim((string) preg_replace('/[ \t\r]+/u', " ", $text));
             if ($text === "") {
                 continue;
             }
@@ -385,7 +385,7 @@ function document_pdf_html_blocks(string $html): array
             ENT_QUOTES | ENT_SUBSTITUTE,
             "UTF-8",
         );
-        $plain = trim((string) preg_replace('/[ \t\r]+/u', " ", $plain));
+        $plain = mb_trim((string) preg_replace('/[ \t\r]+/u', " ", $plain));
         foreach (preg_split('/\n{2,}/u', $plain) ?: [] as $b) {
             $b = trim($b);
             if ($b !== "") {

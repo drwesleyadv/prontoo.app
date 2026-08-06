@@ -16,7 +16,7 @@ function work_weekday_labels(): array
 function normalize_work_time(?string $v, string $fallback = ""): string
 {
 
-    $v = trim((string) $v);
+    $v = mb_trim((string) $v);
     if (preg_match('/^\d{2}:\d{2}$/', $v)) {
         return $v . ":00";
     }
@@ -280,7 +280,7 @@ function agenda_validate_period_message(
 function appointment_status_code(array $appointment): string
 {
 
-    $status = mb_strtolower(trim((string) ($appointment["status"] ?? "")));
+    $status = mb_strtolower(mb_trim((string) ($appointment["status"] ?? "")));
     $status = str_replace([" ", "-"], "_", $status);
     $allowed = [
         "agendado",
@@ -496,7 +496,7 @@ function appointment_journey_hard_guard_message(
             }
             $amount = (int) ($a["payment_amount_cents"] ?? 0);
             $payStatus = mb_strtolower(
-                trim((string) ($a["payment_status"] ?? "")),
+                mb_trim((string) ($a["payment_status"] ?? "")),
             );
             $paid =
                 !empty($a["payment_confirmed_at"]) ||
@@ -1135,7 +1135,7 @@ function appointment_journey_compact_html(
 
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
-    $elapsed = trim((string) ($vm["elapsed"] ?? ""));
+    $elapsed = mb_trim((string) ($vm["elapsed"] ?? ""));
     $elapsed = $elapsed !== "" ? $elapsed : "Agora";
     $moves =
         $returnHidden !== "" || $actionUrl !== ""
@@ -1180,7 +1180,7 @@ function appointment_journey_card_html(
 
     $returnHidden = (string) ($returnHidden ?? "");
     $vm = appointment_journey_view_model($a, $role);
-    $elapsed = trim((string) ($vm["elapsed"] ?? ""));
+    $elapsed = mb_trim((string) ($vm["elapsed"] ?? ""));
     $elapsed = $elapsed !== "" ? $elapsed : "Sem espera registrada";
     $moves =
         $returnHidden !== "" || $actionUrl !== ""
@@ -1316,7 +1316,7 @@ function procedure_options(int $cid, bool $activeOnly = true): array
 function procedure_option_label(array $p): string
 {
 
-    $parts = [trim((string) $p["title"])];
+    $parts = [mb_trim((string) $p["title"])];
     $dur = (int) ($p["duration_minutes"] ?? 0);
     if ($dur > 0) {
         $parts[] = $dur . " min";
@@ -1325,7 +1325,7 @@ function procedure_option_label(array $p): string
     if ($price > 0) {
         $parts[] = money_br($price);
     }
-    $pay = trim((string) ($p["payment_methods"] ?? ""));
+    $pay = mb_trim((string) ($p["payment_methods"] ?? ""));
     if ($pay !== "") {
         $parts[] = $pay;
     }
@@ -1361,9 +1361,9 @@ function procedure_select_html(
         if ($sel) {
             $custom = false;
         }
-        $pre = trim((string) ($p["pre_instructions"] ?? ""));
-        $post = trim((string) ($p["post_care"] ?? ""));
-        $desc = trim((string) ($p["description"] ?? ""));
+        $pre = mb_trim((string) ($p["pre_instructions"] ?? ""));
+        $post = mb_trim((string) ($p["post_care"] ?? ""));
+        $desc = mb_trim((string) ($p["description"] ?? ""));
         $summary = trim(
             ($desc !== "" ? $desc . " · " : "") .
                 ((int) $p["duration_minutes"]) .
@@ -1371,8 +1371,8 @@ function procedure_select_html(
                 ((int) $p["price_cents"] > 0
                     ? " · " . money_br((int) $p["price_cents"])
                     : "") .
-                (trim((string) $p["payment_methods"]) !== ""
-                    ? " · " . trim((string) $p["payment_methods"])
+                (mb_trim((string) $p["payment_methods"]) !== ""
+                    ? " · " . mb_trim((string) $p["payment_methods"])
                     : "") .
                 ($pre !== "" ? " · Pré: " . $pre : "") .
                 ($post !== "" ? " · Pós: " . $post : ""),
@@ -1414,7 +1414,7 @@ function procedure_select_html(
 function procedure_reason_from_post(int $cid, string $field = "reason"): string
 {
 
-    $v = trim((string) ($_POST[$field] ?? ""));
+    $v = mb_trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
         $id = (int) substr($v, 10);
         $p = one(
@@ -1534,8 +1534,8 @@ function agenda_conflict_message(
                     agenda_doctor_name($cid, (int) $appt["doctor_user_id"]),
                 );
         }
-        $status = trim((string) ($appt["status"] ?? "agendado"));
-        $reason = trim((string) ($appt["reason"] ?? ""));
+        $status = mb_trim((string) ($appt["status"] ?? "agendado"));
+        $reason = mb_trim((string) ($appt["reason"] ?? ""));
         $detail =
             "consulta" .
             ($patient !== "" ? $patient : "") .
@@ -1584,7 +1584,7 @@ function agenda_conflict_message(
                 first_name(
                     agenda_doctor_name($cid, (int) $block["doctor_user_id"]),
                 );
-        $reason = trim((string) ($block["reason"] ?? ""));
+        $reason = mb_trim((string) ($block["reason"] ?? ""));
         $detail =
             "bloqueio de " .
             $doctorLabel .
@@ -1842,7 +1842,7 @@ function agenda_note_card_html(?array $note, ?array $c = null): string
     if (!$note) {
         return "";
     }
-    $content = trim((string) ($note["content"] ?? ""));
+    $content = mb_trim((string) ($note["content"] ?? ""));
     if ($content === "") {
         return "";
     }
@@ -2073,7 +2073,7 @@ function page_appointments(): void
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $noteDate)) {
                 $noteDate = $postDay;
             }
-            $content = trim((string) ($_POST["content"] ?? ""));
+            $content = mb_trim((string) ($_POST["content"] ?? ""));
             if ($content === "") {
                 flash("Informe o conteúdo da anotação.", "bad");
                 $postRedirect();
@@ -2207,7 +2207,7 @@ function page_appointments(): void
         }
         if ($act === "no_show") {
             $id = (int) ($_POST["id"] ?? 0);
-            $reason = trim((string) ($_POST["no_show_reason"] ?? ""));
+            $reason = mb_trim((string) ($_POST["no_show_reason"] ?? ""));
             $a = one(
                 "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
                 [$id, $cid],
@@ -2486,7 +2486,7 @@ function page_appointments(): void
                     (int) ($a["payment_amount_cents"] ?? 0) > 0 &&
                     !in_array(
                         mb_strtolower(
-                            trim((string) ($a["payment_status"] ?? "")),
+                            mb_trim((string) ($a["payment_status"] ?? "")),
                         ),
                         [
                             "efetivada",
@@ -2541,7 +2541,7 @@ function page_appointments(): void
         if ($act === "block") {
             $startAt = (string) ($_POST["start_at"] ?? "");
             $endAt = (string) ($_POST["end_at"] ?? "");
-            $reason = trim((string) ($_POST["reason"] ?? ""));
+            $reason = mb_trim((string) ($_POST["reason"] ?? ""));
             $rawDoctor = (string) ($_POST["doctor_user_id"] ?? "");
             $blockDoctor =
                 $rawDoctor !== "" && (int) $rawDoctor > 0
@@ -2632,7 +2632,7 @@ function page_appointments(): void
             }
             $startAt = (string) ($_POST["start_at"] ?? "");
             $endAt = (string) ($_POST["end_at"] ?? "");
-            $reason = trim((string) ($_POST["reason"] ?? ""));
+            $reason = mb_trim((string) ($_POST["reason"] ?? ""));
             $rawDoctor = (string) ($_POST["doctor_user_id"] ?? "");
             $blockDoctor =
                 $rawDoctor !== "" && (int) $rawDoctor > 0
@@ -2718,7 +2718,7 @@ function page_appointments(): void
         }
         if ($act === "delete_block" || $act === "unblock") {
             $id = (int) ($_POST["id"] ?? 0);
-            $cancelReason = trim((string) ($_POST["cancel_reason"] ?? ""));
+            $cancelReason = mb_trim((string) ($_POST["cancel_reason"] ?? ""));
             if ($cancelReason === "") {
                 flash("Informe o motivo da exclusão do bloqueio.", "bad");
                 $postRedirect();
@@ -2874,8 +2874,8 @@ function page_appointments(): void
                         $endAt,
                         $procId,
                         procedure_reason_from_post($cid),
-                        trim((string) ($_POST["notes"] ?? "")),
-                        trim((string) ($_POST["change_reason"] ?? "")),
+                        mb_trim((string) ($_POST["notes"] ?? "")),
+                        mb_trim((string) ($_POST["change_reason"] ?? "")),
                         $amount,
                         $method ?: null,
                         $paid ? "efetivada" : "prevista",
@@ -2911,7 +2911,7 @@ function page_appointments(): void
         }
         if ($act === "delete_appointment") {
             $id = (int) ($_POST["id"] ?? 0);
-            $cancelReason = trim((string) ($_POST["cancel_reason"] ?? ""));
+            $cancelReason = mb_trim((string) ($_POST["cancel_reason"] ?? ""));
             if ($cancelReason === "") {
                 flash(
                     "Informe o motivo da exclusão/cancelamento do agendamento.",
@@ -3074,7 +3074,7 @@ function page_appointments(): void
                     $endAt,
                     $procId,
                     (string) $lockedProcedure["title"],
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                     $amount,
                     $method ?: null,
                     $paid ? "efetivada" : "prevista",
@@ -3915,7 +3915,7 @@ function page_appointments(): void
         [$label, $class, $ico] = $statusMeta($r);
         $doctor = $doctorMap[(int) ($r["doctor_user_id"] ?? 0)]["name"] ?? "";
         $patient = $patientName($r);
-        $reason = trim((string) ($r["reason"] ?? "")) ?: "Consulta";
+        $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
         $period =
             app_time_br((string) $r["start_at"]) .
             "–" .
@@ -4203,7 +4203,7 @@ function page_appointments(): void
     }
     $occupancyPct = min(
         100,
-        max(0, (int) round(($busyMinutes / max(1, $totalMinutes)) * 100)),
+        max(0, (int) round(($busyMinutes / max(1, $totalMinutes)) * 100, 0, \RoundingMode::HalfAwayFromZero)),
     );
     $nextFree = "—";
     $cursor = max($workStartTs, time());
@@ -4316,7 +4316,7 @@ function page_appointments(): void
         [$label, $class, $ico] = $statusMeta($r);
         $patient = $patientName($r);
         $doctor = $doctorMap[(int) ($r["doctor_user_id"] ?? 0)]["name"] ?? "";
-        $reason = trim((string) ($r["reason"] ?? "")) ?: "Consulta";
+        $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
         $period =
             app_time_br((string) $r["start_at"]) .
             "–" .
@@ -4614,7 +4614,7 @@ function page_appointments(): void
             $doctor =
                 $doctorMapLocal[(int) ($r["doctor_user_id"] ?? 0)]["name"] ??
                 "";
-            $reason = trim((string) ($r["reason"] ?? "")) ?: "Consulta";
+            $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
             $period =
                 app_time_br((string) $r["start_at"]) .
                 "–" .
@@ -4874,7 +4874,7 @@ function page_appointments(): void
             }
             $pct = min(
                 100,
-                max(0, (int) round(($busyM / max(1, $totalM)) * 100)),
+                max(0, (int) round(($busyM / max(1, $totalM)) * 100, 0, \RoundingMode::HalfAwayFromZero)),
             );
             $fillPct = min(100, max(0, $pct));
             $isToday = $dstr === app_today_in_timezone($cid, $c);
@@ -4923,7 +4923,7 @@ function appointment_procedure_id_from_post(
     string $field = "reason",
 ): ?int {
 
-    $v = trim((string) ($_POST[$field] ?? ""));
+    $v = mb_trim((string) ($_POST[$field] ?? ""));
     if (str_starts_with($v, "procedure:")) {
         $id = (int) substr($v, 10);
         $p = one(
@@ -5043,7 +5043,7 @@ function appointment_min_duration_message(
     }
     $minEnd = $start + $duration * 60;
     if ($end < $minEnd) {
-        $title = trim((string) ($p["title"] ?? "procedimento selecionado"));
+        $title = mb_trim((string) ($p["title"] ?? "procedimento selecionado"));
         if ($title === "") {
             $title = "procedimento selecionado";
         }

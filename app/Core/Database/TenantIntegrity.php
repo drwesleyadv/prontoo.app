@@ -138,7 +138,7 @@ final class TenantIntegrity
                     array_key_exists($candidate, $row) &&
                     $row[$candidate] !== null
                 ) {
-                    return trim((string) $row[$candidate]);
+                    return mb_trim((string) $row[$candidate]);
                 }
             }
         }
@@ -146,7 +146,7 @@ final class TenantIntegrity
             array_key_exists($numericIndex, $row) &&
             $row[$numericIndex] !== null
         ) {
-            return trim((string) $row[$numericIndex]);
+            return mb_trim((string) $row[$numericIndex]);
         }
         return "";
     }

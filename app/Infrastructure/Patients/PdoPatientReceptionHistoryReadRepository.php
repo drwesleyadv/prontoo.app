@@ -75,7 +75,7 @@ final class PdoPatientReceptionHistoryReadRepository implements PatientReception
                 'created_by' => $creatorId > 0 ? $creatorId : null,
                 'created_at' => $row['event_created_at'] ?? null,
             ];
-            if ($creatorId > 0 && trim((string) ($row['event_created_by_name'] ?? '')) !== '') {
+            if ($creatorId > 0 && mb_trim((string) ($row['event_created_by_name'] ?? '')) !== '') {
                 $users[$creatorId] = ['id' => $creatorId, 'name' => (string) $row['event_created_by_name']];
             }
         }

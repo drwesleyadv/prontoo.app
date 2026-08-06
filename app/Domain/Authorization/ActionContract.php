@@ -34,7 +34,7 @@ final readonly class ActionContract
             throw new \InvalidArgumentException('Arquivo-fonte ausente no contrato.');
         }
         foreach ($producers as $producer) {
-            if (trim((string) $producer) === '') {
+            if (mb_trim((string) $producer) === '') {
                 throw new \InvalidArgumentException('Produtor de ação inválido no contrato.');
             }
         }

@@ -220,7 +220,7 @@ final class ActionCatalog
 
         $tokens = [];
         foreach ($values as $value) {
-            $token = trim((string) $value);
+            $token = mb_trim((string) $value);
             if ($token !== '') {
                 $tokens[$token] = true;
             }

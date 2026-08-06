@@ -23,7 +23,7 @@ env:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     services:
       mysql:
         image: mysql:8.0
@@ -40,25 +40,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup PHP
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-          extensions: pdo_mysql
-      - name: PHP syntax
+          extensions: pdo_mysql, mbstring
+      - name: PHP syntax and deprecations
         shell: bash
         run: |
           set -euo pipefail
           while IFS= read -r -d '' file; do
-            php -l "$file" >/dev/null
-          done < <(find . \
-            -path './.git' -prune -o \
-            -path './ssd' -prune -o \
-            -path './vendor' -prune -o \
-            -path './node_modules' -prune -o \
-            -name '*.php' -print0)
+            output="$(php -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l "$file" 2>&1)"
+            printf '%s\n' "$output"
+            if grep -qi 'deprecated' <<<"$output"; then
+              echo "Depreciação PHP 8.4 em $file" >&2
+              exit 1
+            fi
+          done < <(git ls-files -z '*.php')
       - name: Canonical JSON contracts
         shell: bash
         run: |
@@ -73,12 +75,12 @@ jobs:
                   throw new RuntimeException('Contrato JSON inválido: ' . $file);
               }
           }
-          $version = trim((string) ($contracts['version.json']['version'] ?? ''));
+          $version = mb_trim((string) ($contracts['version.json']['version'] ?? ''));
           if ($version === '' ||
-              trim((string) ($contracts['version.json']['release'] ?? '')) !== $version ||
-              trim((string) ($contracts['app/update.manifest.json']['version'] ?? '')) !== $version ||
-              trim((string) ($contracts['app/update.manifest.json']['release'] ?? '')) !== $version ||
-              trim((string) ($contracts['app/architecture.manifest.json']['version'] ?? '')) !== $version) {
+              mb_trim((string) ($contracts['version.json']['release'] ?? '')) !== $version ||
+              mb_trim((string) ($contracts['app/update.manifest.json']['version'] ?? '')) !== $version ||
+              mb_trim((string) ($contracts['app/update.manifest.json']['release'] ?? '')) !== $version ||
+              mb_trim((string) ($contracts['app/architecture.manifest.json']['version'] ?? '')) !== $version) {
               throw new RuntimeException('Contrato canônico de versão divergente');
           }
           foreach ([
@@ -87,7 +89,7 @@ jobs:
           ] as $file => $constant) {
               $source = (string) file_get_contents($file);
               $pattern = '/const\s+' . preg_quote($constant, '/') . '\s*=\s*["\x27]([^"\x27]+)["\x27]\s*;/';
-              if (!preg_match($pattern, $source, $match) || trim((string) ($match[1] ?? '')) !== $version) {
+              if (!preg_match($pattern, $source, $match) || mb_trim((string) ($match[1] ?? '')) !== $version) {
                   throw new RuntimeException('Fallback de versão divergente: ' . $file);
               }
           }

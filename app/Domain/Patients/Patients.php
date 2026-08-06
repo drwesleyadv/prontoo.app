@@ -162,7 +162,7 @@ function patient_is_minor(array $p): bool
 function patient_identity_complete(array $p): bool
 {
 
-    return trim((string) ($p["full_name"] ?? "")) !== "" &&
+    return mb_trim((string) ($p["full_name"] ?? "")) !== "" &&
         valid_cpf(only_digits((string) ($p["cpf"] ?? ""))) &&
         valid_birth_date((string) ($p["birth_date"] ?? ""));
 }
@@ -170,7 +170,7 @@ function patient_invoice_registration_missing_fields(array $p): array
 {
 
     $missing = [];
-    if (trim((string) ($p["full_name"] ?? "")) === "") {
+    if (mb_trim((string) ($p["full_name"] ?? "")) === "") {
         $missing[] = "nome completo";
     }
     if (!valid_cpf(only_digits((string) ($p["cpf"] ?? "")))) {
@@ -179,29 +179,29 @@ function patient_invoice_registration_missing_fields(array $p): array
     if (!valid_birth_date((string) ($p["birth_date"] ?? ""))) {
         $missing[] = "nascimento";
     }
-    if (trim((string) ($p["phone"] ?? "")) === "") {
+    if (mb_trim((string) ($p["phone"] ?? "")) === "") {
         $missing[] = "telefone";
     }
-    $email = trim((string) ($p["email"] ?? ""));
+    $email = mb_trim((string) ($p["email"] ?? ""));
     if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $missing[] = "e-mail";
     }
     if (strlen(only_digits((string) ($p["address_zip"] ?? ""))) !== 8) {
         $missing[] = "CEP";
     }
-    if (trim((string) ($p["address"] ?? "")) === "") {
+    if (mb_trim((string) ($p["address"] ?? "")) === "") {
         $missing[] = "logradouro";
     }
-    if (trim((string) ($p["address_number"] ?? "")) === "") {
+    if (mb_trim((string) ($p["address_number"] ?? "")) === "") {
         $missing[] = "número";
     }
-    if (trim((string) ($p["address_neighborhood"] ?? "")) === "") {
+    if (mb_trim((string) ($p["address_neighborhood"] ?? "")) === "") {
         $missing[] = "bairro";
     }
-    if (trim((string) ($p["address_city"] ?? "")) === "") {
+    if (mb_trim((string) ($p["address_city"] ?? "")) === "") {
         $missing[] = "cidade";
     }
-    if (trim((string) ($p["address_state"] ?? "")) === "") {
+    if (mb_trim((string) ($p["address_state"] ?? "")) === "") {
         $missing[] = "UF";
     }
     return array_values(array_unique($missing));
@@ -509,9 +509,9 @@ function require_patient_in_clinic(int $cid, int $patientId): array
 function patient_location_defaults(int $cid, array $p = []): array
 {
 
-    $uf = trim((string) ($p["address_state"] ?? ""));
-    $city = trim((string) ($p["address_city"] ?? ""));
-    $ibge = trim((string) ($p["address_city_ibge"] ?? ""));
+    $uf = mb_trim((string) ($p["address_state"] ?? ""));
+    $city = mb_trim((string) ($p["address_city"] ?? ""));
+    $ibge = mb_trim((string) ($p["address_city_ibge"] ?? ""));
     if ($uf === "" && $cid > 0) {
         $cl =
             one(
@@ -519,12 +519,12 @@ function patient_location_defaults(int $cid, array $p = []): array
                 [$cid],
             ) ?:
             [];
-        $uf = trim((string) ($cl["address_state"] ?? "MT"));
+        $uf = mb_trim((string) ($cl["address_state"] ?? "MT"));
         if ($city === "") {
-            $city = trim((string) ($cl["address_city"] ?? ""));
+            $city = mb_trim((string) ($cl["address_city"] ?? ""));
         }
         if ($ibge === "") {
-            $ibge = trim((string) ($cl["address_city_ibge"] ?? ""));
+            $ibge = mb_trim((string) ($cl["address_city_ibge"] ?? ""));
         }
     }
     if ($uf === "") {
@@ -636,12 +636,12 @@ function patient_location_from_post(int $cid): array
 {
 
     $zip = only_digits((string) ($_POST["address_zip"] ?? ""));
-    $street = trim((string) ($_POST["address"] ?? ""));
-    $number = trim((string) ($_POST["address_number"] ?? ""));
-    $neighborhood = trim((string) ($_POST["address_neighborhood"] ?? ""));
-    $complement = trim((string) ($_POST["address_complement"] ?? ""));
-    $uf = strtoupper(trim((string) ($_POST["address_state"] ?? "")));
-    $city = trim((string) ($_POST["address_city"] ?? ""));
+    $street = mb_trim((string) ($_POST["address"] ?? ""));
+    $number = mb_trim((string) ($_POST["address_number"] ?? ""));
+    $neighborhood = mb_trim((string) ($_POST["address_neighborhood"] ?? ""));
+    $complement = mb_trim((string) ($_POST["address_complement"] ?? ""));
+    $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
+    $city = mb_trim((string) ($_POST["address_city"] ?? ""));
     $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
     if (strlen($zip) !== 8) {
         throw new RuntimeException("Informe um CEP válido.");
@@ -684,7 +684,7 @@ function mask_cep(string $cep): string
 function patient_invoice_contact_from_post(): array
 {
 
-    $email = trim((string) ($_POST["email"] ?? ""));
+    $email = mb_trim((string) ($_POST["email"] ?? ""));
     $phone = phone_br((string) ($_POST["phone"] ?? ""));
     if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new RuntimeException(
@@ -812,10 +812,10 @@ function posted_patient_search_value(): string
 
     foreach ($_POST as $k => $v) {
         if (is_string($k) && str_starts_with($k, "patient_search")) {
-            return trim((string) $v);
+            return mb_trim((string) $v);
         }
     }
-    return trim((string) ($_POST["patient_search"] ?? ""));
+    return mb_trim((string) ($_POST["patient_search"] ?? ""));
 }
 function resolve_patient_lookup_id(
     int $cid,
@@ -951,7 +951,7 @@ function patient_lookup_payload(int $cid, string $cpf): array
         : (preg_match("/^\d{4}-\d{2}-\d{2}/", (string) ($p["birth_date"] ?? ""))
             ? substr((string) $p["birth_date"], 0, 10)
             : "");
-    $name = trim((string) ($p["full_name"] ?? ""));
+    $name = mb_trim((string) ($p["full_name"] ?? ""));
     return [
         "ok" => true,
         "found" => true,
@@ -1237,7 +1237,7 @@ function patient_directory_card(array $r, int $cid = 0): string
         $phone = "Sem telefone";
     }
     [$level, $label, $message] = patient_directory_status($r);
-    $timeRaw = trim((string) ($r["today_appointment_start_at"] ?? ""));
+    $timeRaw = mb_trim((string) ($r["today_appointment_start_at"] ?? ""));
     $timePill = "";
     $timeLabel = "";
     $journeyHtml = "";
@@ -1306,7 +1306,7 @@ function patient_directory_card(array $r, int $cid = 0): string
                 e($created) .
                 "</span></span>"
             : "";
-    $lastRaw = trim((string) ($r["last_consultation_at"] ?? ""));
+    $lastRaw = mb_trim((string) ($r["last_consultation_at"] ?? ""));
     $lastHtml = "";
     if ($lastRaw !== "" && $lastRaw !== "0") {
         $lastLabel = function_exists("app_date_br")
@@ -1375,8 +1375,8 @@ function patient_profile_overview(
     string $firstConsultationLabel,
 ): string {
 
-    $name = trim((string) ($p["full_name"] ?? "Paciente"));
-    $birth = trim((string) ($p["birth_date"] ?? ""));
+    $name = mb_trim((string) ($p["full_name"] ?? "Paciente"));
+    $birth = mb_trim((string) ($p["birth_date"] ?? ""));
     $age = patient_age_years($birth);
     $birthLabel = $birth !== "" ? date_br($birth) : "Nascimento não informado";
     if ($age !== null) {
@@ -1390,7 +1390,7 @@ function patient_profile_overview(
     if (trim($phoneLabel) === "") {
         $phoneLabel = "Telefone não informado";
     }
-    $emailLabel = trim((string) ($p["email"] ?? ""));
+    $emailLabel = mb_trim((string) ($p["email"] ?? ""));
     if ($emailLabel === "") {
         $emailLabel = "E-mail não informado";
     }
@@ -1469,7 +1469,7 @@ function patient_profile_overview(
 function patient_reception_story_time(null|string|int $value): string
 {
 
-    $raw = trim((string) ($value ?? ""));
+    $raw = mb_trim((string) ($value ?? ""));
     if ($raw === "") {
         return "data não informada";
     }
@@ -1549,8 +1549,8 @@ function patient_reception_meta_chips_html(array $parts): string
         if (!is_array($part)) {
             continue;
         }
-        $label = trim((string) ($part["label"] ?? ""));
-        $value = trim((string) ($part["value"] ?? ""));
+        $label = mb_trim((string) ($part["label"] ?? ""));
+        $value = mb_trim((string) ($part["value"] ?? ""));
         if ($label === "" || $value === "") {
             continue;
         }
@@ -1618,7 +1618,7 @@ function patient_reception_history_items(
             $who = first_name(
                 $users[(int) ($lead["created_by"] ?? 0)]["name"] ?? "Recepção",
             );
-            $body = trim((string) ($lead["notes"] ?? ""));
+            $body = mb_trim((string) ($lead["notes"] ?? ""));
             if ($body === "") {
                 $body = "Contato registrado sem observação adicional.";
             }
@@ -1631,7 +1631,7 @@ function patient_reception_history_items(
                 ]
                 as $k => $label
             ) {
-                $v = trim((string) ($lead[$k] ?? ""));
+                $v = mb_trim((string) ($lead[$k] ?? ""));
                 if ($v !== "") {
                     if ($k === "phone" && function_exists("phone_br")) {
                         $v = phone_br($v);
@@ -1639,7 +1639,7 @@ function patient_reception_history_items(
                     $metaParts[] = ["label" => $label, "value" => $v];
                 }
             }
-            $stage = trim((string) ($lead["stage"] ?? ""));
+            $stage = mb_trim((string) ($lead["stage"] ?? ""));
             if ($stage !== "") {
                 $metaParts[] = ["label" => "Etapa", "value" => $stage];
             }
@@ -1661,12 +1661,12 @@ function patient_reception_history_items(
             $who = first_name(
                 $users[(int) ($ev["created_by"] ?? 0)]["name"] ?? "Recepção",
             );
-            $body = trim((string) ($ev["body"] ?? ""));
+            $body = mb_trim((string) ($ev["body"] ?? ""));
             if ($body === "") {
                 $body = "Contato registrado sem observação adicional.";
             }
-            $stageFrom = trim((string) ($ev["stage_from"] ?? ""));
-            $stageTo = trim((string) ($ev["stage_to"] ?? ""));
+            $stageFrom = mb_trim((string) ($ev["stage_from"] ?? ""));
+            $stageTo = mb_trim((string) ($ev["stage_to"] ?? ""));
             $stage =
                 $stageFrom !== "" || $stageTo !== ""
                     ? trim($stageFrom . " → " . $stageTo, " →")
@@ -1680,7 +1680,7 @@ function patient_reception_history_items(
                 ]
                 as $k => $label
             ) {
-                $v = trim((string) ($ev[$k] ?? ""));
+                $v = mb_trim((string) ($ev[$k] ?? ""));
                 if ($v !== "") {
                     if ($k === "phone" && function_exists("phone_br")) {
                         $v = phone_br($v);
@@ -1735,7 +1735,7 @@ function page_patient_suggest(): void
         throw new ProntooHttpError(403, "Sem permissão para buscar pacientes.");
     }
     $cid = (int) $c["clinic_id"];
-    $q = trim((string) ($_GET["q"] ?? ""));
+    $q = mb_trim((string) ($_GET["q"] ?? ""));
     if (!headers_sent()) {
         header("Content-Type: application/json; charset=utf-8");
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -1780,12 +1780,12 @@ function page_patient_suggest(): void
             : "Nascimento não informado";
         $age = patient_age_years((string) ($r["birth_date"] ?? ""));
         [$level, $label, $message] = patient_directory_status($r);
-        $timeRaw = trim((string) ($r["today_appointment_start_at"] ?? ""));
+        $timeRaw = mb_trim((string) ($r["today_appointment_start_at"] ?? ""));
         $timeLabel =
             $timeRaw !== "" && $timeRaw !== "0"
                 ? app_time_br($timeRaw, $cid)
                 : "";
-        $lastRaw = trim((string) ($r["last_consultation_at"] ?? ""));
+        $lastRaw = mb_trim((string) ($r["last_consultation_at"] ?? ""));
         $lastLabel =
             $lastRaw !== "" && $lastRaw !== "0"
                 ? (function_exists("app_date_br")
@@ -1824,12 +1824,12 @@ function page_patients(): void
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $cpf = only_digits((string) ($_POST["cpf"] ?? ""));
         $birth = (string) ($_POST["birth_date"] ?? "");
-        $name = trim((string) ($_POST["name"] ?? ""));
+        $name = mb_trim((string) ($_POST["name"] ?? ""));
         if (valid_cpf($cpf) && ($name === "" || !valid_birth_date($birth))) {
             $identity = patient_identity_by_cpf($cpf, $cid);
             if ($identity) {
                 if ($name === "") {
-                    $name = trim((string) ($identity["full_name"] ?? ""));
+                    $name = mb_trim((string) ($identity["full_name"] ?? ""));
                 }
                 if (!valid_birth_date($birth)) {
                     $birth = app_date_input_from_storage(
@@ -1914,7 +1914,7 @@ function page_patients(): void
                     $loc["address_state"],
                     $loc["address_city"],
                     $loc["address_city_ibge"],
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                     (int) $c["user"]["id"],
                 ],
             );
@@ -1957,7 +1957,7 @@ function page_patients(): void
         }
         redirect("patients");
     }
-    $search = trim((string) ($_GET["q"] ?? ""));
+    $search = mb_trim((string) ($_GET["q"] ?? ""));
     $filter = (string) ($_GET["f"] ?? patient_directory_filter_default());
     if (!array_key_exists($filter, patient_directory_filter_options())) {
         $filter = patient_directory_filter_default();
@@ -2256,7 +2256,7 @@ function patient_appointment_duration_label(
     }
     $minutes = (int) max(
         1,
-        round(($e->getTimestamp() - $s->getTimestamp()) / 60),
+        round(($e->getTimestamp() - $s->getTimestamp()) / 60, 0, \RoundingMode::HalfAwayFromZero),
     );
     if ($minutes < 60) {
         return $minutes . " min";
@@ -2286,7 +2286,7 @@ function patient_appointment_code(array $a): string
 
     return function_exists("appointment_status_code")
         ? appointment_status_code($a)
-        : mb_strtolower(trim((string) ($a["status"] ?? "")));
+        : mb_strtolower(mb_trim((string) ($a["status"] ?? "")));
 }
 function patient_appointment_not_started_label(
     array $a,
@@ -2388,14 +2388,14 @@ function patient_appointment_status_class(array $a): string
 function patient_document_type_human_label(?string $typeKey): string
 {
 
-    $key = mb_strtolower(trim((string) $typeKey));
+    $key = mb_strtolower(mb_trim((string) $typeKey));
     if ($key === "") {
         return "Documento";
     }
     if (function_exists("document_type_options")) {
         try {
             $opts = document_type_options();
-            if (isset($opts[$key]) && trim((string) $opts[$key]) !== "") {
+            if (isset($opts[$key]) && mb_trim((string) $opts[$key]) !== "") {
                 return (string) $opts[$key];
             }
         } catch (Throwable $e) {
@@ -2472,11 +2472,11 @@ function patient_appointment_docs_label(array $docs): string
     }
     $labels = [];
     foreach ($docs as $d) {
-        $title = trim((string) ($d["title"] ?? ""));
+        $title = mb_trim((string) ($d["title"] ?? ""));
         if ($title === "") {
             $title = patient_document_type_human_label($d["type_key"] ?? null);
         }
-        $status = trim((string) ($d["document_status"] ?? ""));
+        $status = mb_trim((string) ($d["document_status"] ?? ""));
         $statusLabel =
             $status !== "" && function_exists("document_status_label")
                 ? document_status_label($status)
@@ -2646,7 +2646,7 @@ function patient_appointment_timeline_items(
     $items = [];
     foreach ($appointments as $a) {
         $aid = (int) ($a["id"] ?? 0);
-        $reason = trim((string) ($a["reason"] ?? ""));
+        $reason = mb_trim((string) ($a["reason"] ?? ""));
         $items[] = [
             "icon" => patient_appointment_icon($a),
             "class" => patient_appointment_status_class($a),
@@ -2725,8 +2725,8 @@ function page_patient(): void
     if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         $act = (string) ($_POST["act"] ?? "record");
         $type = (string) ($_POST["record_type"] ?? "");
-        $title = trim((string) ($_POST["title"] ?? ""));
-        $content = trim((string) ($_POST["content"] ?? ""));
+        $title = mb_trim((string) ($_POST["title"] ?? ""));
+        $content = mb_trim((string) ($_POST["content"] ?? ""));
         if ($act === "save_legal_guardian") {
             if (!$canManageGuardian) {
                 flash(
@@ -2736,15 +2736,15 @@ function page_patient(): void
                 redirect("patient", ["id" => $id]);
             }
             $guardianId = (int) ($_POST["guardian_id"] ?? 0);
-            $gName = trim((string) ($_POST["guardian_name"] ?? ""));
+            $gName = mb_trim((string) ($_POST["guardian_name"] ?? ""));
             $gCpf = only_digits((string) ($_POST["guardian_cpf"] ?? ""));
             $gRel = normalize_guardian_relationship(
                 (string) ($_POST["guardian_relationship"] ?? "outro"),
             );
             $gPhone = phone_br((string) ($_POST["guardian_phone"] ?? ""));
-            $gEmail = trim((string) ($_POST["guardian_email"] ?? ""));
-            $gDoc = trim((string) ($_POST["guardian_document_note"] ?? ""));
-            $gNotes = trim((string) ($_POST["guardian_notes"] ?? ""));
+            $gEmail = mb_trim((string) ($_POST["guardian_email"] ?? ""));
+            $gDoc = mb_trim((string) ($_POST["guardian_document_note"] ?? ""));
+            $gNotes = mb_trim((string) ($_POST["guardian_notes"] ?? ""));
             $makePrimary =
                 !empty($_POST["guardian_primary"]) ||
                 !patient_has_legal_guardian($cid, $id);
@@ -3144,9 +3144,9 @@ function page_patient(): void
             redirect("patient", ["id" => $id]);
         }
         if ($act === "update_patient") {
-            $name = trim((string) ($_POST["full_name"] ?? ""));
+            $name = mb_trim((string) ($_POST["full_name"] ?? ""));
             $cpf = only_digits((string) ($_POST["cpf"] ?? ""));
-            $birth = trim((string) ($_POST["birth_date"] ?? ""));
+            $birth = mb_trim((string) ($_POST["birth_date"] ?? ""));
             if ($name === "") {
                 flash(
                     "Informe o nome completo para atualizar o cadastro.",
@@ -3182,7 +3182,7 @@ function page_patient(): void
                 flash("Este CPF já pertence a outra pessoa cadastrada.", "bad");
                 redirect("patient", ["id" => $id]);
             }
-            $nameChanged = $name !== trim((string) ($p["full_name"] ?? ""));
+            $nameChanged = $name !== mb_trim((string) ($p["full_name"] ?? ""));
             if (
                 $nameChanged &&
                 person_has_other_clinic_links((int) $p["person_id"], $cid)
@@ -3213,7 +3213,7 @@ function page_patient(): void
                     $loc["address_state"],
                     $loc["address_city"],
                     $loc["address_city_ibge"],
-                    trim((string) ($_POST["notes"] ?? "")),
+                    mb_trim((string) ($_POST["notes"] ?? "")),
                     $id,
                     $cid,
                 ],
@@ -3296,7 +3296,7 @@ function page_patient(): void
                     $oldCare["title"] ?? null,
                     $oldCare["content"] ?? null,
                     (int) $c["user"]["id"],
-                    trim((string) ($_POST["change_reason"] ?? "")),
+                    mb_trim((string) ($_POST["change_reason"] ?? "")),
                 ],
             );
             q(
@@ -4010,7 +4010,7 @@ function page_patient(): void
         ? prontoo_patient_contact_edit_form($p, $cid)
         : "";
     $patientCpfField =
-        trim((string) ($p["cpf"] ?? "")) !== ""
+        mb_trim((string) ($p["cpf"] ?? "")) !== ""
             ? '<input type="text" value="' .
                 e(mask($p["cpf"] ?? "")) .
                 '" readonly aria-readonly="true" tabindex="-1" autocomplete="off">'
@@ -4021,7 +4021,7 @@ function page_patient(): void
                 'required inputmode="numeric" data-cpf-mask',
             );
     $patientBirthField =
-        trim((string) ($p["birth_date"] ?? "")) !== ""
+        mb_trim((string) ($p["birth_date"] ?? "")) !== ""
             ? '<input type="date" value="' .
                 e(app_date_input_from_storage($p["birth_date"] ?? "")) .
                 '" readonly aria-readonly="true" tabindex="-1" autocomplete="off">'

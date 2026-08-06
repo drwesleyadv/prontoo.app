@@ -25,11 +25,11 @@ function security_ip_in_cidr(string $ip, string $cidr): bool
 function security_trusted_proxy_request(): bool
 {
 
-    $remote = trim((string) ($_SERVER["REMOTE_ADDR"] ?? ""));
+    $remote = mb_trim((string) ($_SERVER["REMOTE_ADDR"] ?? ""));
     if ($remote === "") {
         return false;
     }
-    $raw = trim((string) (getenv("PRONTOO_TRUSTED_PROXIES") ?: ""));
+    $raw = mb_trim((string) (getenv("PRONTOO_TRUSTED_PROXIES") ?: ""));
     $constantTrust =
         defined("PRONTOO_TRUST_PROXY_HEADERS") &&
         PRONTOO_TRUST_PROXY_HEADERS === true;

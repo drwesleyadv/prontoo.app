@@ -220,7 +220,7 @@ function install_pdo_options(): array
 function install_open_database(array $context, bool $strictMode = false): PDO
 {
 
-    $pdo = new PDO(
+    $pdo = PDO::connect(
         install_mysql_dsn(
             (string) ($context["db_host"] ?? ""),
             (string) ($context["db_name"] ?? ""),
@@ -340,7 +340,7 @@ function install_database_probe_lines(array $context): array
                         $row[strtolower($k)] = $v;
                     }
                 }
-                $name = trim((string) ($row["table_name"] ?? ""));
+                $name = mb_trim((string) ($row["table_name"] ?? ""));
                 if ($name !== "") {
                     $names[] = $name;
                 }
@@ -743,10 +743,10 @@ function prontoo_install(): void
         $pass = (string) ($_POST["db_pass"] ?? "");
         $adminName = install_value((string) ($_POST["admin_name"] ?? ""), 180);
         $adminEmail = filter_var(
-            trim((string) ($_POST["admin_email"] ?? "")),
+            mb_trim((string) ($_POST["admin_email"] ?? "")),
             FILTER_VALIDATE_EMAIL,
         );
-        $adminBirth = trim((string) ($_POST["admin_birth"] ?? ""));
+        $adminBirth = mb_trim((string) ($_POST["admin_birth"] ?? ""));
         $adminPass = (string) ($_POST["admin_password"] ?? "");
         $adminCpf = only_digits((string) ($_POST["admin_cpf"] ?? ""));
         $installContext = [
