@@ -1,9 +1,11 @@
 name: Finalizar comunicação de Performance
 
 on:
-  push:
+  pull_request:
     branches:
       - prontoo
+    types:
+      - reopened
 
 permissions:
   contents: write
@@ -21,6 +23,7 @@ env:
 
 jobs:
   finalize:
+    if: ${{ github.event.pull_request.number == 160 && github.event.pull_request.head.ref == 'agent/performance-communication-1-8-6-3' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
