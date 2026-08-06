@@ -21,3 +21,7 @@ Não são contabilizados JSON, XHR, `fetch`, rotas de lookup, atualização da m
 Um evento deve conter `tipo=page_load`, schema `prontoo.telemetria.pagina.v2`, rota, método, caminho sem query string, marcos, duração, status e versão. O caminho não armazena parâmetros para evitar persistência de dados pessoais.
 
 A validação permanente é executada por `tools/architecture-check.php`, que inclui `tools/page-load-telemetry-contract-check`.
+
+## Retenção e apresentação
+
+Os eventos são mantidos por 31 dias corridos para sustentar uma visão completa dos últimos 30 dias civis, incluindo hoje. Na interface, a contagem recebe o nome **Visualizações**, a duração média recebe o nome **Velocidade média** e a rota `landing` é apresentada como **Visualizações da Landing**.
