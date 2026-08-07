@@ -68,13 +68,13 @@ foreach ([
     }
 }
 foreach ([
-    "$publicTelemetry = $route === 'login_telemetry_wave';",
-    "$publicStatus = $route === 'status' || $publicTelemetry;",
+    "\$publicTelemetry = \$route === 'login_telemetry_wave';",
+    "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
     '\\headers_secure($publicStatus);',
-    "$context = $publicStatus || $publicHome || $route === 'logout' ? [] : \\ctx();",
+    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\ctx();",
     'if (!$publicTelemetry) {',
-    "if ($route !== 'logout' && !$publicTelemetry) {",
-    "if ($route !== 'logout' && !$publicStatus) {",
+    "if (\$route !== 'logout' && !\$publicTelemetry) {",
+    "if (\$route !== 'logout' && !\$publicStatus) {",
 ] as $contract) {
     if (!str_contains($runner, $contract)) {
         throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
