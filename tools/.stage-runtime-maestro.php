@@ -8,18 +8,31 @@ if (PHP_SAPI !== 'cli') {
 $root = dirname(__DIR__);
 $cronPath = $root . '/cron/maestro.php';
 $cron = (string) file_get_contents($cronPath);
-$legacy = '\\Prontoo\\Core\\Integrity\\PiIntegrity';
-$canonical = '\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity';
-$occurrences = substr_count($cron, $legacy);
-if ($occurrences !== 2 && $occurrences !== 0) {
-    throw new RuntimeException('Quantidade inesperada de referências legadas de PiIntegrity no Maestro: ' . $occurrences);
+$legacyStatic = '\\Prontoo\\Core\\Integrity\\PiIntegrity';
+$canonicalStatic = '\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity';
+$legacyString = '\\\\Prontoo\\\\Core\\\\Integrity\\\\PiIntegrity';
+$canonicalString = '\\\\Prontoo\\\\Infrastructure\\\\Integrity\\\\PiIntegrity';
+$staticCount = substr_count($cron, $legacyStatic);
+$stringCount = substr_count($cron, $legacyString);
+if (!in_array($staticCount, [0, 1], true) || !in_array($stringCount, [0, 1], true)) {
+    throw new RuntimeException(
+        'Quantidade inesperada de referências legadas de PiIntegrity no Maestro: static=' .
+        $staticCount . ', string=' . $stringCount,
+    );
 }
-if ($occurrences === 2) {
-    $cron = str_replace($legacy, $canonical, $cron);
-    file_put_contents($cronPath, $cron);
+if ($staticCount === 1) {
+    $cron = str_replace($legacyStatic, $canonicalStatic, $cron);
 }
-if (str_contains((string) file_get_contents($cronPath), $legacy)) {
+if ($stringCount === 1) {
+    $cron = str_replace($legacyString, $canonicalString, $cron);
+}
+file_put_contents($cronPath, $cron);
+$finalCron = (string) file_get_contents($cronPath);
+if (str_contains($finalCron, $legacyStatic) || str_contains($finalCron, $legacyString)) {
     throw new RuntimeException('Referência legada de PiIntegrity permaneceu no Maestro.');
+}
+if (!str_contains($finalCron, $canonicalStatic) || !str_contains($finalCron, $canonicalString)) {
+    throw new RuntimeException('Referência canônica de PiIntegrity não foi materializada no Maestro.');
 }
 
 $versionPath = $root . '/version.json';
