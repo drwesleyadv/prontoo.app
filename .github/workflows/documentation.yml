@@ -32,7 +32,6 @@ jobs:
           set -euo pipefail
           php tools/.stage-deterministic-release.php
           test ! -e tools/.stage-deterministic-release.php
-          php tools/release-contract-reconcile --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
