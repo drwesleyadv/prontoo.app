@@ -17,7 +17,7 @@
     "architecture_policy": "php-layered-invariants-v2",
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
-    "architecture_native_files_min": 37,
+    "architecture_native_files_min": 41,
     "architecture_transitional_files_max": 82,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
