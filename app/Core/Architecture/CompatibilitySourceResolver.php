@@ -11,8 +11,8 @@ final class CompatibilitySourceResolver
 
     public static function paths(string $root, string $relative): array
     {
-        $root = rtrim(str_replace('\\', '/', $root), '/');
-        $relative = ltrim(str_replace('\\', '/', $relative), '/');
+        $root = mb_rtrim(str_replace('\\', '/', $root), '/');
+        $relative = mb_ltrim(str_replace('\\', '/', $relative), '/');
         $paths = [$relative => true];
         $file = $root . '/' . $relative;
         if (!is_file($file)) {
@@ -25,7 +25,7 @@ final class CompatibilitySourceResolver
             $matches,
         );
         foreach (array_unique((array) ($matches[0] ?? [])) as $class) {
-            $class = ltrim((string) $class, '\\');
+            $class = mb_ltrim((string) $class, '\\');
             if (!str_starts_with($class, 'Prontoo\\')) {
                 continue;
             }
@@ -41,7 +41,7 @@ final class CompatibilitySourceResolver
     {
         $chunks = [];
         foreach (self::paths($root, $relative) as $path) {
-            $file = rtrim($root, '/') . '/' . ltrim($path, '/');
+            $file = mb_rtrim($root, '/') . '/' . mb_ltrim($path, '/');
             if (is_file($file)) {
                 $chunks[] = (string) file_get_contents($file);
             }
