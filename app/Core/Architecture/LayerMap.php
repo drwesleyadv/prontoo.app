@@ -24,8 +24,7 @@ final class LayerMap
         'app/Application/',
         'app/Infrastructure/',
         'app/Presentation/',
-        'app/Runtime/Modules/',
-        'app/Runtime/Authorization/',
+        'app/Runtime/',
     ];
 
     private const ENVIRONMENT_PHP_PATHS = [
@@ -33,17 +32,14 @@ final class LayerMap
     ];
 
     private function __construct() {
-
     }
 
     public static function layerFor(string $relativePath): ?string
     {
-
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
         if ($path === '' || !str_ends_with(strtolower($path), '.php')) {
             return null;
         }
-
         if (!str_contains($path, '/')) {
             return self::COMPOSITION;
         }
@@ -56,7 +52,6 @@ final class LayerMap
         if (!str_starts_with($path, 'app/')) {
             return self::COMPOSITION;
         }
-
         $path = substr($path, 4);
         if (!str_contains($path, '/')) {
             return self::COMPOSITION;
@@ -85,11 +80,7 @@ final class LayerMap
 
     public static function isNativePath(string $relativePath): bool
     {
-
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
-        if ($path === 'app/Runtime/LayeredKernel.php') {
-            return true;
-        }
         foreach (self::NATIVE_PREFIXES as $prefix) {
             if (str_starts_with($path, $prefix)) {
                 return true;
@@ -100,20 +91,17 @@ final class LayerMap
 
     public static function isEnvironmentPhpPath(string $relativePath): bool
     {
-
         $path = str_replace('\\', '/', ltrim($relativePath, '/'));
         return in_array($path, self::ENVIRONMENT_PHP_PATHS, true);
     }
 
     public static function environmentPhpPaths(): array
     {
-
         return self::ENVIRONMENT_PHP_PATHS;
     }
 
     public static function layerFromNamespace(string $namespace): ?string
     {
-
         $namespace = ltrim($namespace, '\\');
         return match (true) {
             str_starts_with($namespace, 'Prontoo\\Core\\') => self::CORE,
@@ -129,7 +117,6 @@ final class LayerMap
 
     public static function dependencyAllowed(string $from, string $to): bool
     {
-
         $allowed = [
             self::CORE => [self::CORE],
             self::DOMAIN => [self::CORE, self::DOMAIN],
@@ -150,7 +137,6 @@ final class LayerMap
 
     public static function phpFiles(string $root): array
     {
-
         $root = rtrim(str_replace('\\', '/', $root), '/');
         if (!is_dir($root)) {
             return [];
