@@ -9,7 +9,6 @@
 - adiciona regressão que instala banco limpo e executa prontoo_login_post_password_maintenance antes de aprovar a publicação.
 - preserva schema, dados, rotas, autenticação MFA, layout e assets públicos.
 
-
 ## 1.8.7.1 — Auditoria de consolidação pós-SOLID
 
 - remove seis tombstones vazios: três paths históricos com migração PHP 8.4 e três containers pós-baseline já decompostos em policies coesas.
