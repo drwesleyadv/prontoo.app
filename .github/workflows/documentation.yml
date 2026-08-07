@@ -7,225 +7,28 @@ on:
       - prontoo
 
 permissions:
-  contents: write
-
-env:
-  DB_HOST: 127.0.0.1
-  DB_PORT: 3306
-  DB_DATABASE: prontoo_schema
-  DB_USERNAME: root
-  DB_PASSWORD: root
+  contents: read
 
 jobs:
-  reconcile-manifest:
-    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reconcile release metadata and manifests
+      - name: Deterministic release contract
         shell: bash
         run: |
           set -euo pipefail
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          $root = getcwd();
-          $versionPath = $root . '/version.json';
-          $manifestPath = $root . '/app/update.manifest.json';
-          $architecturePath = $root . '/app/architecture.manifest.json';
-          $version = json_decode((string) file_get_contents($versionPath), true, 512, JSON_THROW_ON_ERROR);
-          $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
-          $architecture = json_decode((string) file_get_contents($architecturePath), true, 512, JSON_THROW_ON_ERROR);
-          $release = mb_trim((string) ($version['version'] ?? ''));
-          $previous = mb_trim((string) ($version['previous_version'] ?? ''));
-          if ($release === '' || mb_trim((string) ($version['release'] ?? '')) !== $release || $previous === '') {
-              throw new RuntimeException('Metadados canônicos de release inválidos.');
-          }
-          $syncConstant = static function (string $path, string $name, string $value): void {
-              $source = (string) file_get_contents($path);
-              $pattern = '/const\s+' . preg_quote($name, '/') . '\s*=\s*["\x27][^"\x27]+["\x27]\s*;/';
-              $replacement = 'const ' . $name . ' = "' . $value . '";';
-              $updated = preg_replace($pattern, $replacement, $source, 1, $count);
-              if (!is_string($updated) || $count !== 1) {
-                  throw new RuntimeException('Fallback canônico não localizado: ' . $name);
-              }
-              file_put_contents($path, $updated);
-          };
-          $syncConstant($root . '/app/prontoo.php', 'PRONTOO_VERSION_FALLBACK', $release);
-          $syncConstant($root . '/app/prontoo.php', 'PRONTOO_PREVIOUS_VERSION', $previous);
-          $syncConstant($root . '/br/index.php', 'BR_LANDING_VERSION_FALLBACK', $release);
-          $changelog = (array) ($version['changelog'] ?? []);
-          $changelogTitle = mb_trim((string) ($changelog['title'] ?? ''));
-          $changelogItems = array_values(array_filter(
-              array_map(static fn(mixed $item): string => mb_trim((string) $item), (array) ($changelog['items'] ?? [])),
-              static fn(string $item): bool => $item !== '',
-          ));
-          if ($changelogTitle !== '' && $changelogItems !== []) {
-              $changelogPath = $root . '/CHANGELOG.md';
-              $source = (string) file_get_contents($changelogPath);
-              $prefix = '# Histórico de versões' . PHP_EOL;
-              if (!str_starts_with($source, $prefix)) {
-                  throw new RuntimeException('Cabeçalho canônico do CHANGELOG.md ausente.');
-              }
-              $heading = '## ' . $release . ' — ' . $changelogTitle;
-              $items = implode(PHP_EOL, array_map(
-                  static fn(string $item): string => '- ' . rtrim($item, '.') . '.',
-                  $changelogItems,
-              ));
-              $entry = $heading . PHP_EOL . PHP_EOL . $items . PHP_EOL;
-              $sectionPattern = '/^##\s+' . preg_quote($release, '/') . '\s+—[^\n]*\n.*?(?=^##\s+|\z)/ms';
-              if (preg_match($sectionPattern, $source) === 1) {
-                  $updated = preg_replace_callback(
-                      $sectionPattern,
-                      static fn(array $match): string => $entry . PHP_EOL,
-                      $source,
-                      1,
-                      $count,
-                  );
-                  if (!is_string($updated) || $count !== 1) {
-                      throw new RuntimeException('Falha ao reconciliar entrada existente do CHANGELOG.md.');
-                  }
-                  $source = $updated;
-              } else {
-                  $source = $prefix . PHP_EOL . $entry . PHP_EOL . substr($source, strlen($prefix));
-              }
-              file_put_contents($changelogPath, $source);
-          }
-          foreach ([
-              'version' => 'version',
-              'release' => 'release',
-              'build' => 'build',
-              'generated_at' => 'generated_at',
-              'updated_at' => 'updated_at',
-              'previous_version' => 'previous_version',
-              'deployment_sync_id' => 'deployment_sync_id',
-              'logic_changes' => 'logic_changes',
-              'documentation_changes' => 'documentation_changes',
-              'database_changes' => 'database_changes',
-              'schema_changes' => 'schema_changes',
-              'visual_changes' => 'visual_changes',
-          ] as $target => $sourceKey) {
-              if (array_key_exists($sourceKey, $version)) {
-                  $architecture[$target] = $version[$sourceKey];
-              }
-          }
-          $architecture['policy'] = (string) ($version['architecture_policy'] ?? $architecture['policy'] ?? '');
-          $architecture['native_files_min'] = (int) ($version['architecture_native_files_min'] ?? 0);
-          $architecture['transitional_files_max'] = (int) ($version['architecture_transitional_files_max'] ?? 0);
-          $architecture['native_migration_policy'] = 'effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase';
-          file_put_contents(
-              $architecturePath,
-              json_encode($architecture, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
-          );
-          foreach ([
-              'version',
-              'release',
-              'schema_revision',
-              'build',
-              'package_type',
-              'generated_at',
-              'version_format',
-              'minimum_php',
-              'database_changes',
-              'schema_changes',
-              'logic_changes',
-              'visual_changes',
-              'documentation_changes',
-              'clean_install_schema',
-              'requires_empty_database',
-              'architecture_policy',
-              'architecture_native_files_min',
-              'architecture_transitional_files_max',
-              'installer_locked',
-              'installer_access_policy',
-              'post_window_policy',
-              'asset_version',
-              'required_php_family',
-              'previous_version',
-              'deployment_sync_id',
-              'release_date',
-          ] as $key) {
-              if (array_key_exists($key, $version)) {
-                  $manifest[$key] = $version[$key];
-              }
-          }
-          if (array_key_exists('installer_access_policy', $version)) {
-              $manifest['installer_policy'] = $version['installer_access_policy'];
-          }
-          $files = [];
-          $total = 0;
-          $iterator = new RecursiveIteratorIterator(
-              new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
-          );
-          foreach ($iterator as $file) {
-              if (!$file->isFile() || $file->isLink()) {
-                  continue;
-              }
-              $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
-              if ($relative === 'app/update.manifest.json' ||
-                  str_starts_with($relative, '.git/') ||
-                  str_starts_with($relative, 'ssd/') ||
-                  str_starts_with($relative, 'vendor/') ||
-                  str_starts_with($relative, 'node_modules/')) {
-                  continue;
-              }
-              $files[$relative] = hash_file('sha256', $file->getPathname());
-              $total += $file->getSize();
-          }
-          ksort($files, SORT_STRING);
-          $manifest['files'] = $files;
-          $manifest['file_count'] = count($files);
-          $manifest['total_uncompressed_bytes'] = $total;
-          $manifest['updated_at'] = gmdate('c');
-          file_put_contents(
-              $manifestPath,
-              json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
-          );
-          PHP
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/update.manifest.json app/architecture.manifest.json app/prontoo.php br/index.php CHANGELOG.md
-          git diff --cached --quiet && exit 0
-          git commit -m "Sincronizar contratos de release"
-          git push origin HEAD:${GITHUB_HEAD_REF}
-  validate:
-    if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
-          extensions: pdo_mysql
+          php tools/release-contract-reconcile --check
       - name: Validate documentation contract
         shell: bash
         run: |

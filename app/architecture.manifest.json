@@ -1,5 +1,5 @@
 {
-    "version": "1.8.7.6",
+    "version": "1.8.7.7",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
@@ -110,7 +110,7 @@
     "function_documentation_closures": 0,
     "function_documentation_arrows": 0,
     "function_documentation_ci": ".github/workflows/architecture.yml",
-    "logic_changes": true,
+    "logic_changes": false,
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
     "commissioned_installation_lockdown": {
@@ -129,8 +129,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "server_only_supervised_parent_cycle_with_read_only_preflight_reserved_rule_budget_and_independent_stage_health",
-    "generated_at": "2026-08-07T21:30:00+00:00",
-    "updated_at": "2026-08-07T21:30:00+00:00",
+    "generated_at": "2026-08-07T22:00:00+00:00",
+    "updated_at": "2026-08-07T22:00:00+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -216,8 +216,8 @@
         "app/Support/Telemetry.php"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.7.6",
-    "build": "1.8.7.6-login-readiness-separation",
+    "release": "1.8.7.7",
+    "build": "1.8.7.7-deterministic-release-contract",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -227,8 +227,8 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.7.5",
-    "deployment_sync_id": "github-prontoo-1.8.7.6-login-readiness-separation",
+    "previous_version": "1.8.7.6",
+    "deployment_sync_id": "github-prontoo-1.8.7.7-deterministic-release-contract",
     "notes": "Conformidade PHP 8.4 preservada para a baseline 1.8.6.1 e validação dinâmica integral para arquivos PHP novos.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
@@ -240,5 +240,7 @@
     "php84_conformance_policy": "release_1_8_6_1_baseline_preserved_and_every_current_tracked_php_file_linted_and_deprecation_checked",
     "telemetry_policy": "one_completed_html_document_navigation_equals_one_page_load_event",
     "telemetry_timing_policy": "first_front_controller_executable_line_to_last_useful_render_line",
-    "solid_completion_policy": "strict_zero_objective_findings_zero_actionable_hotspots_composition_root_wiring_excluded_from_conditional_extension_heuristics"
+    "solid_completion_policy": "strict_zero_objective_findings_zero_actionable_hotspots_composition_root_wiring_excluded_from_conditional_extension_heuristics",
+    "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_only_deep_maintenance_requires_explicit_operational_force",
+    "release_reconciliation_policy": "version_json_canonical_deterministic_outputs_ci_read_only_exact_validated_sha_equals_merge_candidate"
 }
