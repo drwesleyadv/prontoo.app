@@ -31,27 +31,36 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, complementa a
 7. `SqlExpression` foi decomposto em scanner lexical, parser de mutações e analisador de predicados.
 8. Documents foi dividido em políticas de identificador, tipo, template e HTML.
 9. Audit Activity foi dividido em políticas de texto, alvo, registro, taxonomia, apresentação, escrita e documentos.
-10. A consolidação `1.8.7.1` removeu os tombstones vazios de `Core/Database/SqlScopeGuard.php`, `Core/Integrity/AuditChain.php` e `Core/Integrity/PiIntegrity.php`. A baseline PHP 8.4 passou a registrar explicitamente os respectivos destinos canônicos, sem exigir a permanência de paths sem implementação.
+10. A consolidação `1.8.7.1` removeu seis tombstones namespace-only deixados por migrações ou decomposições já concluídas: três antigos paths de Core e três antigos containers de Audit Activity/Documents. A baseline PHP 8.4 registra os destinos canônicos, inclusive decomposições um-para-muitos, sem exigir a permanência de paths sem implementação.
 
 ## Métricas protegidas
 
 Após a consolidação da baseline estrutural, o contrato registra:
 
 - 100% de classificação arquitetural;
-- `native_files_min = 281` unidades nativas efetivas;
+- `native_files_min = 278` unidades nativas efetivas;
 - `transitional_files_max = 51`, limitado às fronteiras de compatibilidade e entrypoints não namespaced;
 - zero arquivos nativos vazios;
 - zero funções globais em arquivos nativos;
 - zero achados objetivos no auditor SOLID;
 - zero hotspots acionáveis no auditor SOLID.
 
-O valor anterior de 284 incluía três arquivos namespace-only mantidos apenas para contornar a ausência de migração de path no contrato PHP 8.4. A correção para 281 não representa regressão arquitetural: remove contagem artificial e estabelece a nova baseline efetiva. A partir de `1.8.7.1`, a quantidade de unidades nativas efetivas não pode diminuir e o teto de compatibilidade não pode aumentar.
+O valor anterior de 284 incluía seis arquivos namespace-only sem implementação: três preservados por limitação da baseline PHP 8.4 e três deixados após a decomposição final de Audit Activity/Documents. A correção para 278 não representa regressão arquitetural: nenhuma implementação executável foi removida; apenas a contagem artificial foi eliminada. A partir de `1.8.7.1`, a quantidade de unidades nativas efetivas não pode diminuir e o teto de compatibilidade não pode aumentar.
 
 Novas funcionalidades devem nascer diretamente em unidades nativas; compatibility adapters existem somente para preservar a API histórica enquanto houver consumidores globais.
 
 ## Baseline PHP 8.4 e migrações de path
 
-`version.json` é a fonte canônica de `php84_baseline_path_migrations`. Um arquivo presente na auditoria integral `1.8.6.1` só pode desaparecer quando existir um destino explícito, rastreado e atual. O contrato falha se a origem continuar como tombstone, se o destino estiver ausente ou se a origem declarada não pertencer à baseline histórica.
+`version.json` é a fonte canônica de `php84_baseline_path_migrations`. Um arquivo presente na auditoria integral `1.8.6.1` só pode desaparecer quando existir ao menos um destino explícito, rastreado e atual. O contrato aceita migração um-para-um e decomposição um-para-muitos, exigindo todos os destinos declarados. Ele falha se a origem continuar como tombstone, se qualquer destino estiver ausente ou se a origem declarada não pertencer à baseline histórica.
+
+As seis origens consolidadas são:
+
+- `app/Core/Database/SqlScopeGuard.php` → `app/Core/Invariant/Tenant/SqlScopeGuard.php`;
+- `app/Core/Integrity/AuditChain.php` → `app/Infrastructure/Audit/AuditChain.php`;
+- `app/Core/Integrity/PiIntegrity.php` → `app/Infrastructure/Integrity/PiIntegrity.php`;
+- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php` → policies de copy, target, record, taxonomy e value;
+- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php` → policies de display, target, write e documentos;
+- `app/Domain/Legacy/Documents/DocumentsDomainOperations01.php` → policies de identifier, type, template e HTML.
 
 ## Regra de conclusão
 
