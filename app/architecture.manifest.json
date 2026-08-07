@@ -4,9 +4,9 @@
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 59,
-    "transitional_files_max": 82,
-    "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_baseline_82_must_not_increase",
+    "native_files_min": 284,
+    "transitional_files_max": 51,
+    "native_migration_policy": "native_file_count_must_not_decrease_and_compatibility_boundary_ceiling_51_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
         "domain": "business contracts independent from HTTP and persistence",
@@ -28,7 +28,7 @@
     "action_audit_policy": "action_literals_are_matched_against_contracts_declared_for_the_same_source_file",
     "architecture_check": "tools/architecture-check.php",
     "ci_workflow": ".github/workflows/architecture.yml",
-    "solid_policy": "solid-structural-contract-v1",
+    "solid_policy": "solid-structural-contract-v3",
     "solid_check": "tools/solid-audit",
     "solid_runtime_composition_policy": "boot_policy_module_catalog_module_loading_and_concrete_composition_are_separate_native_runtime_units_with_thin_legacy_facade",
     "solid_runtime_composition_components": [
@@ -239,5 +239,6 @@
     "php_runtime_policy": "exact_php_8_4_family_web_cli_ci_fail_closed",
     "php84_conformance_policy": "release_1_8_6_1_baseline_preserved_and_every_current_tracked_php_file_linted_and_deprecation_checked",
     "telemetry_policy": "one_completed_html_document_navigation_equals_one_page_load_event",
-    "telemetry_timing_policy": "first_front_controller_executable_line_to_last_useful_render_line"
+    "telemetry_timing_policy": "first_front_controller_executable_line_to_last_useful_render_line",
+    "solid_completion_policy": "strict_zero_objective_findings_zero_actionable_hotspots_composition_root_wiring_excluded_from_conditional_extension_heuristics"
 }

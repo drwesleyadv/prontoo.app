@@ -116,7 +116,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          php tools/solid-audit
+          php tools/solid-audit --strict
       - name: Schema contract
         shell: bash
         run: |

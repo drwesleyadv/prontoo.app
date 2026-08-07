@@ -3,39 +3,39 @@ declare(strict_types=1);
 require_once dirname(__DIR__, 2) . '/Runtime/Autoload/ProntooAutoloader.php';
 function document_identifier_consonants(): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_consonants();
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_consonants();
 }
 function document_identifier_base(): int
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_base();
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_base();
 }
 function document_identifier_random_alphabet(): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_random_alphabet();
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_random_alphabet();
 }
 function document_identifier_valid_alphabet(string $alphabet): bool
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_valid_alphabet($alphabet);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_valid_alphabet($alphabet);
 }
 function document_identifier_digits(int $sequence): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_digits($sequence);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_digits($sequence);
 }
 function document_identifier_numeric_part(int $sequence): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_numeric_part($sequence);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_numeric_part($sequence);
 }
 function document_identifier_encode(int $sequence, string $alphabet): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_encode($sequence, $alphabet);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_encode($sequence, $alphabet);
 }
 function document_identifier_display(?string $identifier): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_display($identifier);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_display($identifier);
 }
 function document_identifier_capacity_for_length(int $length = 3): int
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_identifier_capacity_for_length($length);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_identifier_capacity_for_length($length);
 }
 function document_assign_identifier(int $cid, int $docId): string
 {
@@ -43,7 +43,7 @@ function document_assign_identifier(int $cid, int $docId): string
 }
 function document_print_header_html(?string $identifier): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_print_header_html($identifier);
+    return \Prontoo\Domain\Legacy\Documents\DocumentIdentifierPolicy::document_print_header_html($identifier);
 }
 function document_print_footer_html(?string $identifier): string
 {
@@ -51,15 +51,15 @@ function document_print_footer_html(?string $identifier): string
 }
 function document_status_label(string $status): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_status_label($status);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_status_label($status);
 }
 function document_status_class(string $status): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_status_class($status);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_status_class($status);
 }
 function document_editable_status(string $status): bool
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_editable_status($status);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_editable_status($status);
 }
 function create_document_draft_from_template(
     array $c,
@@ -92,23 +92,23 @@ function confirm_document_issue(array $c, int $docId): void
 }
 function document_type_options(): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_type_options();
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_type_options();
 }
 function document_system_field_groups(): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_system_field_groups();
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_system_field_groups();
 }
 function document_system_fields(): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_system_fields();
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_system_fields();
 }
 function document_allowed_types_for_role(string $role): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_allowed_types_for_role($role);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_allowed_types_for_role($role);
 }
 function document_type_options_for_role(string $role): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_type_options_for_role($role);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_type_options_for_role($role);
 }
 function document_role_config(string $role, int $cid): array
 {
@@ -129,7 +129,7 @@ function document_ds_status_chip(string $status): string
 }
 function document_ds_type_label(array $typeOptions, ?string $type): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_ds_type_label($typeOptions, $type);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTypePolicy::document_ds_type_label($typeOptions, $type);
 }
 function document_ds_recent_row(array $d, array $typeOptions): string
 {
@@ -147,11 +147,11 @@ if (!function_exists("cpf_br")) {
 }
 function document_template_visible_where(array $c, string $alias = "dt"): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_template_visible_where($c, $alias);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTemplatePolicy::document_template_visible_where($c, $alias);
 }
 function can_edit_document_template(array $c, array $tpl): bool
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::can_edit_document_template($c, $tpl);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTemplatePolicy::can_edit_document_template($c, $tpl);
 }
 function document_template_status_after_save(
     array $c,
@@ -162,11 +162,11 @@ function document_template_status_after_save(
 }
 function document_can_issue_template(array $c, array $tpl): bool
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_can_issue_template($c, $tpl);
+    return \Prontoo\Domain\Legacy\Documents\DocumentTemplatePolicy::document_can_issue_template($c, $tpl);
 }
 function document_sanitize_html(string $html): string
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_sanitize_html($html);
+    return \Prontoo\Domain\Legacy\Documents\DocumentHtmlPolicy::document_sanitize_html($html);
 }
 function document_body_to_html(string $body): string
 {
@@ -193,7 +193,7 @@ function document_print_document_shell_html(
 }
 function document_body_is_empty(string $html): bool
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_body_is_empty($html);
+    return \Prontoo\Domain\Legacy\Documents\DocumentHtmlPolicy::document_body_is_empty($html);
 }
 function document_issue_meta_sentence(
     ?string $issuedName,
@@ -237,7 +237,7 @@ function document_appointment_select_field(
 }
 function document_context_json_decode(mixed $raw): array
 {
-    return \Prontoo\Domain\Legacy\Documents\DocumentsDomainOperations01::document_context_json_decode($raw);
+    return \Prontoo\Domain\Legacy\Documents\DocumentHtmlPolicy::document_context_json_decode($raw);
 }
 function document_context_json_encode(array $context): string
 {
