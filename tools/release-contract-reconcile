@@ -67,8 +67,77 @@ $canonicalChangelog = static function (string $source, string $release, array $v
         }
         return $updated;
     }
-    return $prefix . PHP_EOL . $entry . PHP_EOL . substr($source, strlen($prefix));
+    return $prefix . PHP_EOL . $entry . substr($source, strlen($prefix));
 };
+
+$documentationWorkflow = <<<'YAML'
+name: Documentation Contract
+
+on:
+  pull_request:
+  push:
+    branches:
+      - prontoo
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Deterministic release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-contract-reconcile --check
+      - name: Validate documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
+YAML;
+$documentationWorkflow .= PHP_EOL;
+
+$architectureWorkflowPath = $root . '/.github/workflows/architecture.yml';
+$architectureWorkflow = (string) file_get_contents($architectureWorkflowPath);
+$architectureNeedle = "          php tools/version-asset-contract-check.php\n          php tools/php84-runtime-contract-check\n";
+$architectureCheck = "          php tools/release-contract-reconcile --check\n";
+$architectureCheckCount = substr_count($architectureWorkflow, $architectureCheck);
+if ($architectureCheckCount === 0) {
+    $needleCount = substr_count($architectureWorkflow, $architectureNeedle);
+    if ($needleCount !== 1) {
+        throw new RuntimeException('Ponto canônico do release contract não foi localizado no Architecture Contract.');
+    }
+    $architectureWorkflow = str_replace(
+        $architectureNeedle,
+        $architectureNeedle . $architectureCheck,
+        $architectureWorkflow,
+    );
+} elseif ($architectureCheckCount !== 1) {
+    throw new RuntimeException('Architecture Contract contém release check duplicado.');
+}
 
 $versionPath = $root . '/version.json';
 $manifestPath = $root . '/app/update.manifest.json';
@@ -108,6 +177,7 @@ foreach ([
     'schema_changes' => 'schema_changes',
     'visual_changes' => 'visual_changes',
     'runtime_readiness_policy' => 'runtime_readiness_policy',
+    'release_reconciliation_policy' => 'release_reconciliation_policy',
 ] as $target => $sourceKey) {
     if (array_key_exists($sourceKey, $version)) {
         $architecture[$target] = $version[$sourceKey];
@@ -157,6 +227,8 @@ if (array_key_exists('installer_access_policy', $version)) {
 $manifest['updated_at'] = (string) $version['updated_at'];
 
 $canonicalOverrides = [
+    '.github/workflows/architecture.yml' => $architectureWorkflow,
+    '.github/workflows/documentation.yml' => $documentationWorkflow,
     'app/prontoo.php' => $prontoo,
     'br/index.php' => $landing,
     'CHANGELOG.md' => $changelog,
@@ -192,6 +264,8 @@ $manifest['total_uncompressed_bytes'] = $total;
 $manifestContent = $encodeJson($manifest);
 
 $expected = [
+    '.github/workflows/architecture.yml' => $architectureWorkflow,
+    '.github/workflows/documentation.yml' => $documentationWorkflow,
     'app/prontoo.php' => $prontoo,
     'br/index.php' => $landing,
     'CHANGELOG.md' => $changelog,
