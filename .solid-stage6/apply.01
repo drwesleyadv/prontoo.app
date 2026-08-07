@@ -1,0 +1,42 @@
+replace("self::sessionInt('clinic_id'),", "self::contextInt('clinic_id'),")
+s=s.replace("self::sessionInt('uid'),", "self::contextInt('user_id'),")
+s=s.replace("function_exists('session_clinic_role_code') ? (string) \\session_clinic_role_code() : null,", "(string) (self::$runtimeContext['role'] ?? ''),")
+s=s.replace("    private static function sessionInt(string $key): ?int\n    {\n\n        $value = (int) ($_SESSION[$key] ?? 0);\n        return $value > 0 ? $value : null;\n    }", "    private static function contextInt(string $key): ?int\n    {\n        $value = (int) (self::$runtimeContext[$key] ?? 0);\n        return $value > 0 ? $value : null;\n    }")
+write(new,s)
+write(old,"<?php\ndeclare(strict_types=1);\n\nnamespace Prontoo\\Core\\Integrity;\n")
+
+# Move AuditChain to Infrastructure/Audit; proof context must come from composition.
+old='app/Core/Integrity/AuditChain.php'; new='app/Infrastructure/Audit/AuditChain.php'; s=read(old)
+s=s.replace('namespace Prontoo\\Core\\Integrity;', 'namespace Prontoo\\Infrastructure\\Audit;')
+s=s.replace('$proofContext ?? self::runtimeProofContext(),', '$proofContext ?? [],')
+s=re.sub(r'\n    private static function runtimeProofContext\(\): array\n    \{.*?\n    \}\n', '\n', s, flags=re.S)
+write(new,s)
+write(old,"<?php\ndeclare(strict_types=1);\n\nnamespace Prontoo\\Core\\Integrity;\n")
+
+# Update namespaces/paths for integrity implementations.
+for pth in list((root/'app').rglob('*.php'))+list((root/'tools').rglob('*')):
+    if not pth.is_file(): continue
+    try: txt=pth.read_text()
+    except UnicodeDecodeError: continue
+    orig=txt
+    txt=txt.replace('\\Prontoo\\Core\\Integrity\\PiIntegrity', '\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')
+    txt=txt.replace('Prontoo\\Core\\Integrity\\PiIntegrity', 'Prontoo\\Infrastructure\\Integrity\\PiIntegrity')
+    txt=txt.replace('\\Prontoo\\Core\\Integrity\\AuditChain', '\\Prontoo\\Infrastructure\\Audit\\AuditChain')
+    txt=txt.replace('Prontoo\\Core\\Integrity\\AuditChain', 'Prontoo\\Infrastructure\\Audit\\AuditChain')
+    txt=txt.replace("__DIR__ . '/Core/Integrity/AuditChain.php'", "__DIR__ . '/Infrastructure/Audit/AuditChain.php'")
+    txt=txt.replace("__DIR__ . '/Core/Integrity/PiIntegrity.php'", "__DIR__ . '/Infrastructure/Integrity/PiIntegrity.php'")
+    if txt!=orig: pth.write_text(txt)
+
+# Configure PiIntegrity from composition root after route/session are available.
+p='app/Runtime/Runner.php'; s=read(p)
+needle="            $route = \\route();\n            \\telemetry_route_identify($route);"
+insert="""            $route = \\route();\n            \\Prontoo\\Infrastructure\\Integrity\\PiIntegrity::configureRuntimeContext([\n                'route' => $route,\n                'clinic_id' => (int) ($_SESSION['clinic_id'] ?? 0),\n                'user_id' => (int) ($_SESSION['uid'] ?? 0),\n                'role' => (string) ($_SESSION['role_code'] ?? ''),\n            ]);\n            \\telemetry_route_identify($route);"""
+if needle not in s: print('WARN Runner needle missing')
+else: s=s.replace(needle,insert,1)
+write(p,s)
+
+# Audit runtime now creates proof context at the composition boundary.
+p='app/Runtime/Legacy/AuditActivity/AuditActivityRuntimeOperations04.php'; s=read(p)
+needle='''                $forcedProofContext = $origin["proof_context"];\n                $c = $skipRuntimeContext ? [] : ctx();'''
+insert='''                $forcedProofContext = $origin["proof_context"];\n                $c = $skipRuntimeContext ? [] : ctx();\n                if ($forcedProofContext === null) {\n                    $forcedProofContext = [\n                        "route" => function_exists("route") ? (string) route() : "",\n                        "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),\n                        "scope" => (string) ($c["scope"] ?? ""),\n                        "clinic_id" => $c["clinic_id"] ?? null,\n                        "role" => (string) ($c["role"] ?? ""),\n                    ];\n                }'''
+if
