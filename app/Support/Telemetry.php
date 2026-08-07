@@ -117,7 +117,7 @@ function telemetry_page_response_candidate(int $statusCode): bool
 
 function telemetry_retention_microseconds(): int
 {
-    return 20 * 86400 * 1000000;
+    return 31 * 86400 * 1000000;
 }
 
 function telemetry_comparison_microseconds(): int
@@ -129,6 +129,12 @@ function telemetry_cuiaba_tz(): DateTimeZone
 {
     static $timezone = null;
     return $timezone ??= new DateTimeZone("America/Cuiaba");
+}
+
+function telemetry_day_axis_label(DateTimeImmutable $day): string
+{
+    $weekdays = ["D", "S", "T", "Q", "Q", "S", "S"];
+    return $weekdays[(int) $day->format("w")] . $day->format("d");
 }
 
 function telemetry_route_safe(string $route): string
@@ -692,12 +698,12 @@ function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array
         ->setTimezone($timezone)
         ->setTime(0, 0);
     $days = [];
-    for ($offset = 19; $offset >= 0; $offset--) {
+    for ($offset = 29; $offset >= 0; $offset--) {
         $day = $today->modify("-" . $offset . " days");
         $key = $day->format("Y-m-d");
         $days[$key] = [
             "ts" => $day->getTimestamp(),
-            "label" => $day->format("d/m"),
+            "label" => telemetry_day_axis_label($day),
             "tooltip" => $day->format("d/m/Y"),
             "value" => 0,
         ];
@@ -728,19 +734,19 @@ function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
     $days = [];
     $select = [];
     $params = [];
-    for ($i = 19; $i >= 0; $i--) {
+    for ($i = 29; $i >= 0; $i--) {
         $day = $today->modify("-" . $i . " days");
         $next = $day->modify("+1 day");
         $key = $day->format("Y-m-d");
         $days[$key] = [
   "key" => $key,
-  "label" => $day->format("d"),
+  "label" => telemetry_day_axis_label($day),
   "tooltip" => $day->format("d/m/Y"),
   "value" => 0,
         ];
         $select[] =
   "SUM(CASE WHEN created_at>=? AND created_at<? AND status='committed' THEN mutation_count ELSE 0 END) AS d" .
-  (19 - $i);
+  (29 - $i);
         $params[] = $day->getTimestamp();
         $params[] = $next->getTimestamp();
     }
