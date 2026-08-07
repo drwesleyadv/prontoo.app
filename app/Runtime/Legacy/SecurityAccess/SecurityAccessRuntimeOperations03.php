@@ -120,7 +120,7 @@ final class SecurityAccessRuntimeOperations03
                 $fingerprint,
                 scope_violation_evidence_payload($sql, $detail),
             ];
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 [
                     $ins,
                     $params,

@@ -190,7 +190,7 @@ final class FinancialRuntimeOperations05
             "sessions" => $sessions,
             "movements" => $movements,
         ];
-        $canonical = class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")
+        $canonical = class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")
             ? \Prontoo\Infrastructure\Integrity\PiIntegrity::canonicalJson($payload)
             : (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: "{}");
         return [

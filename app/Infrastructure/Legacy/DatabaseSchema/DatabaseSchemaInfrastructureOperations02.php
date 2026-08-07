@@ -495,7 +495,7 @@ final class DatabaseSchemaInfrastructureOperations02
         $GLOBALS["PRONTOO_INSTALL_LAST_SCHEMA_SQL"] = $sql;
         try {
             pdo()->exec($sql);
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::proveSchemaOperation(
                     $sql,
                     true,
@@ -503,7 +503,7 @@ final class DatabaseSchemaInfrastructureOperations02
                 );
             }
         } catch (Throwable $error) {
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::proveSchemaOperation(
                     $sql,
                     false,
