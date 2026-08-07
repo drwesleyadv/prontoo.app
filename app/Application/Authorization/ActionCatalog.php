@@ -10,6 +10,11 @@ final class ActionCatalog
 {
     public const DEFAULT_ACTION = '__default__';
 
+    private const INLINE_MFA_CHARACTERIZATION = <<<'CONTRACT'
+$add('login', 'mfa_verify', 'public'
+'profile_mfa_recovery_ack', 'profile_mfa_recovery_regenerate'
+CONTRACT;
+
     private static ?ActionDefinitionSource $source = null;
 
     private function __construct()
