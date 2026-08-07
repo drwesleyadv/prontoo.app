@@ -8,8 +8,7 @@ function prontoo_speed_chart_geometry_script(): string
 (() => {
     const straighten = () => {
         document.querySelectorAll('.metric-dual-time-chart').forEach((chart) => {
-            const title = chart.querySelector('h3')?.textContent?.trim() || '';
-            if (title !== 'Velocidade' || chart.dataset.straightGeometry === '1') {
+            if (chart.dataset.performanceSpeedChart !== '1' || chart.dataset.straightGeometry === '1') {
                 return;
             }
             chart.dataset.straightGeometry = '1';
@@ -67,7 +66,7 @@ function prontoo_register_speed_chart_geometry(): void
         return;
     }
     ob_start(static function (string $html): string {
-        if (!str_contains($html, 'metric-dual-time-chart') || !str_contains($html, '</body>')) {
+        if (!str_contains($html, 'data-performance-speed-chart="1"') || !str_contains($html, '</body>')) {
             return $html;
         }
         return str_replace('</body>', prontoo_speed_chart_geometry_script() . '</body>', $html);
