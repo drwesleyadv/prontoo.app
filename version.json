@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Auditoria de consolidação pós-SOLID: remove seis tombstones de paths já migrados ou decompostos, torna migrações da baseline PHP 8.4 explícitas e alinha contratos, documentação e release.",
+    "notes": "Auditoria de consolidação pós-SOLID: remove seis tombstones de paths já migrados ou decompostos, separa migrações históricas PHP 8.4 de decomposições pós-baseline e alinha contratos, documentação e release.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -56,7 +56,7 @@
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "solid_consolidation_native_baseline_path_migrations_and_contract_alignment",
+    "rewrite_scope": "solid_consolidation_native_baseline_path_migrations_post_baseline_decompositions_and_contract_alignment",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
     "release_date": "2026-08-07",
@@ -64,7 +64,9 @@
     "php84_baseline_path_migrations": {
         "app/Core/Database/SqlScopeGuard.php": "app/Core/Invariant/Tenant/SqlScopeGuard.php",
         "app/Core/Integrity/AuditChain.php": "app/Infrastructure/Audit/AuditChain.php",
-        "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php",
+        "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php"
+    },
+    "native_consolidation_path_decompositions": {
         "app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php": [
             "app/Domain/Legacy/AuditActivity/AuditCopyPolicy.php",
             "app/Domain/Legacy/AuditActivity/AuditTargetPolicy.php",
@@ -88,8 +90,8 @@
     "changelog": {
         "title": "Auditoria de consolidação pós-SOLID",
         "items": [
-            "remove seis tombstones vazios deixados por migrações ou decomposições já concluídas e registra seus destinos canônicos na baseline PHP 8.4",
-            "fortalece o contrato arquitetural para rejeitar unidade nativa sem class, interface, trait ou enum",
+            "remove seis tombstones vazios: três paths históricos com migração PHP 8.4 e três containers pós-baseline já decompostos em policies coesas",
+            "fortalece o contrato arquitetural para rejeitar unidade nativa sem class, interface, trait ou enum e validar decomposições pós-baseline declaradas",
             "corrige a documentação DIP para refletir a direção real de dependências permitida pelo contrato executável",
             "sincroniza automaticamente versão, build, fallbacks e manifests a partir de version.json durante o Documentation Contract",
             "preserva banco de dados, schema, rotas funcionais, layout e assets públicos"
