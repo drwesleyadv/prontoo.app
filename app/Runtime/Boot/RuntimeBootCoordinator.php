@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Boot;
 
 use PDO;
+use RuntimeException;
 use Throwable;
 
 final class RuntimeBootCoordinator
@@ -27,14 +28,21 @@ final class RuntimeBootCoordinator
         ) . '.json';
     }
 
-    public static function schemaMarkerValid(int $ttlSeconds = 0): bool
+    public static function readinessMarkerPath(): string
     {
-        if ($ttlSeconds <= 0) {
-            $ttlSeconds = defined('PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS')
-                ? (int) PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS
-                : 43200;
+        $dir = \storage_path('cache');
+        if (!is_dir($dir)) {
+            \prontoo_fs_mkdir($dir);
         }
-        $file = self::schemaMarkerPath();
+        return $dir . '/prontoo_runtime_readiness_' . hash(
+            'sha256',
+            (defined('PRONTOO_SCHEMA_REV') ? PRONTOO_SCHEMA_REV : 'schema') . '|' .
+            (defined('PRONTOO_VERSION') ? PRONTOO_VERSION : 'version'),
+        ) . '.json';
+    }
+
+    private static function markerValid(string $file, int $ttlSeconds): bool
+    {
         if (!is_file($file) || time() - filemtime($file) > $ttlSeconds) {
             return false;
         }
@@ -42,10 +50,31 @@ final class RuntimeBootCoordinator
         $json = is_string($raw) ? json_decode($raw, true) : null;
         return is_array($json) &&
             !empty($json['ok']) &&
-            ($json['rev'] ?? '') === (defined('PRONTOO_SCHEMA_REV') ? PRONTOO_SCHEMA_REV : '');
+            ($json['rev'] ?? '') === (defined('PRONTOO_SCHEMA_REV') ? PRONTOO_SCHEMA_REV : '') &&
+            ($json['version'] ?? '') === (defined('PRONTOO_VERSION') ? PRONTOO_VERSION : '');
     }
 
-    public static function markSchemaOk(string $mode): void
+    public static function schemaMarkerValid(int $ttlSeconds = 0): bool
+    {
+        if ($ttlSeconds <= 0) {
+            $ttlSeconds = defined('PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS')
+                ? (int) PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS
+                : 43200;
+        }
+        return self::markerValid(self::schemaMarkerPath(), $ttlSeconds);
+    }
+
+    public static function readinessMarkerValid(int $ttlSeconds = 0): bool
+    {
+        if ($ttlSeconds <= 0) {
+            $ttlSeconds = defined('PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS')
+                ? (int) PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS
+                : 43200;
+        }
+        return self::markerValid(self::readinessMarkerPath(), $ttlSeconds);
+    }
+
+    private static function writeMarker(string $file, string $mode): void
     {
         $payload = json_encode([
             'ok' => true,
@@ -54,9 +83,20 @@ final class RuntimeBootCoordinator
             'version' => PRONTOO_VERSION,
             'at' => date('c'),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (is_string($payload)) {
-            \prontoo_fs_write(self::schemaMarkerPath(), $payload);
+        if (!is_string($payload)) {
+            throw new RuntimeException('Não foi possível serializar o marcador de runtime.');
         }
+        \prontoo_fs_write($file, $payload);
+    }
+
+    public static function markSchemaOk(string $mode): void
+    {
+        self::writeMarker(self::schemaMarkerPath(), $mode);
+    }
+
+    public static function markReadinessOk(string $mode): void
+    {
+        self::writeMarker(self::readinessMarkerPath(), $mode);
     }
 
     public static function bootDatabaseForRoute(string $route, bool $publicLight, bool $forceDeep): void
@@ -70,21 +110,69 @@ final class RuntimeBootCoordinator
             }
             return;
         }
-        $mustDeep = $forceDeep || !self::schemaMarkerValid(
-            defined('PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS')
-                ? (int) PRONTOO_RUNTIME_DEEP_BOOT_TTL_SECONDS
-                : 43200,
-        );
-        if ($mustDeep) {
-            self::runMaintenanceCycle('route_deep');
+        if ($forceDeep) {
+            $maintenance = self::runMaintenanceCycle('forced_deep');
+            if (empty($maintenance['ok'])) {
+                throw new RuntimeException('Manutenção profunda do runtime não pôde ser concluída.');
+            }
             return;
         }
-        if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
-            \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
+        $readiness = self::runReadinessCycle('route_readiness');
+        if (empty($readiness['ok'])) {
+            throw new RuntimeException('Prontidão mínima do runtime não pôde ser confirmada.');
         }
     }
 
-    public static function runMaintenanceCycle(string $mode = 'route_deep', int $uid = 0): array
+    public static function runReadinessCycle(string $mode = 'route_readiness', int $uid = 0): array
+    {
+        $startedAt = microtime(true);
+        $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
+        if (self::readinessMarkerValid()) {
+            return $result + ['ok' => true, 'ran' => false, 'reason' => 'readiness_marker_fresh'];
+        }
+        $lockDir = \storage_path('cache/locks');
+        if (!is_dir($lockDir) && !@mkdir($lockDir, 0750, true) && !is_dir($lockDir)) {
+            return $result + ['ran' => false, 'reason' => 'readiness_lock_unavailable'];
+        }
+        $lockHandle = @fopen(
+            $lockDir . '/runtime-readiness-' . hash('sha256', PRONTOO_SCHEMA_REV) . '.lock',
+            'c+',
+        );
+        if (!is_resource($lockHandle)) {
+            return $result + ['ran' => false, 'reason' => 'readiness_lock_unavailable'];
+        }
+        try {
+            if (!flock($lockHandle, LOCK_EX)) {
+                return $result + ['ran' => false, 'reason' => 'readiness_lock_failed'];
+            }
+            if (self::readinessMarkerValid()) {
+                return $result + ['ok' => true, 'ran' => false, 'reason' => 'readiness_completed_concurrently'];
+            }
+            \prontoo_load_full_runtime_modules();
+            \ensure_runtime_schema_minimum();
+            $result['steps'][] = 'schema_contract';
+            if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
+                $result['steps'][] = 'integrity_lightcheck';
+            }
+            self::markReadinessOk($mode);
+            $result['ok'] = true;
+            $result['ran'] = true;
+            $result['duration_ms'] = (int) round(
+                (microtime(true) - $startedAt) * 1000,
+                0,
+                \RoundingMode::HalfAwayFromZero,
+            );
+            return $result;
+        } finally {
+            if (is_resource($lockHandle)) {
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+            }
+        }
+    }
+
+    public static function runMaintenanceCycle(string $mode = 'forced_deep', int $uid = 0): array
     {
         $startedAt = microtime(true);
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
@@ -103,7 +191,7 @@ final class RuntimeBootCoordinator
             return $result + ['ok' => true, 'ran' => false, 'reason' => 'maintenance_in_progress'];
         }
         try {
-            if (in_array($mode, ['route_deep', 'post_password_login'], true) && self::schemaMarkerValid()) {
+            if (self::schemaMarkerValid()) {
                 return $result + ['ok' => true, 'ran' => false, 'reason' => 'maintenance_already_completed'];
             }
             \prontoo_load_full_runtime_modules();
@@ -124,6 +212,7 @@ final class RuntimeBootCoordinator
                 $result['steps'][] = 'pdf_cleanup';
             }
             self::markSchemaOk($mode);
+            self::markReadinessOk($mode);
             $result['ok'] = true;
             $result['ran'] = true;
             $result['duration_ms'] = (int) round(
@@ -144,39 +233,42 @@ final class RuntimeBootCoordinator
             return ['ok' => true, 'ran' => false, 'reason' => 'already_ran_request'];
         }
         self::$postPasswordMaintenanceDone = true;
-        if (self::schemaMarkerValid()) {
+        if (self::readinessMarkerValid()) {
             return [
                 'ok' => true,
                 'ran' => false,
-                'reason' => 'runtime_marker_fresh',
+                'reason' => 'runtime_readiness_fresh',
                 'uid' => $uid,
                 'steps' => [],
             ];
         }
         try {
-            $result = self::runMaintenanceCycle('post_password_login', $uid);
+            $result = self::runReadinessCycle('post_password_login', $uid);
+            if (empty($result['ok'])) {
+                throw new RuntimeException('Prontidão mínima do runtime não pôde ser confirmada após a senha.');
+            }
             if (function_exists('audit')) {
                 try {
                     \audit('login_manutencao_pos_senha', 'plataforma', $uid, [
                         'duration_ms' => (int) ($result['duration_ms'] ?? 0),
                         'steps' => $result['steps'] ?? [],
-                        'audit_body' => 'Manutenção pesada do runtime executada após confirmação da senha, antes de liberar a sessão autenticada.',
+                        'audit_body' => 'Prontidão mínima do runtime confirmada após a senha; tarefas pesadas permanecem fora do caminho crítico de autenticação.',
                     ]);
                 } catch (Throwable $error) {
-                    error_log('[Prontoo post password maintenance audit] ' . $error->getMessage());
+                    error_log('[Prontoo post password readiness audit] ' . $error->getMessage());
                 }
             }
-            return $result + ['ran' => true];
+            return $result;
         } catch (Throwable $error) {
-            error_log('[Prontoo post password maintenance] ' . $error->getMessage());
+            error_log('[Prontoo post password readiness] ' . $error->getMessage());
             if (function_exists('audit')) {
                 try {
                     \audit('login_manutencao_pos_senha_falhou', 'plataforma', $uid, [
                         'erro_hash' => hash('sha256', $error->getMessage()),
-                        'audit_body' => 'A manutenção pesada pós-senha falhou antes da liberação da sessão autenticada.',
+                        'audit_body' => 'A verificação mínima de prontidão pós-senha falhou antes da liberação da sessão autenticada.',
                     ]);
                 } catch (Throwable $auditError) {
-                    error_log('[Prontoo post password maintenance fail audit] ' . $auditError->getMessage());
+                    error_log('[Prontoo post password readiness fail audit] ' . $auditError->getMessage());
                 }
             }
             throw $error;
