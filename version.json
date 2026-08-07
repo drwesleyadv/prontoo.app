@@ -14,7 +14,8 @@
     "logic_changes": true,
     "visual_changes": false,
     "functional_equivalence_policy": "solid-consolidation-no-functional-behavior-change",
-    "architecture_policy": "php-layered-invariants-v3",
+    "architecture_policy": "php-layered-invariants-v2",
+    "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
     "architecture_native_files_min": 281,
@@ -69,7 +70,7 @@
         "title": "Auditoria de consolidação pós-SOLID",
         "items": [
             "remove três tombstones vazios deixados apenas para satisfazer a baseline PHP 8.4 e passa a declarar suas migrações de path explicitamente",
-            "fortalece o verificador arquitetural para rejeitar unidade nativa sem class, interface, trait ou enum",
+            "fortalece o contrato arquitetural para rejeitar unidade nativa sem class, interface, trait ou enum",
             "corrige a documentação DIP para refletir a direção real de dependências permitida pelo contrato executável",
             "sincroniza automaticamente versão, build, fallbacks e manifests a partir de version.json durante o Documentation Contract",
             "preserva banco de dados, schema, rotas funcionais, layout e assets públicos"
