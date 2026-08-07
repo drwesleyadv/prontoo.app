@@ -112,12 +112,21 @@ foreach ([
     $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
 }
 foreach ([
-    "['route_deep', 'post_password_login']",
-    "'reason' => 'runtime_marker_fresh'",
-    "self::runMaintenanceCycle('post_password_login', \$uid)",
+    "self::runReadinessCycle('route_readiness')",
+    "self::runMaintenanceCycle('forced_deep')",
+    "'reason' => 'runtime_readiness_fresh'",
+    "self::runReadinessCycle('post_password_login', \$uid)",
+    'readinessMarkerPath()',
+    'markReadinessOk($mode)',
     '\\runtime_self_check();',
 ] as $token) {
     $assert(str_contains($bootSource, $token), 'boot_missing:' . $token);
+}
+foreach ([
+    "self::runMaintenanceCycle('post_password_login', \$uid)",
+    "['route_deep', 'post_password_login']",
+] as $token) {
+    $assert(!str_contains($bootSource, $token), 'boot_forbidden:' . $token);
 }
 foreach ([
     'new PdoPatientReadRepository()',
