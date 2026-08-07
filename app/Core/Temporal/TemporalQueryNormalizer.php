@@ -417,7 +417,7 @@ final class TemporalQueryNormalizer
     {
 
         return self::safeTimezone(
-            (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? PiTime::FALLBACK_TZ),
+            (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? self::FALLBACK_TZ),
         );
     }
     public static function safeTimezone(string $tz): string
@@ -426,6 +426,6 @@ final class TemporalQueryNormalizer
         $tz = trim($tz);
         return in_array($tz, \timezone_identifiers_list(), true)
             ? $tz
-            : PiTime::FALLBACK_TZ;
+            : self::FALLBACK_TZ;
     }
 }
