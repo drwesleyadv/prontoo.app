@@ -1,0 +1,96 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$tempRoot = sys_get_temp_dir() . '/prontoo-maestro-runtime-' . getmypid();
+if (!is_dir($tempRoot) && !mkdir($tempRoot, 0750, true) && !is_dir($tempRoot)) {
+    throw new RuntimeException('Não foi possível criar diretório temporário do teste do Maestro.');
+}
+$configPath = $tempRoot . '/config.php';
+$config = [
+    'db_host' => getenv('DB_HOST') ?: '127.0.0.1',
+    'db_name' => getenv('DB_DATABASE') ?: 'prontoo_schema',
+    'db_user' => getenv('DB_USERNAME') ?: 'root',
+    'db_pass' => getenv('DB_PASSWORD') ?: 'root',
+    'secret' => 'prontoo-maestro-runtime-ci-secret',
+    'debug' => true,
+    'app_env' => 'development',
+];
+file_put_contents($configPath, '<?php return ' . var_export($config, true) . ';' . PHP_EOL, LOCK_EX);
+putenv('PRONTOO_CONFIG_PATH=' . $configPath);
+
+$dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $config['db_host'], $config['db_name']);
+$admin = PDO::connect($dsn, $config['db_user'], $config['db_pass'], [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$tables = $admin->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$admin->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $admin->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $admin->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
+require $root . '/app/prontoo.php';
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    install_fresh_schema();
+});
+
+$descriptorSpec = [
+    0 => ['pipe', 'r'],
+    1 => ['pipe', 'w'],
+    2 => ['pipe', 'w'],
+];
+$environment = array_merge($_ENV, [
+    'PRONTOO_CONFIG_PATH' => $configPath,
+    'DB_HOST' => (string) $config['db_host'],
+    'DB_DATABASE' => (string) $config['db_name'],
+    'DB_USERNAME' => (string) $config['db_user'],
+    'DB_PASSWORD' => (string) $config['db_pass'],
+]);
+$process = proc_open([PHP_BINARY, $root . '/cron/maestro.php'], $descriptorSpec, $pipes, $root, $environment);
+if (!is_resource($process)) {
+    throw new RuntimeException('Não foi possível iniciar o cron Maestro no teste de runtime.');
+}
+fclose($pipes[0]);
+$stdout = stream_get_contents($pipes[1]);
+$stderr = stream_get_contents($pipes[2]);
+fclose($pipes[1]);
+fclose($pipes[2]);
+$exitCode = proc_close($process);
+
+$lines = array_values(array_filter(array_map('trim', preg_split('/\R/', (string) $stdout) ?: [])));
+$lastLine = $lines === [] ? '' : (string) $lines[array_key_last($lines)];
+$payload = $lastLine !== '' ? json_decode($lastLine, true) : null;
+if ($exitCode !== 0 || !is_array($payload) || empty($payload['ok'])) {
+    throw new RuntimeException(
+        'Cron Maestro falhou no smoke test. exit=' . $exitCode .
+        ' stdout=' . mb_substr((string) $stdout, 0, 1200) .
+        ' stderr=' . mb_substr((string) $stderr, 0, 1200),
+    );
+}
+$integrity = (array) ($payload['pi_integrity'] ?? []);
+if (empty($integrity['ok']) || empty($integrity['complete'])) {
+    throw new RuntimeException(
+        'Flush de integridade do Maestro não concluiu pela implementação canônica: ' .
+        json_encode($integrity, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    );
+}
+
+echo json_encode([
+    'ok' => true,
+    'policy' => 'maestro-runtime-smoke-v1',
+    'status' => (string) ($payload['status'] ?? ''),
+    'pi_integrity' => $integrity,
+    'preflight' => $payload['preflight'] ?? null,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;

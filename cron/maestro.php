@@ -295,7 +295,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
     $started = microtime(true);
     if (
         $budgetMs < 250 ||
-        !class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")
+        !class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")
     ) {
         return [
             "ok" => $budgetMs < 250,
@@ -308,7 +308,7 @@ function prontoo_cron_integrity_flush(int $budgetMs): array
         ];
     }
     try {
-        \Prontoo\Core\Integrity\PiIntegrity::flushFastEvents();
+        \Prontoo\Infrastructure\Integrity\PiIntegrity::flushFastEvents();
         return [
             "ok" => true,
             "complete" => true,
