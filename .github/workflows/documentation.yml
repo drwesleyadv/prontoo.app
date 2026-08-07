@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -24,20 +24,11 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reconcile diagnostic authentication smoke
+      - name: Deterministic release contract
         shell: bash
         run: |
           set -euo pipefail
-          git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
-          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
-          git diff --check
-          git config user.name 'prontoo-ci'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          test -n "$(git diff --cached --name-only)"
-          git commit -m 'Reconciliar smoke HTTP diagnóstico'
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - name: Validate documentation contract
         shell: bash
         run: |

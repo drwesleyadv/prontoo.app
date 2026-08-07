@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 452,
-    "total_uncompressed_bytes": 5478104,
+    "total_uncompressed_bytes": 5479919,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -469,7 +469,7 @@
         "tools/documentation-check.php": "fe513ae43e8dc3286760384799595fd6f17a99fe0ad9b74a3d1d3959509f2624",
         "tools/install-security-check.php": "5e972bdfe867ea3bc41b1029b3c6ab1016ee4328aff66da24950b46392898090",
         "tools/install-window-contract-check": "6b8a9f718e6d7cda40ee91753698013dd220098647d4252b5ac47144caa623e2",
-        "tools/login-logout-http-smoke": "5c6be98ffb9645c33134329605bbe7c9194f9194d98580a9a9f0e0a5c346da5b",
+        "tools/login-logout-http-smoke": "abd18753a7593b8baef10078dea800b4db00c0a14ce2b3ad9e8e8e07ebad175e",
         "tools/login-post-password-runtime-check": "c504f6ff4d842b4bf861727952dbf34ae817573bc173f21bc81d0ec11c07961e",
         "tools/maestro-runtime-regression-check": "d13e2b8d7980bb7a2b6251355eb12a96b7e3fc29f973f169a27c7466efbd6c12",
         "tools/native-unit-check": "3a54d756b4a7641f1ae527d6616c0bf966b1cd6d552ef1381122b122827a0f37",
