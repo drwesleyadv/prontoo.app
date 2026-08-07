@@ -35,7 +35,7 @@ A busca estrutural identificou como principais superfícies procedurais e de res
 - `app/Ui/Components.php`, `PublicWeb.php` e `SpeedChartGeometry.php`;
 - `app/Support/*` e `app/Database/DatabaseSchema.php`.
 
-A arquitetura nova já demonstra os padrões corretos em `Application/*Port`, `Application/*Service` e `Infrastructure/Pdo*Repository`, além de `CapabilityProvider`/`AuthorizationService` e do composition root `LayeredKernel`.
+A arquitetura nova já demonstra os padrões corretos em `Application/*Port`, `Application/*Service` e `Infrastructure/Pdo*Repository`, além de `CapabilityProvider`/`AuthorizationService` e dos composition roots do Runtime.
 
 ## Achados por princípio
 
@@ -83,6 +83,20 @@ A baseline nativa sobe para 41 arquivos. O contrato histórico PHP 8.4 permanece
 As definições são segregadas em providers coesos para autenticação/clínica, pacientes, agenda/leads, documentos/tarefas, equipe/Maestro, financeiro e administração global. A normalização, agregação e política de requisitos condicionais também foram extraídas para unidades próprias.
 
 Esse estágio aplica SRP, OCP, ISP e DIP ao subsistema de autorização sem alterar o modelo fail-closed nem os contratos exatos de ação. A baseline nativa sobe para 53 arquivos.
+
+### 4. Dispatcher e composição de serviços do runtime
+
+`app/Runtime/Runner.php` deixa de ser um arquivo procedural com catálogo de rotas, resposta JSON, boot, manutenção, despacho e criação de serviços. O runtime passa a usar unidades nativas separadas:
+
+- `app/Runtime/Routing/RouteCatalog.php` para catálogo e classificação de rotas;
+- `app/Presentation/Http/JsonResponder.php` para respostas JSON e mensagens de falha;
+- `app/Runtime/Boot/RuntimeBootCoordinator.php` para boot, marcador de schema, manutenção e flush de integridade;
+- `app/Runtime/Patients/PatientComposition.php` para composição dos casos de uso de pacientes;
+- `app/Runtime/Patients/PatientViewComposition.php` para adaptação das views de pacientes/onboarding;
+- `app/Runtime/Financial/FinancialComposition.php` para composição do recebimento financeiro;
+- `app/Runtime/Runner.php` como dispatcher namespaced, sem funções globais.
+
+As funções `prontoo_*` preexistentes são preservadas somente na fachada de composição já existente `app/Support/ModuleLoader.php`; nenhum novo arquivo transicional é criado. A baseline nativa sobe para 59 arquivos e o teto transicional permanece em 82.
 
 ## Sequência restante
 
