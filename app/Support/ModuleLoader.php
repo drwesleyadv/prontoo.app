@@ -197,8 +197,8 @@ function prontoo_route_module_groups(string $route): array
     $audit = ['audit' => ['Domain/Audit/AuditActivity.php']];
     $clinic = ['clinic' => ['Domain/Clinic/ClinicConfig.php', 'Domain/Clinic/SubscriptionSettings.php']];
     $users = ['users' => ['Domain/Appointments/Appointments.php', 'Domain/Permissions/UsersPermissions.php']];
-    $admin = ['admin' => ['Domain/Leads/Leads.php', 'Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
-    $status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
+    $admin = ['admin' => ['Domain/Leads/Leads.php', 'Domain/Maestro/Maestro.php', 'Admin/AdminPages.php', 'Presentation/PerformanceCommunication.php']];
+    $status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php', 'Presentation/PerformanceCommunication.php']];
     $map = [
         'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
         'status' => $status,
