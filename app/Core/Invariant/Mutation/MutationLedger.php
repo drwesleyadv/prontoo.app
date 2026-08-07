@@ -18,9 +18,9 @@ final class MutationLedger
 
         if (self::$chain === null) {
             self::$chain = Canonical::hash("mutation_genesis", [
-                "route" => function_exists("route") ? \route() : "runtime",
-                "clinic_id" => (int) ($_SESSION["clinic_id"] ?? 0),
-                "user_id" => (int) ($_SESSION["uid"] ?? 0),
+                "route" => (string) ($evidence["route"] ?? "runtime"),
+                "clinic_id" => (int) ($evidence["clinic_id"] ?? 0),
+                "user_id" => (int) ($evidence["user_id"] ?? 0),
             ]);
         }
         $proof = Canonical::hash("mutation", $evidence);

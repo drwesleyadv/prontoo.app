@@ -17,7 +17,7 @@ final class MutationInvariant
 
     }
 
-    public static function guard(string $sql, array $params = []): void
+    public static function guard(string $sql, array $params = [], array $runtimeContext = []): void
     {
 
         $operation = SqlExpression::operation($sql);
@@ -33,7 +33,7 @@ final class MutationInvariant
             );
         }
 
-        $context = TenantContext::resolve();
+        $context = TenantContext::resolve($runtimeContext);
         if (!empty($context["bypass"])) {
             return;
         }
@@ -52,7 +52,7 @@ final class MutationInvariant
         ];
 
         if (is_string($scopeColumn)) {
-            self::assertReadonly($table, $sql, $clinicId);
+            self::assertReadonly($table, $sql, $clinicId, $runtimeContext);
             if (in_array($operation, ["UPDATE", "DELETE"], true)) {
                 if (SqlExpression::whereExpression($sql) === null) {
                     self::deny(
@@ -153,7 +153,8 @@ final class MutationInvariant
             "table" => $table,
             "operation" => $operation,
             "clinic_id" => $clinicId,
-            "route" => function_exists("route") ? \route() : "runtime",
+            "route" => (string) ($runtimeContext["route"] ?? "runtime"),
+            "user_id" => (int) ($runtimeContext["user_id"] ?? 0),
             "sql_fingerprint" => hash(
                 "sha256",
                 preg_replace('/\s+/', ' ', trim($sql)) ?? trim($sql),
@@ -168,6 +169,7 @@ final class MutationInvariant
         string $table,
         string $sql,
         int $clinicId,
+        array $runtimeContext,
     ): void {
 
         if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
@@ -179,8 +181,8 @@ final class MutationInvariant
         if (!$readOnly) {
             return;
         }
-        $route = function_exists("route") ? \route() : "login";
-        $action = (string) ($_POST["act"] ?? "");
+        $route = (string) ($runtimeContext["route"] ?? "login");
+        $action = (string) ($runtimeContext["action"] ?? "");
         if (ReadonlyPolicy::sqlAllowed($sql, $route, $action, true)) {
             return;
         }

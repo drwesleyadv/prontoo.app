@@ -6,7 +6,7 @@ namespace Prontoo\Infrastructure\Audit;
 use Prontoo\Application\Audit\ActionProofPort;
 use Prontoo\Core\Invariant\Canonical;
 use Prontoo\Core\Invariant\Decision;
-use Prontoo\Core\Integrity\PiIntegrity;
+use Prontoo\Infrastructure\Integrity\PiIntegrity;
 
 final class PdoActionProofStore implements ActionProofPort
 {
@@ -30,7 +30,7 @@ final class PdoActionProofStore implements ActionProofPort
                 'scope' => $decision->scope,
                 'role' => (string) ($context['role'] ?? ''),
                 'clinic_id' => $context['clinic_id'] ?? null,
-                'user_id' => $context['user']['id'] ?? ($_SESSION['uid'] ?? null),
+                'user_id' => $context['user']['id'] ?? null,
                 'allowed' => $decision->allowed,
                 'reason' => $decision->reason,
                 'decision_proof_hash' => $decision->proofHash,
@@ -44,13 +44,13 @@ final class PdoActionProofStore implements ActionProofPort
             $statement->execute([
                 $requestId,
                 $context['clinic_id'] ?? null,
-                $context['user']['id'] ?? ($_SESSION['uid'] ?? null),
+                $context['user']['id'] ?? null,
                 Canonical::token($route, 'login'),
                 (string) ($decision->evidence['action'] ?? ''),
                 $decision->module,
                 $decision->operation,
                 $decision->scope,
-                (string) ($context['role'] ?? ($_SESSION['role_code'] ?? '')),
+                (string) ($context['role'] ?? ''),
                 $decision->allowed ? 1 : 0,
                 $decision->allowed ? 'authorized' : 'denied',
                 mb_substr($decision->reason, 0, 180, 'UTF-8'),

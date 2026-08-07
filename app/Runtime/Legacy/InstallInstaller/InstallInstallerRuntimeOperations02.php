@@ -287,7 +287,7 @@ final class InstallInstallerRuntimeOperations02
                 $schemaInstalled = true;
                 runtime_self_check();
                 if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                    \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest(5000);
+                    \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexAutotest(5000);
                 }
                 if (class_exists("\\Prontoo\\Infrastructure\\Database\\SeqContract")) {
                     \Prontoo\Infrastructure\Database\SeqContract::assert(pdo());

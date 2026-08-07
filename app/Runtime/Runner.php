@@ -27,6 +27,12 @@ final class Runner
             \boot_security();
             \guard_request();
             $route = \route();
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::configureRuntimeContext([
+                'route' => $route,
+                'clinic_id' => (int) ($_SESSION['clinic_id'] ?? 0),
+                'user_id' => (int) ($_SESSION['uid'] ?? 0),
+                'role' => (string) ($_SESSION['role_code'] ?? ''),
+            ]);
             \telemetry_route_identify($route);
             $publicTelemetry = $route === 'login_telemetry_wave';
             $publicStatus = $route === 'status' || $publicTelemetry;

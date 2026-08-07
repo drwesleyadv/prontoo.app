@@ -64,6 +64,15 @@ final class AuditActivityRuntimeOperations04
                 $forcedCreatedAt = (string) $origin["created_at"];
                 $forcedProofContext = $origin["proof_context"];
                 $c = $skipRuntimeContext ? [] : ctx();
+                if ($forcedProofContext === null) {
+                    $forcedProofContext = [
+                        "route" => function_exists("route") ? (string) route() : "",
+                        "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
+                        "scope" => (string) ($c["scope"] ?? ""),
+                        "clinic_id" => $c["clinic_id"] ?? null,
+                        "role" => (string) ($c["role"] ?? ""),
+                    ];
+                }
                 $uid = $hasForcedUser
                     ? ($forcedUserId > 0 ? $forcedUserId : null)
                     : ((int) ($c["user"]["id"] ?? ($_SESSION["uid"] ?? 0)) ?:
@@ -140,7 +149,7 @@ final class AuditActivityRuntimeOperations04
                     "friendly_text" => $friendly,
                     "context_json" => $json,
                 ];
-                $proof = \Prontoo\Core\Integrity\AuditChain::build(
+                $proof = \Prontoo\Infrastructure\Audit\AuditChain::build(
                     $row,
                     secret_key(),
                     $forcedProofContext,

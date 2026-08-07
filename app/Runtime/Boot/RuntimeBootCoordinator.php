@@ -66,7 +66,7 @@ final class RuntimeBootCoordinator
         }
         if ($publicLight && !$forceDeep) {
             if (class_exists('\\Prontoo\\Core\\Integrity\\PiIntegrity')) {
-                \Prontoo\Core\Integrity\PiIntegrity::bootIndexLightcheck();
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
             }
             return;
         }
@@ -80,7 +80,7 @@ final class RuntimeBootCoordinator
             return;
         }
         if (class_exists('\\Prontoo\\Core\\Integrity\\PiIntegrity')) {
-            \Prontoo\Core\Integrity\PiIntegrity::bootIndexLightcheck();
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
         }
     }
 
@@ -114,7 +114,7 @@ final class RuntimeBootCoordinator
                 $result['steps'][] = 'maestro_contract';
             }
             if (class_exists('\\Prontoo\\Core\\Integrity\\PiIntegrity')) {
-                \Prontoo\Core\Integrity\PiIntegrity::bootIndexAutotest();
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexAutotest();
                 $result['steps'][] = 'integrity_autotest';
             }
             \runtime_self_check();
@@ -192,7 +192,7 @@ final class RuntimeBootCoordinator
                     !$pdo->inTransaction() &&
                     class_exists('\\Prontoo\\Core\\Integrity\\PiIntegrity') &&
                     method_exists('\\Prontoo\\Core\\Integrity\\PiIntegrity', 'flushFastEvents')) {
-                    \Prontoo\Core\Integrity\PiIntegrity::flushFastEvents();
+                    \Prontoo\Infrastructure\Integrity\PiIntegrity::flushFastEvents();
                 }
             }
         } catch (Throwable $error) {

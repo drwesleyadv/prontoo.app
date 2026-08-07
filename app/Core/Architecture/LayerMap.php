@@ -13,11 +13,7 @@ final class LayerMap
     public const COMPOSITION = 'composition';
 
     private const NATIVE_PREFIXES = [
-        'app/Core/Architecture/',
-        'app/Core/Performance/',
-        'app/Core/Install/InstallAccess.php',
-        'app/Core/Database/SchemaMutationLock.php',
-        'app/Core/Database/SchemaHardening.php',
+        'app/Core/',
         'app/Domain/Authorization/',
         'app/Domain/Identity/',
         'app/Domain/Legacy/',
@@ -61,6 +57,8 @@ final class LayerMap
             $path === 'Core/Invariant/Request/ActionProof.php',
             $path === 'Core/Architecture/ArchitectureVerifier.php',
             $path === 'Core/Install/RuntimeContract.php',
+            $path === 'Core/Install/InstallAccess.php',
+            $path === 'Core/Database/SchemaMutationLock.php',
             $path === 'Support/ModuleLoader.php' => self::COMPOSITION,
             str_starts_with($path, 'Core/') => self::CORE,
             str_starts_with($path, 'Domain/') => self::DOMAIN,

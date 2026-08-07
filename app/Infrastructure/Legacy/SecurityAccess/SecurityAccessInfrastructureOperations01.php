@@ -383,21 +383,6 @@ final class SecurityAccessInfrastructureOperations01
     
     }
 
-    public static function session_clinic_scope_id(): int
-    
-    {
-    
-        return \Prontoo\Core\Tenant\TenantRegistry::sessionClinicId();
-    
-    }
-
-    public static function session_clinic_role_code(): string
-    
-    {
-    
-        return \Prontoo\Core\Tenant\TenantRegistry::sessionRoleCode();
-    
-    }
 
     public static function tenant_scoped_tables(): array
     

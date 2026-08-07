@@ -496,7 +496,7 @@ final class DatabaseSchemaInfrastructureOperations02
         try {
             pdo()->exec($sql);
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::proveSchemaOperation(
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::proveSchemaOperation(
                     $sql,
                     true,
                     null,
@@ -504,7 +504,7 @@ final class DatabaseSchemaInfrastructureOperations02
             }
         } catch (Throwable $error) {
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::proveSchemaOperation(
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::proveSchemaOperation(
                     $sql,
                     false,
                     $error->getMessage(),
