@@ -46,6 +46,7 @@ foreach ([
 }
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $loader = (string) @file_get_contents($root . '/app/Support/ModuleLoader.php');
+$moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $auth = (string) @file_get_contents($root . '/app/Auth/AuthOnboarding.php');
 $section = static function (string $source, string $start, string $end): string {
     $from = strpos($source, $start);
@@ -79,8 +80,16 @@ foreach ([
         throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
     }
 }
-if (!str_contains($loader, "'login_telemetry_wave' => []")) {
-    throw new RuntimeException('ModuleLoader não reconhece a rota das faixas.');
+if (!str_contains($moduleCatalog, "'login_telemetry_wave' => []")) {
+    throw new RuntimeException('Catálogo modular não reconhece a rota das faixas.');
+}
+foreach ([
+    'return RuntimeModuleCatalog::routeModuleGroups($route);',
+    'RuntimeModuleComposition::loader()->loadRouteModules($route);',
+] as $contract) {
+    if (!str_contains($loader, $contract)) {
+        throw new RuntimeException('Fachada ModuleLoader não delega o catálogo modular: ' . $contract);
+    }
 }
 if (!str_contains($auth, 'function page_login_telemetry_wave(): void')) {
     throw new RuntimeException('Endpoint JSON das faixas ausente.');
@@ -103,4 +112,4 @@ echo json_encode([
     'authenticated_initial_refresh' => true,
     'telemetry_route_registered' => true,
     'telemetry_route_public_json' => true,
-], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL;
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;

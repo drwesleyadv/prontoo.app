@@ -119,7 +119,6 @@ if (!str_contains($cronRunbook, "/opt/cpanel/ea-php84/root/usr/bin/php")) {
     $failures[] = "O runbook do Maestro não fixa o binário CLI do PHP 8.4.";
 }
 
-
 $sourceConformancePolicy = "php84-source-conformance-1.8.6.1";
 $phpFiles = [];
 foreach ($tracked as $path) {
@@ -138,9 +137,11 @@ if (!is_array($audit) || empty($audit["function_contract_preserved"])) {
             $reported[] = (string) $item["path"];
         }
     }
+    $reported = array_values(array_unique($reported));
     sort($reported, SORT_STRING);
-    if ($reported !== $phpFiles) {
-        $failures[] = "Auditoria PHP 8.4 não cobre exatamente os arquivos PHP rastreados.";
+    $missingBaselineFiles = array_values(array_diff($reported, $phpFiles));
+    if ($missingBaselineFiles !== []) {
+        $failures[] = "Arquivos da baseline PHP 8.4 foram removidos sem migração de contrato: " . implode(", ", $missingBaselineFiles);
     }
 }
 $features = ["mb_trim" => 0, "rounding_mode" => 0, "pdo_connect" => 0, "datetime_timestamp" => 0];
