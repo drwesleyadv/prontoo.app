@@ -1,10 +1,10 @@
 {
-    "version": "1.8.7.2",
-    "release": "1.8.7.2",
-    "generated_at_unix": 1786125960,
-    "generated_at": "2026-08-07T18:06:00+00:00",
-    "updated_at": "2026-08-07T18:06:00+00:00",
-    "build": "1.8.7.2-login-runtime-hotfix",
+    "version": "1.8.7.3",
+    "release": "1.8.7.3",
+    "generated_at_unix": 1786132800,
+    "generated_at": "2026-08-07T20:00:00+00:00",
+    "updated_at": "2026-08-07T20:00:00+00:00",
+    "build": "1.8.7.3-maestro-runtime-stability",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": false,
-    "functional_equivalence_policy": "login-runtime-regression-hotfix-restores-pre-refactor-behavior",
+    "functional_equivalence_policy": "runtime-stability-only-no-user-resource-or-feature-change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Hotfix de runtime do login: corrige contratos quebrados pela extração SOLID que causavam HTTP 500 após senha válida e adiciona regressão pós-senha com PHP 8.4 e MySQL 8 reais na CI.",
+    "notes": "Estabilização do Maestro: alinha o flush de integridade à implementação canônica e adiciona cobertura executável do cron em PHP 8.4 + MySQL 8.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.7.1",
+    "previous_version": "1.8.7.2",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.7.2-login-runtime-hotfix",
-    "deployment_sync_requested_at": "2026-08-07T18:06:00+00:00",
+    "deployment_sync_id": "github-prontoo-1.8.7.3-maestro-runtime-stability",
+    "deployment_sync_requested_at": "2026-08-07T20:00:00+00:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -56,7 +56,7 @@
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "login_runtime_namespace_type_resolution_temporal_policy_boundary_integrity_runtime_checks_and_mysql_post_password_regression_gate",
+    "rewrite_scope": "maestro_integrity_namespace_alignment_and_runtime_smoke_gate",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
     "release_date": "2026-08-07",
@@ -88,14 +88,11 @@
         ]
     },
     "changelog": {
-        "title": "Hotfix do runtime pós-senha do login",
+        "title": "Estabilização do runtime do Maestro",
         "items": [
-            "corrige a resolução de PDOStatement no executor SQL extraído para namespace, eliminando TypeError após a senha correta",
-            "mantém o fallback de timezone dentro de TemporalQueryNormalizer, eliminando referência inválida ao antigo estado privado de PiTime",
-            "alinha RuntimeBootCoordinator e o executor SQL à classe canônica Infrastructure\\Integrity\\PiIntegrity",
-            "faz o Architecture Contract executar schema-check contra MySQL 8 real em vez de apenas iniciar o serviço sem conectá-lo ao teste",
-            "adiciona regressão que instala banco limpo e executa prontoo_login_post_password_maintenance antes de aprovar a publicação",
-            "preserva schema, dados, rotas, autenticação MFA, layout e assets públicos"
+            "alinha o flush de integridade do Maestro à classe canônica Infrastructure\\Integrity\\PiIntegrity",
+            "adiciona smoke test executável do cron Maestro em PHP 8.4 e MySQL 8 reais",
+            "preserva regras, agenda, ações, schema, dados, interface e recursos disponíveis ao usuário"
         ]
     }
 }
