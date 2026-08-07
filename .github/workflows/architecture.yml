@@ -142,3 +142,8 @@ jobs:
         run: |
           set -euo pipefail
           php tools/maestro-runtime-regression-check
+      - name: Critical runtime smoke matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/critical-runtime-smoke-check
