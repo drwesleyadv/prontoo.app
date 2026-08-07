@@ -8,7 +8,6 @@
 - faz a CI provar que o login não executa tarefas pesadas e que a manutenção profunda continua operacional.
 - preserva políticas de senha e MFA, schema, dados, interface, rotas e todos os recursos disponíveis ao usuário.
 
-
 ## 1.8.7.5 — Contrato de resolução de símbolos internos
 
 - adiciona gate fail-closed para referências internas Prontoo que deixem de resolver após movimentações e refatorações.
