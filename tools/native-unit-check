@@ -38,6 +38,7 @@ $hasNamedType = static function (string $source): bool {
 };
 
 $failures = [];
+$emptyNativeUnits = [];
 $checked = 0;
 foreach (LayerMap::phpFiles($root) as $file) {
     $relative = ltrim(str_replace(str_replace('\\', '/', $root) . '/', '', str_replace('\\', '/', $file)), '/');
@@ -47,7 +48,42 @@ foreach (LayerMap::phpFiles($root) as $file) {
     $checked++;
     $source = (string) file_get_contents($file);
     if (!$hasNamedType($source)) {
-        $failures[] = $relative;
+        $emptyNativeUnits[] = $relative;
+        $failures[] = 'Unidade nativa sem tipo nomeado: ' . $relative;
+    }
+}
+
+$version = json_decode((string) file_get_contents($root . '/version.json'), true, 512, JSON_THROW_ON_ERROR);
+$decompositions = (array) ($version['native_consolidation_path_decompositions'] ?? []);
+$decompositionsChecked = 0;
+foreach ($decompositions as $from => $rawTargets) {
+    $from = mb_trim((string) $from);
+    $targets = is_array($rawTargets) ? $rawTargets : [$rawTargets];
+    $targets = array_values(array_unique(array_filter(
+        array_map(static fn(mixed $target): string => mb_trim((string) $target), $targets),
+        static fn(string $target): bool => $target !== '',
+    )));
+    if ($from === '' || $targets === [] || in_array($from, $targets, true)) {
+        $failures[] = 'Decomposição nativa inválida: ' . $from;
+        continue;
+    }
+    $decompositionsChecked++;
+    if (is_file($root . '/' . $from)) {
+        $failures[] = 'Tombstone nativo ainda presente após decomposição: ' . $from;
+    }
+    foreach ($targets as $target) {
+        $absolute = $root . '/' . $target;
+        if (!is_file($absolute)) {
+            $failures[] = 'Destino de decomposição nativa ausente: ' . $from . ' -> ' . $target;
+            continue;
+        }
+        if (!LayerMap::isNativePath($target)) {
+            $failures[] = 'Destino de decomposição não é unidade nativa: ' . $from . ' -> ' . $target;
+            continue;
+        }
+        if (!$hasNamedType((string) file_get_contents($absolute))) {
+            $failures[] = 'Destino de decomposição sem tipo nomeado: ' . $from . ' -> ' . $target;
+        }
     }
 }
 
@@ -55,7 +91,9 @@ $result = [
     'ok' => $failures === [],
     'policy' => 'native-unit-contract-v1',
     'native_units_checked' => $checked,
-    'empty_native_units' => $failures,
+    'empty_native_units' => $emptyNativeUnits,
+    'declared_decompositions_checked' => $decompositionsChecked,
+    'failures' => $failures,
 ];
 
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
