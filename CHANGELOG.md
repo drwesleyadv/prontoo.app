@@ -7,7 +7,6 @@
 - valida recebimento financeiro transacional pelo Application Service e adapter PDO com movimento único.
 - preserva schema, dados de produção, interface, rotas e todos os recursos disponíveis ao usuário.
 
-
 ## 1.8.7.3 — Estabilização do runtime do Maestro
 
 - alinha o flush de integridade do Maestro à classe canônica Infrastructure\Integrity\PiIntegrity.
