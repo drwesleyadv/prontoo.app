@@ -99,6 +99,7 @@ jobs:
           PHP
           php tools/version-asset-contract-check.php
           php tools/php84-runtime-contract-check
+          php tools/release-contract-reconcile --check
       - name: Documentation and comment contracts
         shell: bash
         run: |
