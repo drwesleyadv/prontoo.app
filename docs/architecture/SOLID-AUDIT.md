@@ -45,7 +45,7 @@ A principal dívida é a coexistência de arquivos procedurais extensos que acum
 
 ### OCP
 
-`ActionCatalog` e demais catálogos centrais ainda são pontos de modificação. O alvo é substituí-los progressivamente por registries compostos por providers coesos, mantendo fail-closed e determinismo.
+O catálogo de autorização deixou de ser monolítico na etapa 3. Os próximos pontos de modificação central permanecem nos módulos procedurais de domínio, apresentação e suporte.
 
 ### LSP
 
@@ -76,14 +76,22 @@ O antigo `app/Support/ModuleLoader.php` deixa de acumular política de boot, cat
 
 A baseline nativa sobe para 41 arquivos. O contrato histórico PHP 8.4 permanece como baseline da release 1.8.6.1, enquanto todos os arquivos PHP atuais e futuros continuam sujeitos a lint e auditoria de depreciações no CI.
 
+### 3. Registry extensível de autorização
+
+`ActionCatalog` deixa de armazenar diretamente todos os contratos do sistema. Ele passa a resolver contratos fornecidos por `ActionDefinitionSource`, enquanto a composição concreta dos providers fica em `Runtime/Authorization/ActionCatalogComposition.php`.
+
+As definições são segregadas em providers coesos para autenticação/clínica, pacientes, agenda/leads, documentos/tarefas, equipe/Maestro, financeiro e administração global. A normalização, agregação e política de requisitos condicionais também foram extraídas para unidades próprias.
+
+Esse estágio aplica SRP, OCP, ISP e DIP ao subsistema de autorização sem alterar o modelo fail-closed nem os contratos exatos de ação. A baseline nativa sobe para 53 arquivos.
+
 ## Sequência restante
 
-1. decompor autorização e catálogos centrais em providers coesos;
-2. concluir extrações de Patients e Financial;
-3. migrar Appointments, Documents, Tasks, Leads, Users/Permissions, Clinic e Maestro;
-4. migrar Auth, Admin, Pages e UI para adapters/presenters coesos;
-5. migrar Support e Database para Infrastructure/Composition;
-6. reduzir as fachadas procedurais a delegação sem regra, SQL ou HTML;
+1. concluir extrações de Patients e Financial;
+2. migrar Appointments, Documents, Tasks, Leads, Users/Permissions, Clinic e Maestro;
+3. migrar Auth, Admin, Pages e UI para adapters/presenters coesos;
+4. migrar Support e Database para Infrastructure/Composition;
+5. reduzir as fachadas procedurais a delegação sem regra, SQL ou HTML;
+6. modularizar os próprios contratos de caracterização para eliminar âncoras transitórias;
 7. ativar `tools/solid-audit --strict` no CI e estabelecer zero achados objetivos.
 
 ## Regra de conclusão

@@ -25,6 +25,7 @@ final class LayerMap
         'app/Infrastructure/',
         'app/Presentation/',
         'app/Runtime/Modules/',
+        'app/Runtime/Authorization/',
     ];
 
     private const ENVIRONMENT_PHP_PATHS = [
