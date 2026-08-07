@@ -6,7 +6,7 @@ A estrutura interna PHP do Prontoo é protegida pelo contrato executável `solid
 
 A auditoria cobre os arquivos PHP versionados de `app/`, exceto a configuração de ambiente, e separa duas superfícies: código arquitetural nativo e fronteiras globais de compatibilidade. As fronteiras globais não pertencem ao núcleo interno e só podem delegar para uma unidade namespaced; regra de negócio, SQL, estado HTTP e apresentação não podem permanecer nelas.
 
-O contrato `native-unit-contract-v1`, executado no mesmo workflow, complementa a auditoria estrutural exigindo que todo arquivo classificado como nativo declare ao menos um `class`, `interface`, `trait` ou `enum` nomeado. Arquivo apenas com namespace não conta como unidade arquitetural.
+O contrato `native-unit-contract-v1`, executado no mesmo workflow, complementa a auditoria estrutural exigindo que todo arquivo classificado como nativo declare ao menos um `class`, `interface`, `trait` ou `enum` nomeado. Arquivo apenas com namespace não conta como unidade arquitetural. O mesmo contrato verifica decomposições pós-baseline declaradas em `native_consolidation_path_decompositions`: a origem deve ter desaparecido e todos os destinos nativos devem existir e declarar tipos nomeados.
 
 ## Aplicação dos princípios
 
@@ -31,7 +31,7 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, complementa a
 7. `SqlExpression` foi decomposto em scanner lexical, parser de mutações e analisador de predicados.
 8. Documents foi dividido em políticas de identificador, tipo, template e HTML.
 9. Audit Activity foi dividido em políticas de texto, alvo, registro, taxonomia, apresentação, escrita e documentos.
-10. A consolidação `1.8.7.1` removeu seis tombstones namespace-only deixados por migrações ou decomposições já concluídas: três antigos paths de Core e três antigos containers de Audit Activity/Documents. A baseline PHP 8.4 registra os destinos canônicos, inclusive decomposições um-para-muitos, sem exigir a permanência de paths sem implementação.
+10. A consolidação `1.8.7.1` removeu seis tombstones namespace-only deixados por migrações ou decomposições já concluídas: três antigos paths pertencentes à baseline PHP 8.4 e três containers criados depois dessa baseline e esvaziados durante a decomposição final de Audit Activity/Documents.
 
 ## Métricas protegidas
 
@@ -49,19 +49,24 @@ O valor anterior de 284 incluía seis arquivos namespace-only sem implementaçã
 
 Novas funcionalidades devem nascer diretamente em unidades nativas; compatibility adapters existem somente para preservar a API histórica enquanto houver consumidores globais.
 
-## Baseline PHP 8.4 e migrações de path
+## Migrações históricas PHP 8.4
 
-`version.json` é a fonte canônica de `php84_baseline_path_migrations`. Um arquivo presente na auditoria integral `1.8.6.1` só pode desaparecer quando existir ao menos um destino explícito, rastreado e atual. O contrato aceita migração um-para-um e decomposição um-para-muitos, exigindo todos os destinos declarados. Ele falha se a origem continuar como tombstone, se qualquer destino estiver ausente ou se a origem declarada não pertencer à baseline histórica.
+`version.json` é a fonte canônica de `php84_baseline_path_migrations`. Esse contrato cobre somente arquivos presentes na auditoria integral `1.8.6.1`. Um arquivo dessa baseline só pode desaparecer quando houver destino explícito, rastreado e atual. O contrato falha se a origem continuar como tombstone, se o destino estiver ausente ou se a origem declarada não pertencer à baseline histórica.
 
-As seis origens consolidadas são:
+As três migrações históricas consolidadas são:
 
 - `app/Core/Database/SqlScopeGuard.php` → `app/Core/Invariant/Tenant/SqlScopeGuard.php`;
 - `app/Core/Integrity/AuditChain.php` → `app/Infrastructure/Audit/AuditChain.php`;
-- `app/Core/Integrity/PiIntegrity.php` → `app/Infrastructure/Integrity/PiIntegrity.php`;
+- `app/Core/Integrity/PiIntegrity.php` → `app/Infrastructure/Integrity/PiIntegrity.php`.
+
+## Decomposições nativas pós-baseline
+
+Os três containers esvaziados no PR #172 não existiam na baseline `1.8.6.1`, por isso pertencem a um contrato distinto, `native_consolidation_path_decompositions`, verificado por `tools/native-unit-check`:
+
 - `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php` → policies de copy, target, record, taxonomy e value;
 - `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php` → policies de display, target, write e documentos;
 - `app/Domain/Legacy/Documents/DocumentsDomainOperations01.php` → policies de identifier, type, template e HTML.
 
 ## Regra de conclusão
 
-A migração é considerada consolidada quando o `Architecture Contract` passa com `tools/solid-audit --strict` e `tools/native-unit-check`, além dos contratos PHP 8.4, versão, documentação, segurança, arquitetura, schema e instalador. Um PR que reintroduza dependência invertida, persistência na camada errada, estado HTTP no núcleo, função global com lógica, interface ampla, unidade nativa vazia ou hotspot SRP/OCP acionável falha antes do merge.
+A migração é considerada consolidada quando o `Architecture Contract` passa com `tools/solid-audit --strict` e `tools/native-unit-check`, além dos contratos PHP 8.4, versão, documentação, segurança, arquitetura, schema e instalador. Um PR que reintroduza dependência invertida, persistência na camada errada, estado HTTP no núcleo, função global com lógica, interface ampla, unidade nativa vazia, decomposição declarada inconsistente ou hotspot SRP/OCP acionável falha antes do merge.
