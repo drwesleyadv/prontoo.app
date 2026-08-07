@@ -45,6 +45,7 @@ foreach ([
     }
 }
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
+$routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $loader = (string) @file_get_contents($root . '/app/Support/ModuleLoader.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $auth = (string) @file_get_contents($root . '/app/Auth/AuthOnboarding.php');
@@ -57,26 +58,25 @@ $section = static function (string $source, string $start, string $end): string 
     return substr($source, $from, $to - $from);
 };
 foreach ([
-    'mapa executável' => $section($runner, 'function prontoo_route_map(): array', 'function prontoo_public_runtime_routes(): array'),
-    'mapa público' => $section($runner, 'function prontoo_public_runtime_routes(): array', 'function prontoo_json_runtime_routes(): array'),
-    'mapa JSON' => $section($runner, 'function prontoo_json_runtime_routes(): array', 'function prontoo_route_wants_json(string $route): bool'),
-    'boot público leve' => $section($runner, 'function prontoo_route_is_public_light(string $route): bool', 'function prontoo_schema_boot_marker_path(): string'),
+    'mapa executável' => $section($routeCatalog, 'private const ROUTES = [', 'private const PUBLIC_ROUTES = ['),
+    'mapa público' => $section($routeCatalog, 'private const PUBLIC_ROUTES = [', 'private const JSON_ROUTES = ['),
+    'mapa JSON' => $section($routeCatalog, 'private const JSON_ROUTES = [', 'private function __construct()'),
+    'boot público leve' => $section($routeCatalog, 'public static function isPublicLight(', "\n    }\n}"),
 ] as $label => $source) {
-    if (!str_contains($source, '"login_telemetry_wave"')) {
+    if (!str_contains($source, "'login_telemetry_wave'")) {
         throw new RuntimeException('Rota das faixas ausente em ' . $label . '.');
     }
 }
-$run = $section($runner, 'function prontoo_run(bool $installMode = false): void', 'function prontoo_patient_tab_active_rows(');
 foreach ([
-    '$publicTelemetry = $r === "login_telemetry_wave";',
-    '$publicStatus = $r === "status" || $publicTelemetry;',
-    'headers_secure($publicStatus);',
-    '$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();',
+    "\$publicTelemetry = \$route === 'login_telemetry_wave';",
+    "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
+    '\\headers_secure($publicStatus);',
+    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\ctx();",
     'if (!$publicTelemetry) {',
-    'if ($r !== "logout") {',
-    'if ($r !== "logout" && !$publicStatus) {',
+    "if (\$route !== 'logout' && !\$publicTelemetry) {",
+    "if (\$route !== 'logout' && !\$publicStatus) {",
 ] as $contract) {
-    if (!str_contains($run, $contract)) {
+    if (!str_contains($runner, $contract)) {
         throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
     }
 }
@@ -86,9 +86,13 @@ if (!str_contains($moduleCatalog, "'login_telemetry_wave' => []")) {
 foreach ([
     'return RuntimeModuleCatalog::routeModuleGroups($route);',
     'RuntimeModuleComposition::loader()->loadRouteModules($route);',
+    'return RouteCatalog::all();',
+    'return RouteCatalog::public();',
+    'return RouteCatalog::json();',
+    'Runner::run($installMode);',
 ] as $contract) {
     if (!str_contains($loader, $contract)) {
-        throw new RuntimeException('Fachada ModuleLoader não delega o catálogo modular: ' . $contract);
+        throw new RuntimeException('Fachada de composição não delega ao runtime nativo: ' . $contract);
     }
 }
 if (!str_contains($auth, 'function page_login_telemetry_wave(): void')) {

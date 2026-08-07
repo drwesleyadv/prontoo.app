@@ -4,7 +4,7 @@
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 53,
+    "native_files_min": 59,
     "transitional_files_max": 82,
     "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_baseline_82_must_not_increase",
     "layers": {
@@ -52,6 +52,16 @@
         "app/Application/Authorization/Definitions/AdminActionDefinitions.php",
         "app/Runtime/Authorization/ActionCatalogComposition.php"
     ],
+    "solid_runtime_runner_policy": "route_catalog_json_response_boot_maintenance_dispatch_and_feature_service_composition_are_separate_native_units_with_global_api_delegated_only_by_the_existing_composition_facade",
+    "solid_runtime_runner_components": [
+        "app/Runtime/Routing/RouteCatalog.php",
+        "app/Presentation/Http/JsonResponder.php",
+        "app/Runtime/Boot/RuntimeBootCoordinator.php",
+        "app/Runtime/Patients/PatientComposition.php",
+        "app/Runtime/Patients/PatientViewComposition.php",
+        "app/Runtime/Financial/FinancialComposition.php",
+        "app/Runtime/Runner.php"
+    ],
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",
@@ -71,9 +81,9 @@
             "rule": "thin delegation to LayeredKernel only"
         },
         {
-            "symbol": "prontoo_* module loader facade",
+            "symbol": "prontoo_* composition facade",
             "file": "app/Support/ModuleLoader.php",
-            "rule": "thin delegation to Prontoo Runtime Modules only; no module catalog or loading state"
+            "rule": "thin delegation to native Runtime, Routing, Boot, Patient, Financial and Presentation composition units only; no runtime catalog, loading state, dispatch, persistence or presentation logic"
         }
     ],
     "database_changes": false,
