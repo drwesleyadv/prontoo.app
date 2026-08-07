@@ -27,8 +27,8 @@
     "documented_function_units": 0,
     "schema_table_count": 62,
     "operational_tables_verified": 60,
-    "file_count": 449,
-    "total_uncompressed_bytes": 5457011,
+    "file_count": 448,
+    "total_uncompressed_bytes": 5455840,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -459,7 +459,6 @@
         "public/assets/prontoo-mark-1.7.15.7.png": "844f5f44286fcc178265e4a2ecb0ad3e1591ac1846775d9192f60b2015b898e0",
         "public/assets/prontoo-mark-1.7.15.8.png": "844f5f44286fcc178265e4a2ecb0ad3e1591ac1846775d9192f60b2015b898e0",
         "public/assets/prontoo-mark-1.7.15.9.png": "844f5f44286fcc178265e4a2ecb0ad3e1591ac1846775d9192f60b2015b898e0",
-        "tools/.stage-deterministic-release.php": "72a8d6514ffc37c93542cfc3d0e106b3027869e3285dbaf108731324e98ae59b",
         "tools/architecture-check.php": "a5b00d640a31822821b526f75a32223194b82b232b821a21e8e84cf08086cd1f",
         "tools/code-comment-check.php": "6f288c3bb2cc4dad1f070542ff851199e2eac2b9c46a3eedbd692dac2da75be5",
         "tools/compatibility-source.php": "dddb23887d0e16737fa91dcb8e20bc87cec65a45157b08132aabee92109f638e",
