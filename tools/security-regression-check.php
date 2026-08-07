@@ -167,7 +167,11 @@ foreach ([
     $telemetryEvent("landing", $telemetryCurrentStartUs - 1, 500000000),
     $telemetryEvent("patient", $telemetryCurrentStartUs, 100000000),
     $telemetryEvent("landing", $telemetryNowUs - 1, 300000000),
-    $telemetryEvent("old", $telemetryPreviousStartUs - 1, 999000000),
+    $telemetryEvent(
+        "old",
+        $telemetryNowUs - telemetry_retention_microseconds() - 1,
+        999000000,
+    ),
     $telemetryEvent("future_boundary", $telemetryNowUs, 400000000),
 ] as $event) {
     security_regression_assert(
@@ -212,7 +216,7 @@ security_regression_assert(
     $removedTelemetryEvents === 1 &&
         is_array($telemetryLines) &&
         count($telemetryLines) === 5,
-    "Retenção exata de 20 dias não removeu somente o evento antigo.",
+    "Retenção configurada não removeu somente o evento anterior à fronteira.",
 );
 foreach ($telemetryLines as $line) {
     $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
