@@ -38,7 +38,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .solid-stage5/payload.* | base64 -d > /tmp/solid-stage5.tar.gz
+          for file in .solid-stage5/payload.*; do
+            printf '%s ' "$file"
+            wc -c < "$file"
+            sha256sum "$file"
+          done
+          cat .solid-stage5/payload.* | tr -d '\r\n\t ' > /tmp/solid-stage5.b64
+          printf 'combined-bytes '
+          wc -c < /tmp/solid-stage5.b64
+          sha256sum /tmp/solid-stage5.b64
+          base64 -d /tmp/solid-stage5.b64 > /tmp/solid-stage5.tar.gz
           mkdir -p /tmp/solid-stage5
           tar -xzf /tmp/solid-stage5.tar.gz -C /tmp/solid-stage5
           php /tmp/solid-stage5/migrate.php "$GITHUB_WORKSPACE"
