@@ -1,0 +1,21 @@
+ needle not in s: print('WARN audit context needle missing')
+else: s=s.replace(needle,insert,1)
+write(p,s)
+
+# Session tenant state is a Runtime adapter, not Core registry state.
+write('app/Runtime/Tenant/SessionTenantContext.php', '''<?php\ndeclare(strict_types=1);\n\nnamespace Prontoo\\Runtime\\Tenant;\n\nfinal class SessionTenantContext\n{\n    private function __construct()\n    {\n    }\n\n    public static function clinicId(): int\n    {\n        if (session_status() !== PHP_SESSION_ACTIVE || (string) ($_SESSION['scope'] ?? '') !== 'clinic') {\n            return 0;\n        }\n        return max(0, (int) ($_SESSION['clinic_id'] ?? 0));\n    }\n\n    public static function roleCode(): string\n    {\n        if (session_status() !== PHP_SESSION_ACTIVE) {\n            return '';\n        }\n        return preg_replace('/[^a-z0-9_\\-]/i', '', (string) ($_SESSION['role_code'] ?? '')) ?: '';\n    }\n\n    public static function mutationContext(): array\n    {\n        $uid = (int) ($_SESSION['uid'] ?? 0);\n        $route = function_exists('route') ? (string) \\route() : '';\n        $isGlobalAdmin = false;\n        if ($uid > 0 && function_exists('user_is_global_admin')) {\n            try {\n                $isGlobalAdmin = (bool) \\user_is_global_admin($uid);\n            } catch (\\Throwable $error) {\n                error_log('[Prontoo mutation context] ' . $error->getMessage());\n            }\n        }\n        return [\n            'scope' => (string) ($_SESSION['scope'] ?? ''),\n            'clinic_id' => self::clinicId(),\n            'user_id' => $uid,\n            'role' => self::roleCode(),\n            'route' => $route,\n            'action' => (string) ($_POST['act'] ?? ''),\n            'is_global_admin' => $isGlobalAdmin,\n            'disabled' => !empty($GLOBALS['PRONTOO_SCOPE_GUARD_DISABLED']),\n            'system' => !empty($GLOBALS['PRONTOO_SCOPE_GUARD_SYSTEM']),\n            'expected_clinic_id' => max(0, (int) ($GLOBALS['PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID'] ?? 0)),\n        ];\n    }\n}\n''')
+
+# Remove session methods from TenantRegistry.
+p='app/Core/Tenant/TenantRegistry.php'; s=read(p)
+s=re.sub(r'\n    public static function sessionClinicId\(\): int\n    \{.*?\n    \}\n    public static function sessionRoleCode\(\): string\n    \{.*?\n    \}\n', '\n', s, flags=re.S)
+write(p,s)
+
+# Update security adapter call sites for former TenantRegistry session access.
+p='app/Infrastructure/Legacy/SecurityAccess/SecurityAccessInfrastructureOperations01.php'; s=read(p)
+s=s.replace('\\Prontoo\\Core\\Tenant\\TenantRegistry::sessionClinicId()', '\\Prontoo\\Runtime\\Tenant\\SessionTenantContext::clinicId()')
+s=s.replace('\\Prontoo\\Core\\Tenant\\TenantRegistry::sessionRoleCode()', '\\Prontoo\\Runtime\\Tenant\\SessionTenantContext::roleCode()')
+write(p,s)
+
+# TenantContext is pure: resolve an explicitly supplied runtime context.
+p='app/Core/Invariant/Tenant/TenantContext.php'; s=read(p)
+s='''<?php\ndeclare(strict_types=1);\nnamespace Prontoo\\Core\\Invariant\\Tenant;\n\nfinal class TenantContext\n{\n    private function __construct()\n    {\n    }\n\n    public static function resolve(array $runtime): array\n    {\n        if (!empty($runtime['disabled'])) {\n            return ['bypass' => true, 'reason' => 'guard_disabled', 'clinic_id' => 0];\n        }\n        if (!empty($runtime['system'])) {\n            return ['bypass' => true, 'reason' => 'system_operation', 'clinic_id' => 0];\n        }\n        $expected = max(0, (int) ($runtime['expected_clinic_id'] ?? 0));\n        if ($expected > 0) {\n            return ['bypass' => false, 'reason' => 'declared_clinic_context', 'clinic_id' => $expected];\n        }\n        $scope = (string) ($runtime['scope'] ?? '');\n        $route = (string) ($runtime['route'] ?? '');\n        if ($scope === 'global' || (str_starts_with($route, 'admin_') && !empty($runtime['is_global_admin']))) {\n            return ['bypass' => true, 'reason' => 'global_operation', 'clinic_id' =>
