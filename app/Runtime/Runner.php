@@ -17,25 +17,6 @@ use Throwable;
 
 final class Runner
 {
-    private const CHARACTERIZATION = <<<'CONTRACT'
-xfunction prontoo_route_map(): array
-xfunction prontoo_public_runtime_routes(): array
-xfunction prontoo_json_runtime_routes(): array
-xfunction prontoo_route_wants_json(string $route): bool
-xfunction prontoo_json_response(array $payload, int $status = 200): void
-xfunction prontoo_route_is_public_light(string $route): bool
-xfunction prontoo_schema_boot_marker_path(): string
-xfunction prontoo_run(bool $installMode = false): void
-$publicTelemetry = $r === "login_telemetry_wave";
-$publicStatus = $r === "status" || $publicTelemetry;
-headers_secure($publicStatus);
-$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx();
-if (!$publicTelemetry) {
-if ($r !== "logout") {
-if ($r !== "logout" && !$publicStatus) {
-LOCK_EX | LOCK_NB
-CONTRACT;
-
     private function __construct()
     {
     }
