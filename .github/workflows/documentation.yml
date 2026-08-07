@@ -29,8 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
-          php tools/release-contract-reconcile
-          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           git diff --check
           git config user.name 'prontoo-ci'
