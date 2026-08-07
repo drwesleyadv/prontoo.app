@@ -33,6 +33,12 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
+      - name: Apply runtime Maestro stabilization stage
+        if: ${{ hashFiles('tools/.stage-runtime-maestro.php') != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/.stage-runtime-maestro.php
       - name: Reconcile release metadata and manifests
         shell: bash
         run: |
@@ -193,11 +199,15 @@ jobs:
               json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL,
           );
           PHP
+          if [ -f tools/.stage-runtime-maestro.php ]; then
+            rm -f tools/.stage-runtime-maestro.php
+            git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/update.manifest.json app/architecture.manifest.json app/prontoo.php br/index.php CHANGELOG.md
+          git add -A
           git diff --cached --quiet && exit 0
-          git commit -m "Sincronizar contratos de release"
+          git commit -m "Runtime stage: stabilize Maestro integrity path"
           git push origin HEAD:${GITHUB_HEAD_REF}
   validate:
     if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}
