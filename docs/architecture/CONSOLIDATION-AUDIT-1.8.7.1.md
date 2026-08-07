@@ -36,17 +36,19 @@ Os seis arquivos eram classificados como nativos apesar de não constituírem un
 
 **Correção:** remoção dos seis tombstones e estabelecimento da baseline efetiva em `native_files_min = 278`.
 
-### 2. A baseline PHP 8.4 não possuía migração explícita de path
+### 2. O contrato histórico PHP 8.4 não possuía migração explícita de path
 
-`tools/php84-runtime-contract-check` rejeitava qualquer arquivo da auditoria `1.8.6.1` que deixasse de existir, mesmo quando sua implementação tivesse sido legitimamente movida ou decomposta. Isso incentivava a manutenção de paths vazios.
+`tools/php84-runtime-contract-check` rejeitava qualquer arquivo da auditoria `1.8.6.1` que deixasse de existir, mesmo quando sua implementação tivesse sido legitimamente movida para outra camada. Isso incentivava a manutenção dos três paths históricos vazios de Core.
 
-**Correção:** `version.json` passa a declarar `php84_baseline_path_migrations`. O contrato aceita destino único ou lista de destinos e exige que a origem pertença à baseline histórica, esteja ausente da árvore atual e que todos os destinos declarados sejam arquivos PHP rastreados. Origem ainda presente como tombstone ou qualquer destino ausente falham o gate.
+**Correção:** `version.json` passa a declarar `php84_baseline_path_migrations` exclusivamente para origens realmente presentes na auditoria `1.8.6.1`. O contrato exige origem histórica válida, origem ausente da árvore atual e destino PHP rastreado.
+
+Os três containers de Audit Activity/Documents são posteriores à baseline `1.8.6.1`; portanto não são falsamente tratados como migrações históricas. Eles ficam registrados separadamente em `native_consolidation_path_decompositions`, verificado por `tools/native-unit-check`, que exige origem removida e todos os destinos nativos presentes com tipo nomeado.
 
 ### 3. Não havia veto explícito a unidade nativa sem tipo
 
 O contrato arquitetural exigia namespace e ausência de funções globais nos arquivos nativos, mas não exigia que o arquivo declarasse efetivamente um tipo.
 
-**Correção:** criação de `tools/native-unit-check` com política `native-unit-contract-v1`, integrada ao `Architecture Contract`. Todo arquivo nativo deve declarar `class`, `interface`, `trait` ou `enum` nomeado.
+**Correção:** criação de `tools/native-unit-check` com política `native-unit-contract-v1`, integrada ao `Architecture Contract`. Todo arquivo nativo deve declarar `class`, `interface`, `trait` ou `enum` nomeado. O mesmo gate valida as decomposições pós-baseline declaradas.
 
 O primeiro run do novo gate foi deliberadamente tratado como parte da auditoria, não como mera falha de CI. Ele revelou os três tombstones adicionais de Audit Activity/Documents, que foram então rastreados ao histórico do PR #172 e removidos.
 
@@ -72,7 +74,7 @@ Permanecem obrigatórios:
 - classificação arquitetural em 100%;
 - `transitional_files_max = 51`;
 - `tools/solid-audit --strict` com zero achados objetivos e zero hotspots acionáveis;
-- `tools/native-unit-check` sem unidades nativas vazias;
+- `tools/native-unit-check` sem unidades nativas vazias e com decomposições declaradas íntegras;
 - contratos de segurança, schema, instalador e documentação.
 
 ## Baseline consolidada
