@@ -62,7 +62,7 @@ As portas existentes são pequenas e orientadas a casos de uso. O contrato sinal
 
 ## Sequência de refatoração
 
-1. publicar o auditor `tools/solid-audit.php` e incorporá-lo ao CI em modo diagnóstico;
+1. publicar o auditor `tools/solid-audit` e incorporá-lo ao CI em modo diagnóstico;
 2. decompor o carregamento/composição de módulos e rotas;
 3. decompor autorização e catálogos centrais em providers coesos;
 4. concluir extrações de Patients e Financial;
@@ -70,7 +70,7 @@ As portas existentes são pequenas e orientadas a casos de uso. O contrato sinal
 6. migrar Auth, Admin, Pages e UI para adapters/presenters coesos;
 7. migrar Support e Database para Infrastructure/Composition;
 8. reduzir as fachadas procedurais a delegação sem regra, SQL ou HTML;
-9. ativar `tools/solid-audit.php --strict` no CI e estabelecer zero achados objetivos.
+9. ativar `tools/solid-audit --strict` no CI e estabelecer zero achados objetivos.
 
 ## Regra de conclusão
 
