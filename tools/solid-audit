@@ -25,6 +25,7 @@ $allowedDependencies = [
     'presentation' => ['Core', 'Domain', 'Application', 'Presentation'],
     'composition' => ['Core', 'Domain', 'Application', 'Infrastructure', 'Presentation', 'Runtime', 'Install'],
 ];
+
 $objective = [];
 $hotspots = [];
 $metrics = [
@@ -37,6 +38,67 @@ $metrics = [
     'classes' => 0,
     'hotspot_files' => 0,
 ];
+
+$analyze = static function (string $source): array {
+    $tokens = token_get_all($source);
+    $code = '';
+    $globalFunctions = 0;
+    $interfaces = 0;
+    $classes = 0;
+    $classScopes = [];
+    $braceDepth = 0;
+    $pendingType = false;
+    $superglobals = [];
+
+    foreach ($tokens as $token) {
+        if (is_string($token)) {
+            $code .= $token;
+            if ($token === '{') {
+                $braceDepth++;
+                if ($pendingType) {
+                    $classScopes[] = $braceDepth;
+                    $pendingType = false;
+                }
+            } elseif ($token === '}') {
+                if ($classScopes !== [] && end($classScopes) === $braceDepth) {
+                    array_pop($classScopes);
+                }
+                $braceDepth = max(0, $braceDepth - 1);
+            }
+            continue;
+        }
+
+        [$id, $text] = $token;
+        if (in_array($id, [T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
+            $code .= str_repeat(' ', strlen($text));
+            continue;
+        }
+        if ($id === T_CLASS) {
+            $classes++;
+            $pendingType = true;
+        } elseif ($id === T_INTERFACE) {
+            $interfaces++;
+            $pendingType = true;
+        } elseif (defined('T_TRAIT') && $id === T_TRAIT) {
+            $pendingType = true;
+        } elseif ($id === T_FUNCTION && $classScopes === []) {
+            $globalFunctions++;
+        } elseif ($id === T_VARIABLE && in_array($text, [
+            '$_GET', '$_POST', '$_REQUEST', '$_FILES', '$_COOKIE', '$_SESSION', '$_SERVER',
+        ], true)) {
+            $superglobals[$text] = true;
+        }
+        $code .= $text;
+    }
+
+    return [
+        'code' => $code,
+        'global_functions' => $globalFunctions,
+        'interfaces' => $interfaces,
+        'classes' => $classes,
+        'superglobals' => array_keys($superglobals),
+    ];
+};
 
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS),
@@ -51,8 +113,15 @@ foreach ($iterator as $file) {
     if ($relative === 'app/config.php') {
         continue;
     }
+
     $metrics['php_files']++;
     $source = (string) file_get_contents($absolute);
+    $analysis = $analyze($source);
+    $code = (string) $analysis['code'];
+    $globalFunctions = (int) $analysis['global_functions'];
+    $metrics['interfaces'] += (int) $analysis['interfaces'];
+    $metrics['classes'] += (int) $analysis['classes'];
+
     $layer = null;
     foreach ($internalPrefixes as $prefix => $candidate) {
         if (str_starts_with($relative, $prefix)) {
@@ -62,15 +131,7 @@ foreach ($iterator as $file) {
     }
     $isInternal = $layer !== null;
     $metrics[$isInternal ? 'internal_files' : 'compatibility_files']++;
-
-    preg_match_all('/^\s*function\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/m', $source, $globalMatches);
-    $globalFunctions = count($globalMatches[0] ?? []);
     $metrics[$isInternal ? 'global_functions_internal' : 'global_functions_compatibility'] += $globalFunctions;
-
-    preg_match_all('/\binterface\s+[A-Za-z_][A-Za-z0-9_]*/', $source, $interfaceMatches);
-    preg_match_all('/\b(?:final\s+|abstract\s+|readonly\s+)*class\s+[A-Za-z_][A-Za-z0-9_]*/', $source, $classMatches);
-    $metrics['interfaces'] += count($interfaceMatches[0] ?? []);
-    $metrics['classes'] += count($classMatches[0] ?? []);
 
     if ($isInternal) {
         if (!preg_match('/^\s*<\?php\s+declare\(strict_types=1\);\s+namespace\s+Prontoo\\\\/s', $source)) {
@@ -79,22 +140,33 @@ foreach ($iterator as $file) {
         if ($globalFunctions > 0) {
             $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'no_internal_global_functions', 'count' => $globalFunctions];
         }
-        preg_match_all('/Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation|Runtime|Install)\\\\/', $source, $dependencyMatches);
+
+        preg_match_all('~Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation|Runtime|Install)\\\\~', $code, $dependencyMatches);
         foreach (array_unique($dependencyMatches[1] ?? []) as $target) {
             if (!in_array($target, $allowedDependencies[$layer] ?? [], true)) {
                 $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'dependency_points_inward', 'target' => $target];
             }
         }
-        if (in_array($layer, ['core', 'domain', 'application', 'presentation'], true) && preg_match('/(?<![A-Za-z0-9_\\\\])(?:pdo|q|one|val)\s*\(/i', $source)) {
+
+        if (in_array($layer, ['core', 'domain', 'application', 'presentation'], true) &&
+            preg_match('~(?<![A-Za-z0-9_\\\\])(?:pdo|q|one|val)\s*\(~i', $code)) {
             $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'persistence_only_in_infrastructure'];
         }
-        if (in_array($layer, ['core', 'domain', 'application'], true) && preg_match('/\$_(?:GET|POST|REQUEST|FILES|COOKIE|SESSION|SERVER)\b/', $source)) {
-            $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'http_state_outside_core_domain_application'];
+        if (in_array($layer, ['core', 'domain', 'application'], true) && $analysis['superglobals'] !== []) {
+            $objective[] = [
+                'principle' => 'SRP',
+                'file' => $relative,
+                'rule' => 'http_state_outside_core_domain_application',
+                'superglobals' => $analysis['superglobals'],
+            ];
         }
-        if (!in_array($layer, ['infrastructure', 'composition'], true) && preg_match('/\bnew\s+(?:\\?Prontoo\\Infrastructure\\|Pdo[A-Z])/', $source)) {
+        if (!in_array($layer, ['infrastructure', 'composition'], true) &&
+            (str_contains($code, 'new \\Prontoo\\Infrastructure\\') ||
+             str_contains($code, 'new Prontoo\\Infrastructure\\') ||
+             preg_match('~\bnew\s+Pdo[A-Z][A-Za-z0-9_]*~', $code))) {
             $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'concrete_adapter_instantiation_outside_composition'];
         }
-        if (preg_match_all('/\binterface\s+([A-Za-z_][A-Za-z0-9_]*)[^\{]*\{(.*?)\}/s', $source, $interfaces, PREG_SET_ORDER)) {
+        if (preg_match_all('/\binterface\s+([A-Za-z_][A-Za-z0-9_]*)[^\{]*\{(.*?)\}/s', $code, $interfaces, PREG_SET_ORDER)) {
             foreach ($interfaces as $interface) {
                 preg_match_all('/\bfunction\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/', (string) ($interface[2] ?? ''), $methods);
                 $count = count($methods[0] ?? []);
@@ -102,6 +174,9 @@ foreach ($iterator as $file) {
                     $hotspots[] = ['principle' => 'ISP', 'file' => $relative, 'rule' => 'interface_surface_over_7_methods', 'interface' => $interface[1], 'count' => $count];
                 }
             }
+        }
+        if (preg_match('~\binstanceof\s+Pdo[A-Z]~', $code)) {
+            $objective[] = ['principle' => 'LSP', 'file' => $relative, 'rule' => 'consumer_checks_concrete_subtype'];
         }
     }
 
@@ -116,11 +191,8 @@ foreach ($iterator as $file) {
             'global_functions' => $globalFunctions,
         ];
     }
-    if ($isInternal && preg_match('/\b(?:switch|match)\s*\(/', $source) && $lines > 500) {
+    if ($isInternal && preg_match('/\b(?:switch|match)\s*\(/', $code) && $lines > 500) {
         $hotspots[] = ['principle' => 'OCP', 'file' => $relative, 'rule' => 'large_conditional_extension_surface', 'lines' => $lines];
-    }
-    if ($isInternal && preg_match('/instanceof\s+Pdo[A-Z]/', $source)) {
-        $objective[] = ['principle' => 'LSP', 'file' => $relative, 'rule' => 'consumer_checks_concrete_subtype'];
     }
 }
 
@@ -136,7 +208,7 @@ ksort($byPrinciple);
 $report = [
     'ok' => $objective === [],
     'strict' => $strict,
-    'policy' => 'solid-structural-contract-v1',
+    'policy' => 'solid-structural-contract-v2',
     'metrics' => $metrics,
     'objective_findings' => $objective,
     'hotspots' => $hotspots,
