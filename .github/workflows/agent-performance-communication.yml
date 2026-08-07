@@ -1,9 +1,9 @@
 name: Finalizar comunicação de Performance
 
 on:
-  pull_request:
-    types:
-      - synchronize
+  push:
+    branches:
+      - prontoo
 
 permissions:
   contents: write
@@ -26,7 +26,6 @@ env:
 
 jobs:
   finalize:
-    if: ${{ github.event.pull_request.number == 160 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -69,6 +68,7 @@ jobs:
           cp /tmp/performance-telemetry.md docs/performance/telemetry.md
           rm -f .github/workflows/agent-performance-communication.yml
           rm -f .github/workflows/finalize-performance-now.yml
+          rm -f .trigger-performance-1.8.6.3
           python3 <<'PY'
           from pathlib import Path
           p = Path('.agent-performance-communication.py')
@@ -83,6 +83,7 @@ jobs:
           test ! -e .agent-performance-communication.py
           test ! -e .github/workflows/agent-performance-communication.yml
           test ! -e .github/workflows/finalize-performance-now.yml
+          test ! -e .trigger-performance-1.8.6.3
       - name: Reconciliar manifesto final
         shell: bash
         run: |
