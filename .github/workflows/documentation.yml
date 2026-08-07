@@ -38,15 +38,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.solid-stage5/payload.01')
+          source = path.read_text()
+          bad = 'pN5ised4N4Vx'
+          good = 'pN5Sised4N4Vx'
+          if source.count(bad) != 1:
+              raise SystemExit('unexpected stage5 payload.01 state')
+          path.write_text(source.replace(bad, good, 1))
+          PY
           for file in .solid-stage5/payload.*; do
             printf '%s ' "$file"
             wc -c < "$file"
             sha256sum "$file"
           done
           cat .solid-stage5/payload.* | tr -d '\r\n\t ' > /tmp/solid-stage5.b64
-          printf 'combined-bytes '
-          wc -c < /tmp/solid-stage5.b64
-          sha256sum /tmp/solid-stage5.b64
+          test "$(wc -c < /tmp/solid-stage5.b64)" -eq 54908
+          test "$(sha256sum /tmp/solid-stage5.b64 | cut -d' ' -f1)" = '2b0050fd057476c6f56b940d88f649f74372a72a4cbbbb4fd387762a80696b65'
           base64 -d /tmp/solid-stage5.b64 > /tmp/solid-stage5.tar.gz
           mkdir -p /tmp/solid-stage5
           tar -xzf /tmp/solid-stage5.tar.gz -C /tmp/solid-stage5
