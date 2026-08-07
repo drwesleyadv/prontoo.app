@@ -4,7 +4,7 @@
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 37,
+    "native_files_min": 41,
     "transitional_files_max": 82,
     "native_migration_policy": "native_file_count_must_not_decrease_and_transitional_baseline_82_must_not_increase",
     "layers": {
@@ -28,6 +28,15 @@
     "action_audit_policy": "action_literals_are_matched_against_contracts_declared_for_the_same_source_file",
     "architecture_check": "tools/architecture-check.php",
     "ci_workflow": ".github/workflows/architecture.yml",
+    "solid_policy": "solid-structural-contract-v1",
+    "solid_check": "tools/solid-audit",
+    "solid_runtime_composition_policy": "boot_policy_module_catalog_module_loading_and_concrete_composition_are_separate_native_runtime_units_with_thin_legacy_facade",
+    "solid_runtime_composition_components": [
+        "app/Runtime/Modules/RuntimeBootPolicy.php",
+        "app/Runtime/Modules/RuntimeModuleCatalog.php",
+        "app/Runtime/Modules/RuntimeModuleLoader.php",
+        "app/Runtime/Modules/RuntimeModuleComposition.php"
+    ],
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",
@@ -45,6 +54,11 @@
             "symbol": "Prontoo\\Core\\Integrity\\ActionProof",
             "file": "app/Core/Invariant/Request/ActionProof.php",
             "rule": "thin delegation to LayeredKernel only"
+        },
+        {
+            "symbol": "prontoo_* module loader facade",
+            "file": "app/Support/ModuleLoader.php",
+            "rule": "thin delegation to Prontoo Runtime Modules only; no module catalog or loading state"
         }
     ],
     "database_changes": false,
@@ -190,7 +204,7 @@
     "installer_locked": false,
     "previous_version": "1.8.6.1",
     "deployment_sync_id": "github-prontoo-1.8.6.2-page-load-source-of-truth",
-    "notes": "Conformidade PHP 8.4 sem novos arquivos PHP e sem alteração do contrato de funções.",
+    "notes": "Conformidade PHP 8.4 preservada para a baseline 1.8.6.1 e validação dinâmica integral para arquivos PHP novos.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "requests_fill_1f6f56_records_fill_347963_half_opacity_without_lines_or_terminal_markers_shared_by_developer_panel_and_public_status",
@@ -198,7 +212,7 @@
     "login_telemetry_route_contract_policy": "runner_map_public_json_light_boot_context_integrity_maintenance_and_flush_bypass_verified_by_dedicated_contract",
     "login_telemetry_route_contract_check": "tools/version-asset-contract-check.php",
     "php_runtime_policy": "exact_php_8_4_family_web_cli_ci_fail_closed",
-    "php84_conformance_policy": "every_tracked_php_file_reviewed_function_signatures_and_counts_unchanged",
+    "php84_conformance_policy": "release_1_8_6_1_baseline_preserved_and_every_current_tracked_php_file_linted_and_deprecation_checked",
     "telemetry_policy": "one_completed_html_document_navigation_equals_one_page_load_event",
     "telemetry_timing_policy": "first_front_controller_executable_line_to_last_useful_render_line"
 }
