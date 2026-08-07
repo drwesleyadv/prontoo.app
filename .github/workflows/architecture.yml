@@ -116,6 +116,11 @@ jobs:
           set -euo pipefail
           php tools/architecture-check.php
           php tools/native-unit-check
+      - name: Runtime symbol contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/runtime-symbol-contract-check
       - name: SOLID structural audit
         shell: bash
         run: |
