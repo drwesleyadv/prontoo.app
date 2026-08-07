@@ -25,11 +25,15 @@ jobs:
           coverage: none
           tools: none
       - name: Materialize authentication hardening
-        if: ${{ hashFiles('.auth-hardening/payload.00') != '' }}
+        if: ${{ hashFiles('.auth-fix/payload.04') != '' }}
         shell: bash
         run: |
           set -euo pipefail
-          cat .auth-hardening/payload.* | tr -d '\r\n\t ' > /tmp/auth-hardening.b64
+          git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
+          cat .auth-hardening/payload.00 .auth-hardening/payload.01 .auth-hardening/payload.02 .auth-hardening/payload.03 | tr -d '\r\n\t ' > /tmp/auth-hardening.b64
+          for file in .auth-fix/payload.04 .auth-fix/payload.05 .auth-fix/payload.06; do
+            base64 -d "$file" >> /tmp/auth-hardening.b64
+          done
           test "$(wc -c < /tmp/auth-hardening.b64)" -eq 27940
           test "$(sha256sum /tmp/auth-hardening.b64 | cut -d' ' -f1)" = 'b83f351e69a064b90eb30a40ce1f298577df948757de72e6d00a5e9d42ea4604'
           base64 -d /tmp/auth-hardening.b64 > /tmp/auth-hardening.patch
@@ -102,7 +106,7 @@ jobs:
           if set(applied) != expected:
               raise SystemExit(f'Conjunto materializado divergente: {sorted(applied)}')
           PY
-          rm -rf .auth-hardening
+          rm -rf .auth-hardening .auth-fix
           git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
           php -l app/Infrastructure/Auth/PdoLoginThrottle.php
           php -l app/Runtime/Auth/LoginThrottle.php
