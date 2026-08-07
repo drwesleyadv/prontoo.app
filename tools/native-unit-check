@@ -1,0 +1,62 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+require_once $root . '/app/Core/Architecture/LayerMap.php';
+
+use Prontoo\Core\Architecture\LayerMap;
+
+$hasNamedType = static function (string $source): bool {
+    $tokens = token_get_all($source, TOKEN_PARSE);
+    $typeTokens = [T_CLASS, T_INTERFACE, T_TRAIT];
+    if (defined('T_ENUM')) {
+        $typeTokens[] = T_ENUM;
+    }
+    $count = count($tokens);
+    for ($i = 0; $i < $count; $i++) {
+        $token = $tokens[$i];
+        if (!is_array($token) || !in_array($token[0], $typeTokens, true)) {
+            continue;
+        }
+        for ($j = $i + 1; $j < $count; $j++) {
+            $candidate = $tokens[$j];
+            if (is_array($candidate) && $candidate[0] === T_WHITESPACE) {
+                continue;
+            }
+            if (is_array($candidate) && $candidate[0] === T_STRING) {
+                return true;
+            }
+            break;
+        }
+    }
+    return false;
+};
+
+$failures = [];
+$checked = 0;
+foreach (LayerMap::phpFiles($root) as $file) {
+    $relative = ltrim(str_replace(str_replace('\\', '/', $root) . '/', '', str_replace('\\', '/', $file)), '/');
+    if (!LayerMap::isNativePath($relative)) {
+        continue;
+    }
+    $checked++;
+    $source = (string) file_get_contents($file);
+    if (!$hasNamedType($source)) {
+        $failures[] = $relative;
+    }
+}
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'native-unit-contract-v1',
+    'native_units_checked' => $checked,
+    'empty_native_units' => $failures,
+];
+
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
