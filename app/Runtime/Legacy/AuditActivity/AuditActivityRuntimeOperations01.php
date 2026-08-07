@@ -117,7 +117,7 @@ final class AuditActivityRuntimeOperations01
         $hash = mb_trim((string) ($r["integrity_hash"] ?? ""));
         try {
             if (class_exists("\\Prontoo\\Core\\Integrity\\AuditChain")) {
-                return \Prontoo\Core\Integrity\AuditChain::verifyRow(
+                return \Prontoo\Infrastructure\Audit\AuditChain::verifyRow(
                     $r,
                     secret_key(),
                 );
@@ -141,11 +141,11 @@ final class AuditActivityRuntimeOperations01
             $rows = q(
                 audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit,
             )->fetchAll();
-            $sequenceOk = \Prontoo\Core\Integrity\AuditChain::verifySequence(
+            $sequenceOk = \Prontoo\Infrastructure\Audit\AuditChain::verifySequence(
                 $rows,
                 secret_key(),
             );
-            $headOk = \Prontoo\Core\Integrity\AuditChain::storedHeadMatchesLatest();
+            $headOk = \Prontoo\Infrastructure\Audit\AuditChain::storedHeadMatchesLatest();
             return [
                 "ok" => $sequenceOk && $headOk,
                 "sequence_ok" => $sequenceOk,

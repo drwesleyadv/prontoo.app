@@ -64,11 +64,11 @@ final class DatabaseSchemaRuntimeOperations01
                     [
                         $runtimeSql,
                         $runtimeParams,
-                    ] = \Prontoo\Core\Integrity\PiIntegrity::prepareRuntimeQuery(
+                    ] = \Prontoo\Infrastructure\Integrity\PiIntegrity::prepareRuntimeQuery(
                         $sql,
                         $params,
                     );
-                    $integrityContext = \Prontoo\Core\Integrity\PiIntegrity::beforeQuery(
+                    $integrityContext = \Prontoo\Infrastructure\Integrity\PiIntegrity::beforeQuery(
                         $runtimeSql,
                         $runtimeParams,
                     );
@@ -85,7 +85,7 @@ final class DatabaseSchemaRuntimeOperations01
     
                 $elapsedMs = (microtime(true) - $startedAt) * 1000;
                 if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                    \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
+                    \Prontoo\Infrastructure\Integrity\PiIntegrity::afterQuery(
                         $sql,
                         $runtimeSql,
                         $runtimeParams,
@@ -106,7 +106,7 @@ final class DatabaseSchemaRuntimeOperations01
                 if (!$queryCompleted) {
                     $elapsedMs = (microtime(true) - $startedAt) * 1000;
                     if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                        \Prontoo\Core\Integrity\PiIntegrity::afterQuery(
+                        \Prontoo\Infrastructure\Integrity\PiIntegrity::afterQuery(
                             $sql,
                             $runtimeSql,
                             $runtimeParams,

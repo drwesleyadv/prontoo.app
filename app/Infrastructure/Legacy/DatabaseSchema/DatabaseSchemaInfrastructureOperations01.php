@@ -329,7 +329,7 @@ final class DatabaseSchemaInfrastructureOperations01
     {
     
         if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-            \Prontoo\Core\Integrity\PiIntegrity::prepareForWriteTransaction();
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::prepareForWriteTransaction();
         }
     
     }
@@ -345,7 +345,7 @@ final class DatabaseSchemaInfrastructureOperations01
         db_prepare_write_transaction();
         $connection->beginTransaction();
         if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-            \Prontoo\Core\Integrity\PiIntegrity::markTransactionStart();
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::markTransactionStart();
         }
     
     }
@@ -360,18 +360,18 @@ final class DatabaseSchemaInfrastructureOperations01
         }
         try {
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::flushTransactionEvents();
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::flushTransactionEvents();
             }
             $connection->commit();
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::markTransactionCommitted();
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::markTransactionCommitted();
             }
         } catch (Throwable $error) {
             if ($connection->inTransaction()) {
                 $connection->rollBack();
             }
             if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-                \Prontoo\Core\Integrity\PiIntegrity::discardTransactionEvents();
+                \Prontoo\Infrastructure\Integrity\PiIntegrity::discardTransactionEvents();
             }
             throw $error;
         }
@@ -388,7 +388,7 @@ final class DatabaseSchemaInfrastructureOperations01
         }
         $connection->rollBack();
         if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
-            \Prontoo\Core\Integrity\PiIntegrity::discardTransactionEvents();
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::discardTransactionEvents();
         }
     
     }

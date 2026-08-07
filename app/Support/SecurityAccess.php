@@ -352,11 +352,11 @@ function security_global_scope_verified(int $uid): bool
 }
 function session_clinic_scope_id(): int
 {
-    return \Prontoo\Infrastructure\Legacy\SecurityAccess\SecurityAccessInfrastructureOperations01::session_clinic_scope_id();
+    return \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId();
 }
 function session_clinic_role_code(): string
 {
-    return \Prontoo\Infrastructure\Legacy\SecurityAccess\SecurityAccessInfrastructureOperations01::session_clinic_role_code();
+    return \Prontoo\Runtime\Tenant\SessionTenantAccess::roleCode();
 }
 function tenant_scoped_tables(): array
 {

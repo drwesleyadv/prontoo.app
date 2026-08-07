@@ -211,7 +211,7 @@ foreach ($iterator as $file) {
             }
         }
         if (!in_array($layer, [LayerMap::INFRASTRUCTURE, LayerMap::COMPOSITION], true) &&
-            preg_match('~(?<![A-Za-z0-9_\\\\])(?:pdo|q|one|val)\s*\(~i', $code)) {
+            preg_match('~(?<![A-Za-z0-9_\\\\])(?:pdo|q|one|val|safe_val|cached_val)\s*\(~i', $code)) {
             $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'persistence_only_in_infrastructure'];
         }
         if (!in_array($layer, [LayerMap::PRESENTATION, LayerMap::COMPOSITION], true) && $analysis['superglobals'] !== []) {

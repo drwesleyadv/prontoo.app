@@ -124,7 +124,7 @@ final class SecurityAccessRuntimeOperations03
                 [
                     $ins,
                     $params,
-                ] = \Prontoo\Core\Integrity\PiIntegrity::prepareRuntimeQuery(
+                ] = \Prontoo\Infrastructure\Integrity\PiIntegrity::prepareRuntimeQuery(
                     $ins,
                     $params,
                 );
@@ -180,7 +180,11 @@ final class SecurityAccessRuntimeOperations03
         if ($key !== "" && isset($ok[$key])) {
             return;
         }
-        \Prontoo\Core\Database\SqlScopeGuard::guard($sql, $params);
+        \Prontoo\Core\Database\SqlScopeGuard::guard(
+            $sql,
+            $params,
+            \Prontoo\Runtime\Tenant\SessionTenantContext::mutationContext(),
+        );
         if ($key !== "" && count($ok) < 256) {
             $ok[$key] = 1;
         }

@@ -10,10 +10,10 @@ final class SqlScopeGuard
 
     }
 
-    public static function guard(string $sql, array $params = []): void
+    public static function guard(string $sql, array $params = [], array $runtimeContext = []): void
     {
 
-        InvariantKernel::guardMutation($sql, $params);
+        InvariantKernel::guardMutation($sql, $params, $runtimeContext);
     }
 
     public static function logicSelfTest(): array

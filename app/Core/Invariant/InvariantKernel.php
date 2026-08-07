@@ -18,10 +18,10 @@ final class InvariantKernel
         return Canonical::POLICY_VERSION;
     }
 
-    public static function guardMutation(string $sql, array $params = []): void
+    public static function guardMutation(string $sql, array $params = [], array $runtimeContext = []): void
     {
 
-        MutationInvariant::guard($sql, $params);
+        MutationInvariant::guard($sql, $params, $runtimeContext);
     }
 
     public static function proofSnapshot(): array

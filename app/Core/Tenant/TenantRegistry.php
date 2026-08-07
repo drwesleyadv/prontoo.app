@@ -69,30 +69,6 @@ final class TenantRegistry
         $table = strtolower($table);
         return self::SCOPED_TABLES[$table] ?? null;
     }
-    public static function sessionClinicId(): int
-    {
-
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            return 0;
-        }
-        if (($_SESSION["scope"] ?? "") !== "clinic") {
-            return 0;
-        }
-        return max(0, (int) ($_SESSION["clinic_id"] ?? 0));
-    }
-    public static function sessionRoleCode(): string
-    {
-
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            return "";
-        }
-        return preg_replace(
-            "/[^a-z0-9_\-]/i",
-            "",
-            (string) ($_SESSION["role_code"] ?? ""),
-        ) ?:
-            "";
-    }
     private static function globalAdminExemptSubquery(): string
     {
 
