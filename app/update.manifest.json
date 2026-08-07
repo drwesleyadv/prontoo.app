@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 443,
-    "total_uncompressed_bytes": 5416674,
+    "total_uncompressed_bytes": 5416832,
     "files": {
         ".github/workflows/architecture.yml": "1fbda0fc4f4f5f328792a7b740dcd028bf10485e7bba54dc494f716132774e0d",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -472,7 +472,7 @@
         "tools/security-regression-check.php": "bd3c09f7965336be4b1efae06672a235a547837148c83186f4a1ffd78506d81d",
         "tools/solid-audit": "e83230e06023d994051241d2197e089b564f7940ecf1d20ce5bf8b934a4c3f93",
         "tools/version-asset-contract-check.php": "181d30a2c813677dda256a6308e992545ab578957f22ca037c8fb65d4b7ea520",
-        "version.json": "e62c79a978dc4fec5c1b95f5fa5d1585879aea351cdcb2fcbeee8d1ce3b82b21"
+        "version.json": "0afd1ba9bb3cdc90956b31c2cde3b2a3c98b1c9c54676ace365c949aa16d551f"
     },
     "removed_files": [
         "ARCHITECTURE.md",
@@ -500,7 +500,7 @@
     ],
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "previous_version": "1.8.6.2",
-    "updated_at": "2026-08-07T17:37:32+00:00",
+    "updated_at": "2026-08-07T17:39:35+00:00",
     "notes": "Telemetria de página v2 com navegação HTML como unidade única e duração delimitada no front controller.",
     "deployment_sync_id": "github-prontoo-1.8.7.1-solid-consolidation-audit",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
