@@ -1,0 +1,201 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$tempRoot = sys_get_temp_dir() . '/prontoo-critical-runtime-' . getmypid();
+if (!is_dir($tempRoot) && !mkdir($tempRoot, 0750, true) && !is_dir($tempRoot)) {
+    throw new RuntimeException('Não foi possível criar diretório temporário do smoke test crítico.');
+}
+$configPath = $tempRoot . '/config.php';
+$config = [
+    'db_host' => getenv('DB_HOST') ?: '127.0.0.1',
+    'db_name' => getenv('DB_DATABASE') ?: 'prontoo_schema',
+    'db_user' => getenv('DB_USERNAME') ?: 'root',
+    'db_pass' => getenv('DB_PASSWORD') ?: 'root',
+    'secret' => 'prontoo-critical-runtime-ci-secret',
+    'debug' => true,
+    'app_env' => 'development',
+];
+file_put_contents($configPath, '<?php return ' . var_export($config, true) . ';' . PHP_EOL, LOCK_EX);
+putenv('PRONTOO_CONFIG_PATH=' . $configPath);
+
+$dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $config['db_host'], $config['db_name']);
+$admin = PDO::connect($dsn, $config['db_user'], $config['db_pass'], [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$tables = $admin->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$admin->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $admin->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $admin->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
+require $root . '/app/prontoo.php';
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    install_fresh_schema();
+});
+prontoo_load_full_runtime_modules();
+
+$pdo = pdo();
+$now = time();
+$insertPerson = $pdo->prepare('INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,?,?,?)');
+$insertPerson->execute(['Runtime Manager', '52998224725', 631152000, $now]);
+$userPersonId = (int) $pdo->lastInsertId();
+$insertUser = $pdo->prepare('INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,0,1,?)');
+$insertUser->execute([
+    $userPersonId,
+    'Runtime Manager',
+    'runtime-manager@example.invalid',
+    password_hash('Prontoo-CI-2026', PASSWORD_DEFAULT),
+    $now,
+]);
+$userId = (int) $pdo->lastInsertId();
+$insertClinic = $pdo->prepare(
+    'INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,owner_user_id,manager_user_id,timezone,active,created_at) VALUES (?,?,?,?,?,?,?,1,?)',
+);
+$insertClinic->execute([
+    'cpf',
+    'Runtime Clinic',
+    '52998224725',
+    'Runtime Clinic',
+    $userId,
+    $userId,
+    'America/Cuiaba',
+    $now,
+]);
+$clinicId = (int) $pdo->lastInsertId();
+$pdo->prepare('INSERT INTO pi_clinic_roles (clinic_id,role_code,label,enabled,sort_order,updated_at) VALUES (?,\'gerente\',\'Gerente\',1,40,?)')
+    ->execute([$clinicId, $now]);
+$pdo->prepare('INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) VALUES (?,?,\'gerente\',1,1,?)')
+    ->execute([$userId, $clinicId, $now]);
+
+$choices = active_clinic_roles_for_user($userId);
+if (count($choices) !== 1 || (int) ($choices[0]['clinic_id'] ?? 0) !== $clinicId || (string) ($choices[0]['role_code'] ?? '') !== 'gerente') {
+    throw new RuntimeException('Resolução de vínculo clínico não preservou o papel ativo esperado.');
+}
+$credential = login_resolve_user_credential($userId, false, $choices);
+if (!is_array($credential) || (string) ($credential['scope'] ?? '') !== 'clinic' || (int) ($credential['clinic_id'] ?? 0) !== $clinicId) {
+    throw new RuntimeException('Resolução de credencial clínica falhou no smoke test.');
+}
+
+$generationA = user_auth_generation_ensure($userId);
+$generationB = user_auth_generation_rotate($userId);
+if ($generationA === '' || $generationA === '0' || $generationB === $generationA || user_auth_generation_current($userId) !== $generationB) {
+    throw new RuntimeException('Geração de autenticação não foi persistida ou rotacionada corretamente.');
+}
+
+$mfaSecret = mfa_totp_secret_generate();
+mfa_record_save($userId, [
+    'v' => 1,
+    'secret' => mfa_secret_encrypt($mfaSecret),
+    'recovery' => [],
+    'last_counter' => -1,
+    'enrolled_at' => $now,
+    'updated_at' => $now,
+]);
+if (mfa_enrollment_state($userId) !== 'active') {
+    throw new RuntimeException('Persistência MFA real não retornou estado ativo.');
+}
+$mfaRecord = mfa_record_load($userId);
+if (!is_array($mfaRecord) || !hash_equals($mfaSecret, mfa_secret_decrypt((string) ($mfaRecord['secret'] ?? '')))) {
+    throw new RuntimeException('Registro MFA não preservou o segredo criptografado.');
+}
+
+$insertPerson->execute(['Runtime Patient', '16899535009', 946684800, $now]);
+$patientPersonId = (int) $pdo->lastInsertId();
+$insertPatient = $pdo->prepare(
+    'INSERT INTO pi_patients (clinic_id,person_id,phone,email,address,address_zip,address_number,address_neighborhood,address_complement,address_state,address_city,address_city_ibge,notes,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+);
+$insertPatient->execute([
+    $clinicId,
+    $patientPersonId,
+    '(65) 99999-0000',
+    'runtime-patient@example.invalid',
+    'Rua de Teste',
+    '78000000',
+    '10',
+    'Centro',
+    null,
+    'MT',
+    'Cuiabá',
+    null,
+    'fixture de runtime',
+    $userId,
+    $now,
+]);
+$patientId = (int) $pdo->lastInsertId();
+$patientService = new \Prontoo\Application\Patients\PatientReadService(
+    new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository(),
+);
+$registrationReason = $patientService->appointmentRegistrationBlockReason(
+    $clinicId,
+    $patientId,
+    static fn(array $patient): bool => (string) ($patient['full_name'] ?? '') === 'Runtime Patient',
+    static fn(array $patient): string => 'cadastro incompleto',
+);
+if ($registrationReason !== null || $patientService->hasLegalGuardian($clinicId, $patientId)) {
+    throw new RuntimeException('Leitura canônica do paciente retornou estado inesperado.');
+}
+$wrongClinicReason = $patientService->appointmentRegistrationBlockReason(
+    $clinicId + 999,
+    $patientId,
+    static fn(array $patient): bool => true,
+    static fn(array $patient): string => 'cadastro incompleto',
+);
+if ($wrongClinicReason !== 'Paciente não encontrado no consultório atual.') {
+    throw new RuntimeException('Isolamento de consultório falhou na leitura do paciente.');
+}
+
+$pdo->prepare('INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,created_by,created_at) VALUES (?,?,?,?,?,?)')
+    ->execute([$clinicId, $now, 'Nota de runtime', 'clinic', $userId, $now]);
+$agendaOwn = (int) val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=? AND note_date>=CURDATE()', [$clinicId]);
+$agendaOther = (int) val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=?', [$clinicId + 999]);
+if ($agendaOwn !== 1 || $agendaOther !== 0) {
+    throw new RuntimeException('Leitura temporal/tenant da Agenda não preservou isolamento.');
+}
+
+$pdo->prepare(
+    "INSERT INTO pi_financial_revenues (clinic_id,appointment_id,procedure_id,patient_link_id,title,amount_cents,status,payment_method,expected_at,received_at,created_by,created_at) VALUES (?,NULL,NULL,?,?,?,'prevista','pix',?,NULL,?,?)",
+)->execute([$clinicId, $patientId, 'Receita Runtime', 12345, $now, $userId, $now]);
+$revenueId = (int) $pdo->lastInsertId();
+$GLOBALS['PRONTOO_SCOPE_GUARD_SYSTEM'] = true;
+$GLOBALS['PRONTOO_READONLY_GUARD_DISABLED'] = true;
+try {
+    $financialService = new \Prontoo\Application\Financial\PatientRevenueReceiptService(
+        new \Prontoo\Infrastructure\Financial\PdoPatientRevenueReceiptRepository(),
+    );
+    $receipt = $financialService->receive($clinicId, $patientId, $revenueId, $userId, 'gerente');
+} finally {
+    unset($GLOBALS['PRONTOO_SCOPE_GUARD_SYSTEM'], $GLOBALS['PRONTOO_READONLY_GUARD_DISABLED']);
+}
+if ((string) ($receipt['status'] ?? '') !== 'received' || (int) ($receipt['movement_id'] ?? 0) <= 0 || (int) ($receipt['amount_cents'] ?? 0) !== 12345) {
+    throw new RuntimeException('Recebimento financeiro transacional não concluiu com o resultado esperado.');
+}
+if ((string) val('SELECT status FROM pi_financial_revenues WHERE id=? AND clinic_id=?', [$revenueId, $clinicId]) !== 'efetivada') {
+    throw new RuntimeException('Receita financeira não foi efetivada após o comando transacional.');
+}
+if ((int) val("SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND source_entity='patient_revenue' AND source_id=? AND status='confirmed'", [$clinicId, $revenueId]) !== 1) {
+    throw new RuntimeException('Movimento financeiro canônico não foi persistido exatamente uma vez.');
+}
+
+echo json_encode([
+    'ok' => true,
+    'policy' => 'critical-runtime-smoke-v1',
+    'credential' => true,
+    'auth_generation' => true,
+    'mfa_persistence' => true,
+    'patient_tenant_read' => true,
+    'agenda_temporal_tenant_read' => true,
+    'financial_transactional_receipt' => true,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
