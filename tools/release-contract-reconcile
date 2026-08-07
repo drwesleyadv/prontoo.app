@@ -1,0 +1,241 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$mode = $argv[1] ?? '--check';
+if (!in_array($mode, ['--check', '--write'], true)) {
+    fwrite(STDERR, "Uso: php tools/release-contract-reconcile [--check|--write]\n");
+    exit(2);
+}
+
+$root = dirname(__DIR__);
+$readJson = static function (string $path): array {
+    $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('Contrato JSON inválido: ' . $path);
+    }
+    return $decoded;
+};
+$encodeJson = static fn(array $value): string => json_encode(
+    $value,
+    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+) . PHP_EOL;
+$syncConstant = static function (string $source, string $name, string $value): string {
+    $pattern = '/const\s+' . preg_quote($name, '/') . '\s*=\s*["\x27][^"\x27]+["\x27]\s*;/';
+    $replacement = 'const ' . $name . ' = "' . $value . '";';
+    $updated = preg_replace($pattern, $replacement, $source, 1, $count);
+    if (!is_string($updated) || $count !== 1) {
+        throw new RuntimeException('Fallback canônico não localizado: ' . $name);
+    }
+    return $updated;
+};
+$canonicalChangelog = static function (string $source, string $release, array $version): string {
+    $changelog = (array) ($version['changelog'] ?? []);
+    $title = mb_trim((string) ($changelog['title'] ?? ''));
+    $items = array_values(array_filter(
+        array_map(static fn(mixed $item): string => mb_trim((string) $item), (array) ($changelog['items'] ?? [])),
+        static fn(string $item): bool => $item !== '',
+    ));
+    if ($title === '' || $items === []) {
+        throw new RuntimeException('Bloco canônico de changelog ausente em version.json.');
+    }
+    $prefix = '# Histórico de versões' . PHP_EOL;
+    if (!str_starts_with($source, $prefix)) {
+        throw new RuntimeException('Cabeçalho canônico do CHANGELOG.md ausente.');
+    }
+    $heading = '## ' . $release . ' — ' . $title;
+    $body = implode(PHP_EOL, array_map(
+        static fn(string $item): string => '- ' . rtrim($item, '.') . '.',
+        $items,
+    ));
+    $entry = $heading . PHP_EOL . PHP_EOL . $body . PHP_EOL;
+    $sectionPattern = '/^##\s+' . preg_quote($release, '/') . '\s+—[^\n]*\n.*?(?=^##\s+|\z)/ms';
+    if (preg_match($sectionPattern, $source) === 1) {
+        $updated = preg_replace_callback(
+            $sectionPattern,
+            static fn(array $match): string => $entry . PHP_EOL,
+            $source,
+            1,
+            $count,
+        );
+        if (!is_string($updated) || $count !== 1) {
+            throw new RuntimeException('Falha ao reconciliar entrada existente do CHANGELOG.md.');
+        }
+        return $updated;
+    }
+    return $prefix . PHP_EOL . $entry . PHP_EOL . substr($source, strlen($prefix));
+};
+
+$versionPath = $root . '/version.json';
+$manifestPath = $root . '/app/update.manifest.json';
+$architecturePath = $root . '/app/architecture.manifest.json';
+$prontooPath = $root . '/app/prontoo.php';
+$landingPath = $root . '/br/index.php';
+$changelogPath = $root . '/CHANGELOG.md';
+
+$version = $readJson($versionPath);
+$manifest = $readJson($manifestPath);
+$architecture = $readJson($architecturePath);
+$release = mb_trim((string) ($version['version'] ?? ''));
+$previous = mb_trim((string) ($version['previous_version'] ?? ''));
+if ($release === '' || mb_trim((string) ($version['release'] ?? '')) !== $release || $previous === '') {
+    throw new RuntimeException('Metadados canônicos de release inválidos.');
+}
+if (mb_trim((string) ($version['updated_at'] ?? '')) === '') {
+    throw new RuntimeException('updated_at determinístico ausente em version.json.');
+}
+
+$prontoo = $syncConstant((string) file_get_contents($prontooPath), 'PRONTOO_VERSION_FALLBACK', $release);
+$prontoo = $syncConstant($prontoo, 'PRONTOO_PREVIOUS_VERSION', $previous);
+$landing = $syncConstant((string) file_get_contents($landingPath), 'BR_LANDING_VERSION_FALLBACK', $release);
+$changelog = $canonicalChangelog((string) file_get_contents($changelogPath), $release, $version);
+
+foreach ([
+    'version' => 'version',
+    'release' => 'release',
+    'build' => 'build',
+    'generated_at' => 'generated_at',
+    'updated_at' => 'updated_at',
+    'previous_version' => 'previous_version',
+    'deployment_sync_id' => 'deployment_sync_id',
+    'logic_changes' => 'logic_changes',
+    'documentation_changes' => 'documentation_changes',
+    'database_changes' => 'database_changes',
+    'schema_changes' => 'schema_changes',
+    'visual_changes' => 'visual_changes',
+    'runtime_readiness_policy' => 'runtime_readiness_policy',
+] as $target => $sourceKey) {
+    if (array_key_exists($sourceKey, $version)) {
+        $architecture[$target] = $version[$sourceKey];
+    }
+}
+$architecture['policy'] = (string) ($version['architecture_policy'] ?? $architecture['policy'] ?? '');
+$architecture['native_files_min'] = (int) ($version['architecture_native_files_min'] ?? 0);
+$architecture['transitional_files_max'] = (int) ($version['architecture_transitional_files_max'] ?? 0);
+$architecture['native_migration_policy'] = 'effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase';
+$architectureContent = $encodeJson($architecture);
+
+foreach ([
+    'version',
+    'release',
+    'schema_revision',
+    'build',
+    'package_type',
+    'generated_at',
+    'version_format',
+    'minimum_php',
+    'database_changes',
+    'schema_changes',
+    'logic_changes',
+    'visual_changes',
+    'documentation_changes',
+    'clean_install_schema',
+    'requires_empty_database',
+    'architecture_policy',
+    'architecture_native_files_min',
+    'architecture_transitional_files_max',
+    'installer_locked',
+    'installer_access_policy',
+    'post_window_policy',
+    'asset_version',
+    'required_php_family',
+    'previous_version',
+    'deployment_sync_id',
+    'release_date',
+] as $key) {
+    if (array_key_exists($key, $version)) {
+        $manifest[$key] = $version[$key];
+    }
+}
+if (array_key_exists('installer_access_policy', $version)) {
+    $manifest['installer_policy'] = $version['installer_access_policy'];
+}
+$manifest['updated_at'] = (string) $version['updated_at'];
+
+$canonicalOverrides = [
+    'app/prontoo.php' => $prontoo,
+    'br/index.php' => $landing,
+    'CHANGELOG.md' => $changelog,
+    'app/architecture.manifest.json' => $architectureContent,
+];
+$files = [];
+$total = 0;
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+);
+foreach ($iterator as $file) {
+    if (!$file->isFile() || $file->isLink()) {
+        continue;
+    }
+    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+    if ($relative === 'app/update.manifest.json' ||
+        str_starts_with($relative, '.git/') ||
+        str_starts_with($relative, 'ssd/') ||
+        str_starts_with($relative, 'vendor/') ||
+        str_starts_with($relative, 'node_modules/')) {
+        continue;
+    }
+    $content = array_key_exists($relative, $canonicalOverrides)
+        ? $canonicalOverrides[$relative]
+        : (string) file_get_contents($file->getPathname());
+    $files[$relative] = hash('sha256', $content);
+    $total += strlen($content);
+}
+ksort($files, SORT_STRING);
+$manifest['files'] = $files;
+$manifest['file_count'] = count($files);
+$manifest['total_uncompressed_bytes'] = $total;
+$manifestContent = $encodeJson($manifest);
+
+$expected = [
+    'app/prontoo.php' => $prontoo,
+    'br/index.php' => $landing,
+    'CHANGELOG.md' => $changelog,
+    'app/architecture.manifest.json' => $architectureContent,
+    'app/update.manifest.json' => $manifestContent,
+];
+
+if ($mode === '--write') {
+    foreach ($expected as $relative => $content) {
+        if (file_put_contents($root . '/' . $relative, $content) === false) {
+            throw new RuntimeException('Falha ao gravar contrato canônico: ' . $relative);
+        }
+    }
+    echo json_encode([
+        'ok' => true,
+        'mode' => 'write',
+        'policy' => 'deterministic-release-contract-v1',
+        'release' => $release,
+        'outputs' => array_keys($expected),
+        'file_count' => count($files),
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
+    exit(0);
+}
+
+$divergent = [];
+foreach ($expected as $relative => $content) {
+    $actual = (string) file_get_contents($root . '/' . $relative);
+    if (!hash_equals(hash('sha256', $content), hash('sha256', $actual))) {
+        $divergent[] = $relative;
+    }
+}
+if ($divergent !== []) {
+    foreach ($divergent as $relative) {
+        fwrite(STDERR, 'release_contract_divergent: ' . $relative . PHP_EOL);
+    }
+    throw new RuntimeException('Contrato de release divergente; execute o reconciliador antes do commit.');
+}
+
+echo json_encode([
+    'ok' => true,
+    'mode' => 'check',
+    'policy' => 'deterministic-release-contract-v1',
+    'release' => $release,
+    'outputs' => array_keys($expected),
+    'file_count' => count($files),
+    'deterministic_updated_at' => (string) $version['updated_at'],
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
