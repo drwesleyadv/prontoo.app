@@ -25,17 +25,20 @@ jobs:
           coverage: none
           tools: none
       - name: Materialize authentication hardening
-        if: ${{ hashFiles('.auth-fix/payload.04') != '' }}
+        if: ${{ hashFiles('.auth-fix/payload.02.gz.b64') != '' }}
         shell: bash
         run: |
           set -euo pipefail
           git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
-          cat .auth-hardening/payload.00 .auth-hardening/payload.01 .auth-hardening/payload.02 .auth-hardening/payload.03 | tr -d '\r\n\t ' > /tmp/auth-hardening.b64
-          for file in .auth-fix/payload.04 .auth-fix/payload.05 .auth-fix/payload.06; do
-            base64 -d "$file" >> /tmp/auth-hardening.b64
+          cat .auth-hardening/payload.00 .auth-hardening/payload.01 | tr -d '\r\n\t ' > /tmp/auth-hardening.b64
+          for part in 02 03 04 05 06; do
+            base64 -d ".auth-fix/payload.${part}.gz.b64" | gzip -dc >> /tmp/auth-hardening.b64
           done
-          test "$(wc -c < /tmp/auth-hardening.b64)" -eq 27940
-          test "$(sha256sum /tmp/auth-hardening.b64 | cut -d' ' -f1)" = 'b83f351e69a064b90eb30a40ce1f298577df948757de72e6d00a5e9d42ea4604'
+          bytes="$(wc -c < /tmp/auth-hardening.b64)"
+          digest="$(sha256sum /tmp/auth-hardening.b64 | cut -d' ' -f1)"
+          printf 'auth payload bytes=%s sha256=%s\n' "$bytes" "$digest"
+          test "$bytes" -eq 27940
+          test "$digest" = 'b83f351e69a064b90eb30a40ce1f298577df948757de72e6d00a5e9d42ea4604'
           base64 -d /tmp/auth-hardening.b64 > /tmp/auth-hardening.patch
           python3 <<'PY'
           from pathlib import Path
