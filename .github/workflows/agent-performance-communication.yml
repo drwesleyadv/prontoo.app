@@ -75,7 +75,15 @@ jobs:
           s = p.read_text(encoding='utf-8')
           s = s.replace("timezone = '''function telemetry_cuiaba_tz(): DateTimeZone", "timezone_helper = '''function telemetry_cuiaba_tz(): DateTimeZone", 1)
           s = s.replace('telemetry = once(telemetry, timezone, timezone +', 'telemetry = once(telemetry, timezone_helper, timezone_helper +', 1)
-          s = s.replace('    ("telemetry_sequence_records_series_20d", "telemetry_sequence_records_series_30d"),\n', '', 1)
+          check_marker = 'check = read("tools/architecture-check.php")'
+          check_pos = s.find(check_marker)
+          if check_pos < 0:
+              raise RuntimeError('Bloco architecture-check não localizado')
+          needle = '    ("telemetry_sequence_records_series_20d", "telemetry_sequence_records_series_30d"),\n'
+          bad_pos = s.find(needle, check_pos)
+          if bad_pos < 0:
+              raise RuntimeError('Token inválido do architecture-check não localizado')
+          s = s[:bad_pos] + s[bad_pos + len(needle):]
           s = s.replace('    (\'"primary_label" => "Requisições"\', \'"primary_label" => "Visualizações"\'),\n', '', 1)
           p.write_text(s, encoding='utf-8')
           PY
