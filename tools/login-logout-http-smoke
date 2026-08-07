@@ -105,11 +105,11 @@ extract_cookie() {
 }
 
 extract_html_csrf() {
-  php -r '$s=stream_get_contents(STDIN); if (!preg_match('/"'"'name="csrf" value="([a-f0-9]{64})"'"'/i',$s,$m)) exit(1); echo $m[1];'
+  php -r '$s=stream_get_contents(STDIN); if (!preg_match("~name=\"csrf\" value=\"([a-f0-9]{64})\"~i",$s,$m)) exit(1); echo $m[1];'
 }
 
 extract_meta_csrf() {
-  php -r '$s=stream_get_contents(STDIN); if (!preg_match('/"'"'name="csrf-token" content="([a-f0-9]{64})"'"'/i',$s,$m)) exit(1); echo $m[1];'
+  php -r '$s=stream_get_contents(STDIN); if (!preg_match("~name=\"csrf-token\" content=\"([a-f0-9]{64})\"~i",$s,$m)) exit(1); echo $m[1];'
 }
 
 login_session() {
