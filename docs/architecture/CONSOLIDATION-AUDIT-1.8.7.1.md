@@ -6,9 +6,9 @@ Esta auditoria revisa o estado consolidado de `prontoo` imediatamente após a co
 
 ## Achados
 
-### 1. Tombstones nativos inflavam a métrica estrutural
+### 1. Seis tombstones nativos inflavam a métrica estrutural
 
-Três paths da baseline PHP 8.4 permaneciam como arquivos contendo apenas `declare(strict_types=1)` e namespace:
+A primeira revisão identificou três paths históricos contendo apenas `declare(strict_types=1)` e namespace:
 
 - `app/Core/Database/SqlScopeGuard.php`;
 - `app/Core/Integrity/AuditChain.php`;
@@ -20,21 +20,35 @@ As implementações canônicas já estavam, respectivamente, em:
 - `app/Infrastructure/Audit/AuditChain.php`;
 - `app/Infrastructure/Integrity/PiIntegrity.php`.
 
-Como `app/Core/` é classificado como nativo, os três tombstones eram contabilizados no `native_files_min = 284` apesar de não constituírem unidades arquiteturais. Resultado: métrica formalmente verde, mas numericamente inflada.
+Depois que `native-unit-contract-v1` foi integrado à CI, a própria auditoria dinâmica encontrou mais três stubs namespace-only deixados pela decomposição final do PR #172:
 
-**Correção:** remoção dos três tombstones e estabelecimento da baseline efetiva em `native_files_min = 281`.
+- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php`;
+- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php`;
+- `app/Domain/Legacy/Documents/DocumentsDomainOperations01.php`.
+
+O histórico do PR #172 confirma que esses três arquivos continham implementações antes da decomposição e foram esvaziados quando suas responsabilidades migraram para policies coesas. Os destinos são:
+
+- `AuditActivityDomainOperations01.php` → `AuditCopyPolicy`, `AuditTargetPolicy`, `AuditRecordPolicy`, `ActivityTaxonomy` e `ActivityValuePolicy`;
+- `AuditActivityDomainOperations02.php` → `ActivityDisplayPolicy`, `ActivityTargetPolicy`, `AuditWritePolicy` e `AuditDocumentPolicy`;
+- `DocumentsDomainOperations01.php` → `DocumentIdentifierPolicy`, `DocumentTypePolicy`, `DocumentTemplatePolicy` e `DocumentHtmlPolicy`.
+
+Os seis arquivos eram classificados como nativos apesar de não constituírem unidades arquiteturais. Resultado: `native_files_min = 284` estava formalmente verde, mas numericamente inflado.
+
+**Correção:** remoção dos seis tombstones e estabelecimento da baseline efetiva em `native_files_min = 278`.
 
 ### 2. A baseline PHP 8.4 não possuía migração explícita de path
 
-`tools/php84-runtime-contract-check` rejeitava qualquer arquivo da auditoria `1.8.6.1` que deixasse de existir, mesmo quando sua implementação tivesse sido legitimamente movida para outra camada. Isso incentivava a manutenção de paths vazios.
+`tools/php84-runtime-contract-check` rejeitava qualquer arquivo da auditoria `1.8.6.1` que deixasse de existir, mesmo quando sua implementação tivesse sido legitimamente movida ou decomposta. Isso incentivava a manutenção de paths vazios.
 
-**Correção:** `version.json` passa a declarar `php84_baseline_path_migrations`. O contrato exige que a origem pertença à baseline histórica, esteja ausente da árvore atual e tenha um destino atual rastreado. Origem ainda presente como tombstone ou destino ausente falham o gate.
+**Correção:** `version.json` passa a declarar `php84_baseline_path_migrations`. O contrato aceita destino único ou lista de destinos e exige que a origem pertença à baseline histórica, esteja ausente da árvore atual e que todos os destinos declarados sejam arquivos PHP rastreados. Origem ainda presente como tombstone ou qualquer destino ausente falham o gate.
 
 ### 3. Não havia veto explícito a unidade nativa sem tipo
 
 O contrato arquitetural exigia namespace e ausência de funções globais nos arquivos nativos, mas não exigia que o arquivo declarasse efetivamente um tipo.
 
 **Correção:** criação de `tools/native-unit-check` com política `native-unit-contract-v1`, integrada ao `Architecture Contract`. Todo arquivo nativo deve declarar `class`, `interface`, `trait` ou `enum` nomeado.
+
+O primeiro run do novo gate foi deliberadamente tratado como parte da auditoria, não como mera falha de CI. Ele revelou os três tombstones adicionais de Audit Activity/Documents, que foram então rastreados ao histórico do PR #172 e removidos.
 
 ### 4. A documentação DIP descrevia a direção ao contrário
 
@@ -50,7 +64,7 @@ A árvore em 07/08/2026 já continha toda a migração SOLID, mas `version.json`
 
 ## Invariantes preservados
 
-A consolidação não altera banco de dados, schema, rotas funcionais, comportamento de negócio, layout ou assets públicos. Os destinos reais dos três paths removidos já eram os módulos carregados pelo bootstrap antes desta auditoria.
+A consolidação não altera banco de dados, schema, rotas funcionais, comportamento de negócio, layout ou assets públicos. Os destinos reais dos seis paths removidos já continham as implementações executáveis antes desta auditoria.
 
 Permanecem obrigatórios:
 
@@ -69,8 +83,8 @@ A baseline efetiva da release `1.8.7.1` é:
 - `architecture_policy`: `php-layered-invariants-v2`;
 - `native_unit_policy`: `native-unit-contract-v1`;
 - `solid_policy`: `solid-structural-contract-v3`;
-- `architecture_native_files_min`: `281`;
+- `architecture_native_files_min`: `278`;
 - `architecture_transitional_files_max`: `51`;
-- tombstones de migração: `0`.
+- tombstones de migração/decomposição: `0`.
 
-A redução de 284 para 281 corrige exclusivamente a contagem artificial dos três arquivos namespace-only e não remove nenhuma implementação executável.
+A redução de 284 para 278 corrige exclusivamente a contagem artificial de seis arquivos namespace-only e não remove nenhuma implementação executável. A nova baseline passa a medir unidades reais, não paths históricos vazios.
