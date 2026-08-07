@@ -85,7 +85,12 @@ if (count($choices) !== 1 || (int) ($choices[0]['clinic_id'] ?? 0) !== $clinicId
     throw new RuntimeException('Resolução de vínculo clínico não preservou o papel ativo esperado.');
 }
 $credential = login_resolve_user_credential($userId, false, $choices);
-if (!is_array($credential) || (string) ($credential['scope'] ?? '') !== 'clinic' || (int) ($credential['clinic_id'] ?? 0) !== $clinicId) {
+if (
+    !is_array($credential) ||
+    (string) ($credential['scope'] ?? '') !== 'clinic' ||
+    (int) ($credential['clinic_role_id'] ?? 0) !== (int) ($choices[0]['id'] ?? 0) ||
+    (int) (($credential['choice']['clinic_id'] ?? 0)) !== $clinicId
+) {
     throw new RuntimeException('Resolução de credencial clínica falhou no smoke test.');
 }
 
