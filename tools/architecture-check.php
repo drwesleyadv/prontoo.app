@@ -1244,7 +1244,7 @@ foreach ([
     '$handle = @fopen(telemetry_file(), "ab")',
     'flock($handle, LOCK_EX)',
     'function telemetry_prune(',
-    '20 * 86400 * 1000000',
+    '31 * 86400 * 1000000',
     'function telemetry_comparative_summary(',
     '10 * 86400 * 1000000',
     '"landing_requests_pct" => telemetry_percentage_variation(',
