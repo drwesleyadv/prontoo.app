@@ -177,5 +177,3 @@ CONTRACT;
         }
     }
 }
-
-require_once dirname(__DIR__) . '/Support/RunnerFacade.php';
