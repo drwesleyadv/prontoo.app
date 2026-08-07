@@ -16,9 +16,9 @@ SOLID é tratado como contrato estrutural verificável:
 
 ## Estado auditado
 
-O contrato anterior `php-layered-invariants-v2` já garante direção de dependências e impede PDO em arquivos nativos de Core, Domain, Application e Presentation. Contudo, ele aceita uma migração incompleta com `native_files_min = 37` e `transitional_files_max = 82`.
+O contrato `php-layered-invariants-v2` garante direção de dependências e impede PDO em arquivos nativos de Core, Domain, Application e Presentation. A migração começou com `native_files_min = 37` e `transitional_files_max = 82`.
 
-A busca estrutural no head de `prontoo` identificou como principais superfícies procedurais e de responsabilidade ampla:
+A busca estrutural identificou como principais superfícies procedurais e de responsabilidade ampla:
 
 - `app/Admin/AdminPages.php`;
 - `app/Auth/AuthOnboarding.php`;
@@ -33,8 +33,7 @@ A busca estrutural no head de `prontoo` identificou como principais superfícies
 - `app/Domain/Clinic/ClinicConfig.php` e `SubscriptionSettings.php`;
 - `app/Pages/Dashboards.php`;
 - `app/Ui/Components.php`, `PublicWeb.php` e `SpeedChartGeometry.php`;
-- `app/Support/*` e `app/Database/DatabaseSchema.php`;
-- `app/Support/ModuleLoader.php`, que mistura resolução, carregamento, política de boot, catálogo de módulos e roteamento.
+- `app/Support/*` e `app/Database/DatabaseSchema.php`.
 
 A arquitetura nova já demonstra os padrões corretos em `Application/*Port`, `Application/*Service` e `Infrastructure/Pdo*Repository`, além de `CapabilityProvider`/`AuthorizationService` e do composition root `LayeredKernel`.
 
@@ -46,11 +45,11 @@ A principal dívida é a coexistência de arquivos procedurais extensos que acum
 
 ### OCP
 
-`ActionCatalog` e o catálogo procedural de módulos/rotas são pontos centrais de modificação. O alvo é substituir catálogos monolíticos por registries compostos por providers coesos, mantendo fail-closed e determinismo.
+`ActionCatalog` e demais catálogos centrais ainda são pontos de modificação. O alvo é substituí-los progressivamente por registries compostos por providers coesos, mantendo fail-closed e determinismo.
 
 ### LSP
 
-A arquitetura baseada em ports reduz o risco. O contrato passa a rejeitar consumidores internos que condicionem comportamento à implementação PDO concreta.
+A arquitetura baseada em ports reduz o risco. O contrato rejeita consumidores internos que condicionem comportamento à implementação PDO concreta.
 
 ### ISP
 
@@ -60,17 +59,32 @@ As portas existentes são pequenas e orientadas a casos de uso. O contrato sinal
 
 É o princípio atualmente mais maduro. A auditoria reforça que adaptadores concretos não podem ser instanciados fora da composição e que persistência não pode vazar para Core, Domain, Application ou Presentation.
 
-## Sequência de refatoração
+## Etapas concluídas
 
-1. publicar o auditor `tools/solid-audit` e incorporá-lo ao CI em modo diagnóstico;
-2. decompor o carregamento/composição de módulos e rotas;
-3. decompor autorização e catálogos centrais em providers coesos;
-4. concluir extrações de Patients e Financial;
-5. migrar Appointments, Documents, Tasks, Leads, Users/Permissions, Clinic e Maestro;
-6. migrar Auth, Admin, Pages e UI para adapters/presenters coesos;
-7. migrar Support e Database para Infrastructure/Composition;
-8. reduzir as fachadas procedurais a delegação sem regra, SQL ou HTML;
-9. ativar `tools/solid-audit --strict` no CI e estabelecer zero achados objetivos.
+### 1. Contrato executável SOLID
+
+`tools/solid-audit` integra o `Architecture Contract`, separa achados objetivos de hotspots heurísticos e estabelece a condição verificável de conclusão.
+
+### 2. Composição modular do runtime
+
+O antigo `app/Support/ModuleLoader.php` deixa de acumular política de boot, catálogo, resolução e estado de carregamento e passa a ser apenas uma fachada de compatibilidade. As responsabilidades nativas ficam em:
+
+- `app/Runtime/Modules/RuntimeBootPolicy.php`;
+- `app/Runtime/Modules/RuntimeModuleCatalog.php`;
+- `app/Runtime/Modules/RuntimeModuleLoader.php`;
+- `app/Runtime/Modules/RuntimeModuleComposition.php`.
+
+A baseline nativa sobe para 41 arquivos. O contrato histórico PHP 8.4 permanece como baseline da release 1.8.6.1, enquanto todos os arquivos PHP atuais e futuros continuam sujeitos a lint e auditoria de depreciações no CI.
+
+## Sequência restante
+
+1. decompor autorização e catálogos centrais em providers coesos;
+2. concluir extrações de Patients e Financial;
+3. migrar Appointments, Documents, Tasks, Leads, Users/Permissions, Clinic e Maestro;
+4. migrar Auth, Admin, Pages e UI para adapters/presenters coesos;
+5. migrar Support e Database para Infrastructure/Composition;
+6. reduzir as fachadas procedurais a delegação sem regra, SQL ou HTML;
+7. ativar `tools/solid-audit --strict` no CI e estabelecer zero achados objetivos.
 
 ## Regra de conclusão
 
