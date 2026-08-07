@@ -46,7 +46,7 @@ jobs:
           import os
 
           patch = Path('/tmp/auth-hardening.patch').read_text()
-          patch = patch.replace(r'\\Prontoo', r'\Prontoo')
+          patch = patch.replace(chr(92) * 2, chr(92))
           sections = re.split(r'(?=^diff --git )', patch, flags=re.M)
           applied = []
           for section in sections:
