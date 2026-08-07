@@ -1,0 +1,31 @@
+ty/PiIntegrity.php'", "__DIR__ . '/Infrastructure/Integrity/PiIntegrity.php'")
+# Add SessionTenantContext before use through explicit require in bootstrap for safety.
+anchor="    __DIR__ . '/Infrastructure/Integrity/PiIntegrity.php',\n"
+if anchor in s and "Runtime/Tenant/SessionTenantContext.php" not in s:
+    s=s.replace(anchor, anchor+"    __DIR__ . '/Runtime/Tenant/SessionTenantContext.php',\n")
+write(p,s)
+
+# strengthen audit persistence detector to include safe_val/cached_val so Core hidden DB reads are visible.
+p='tools/solid-audit'; s=read(p)
+s=s.replace("(?:pdo|q|one|val)\\s*\\(", "(?:pdo|q|one|val|safe_val|cached_val)\\s*\\(")
+write(p,s)
+
+print('stage6 applied')
+from pathlib import Path
+import re
+root=Path(sys.argv[1])
+def r(p): return (root/p).read_text()
+def w(p,s): p=root/p; p.parent.mkdir(parents=True,exist_ok=True); p.write_text(s)
+w('app/Runtime/Tenant/SessionTenantAccess.php', '''<?php\ndeclare(strict_types=1);\n\nnamespace Prontoo\\Runtime\\Tenant;\n\nfinal class SessionTenantAccess\n{\n    private function __construct()\n    {\n    }\n\n    public static function clinicId(): int\n    {\n        return SessionTenantContext::clinicId();\n    }\n\n    public static function roleCode(): string\n    {\n        return SessionTenantContext::roleCode();\n    }\n}\n''')
+p='app/Support/SecurityAccess.php'; s=r(p)
+s=s.replace('return \\Prontoo\\Infrastructure\\Legacy\\SecurityAccess\\SecurityAccessInfrastructureOperations01::session_clinic_scope_id();','return \\Prontoo\\Runtime\\Tenant\\SessionTenantAccess::clinicId();')
+s=s.replace('return \\Prontoo\\Infrastructure\\Legacy\\SecurityAccess\\SecurityAccessInfrastructureOperations01::session_clinic_role_code();','return \\Prontoo\\Runtime\\Tenant\\SessionTenantAccess::roleCode();')
+w(p,s)
+p='app/Infrastructure/Legacy/SecurityAccess/SecurityAccessInfrastructureOperations01.php'; s=r(p)
+s=re.sub(r'\n    public static function session_clinic_scope_id\(\): int\n\s*\{.*?\n    \}\n\n    public static function session_clinic_role_code\(\): string\n\s*\{.*?\n    \}\n', '\n', s, flags=re.S)
+w(p,s)
+# bootstrap explicit files
+p='app/bootstrap_architecture.php'; s=r(p)
+anchor="    __DIR__ . '/Runtime/Tenant/SessionTenantContext.php',\n"
+if anchor in s and 'SessionTenantAccess.php' not in s: s=s.replace(anchor,anchor+"    __DIR__ . '/Runtime/Tenant/SessionTenantAccess.php',\n")
+w(p,s)
