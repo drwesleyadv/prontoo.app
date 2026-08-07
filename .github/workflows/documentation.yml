@@ -43,6 +43,7 @@ jobs:
           test "$(sha256sum /tmp/solid-stage6.py | cut -d' ' -f1)" = 'f2a1d9882c7620dfe5c6c8cd0d48a80660293601c325169fdc5c577d5c8760cc'
           python3 /tmp/solid-stage6.py "$GITHUB_WORKSPACE"
           rm -rf .solid-stage6
+          test ! -e .solid-stage6
           git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
       - name: Reconcile update manifest
         shell: bash
@@ -88,10 +89,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && exit 0
-          if git diff --cached --name-only | grep -q '^\.solid-stage6/'; then
-            echo 'Temporary SOLID stage 6 applicator remained staged.' >&2
-            exit 1
-          fi
           git commit -m "SOLID stage 6: harden Core boundaries and explicit contexts"
           git push origin HEAD:${GITHUB_HEAD_REF}
   validate:
