@@ -1,19 +1,19 @@
 {
-    "version": "1.8.7.7",
-    "release": "1.8.7.7",
-    "generated_at_unix": 1786140000,
-    "generated_at": "2026-08-07T22:00:00+00:00",
-    "updated_at": "2026-08-07T22:00:00+00:00",
-    "build": "1.8.7.7-deterministic-release-contract",
+    "version": "1.8.7.8",
+    "release": "1.8.7.8",
+    "generated_at_unix": 1786140900,
+    "generated_at": "2026-08-07T22:15:00+00:00",
+    "updated_at": "2026-08-07T22:15:00+00:00",
+    "build": "1.8.7.8-login-availability-hotfix",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
-    "logic_changes": false,
+    "logic_changes": true,
     "visual_changes": false,
-    "functional_equivalence_policy": "release-pipeline-determinism-only-no-user-resource-or-feature-change",
+    "functional_equivalence_policy": "login-progressive-enhancement-and-readiness-cache-degradation-no-user-resource-change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Torna a reconciliação de release determinística e read-only na CI: divergências passam a falhar sem commits automáticos ou alteração do SHA validado.",
+    "notes": "Corrige bloqueios de login causados por autoteste auxiliar no navegador e por indisponibilidade do cache de locks de readiness, preservando autenticação, MFA e contratos mínimos do runtime.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.7.6",
+    "previous_version": "1.8.7.7",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.7.7-deterministic-release-contract",
-    "deployment_sync_requested_at": "2026-08-07T22:00:00+00:00",
+    "deployment_sync_id": "github-prontoo-1.8.7.8-login-availability-hotfix",
+    "deployment_sync_requested_at": "2026-08-07T22:15:00+00:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -54,11 +54,11 @@
         "legacy_telemetry": "ssd/telemetry/telemetria.json"
     },
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
-    "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_only_deep_maintenance_requires_explicit_operational_force",
+    "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_with_uncached_fallback_when_readiness_lock_cache_is_unavailable",
     "release_reconciliation_policy": "version_json_canonical_deterministic_outputs_ci_read_only_exact_validated_sha_equals_merge_candidate",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "deterministic_read_only_release_reconciliation_and_exact_sha_validation",
+    "rewrite_scope": "remove_advisory_preflight_from_login_gate_and_add_uncached_readiness_fallback",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
     "release_date": "2026-08-07",
@@ -90,13 +90,15 @@
         ]
     },
     "changelog": {
-        "title": "Reconciliação determinística e read-only de releases",
+        "title": "Hotfix de disponibilidade do login",
         "items": [
-            "centraliza a geração e a conferência de fallbacks, manifests e changelog em um reconciliador determinístico baseado em version.json",
-            "remove commits e pushes automáticos do Documentation Contract e faz divergências falharem de forma read-only",
-            "torna updated_at dos artefatos gerados determinístico e elimina o avanço de SHA após a validação",
-            "faz a CI validar que o SHA aprovado é exatamente o candidato ao merge",
-            "preserva runtime, schema, dados, interface, rotas e todos os recursos disponíveis ao usuário"
+            "faz o formulário de login funcionar por envio HTML nativo mesmo sem JavaScript",
+            "remove o autoteste auxiliar e a gravabilidade do storage como pré-requisitos para habilitar o botão Entrar",
+            "mantém CPF, senha, MFA, rate limit e credenciais validados exclusivamente pelo servidor",
+            "executa readiness mínima sem cache quando o diretório ou arquivo de lock não puder ser gravado",
+            "mantém schema contract e integrity lightcheck fail-closed mesmo no modo degradado",
+            "preserva schema, dados, interface funcional e todos os recursos do usuário"
         ]
-    }
+    },
+    "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript"
 }

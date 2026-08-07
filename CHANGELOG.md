@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.7.8 — Hotfix de disponibilidade do login
+
+- faz o formulário de login funcionar por envio HTML nativo mesmo sem JavaScript.
+- remove o autoteste auxiliar e a gravabilidade do storage como pré-requisitos para habilitar o botão Entrar.
+- mantém CPF, senha, MFA, rate limit e credenciais validados exclusivamente pelo servidor.
+- executa readiness mínima sem cache quando o diretório ou arquivo de lock não puder ser gravado.
+- mantém schema contract e integrity lightcheck fail-closed mesmo no modo degradado.
+- preserva schema, dados, interface funcional e todos os recursos do usuário.
+
 ## 1.8.7.7 — Reconciliação determinística e read-only de releases
 
 - centraliza a geração e a conferência de fallbacks, manifests e changelog em um reconciliador determinístico baseado em version.json.

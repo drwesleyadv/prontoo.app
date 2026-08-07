@@ -466,7 +466,7 @@ final class SupportFoundationInfrastructureOperations01
             $freeOk = $free === false ? true : $free > 20 * 1024 * 1024;
             $checks["storage"] = $writable && $freeOk;
             $checks["storage_free_bytes"] = $free === false ? null : (float) $free;
-            $ok = $ok && (bool) $checks["storage"];
+            $checks["storage_advisory"] = true;
         } catch (Throwable $e) {
             $checks["storage"] = false;
             $ok = false;
