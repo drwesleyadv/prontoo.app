@@ -14,6 +14,8 @@ $internalPrefixes = [
     'app/Application/' => 'application',
     'app/Infrastructure/' => 'infrastructure',
     'app/Presentation/' => 'presentation',
+    'app/Runtime/' => 'composition',
+    'app/Install/' => 'composition',
 ];
 $allowedDependencies = [
     'core' => ['Core'],
@@ -21,6 +23,7 @@ $allowedDependencies = [
     'application' => ['Core', 'Domain', 'Application'],
     'infrastructure' => ['Core', 'Domain', 'Application', 'Infrastructure'],
     'presentation' => ['Core', 'Domain', 'Application', 'Presentation'],
+    'composition' => ['Core', 'Domain', 'Application', 'Infrastructure', 'Presentation', 'Runtime', 'Install'],
 ];
 $objective = [];
 $hotspots = [];
@@ -76,7 +79,7 @@ foreach ($iterator as $file) {
         if ($globalFunctions > 0) {
             $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'no_internal_global_functions', 'count' => $globalFunctions];
         }
-        preg_match_all('/Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation)\\\\/', $source, $dependencyMatches);
+        preg_match_all('/Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation|Runtime|Install)\\\\/', $source, $dependencyMatches);
         foreach (array_unique($dependencyMatches[1] ?? []) as $target) {
             if (!in_array($target, $allowedDependencies[$layer] ?? [], true)) {
                 $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'dependency_points_inward', 'target' => $target];
@@ -88,7 +91,7 @@ foreach ($iterator as $file) {
         if (in_array($layer, ['core', 'domain', 'application'], true) && preg_match('/\$_(?:GET|POST|REQUEST|FILES|COOKIE|SESSION|SERVER)\b/', $source)) {
             $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'http_state_outside_core_domain_application'];
         }
-        if ($layer !== 'infrastructure' && preg_match('/\bnew\s+(?:\\?Prontoo\\Infrastructure\\|Pdo[A-Z])/', $source)) {
+        if (!in_array($layer, ['infrastructure', 'composition'], true) && preg_match('/\bnew\s+(?:\\?Prontoo\\Infrastructure\\|Pdo[A-Z])/', $source)) {
             $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'concrete_adapter_instantiation_outside_composition'];
         }
         if (preg_match_all('/\binterface\s+([A-Za-z_][A-Za-z0-9_]*)[^\{]*\{(.*?)\}/s', $source, $interfaces, PREG_SET_ORDER)) {
