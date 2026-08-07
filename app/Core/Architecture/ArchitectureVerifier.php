@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Prontoo\Core\Architecture;
 
+require_once __DIR__ . '/CompatibilitySourceResolver.php';
+
 use Prontoo\Application\Authorization\ActionCatalog;
 
 final class ArchitectureVerifier
@@ -46,8 +48,10 @@ final class ArchitectureVerifier
             } else {
                 $transitionalFiles[] = $relative;
             }
-            self::inspectDependencies($root, $relative, $layer, $errors);
-            self::inspectLayerNativeFile($root, $relative, $layer, $errors);
+            if (LayerMap::isNativePath($relative)) {
+                self::inspectDependencies($root, $relative, $layer, $errors);
+                self::inspectLayerNativeFile($root, $relative, $layer, $errors);
+            }
         }
 
         $runtimeModules = function_exists('prontoo_full_runtime_modules')
@@ -79,7 +83,7 @@ final class ArchitectureVerifier
                 $errors[] = 'action_route_missing:' . $contract->route . ':' . $contract->action;
             }
             if ($contract->action !== ActionCatalog::DEFAULT_ACTION && is_file($root . '/' . $source)) {
-                $content = (string) @file_get_contents($root . '/' . $source);
+                $content = CompatibilitySourceResolver::content($root, $source);
                 if (!str_contains($content, $contract->action)) {
                     $errors[] = 'action_token_not_in_handler:' . $contract->route . ':' . $contract->action . ':' . $source;
                 }
@@ -95,7 +99,7 @@ final class ArchitectureVerifier
                     continue;
                 }
                 if ($contract->action !== ActionCatalog::DEFAULT_ACTION &&
-                    !str_contains((string) @file_get_contents($root . '/' . $producer), $contract->action)) {
+                    !str_contains(CompatibilitySourceResolver::content($root, $producer), $contract->action)) {
                     $errors[] = 'action_token_not_in_producer:' . $contract->route . ':' . $contract->action . ':' . $producer;
                 }
             }
@@ -114,7 +118,7 @@ final class ArchitectureVerifier
             if (!is_file($path)) {
                 continue;
             }
-            foreach (self::discoverActionTokens((string) @file_get_contents($path)) as $token) {
+            foreach (self::discoverActionTokens(CompatibilitySourceResolver::content($root, $source)) as $token) {
                 $discovered[$token] = true;
                 $discoveredSources[$token][$source] = true;
                 if (!isset($knownBySource[$source][$token])) {

@@ -33,38 +33,6 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Apply temporary SOLID stage 5 migration
-        if: ${{ hashFiles('.solid-stage5/payload.00') != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('.solid-stage5/payload.01')
-          source = path.read_text()
-          bad = 'pN5ised4N4Vx'
-          good = 'pN5Sised4N4Vx'
-          if source.count(bad) != 1:
-              raise SystemExit('unexpected stage5 payload.01 state')
-          path.write_text(source.replace(bad, good, 1))
-          PY
-          for file in .solid-stage5/payload.*; do
-            printf '%s ' "$file"
-            wc -c < "$file"
-            sha256sum "$file"
-          done
-          cat .solid-stage5/payload.* | tr -d '\r\n\t ' > /tmp/solid-stage5.b64
-          test "$(wc -c < /tmp/solid-stage5.b64)" -eq 54908
-          test "$(sha256sum /tmp/solid-stage5.b64 | cut -d' ' -f1)" = '2b0050fd057476c6f56b940d88f649f74372a72a4cbbbb4fd387762a80696b65'
-          base64 -d /tmp/solid-stage5.b64 > /tmp/solid-stage5.tar.gz
-          mkdir -p /tmp/solid-stage5
-          tar -xzf /tmp/solid-stage5.tar.gz -C /tmp/solid-stage5
-          php /tmp/solid-stage5/migrate.php "$GITHUB_WORKSPACE"
-          tar -xzf /tmp/solid-stage5/overrides.tar.gz -C "$GITHUB_WORKSPACE"
-          rm -f solid-migration-map.json
-          rm -rf .solid-stage5
-          rm -f .github/workflows/solid-stage5-apply.yml
-          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
       - name: Reconcile update manifest
         shell: bash
         run: |
@@ -107,13 +75,9 @@ jobs:
           PHP
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add app/update.manifest.json
           git diff --cached --quiet && exit 0
-          if git diff --cached --name-only | grep -q '^\.solid-stage5/'; then
-            echo 'Temporary SOLID payload remained staged.' >&2
-            exit 1
-          fi
-          git commit -m "SOLID stage 5: migrate procedural modules to native facades"
+          git commit -m "Sincronizar manifesto documental"
           git push origin HEAD:${GITHUB_HEAD_REF}
   validate:
     if: ${{ !(github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository) }}

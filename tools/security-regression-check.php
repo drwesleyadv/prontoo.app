@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/compatibility-source.php';
 
 $testStorageRoot =
     sys_get_temp_dir() .
@@ -226,9 +227,7 @@ foreach ($telemetryLines as $line) {
     );
 }
 
-$authSource = (string) file_get_contents(
-    dirname(__DIR__) . "/app/Auth/AuthOnboarding.php",
-);
+$authSource = compatibility_source(dirname(__DIR__), "app/Auth/AuthOnboarding.php");
 $cronSource = (string) file_get_contents(
     dirname(__DIR__) . "/cron/maestro.php",
 );

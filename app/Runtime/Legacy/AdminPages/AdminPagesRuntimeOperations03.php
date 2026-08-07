@@ -1,0 +1,491 @@
+<?php
+declare(strict_types=1);
+
+namespace Prontoo\Runtime\Legacy\AdminPages;
+
+use \Closure;
+use \DateInterval;
+use \DateTime;
+use \DateTimeImmutable;
+use \DateTimeInterface;
+use \DateTimeZone;
+use \Exception;
+use \GdImage;
+use \InvalidArgumentException;
+use \JsonException;
+use \LogicException;
+use \PDO;
+use \PDOException;
+use \ProntooHttpError;
+use \RuntimeException;
+use \Throwable;
+
+final class AdminPagesRuntimeOperations03
+{
+    private function __construct()
+    {
+    }
+
+    public static function admin_telemetry_kpi_cards_html(bool $linked = false): string
+    
+    {
+        $summary = telemetry_comparative_summary();
+        $current = (array) ($summary["current"] ?? []);
+        $variations = (array) ($summary["variations"] ?? []);
+        $card = static function (
+            string $label,
+            mixed $value,
+            string $iconName,
+            string $note,
+        ) use ($linked): string {
+            return $linked
+                ? stat_link_card(
+                    $label,
+                    $value,
+                    $iconName,
+                    $note,
+                    "admin_performance",
+                )
+                : stat_card($label, $value, $iconName, $note);
+        };
+        $averageMs = isset($current["average_ms"])
+            ? admin_performance_format_ms((float) $current["average_ms"])
+            : "—";
+        $landingRequests = max(
+            0,
+            (int) ($current["landing_requests"] ?? 0),
+        );
+        return $card(
+            "Requisições",
+            max(0, (int) ($current["requests"] ?? 0)),
+            "route",
+            admin_telemetry_variation_note(
+                isset($variations["requests_pct"])
+                    ? (float) $variations["requests_pct"]
+                    : null,
+            ),
+        ) .
+            $card(
+                "Tempo médio das rotas",
+                $averageMs,
+                "speed",
+                admin_telemetry_variation_note(
+                    isset($variations["average_ms_pct"])
+                        ? (float) $variations["average_ms_pct"]
+                        : null,
+                ),
+            ) .
+            $card(
+                "Execuções da Landing Page",
+                $landingRequests,
+                "web",
+                admin_telemetry_variation_note(
+                    isset($variations["landing_requests_pct"])
+                        ? (float) $variations["landing_requests_pct"]
+                        : null,
+                ),
+            );
+    
+    }
+
+    public static function page_status(): void
+    
+    {
+        if (strtoupper((string) ($_SERVER["REQUEST_METHOD"] ?? "GET")) !== "GET") {
+            throw new ProntooHttpError(405, "Método não permitido.");
+        }
+        if (!headers_sent()) {
+            header("Content-Type: text/html; charset=utf-8");
+            header("Cache-Control: no-store, max-age=0");
+            header("X-Robots-Tag: noindex, nofollow");
+        }
+        $assetRevision = defined("PRONTOO_ASSET_REV")
+            ? (string) PRONTOO_ASSET_REV
+            : (string) PRONTOO_VERSION;
+    $overviewCards = admin_telemetry_kpi_cards_html();
+    $statusHeader =
+        '<header class="status-page-header">' .
+        '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
+        '<div><h1>Status do Prontoo</h1><p>Comparação entre períodos móveis de 10 dias</p></div>' .
+        "</header>";
+    $card = $statusHeader . $overviewCards . admin_performance_card_html(true);
+        echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
+            e(PRONTOO_VERSION) .
+            '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
+            rawurlencode($assetRevision) .
+            '.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap" rel="stylesheet"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+            rawurlencode($assetRevision) .
+            '&release=' .
+            rawurlencode(PRONTOO_VERSION) .
+            '"><script defer src="/public/assets/app.js?v=' .
+            rawurlencode($assetRevision) .
+            '&release=' .
+            rawurlencode(PRONTOO_VERSION) .
+            '"></script></head><body class="public scope-global status-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="status" data-app-version="' .
+            e(PRONTOO_VERSION) .
+            '"><main id="conteudo" tabindex="-1" aria-label="Status operacional do Prontoo">' .
+            $card .
+            "</main></body></html>";
+    
+    }
+
+    public static function page_admin_operations(): void
+    
+    {
+    
+        require_can("admin_operations");
+        $body =
+            page_head("Painel operacional", "") .
+            card(
+                '<div class="section-head admin-performance-head"><h2>Operação e financeiro</h2><p>Indicadores dos últimos 30 dias, organizados por operação e caixa da plataforma.</p></div>' .
+                    admin_global_ops_finance_html(),
+                "admin-ops-finance-card",
+            );
+        page("Painel operacional", $body);
+    
+    }
+
+    public static function page_admin_deleted(): void
+    
+    {
+    
+        require_can("admin_health");
+        if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
+            $act = (string) ($_POST["act"] ?? "");
+            $id = (int) ($_POST["id"] ?? 0);
+            if ($id <= 0) {
+                flash("Registro não informado.", "bad");
+                redirect("admin_deleted");
+            }
+            if ($act === "restore_patient") {
+                $pat = one(
+                    "SELECT id,person_id,clinic_id FROM pi_patients WHERE id=? AND deleted_at IS NOT NULL",
+                    [$id],
+                );
+                if ($pat) {
+                    q(
+                        "UPDATE pi_patients SET active=1,registration_needs_update=1,deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
+                        [
+                            (int) ($_SESSION["uid"] ?? 0),
+                            $id,
+                            (int) $pat["clinic_id"],
+                        ],
+                    );
+                    audit("paciente_recuperado", "paciente", $id, [
+                        "campos" => ["Restauração administrativa"],
+                        "audit_body" =>
+                            "Paciente excluído foi restaurado pelo Desenvolvedor. Atualização cadastral deve ser conferida pela clínica.",
+                    ]);
+                    flash(
+                        "Paciente restaurado. A clínica deverá revisar o cadastro.",
+                    );
+                }
+                redirect("admin_deleted");
+            }
+            if ($act === "restore_care") {
+                $care = one(
+                    "SELECT id,patient_link_id,clinic_id FROM pi_care WHERE id=? AND deleted_at IS NOT NULL",
+                    [$id],
+                );
+                if ($care) {
+                    q(
+                        "UPDATE pi_care SET deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=? WHERE id=? AND clinic_id=?",
+                        [
+                            (int) ($_SESSION["uid"] ?? 0),
+                            $id,
+                            (int) $care["clinic_id"],
+                        ],
+                    );
+                    audit(
+                        "prontuario_alterado",
+                        "paciente",
+                        (int) $care["patient_link_id"],
+                        [
+                            "campos" => ["Restauração administrativa de anotação"],
+                            "audit_body" =>
+                                "Anotação excluída foi restaurada pelo Desenvolvedor.",
+                        ],
+                    );
+                    flash("Anotação restaurada.");
+                }
+                redirect("admin_deleted");
+            }
+        }
+        $patients = q(
+            "SELECT id,person_id,clinic_id,deleted_at,deleted_by FROM pi_patients WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
+        )->fetchAll();
+        $persons = fetch_map(
+            "pi_persons",
+            int_ids($patients, "person_id"),
+            "id,full_name,cpf,birth_date",
+        );
+        $clinics = fetch_map(
+            "pi_clinics",
+            int_ids($patients, "clinic_id"),
+            "id,display_name",
+        );
+        $users = fetch_map("pi_users", int_ids($patients, "deleted_by"), "id,name");
+        $pitems = [];
+        foreach ($patients as $r) {
+            $ps = $persons[(int) $r["person_id"]] ?? [];
+            $cl = $clinics[(int) $r["clinic_id"]] ?? [];
+            $by = $users[(int) ($r["deleted_by"] ?? 0)] ?? [];
+            $form =
+                '<form method="post" class="inline">' .
+                csrf_field() .
+                '<input type="hidden" name="act" value="restore_patient"><input type="hidden" name="id" value="' .
+                (int) $r["id"] .
+                '"><button type="submit" class="small primary">Restaurar</button></form>';
+            $pitems[] = [
+                "icon" => "restore_from_trash",
+                "time" => dt_br($r["deleted_at"]),
+                "title" => $ps["full_name"] ?? "Paciente #" . $r["id"],
+                "body" =>
+                    ($cl["display_name"] ?? "Consultório") .
+                    " · CPF " .
+                    mask((string) ($ps["cpf"] ?? "")),
+                "meta" => "Excluído por " . first_name($by["name"] ?? ""),
+                "html" => $form,
+            ];
+        }
+        $care = q(
+            "SELECT id,patient_link_id,record_type,title,deleted_at,deleted_by FROM pi_care WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
+        )->fetchAll();
+        $patientsMap = fetch_map(
+            "pi_patients",
+            int_ids($care, "patient_link_id"),
+            "id,person_id,clinic_id",
+        );
+        $personIds = [];
+        $clinicIds = [];
+        foreach ($patientsMap as $pm) {
+            if (!empty($pm["person_id"])) {
+                $personIds[] = (int) $pm["person_id"];
+            }
+            if (!empty($pm["clinic_id"])) {
+                $clinicIds[] = (int) $pm["clinic_id"];
+            }
+        }
+        $personMap = fetch_map(
+            "pi_persons",
+            array_values(array_unique($personIds)),
+            "id,full_name",
+        );
+        $clinicMap = fetch_map(
+            "pi_clinics",
+            array_values(array_unique($clinicIds)),
+            "id,display_name",
+        );
+        $users2 = fetch_map("pi_users", int_ids($care, "deleted_by"), "id,name");
+        $citems = [];
+        foreach ($care as $r) {
+            $pm = $patientsMap[(int) $r["patient_link_id"]] ?? [];
+            $ps = $personMap[(int) ($pm["person_id"] ?? 0)] ?? [];
+            $cl = $clinicMap[(int) ($pm["clinic_id"] ?? 0)] ?? [];
+            $by = $users2[(int) ($r["deleted_by"] ?? 0)] ?? [];
+            $form =
+                '<form method="post" class="inline">' .
+                csrf_field() .
+                '<input type="hidden" name="act" value="restore_care"><input type="hidden" name="id" value="' .
+                (int) $r["id"] .
+                '"><button type="submit" class="small primary">Restaurar</button></form>';
+            $citems[] = [
+                "icon" => "clinical_notes",
+                "time" => dt_br($r["deleted_at"]),
+                "title" => $r["title"] ?: ucfirst((string) $r["record_type"]),
+                "body" =>
+                    "Prontuário de " .
+                    ($ps["full_name"] ?? "paciente #" . $r["patient_link_id"]) .
+                    " · " .
+                    ($cl["display_name"] ?? "Consultório"),
+                "meta" => "Excluída por " . first_name($by["name"] ?? ""),
+                "html" => $form,
+            ];
+        }
+        page(
+            "Registros excluídos",
+            page_head(
+                "Registros excluídos",
+                "Restauração administrativa de dados preservados por integridade.",
+            ) .
+                '<div class="two"><section class="card"><h2>Pacientes excluídos</h2>' .
+                timeline($pitems, "Nenhum paciente excluído.") .
+                '</section><section class="card"><h2>Anotações excluídas</h2>' .
+                timeline($citems, "Nenhuma anotação excluída.") .
+                "</section></div>",
+        );
+    
+    }
+
+    public static function page_admin_health(): void
+    
+    {
+    
+        require_can("admin_health");
+        $dbOk = false;
+        try {
+            $dbOk = (string) val("SELECT 1") === "1";
+        } catch (Throwable $e) {
+            $dbOk = false;
+        }
+        $modelClinicWhere = admin_model_clinic_exclude_sql("id");
+        $modelAuditWhere = admin_model_clinic_exclude_where("a.clinic_id");
+        $openErrors = (int) cached_val(
+            "kpi_errors_open",
+            120,
+            "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
+        );
+        $errors24h = (int) cached_val(
+            "kpi_errors_24h",
+            120,
+            "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
+        );
+        $locks = (int) cached_val(
+            "kpi_locks",
+            60,
+            "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
+        );
+        $scope24h = (int) cached_val(
+            "kpi_scope_actionable_24h_v2_" . admin_model_clinic_id(),
+            120,
+            "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' " .
+                admin_model_clinic_exclude_sql("clinic_id"),
+        );
+        $trialing = (int) cached_val(
+            "kpi_trialing_model_" . admin_model_clinic_id(),
+            PRONTOO_ADMIN_CACHE_TTL,
+            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND trial_ends_at>=NOW() $modelClinicWhere",
+        );
+        $readonly = (int) cached_val(
+            "kpi_readonly_model_" . admin_model_clinic_id(),
+            PRONTOO_ADMIN_CACHE_TTL,
+            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='read_only' $modelClinicWhere",
+        );
+        $recent = audit_rows_light($modelAuditWhere, [], 80);
+        $bad = 0;
+        foreach ($recent as $r) {
+            if (!verify_audit_row($r)) {
+                $bad++;
+            }
+        }
+        $chainStatus = audit_chain_integrity_status(240);
+        if (empty($chainStatus["ok"])) {
+            $bad++;
+        }
+        $severity =
+            !$dbOk || $openErrors > 0 || $bad > 0 || $scope24h > 0
+                ? "Atenção"
+                : "Estável";
+        $summary =
+            '<div class="stats-grid admin-health-compact-kpis">' .
+            stat_card(
+                "Estado",
+                $severity,
+                $severity === "Estável" ? "verified" : "crisis_alert",
+                $dbOk ? "banco responde" : "banco indisponível",
+            ) .
+            stat_link_card(
+                "Erros abertos",
+                $openErrors,
+                "bug_report",
+                $errors24h . " nas últimas 24h",
+                "admin_errors",
+            ) .
+            stat_card("Bloqueios", $locks, "lock_clock", "login ativo") .
+            stat_link_card(
+                "Escopo 24h",
+                $scope24h,
+                "policy",
+                "operações bloqueadas",
+                "admin_security",
+            ) .
+            stat_card(
+                "Integridade",
+                $bad,
+                "verified_user",
+                "amostra de auditoria",
+            ) .
+            stat_card("Somente leitura", $readonly, "lock", "consultórios") .
+            "</div>";
+        $items = [
+            [
+                "icon" => $dbOk ? "check_circle" : "warning",
+                "time" => "Banco",
+                "title" => $dbOk ? "Conexão operacional" : "Conexão com atenção",
+                "body" => "Verificação leve com SELECT 1.",
+                "meta" =>
+                    "Diagnóstico consolidado no próprio painel de Incidentes.",
+            ],
+            [
+                "icon" => $openErrors ? "bug_report" : "check_circle",
+                "time" => "Erros",
+                "title" => $openErrors . " erro(s) aberto(s)",
+                "body" => $errors24h . " registro(s) nas últimas 24 horas.",
+                "meta" =>
+                    "Abra a central de erros apenas quando precisar investigar arquivo, linha e rota.",
+                "html" =>
+                    '<a class="ghost small" href="' .
+                    href("admin_errors") .
+                    '">' .
+                    action_summary_label("Ver erros", "bug_report") .
+                    "</a>",
+            ],
+            [
+                "icon" => $bad ? "gpp_bad" : "verified_user",
+                "time" => "Integridade",
+                "title" => $bad . " anotação(ões) recentes com assinatura alterada",
+                "body" =>
+                    "Amostra de atividades recentes, descontando consultórios isentos do Desenvolvedor.",
+                "meta" => admin_model_clinic_count_note(),
+                "html" =>
+                    '<a class="ghost small" href="' .
+                    href("admin_integrity") .
+                    '">' .
+                    action_summary_label("Ver integridade", "verified_user") .
+                    "</a>",
+            ],
+            [
+                "icon" => $locks ? "lock_clock" : "shield",
+                "time" => "Segurança",
+                "title" => $locks . " bloqueio(s) de login ativo(s)",
+                "body" =>
+                    "Bloqueios temporários de entrada permanecem visíveis em leitura única.",
+                "meta" =>
+                    "Use a tela dedicada só para liberar ou auditar tentativas.",
+                "html" =>
+                    '<a class="ghost small" href="' .
+                    href("admin_security") .
+                    '">' .
+                    action_summary_label("Ver segurança", "security") .
+                    "</a>",
+            ],
+            [
+                "icon" => "home_health",
+                "time" => "Consultórios",
+                "title" =>
+                    $trialing .
+                    " trial(s) em curso · " .
+                    $readonly .
+                    " em somente leitura",
+                "body" => "Assinaturas e adoção ficam no painel de Consultórios.",
+                "meta" =>
+                    "Acompanhamento financeiro e operacional sem nova tela de incidente.",
+                "html" =>
+                    '<a class="ghost small" href="' .
+                    href("admin_clinics") .
+                    '">' .
+                    action_summary_label("Ver consultórios", "home_health") .
+                    "</a>",
+            ],
+        ];
+        $body =
+            page_head("Incidentes", "") .
+            card($summary, "admin-health-compact-card") .
+            card(
+                "<h2>Sinais principais</h2>" . timeline($items),
+                "admin-health-events-card",
+            );
+        page("Incidentes", $body);
+    
+    }
+}

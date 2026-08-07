@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/compatibility-source.php';
 
 if (PHP_SAPI !== "cli") {
     http_response_code(404);
@@ -147,7 +148,7 @@ if ($guardPos === false || $bootstrapPos === false || $guardPos > $bootstrapPos)
     $errors[] = 'install_entry_guard_order';
 }
 
-$installer = (string) file_get_contents($root . '/app/Install/Installer.php');
+$installer = compatibility_source($root, 'app/Install/Installer.php');
 if (str_contains($installer, 'assertLocalEntry') ||
     !str_contains($installer, 'InstallAccess::assertInstallerEntry')) {
     $errors[] = 'installer_internal_guard';
@@ -208,12 +209,12 @@ foreach (['tools/architecture-check.php', 'tools/schema-check.php', 'tools/insta
     }
 }
 
-$securityAccessSource = (string) file_get_contents($root . '/app/Support/SecurityAccess.php');
+$securityAccessSource = compatibility_source($root, 'app/Support/SecurityAccess.php');
 if (!str_contains($securityAccessSource, 'storage_path("cache/rate-limits")') ||
     !str_contains($securityAccessSource, 'flock($handle, LOCK_EX)')) {
     $errors[] = 'atomic_rate_limit_policy';
 }
-$authSecuritySource = (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php');
+$authSecuritySource = compatibility_source($root, 'app/Auth/AuthOnboarding.php');
 if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
     !str_contains($authSecuritySource, 'fail_count=LEAST(100000,fail_count+1)') ||
     !str_contains($authSecuritySource, 'login|all-ip-addresses') ||
@@ -268,7 +269,7 @@ if (str_contains($authSecuritySource, 'device_login_fields(') ||
     str_contains($authSecuritySource, 'device_session_auto_login()')) {
     $errors[] = 'persistent_device_auth_surface';
 }
-$foundationAuthSource = (string) file_get_contents($root . '/app/Support/Foundation.php');
+$foundationAuthSource = compatibility_source($root, 'app/Support/Foundation.php');
 if (str_contains($foundationAuthSource, 'device_session_auto_login()') ||
     !str_contains($foundationAuthSource, 'security_clear_legacy_device_cookie();')) {
     $errors[] = 'login_autotest_persistent_device_bypass';
@@ -285,23 +286,23 @@ foreach (['mfa', 'global_reauth'] as $requiredRoute) {
     }
 }
 
-$patientSecuritySource = (string) file_get_contents($root . '/app/Domain/Patients/Patients.php');
+$patientSecuritySource = compatibility_source($root, 'app/Domain/Patients/Patients.php');
 if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $uid') ||
     !preg_match('/"patient_lookup_c"\s*\.\s*\$cid.*?\b6,\s*60,/s', $patientSecuritySource) ||
     !str_contains($patientSecuritySource, 'JOIN pi_user_roles ur ON ur.user_id=u.id')) {
     $errors[] = 'patient_lookup_limit_or_tenant_policy';
 }
-$leadSecuritySource = (string) file_get_contents($root . '/app/Domain/Leads/Leads.php');
+$leadSecuritySource = compatibility_source($root, 'app/Domain/Leads/Leads.php');
 if (!str_contains($leadSecuritySource, 'WHERE p.cpf=?') ||
     !str_contains($leadSecuritySource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
     $errors[] = 'lead_patient_lookup_tenant_policy';
 }
-$teamSecuritySource = (string) file_get_contents($root . '/app/Domain/Permissions/UsersPermissions.php');
+$teamSecuritySource = compatibility_source($root, 'app/Domain/Permissions/UsersPermissions.php');
 if (!str_contains($teamSecuritySource, '!$alreadyLinked') ||
     !str_contains($teamSecuritySource, 'password_verify($pass')) {
     $errors[] = 'cross_clinic_credential_reuse_policy';
 }
-$documentSecuritySource = (string) file_get_contents($root . '/app/Domain/Documents/Documents.php');
+$documentSecuritySource = compatibility_source($root, 'app/Domain/Documents/Documents.php');
 if (!str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3')) {
     $errors[] = 'document_html_attribute_allowlist_policy';
 }
@@ -312,7 +313,7 @@ if (!str_contains($gitignore, '/ssd/') ||
     !str_contains($gitignore, '/pdfs/')) {
     $errors[] = 'ssd_gitignore_policy';
 }
-$foundationSource = (string) file_get_contents($root . '/app/Support/Foundation.php');
+$foundationSource = compatibility_source($root, 'app/Support/Foundation.php');
 if (!str_contains($foundationSource, 'app_root() . "/ssd"') ||
     str_contains($foundationSource, 'app_root() . "/storage"')) {
     $errors[] = 'ssd_storage_path_policy';
