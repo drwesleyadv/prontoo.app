@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 namespace Prontoo\Runtime;
 
+require_once __DIR__ . '/Routing/RouteCatalog.php';
+require_once dirname(__DIR__) . '/Presentation/Http/JsonResponder.php';
+require_once __DIR__ . '/Boot/RuntimeBootCoordinator.php';
+require_once __DIR__ . '/Patients/PatientComposition.php';
+require_once __DIR__ . '/Patients/PatientViewComposition.php';
+require_once __DIR__ . '/Financial/FinancialComposition.php';
+
 use Prontoo\Presentation\Http\JsonResponder;
 use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
 use Prontoo\Runtime\Routing\RouteCatalog;
@@ -170,3 +177,5 @@ CONTRACT;
         }
     }
 }
+
+require_once dirname(__DIR__) . '/Support/RunnerFacade.php';
