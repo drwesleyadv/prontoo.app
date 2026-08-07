@@ -265,10 +265,12 @@ if (str_contains($foundationAuthSource, 'device_session_auto_login()') ||
     $errors[] = 'login_autotest_persistent_device_bypass';
 }
 $runnerAuthSource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
-$catalogAuthSource = (string) file_get_contents($root . '/app/Application/Authorization/ActionCatalog.php');
-foreach (['"mfa"', '"global_reauth"'] as $requiredRoute) {
-    if (!str_contains($runnerAuthSource, $requiredRoute) ||
-        !str_contains($catalogAuthSource, trim($requiredRoute, '"'))) {
+$authDefinitionSource = (string) file_get_contents(
+    $root . '/app/Application/Authorization/Definitions/AuthActionDefinitions.php',
+);
+foreach (['mfa', 'global_reauth'] as $requiredRoute) {
+    if (!str_contains($runnerAuthSource, '"' . $requiredRoute . '"') ||
+        !str_contains($authDefinitionSource, "'" . $requiredRoute . "'")) {
         $errors[] = 'mfa_route_contract:' . $requiredRoute;
     }
 }
