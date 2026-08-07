@@ -4,9 +4,16 @@ on:
   push:
     branches:
       - prontoo
+  pull_request:
+    branches:
+      - prontoo
+    types:
+      - opened
+      - synchronize
 
 permissions:
   contents: write
+  pull-requests: read
 
 env:
   DB_HOST: 127.0.0.1
