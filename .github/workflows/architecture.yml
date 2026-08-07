@@ -112,6 +112,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/architecture-check.php
+      - name: SOLID structural audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/solid-audit.php
       - name: Schema contract
         shell: bash
         run: |
