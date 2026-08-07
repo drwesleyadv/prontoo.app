@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.7.7 — Reconciliação determinística e read-only de releases
+
+- centraliza a geração e a conferência de fallbacks, manifests e changelog em um reconciliador determinístico baseado em version.json.
+- remove commits e pushes automáticos do Documentation Contract e faz divergências falharem de forma read-only.
+- torna updated_at dos artefatos gerados determinístico e elimina o avanço de SHA após a validação.
+- faz a CI validar que o SHA aprovado é exatamente o candidato ao merge.
+- preserva runtime, schema, dados, interface, rotas e todos os recursos disponíveis ao usuário.
+
 ## 1.8.7.6 — Separação entre prontidão do login e manutenção profunda
 
 - faz login e rotas normais validarem apenas contrato de schema e lightcheck de integridade no caminho síncrono.
