@@ -16,6 +16,7 @@ use \JsonException;
 use \LogicException;
 use \PDO;
 use \PDOException;
+use \PDOStatement;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
@@ -35,7 +36,7 @@ final class DatabaseSchemaRuntimeOperations01
         $autoIntegrityTransaction =
             !$connection->inTransaction() &&
             preg_match("/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i", $sql) === 1 &&
-            class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity") &&
+            class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity") &&
             function_exists("has_cfg") &&
             has_cfg();
         $attempts = $connection->inTransaction() ? 1 : 3;
@@ -60,7 +61,7 @@ final class DatabaseSchemaRuntimeOperations01
                 if (function_exists("financial_movement_write_guard")) {
                     financial_movement_write_guard($sql, $params);
                 }
-                if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+                if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                     [
                         $runtimeSql,
                         $runtimeParams,
@@ -84,7 +85,7 @@ final class DatabaseSchemaRuntimeOperations01
                 }
     
                 $elapsedMs = (microtime(true) - $startedAt) * 1000;
-                if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+                if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                     \Prontoo\Infrastructure\Integrity\PiIntegrity::afterQuery(
                         $sql,
                         $runtimeSql,
@@ -105,7 +106,7 @@ final class DatabaseSchemaRuntimeOperations01
                 $lastError = $error;
                 if (!$queryCompleted) {
                     $elapsedMs = (microtime(true) - $startedAt) * 1000;
-                    if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+                    if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                         \Prontoo\Infrastructure\Integrity\PiIntegrity::afterQuery(
                             $sql,
                             $runtimeSql,
