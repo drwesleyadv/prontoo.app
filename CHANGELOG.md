@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.7.1 — Auditoria de consolidação pós-SOLID
+
+- remove três tombstones vazios deixados apenas para satisfazer a baseline PHP 8.4 e passa a declarar suas migrações de path explicitamente.
+- fortalece o contrato arquitetural para rejeitar unidade nativa sem class, interface, trait ou enum.
+- corrige a documentação DIP para refletir a direção real de dependências permitida pelo contrato executável.
+- sincroniza automaticamente versão, build, fallbacks e manifests a partir de version.json durante o Documentation Contract.
+- preserva banco de dados, schema, rotas funcionais, layout e assets públicos.
+
+
 ## 1.8.6.2 — Carregamento de página como fonte de verdade
 
 - contabiliza somente navegações de documento HTML concluídas;
