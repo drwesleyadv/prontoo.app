@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.7.4 — Matriz de smoke tests de runtime crítico
+
+- valida vínculo clínico, resolução de credencial e rotação da geração de autenticação em banco real.
+- valida persistência criptografada do MFA e leitura isolada de Pacientes e Agenda por consultório.
+- valida recebimento financeiro transacional pelo Application Service e adapter PDO com movimento único.
+- preserva schema, dados de produção, interface, rotas e todos os recursos disponíveis ao usuário.
+
+
 ## 1.8.7.3 — Estabilização do runtime do Maestro
 
 - alinha o flush de integridade do Maestro à classe canônica Infrastructure\Integrity\PiIntegrity.
