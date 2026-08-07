@@ -1,1848 +1,277 @@
 <?php
 declare(strict_types=1);
-require __DIR__ . "/page-load-telemetry-contract-check";
-if (PHP_SAPI !== "cli") {
+
+if (PHP_SAPI !== 'cli') {
     http_response_code(404);
     exit;
 }
 
+require __DIR__ . '/page-load-telemetry-contract-check';
+
 use Prontoo\Core\Architecture\ArchitectureVerifier;
 use Prontoo\Runtime\LayeredKernel;
+use Prontoo\Runtime\Routing\RouteCatalog;
+
+$root = dirname(__DIR__);
+if (!defined('PRONTOO_ROOT')) {
+    define('PRONTOO_ROOT', $root);
+}
+$version = json_decode(
+    (string) file_get_contents($root . '/version.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+if (!defined('PRONTOO_VERSION')) {
+    define('PRONTOO_VERSION', (string) ($version['version'] ?? ''));
+}
 
 if (!class_exists('ProntooHttpError')) {
     class ProntooHttpError extends RuntimeException
     {
         public function __construct(public int $status, string $message)
         {
-
             parent::__construct($message);
         }
     }
 }
 
-$root = dirname(__DIR__);
-if (!defined('PRONTOO_ROOT')) {
-    define('PRONTOO_ROOT', $root);
-}
-$versionMetadata = json_decode((string) file_get_contents($root . '/version.json'), true, 512, JSON_THROW_ON_ERROR);
-$architectureMetadata = json_decode((string) file_get_contents($root . '/app/architecture.manifest.json'), true, 512, JSON_THROW_ON_ERROR);
-foreach ([
-    'version' => 'version',
-    'architecture_native_files_min' => 'native_files_min',
-    'architecture_transitional_files_max' => 'transitional_files_max',
-] as $versionKey => $architectureKey) {
-    if (($versionMetadata[$versionKey] ?? null) !== ($architectureMetadata[$architectureKey] ?? null)) {
-        throw new RuntimeException('Contrato arquitetural divergente entre version.json e architecture.manifest.json: ' . $versionKey);
-    }
-}
-$updateManifestMetadata = json_decode(
-    (string) file_get_contents($root . '/app/update.manifest.json'),
-    true,
-    512,
-    JSON_THROW_ON_ERROR,
-);
-foreach ([
-    'version' => 'version',
-    'release' => 'release',
-    'build' => 'build',
-    'package_type' => 'package_type',
-    'schema_revision' => 'schema_revision',
-    'minimum_php' => 'minimum_php',
-    'minimum_mysql' => 'minimum_mysql',
-    'database_changes' => 'database_changes',
-    'schema_changes' => 'schema_changes',
-    'logic_changes' => 'logic_changes',
-    'visual_changes' => 'visual_changes',
-    'documentation_changes' => 'documentation_changes',
-    'previous_version' => 'previous_version',
-    'deployment_sync_id' => 'deployment_sync_id',
-] as $versionKey => $manifestKey) {
-    if (($versionMetadata[$versionKey] ?? null) !== ($updateManifestMetadata[$manifestKey] ?? null)) {
-        throw new RuntimeException(
-            'Contrato de release divergente entre version.json e app/update.manifest.json: ' . $versionKey,
-        );
-    }
-}
-$manifestFiles = $updateManifestMetadata['files'] ?? null;
-if (!is_array($manifestFiles) || $manifestFiles === []) {
-    throw new RuntimeException('Mapa de arquivos ausente em app/update.manifest.json.');
-}
-if ((int) ($updateManifestMetadata['file_count'] ?? -1) !== count($manifestFiles)) {
-    throw new RuntimeException('Contagem de arquivos divergente em app/update.manifest.json.');
-}
-$manifestBytes = 0;
-foreach ($manifestFiles as $relativePath => $expectedHash) {
-    $absolutePath = $root . '/' . mb_ltrim((string) $relativePath, '/');
-    if (!is_file($absolutePath)) {
-        throw new RuntimeException('Arquivo listado no manifesto está ausente: ' . $relativePath);
-    }
-    $actualHash = hash_file('sha256', $absolutePath);
-    if (!is_string($actualHash) || !hash_equals((string) $expectedHash, $actualHash)) {
-        throw new RuntimeException('Hash divergente no manifesto: ' . $relativePath);
-    }
-    $size = filesize($absolutePath);
-    if ($size === false) {
-        throw new RuntimeException('Tamanho indisponível para arquivo do manifesto: ' . $relativePath);
-    }
-    $manifestBytes += $size;
-}
-if ((int) ($updateManifestMetadata['total_uncompressed_bytes'] ?? -1) !== $manifestBytes) {
-    throw new RuntimeException('Tamanho total divergente em app/update.manifest.json.');
-}
-if (!defined('PRONTOO_VERSION')) {
-    define('PRONTOO_VERSION', (string) ($versionMetadata['version'] ?? ''));
-}
-
 require_once $root . '/app/bootstrap_architecture.php';
 require_once $root . '/app/Support/ModuleLoader.php';
 require_once $root . '/app/Runtime/Runner.php';
+require_once $root . '/app/Domain/Identity/IdentityDocumentValidator.php';
+require_once $root . '/app/Domain/Patients/PatientPure.php';
+require_once $root . '/app/Application/Patients/PatientReadPort.php';
+require_once $root . '/app/Application/Patients/PatientReadService.php';
+require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadPort.php';
+require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadService.php';
+require_once $root . '/app/Application/Patients/PatientTabCommandPort.php';
+require_once $root . '/app/Application/Patients/PatientTabCommandService.php';
+require_once $root . '/app/Application/Patients/PatientContactCommandPort.php';
+require_once $root . '/app/Application/Patients/PatientContactCommandService.php';
+require_once $root . '/app/Application/Financial/PatientRevenueReceiptPort.php';
+require_once $root . '/app/Application/Financial/PatientRevenueReceiptService.php';
+
+$failures = [];
+$assert = static function (bool $condition, string $name) use (&$failures): void {
+    if (!$condition) {
+        $failures[] = $name;
+    }
+};
 
 $architecture = ArchitectureVerifier::report($root, true);
 $selfTest = LayeredKernel::logicSelfTest($root);
-$dashboardIconCss = (string) file_get_contents(
-    $root . '/public/assets/design-system.css',
-);
-$dashboardIconFailures = [];
-if (str_contains(
-    $dashboardIconCss,
-    '.stat-card span,.ds-kpi span,.notice-kpi span,.kpi-card span,.mini-stat span{',
-)) {
-    $dashboardIconFailures[] = 'broad_kpi_span_selector';
-}
-if (str_contains(
-    $dashboardIconCss,
-    ') > :where(article,div,a,span) :where(span,small,strong){',
-)) {
-    $dashboardIconFailures[] = 'broad_manager_kpi_descendant_span_selector';
-}
-foreach ([
-    '.stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
-    '.ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
-    '.notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
-    '.kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
-    '.mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph)',
-    ':where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong)',
-    '.manager-action > .pt-icon-glyph',
-    '.material-symbols-rounded{font-family:"Material Symbols Rounded"',
-] as $requiredIconContract) {
-    if (!str_contains($dashboardIconCss, $requiredIconContract)) {
-        $dashboardIconFailures[] = $requiredIconContract;
-    }
-}
-$dashboardIconCascade = [
-    'ok' => $dashboardIconFailures === [],
-    'failed' => $dashboardIconFailures,
-];
-$logoutModuleSource = (string) file_get_contents(
-    $root . '/app/Auth/AuthOnboarding.php',
-);
-$logoutPageStart = strpos($logoutModuleSource, 'function page_logout(): void');
-$logoutPageEnd = $logoutPageStart === false
-    ? false
-    : strpos($logoutModuleSource, 'function page_profile(): void', $logoutPageStart);
-$logoutPageSource =
-    $logoutPageStart !== false && $logoutPageEnd !== false
-        ? substr($logoutModuleSource, $logoutPageStart, $logoutPageEnd - $logoutPageStart)
-        : '';
-$logoutCascadeSources = [
-    'auth' => (string) file_get_contents($root . '/app/Support/SecurityAccess.php'),
-    'cache' => (string) file_get_contents($root . '/app/Support/ServerJsonCache.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-    'audit' => (string) file_get_contents($root . '/app/Domain/Audit/AuditActivity.php'),
-    'audit_chain' => (string) file_get_contents($root . '/app/Core/Integrity/AuditChain.php'),
-    'deferred_audit' => (string) file_get_contents($root . '/app/Support/DeferredAudit.php'),
-    'telemetry' => (string) file_get_contents($root . '/app/Support/Telemetry.php'),
-    'cron' => (string) file_get_contents($root . '/cron/maestro.php'),
-    'logout' => $logoutPageSource,
-];
-$logoutCascadeFailures = [];
-foreach ([
-    'auth' => [
-        'INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)',
-        'hash_equals($userCurrent, $userSession)',
-    ],
-    'cache' => [
-        'if ($route === "logout") {',
-        '"user_auth_generation" =>',
-        '$_SESSION["user_auth_generation"]',
-    ],
-    'runner' => [
-        '$publicHome || $r === "logout" ? [] : ctx()',
-        'if ($r !== "logout") {',
-    ],
-    'loader' => ["'signup', 'logout'"],
-    'audit' => [
-        'function audit_trusted_origin_resolve(',
-        'str_starts_with((string) $key, "_audit_")',
-        '?array $trustedOrigin = null',
-        '$c = $skipRuntimeContext ? [] : ctx();',
-        '$forcedProofContext',
-        'COALESCE(?,NOW())',
-    ],
-    'audit_chain' => [
-        '?array $proofContext = null',
-        '$proofContext ?? self::runtimeProofContext()',
-    ],
-    'deferred_audit' => [
-        'maestro_deferred_enqueue("audit"',
-        'function maestro_process_deferred_work(',
-        'JSON_UNQUOTE(JSON_EXTRACT(context_json',
-        '"dead_letter" => 0',
-        '$stateDir . "/deferred-work.json"',
-    ],
-    'telemetry' => [
-        'function telemetry_route_start_marker(',
-        'function telemetry_route_finish_marker(',
-        'function telemetry_comparative_summary(',
-        '"/page-loads.jsonl"',
-    ],
-    'cron' => [
-        'maestro_process_deferred_work($deferredBudget, 1000)',
-        '"deferred_work" => $deferredWork',
-        '$__prontooCronDeadline',
-    ],
-    'logout' => [
-        'user_auth_generation_rotate($uid);',
-        'maestro_defer_audit_event(',
-        'secure_session_destroy();',
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($logoutCascadeSources[$sourceKey], $requiredToken)) {
-            $logoutCascadeFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
-}
-foreach ([
-    'auth' => [
-        'server_json_cache_clear_categories(["context", "meta"])',
-        'meta_set(user_auth_generation_key($uid), $generation);',
-    ],
-    'logout' => [
-        'security_retire_persistent_devices_for_user($uid);',
-        'audit(',
-        '"_skip_runtime_context"',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($logoutCascadeSources[$sourceKey], $forbiddenToken)) {
-            $logoutCascadeFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$logoutCascade = [
-    'ok' => $logoutCascadeFailures === [],
-    'failed' => $logoutCascadeFailures,
-];
+$assert(!empty($architecture['ok']), 'architecture_verifier');
+$assert(!empty($selfTest['ok']), 'layered_kernel_self_test');
+$assert((float) ($architecture['classification_coverage_percent'] ?? 0) === 100.0, 'classification_coverage');
+$assert((int) ($architecture['action_contracts_total'] ?? 0) === 157, 'action_contract_count');
 
-$loginApplyStart = strpos(
-    $logoutModuleSource,
-    'function login_apply_resolved_credential(',
-);
-$loginApplyEnd = $loginApplyStart === false
-    ? false
-    : strpos(
-        $logoutModuleSource,
-        'function developer_first_login_clear_json_cache(',
-        $loginApplyStart,
-    );
-$loginApplySource =
-    $loginApplyStart !== false && $loginApplyEnd !== false
-        ? substr(
-            $logoutModuleSource,
-            $loginApplyStart,
-            $loginApplyEnd - $loginApplyStart,
-        )
-        : '';
-$loginPerformanceSources = [
-    'auth' => $logoutModuleSource,
-    'login_apply' => $loginApplySource,
-    'security' => (string) file_get_contents(
-        $root . '/app/Support/SecurityAccess.php',
-    ),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-];
-$loginPerformanceFailures = [];
+$routes = RouteCatalog::all();
+$publicRoutes = RouteCatalog::public();
+$jsonRoutes = RouteCatalog::json();
+foreach (['home', 'login', 'login_telemetry_wave', 'patients', 'financial', 'status'] as $route) {
+    $assert(in_array($route, $routes, true), 'route_catalog:' . $route);
+}
+foreach (['login', 'login_telemetry_wave', 'logout', 'status'] as $route) {
+    $assert(in_array($route, $publicRoutes, true), 'public_route_catalog:' . $route);
+}
+foreach (['login_telemetry_wave', 'patient_lookup', 'goal_status'] as $route) {
+    $assert(in_array($route, $jsonRoutes, true), 'json_route_catalog:' . $route);
+}
+$assert(RouteCatalog::isPublicLight('login', 'POST'), 'login_public_light');
+$assert(RouteCatalog::isPublicLight('status', 'GET'), 'status_public_light');
+$assert(!RouteCatalog::isPublicLight('status', 'POST'), 'status_post_not_light');
+$assert(RouteCatalog::wantsJson('patient_lookup', ''), 'patient_lookup_json');
+$assert(RouteCatalog::wantsJson('patients', 'application/json'), 'accept_json');
+
+$runnerSource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+$bootSource = (string) file_get_contents($root . '/app/Runtime/Boot/RuntimeBootCoordinator.php');
+$patientCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientComposition.php');
+$patientViewCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientViewComposition.php');
+$financialCompositionSource = (string) file_get_contents($root . '/app/Runtime/Financial/FinancialComposition.php');
+$loaderSource = (string) file_get_contents($root . '/app/Support/ModuleLoader.php');
+
 foreach ([
-    'auth' => [
-        'JOIN pi_users u ON u.person_id=p.id',
-        "VALUES\n               (?,?,1,UNIX_TIMESTAMP()+2,NOW()),",
-        'meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)',
-        "LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)",
-        'server_json_cache_file(',
-        'developer_first_login_clear_json_cache($uid, true);',
-    ],
-    'login_apply' => [
-        '"skip_runtime_context" => true',
-        '"skip_context_enrichment" => true',
-        'session_harden_after_login($uid, $verifiedUserGeneration);',
-    ],
-    'security' => [
-        '.security-storage-',
-        '$storageGuardFilesPresent',
-        'static $secret = null;',
-        '?string $verifiedUserGeneration = null',
-    ],
-    'runner' => [
-        '["route_deep", "post_password_login"]',
-        '"reason" => "runtime_marker_fresh"',
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($loginPerformanceSources[$sourceKey], $requiredToken)) {
-            $loginPerformanceFailures[] =
-                $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
+    'RuntimeBootCoordinator::bootDatabaseForRoute(',
+    'RouteCatalog::isPublicLight(',
+    'RouteCatalog::wantsJson(',
+    'JsonResponder::send(',
+    'RuntimeBootCoordinator::flushIntegrityBeforeRender(',
+    'enforce_action_integrity($context, $route)',
+    'prontoo_load_route_modules($route)',
+] as $token) {
+    $assert(str_contains($runnerSource, $token), 'runner_missing:' . $token);
 }
 foreach ([
-    'login_apply' => ['security_retire_persistent_devices_for_user($uid);'],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($loginPerformanceSources[$sourceKey], $forbiddenToken)) {
-            $loginPerformanceFailures[] =
-                $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$loginPerformance = [
-    'ok' => $loginPerformanceFailures === [],
-    'failed' => $loginPerformanceFailures,
-];
-
-$mfaPendingStart = strpos(
-    $logoutModuleSource,
-    'function mfa_pending_login_user(): ?array',
-);
-$mfaPendingEnd = $mfaPendingStart === false
-    ? false
-    : strpos(
-        $logoutModuleSource,
-        'function mfa_complete_pending_login(',
-        $mfaPendingStart,
-    );
-$mfaPendingSource =
-    $mfaPendingStart !== false && $mfaPendingEnd !== false
-        ? substr(
-            $logoutModuleSource,
-            $mfaPendingStart,
-            $mfaPendingEnd - $mfaPendingStart,
-        )
-        : '';
-$mfaPageStart = strpos($logoutModuleSource, 'function page_mfa(): void');
-$mfaPageEnd = $mfaPageStart === false
-    ? false
-    : strpos(
-        $logoutModuleSource,
-        'function page_global_reauth(): void',
-        $mfaPageStart,
-    );
-$mfaPageSource =
-    $mfaPageStart !== false && $mfaPageEnd !== false
-        ? substr(
-            $logoutModuleSource,
-            $mfaPageStart,
-            $mfaPageEnd - $mfaPageStart,
-        )
-        : '';
-$inlineMfaSources = [
-    'auth' => $logoutModuleSource,
-    'pending' => $mfaPendingSource,
-    'mfa_page' => $mfaPageSource,
-    'catalog' => (string) file_get_contents(
-        $root . '/app/Application/Authorization/ActionCatalog.php',
-    ),
-    'javascript' => (string) file_get_contents(
-        $root . '/public/assets/app.js',
-    ),
-    'css' => $dashboardIconCss,
-];
-$inlineMfaFailures = [];
-foreach ([
-    'auth' => [
-        'if ($isGlobalAdmin || $enrolled) {',
-        'mfa_enrollment_state((int) ($pendingMfaUser["id"] ?? 0))',
-        '$mfaState === "unavailable"',
-        'mfa_complete_pending_login(!$wantsJson)',
-        'login_apply_resolved_credential(',
-        'null,' . "\n" . '            !$wantsJson,',
-        '"redirect" => href($destination)',
-        '"csrf" => csrf()',
-        '$isGlobalAdmin = (int) ($user["is_global_admin"] ?? 0) === 1;',
-        'unset($_SESSION["privileged_auth_at"]);',
-        'icon("security_key")',
-        'profile_mfa_prepare',
-        'profile_mfa_enable',
-        'profile_mfa_recovery_regenerate',
-        'profile_mfa_replace_enable',
-        'profile_mfa_disable',
-        'profile_mfa_recovery_codes_issued_at',
-        'user_auth_generation_rotate($uid)',
-        'Proteção Avançada',
-        'Verificação em duas etapas',
-        'Além da senha, você usará um código do aplicativo autenticador para entrar.',
-        'Começar configuração',
-        'Configurar com uma chave manual',
-        'Gerenciar verificação em duas etapas',
-    ],
-    'catalog' => [
-        "\$add('login', 'mfa_verify', 'public'",
-        "'profile_mfa_recovery_ack', 'profile_mfa_recovery_regenerate'",
-    ],
-    'javascript' => [
-        'function initLoginMfaFlow(root = d)',
-        'const enterMfaStage = (data) =>',
-        'row.innerHTML =',
-        'Accept: "application/json"',
-        'data-login-code',
-        'Código de verificação',
-        'Confirmar e entrar',
-    ],
-    'css' => [
-        '[data-login-cpf][readonly]',
-        '.login-mfa-help',
-        '.account-mfa-panel',
-        '.mfa-setup-step',
-        '.account-mfa-option-head',
-        '.security-reauth-form .field-help',
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($inlineMfaSources[$sourceKey], $requiredToken)) {
-            $inlineMfaFailures[] =
-                $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
+    'function prontoo_',
+    'PdoPatientReadRepository',
+    'PdoPatientTabCommandRepository',
+    'PdoPatientRevenueReceiptRepository',
+    'PatientContactView::editForm(',
+] as $token) {
+    $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
 }
 foreach ([
-    'pending' => ['($user["is_global_admin"] ?? 0) !== 1'],
-    'mfa_page' => [
-        'security-verification-card',
-        '<input type="hidden" name="act" value="mfa_verify">',
-    ],
-    'auth' => [
-        'Segundo fator do Desenvolvedor validado na mesma tela do login',
-        'Acrescente um código do autenticador ao login deste usuário.',
-        '<span>Ativar MFA</span>',
-        'icon("phonelink_lock")',
-        'Caso utilize um aplicativo autenticador, ative-o aqui.',
-        'Habilitar Proteção Avançada',
-        '<h3 id="account-mfa-title">MFA ativo</h3>',
-        'form_row(' . "\n" . '                "Código MFA"',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($inlineMfaSources[$sourceKey], $forbiddenToken)) {
-            $inlineMfaFailures[] =
-                $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$inlineMfa = [
-    'ok' => $inlineMfaFailures === [],
-    'failed' => $inlineMfaFailures,
-];
-
-$operationalUiSources = [
-    'appointments' => (string) file_get_contents(
-        $root . '/app/Domain/Appointments/Appointments.php',
-    ),
-    'leads' => (string) file_get_contents(
-        $root . '/app/Domain/Leads/Leads.php',
-    ),
-    'procedures' => (string) file_get_contents(
-        $root . '/app/Domain/Documents/Documents.php',
-    ),
-    'javascript' => (string) file_get_contents(
-        $root . '/public/assets/app.js',
-    ),
-    'css' => $dashboardIconCss,
-];
-$operationalUiFailures = [];
-foreach ([
-    'appointments' => [
-        'bool $registeredOnly = false',
-        '$registeredOnly && $procedures === []',
-        'Cadastre Procedimentos primeiro',
-        'if (!$registeredOnly) {',
-        'if ($act === "create" && !$procId) {',
-        'Selecione um procedimento cadastrado.',
-        'procedure_select_html($cid, "reason", "", true)',
-        'AND active=1 FOR UPDATE',
-        'O procedimento selecionado não está mais disponível.',
-        '(string) $lockedProcedure["title"]',
-    ],
-    'leads' => [
-        'action_summary_label("Tornar Paciente", "person_add")',
-        'action_summary_label("Registrar contato", "forum")',
-        '<footer><div class="lead-actions">',
-    ],
-    'procedures' => [
-        '$_SESSION["procedure_create_submission_tokens"]',
-        'isset($submissionTokens[$submissionToken])',
-        'unset($submissionTokens[$submissionToken]);',
-        'procedure_submission_token',
-        'data-submit-once',
-        'array_slice(',
-        'random_bytes(24)',
-        'Este cadastro já foi enviado.',
-    ],
-    'javascript' => [
-        'form.matches?.("[data-submit-once]")',
-        'form.dataset.submitting === "1"',
-        'form.dataset.submitting = "1";',
-        'button.disabled = true;',
-    ],
-    'css' => [
-        '.lead-card-expanded .lead-actions > .lead-card-details:not([open])',
-        'padding:0!important;',
-        '.lead-card-expanded .lead-actions > .lead-card-details > summary.cmdlike',
-        'min-height:34px!important;',
-        '.lead-card-expanded .lead-actions > .lead-card-details[open]',
-        'flex:1 0 100%!important;',
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($operationalUiSources[$sourceKey], $requiredToken)) {
-            $operationalUiFailures[] =
-                $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
+    "['route_deep', 'post_password_login']",
+    "'reason' => 'runtime_marker_fresh'",
+    "self::runMaintenanceCycle('post_password_login', \$uid)",
+    '\\runtime_self_check();',
+] as $token) {
+    $assert(str_contains($bootSource, $token), 'boot_missing:' . $token);
 }
 foreach ([
-    'appointments' => ['procedure_select_html($cid, "reason") .'],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($operationalUiSources[$sourceKey], $forbiddenToken)) {
-            $operationalUiFailures[] =
-                $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$operationalUi = [
-    'ok' => $operationalUiFailures === [],
-    'failed' => $operationalUiFailures,
-];
-
-require_once $root . '/app/Domain/Identity/IdentityDocumentValidator.php';
-require_once $root . '/app/Domain/Patients/PatientPure.php';
-
-$phaseOneFailures = [];
-$phaseOneAssert = static function (bool $condition, string $name) use (&$phaseOneFailures): void {
-    if (!$condition) {
-        $phaseOneFailures[] = $name;
-    }
-};
-$phaseOneAssert(
-    \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224725'),
-    'cpf_valid',
-);
-$phaseOneAssert(
-    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('11111111111'),
-    'cpf_repeated_rejected',
-);
-$phaseOneAssert(
-    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224724'),
-    'cpf_invalid',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000181'),
-    'cnpj_valid',
-);
-$phaseOneAssert(
-    !\Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000180'),
-    'cnpj_invalid',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2000-01-01'),
-    'birth_valid',
-);
-$phaseOneAssert(
-    !\Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2000-02-31'),
-    'birth_invalid',
-);
-$phaseOneAssert(
-    !\Prontoo\Domain\Identity\IdentityDocumentValidator::birthDate('2999-01-01'),
-    'birth_future',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::cpfBr('52998224725', '52998224725') === '529.982.247-25',
-    'patient_cpf_format',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::cpfBr('ABC', '') === 'ABC',
-    'patient_cpf_fallback',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::cleanTabLabel(' <b> Histórico   clínico </b> ') === 'Histórico clínico',
-    'patient_tab_label',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::tabRecordType(-1) === 'tab_0',
-    'patient_tab_record_type',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::tabKey(7) === 'extra7',
-    'patient_tab_key',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::normalizeGuardianRelationship('MAE') === 'mae',
-    'guardian_relationship_known',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::normalizeGuardianRelationship('desconhecido') === 'outro',
-    'guardian_relationship_fallback',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::ageYears('') === null,
-    'patient_age_empty',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::ageYears('2999-01-01') === null,
-    'patient_age_future',
-);
-$phaseOneAssert(
-    \Prontoo\Domain\Patients\PatientPure::isMinor(['birth_date' => gmdate('Y-m-d', strtotime('-10 years'))]),
-    'patient_minor',
-);
-foreach ([
-    $root . '/app/Domain/Identity/IdentityDocumentValidator.php',
-    $root . '/app/Domain/Patients/PatientPure.php',
-] as $pureFile) {
-    $pureSource = (string) file_get_contents($pureFile);
-    foreach (['$_GET', '$_POST', '$_SESSION', 'PDO', 'header(', ' q(', ' one('] as $forbidden) {
-        if (str_contains($pureSource, $forbidden)) {
-            $phaseOneFailures[] = basename($pureFile) . ':forbidden:' . $forbidden;
-        }
-    }
+    'new PdoPatientReadRepository()',
+    'appointmentRegistrationBlockReason(',
+    'legalGuardians(',
+    'hasLegalGuardian(',
+    'new PdoPatientReceptionHistoryReadRepository()',
+    'new PdoPatientTabCommandRepository()',
+    'new PdoPatientContactCommandRepository()',
+] as $token) {
+    $assert(str_contains($patientCompositionSource, $token), 'patient_composition_missing:' . $token);
 }
 foreach ([
-    $root . '/app/Auth/AuthOnboarding.php' => [
-        'IdentityDocumentValidator::cpf',
-        'IdentityDocumentValidator::cnpj',
-        'IdentityDocumentValidator::birthDate',
-    ],
-    $root . '/app/Domain/Patients/Patients.php' => [
-        'PatientPure::cpfBr',
-        'PatientPure::cleanTabLabel',
-        'PatientPure::guardianRelationshipOptions',
-        'PatientPure::ageYears',
-    ],
-] as $facadeFile => $requiredDelegations) {
-    $facadeSource = (string) file_get_contents($facadeFile);
-    foreach ($requiredDelegations as $requiredDelegation) {
-        if (!str_contains($facadeSource, $requiredDelegation)) {
-            $phaseOneFailures[] = basename($facadeFile) . ':missing:' . $requiredDelegation;
-        }
-    }
+    'PatientContactView::editForm(',
+    'PatientTabView::iconPicker(',
+    'OnboardingTipView::render(',
+] as $token) {
+    $assert(str_contains($patientViewCompositionSource, $token), 'patient_view_composition_missing:' . $token);
 }
-$phaseOneCharacterization = [
-    'ok' => $phaseOneFailures === [],
-    'failed' => $phaseOneFailures,
-];
-
-require_once $root . '/app/Infrastructure/Patients/PatientTabReadRepository.php';
-require_once $root . '/app/Presentation/Patients/PatientTabView.php';
-require_once $root . '/app/Presentation/Auth/OnboardingTipView.php';
-
-$phaseTwoFailures = [];
-$phaseTwoAssert = static function (bool $condition, string $name) use (&$phaseTwoFailures): void {
-    if (!$condition) {
-        $phaseTwoFailures[] = $name;
-    }
-};
-$phaseTwoEscape = static fn(string $value): string => htmlspecialchars(
-    $value,
-    ENT_QUOTES | ENT_SUBSTITUTE,
-    'UTF-8',
-);
-$phaseTwoIcon = static fn(string $name): string => '<i>' . $phaseTwoEscape($name) . '</i>';
-
-$phaseTwoPicker = \Prontoo\Presentation\Patients\PatientTabView::iconPicker(
-    ['clinical_notes' => 'Nota & alerta'],
-    'clinical_notes',
-    $phaseTwoEscape,
-    $phaseTwoIcon,
-);
-$phaseTwoAssert(
-    $phaseTwoPicker === '<div class="visual-option-grid patient-health-icon-grid patient-tab-icon-symbol-grid" role="radiogroup" aria-label="Ícone da aba"><label class="visual-option patient-health-icon-choice patient-health-icon-only" title="Nota &amp; alerta" aria-label="Nota &amp; alerta"><input type="radio" name="tab_icon" value="clinical_notes" checked aria-label="Nota &amp; alerta"><span class="patient-tab-icon-symbol"><i>clinical_notes</i></span><span class="sr-only">Nota &amp; alerta</span></label></div>',
-    'patient_tab_view_snapshot',
-);
-
-$phaseTwoTip = \Prontoo\Presentation\Auth\OnboardingTipView::render(
-    [
-        'icon' => 'patient_list',
-        'title' => 'Título & teste',
-        'body' => 'Corpo <seguro>',
-    ],
-    'patients:role:"',
-    '/?r=patients&x="',
-    '<input type="hidden" name="_csrf" value="token">',
-    $phaseTwoEscape,
-    $phaseTwoIcon,
-);
-$phaseTwoAssert(
-    $phaseTwoTip === '<section class="onboarding-tip-card" role="note"><div class="onboarding-tip-main"><div class="onboarding-tip-head"><span class="onboarding-tip-icon"><i>patient_list</i></span><strong>Título &amp; teste</strong></div><p class="onboarding-tip-body">Corpo &lt;seguro&gt;</p></div><form method="post" action="/?r=patients&amp;x=&quot;" class="onboarding-tip-action"><input type="hidden" name="_csrf" value="token"><input type="hidden" name="act" value="onboarding_tip_dismiss"><input type="hidden" name="tip_key" value="patients:role:&quot;"><input type="hidden" name="return_to" value="/?r=patients&amp;x=&quot;"><button type="submit" class="ghost small onboarding-tip-button">Entendi</button></form></section>',
-    'onboarding_tip_view_snapshot',
-);
-
-$phaseTwoSources = [
-    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'auth_facade' => (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PatientTabReadRepository.php'),
-    'patient_view' => (string) file_get_contents($root . '/app/Presentation/Patients/PatientTabView.php'),
-    'onboarding_view' => (string) file_get_contents($root . '/app/Presentation/Auth/OnboardingTipView.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-];
-foreach ([
-    'patients_facade' => [
-        'prontoo_patient_tab_active_rows($cid, $patientId)',
-        'prontoo_patient_tab_label_by_id($id)',
-        'prontoo_patient_tab_icon_picker(patient_health_icon_options(), $current)',
-    ],
-    'auth_facade' => [
-        'prontoo_onboarding_tip_render($tip, $key, $return, csrf_field())',
-    ],
-    'repository' => [
-        'SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs',
-        'SELECT label FROM pi_patient_tabs WHERE id=? LIMIT 1',
-    ],
-    'loader' => [
-        "'Infrastructure/Patients/PatientTabReadRepository.php'",
-        "'Presentation/Patients/PatientTabView.php'",
-        "'Presentation/Auth/OnboardingTipView.php'",
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($phaseTwoSources[$sourceKey], $requiredToken)) {
-            $phaseTwoFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
+foreach (['new PdoPatientRevenueReceiptRepository()', 'receivePatientRevenue('] as $token) {
+    $assert(str_contains($financialCompositionSource, $token), 'financial_composition_missing:' . $token);
 }
 foreach ([
-    'patients_facade' => [
-        'SELECT id,label,icon_name,sort_order,created_at FROM pi_patient_tabs',
-        '<div class="visual-option-grid patient-health-icon-grid',
-    ],
-    'auth_facade' => [
-        '<section class="onboarding-tip-card"',
-    ],
-    'repository' => [
-        '<section',
-        '<div class=',
-        '$_GET',
-        '$_POST',
-        '$_SESSION',
-    ],
-    'patient_view' => [
-        'SELECT ',
-        ' q(',
-        ' one(',
-        '$_GET',
-        '$_POST',
-        '$_SESSION',
-    ],
-    'onboarding_view' => [
-        'SELECT ',
-        ' q(',
-        ' one(',
-        '$_GET',
-        '$_POST',
-        '$_SESSION',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($phaseTwoSources[$sourceKey], $forbiddenToken)) {
-            $phaseTwoFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
+    'Runner::run($installMode)',
+    'return RouteCatalog::all()',
+    'return RuntimeBootCoordinator::postPasswordMaintenance($uid)',
+    'return PatientComposition::readService()',
+    'return PatientComposition::tabCommandService()',
+    'return PatientComposition::contactCommandService()',
+    'return FinancialComposition::patientRevenueService()',
+] as $token) {
+    $assert(str_contains($loaderSource, $token), 'compatibility_facade_missing:' . $token);
 }
-$phaseTwoCharacterization = [
-    'ok' => $phaseTwoFailures === [],
-    'failed' => $phaseTwoFailures,
-];
+foreach ([
+    'new PdoPatientReadRepository()',
+    'new PdoPatientRevenueReceiptRepository()',
+    'SELECT ',
+    'INSERT ',
+    'UPDATE ',
+    'DELETE ',
+] as $token) {
+    $assert(!str_contains($loaderSource, $token), 'compatibility_facade_logic:' . $token);
+}
 
-require_once $root . '/app/Application/Patients/PatientReadPort.php';
-require_once $root . '/app/Application/Patients/PatientReadService.php';
-require_once $root . '/app/Infrastructure/Patients/PdoPatientReadRepository.php';
+$assert(\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224725'), 'cpf_valid');
+$assert(!\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('11111111111'), 'cpf_repeated_rejected');
+$assert(\Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000181'), 'cnpj_valid');
+$assert(\Prontoo\Domain\Patients\PatientPure::cleanTabLabel(' <b> Histórico   clínico </b> ') === 'Histórico clínico', 'patient_tab_label');
 
-$phaseThreeFailures = [];
-$phaseThreeAssert = static function (bool $condition, string $name) use (&$phaseThreeFailures): void {
-    if (!$condition) {
-        $phaseThreeFailures[] = $name;
-    }
-};
-$phaseThreePort = new class implements \Prontoo\Application\Patients\PatientReadPort {
+$readPort = new class implements \Prontoo\Application\Patients\PatientReadPort {
     public ?array $patient = null;
     public array $guardians = [];
     public bool $hasGuardian = false;
-
     public function appointmentRegistration(int $clinicId, int $patientId): ?array
     {
         return $this->patient;
     }
-
     public function activeLegalGuardians(int $clinicId, int $patientId): array
     {
         return $this->guardians;
     }
-
     public function hasActiveLegalGuardian(int $clinicId, int $patientId): bool
     {
         return $this->hasGuardian;
     }
 };
-$phaseThreeService = new \Prontoo\Application\Patients\PatientReadService($phaseThreePort);
-$phaseThreeComplete = static fn(array $patient): bool => (string) ($patient['state'] ?? '') === 'complete';
-$phaseThreeAlert = static fn(array $patient): string => 'alert:' . (string) ($patient['state'] ?? '');
-$phaseThreeDigits = static fn(string $value): string => (string) preg_replace('/\D+/', '', $value);
-$phaseThreeRelationship = static fn(string $value): string => strtolower($value) === 'mae' ? 'mae' : 'outro';
-
-$phaseThreeAssert(
-    $phaseThreeService->appointmentRegistrationBlockReason(0, 1, $phaseThreeComplete, $phaseThreeAlert) === null,
-    'appointment_registration_invalid_scope',
-);
-$phaseThreeAssert(
-    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === 'Paciente não encontrado no consultório atual.',
-    'appointment_registration_not_found',
-);
-$phaseThreePort->patient = ['state' => 'complete'];
-$phaseThreeAssert(
-    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === null,
-    'appointment_registration_complete',
-);
-$phaseThreePort->patient = ['state' => 'incomplete'];
-$phaseThreeAssert(
-    $phaseThreeService->appointmentRegistrationBlockReason(1, 2, $phaseThreeComplete, $phaseThreeAlert) === 'alert:incomplete',
-    'appointment_registration_incomplete',
-);
-$phaseThreeAssert(
-    $phaseThreeService->legalGuardians(0, 2, $phaseThreeDigits, $phaseThreeRelationship) === [],
-    'legal_guardians_invalid_scope',
-);
-$phaseThreePort->guardians = [[
+$readService = new \Prontoo\Application\Patients\PatientReadService($readPort);
+$complete = static fn(array $patient): bool => (string) ($patient['state'] ?? '') === 'complete';
+$alert = static fn(array $patient): string => 'alert:' . (string) ($patient['state'] ?? '');
+$digits = static fn(string $value): string => (string) preg_replace('/\D+/', '', $value);
+$relationship = static fn(string $value): string => strtolower($value) === 'mae' ? 'mae' : 'outro';
+$assert($readService->appointmentRegistrationBlockReason(0, 1, $complete, $alert) === null, 'patient_read_invalid_scope');
+$assert($readService->appointmentRegistrationBlockReason(1, 2, $complete, $alert) === 'Paciente não encontrado no consultório atual.', 'patient_read_not_found');
+$readPort->patient = ['state' => 'complete'];
+$assert($readService->appointmentRegistrationBlockReason(1, 2, $complete, $alert) === null, 'patient_read_complete');
+$readPort->guardians = [[
     'id' => '7',
     'full_name' => 'Responsável',
     'cpf' => '529.982.247-25',
     'relationship' => 'MAE',
     'is_primary' => '1',
 ]];
-$phaseThreeGuardians = $phaseThreeService->legalGuardians(
-    1,
-    2,
-    $phaseThreeDigits,
-    $phaseThreeRelationship,
-);
-$phaseThreeAssert(
-    count($phaseThreeGuardians) === 1 &&
-    ($phaseThreeGuardians[0]['id'] ?? null) === 7 &&
-    ($phaseThreeGuardians[0]['cpf'] ?? null) === '52998224725' &&
-    ($phaseThreeGuardians[0]['relationship'] ?? null) === 'mae' &&
-    ($phaseThreeGuardians[0]['is_primary'] ?? null) === 1,
-    'legal_guardians_normalization',
-);
-$phaseThreeAssert(
-    !$phaseThreeService->hasLegalGuardian(0, 2),
-    'legal_guardian_invalid_scope',
-);
-$phaseThreePort->hasGuardian = true;
-$phaseThreeAssert(
-    $phaseThreeService->hasLegalGuardian(1, 2),
-    'legal_guardian_exists',
-);
+$guardians = $readService->legalGuardians(1, 2, $digits, $relationship);
+$assert(($guardians[0]['cpf'] ?? '') === '52998224725', 'guardian_cpf_normalized');
+$assert(($guardians[0]['relationship'] ?? '') === 'mae', 'guardian_relationship_normalized');
+$readPort->hasGuardian = true;
+$assert($readService->hasLegalGuardian(1, 2), 'guardian_exists');
 
-$phaseThreeSources = [
-    'port' => (string) file_get_contents($root . '/app/Application/Patients/PatientReadPort.php'),
-    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientReadService.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientReadRepository.php'),
-    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-];
-foreach ([
-    'port' => [
-        'appointmentRegistration(int $clinicId, int $patientId): ?array',
-        'activeLegalGuardians(int $clinicId, int $patientId): array',
-        'hasActiveLegalGuardian(int $clinicId, int $patientId): bool',
-    ],
-    'service' => [
-        '$this->port->appointmentRegistration($clinicId, $patientId)',
-        '$this->port->activeLegalGuardians($clinicId, $patientId)',
-        '$this->port->hasActiveLegalGuardian($clinicId, $patientId)',
-    ],
-    'repository' => [
-        'WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1 LIMIT 1',
-        'WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY is_primary DESC, id ASC',
-        'SELECT COUNT(*) FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1',
-    ],
-    'patients_facade' => [
-        'prontoo_patient_appointment_registration_block_reason($cid, $patientId)',
-        'prontoo_patient_legal_guardians($cid, $patientId)',
-        'prontoo_patient_has_legal_guardian($cid, $patientId)',
-    ],
-    'runner' => [
-        'new \\Prontoo\\Infrastructure\\Patients\\PdoPatientReadRepository()',
-        'appointmentRegistrationBlockReason(',
-        'legalGuardians(',
-        'hasLegalGuardian(',
-    ],
-    'loader' => [
-        "'Application/Patients/PatientReadPort.php'",
-        "'Application/Patients/PatientReadService.php'",
-        "'Infrastructure/Patients/PdoPatientReadRepository.php'",
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($phaseThreeSources[$sourceKey], $requiredToken)) {
-            $phaseThreeFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
-}
-foreach ([
-    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION', '<div', '<section'],
-    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION', '<div', '<section'],
-    'repository' => ['<div', '<section', '$_GET', '$_POST', '$_SESSION'],
-    'patients_facade' => [
-        'SELECT pp.id,pp.clinic_id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,p.full_name,p.cpf,p.birth_date FROM pi_patients',
-        'SELECT id,full_name,cpf,relationship,phone,email,document_note,notes,is_primary,created_at,updated_at FROM pi_patient_guardians',
-        'SELECT COUNT(*) FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($phaseThreeSources[$sourceKey], $forbiddenToken)) {
-            $phaseThreeFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$phaseThreeCharacterization = [
-    'ok' => $phaseThreeFailures === [],
-    'failed' => $phaseThreeFailures,
-];
-require_once $root . '/app/Application/Patients/PatientTabCommandPort.php';
-require_once $root . '/app/Application/Patients/PatientTabCommandService.php';
-require_once $root . '/app/Infrastructure/Patients/PdoPatientTabCommandRepository.php';
-
-$phaseFourFailures = [];
-$phaseFourAssert = static function (bool $condition, string $name) use (&$phaseFourFailures): void {
-    if (!$condition) {
-        $phaseFourFailures[] = $name;
-    }
-};
-$phaseFourPort = new class implements \Prontoo\Application\Patients\PatientTabCommandPort {
-    public array $result = ['status' => 'created', 'id' => 9, 'sort_order' => 20];
+$historyPort = new class implements \Prontoo\Application\Patients\PatientReceptionHistoryReadPort {
     public array $received = [];
-
-    public function createIfAbsent(
-        int $clinicId,
-        int $patientId,
-        string $label,
-        string $iconName,
-        int $userId,
-    ): array {
-        $this->received = [$clinicId, $patientId, $label, $iconName, $userId];
-        return $this->result;
-    }
-};
-$phaseFourService = new \Prontoo\Application\Patients\PatientTabCommandService($phaseFourPort);
-$phaseFourCreated = $phaseFourService->create(3, 7, 'Evolução', 'clinical_notes', 11);
-$phaseFourAssert(
-    $phaseFourCreated === ['status' => 'created', 'id' => 9, 'sort_order' => 20] &&
-    $phaseFourPort->received === [3, 7, 'Evolução', 'clinical_notes', 11],
-    'patient_tab_command_created',
-);
-$phaseFourPort->result = ['status' => 'duplicate', 'id' => 4, 'sort_order' => 10];
-$phaseFourAssert(
-    $phaseFourService->create(3, 7, 'Evolução', 'clinical_notes', 11) === [
-        'status' => 'duplicate',
-        'id' => 4,
-        'sort_order' => 10,
-    ],
-    'patient_tab_command_duplicate',
-);
-try {
-    $phaseFourService->create(0, 7, 'Evolução', 'clinical_notes', 11);
-    $phaseFourFailures[] = 'patient_tab_command_invalid_scope';
-} catch (InvalidArgumentException) {
-}
-$phaseFourSources = [
-    'port' => (string) file_get_contents($root . '/app/Application/Patients/PatientTabCommandPort.php'),
-    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientTabCommandService.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientTabCommandRepository.php'),
-    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-];
-foreach ([
-    'port' => ['createIfAbsent(', 'int $clinicId', 'int $patientId', 'int $userId'],
-    'service' => ['$this->port->createIfAbsent(', "['created', 'duplicate']"],
-    'repository' => [
-        '$ownsTransaction = !$pdo->inTransaction()',
-        '$pdo->beginTransaction()',
-        'LIMIT 1 FOR UPDATE',
-        'WHERE clinic_id=? AND patient_link_id=?',
-        'INSERT INTO pi_patient_tabs',
-        '$pdo->rollBack()',
-    ],
-    'patients_facade' => ['prontoo_create_patient_tab_command(', 'aba_paciente_criada'],
-    'runner' => [
-        'new \\Prontoo\\Infrastructure\\Patients\\PdoPatientTabCommandRepository()',
-        'prontoo_patient_tab_command_service()->create(',
-    ],
-    'loader' => [
-        "'Application/Patients/PatientTabCommandPort.php'",
-        "'Application/Patients/PatientTabCommandService.php'",
-        "'Infrastructure/Patients/PdoPatientTabCommandRepository.php'",
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($phaseFourSources[$sourceKey], $requiredToken)) {
-            $phaseFourFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
-}
-foreach ([
-    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
-    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
-    'repository' => ['$_GET', '$_POST', '$_SESSION', '<div', '<section'],
-    'patients_facade' => [
-        'SELECT id FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND label=? AND active=1 LIMIT 1',
-        'INSERT INTO pi_patient_tabs (clinic_id,patient_link_id,label,icon_name,sort_order,created_by,created_at)',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($phaseFourSources[$sourceKey], $forbiddenToken)) {
-            $phaseFourFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$phaseFourCharacterization = [
-    'ok' => $phaseFourFailures === [],
-    'failed' => $phaseFourFailures,
-];
-
-require_once $root . '/app/Application/Financial/PatientRevenueReceiptPort.php';
-require_once $root . '/app/Application/Financial/PatientRevenueReceiptService.php';
-require_once $root . '/app/Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php';
-
-$phaseFiveFailures = [];
-$phaseFiveAssert = static function (bool $condition, string $name) use (&$phaseFiveFailures): void {
-    if (!$condition) {
-        $phaseFiveFailures[] = $name;
-    }
-};
-$phaseFivePort = new class implements \Prontoo\Application\Financial\PatientRevenueReceiptPort {
-    public array $result = [
-        'status' => 'received',
-        'revenue_id' => 8,
-        'movement_id' => 13,
-        'amount_cents' => 12500,
-        'title' => 'Consulta',
-    ];
-    public array $received = [];
-
-    public function receive(
-        int $clinicId,
-        int $patientId,
-        int $revenueId,
-        int $userId,
-        string $role,
-    ): array {
-        $this->received = [$clinicId, $patientId, $revenueId, $userId, $role];
-        return $this->result;
-    }
-};
-$phaseFiveService = new \Prontoo\Application\Financial\PatientRevenueReceiptService($phaseFivePort);
-$phaseFiveReceived = $phaseFiveService->receive(2, 4, 8, 10, 'recepcionista');
-$phaseFiveAssert(
-    $phaseFiveReceived === [
-        'status' => 'received',
-        'revenue_id' => 8,
-        'movement_id' => 13,
-        'amount_cents' => 12500,
-        'title' => 'Consulta',
-    ] && $phaseFivePort->received === [2, 4, 8, 10, 'recepcionista'],
-    'patient_revenue_receipt_received',
-);
-$phaseFivePort->result = ['status' => 'not_pending', 'revenue_id' => 8];
-$phaseFiveAssert(
-    $phaseFiveService->receive(2, 4, 8, 10, 'gerente')['status'] === 'not_pending',
-    'patient_revenue_receipt_not_pending',
-);
-try {
-    $phaseFiveService->receive(2, 4, 8, 10, 'medico');
-    $phaseFiveFailures[] = 'patient_revenue_receipt_forbidden_role';
-} catch (InvalidArgumentException) {
-}
-$phaseFiveSources = [
-    'port' => (string) file_get_contents($root . '/app/Application/Financial/PatientRevenueReceiptPort.php'),
-    'service' => (string) file_get_contents($root . '/app/Application/Financial/PatientRevenueReceiptService.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php'),
-    'patients_facade' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-];
-foreach ([
-    'port' => ['public function receive(', 'int $clinicId', 'int $revenueId', 'string $role'],
-    'service' => ["['recepcionista', 'gerente']", '$this->port->receive(', "['received', 'not_pending']"],
-    'repository' => [
-        '$ownsTransaction = !$pdo->inTransaction()',
-        'SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE',
-        'FROM pi_financial_revenues WHERE id=? AND clinic_id=? AND patient_link_id=? LIMIT 1 FOR UPDATE',
-        "source_entity='patient_revenue'",
-        '\\financial_create_movement(',
-        "UPDATE pi_financial_revenues SET status='efetivada'",
-        "UPDATE pi_appointments SET payment_status='efetivada'",
-        '$pdo->rollBack()',
-    ],
-    'patients_facade' => ['prontoo_receive_patient_revenue_command(', 'receita_recebida'],
-    'runner' => [
-        'new \\Prontoo\\Infrastructure\\Financial\\PdoPatientRevenueReceiptRepository()',
-        'prontoo_patient_revenue_receipt_service()->receive(',
-    ],
-    'loader' => [
-        "'Application/Financial/PatientRevenueReceiptPort.php'",
-        "'Application/Financial/PatientRevenueReceiptService.php'",
-        "'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php'",
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($phaseFiveSources[$sourceKey], $requiredToken)) {
-            $phaseFiveFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
-}
-foreach ([
-    'port' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
-    'service' => ['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'],
-    'repository' => ['$_GET', '$_POST', '$_SESSION', '<div', '<section'],
-    'patients_facade' => [
-        "SELECT id,appointment_id,amount_cents,title,payment_method FROM pi_financial_revenues",
-        "UPDATE pi_financial_revenues SET status='efetivada'",
-        "UPDATE pi_appointments SET payment_status='efetivada'",
-        'financial_create_movement(',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($phaseFiveSources[$sourceKey], $forbiddenToken)) {
-            $phaseFiveFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$phaseFiveCharacterization = [
-    'ok' => $phaseFiveFailures === [],
-    'failed' => $phaseFiveFailures,
-];
-require_once $root . '/app/Core/Performance/PerformanceBudget.php';
-
-$serverPhaseOneFailures = [];
-$performanceContract = json_decode(
-    (string) file_get_contents($root . '/app/performance.budgets.json'),
-    true,
-    512,
-    JSON_THROW_ON_ERROR,
-);
-if (!is_array($performanceContract) || ($performanceContract['schema'] ?? '') !== 'prontoo-performance-budgets-v1') {
-    $serverPhaseOneFailures[] = 'performance_budget_schema';
-} else {
-    $underBudget = \Prontoo\Core\Performance\PerformanceBudget::evaluate(
-        $performanceContract,
-        'patients',
-        [
-            'elapsed_ms' => 400,
-            'query_ms' => 120,
-            'queries' => 20,
-            'wide_selects' => 0,
-            'module_files' => 20,
-            'module_bytes' => 900000,
-        ],
-    );
-    $overBudget = \Prontoo\Core\Performance\PerformanceBudget::evaluate(
-        $performanceContract,
-        'patients',
-        [
-            'elapsed_ms' => 5000,
-            'query_ms' => 2000,
-            'queries' => 300,
-            'wide_selects' => 8,
-            'module_files' => 90,
-            'module_bytes' => 5000000,
-        ],
-    );
-    $fallbackBudget = \Prontoo\Core\Performance\PerformanceBudget::resolve(
-        $performanceContract,
-        'unknown_route',
-    );
-    $normalizedDefault = \Prontoo\Core\Performance\PerformanceBudget::normalize(
-        (array) ($performanceContract['defaults'] ?? []),
-    );
-    if (empty($underBudget['ok'])) {
-        $serverPhaseOneFailures[] = 'performance_budget_under_limit';
-    }
-    if (!empty($overBudget['ok']) || count((array) ($overBudget['breaches'] ?? [])) !== 6) {
-        $serverPhaseOneFailures[] = 'performance_budget_breach_detection';
-    }
-    if ($fallbackBudget !== $normalizedDefault) {
-        $serverPhaseOneFailures[] = 'performance_budget_fallback';
-    }
-}
-$serverPhaseOneCharacterization = [
-    'ok' => $serverPhaseOneFailures === [],
-    'failed' => $serverPhaseOneFailures,
-];
-$serverPhaseTwoFailures = [];
-$cacheGenerationSource = (string) file_get_contents($root . '/app/Support/ServerJsonCache.php');
-foreach ([
-    'function server_json_cache_generation_file(',
-    'function server_json_cache_generation(',
-    'function server_json_cache_bump_generation(',
-    '"/generation-"',
-    'ftruncate($handle, 0)',
-    'server_json_cache_bump_generation($category)',
-] as $requiredToken) {
-    if (!str_contains($cacheGenerationSource, $requiredToken)) {
-        $serverPhaseTwoFailures[] = 'cache_generation_missing:' . $requiredToken;
-    }
-}
-$clearStart = strpos($cacheGenerationSource, 'function server_json_cache_clear_categories(');
-$clearEnd = $clearStart === false
-    ? false
-    : strpos($cacheGenerationSource, 'function server_json_cache_all_categories(', $clearStart);
-$clearSource = $clearStart !== false && $clearEnd !== false
-    ? substr($cacheGenerationSource, $clearStart, $clearEnd - $clearStart)
-    : '';
-if ($clearSource === '' || str_contains($clearSource, 'server_json_cache_rrmdir($dir)')) {
-    $serverPhaseTwoFailures[] = 'cache_invalidation_still_recursive';
-}
-if (str_contains($cacheGenerationSource, 'return server_json_cache_category_dir($category) . "/" . $key . ".json";')) {
-    $serverPhaseTwoFailures[] = 'cache_key_without_generation';
-}
-if (str_contains($cacheGenerationSource, 'telemetry_')) {
-    $serverPhaseTwoFailures[] = 'cache_still_emits_legacy_telemetry';
-}
-$serverPhaseTwoCharacterization = [
-    'ok' => $serverPhaseTwoFailures === [],
-    'failed' => $serverPhaseTwoFailures,
-];
-$serverPhaseThreeFailures = [];
-$telemetrySource = (string) file_get_contents($root . '/app/Support/Telemetry.php');
-foreach ([
-    'function telemetry_route_start_marker(',
-    'function telemetry_route_finish_marker(',
-    'hrtime(true)',
-    '"duracao_ms" => round(',
-    '\RoundingMode::HalfAwayFromZero',
-    'return telemetry_storage_dir() . "/page-loads.jsonl";',
-    'return "prontoo.telemetria.pagina.v2";',
-    'function telemetry_page_request_candidate(',
-    'function telemetry_page_response_candidate(',
-    '"tipo" => "page_load"',
-    '"marco_inicial" => "front_controller_first_executable_line"',
-    '"front_controller_last_useful_line"',
-    '"shutdown_fallback"',
-    'function telemetry_append_event(',
-    '$handle = @fopen(telemetry_file(), "ab")',
-    'flock($handle, LOCK_EX)',
-    'function telemetry_prune(',
-    '31 * 86400 * 1000000',
-    'function telemetry_comparative_summary(',
-    '10 * 86400 * 1000000',
-    '"landing_requests_pct" => telemetry_percentage_variation(',
-    '$current["landing_requests"]',
-    '$previous["landing_requests"]',
-    'function telemetry_route_requests_series_20d(',
-] as $requiredToken) {
-    if (!str_contains($telemetrySource, $requiredToken)) {
-        $serverPhaseThreeFailures[] = 'telemetry_contract_missing:' . $requiredToken;
-    }
-}
-foreach ([
-    'prontoo.telemetria.rota.v1',
-    '"/telemetria.json"',
-    'route-performance.json',
-    'telemetry_append_page_metric',
-    'telemetry_append_route_performance_metric',
-    'maestro_defer_telemetry_event',
-    'PRONTOO_TELEMETRY_SAMPLE_RATE',
-] as $forbiddenToken) {
-    if (str_contains($telemetrySource, $forbiddenToken)) {
-        $serverPhaseThreeFailures[] = 'legacy_telemetry_present:' . $forbiddenToken;
-    }
-}
-$serverPhaseThreeCharacterization = [
-    'ok' => $serverPhaseThreeFailures === [],
-    'failed' => $serverPhaseThreeFailures,
-];
-require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadPort.php';
-require_once $root . '/app/Application/Patients/PatientReceptionHistoryReadService.php';
-require_once $root . '/app/Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php';
-
-$serverPhaseFourFailures = [];
-$receptionPort = new class implements \Prontoo\Application\Patients\PatientReceptionHistoryReadPort {
-    public array $received = [];
-    public function read(
-        int $clinicId,
-        int $patientId,
-        int $personId,
-        string $phoneDigits,
-    ): array {
+    public function read(int $clinicId, int $patientId, int $personId, string $phoneDigits): array
+    {
         $this->received = [$clinicId, $patientId, $personId, $phoneDigits];
-        return [
-            'leads' => [['id' => 4]],
-            'events' => [4 => [['id' => 8]]],
-            'users' => [9 => ['id' => 9, 'name' => 'Ana']],
-        ];
+        return ['leads' => [['id' => 4]], 'events' => [4 => [['id' => 8]]], 'users' => []];
     }
 };
-$receptionService = new \Prontoo\Application\Patients\PatientReceptionHistoryReadService($receptionPort);
-$receptionModel = $receptionService->read(2, 3, 5, '(65) 99999-0000');
-if ($receptionPort->received !== [2, 3, 5, '65999990000'] ||
-    count($receptionModel['leads']) !== 1 ||
-    count($receptionModel['events'][4] ?? []) !== 1) {
-    $serverPhaseFourFailures[] = 'reception_read_model_behavior';
-}
-$serverPhaseFourSources = [
-    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientReceptionHistoryReadService.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php'),
-    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-];
-foreach ([
-    'repository' => ['LEFT JOIN pi_lead_events', 'LEFT JOIN pi_users', 'EXISTS (SELECT 1 FROM pi_patients', 'l.clinic_id=?'],
-    'patients' => ['prontoo_patient_reception_history_read_model('],
-    'runner' => ['PdoPatientReceptionHistoryReadRepository', 'PatientReceptionHistoryReadService'],
-] as $sourceKey => $tokens) {
-    foreach ($tokens as $token) {
-        if (!str_contains($serverPhaseFourSources[$sourceKey], $token)) {
-            $serverPhaseFourFailures[] = $sourceKey . ':missing:' . $token;
-        }
-    }
-}
-foreach (['SELECT ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'] as $token) {
-    if (str_contains($serverPhaseFourSources['service'], $token)) {
-        $serverPhaseFourFailures[] = 'service:forbidden:' . $token;
-    }
-}
-$receptionFunctionStart = strpos($serverPhaseFourSources['patients'], 'function patient_reception_history_items(');
-$receptionFunctionEnd = $receptionFunctionStart === false
-    ? false
-    : strpos($serverPhaseFourSources['patients'], 'function patient_appointment_timeline_items(', $receptionFunctionStart);
-$receptionFunction = $receptionFunctionStart !== false && $receptionFunctionEnd !== false
-    ? substr($serverPhaseFourSources['patients'], $receptionFunctionStart, $receptionFunctionEnd - $receptionFunctionStart)
-    : '';
-if ($receptionFunction === '' || str_contains($receptionFunction, 'FROM pi_leads')) {
-    $serverPhaseFourFailures[] = 'legacy_reception_sql_not_removed';
-}
-$serverPhaseFourCharacterization = [
-    'ok' => $serverPhaseFourFailures === [],
-    'failed' => $serverPhaseFourFailures,
-];
-require_once $root . '/app/Application/Patients/PatientContactCommandPort.php';
-require_once $root . '/app/Application/Patients/PatientContactCommandService.php';
-require_once $root . '/app/Infrastructure/Patients/PdoPatientContactCommandRepository.php';
+$historyService = new \Prontoo\Application\Patients\PatientReceptionHistoryReadService($historyPort);
+$history = $historyService->read(2, 3, 5, '(65) 99999-0000');
+$assert($historyPort->received === [2, 3, 5, '65999990000'], 'history_phone_normalized');
+$assert(count($history['leads'] ?? []) === 1, 'history_model');
 
-$serverPhaseFiveFailures = [];
+$tabPort = new class implements \Prontoo\Application\Patients\PatientTabCommandPort {
+    public array $received = [];
+    public function createIfAbsent(int $clinicId, int $patientId, string $label, string $iconName, int $userId): array
+    {
+        $this->received = [$clinicId, $patientId, $label, $iconName, $userId];
+        return ['status' => 'created', 'id' => 9, 'sort_order' => 20];
+    }
+};
+$tabService = new \Prontoo\Application\Patients\PatientTabCommandService($tabPort);
+$tabResult = $tabService->create(3, 7, 'Evolução', 'clinical_notes', 11);
+$assert(($tabResult['status'] ?? '') === 'created', 'patient_tab_created');
+$assert($tabPort->received === [3, 7, 'Evolução', 'clinical_notes', 11], 'patient_tab_port');
+
 $contactPort = new class implements \Prontoo\Application\Patients\PatientContactCommandPort {
     public array $received = [];
-    public function update(
-        int $clinicId,
-        int $patientId,
-        int $userId,
-        array $contact,
-    ): array {
+    public function update(int $clinicId, int $patientId, int $userId, array $contact): array
+    {
         $this->received = [$clinicId, $patientId, $userId, $contact];
         return ['status' => 'updated', 'patient_id' => $patientId];
     }
 };
 $contactService = new \Prontoo\Application\Patients\PatientContactCommandService($contactPort);
-$contactResult = $contactService->update(2, 3, 4, [
-    'phone' => ' 65999990000 ',
-    'email' => ' contato@example.com ',
-    'address' => ' Rua A ',
-]);
-if ($contactResult !== ['status' => 'updated', 'patient_id' => 3] ||
-    ($contactPort->received[3]['phone'] ?? '') !== '65999990000' ||
-    ($contactPort->received[3]['email'] ?? '') !== 'contato@example.com') {
-    $serverPhaseFiveFailures[] = 'patient_contact_command_behavior';
-}
-$serverPhaseFiveSources = [
-    'service' => (string) file_get_contents($root . '/app/Application/Patients/PatientContactCommandService.php'),
-    'repository' => (string) file_get_contents($root . '/app/Infrastructure/Patients/PdoPatientContactCommandRepository.php'),
-    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-];
-foreach ([
-    'repository' => ['FOR UPDATE', '$pdo->beginTransaction()', '$pdo->commit()', '$pdo->rollBack()', 'WHERE id=? AND clinic_id=? AND active=1'],
-    'patients' => ['prontoo_update_patient_contact_command('],
-    'runner' => ['PdoPatientContactCommandRepository', 'PatientContactCommandService'],
-] as $sourceKey => $tokens) {
-    foreach ($tokens as $token) {
-        if (!str_contains($serverPhaseFiveSources[$sourceKey], $token)) {
-            $serverPhaseFiveFailures[] = $sourceKey . ':missing:' . $token;
-        }
-    }
-}
-foreach (['SELECT ', 'UPDATE ', ' q(', ' one(', ' val(', '$_GET', '$_POST', '$_SESSION'] as $token) {
-    if (str_contains($serverPhaseFiveSources['service'], $token)) {
-        $serverPhaseFiveFailures[] = 'service:forbidden:' . $token;
-    }
-}
-$contactActionStart = strpos($serverPhaseFiveSources['patients'], 'if ($act === "update_patient_contact")');
-$contactActionEnd = $contactActionStart === false
-    ? false
-    : strpos($serverPhaseFiveSources['patients'], 'if ($act === "patient_revenue_receive")', $contactActionStart);
-$contactAction = $contactActionStart !== false && $contactActionEnd !== false
-    ? substr($serverPhaseFiveSources['patients'], $contactActionStart, $contactActionEnd - $contactActionStart)
-    : '';
-if ($contactAction === '' || str_contains($contactAction, 'UPDATE pi_patients')) {
-    $serverPhaseFiveFailures[] = 'legacy_contact_sql_not_removed';
-}
-$serverPhaseFiveCharacterization = [
-    'ok' => $serverPhaseFiveFailures === [],
-    'failed' => $serverPhaseFiveFailures,
-];
-require_once $root . '/app/Presentation/Patients/PatientContactView.php';
+$contactResult = $contactService->update(2, 7, 11, ['phone' => '65999990000']);
+$assert(($contactResult['status'] ?? '') === 'updated', 'patient_contact_updated');
+$assert($contactPort->received[0] === 2 && $contactPort->received[1] === 7, 'patient_contact_scope');
 
-$serverPhaseSixFailures = [];
-$contactViewHtml = \Prontoo\Presentation\Patients\PatientContactView::editForm(
-    ['phone' => '65999990000', 'email' => 'contato@example.com'],
-    7,
-    static fn(string $label, string $iconName): string => '<action>' . $label . ':' . $iconName . '</action>',
-    static fn(): string => '<csrf>',
-    static fn(string $name, string $type, mixed $value, string $attributes): string =>
-        '<input-helper>' . $name . ':' . $type . ':' . $value . ':' . $attributes . '</input-helper>',
-    static fn(string $label, string $control): string => '<row>' . $label . $control . '</row>',
-    static fn(int $clinicId, array $patient): string => '<address>' . $clinicId . ':' . ($patient['phone'] ?? '') . '</address>',
-    static fn(string $label): string => '<actions>' . $label . '</actions>',
-);
-$expectedContactViewHtml = '<details class="patient-edit patient-contact-edit"><summary class="primary small cmdlike"><action>Atualizar contato:contact_phone</action></summary><form method="post" class="compact patient-record-form"><csrf><input type="hidden" name="act" value="update_patient_contact"><div class="two"><row>Telefone<input-helper>phone:text:65999990000:required inputmode="tel"</input-helper></row><row>E-mail<input-helper>email:email:contato@example.com:required</input-helper></row></div><address>7:65999990000</address><actions>Salvar contato</actions></form></details>';
-if ($contactViewHtml !== $expectedContactViewHtml) {
-    $serverPhaseSixFailures[] = 'patient_contact_view_snapshot';
-}
-$serverPhaseSixSources = [
-    'view' => (string) file_get_contents($root . '/app/Presentation/Patients/PatientContactView.php'),
-    'patients' => (string) file_get_contents($root . '/app/Domain/Patients/Patients.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-];
-foreach (['SELECT ', 'INSERT ', 'UPDATE ', 'DELETE ', '$_GET', '$_POST', '$_SESSION'] as $token) {
-    if (str_contains($serverPhaseSixSources['view'], $token)) {
-        $serverPhaseSixFailures[] = 'contact_view:forbidden:' . $token;
+$revenuePort = new class implements \Prontoo\Application\Financial\PatientRevenueReceiptPort {
+    public array $received = [];
+    public function receive(int $clinicId, int $patientId, int $revenueId, int $userId, string $role): array
+    {
+        $this->received = [$clinicId, $patientId, $revenueId, $userId, $role];
+        return ['status' => 'received', 'revenue_id' => $revenueId, 'movement_id' => 13, 'amount_cents' => 12500, 'title' => 'Consulta'];
     }
+};
+$revenueService = new \Prontoo\Application\Financial\PatientRevenueReceiptService($revenuePort);
+$revenue = $revenueService->receive(2, 4, 8, 10, 'recepcionista');
+$assert(($revenue['status'] ?? '') === 'received', 'patient_revenue_received');
+$assert($revenuePort->received === [2, 4, 8, 10, 'recepcionista'], 'patient_revenue_port');
+try {
+    $revenueService->receive(2, 4, 8, 10, 'medico');
+    $failures[] = 'patient_revenue_forbidden_role';
+} catch (InvalidArgumentException) {
 }
-if (substr_count($serverPhaseSixSources['patients'], 'prontoo_patient_contact_edit_form($p, $cid)') !== 2) {
-    $serverPhaseSixFailures[] = 'contact_view_facade_delegations';
-}
-if (str_contains($serverPhaseSixSources['patients'], '<details class="patient-edit patient-contact-edit">')) {
-    $serverPhaseSixFailures[] = 'contact_view_markup_still_duplicated';
-}
-foreach ([
-    'runner' => ['PatientContactView::editForm(', 'patient_address_fields($cid, $value)'],
-    'loader' => ["'Presentation/Patients/PatientContactView.php'"],
-] as $sourceKey => $tokens) {
-    foreach ($tokens as $token) {
-        if (!str_contains($serverPhaseSixSources[$sourceKey], $token)) {
-            $serverPhaseSixFailures[] = $sourceKey . ':missing:' . $token;
-        }
-    }
-}
-$serverPhaseSixCharacterization = [
-    'ok' => $serverPhaseSixFailures === [],
-    'failed' => $serverPhaseSixFailures,
-];
-$developerDashboardFailures = [];
-$developerDashboardSources = [
-    'admin' => (string) file_get_contents($root . '/app/Admin/AdminPages.php'),
-    'runner' => (string) file_get_contents($root . '/app/Runtime/Runner.php'),
-    'loader' => (string) file_get_contents($root . '/app/Support/ModuleLoader.php'),
-    'bootstrap' => (string) file_get_contents($root . '/app/prontoo.php'),
-    'css' => (string) file_get_contents($root . '/public/assets/design-system.css'),
-    'docs' => (string) file_get_contents($root . '/docs/index.md'),
-    'htaccess' => (string) file_get_contents($root . '/.htaccess'),
-];
-foreach (['admin', 'runner', 'loader', 'bootstrap'] as $sourceKey) {
-    foreach (['page_admin_telemetry'] as $token) {
-        if (str_contains($developerDashboardSources[$sourceKey], $token)) {
-            $developerDashboardFailures[] =
-                $sourceKey . ':obsolete_telemetry_token:' . $token;
-        }
-    }
-}
-foreach ([
-    'admin' => [
-        'function admin_metric_dual_area_chart(',
-        'array $presentation = []',
-        'function admin_telemetry_kpi_cards_html(bool $linked = false): string',
-        '$summary = telemetry_comparative_summary();',
-        'function admin_telemetry_variation_note(?float $variation): string',
-        'function admin_performance_card_content_html(bool $public = false): string',
-        'function admin_performance_card_html(bool $public = false): string',
-        'function page_status(): void',
-        '$overviewCards = admin_telemetry_kpi_cards_html();',
-        'admin_performance_card_html(true)',
-        'https://prontoo.app/status',
-        '"Requisições"',
-        '"Tempo médio das rotas"',
-        '"Execuções da Landing Page"',
-        '$current["landing_requests"] ?? 0',
-        '$variations["landing_requests_pct"]',
-        '"últimos 10 dias · sem base comparável no período anterior"',
-        '"Leitura e gravação"',
-        '"primary_label" => "Requisições"',
-        '"secondary_label" => "Registros"',
-        '"value_type" => "count"',
-        '$duration = admin_global_metric_series_24h("duration");',
-        '$landingDuration = admin_global_metric_series_24h("landing_duration");',
-        '$row["sum_ns"] = (int) $row["sum"];',
-        '$durationNs += $sumNs;',
-        '$requests = telemetry_route_requests_series_20d();',
-        '$records = admin_global_sequence_series_20d();',
-        'data-metric-value-type="',
-        '$tension = 0.72;',
-        '" C " .',
-        '$loadFill = $fill($loadD, $loadPoints, $baseline);',
-        '$responseFill = $fill($responseD, $responsePoints, $baseline);',
-        '$fillAreas = $loadArea . $responseArea;',
-        '"Velocidade",',
-        '"Leitura e gravação",',
-        '$requests,',
-        '$records,',
-        '$recentValue = $valueType === "count"',
-        ': admin_metric_recent_average($loadSeries, count($loadSeries));',
-        ': admin_metric_recent_average($loadSeries, $middlePoints);',
-        'telemetry_route_performance_summary(240)',
-        'return number_format(max(0.0, $milliseconds), 2, ",", ".") . " ms";',
-        'return number_format(max(0.0, $ms), 2, ",", ".") . " ms";',
-    ],
-    'css' => [
-        'grid-template-columns:repeat(3,minmax(0,1fr))!important',
-        'body.status-public #conteudo>.stat-card small{display:block!important;',
-        '.metric-dual-time-chart .metric-chart-fill-load{fill:color-mix(in srgb,var(--md-sys-color-primary) 78%,#111827 22%);opacity:1}',
-        '.metric-dual-time-chart .metric-chart-fill-response{fill:color-mix(in srgb,var(--md-sys-color-primary) 42%,white 58%);opacity:1}',
-        '.metric-dual-time-chart .metric-chart-line-load',
-        '.metric-dual-time-chart .metric-chart-line-response',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
-        'body.public[data-route="login"] .login-telemetry-wave{',
-        'body:not(.public){isolation:isolate',
-        'body:not(.public) .login-telemetry-wave{',
-        'z-index:0;',
-        'height:15dvh',
-        'pointer-events:none',
-        '.login-telemetry-wave-path.is-requests{',
-        'fill:#1f6f56',
-        '.login-telemetry-wave-path.is-records{',
-        'fill:#347963',
-        'stroke:none',
-        'opacity:.3',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-line-load,',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-line-response{stroke:none}',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-dot-load,',
-        '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-dot-response{display:none}',
-    ],
-    'bootstrap' => [
-        'canonical-route-telemetry-velocity-and-ledger-write-series-20d',
-    ],
-    'runner' => [
-        'telemetry_route_identify($r);',
-        '$publicStatus = $r === "status"',
-        'headers_secure($publicStatus)',
-        '$cNow = $publicStatus || $publicHome || $r === "logout" ? [] : ctx()',
-        'if ($r !== "logout" && !$publicStatus)',
-    ],
-    'loader' => [
-        "'Support/DeferredAudit.php'",
-        '$status = [\'status\' => [\'Domain/Maestro/Maestro.php\', \'Admin/AdminPages.php\']]',
-        '\'status\' => $status',
-    ],
-    'htaccess' => [
-        'RewriteRule ^status/?$ index.php?r=status [QSA,L,NC]',
-    ],
-] as $sourceKey => $tokens) {
-    foreach ($tokens as $token) {
-        if (!str_contains($developerDashboardSources[$sourceKey], $token)) {
-            $developerDashboardFailures[] =
-                $sourceKey . ':missing:' . $token;
-        }
-    }
-}
-$developerPanelStart = strpos(
-    $developerDashboardSources['admin'],
-    'function page_admin_painel(): void',
-);
-$developerPanelEnd = $developerPanelStart === false
-    ? false
-    : strpos(
-        $developerDashboardSources['admin'],
-        'function page_admin_people(): void',
-        $developerPanelStart,
-    );
-$developerPanelSource =
-    $developerPanelStart !== false && $developerPanelEnd !== false
-        ? substr(
-            $developerDashboardSources['admin'],
-            $developerPanelStart,
-            $developerPanelEnd - $developerPanelStart,
-        )
-        : '';
-if ($developerPanelSource === '') {
-    $developerDashboardFailures[] = 'developer_dashboard_page_boundary';
-}
-foreach ([
-    'Consultórios ativos 7d',
-    'Tempo médio de resposta',
-    '"Landing page"',
-] as $obsoletePanelToken) {
-    if (str_contains($developerPanelSource, $obsoletePanelToken)) {
-        $developerDashboardFailures[] =
-            'obsolete_dashboard_card:' . $obsoletePanelToken;
-    }
-}
-foreach ([
-    'metric-chart-line-requests',
-    'metric-chart-line-records',
-    'metric-chart-dot-requests',
-    'metric-chart-dot-records',
-    '"Requisições e registros"',
-    'color-mix(in srgb,var(--pt-color-success) 32%,transparent)',
-    'color-mix(in srgb,var(--pt-color-success) 16%,transparent)',
-    '$betweenFill = static function (',
-    '? $responseArea . $loadArea',
-    '[data-metric-value-type="count"] .metric-chart-fill{',
-    '$segmentedCountAreas = static function (',
-    'metric-chart-fill-load-exclusive',
-    'metric-chart-fill-response-exclusive',
-    'metric-chart-fill-intersection',
-] as $outlineToken) {
-    if (str_contains(
-        $developerDashboardSources['admin'] .
-            $developerDashboardSources['css'],
-        $outlineToken,
-    )) {
-        $developerDashboardFailures[] =
-            'developer_dashboard_outline_token:' . $outlineToken;
-    }
-}
-$publicStatusStart = strpos(
-    $developerDashboardSources['admin'],
-    'function page_status(): void',
-);
-$publicStatusEnd = $publicStatusStart === false
-    ? false
-    : strpos(
-        $developerDashboardSources['admin'],
-        'function page_admin_operations(): void',
-        $publicStatusStart,
-    );
-$publicStatusSource =
-    $publicStatusStart !== false && $publicStatusEnd !== false
-        ? substr(
-            $developerDashboardSources['admin'],
-            $publicStatusStart,
-            $publicStatusEnd - $publicStatusStart,
-        )
-        : '';
-if ($publicStatusSource === '') {
-    $developerDashboardFailures[] = 'public_status_page_boundary';
-} else {
-    foreach ([
-        'require_can(',
-        'ctx(',
-        '$_POST',
-        'INSERT ',
-        'UPDATE ',
-        'DELETE ',
-        'page_head(',
-        'admin-telemetry-card',
-        'priority-actions',
-    ] as $publicStatusForbiddenToken) {
-        if (str_contains($publicStatusSource, $publicStatusForbiddenToken)) {
-            $developerDashboardFailures[] =
-                'public_status_forbidden_token:' . $publicStatusForbiddenToken;
-        }
-    }
-}
-if (substr_count(
-    $developerDashboardSources['admin'],
-    'admin_metric_dual_area_chart(',
-) < 3) {
-    $developerDashboardFailures[] = 'developer_dashboard_shared_renderer_call_count';
-}
-foreach ([
-    'function page_stats(): void',
-    'https://prontoo.app/stats',
-    'stats-public',
-    'data-route="stats"',
-    'RewriteRule ^stats/?$ index.php?r=stats',
-    'function admin_metric_dual_count_chart(',
-    'metric-dual-count-chart',
-    'metric-count-pill',
-    'metric-series-key',
-    'metric-chart-fill-requests',
-    'metric-chart-fill-records',
-] as $obsoleteCountRendererToken) {
-    if (str_contains(
-        $developerDashboardSources['admin'] .
-            $developerDashboardSources['css'],
-        $obsoleteCountRendererToken,
-    )) {
-        $developerDashboardFailures[] =
-            'obsolete_count_renderer_token:' . $obsoleteCountRendererToken;
-    }
-}
-foreach ([
-    'admin_metric_bar_chart(',
-    'metric-bar-chart',
-    'developer-telemetry-dashboard.md',
-] as $obsoleteToken) {
-    if (str_contains(
-        $developerDashboardSources['admin'] .
-            $developerDashboardSources['css'] .
-            $developerDashboardSources['docs'],
-        $obsoleteToken,
-    )) {
-        $developerDashboardFailures[] =
-            'obsolete_dashboard_token:' . $obsoleteToken;
-    }
-}
-if (is_file($root . '/docs/performance/developer-telemetry-dashboard.md')) {
-    $developerDashboardFailures[] = 'obsolete_telemetry_document';
-}
-$developerDashboardCharacterization = [
-    'ok' => $developerDashboardFailures === [],
-    'failed' => $developerDashboardFailures,
-];
-
-$statusPublicLayoutCss = (string) file_get_contents($root . '/public/assets/design-system.css');
-$statusPublicLayoutFailures = [];
-foreach ([
-    'body.status-public #conteudo{width:95vw!important;max-width:none!important;margin:0 auto!important;padding:clamp(14px,2.5vw,32px)!important;}',
-    'body.status-public .admin-performance-card{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:1px solid var(--md-sys-color-outline-variant)!important;border-radius:24px!important;',
-    'body.status-public .admin-performance-card>.section-head{margin:0!important;padding:18px 20px!important;border:0!important;border-bottom:1px solid var(--md-sys-color-outline-variant)!important;}',
-    'body.status-public .global-performance-charts{width:auto!important;max-width:none!important;margin:16px!important;padding:16px!important;gap:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
-    'body.status-public .global-performance-charts>.metric-area-chart{width:100%!important;max-width:none!important;margin:0!important;padding:16px!important;border:1px solid var(--md-sys-color-outline-variant)!important;',
-] as $statusPublicLayoutToken) {
-    if (!str_contains($statusPublicLayoutCss, $statusPublicLayoutToken)) {
-        $statusPublicLayoutFailures[] = $statusPublicLayoutToken;
-    }
-}
-if ($statusPublicLayoutFailures !== []) {
-    fwrite(STDERR, "Status public layout contract failed: " . implode(', ', $statusPublicLayoutFailures) . PHP_EOL);
-    exit(1);
-}
-
-
-$administratorEntryFailures = [];
-$administratorEntrySources = [
-    'auth' => (string) file_get_contents($root . '/app/Auth/AuthOnboarding.php'),
-    'components' => (string) file_get_contents($root . '/app/Ui/Components.php'),
-    'dashboards' => (string) file_get_contents($root . '/app/Pages/Dashboards.php'),
-    'appointments' => (string) file_get_contents($root . '/app/Domain/Appointments/Appointments.php'),
-];
-foreach ([
-    'auth' => [
-        '$destination = "appointments";',
-        'redirect($destination);',
-        'return $destination;',
-    ],
-    'components' => [
-        'if (has_effective_role($c, "gerente")) {',
-        'unset($visibleActions["painel"]);',
-    ],
-    'dashboards' => [
-        'if (has_effective_role($c, "gerente")) {',
-        'redirect("appointments");',
-    ],
-    'appointments' => [
-        '$agendaView = (string) ($_GET["view"] ?? "diario");',
-        '$agendaView = "diario";',
-    ],
-] as $sourceKey => $requiredTokens) {
-    foreach ($requiredTokens as $requiredToken) {
-        if (!str_contains($administratorEntrySources[$sourceKey], $requiredToken)) {
-            $administratorEntryFailures[] = $sourceKey . ':missing:' . $requiredToken;
-        }
-    }
-}
-foreach ([
-    'auth' => [
-        '(string) ($choice["role_code"] ?? "") === "gerente"',
-        '? "painel"',
-    ],
-    'components' => [
-        '$adminPainelAction',
-        '$adminPainelInserted',
-        '$adminVisibleActions["painel"]',
-    ],
-] as $sourceKey => $forbiddenTokens) {
-    foreach ($forbiddenTokens as $forbiddenToken) {
-        if (str_contains($administratorEntrySources[$sourceKey], $forbiddenToken)) {
-            $administratorEntryFailures[] = $sourceKey . ':forbidden:' . $forbiddenToken;
-        }
-    }
-}
-$painelStart = strpos($administratorEntrySources['dashboards'], 'function page_painel(): void');
-$painelSource = $painelStart === false
-    ? ''
-    : substr($administratorEntrySources['dashboards'], $painelStart);
-if ($painelSource === '' || !str_contains($painelSource, 'redirect("appointments");')) {
-    $administratorEntryFailures[] = 'dashboards:manager_panel_redirect';
-}
-if ($painelSource !== '' && str_contains($painelSource, 'page_gerente_painel($c);')) {
-    $administratorEntryFailures[] = 'dashboards:manager_panel_still_rendered';
-}
-$administratorEntryCharacterization = [
-    'ok' => $administratorEntryFailures === [],
-    'failed' => $administratorEntryFailures,
-];
 
 $result = [
-    'ok' =>
-        !empty($architecture['ok']) &&
-        !empty($selfTest['ok']) &&
-        !empty($dashboardIconCascade['ok']) &&
-        !empty($logoutCascade['ok']) &&
-        !empty($loginPerformance['ok']) &&
-        !empty($inlineMfa['ok']) &&
-        !empty($operationalUi['ok']) &&
-        !empty($phaseOneCharacterization['ok']) &&
-        !empty($phaseTwoCharacterization['ok']) &&
-        !empty($phaseThreeCharacterization['ok']) &&
-        !empty($phaseFourCharacterization['ok']) &&
-        !empty($phaseFiveCharacterization['ok']) &&
-        !empty($serverPhaseOneCharacterization['ok']) &&
-        !empty($serverPhaseTwoCharacterization['ok']) &&
-        !empty($serverPhaseThreeCharacterization['ok']) &&
-        !empty($serverPhaseFourCharacterization['ok']) &&
-        !empty($serverPhaseFiveCharacterization['ok']) &&
-        !empty($serverPhaseSixCharacterization['ok']) &&
-        !empty($administratorEntryCharacterization['ok']) &&
-        !empty($developerDashboardCharacterization['ok']),
+    'ok' => $failures === [],
     'architecture' => $architecture,
     'self_test' => $selfTest,
-    'dashboard_icon_cascade' => $dashboardIconCascade,
-    'logout_cascade' => $logoutCascade,
-    'login_performance' => $loginPerformance,
-    'inline_mfa' => $inlineMfa,
-    'operational_ui' => $operationalUi,
-    'phase_one_characterization' => $phaseOneCharacterization,
-    'phase_two_characterization' => $phaseTwoCharacterization,
-    'phase_three_characterization' => $phaseThreeCharacterization,
-    'phase_four_characterization' => $phaseFourCharacterization,
-    'phase_five_characterization' => $phaseFiveCharacterization,
-    'server_phase_one_characterization' => $serverPhaseOneCharacterization,
-    'server_phase_two_characterization' => $serverPhaseTwoCharacterization,
-    'server_phase_three_characterization' => $serverPhaseThreeCharacterization,
-    'server_phase_four_characterization' => $serverPhaseFourCharacterization,
-    'server_phase_five_characterization' => $serverPhaseFiveCharacterization,
-    'server_phase_six_characterization' => $serverPhaseSixCharacterization,
-    'administrator_entry_characterization' => $administratorEntryCharacterization,
-    'developer_dashboard_characterization' => $developerDashboardCharacterization,
+    'runtime_composition' => [
+        'ok' => $failures === [],
+        'failed' => $failures,
+    ],
 ];
 
-echo json_encode(
-    $result,
-    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-), PHP_EOL;
-
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
 exit($result['ok'] ? 0 : 1);
