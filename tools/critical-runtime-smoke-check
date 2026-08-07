@@ -194,6 +194,13 @@ if ((int) val("SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND
     throw new RuntimeException('Movimento financeiro canônico não foi persistido exatamente uma vez.');
 }
 
+$httpSmokeCommand = 'bash ' . escapeshellarg(__DIR__ . '/login-logout-http-smoke');
+$httpSmokeExit = 0;
+passthru($httpSmokeCommand, $httpSmokeExit);
+if ($httpSmokeExit !== 0) {
+    throw new RuntimeException('Smoke HTTP de login/logout falhou.');
+}
+
 echo json_encode([
     'ok' => true,
     'policy' => 'critical-runtime-smoke-v1',
