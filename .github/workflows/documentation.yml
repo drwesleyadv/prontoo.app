@@ -7,79 +7,40 @@ on:
       - prontoo
 
 permissions:
-  contents: write
-
-env:
-  DB_HOST: 127.0.0.1
-  DB_PORT: 3306
-  DB_DATABASE: prontoo_schema
-  DB_USERNAME: root
-  DB_PASSWORD: root
-  PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;dbname=prontoo_schema;charset=utf8mb4
-  PRONTOO_SCHEMA_USER: root
-  PRONTOO_SCHEMA_PASS: root
-  GITHUB_ACTIONS: 'true'
-  CI: 'true'
-  PRONTOO_SCHEMA_TEST_MODE: '1'
-  PRONTOO_INSTALLER_CLI_MODE: '1'
+  contents: read
 
 jobs:
-  materialize-login-hotfix:
-    if: ${{ github.event_name == 'pull_request' && github.actor != 'github-actions[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: prontoo_schema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
           tools: none
-          extensions: pdo_mysql, mbstring
-      - name: Materialize and validate login hotfix
+      - name: Deterministic release contract
         shell: bash
         run: |
           set -euo pipefail
-          php ssd/.login-hotfix-stage.php
-          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
-          php -l app/Runtime/Boot/RuntimeBootCoordinator.php
-          php -l app/Runtime/Legacy/AuthOnboarding/AuthOnboardingRuntimeOperations03.php
-          php -l app/Infrastructure/Legacy/SupportFoundation/SupportFoundationInfrastructureOperations01.php
-          php -l tools/login-post-password-runtime-check
-          php tools/login-post-password-runtime-check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            app/Runtime/Boot/RuntimeBootCoordinator.php \
-            app/Runtime/Legacy/AuthOnboarding/AuthOnboardingRuntimeOperations03.php \
-            app/Infrastructure/Legacy/SupportFoundation/SupportFoundationInfrastructureOperations01.php \
-            tools/login-post-password-runtime-check \
-            version.json \
-            app/update.manifest.json \
-            app/architecture.manifest.json \
-            app/prontoo.php \
-            br/index.php \
-            CHANGELOG.md
-          git diff --cached --quiet && exit 0
-          git commit -m "Hotfix 1.8.7.8 — restaurar disponibilidade do login"
-          git push origin HEAD:${GITHUB_HEAD_REF}
+      - name: Validate documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . \
+            -path './.git' -prune -o \
+            -path './ssd' -prune -o \
+            -path './vendor' -prune -o \
+            -path './node_modules' -prune -o \
+            -name '*.php' -print0)
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          php tools/security-regression-check.php
