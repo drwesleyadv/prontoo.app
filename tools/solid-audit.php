@@ -1,0 +1,146 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+$strict = in_array('--strict', $argv, true);
+$internalPrefixes = [
+    'app/Core/' => 'core',
+    'app/Domain/' => 'domain',
+    'app/Application/' => 'application',
+    'app/Infrastructure/' => 'infrastructure',
+    'app/Presentation/' => 'presentation',
+];
+$allowedDependencies = [
+    'core' => ['Core'],
+    'domain' => ['Core', 'Domain'],
+    'application' => ['Core', 'Domain', 'Application'],
+    'infrastructure' => ['Core', 'Domain', 'Application', 'Infrastructure'],
+    'presentation' => ['Core', 'Domain', 'Application', 'Presentation'],
+];
+$objective = [];
+$hotspots = [];
+$metrics = [
+    'php_files' => 0,
+    'internal_files' => 0,
+    'compatibility_files' => 0,
+    'global_functions_internal' => 0,
+    'global_functions_compatibility' => 0,
+    'interfaces' => 0,
+    'classes' => 0,
+    'hotspot_files' => 0,
+];
+
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS),
+);
+
+foreach ($iterator as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+        continue;
+    }
+    $absolute = str_replace('\\', '/', $file->getPathname());
+    $relative = 'app/' . ltrim(str_replace(str_replace('\\', '/', $root . '/app'), '', $absolute), '/');
+    if ($relative === 'app/config.php') {
+        continue;
+    }
+    $metrics['php_files']++;
+    $source = (string) file_get_contents($absolute);
+    $layer = null;
+    foreach ($internalPrefixes as $prefix => $candidate) {
+        if (str_starts_with($relative, $prefix)) {
+            $layer = $candidate;
+            break;
+        }
+    }
+    $isInternal = $layer !== null;
+    $metrics[$isInternal ? 'internal_files' : 'compatibility_files']++;
+
+    preg_match_all('/^\s*function\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/m', $source, $globalMatches);
+    $globalFunctions = count($globalMatches[0] ?? []);
+    $metrics[$isInternal ? 'global_functions_internal' : 'global_functions_compatibility'] += $globalFunctions;
+
+    preg_match_all('/\binterface\s+[A-Za-z_][A-Za-z0-9_]*/', $source, $interfaceMatches);
+    preg_match_all('/\b(?:final\s+|abstract\s+|readonly\s+)*class\s+[A-Za-z_][A-Za-z0-9_]*/', $source, $classMatches);
+    $metrics['interfaces'] += count($interfaceMatches[0] ?? []);
+    $metrics['classes'] += count($classMatches[0] ?? []);
+
+    if ($isInternal) {
+        if (!preg_match('/^\s*<\?php\s+declare\(strict_types=1\);\s+namespace\s+Prontoo\\\\/s', $source)) {
+            $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'internal_namespaced_unit'];
+        }
+        if ($globalFunctions > 0) {
+            $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'no_internal_global_functions', 'count' => $globalFunctions];
+        }
+        preg_match_all('/Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation)\\\\/', $source, $dependencyMatches);
+        foreach (array_unique($dependencyMatches[1] ?? []) as $target) {
+            if (!in_array($target, $allowedDependencies[$layer] ?? [], true)) {
+                $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'dependency_points_inward', 'target' => $target];
+            }
+        }
+        if (in_array($layer, ['core', 'domain', 'application', 'presentation'], true) && preg_match('/(?<![A-Za-z0-9_\\\\])(?:pdo|q|one|val)\s*\(/i', $source)) {
+            $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'persistence_only_in_infrastructure'];
+        }
+        if (in_array($layer, ['core', 'domain', 'application'], true) && preg_match('/\$_(?:GET|POST|REQUEST|FILES|COOKIE|SESSION|SERVER)\b/', $source)) {
+            $objective[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'http_state_outside_core_domain_application'];
+        }
+        if ($layer !== 'infrastructure' && preg_match('/\bnew\s+(?:\\?Prontoo\\Infrastructure\\|Pdo[A-Z])/', $source)) {
+            $objective[] = ['principle' => 'DIP', 'file' => $relative, 'rule' => 'concrete_adapter_instantiation_outside_composition'];
+        }
+        if (preg_match_all('/\binterface\s+([A-Za-z_][A-Za-z0-9_]*)[^\{]*\{(.*?)\}/s', $source, $interfaces, PREG_SET_ORDER)) {
+            foreach ($interfaces as $interface) {
+                preg_match_all('/\bfunction\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/', (string) ($interface[2] ?? ''), $methods);
+                $count = count($methods[0] ?? []);
+                if ($count > 7) {
+                    $hotspots[] = ['principle' => 'ISP', 'file' => $relative, 'rule' => 'interface_surface_over_7_methods', 'interface' => $interface[1], 'count' => $count];
+                }
+            }
+        }
+    }
+
+    $lines = substr_count($source, "\n") + 1;
+    if ($lines > 700 || $globalFunctions > 24) {
+        $metrics['hotspot_files']++;
+        $hotspots[] = [
+            'principle' => 'SRP',
+            'file' => $relative,
+            'rule' => 'large_responsibility_surface',
+            'lines' => $lines,
+            'global_functions' => $globalFunctions,
+        ];
+    }
+    if ($isInternal && preg_match('/\b(?:switch|match)\s*\(/', $source) && $lines > 500) {
+        $hotspots[] = ['principle' => 'OCP', 'file' => $relative, 'rule' => 'large_conditional_extension_surface', 'lines' => $lines];
+    }
+    if ($isInternal && preg_match('/instanceof\s+Pdo[A-Z]/', $source)) {
+        $objective[] = ['principle' => 'LSP', 'file' => $relative, 'rule' => 'consumer_checks_concrete_subtype'];
+    }
+}
+
+$objective = array_values(array_unique($objective, SORT_REGULAR));
+$hotspots = array_values(array_unique($hotspots, SORT_REGULAR));
+$byPrinciple = [];
+foreach (array_merge($objective, $hotspots) as $finding) {
+    $key = (string) ($finding['principle'] ?? 'unknown');
+    $byPrinciple[$key] = ($byPrinciple[$key] ?? 0) + 1;
+}
+ksort($byPrinciple);
+
+$report = [
+    'ok' => $objective === [],
+    'strict' => $strict,
+    'policy' => 'solid-structural-contract-v1',
+    'metrics' => $metrics,
+    'objective_findings' => $objective,
+    'hotspots' => $hotspots,
+    'findings_by_principle' => $byPrinciple,
+];
+
+fwrite(STDOUT, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+if ($strict && $objective !== []) {
+    exit(1);
+}
