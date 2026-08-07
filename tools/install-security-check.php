@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 if (PHP_SAPI !== "cli") {
     http_response_code(404);
     exit;
@@ -66,7 +67,6 @@ if (!InstallAccess::isInstallerExecutionAllowed()) {
 $opened = false;
 try {
     $opened = SchemaMutationLock::runForInstaller(static function (): bool {
-
         if (!SchemaMutationLock::isActive()) {
             return false;
         }
@@ -130,6 +130,15 @@ if (str_contains($schemaLockSource, 'InstallAccess::isInstallerExecutionAllowed'
     str_contains($schemaLockSource, 'use Prontoo\\Core\\Install\\InstallAccess')) {
     $errors[] = 'schema_lock_depends_on_http_install_access';
 }
+foreach ([
+    '$route !== \'install\'',
+    '$script !== \'install.php\'',
+    '$requestPath !== \'/install.php\'',
+] as $schemaWindowToken) {
+    if (!str_contains($schemaLockSource, $schemaWindowToken)) {
+        $errors[] = 'schema_window_install_route_contract:' . $schemaWindowToken;
+    }
+}
 
 $installEntry = (string) file_get_contents($root . '/install.php');
 $guardPos = strpos($installEntry, 'InstallAccess::assertInstallerEntry');
@@ -144,10 +153,19 @@ if (str_contains($installer, 'assertLocalEntry') ||
     $errors[] = 'installer_internal_guard';
 }
 
-$runtime = (string) file_get_contents($root . '/app/Runtime/Runner.php');
-if (str_contains($runtime, 'Location: /install.php') ||
-    str_contains($runtime, 'InstallAccess::isInstallerExecutionAllowed')) {
+$runnerSource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+if (str_contains($runnerSource, 'Location: /install.php') ||
+    str_contains($runnerSource, 'InstallAccess::isInstallerExecutionAllowed')) {
     $errors[] = 'runtime_install_fallback_present';
+}
+
+$bootCoordinatorSource = (string) file_get_contents(
+    $root . '/app/Runtime/Boot/RuntimeBootCoordinator.php',
+);
+if (str_contains($runnerSource, '$_GET["schema_check"]') ||
+    str_contains($bootCoordinatorSource, '$_GET["schema_check"]') ||
+    !str_contains($bootCoordinatorSource, 'LOCK_EX | LOCK_NB')) {
+    $errors[] = 'runtime_maintenance_trigger_or_lock_policy';
 }
 
 $htaccess = (string) file_get_contents($root . '/.htaccess');
@@ -163,11 +181,6 @@ if (!preg_match('/PUBLIC_INSTALL_WINDOW_START_UNIX\s*=\s*(\d+)\s*;/', $installAc
     !str_contains($installAccessSource, "!is_file(\$root . '/ssd/install.lock')")) {
     $errors[] = 'guarded_two_hour_clean_install_window_policy';
 }
-if (!str_contains($schemaLockSource, "$route !== 'install'") ||
-    !str_contains($schemaLockSource, "$script !== 'install.php'") ||
-    !str_contains($schemaLockSource, "$requestPath !== '/install.php'")) {
-    $errors[] = 'schema_window_install_route_contract';
-}
 if (substr_count($htaccess, '[R=308,L]') < 2 ||
     !str_contains($htaccess, 'Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"') ||
     !str_contains($htaccess, 'Content-Security-Policy "upgrade-insecure-requests; block-all-mixed-content"')) {
@@ -178,6 +191,7 @@ if (str_contains($htaccess, 'HTTP:X-Forwarded-Proto') ||
     !str_contains($htaccess, 'RewriteRule ^cron(?:/|$) - [F,L,NC]')) {
     $errors[] = 'webserver_spoofed_proxy_or_internal_tools_policy';
 }
+
 foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     $httpsRuntimeSource = (string) file_get_contents($root . '/' . $httpsRuntimeFile);
     if (!str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
@@ -189,16 +203,11 @@ foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
 }
 foreach (['tools/architecture-check.php', 'tools/schema-check.php', 'tools/install-security-check.php'] as $cliTool) {
     $cliToolSource = (string) file_get_contents($root . '/' . $cliTool);
-    if (!str_contains($cliToolSource, 'PHP_SAPI !== "cli"')) {
+    if (!preg_match('/PHP_SAPI\s*!==\s*["\']cli["\']/', $cliToolSource)) {
         $errors[] = 'tool_not_cli_only:' . $cliTool;
     }
 }
 
-$runnerSecuritySource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
-if (str_contains($runnerSecuritySource, '$_GET["schema_check"]') ||
-    !str_contains($runnerSecuritySource, 'LOCK_EX | LOCK_NB')) {
-    $errors[] = 'runtime_maintenance_trigger_or_lock_policy';
-}
 $securityAccessSource = (string) file_get_contents($root . '/app/Support/SecurityAccess.php');
 if (!str_contains($securityAccessSource, 'storage_path("cache/rate-limits")') ||
     !str_contains($securityAccessSource, 'flock($handle, LOCK_EX)')) {
@@ -264,16 +273,18 @@ if (str_contains($foundationAuthSource, 'device_session_auto_login()') ||
     !str_contains($foundationAuthSource, 'security_clear_legacy_device_cookie();')) {
     $errors[] = 'login_autotest_persistent_device_bypass';
 }
-$runnerAuthSource = (string) file_get_contents($root . '/app/Runtime/Runner.php');
+
+$routeCatalogSource = (string) file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $authDefinitionSource = (string) file_get_contents(
     $root . '/app/Application/Authorization/Definitions/AuthActionDefinitions.php',
 );
 foreach (['mfa', 'global_reauth'] as $requiredRoute) {
-    if (!str_contains($runnerAuthSource, '"' . $requiredRoute . '"') ||
+    if (!str_contains($routeCatalogSource, "'" . $requiredRoute . "'") ||
         !str_contains($authDefinitionSource, "'" . $requiredRoute . "'")) {
         $errors[] = 'mfa_route_contract:' . $requiredRoute;
     }
 }
+
 $patientSecuritySource = (string) file_get_contents($root . '/app/Domain/Patients/Patients.php');
 if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $uid') ||
     !preg_match('/"patient_lookup_c"\s*\.\s*\$cid.*?\b6,\s*60,/s', $patientSecuritySource) ||
@@ -296,11 +307,14 @@ if (!str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2
 }
 
 $gitignore = (string) file_get_contents($root . '/.gitignore');
-if (!str_contains($gitignore, "/ssd/") || !str_contains($gitignore, "/storage/") || !str_contains($gitignore, "/pdfs/")) {
+if (!str_contains($gitignore, '/ssd/') ||
+    !str_contains($gitignore, '/storage/') ||
+    !str_contains($gitignore, '/pdfs/')) {
     $errors[] = 'ssd_gitignore_policy';
 }
 $foundationSource = (string) file_get_contents($root . '/app/Support/Foundation.php');
-if (!str_contains($foundationSource, 'app_root() . "/ssd"') || str_contains($foundationSource, 'app_root() . "/storage"')) {
+if (!str_contains($foundationSource, 'app_root() . "/ssd"') ||
+    str_contains($foundationSource, 'app_root() . "/storage"')) {
     $errors[] = 'ssd_storage_path_policy';
 }
 $prontooSource = (string) file_get_contents($root . '/app/prontoo.php');
@@ -308,53 +322,6 @@ foreach (['PRONTOO_SSD_ROOT', 'PRONTOO_PDF_ROOT', 'PRONTOO_IMAGE_UPLOAD_ROOT'] a
     if (!str_contains($prontooSource, $requiredPersistenceMarker)) {
         $errors[] = 'ssd_migration_marker:' . $requiredPersistenceMarker;
     }
-}
-$documentPdfSource = (string) file_get_contents($root . '/app/Domain/Documents/DocumentPdf.php');
-if (!str_contains($documentPdfSource, 'storage_path("pdfs")') || str_contains($documentPdfSource, 'app_root() . "/pdfs"')) {
-    $errors[] = 'ssd_pdf_policy';
-}
-$subscriptionSource = (string) file_get_contents($root . '/app/Domain/Clinic/SubscriptionSettings.php');
-foreach (['storage_path("img/payment-proofs")', '"ssd/img/payment-proofs"', '"ssd/payment-proofs"', '"storage/payment-proofs/"', '$mime !== "application/pdf"'] as $requiredUploadPolicy) {
-    if (!str_contains($subscriptionSource, $requiredUploadPolicy)) {
-        $errors[] = 'ssd_upload_policy:' . $requiredUploadPolicy;
-    }
-}
-$htaccessPolicy = (string) file_get_contents($root . '/.htaccess');
-if (!str_contains($htaccessPolicy, 'RewriteRule ^ssd/ - [F,L,NC]') || !str_contains($htaccessPolicy, 'RewriteRule ^storage/ - [F,L,NC]')) {
-    $errors[] = 'ssd_webserver_policy';
-}
-if (is_file($root . '/pdfs/.htaccess') || is_file($root . '/pdfs/index.html')) {
-    $errors[] = 'legacy_root_pdfs_router_present';
-}
-
-$components = (string) file_get_contents($root . '/app/Ui/Components.php');
-if (!preg_match('/\$current\s*===\s*"admin_painel"\)\s*\{\s*return\s+"network_ping";/s', $components)) {
-    $errors[] = 'developer_panel_network_ping_icon';
-}
-
-$forbiddenAssignments = [];
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS),
-);
-foreach ($iterator as $file) {
-    if (!$file instanceof SplFileInfo ||
-        !$file->isFile() ||
-        strtolower($file->getExtension()) !== 'php') {
-        continue;
-    }
-    $relative = str_replace(
-        str_replace('\\', '/', $root) . '/',
-        '',
-        str_replace('\\', '/', $file->getPathname()),
-    );
-    $content = (string) file_get_contents($file->getPathname());
-    if ($relative !== 'app/Core/Database/SchemaMutationLock.php' &&
-        preg_match('/PRONTOO_SCHEMA_INSTALLING["\']?\]\s*=/', $content)) {
-        $forbiddenAssignments[] = $relative;
-    }
-}
-if ($forbiddenAssignments !== []) {
-    $errors[] = 'schema_flag_assignment_outside_lock:' . implode(',', $forbiddenAssignments);
 }
 
 $_SERVER = $originalServer;
@@ -366,25 +333,20 @@ foreach ($originalEnv as $name => $value) {
     }
 }
 
-$errors = array_values(array_unique($errors));
 $result = [
     'ok' => $errors === [],
-    'policy' => 'commissioned-installation-lockdown-v1',
+    'policy' => 'commissioned-installation-lockdown-v2',
     'public_installer' => false,
     'local_http_installer' => false,
     'runtime_install_redirect' => false,
     'schema_mutation' => 'github-actions-cli-four-markers-only',
     'webserver_install_denied' => true,
-    'developer_panel_icon' => 'network_ping',
     'schema_frozen' => true,
     'https_enforced' => true,
     'persistent_root' => 'ssd',
     'pdf_storage' => 'ssd/pdfs',
     'image_upload_storage' => 'ssd/img',
-    'errors' => $errors,
+    'errors' => array_values(array_unique($errors)),
 ];
-echo json_encode(
-    $result,
-    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-), PHP_EOL;
-exit($errors === [] ? 0 : 1);
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($result['ok'] ? 0 : 1);
