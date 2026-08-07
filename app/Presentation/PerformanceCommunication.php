@@ -46,6 +46,17 @@ function performance_communication_transform_html(string $html): string
             'summary_lead' => 'dados de velocidade das rotas e da Landing Page.',
         ],
     );
+    $last24Hours = str_replace(
+        [
+            'class="metric-chart-line-load"',
+            'class="metric-chart-line-response"',
+        ],
+        [
+            'class="metric-chart-line-load" style="stroke-width:1px"',
+            'class="metric-chart-line-response" style="stroke-width:1px"',
+        ],
+        $last24Hours,
+    );
 
     $last30Days = admin_metric_dual_area_chart(
         'Últimos 30 dias',
