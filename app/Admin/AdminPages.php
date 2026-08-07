@@ -1559,19 +1559,19 @@ function admin_global_sequence_series_20d(): array
     $days = [];
     $select = [];
     $params = [];
-    for ($i = 19; $i >= 0; $i--) {
+    for ($i = 29; $i >= 0; $i--) {
         $day = $today->modify("-" . $i . " days");
         $next = $day->modify("+1 day");
         $key = $day->format("Y-m-d");
         $days[$key] = [
             "key" => $key,
-            "label" => $day->format("d"),
+            "label" => telemetry_day_axis_label($day),
             "tooltip" => $day->format("d/m/Y"),
             "value" => 0,
         ];
         $select[] =
             "SUM(CASE WHEN created_at>=? AND created_at<? AND status='committed' THEN mutation_count ELSE 0 END) AS d" .
-            (19 - $i);
+            (29 - $i);
         $params[] = $day->getTimestamp();
         $params[] = $next->getTimestamp();
     }
