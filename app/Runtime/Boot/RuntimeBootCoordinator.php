@@ -123,6 +123,37 @@ final class RuntimeBootCoordinator
         }
     }
 
+    private static function executeReadinessChecks(
+        string $mode,
+        int $uid,
+        float $startedAt,
+        bool $writeMarker,
+        string $reason = '',
+    ): array {
+        $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
+        \prontoo_load_full_runtime_modules();
+        \ensure_runtime_schema_minimum();
+        $result['steps'][] = 'schema_contract';
+        if (class_exists('\Prontoo\Infrastructure\Integrity\PiIntegrity')) {
+            \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
+            $result['steps'][] = 'integrity_lightcheck';
+        }
+        if ($writeMarker) {
+            self::markReadinessOk($mode);
+        }
+        $result['ok'] = true;
+        $result['ran'] = true;
+        if ($reason !== '') {
+            $result['reason'] = $reason;
+        }
+        $result['duration_ms'] = (int) round(
+            (microtime(true) - $startedAt) * 1000,
+            0,
+            \RoundingMode::HalfAwayFromZero,
+        );
+        return $result;
+    }
+
     public static function runReadinessCycle(string $mode = 'route_readiness', int $uid = 0): array
     {
         $startedAt = microtime(true);
@@ -132,43 +163,48 @@ final class RuntimeBootCoordinator
         }
         $lockDir = \storage_path('cache/locks');
         if (!is_dir($lockDir) && !@mkdir($lockDir, 0750, true) && !is_dir($lockDir)) {
-            return $result + ['ran' => false, 'reason' => 'readiness_lock_unavailable'];
+            error_log('[Prontoo runtime readiness] lock indisponível; executando prontidão sem cache.');
+            return self::executeReadinessChecks(
+                $mode,
+                $uid,
+                $startedAt,
+                false,
+                'readiness_uncached_lock_unavailable',
+            );
         }
         $lockHandle = @fopen(
             $lockDir . '/runtime-readiness-' . hash('sha256', PRONTOO_SCHEMA_REV) . '.lock',
             'c+',
         );
         if (!is_resource($lockHandle)) {
-            return $result + ['ran' => false, 'reason' => 'readiness_lock_unavailable'];
+            error_log('[Prontoo runtime readiness] arquivo de lock indisponível; executando prontidão sem cache.');
+            return self::executeReadinessChecks(
+                $mode,
+                $uid,
+                $startedAt,
+                false,
+                'readiness_uncached_lock_unavailable',
+            );
+        }
+        if (!flock($lockHandle, LOCK_EX)) {
+            fclose($lockHandle);
+            error_log('[Prontoo runtime readiness] lock não adquirido; executando prontidão sem cache.');
+            return self::executeReadinessChecks(
+                $mode,
+                $uid,
+                $startedAt,
+                false,
+                'readiness_uncached_lock_failed',
+            );
         }
         try {
-            if (!flock($lockHandle, LOCK_EX)) {
-                return $result + ['ran' => false, 'reason' => 'readiness_lock_failed'];
-            }
             if (self::readinessMarkerValid()) {
                 return $result + ['ok' => true, 'ran' => false, 'reason' => 'readiness_completed_concurrently'];
             }
-            \prontoo_load_full_runtime_modules();
-            \ensure_runtime_schema_minimum();
-            $result['steps'][] = 'schema_contract';
-            if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
-                \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
-                $result['steps'][] = 'integrity_lightcheck';
-            }
-            self::markReadinessOk($mode);
-            $result['ok'] = true;
-            $result['ran'] = true;
-            $result['duration_ms'] = (int) round(
-                (microtime(true) - $startedAt) * 1000,
-                0,
-                \RoundingMode::HalfAwayFromZero,
-            );
-            return $result;
+            return self::executeReadinessChecks($mode, $uid, $startedAt, true);
         } finally {
-            if (is_resource($lockHandle)) {
-                flock($lockHandle, LOCK_UN);
-                fclose($lockHandle);
-            }
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
         }
     }
 

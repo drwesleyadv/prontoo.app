@@ -426,8 +426,8 @@ final class AuthOnboardingRuntimeOperations03
                 : ($mfaStage ? "" : $reloginNotice);
         $bootStatus = $mfaStage
             ? "Senha confirmada. Agora, digite o código do aplicativo."
-            : "Verificando liberação do acesso.";
-        $bootIcon = $mfaStage ? "verified_user" : "sync";
+            : "Informe seu CPF e senha.";
+        $bootIcon = $mfaStage ? "verified_user" : "login";
         $cpfAttributes =
             'required inputmode="numeric" autocomplete="username" maxlength="14" placeholder="000.000.000-00" data-login-cpf' .
             ($mfaStage ? ' readonly aria-readonly="true"' : "");
@@ -474,9 +474,7 @@ final class AuthOnboardingRuntimeOperations03
             '<form method="post" data-login-form data-login-stage="' .
             ($mfaStage ? "mfa" : "password") .
             '"' .
-            ($mfaStage
-                ? ' data-autotest-ready="1"'
-                : " data-login-autotest") .
+            ' data-autotest-ready="1"' .
             ' data-login-locked="' .
             (!$mfaStage && $wait > 0 ? "1" : "0") .
             '" class="login-form">' .
@@ -491,7 +489,7 @@ final class AuthOnboardingRuntimeOperations03
                 ),
             ) .
             $credentialField .
-            '<button type="submit" class="primary wide login-submit" data-login-submit disabled aria-disabled="true">' .
+            '<button type="submit" class="primary wide login-submit" data-login-submit>' .
             icon($submitIcon) .
             "<span>" .
             e($submitLabel) .
