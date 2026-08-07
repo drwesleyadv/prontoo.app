@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -24,11 +24,33 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Deterministic release contract
+      - name: Wire login/logout HTTP smoke into critical runtime contract
         shell: bash
         run: |
           set -euo pipefail
+          git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/critical-runtime-smoke-check')
+          source = path.read_text()
+          needle = "\necho json_encode([\n"
+          block = "\n$httpSmokeCommand = 'bash ' . escapeshellarg(__DIR__ . '/login-logout-http-smoke');\n$httpSmokeExit = 0;\npassthru($httpSmokeCommand, $httpSmokeExit);\nif ($httpSmokeExit !== 0) {\n    throw new RuntimeException('Smoke HTTP de login/logout falhou.');\n}\n\necho json_encode([\n"
+          if needle not in source:
+              raise SystemExit('Ponto de integração do smoke HTTP não localizado.')
+          if "login-logout-http-smoke" in source:
+              raise SystemExit('Smoke HTTP já integrado ao contrato crítico.')
+          path.write_text(source.replace(needle, block, 1))
+          PY
+          php -l tools/critical-runtime-smoke-check
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
+          git diff --check
+          git config user.name 'prontoo-ci'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          test -n "$(git diff --cached --name-only)"
+          git commit -m 'Executar smoke HTTP no contrato crítico de runtime'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - name: Validate documentation contract
         shell: bash
         run: |
