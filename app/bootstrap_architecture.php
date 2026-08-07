@@ -12,6 +12,17 @@ $__prontoo_core_files = [
     __DIR__ . '/Domain/Authorization/ActionContract.php',
     __DIR__ . '/Application/Authorization/CapabilityProvider.php',
     __DIR__ . '/Application/Audit/ActionProofPort.php',
+    __DIR__ . '/Application/Authorization/ActionDefinitionSource.php',
+    __DIR__ . '/Application/Authorization/ActionDefinitionCollection.php',
+    __DIR__ . '/Application/Authorization/ActionDefinitionRegistry.php',
+    __DIR__ . '/Application/Authorization/ActionRequirementPolicy.php',
+    __DIR__ . '/Application/Authorization/Definitions/AuthActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/PatientActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/SchedulingActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/DocumentTaskActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/WorkforceActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/FinancialActionDefinitions.php',
+    __DIR__ . '/Application/Authorization/Definitions/AdminActionDefinitions.php',
     __DIR__ . '/Application/Authorization/ActionCatalog.php',
     __DIR__ . '/Application/Authorization/AuthorizationService.php',
     __DIR__ . '/Infrastructure/Authorization/RuntimeCapabilityProvider.php',
@@ -48,6 +59,7 @@ $__prontoo_core_files = [
     __DIR__ . '/Runtime/Modules/RuntimeModuleCatalog.php',
     __DIR__ . '/Runtime/Modules/RuntimeModuleLoader.php',
     __DIR__ . '/Runtime/Modules/RuntimeModuleComposition.php',
+    __DIR__ . '/Runtime/Authorization/ActionCatalogComposition.php',
     __DIR__ . '/Runtime/LayeredKernel.php',
     __DIR__ . '/Core/Invariant/Request/ActionProof.php',
     __DIR__ . '/Core/Install/RuntimeContract.php',
@@ -63,4 +75,9 @@ foreach ($__prontoo_core_files as $__prontoo_core_file) {
     }
     require_once $__prontoo_core_file;
 }
+
+\Prontoo\Application\Authorization\ActionCatalog::configure(
+    \Prontoo\Runtime\Authorization\ActionCatalogComposition::source(),
+);
+
 unset($__prontoo_core_file, $__prontoo_core_files);
