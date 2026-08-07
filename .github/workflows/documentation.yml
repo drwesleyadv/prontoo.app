@@ -59,6 +59,7 @@ jobs:
           rm -rf .solid-stage7
           test ! -e .solid-stage7
           git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          git show origin/prontoo:.github/workflows/architecture.yml > .github/workflows/architecture.yml
       - name: Reconcile update manifest
         shell: bash
         run: |
