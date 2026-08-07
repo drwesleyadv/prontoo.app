@@ -20,6 +20,7 @@ final class LayerMap
         'app/Core/Database/SchemaHardening.php',
         'app/Domain/Authorization/',
         'app/Domain/Identity/',
+        'app/Domain/Legacy/',
         'app/Domain/Patients/PatientPure.php',
         'app/Application/',
         'app/Infrastructure/',
