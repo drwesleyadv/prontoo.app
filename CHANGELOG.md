@@ -7,7 +7,6 @@
 - alinha a referência residual de AuditChain à implementação canônica Infrastructure\Audit\AuditChain.
 - preserva schema, dados, interface, rotas e todos os recursos disponíveis ao usuário.
 
-
 ## 1.8.7.4 — Matriz de smoke tests de runtime crítico
 
 - valida vínculo clínico, resolução de credencial e rotação da geração de autenticação em banco real.
