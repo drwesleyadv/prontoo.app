@@ -79,7 +79,7 @@ final class RuntimeModuleCatalog
             'Application/Patients/PatientReceptionHistoryReadService.php',
             'Infrastructure/Patients/PdoPatientReceptionHistoryReadRepository.php',
             'Application/Patients/PatientTabCommandPort.php',
-            'Application/Patients/Patients/PatientTabCommandService.php',
+            'Application/Patients/PatientTabCommandService.php',
             'Infrastructure/Patients/PdoPatientTabCommandRepository.php',
             'Application/Patients/PatientReadPort.php',
             'Application/Patients/PatientReadService.php',
@@ -89,7 +89,6 @@ final class RuntimeModuleCatalog
             'Presentation/Patients/PatientContactView.php',
             'Domain/Patients/Patients.php',
         ]];
-        $patients['patients'][7] = 'Application/Patients/PatientTabCommandService.php';
         $leads = ['leads' => ['Domain/Leads/Leads.php']];
         $tasks = ['tasks' => ['Domain/Tasks/TasksNotices.php']];
         $financial = ['financial' => [
