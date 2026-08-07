@@ -1,0 +1,53 @@
+name: Apply Performance Records Window Fix
+
+on:
+  push:
+    branches:
+      - agent/fix-performance-architecture-contract
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-fix-performance-records-window
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-performance-architecture-contract
+          fetch-depth: 0
+      - name: Align records series to 30 days
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('app/Admin/AdminPages.php')
+          text = path.read_text(encoding='utf-8')
+          start = text.index('function admin_global_sequence_series_20d(): array')
+          end = text.index('function admin_maestro_health_time_label', start)
+          block = text[start:end]
+          replacements = [
+              ('for ($i = 19; $i >= 0; $i--) {', 'for ($i = 29; $i >= 0; $i--) {'),
+              ('"label" => $day->format("d")', '"label" => telemetry_day_axis_label($day)'),
+              ('(19 - $i)', '(29 - $i)'),
+          ]
+          for old, new in replacements:
+              count = block.count(old)
+              if count != 1:
+                  raise RuntimeError(f'Expected exactly one occurrence of {old!r}, found {count}')
+              block = block.replace(old, new, 1)
+          path.write_text(text[:start] + block + text[end:], encoding='utf-8')
+          PY
+          rm .github/workflows/agent-fix-performance-records-window.yml
+          git config user.name "Prontoo Release"
+          git config user.email "release@prontoo.app"
+          git add -A
+          git commit -m "Performance: alinhar Registros à janela de 30 dias"
+          git push origin HEAD:agent/fix-performance-architecture-contract
