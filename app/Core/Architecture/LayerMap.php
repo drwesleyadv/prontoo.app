@@ -63,7 +63,8 @@ final class LayerMap
         return match (true) {
             $path === 'Core/Invariant/Request/ActionProof.php',
             $path === 'Core/Architecture/ArchitectureVerifier.php',
-            $path === 'Core/Install/RuntimeContract.php' => self::COMPOSITION,
+            $path === 'Core/Install/RuntimeContract.php',
+            $path === 'Support/ModuleLoader.php' => self::COMPOSITION,
             str_starts_with($path, 'Core/') => self::CORE,
             str_starts_with($path, 'Domain/') => self::DOMAIN,
             str_starts_with($path, 'Application/') => self::APPLICATION,
