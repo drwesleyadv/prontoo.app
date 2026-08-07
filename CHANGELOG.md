@@ -6,7 +6,6 @@
 - adiciona smoke test executável do cron Maestro em PHP 8.4 e MySQL 8 reais.
 - preserva regras, agenda, ações, schema, dados, interface e recursos disponíveis ao usuário.
 
-
 ## 1.8.7.2 — Hotfix do runtime pós-senha do login
 
 - corrige a resolução de PDOStatement no executor SQL extraído para namespace, eliminando TypeError após a senha correta.
