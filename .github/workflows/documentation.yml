@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -24,106 +24,6 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Materialize authentication hardening
-        if: ${{ hashFiles('.auth-fix/payload.02.gz.b64') != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
-          cat .auth-hardening/payload.00 .auth-hardening/payload.01 | tr -d '\r\n\t ' > /tmp/auth-hardening.b64
-          for part in 02 03 04 05 06; do
-            base64 -d ".auth-fix/payload.${part}.gz.b64" | gzip -dc >> /tmp/auth-hardening.b64
-          done
-          bytes="$(wc -c < /tmp/auth-hardening.b64)"
-          digest="$(sha256sum /tmp/auth-hardening.b64 | cut -d' ' -f1)"
-          printf 'auth payload bytes=%s sha256=%s\n' "$bytes" "$digest"
-          test "$bytes" -eq 27940
-          test "$digest" = 'b83f351e69a064b90eb30a40ce1f298577df948757de72e6d00a5e9d42ea4604'
-          base64 -d /tmp/auth-hardening.b64 > /tmp/auth-hardening.patch
-          python3 <<'PY'
-          from pathlib import Path
-          import re
-          import os
-
-          patch = Path('/tmp/auth-hardening.patch').read_text()
-          patch = patch.replace(chr(92) * 2, chr(92))
-          sections = re.split(r'(?=^diff --git )', patch, flags=re.M)
-          applied = []
-          for section in sections:
-              if not section.startswith('diff --git '):
-                  continue
-              header = section.splitlines()[0]
-              match = re.match(r'diff --git a/(.+?) b/(.+)$', header)
-              if not match or match.group(1) != match.group(2):
-                  raise SystemExit(f'Cabeçalho de patch inválido: {header}')
-              path = Path(match.group(2))
-              new_file = 'new file mode ' in section and '\n--- /dev/null\n' in section
-              executable = 'new file mode 100755' in section
-              hunks = re.split(r'^@@.*$', section, flags=re.M)
-              if len(hunks) < 2:
-                  raise SystemExit(f'Sem hunk aplicável: {path}')
-              if new_file:
-                  if path.exists():
-                      raise SystemExit(f'Arquivo novo já existe: {path}')
-                  body = ''.join(
-                      line[1:]
-                      for line in hunks[1].splitlines(keepends=True)
-                      if line.startswith('+')
-                  )
-                  path.parent.mkdir(parents=True, exist_ok=True)
-                  path.write_text(body)
-                  if executable:
-                      os.chmod(path, 0o755)
-                  applied.append(str(path))
-                  continue
-              if not path.is_file():
-                  raise SystemExit(f'Arquivo alvo ausente: {path}')
-              content = path.read_text()
-              for hunk in hunks[1:]:
-                  old = ''.join(
-                      line[1:]
-                      for line in hunk.splitlines(keepends=True)
-                      if line.startswith(' ') or line.startswith('-')
-                  )
-                  new = ''.join(
-                      line[1:]
-                      for line in hunk.splitlines(keepends=True)
-                      if line.startswith(' ') or line.startswith('+')
-                  )
-                  if not old:
-                      raise SystemExit(f'Hunk sem baseline: {path}')
-                  occurrences = content.count(old)
-                  if occurrences != 1:
-                      raise SystemExit(f'Hunk ambíguo/ausente em {path}: {occurrences}')
-                  content = content.replace(old, new, 1)
-              path.write_text(content)
-              applied.append(str(path))
-          expected = {
-              'app/Auth/AuthOnboarding.php',
-              'app/Infrastructure/Auth/PdoLoginThrottle.php',
-              'app/Runtime/Auth/LoginThrottle.php',
-              'app/Runtime/Auth/LogoutCoordinator.php',
-              'tools/login-logout-http-smoke',
-              '.github/workflows/architecture.yml',
-              'docs/security/authentication.md',
-          }
-          if set(applied) != expected:
-              raise SystemExit(f'Conjunto materializado divergente: {sorted(applied)}')
-          PY
-          rm -rf .auth-hardening .auth-fix
-          git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
-          git show origin/prontoo:.github/workflows/architecture.yml > .github/workflows/architecture.yml
-          php -l app/Infrastructure/Auth/PdoLoginThrottle.php
-          php -l app/Runtime/Auth/LoginThrottle.php
-          php -l app/Runtime/Auth/LogoutCoordinator.php
-          bash -n tools/login-logout-http-smoke
-          git diff --check
-          git config user.name 'prontoo-ci'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          test -n "$(git diff --cached --name-only)"
-          git commit -m 'Endurecer login e logout com contrato HTTP'
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - name: Deterministic release contract
         shell: bash
         run: |

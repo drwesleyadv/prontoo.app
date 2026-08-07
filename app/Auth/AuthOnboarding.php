@@ -162,15 +162,15 @@ function login_locks_cleanup_maybe(): void
 }
 function login_lock(string $cpf): int
 {
-    return \Prontoo\Runtime\Legacy\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf);
+    return \Prontoo\Runtime\Auth\LoginThrottle::waitSeconds($cpf);
 }
 function login_fail(string $cpf): int
 {
-    return \Prontoo\Runtime\Legacy\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_fail($cpf);
+    return \Prontoo\Runtime\Auth\LoginThrottle::registerFailure($cpf);
 }
 function login_clear(string $cpf): void
 {
-    \Prontoo\Runtime\Legacy\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_clear($cpf);
+    \Prontoo\Runtime\Auth\LoginThrottle::clear($cpf);
 }
 function mark_login_success(int $uid): void
 {
@@ -224,7 +224,7 @@ function page_person_lookup(): void
 }
 function page_logout(): void
 {
-    \Prontoo\Runtime\Legacy\AuthOnboarding\AuthOnboardingRuntimeOperations05::page_logout();
+    \Prontoo\Runtime\Auth\LogoutCoordinator::handle();
 }
 function page_profile(): void
 {

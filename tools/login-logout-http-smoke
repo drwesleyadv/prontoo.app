@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/prontoo-auth-http.XXXXXX")"
+PORT="$((18080 + RANDOM % 800))"
+CONFIG="$TMP/config.php"
+SERVER_LOG="$TMP/server.log"
+SERVER_PID=""
+
+cleanup() {
+  if [[ -n "$SERVER_PID" ]]; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
+    wait "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+
+cat >"$CONFIG" <<PHP
+<?php
+return [
+    'db_host' => '${DB_HOST:-127.0.0.1}',
+    'db_name' => '${DB_DATABASE:-prontoo_schema}',
+    'db_user' => '${DB_USERNAME:-root}',
+    'db_pass' => '${DB_PASSWORD:-root}',
+    'secret' => 'prontoo-login-logout-http-smoke-secret',
+    'debug' => true,
+    'app_env' => 'development',
+];
+PHP
+
+PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP'
+<?php
+declare(strict_types=1);
+
+$root = getcwd();
+require $root . '/app/prontoo.php';
+$pdo = pdo();
+$tables = $pdo->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $pdo->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    install_fresh_schema();
+});
+prontoo_load_full_runtime_modules();
+$now = time();
+$person = $pdo->prepare('INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,?,?,?)');
+$person->execute(['HTTP Auth Smoke', '52998224725', 631152000, $now]);
+$personId = (int) $pdo->lastInsertId();
+$user = $pdo->prepare('INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,0,1,?)');
+$user->execute([
+    $personId,
+    'HTTP Auth Smoke',
+    'http-auth-smoke@example.invalid',
+    password_hash('Prontoo-CI-2026', PASSWORD_DEFAULT),
+    $now,
+]);
+$userId = (int) $pdo->lastInsertId();
+$clinic = $pdo->prepare('INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,owner_user_id,manager_user_id,timezone,active,created_at) VALUES (?,?,?,?,?,?,?,1,?)');
+$clinic->execute([
+    'cpf',
+    'HTTP Auth Smoke Clinic',
+    '52998224725',
+    'HTTP Auth Smoke Clinic',
+    $userId,
+    $userId,
+    'America/Cuiaba',
+    $now,
+]);
+$clinicId = (int) $pdo->lastInsertId();
+$pdo->prepare("INSERT INTO pi_clinic_roles (clinic_id,role_code,label,enabled,sort_order,updated_at) VALUES (?,'gerente','Gerente',1,40,?)")
+    ->execute([$clinicId, $now]);
+$pdo->prepare("INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) VALUES (?,?,'gerente',1,1,?)")
+    ->execute([$userId, $clinicId, $now]);
+PHP
+
+PRONTOO_CONFIG_PATH="$CONFIG" PRONTOO_TRUST_PROXY_HEADERS=1 php -S "127.0.0.1:$PORT" -t "$ROOT" >"$SERVER_LOG" 2>&1 &
+SERVER_PID="$!"
+
+base_url="http://127.0.0.1:$PORT/"
+common_headers=(-H 'Host: prontoo.app' -H 'X-Forwarded-Proto: https')
+
+for _ in {1..40}; do
+  if curl -fsS "${common_headers[@]}" "$base_url?r=login" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.25
+done
+if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+  cat "$SERVER_LOG" >&2
+  exit 1
+fi
+
+extract_cookie() {
+  awk 'BEGIN{IGNORECASE=1} /^Set-Cookie: PRONTOO=/{sub(/\r$/,""); sub(/^Set-Cookie: PRONTOO=/,""); sub(/;.*/,""); print; exit}' "$1"
+}
+
+extract_html_csrf() {
+  php -r '$s=stream_get_contents(STDIN); if (!preg_match('/"'"'name="csrf" value="([a-f0-9]{64})"'"'/i',$s,$m)) exit(1); echo $m[1];'
+}
+
+extract_meta_csrf() {
+  php -r '$s=stream_get_contents(STDIN); if (!preg_match('/"'"'name="csrf-token" content="([a-f0-9]{64})"'"'/i',$s,$m)) exit(1); echo $m[1];'
+}
+
+login_session() {
+  local prefix="$1"
+  local headers="$TMP/${prefix}-get.headers"
+  local body="$TMP/${prefix}-get.body"
+  curl -sS -D "$headers" "${common_headers[@]}" "$base_url?r=login" -o "$body"
+  local sid
+  sid="$(extract_cookie "$headers")"
+  [[ -n "$sid" ]]
+  local csrf
+  csrf="$(extract_html_csrf <"$body")"
+
+  headers="$TMP/${prefix}-post.headers"
+  body="$TMP/${prefix}-post.body"
+  curl -sS -D "$headers" "${common_headers[@]}" \
+    -H 'Accept: application/json' \
+    -H "Cookie: PRONTOO=$sid" \
+    --data-urlencode "csrf=$csrf" \
+    --data-urlencode 'cpf=52998224725' \
+    --data-urlencode 'password=Prontoo-CI-2026' \
+    "$base_url?r=login" -o "$body"
+  local status
+  status="$(awk 'NR==1{print $2}' "$headers")"
+  [[ "$status" == "200" ]]
+  php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if (($j["ok"]??false)!==true || ($j["stage"]??"")!=="complete") exit(1);' "$body"
+  local rotated
+  rotated="$(extract_cookie "$headers")"
+  [[ -n "$rotated" && "$rotated" != "$sid" ]]
+  printf '%s' "$rotated"
+}
+
+authenticated_csrf() {
+  local sid="$1"
+  local prefix="$2"
+  local headers="$TMP/${prefix}-auth.headers"
+  local body="$TMP/${prefix}-auth.body"
+  curl -sS -D "$headers" "${common_headers[@]}" -H "Cookie: PRONTOO=$sid" "$base_url?r=appointments" -o "$body"
+  local status
+  status="$(awk 'NR==1{print $2}' "$headers")"
+  [[ "$status" == "200" ]]
+  extract_meta_csrf <"$body"
+}
+
+SID_A="$(login_session a)"
+CSRF_A="$(authenticated_csrf "$SID_A" a)"
+SID_B="$(login_session b)"
+CSRF_B="$(authenticated_csrf "$SID_B" b)"
+[[ -n "$CSRF_A" && -n "$CSRF_B" ]]
+
+curl -sS -D "$TMP/logout-bad.headers" "${common_headers[@]}" \
+  -H "Cookie: PRONTOO=$SID_A" \
+  --data-urlencode 'csrf=invalid' \
+  "$base_url?r=logout" -o "$TMP/logout-bad.body"
+[[ "$(awk 'NR==1{print $2}' "$TMP/logout-bad.headers")" == "403" ]]
+authenticated_csrf "$SID_A" a-after-bad >/dev/null
+
+curl -sS -D "$TMP/logout.headers" "${common_headers[@]}" \
+  -H "Cookie: PRONTOO=$SID_A" \
+  --data-urlencode "csrf=$CSRF_A" \
+  "$base_url?r=logout" -o "$TMP/logout.body"
+[[ "$(awk 'NR==1{print $2}' "$TMP/logout.headers")" == "302" ]]
+grep -qi '^X-Prontoo-Global-Logout: confirmed' "$TMP/logout.headers"
+
+curl -sS -D "$TMP/reuse-b.headers" "${common_headers[@]}" \
+  -H "Cookie: PRONTOO=$SID_B" \
+  "$base_url?r=appointments" -o "$TMP/reuse-b.body"
+[[ "$(awk 'NR==1{print $2}' "$TMP/reuse-b.headers")" == "302" ]]
+grep -qi 'Location: .*r=login' "$TMP/reuse-b.headers"
+
+PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP'
+<?php
+declare(strict_types=1);
+require getcwd() . '/app/prontoo.php';
+pdo()->exec('DROP TABLE pi_login_locks');
+PHP
+
+curl -sS -D "$TMP/degraded-get.headers" "${common_headers[@]}" "$base_url?r=login" -o "$TMP/degraded-get.body"
+DEGRADED_SID="$(extract_cookie "$TMP/degraded-get.headers")"
+DEGRADED_CSRF="$(extract_html_csrf <"$TMP/degraded-get.body")"
+curl -sS -D "$TMP/degraded-post.headers" "${common_headers[@]}" \
+  -H 'Accept: application/json' \
+  -H "Cookie: PRONTOO=$DEGRADED_SID" \
+  --data-urlencode "csrf=$DEGRADED_CSRF" \
+  --data-urlencode 'cpf=52998224725' \
+  --data-urlencode 'password=wrong-password' \
+  "$base_url?r=login" -o "$TMP/degraded-post.body"
+[[ "$(awk 'NR==1{print $2}' "$TMP/degraded-post.headers")" == "503" ]]
+
+echo '{"ok":true,"policy":"login-logout-http-smoke-v1","csrf_logout":true,"session_fixation_rotation":true,"global_logout_revocation":true,"rate_limit_fail_closed":true}'
