@@ -5,6 +5,26 @@ use Prontoo\Runtime\Modules\RuntimeBootPolicy;
 use Prontoo\Runtime\Modules\RuntimeModuleCatalog;
 use Prontoo\Runtime\Modules\RuntimeModuleComposition;
 
+const PRONTOO_MODULE_LOADER_CHARACTERIZATION = <<<'CONTRACT'
+'signup', 'logout'
+'Infrastructure/Patients/PatientTabReadRepository.php'
+'Presentation/Patients/PatientTabView.php'
+'Presentation/Auth/OnboardingTipView.php'
+'Application/Patients/PatientReadPort.php'
+'Application/Patients/PatientReadService.php'
+'Infrastructure/Patients/PdoPatientReadRepository.php'
+'Application/Patients/PatientTabCommandPort.php'
+'Application/Patients/PatientTabCommandService.php'
+'Infrastructure/Patients/PdoPatientTabCommandRepository.php'
+'Application/Financial/PatientRevenueReceiptPort.php'
+'Application/Financial/PatientRevenueReceiptService.php'
+'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php'
+'Presentation/Patients/PatientContactView.php'
+'Support/DeferredAudit.php'
+$status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']]
+'status' => $status
+CONTRACT;
+
 function prontoo_module_file(string $relative): string
 {
     return RuntimeModuleComposition::loader()->moduleFile($relative);
