@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/prontoo-auth-http.XXXXXX")"
@@ -7,6 +7,22 @@ PORT="$((18080 + RANDOM % 800))"
 CONFIG="$TMP/config.php"
 SERVER_LOG="$TMP/server.log"
 SERVER_PID=""
+STEP="bootstrap"
+
+on_error() {
+  local code="${1:-1}"
+  printf 'auth smoke failed: step=%s exit=%s\n' "$STEP" "$code" >&2
+  for file in "$TMP"/*.headers; do
+    [[ -f "$file" ]] || continue
+    printf '%s\n' "--- $(basename "$file")" >&2
+    sed -n '1,30p' "$file" >&2
+  done
+  if [[ -f "$SERVER_LOG" ]]; then
+    printf '%s\n' '--- server.log (tail)' >&2
+    tail -n 120 "$SERVER_LOG" >&2 || true
+  fi
+  return "$code"
+}
 
 cleanup() {
   if [[ -n "$SERVER_PID" ]]; then
@@ -15,7 +31,20 @@ cleanup() {
   fi
   rm -rf "$TMP"
 }
+trap 'on_error $?' ERR
 trap cleanup EXIT
+
+assert_status() {
+  local file="$1"
+  local expected="$2"
+  local label="$3"
+  local actual
+  actual="$(awk 'NR==1{print $2}' "$file")"
+  if [[ "$actual" != "$expected" ]]; then
+    printf 'auth smoke status mismatch: %s expected=%s actual=%s\n' "$label" "$expected" "$actual" >&2
+    return 1
+  fi
+}
 
 cat >"$CONFIG" <<PHP
 <?php
@@ -30,6 +59,7 @@ return [
 ];
 PHP
 
+STEP="seed-fixture"
 PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP'
 <?php
 declare(strict_types=1);
@@ -84,12 +114,14 @@ $pdo->prepare("INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,a
 seed_permissions($clinicId);
 PHP
 
+STEP="start-http-server"
 PRONTOO_CONFIG_PATH="$CONFIG" PRONTOO_TRUST_PROXY_HEADERS=1 php -S "127.0.0.1:$PORT" -t "$ROOT" >"$SERVER_LOG" 2>&1 &
 SERVER_PID="$!"
 
 base_url="http://127.0.0.1:$PORT/"
 common_headers=(-H 'Host: prontoo.app' -H 'X-Forwarded-Proto: https')
 
+STEP="wait-http-server"
 for _ in {1..40}; do
   if curl -fsS "${common_headers[@]}" "$base_url?r=login" >/dev/null 2>&1; then
     break
@@ -102,7 +134,7 @@ if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
 fi
 
 extract_cookie() {
-  awk 'BEGIN{IGNORECASE=1} /^Set-Cookie: PRONTOO=/{sub(/\r$/,""); sub(/^Set-Cookie: PRONTOO=/,""); sub(/;.*/,""); print; exit}' "$1"
+  awk 'BEGIN{IGNORECASE=1} /^Set-Cookie: PRONTOO=/{line=$0; sub(/\r$/, "", line); sub(/^Set-Cookie: PRONTOO=/, "", line); sub(/;.*/, "", line); if (line != "") value=line} END{print value}' "$1"
 }
 
 extract_html_csrf() {
@@ -117,13 +149,18 @@ login_session() {
   local prefix="$1"
   local headers="$TMP/${prefix}-get.headers"
   local body="$TMP/${prefix}-get.body"
+  STEP="login-${prefix}-get"
   curl -sS -D "$headers" "${common_headers[@]}" "$base_url?r=login" -o "$body"
   local sid
   sid="$(extract_cookie "$headers")"
-  [[ -n "$sid" ]]
+  if [[ -z "$sid" ]]; then
+    printf 'auth smoke: login %s did not issue PRONTOO cookie\n' "$prefix" >&2
+    return 1
+  fi
   local csrf
   csrf="$(extract_html_csrf <"$body")"
 
+  STEP="login-${prefix}-post"
   headers="$TMP/${prefix}-post.headers"
   body="$TMP/${prefix}-post.body"
   curl -sS -D "$headers" "${common_headers[@]}" \
@@ -133,13 +170,14 @@ login_session() {
     --data-urlencode 'cpf=52998224725' \
     --data-urlencode 'password=Prontoo-CI-2026' \
     "$base_url?r=login" -o "$body"
-  local status
-  status="$(awk 'NR==1{print $2}' "$headers")"
-  [[ "$status" == "200" ]]
-  php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if (($j["ok"]??false)!==true || ($j["stage"]??"")!=="complete") exit(1);' "$body"
+  assert_status "$headers" 200 "login-$prefix"
+  php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if (($j["ok"]??false)!==true || ($j["stage"]??"")!=="complete") { fwrite(STDERR, "auth smoke login json mismatch\n"); exit(1); }' "$body"
   local rotated
   rotated="$(extract_cookie "$headers")"
-  [[ -n "$rotated" && "$rotated" != "$sid" ]]
+  if [[ -z "$rotated" || "$rotated" == "$sid" ]]; then
+    printf 'auth smoke: session id was not rotated for login %s\n' "$prefix" >&2
+    return 1
+  fi
   printf '%s' "$rotated"
 }
 
@@ -148,39 +186,54 @@ authenticated_csrf() {
   local prefix="$2"
   local headers="$TMP/${prefix}-auth.headers"
   local body="$TMP/${prefix}-auth.body"
+  STEP="authenticated-${prefix}"
   curl -sS -D "$headers" "${common_headers[@]}" -H "Cookie: PRONTOO=$sid" "$base_url?r=appointments" -o "$body"
-  local status
-  status="$(awk 'NR==1{print $2}' "$headers")"
-  [[ "$status" == "200" ]]
+  assert_status "$headers" 200 "authenticated-$prefix"
   extract_meta_csrf <"$body"
 }
 
+STEP="session-a"
 SID_A="$(login_session a)"
 CSRF_A="$(authenticated_csrf "$SID_A" a)"
+STEP="session-b"
 SID_B="$(login_session b)"
 CSRF_B="$(authenticated_csrf "$SID_B" b)"
-[[ -n "$CSRF_A" && -n "$CSRF_B" ]]
+if [[ -z "$CSRF_A" || -z "$CSRF_B" ]]; then
+  printf 'auth smoke: missing authenticated CSRF token\n' >&2
+  exit 1
+fi
 
+STEP="logout-invalid-csrf"
 curl -sS -D "$TMP/logout-bad.headers" "${common_headers[@]}" \
   -H "Cookie: PRONTOO=$SID_A" \
   --data-urlencode 'csrf=invalid' \
   "$base_url?r=logout" -o "$TMP/logout-bad.body"
-[[ "$(awk 'NR==1{print $2}' "$TMP/logout-bad.headers")" == "403" ]]
+assert_status "$TMP/logout-bad.headers" 403 "logout-invalid-csrf"
+STEP="session-a-survives-invalid-csrf"
 authenticated_csrf "$SID_A" a-after-bad >/dev/null
 
+STEP="logout-valid"
 curl -sS -D "$TMP/logout.headers" "${common_headers[@]}" \
   -H "Cookie: PRONTOO=$SID_A" \
   --data-urlencode "csrf=$CSRF_A" \
   "$base_url?r=logout" -o "$TMP/logout.body"
-[[ "$(awk 'NR==1{print $2}' "$TMP/logout.headers")" == "302" ]]
-grep -qi '^X-Prontoo-Global-Logout: confirmed' "$TMP/logout.headers"
+assert_status "$TMP/logout.headers" 302 "logout-valid"
+if ! grep -qi '^X-Prontoo-Global-Logout: confirmed' "$TMP/logout.headers"; then
+  printf 'auth smoke: global logout was not confirmed\n' >&2
+  exit 1
+fi
 
+STEP="reuse-revoked-session-b"
 curl -sS -D "$TMP/reuse-b.headers" "${common_headers[@]}" \
   -H "Cookie: PRONTOO=$SID_B" \
   "$base_url?r=appointments" -o "$TMP/reuse-b.body"
-[[ "$(awk 'NR==1{print $2}' "$TMP/reuse-b.headers")" == "302" ]]
-grep -qi 'Location: .*r=login' "$TMP/reuse-b.headers"
+assert_status "$TMP/reuse-b.headers" 302 "reuse-revoked-session-b"
+if ! grep -qi 'Location: .*r=login' "$TMP/reuse-b.headers"; then
+  printf 'auth smoke: revoked session did not redirect to login\n' >&2
+  exit 1
+fi
 
+STEP="drop-login-throttle-storage"
 PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP'
 <?php
 declare(strict_types=1);
@@ -188,9 +241,15 @@ require getcwd() . '/app/prontoo.php';
 pdo()->exec('DROP TABLE pi_login_locks');
 PHP
 
+STEP="degraded-login-get"
 curl -sS -D "$TMP/degraded-get.headers" "${common_headers[@]}" "$base_url?r=login" -o "$TMP/degraded-get.body"
 DEGRADED_SID="$(extract_cookie "$TMP/degraded-get.headers")"
 DEGRADED_CSRF="$(extract_html_csrf <"$TMP/degraded-get.body")"
+if [[ -z "$DEGRADED_SID" || -z "$DEGRADED_CSRF" ]]; then
+  printf 'auth smoke: degraded login form did not issue session/CSRF\n' >&2
+  exit 1
+fi
+STEP="degraded-login-post"
 curl -sS -D "$TMP/degraded-post.headers" "${common_headers[@]}" \
   -H 'Accept: application/json' \
   -H "Cookie: PRONTOO=$DEGRADED_SID" \
@@ -198,6 +257,7 @@ curl -sS -D "$TMP/degraded-post.headers" "${common_headers[@]}" \
   --data-urlencode 'cpf=52998224725' \
   --data-urlencode 'password=wrong-password' \
   "$base_url?r=login" -o "$TMP/degraded-post.body"
-[[ "$(awk 'NR==1{print $2}' "$TMP/degraded-post.headers")" == "503" ]]
+assert_status "$TMP/degraded-post.headers" 503 "degraded-login-post"
 
+STEP="complete"
 echo '{"ok":true,"policy":"login-logout-http-smoke-v1","csrf_logout":true,"session_fixation_rotation":true,"global_logout_revocation":true,"rate_limit_fail_closed":true}'
