@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.7.2 — Hotfix do runtime pós-senha do login
+
+- corrige a resolução de PDOStatement no executor SQL extraído para namespace, eliminando TypeError após a senha correta.
+- mantém o fallback de timezone dentro de TemporalQueryNormalizer, eliminando referência inválida ao antigo estado privado de PiTime.
+- alinha RuntimeBootCoordinator e o executor SQL à classe canônica Infrastructure\Integrity\PiIntegrity.
+- faz o Architecture Contract executar schema-check contra MySQL 8 real em vez de apenas iniciar o serviço sem conectá-lo ao teste.
+- adiciona regressão que instala banco limpo e executa prontoo_login_post_password_maintenance antes de aprovar a publicação.
+- preserva schema, dados, rotas, autenticação MFA, layout e assets públicos.
+
+
 ## 1.8.7.1 — Auditoria de consolidação pós-SOLID
 
 - remove seis tombstones vazios: três paths históricos com migração PHP 8.4 e três containers pós-baseline já decompostos em policies coesas.
