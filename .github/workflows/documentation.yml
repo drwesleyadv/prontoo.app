@@ -112,6 +112,7 @@ jobs:
           PY
           rm -rf .auth-hardening .auth-fix
           git show origin/prontoo:.github/workflows/documentation.yml > .github/workflows/documentation.yml
+          git show origin/prontoo:.github/workflows/architecture.yml > .github/workflows/architecture.yml
           php -l app/Infrastructure/Auth/PdoLoginThrottle.php
           php -l app/Runtime/Auth/LoginThrottle.php
           php -l app/Runtime/Auth/LogoutCoordinator.php
