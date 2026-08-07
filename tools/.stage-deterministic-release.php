@@ -6,6 +6,21 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $root = dirname(__DIR__);
+$reconcilerPath = $root . '/tools/release-contract-reconcile';
+$reconciler = (string) file_get_contents($reconcilerPath);
+$legacyInsertion = <<<'PHP'
+    return $prefix . PHP_EOL . $entry . PHP_EOL . substr($source, strlen($prefix));
+PHP;
+$deterministicInsertion = <<<'PHP'
+    return $prefix . PHP_EOL . $entry . substr($source, strlen($prefix));
+PHP;
+$insertionCount = substr_count($reconciler, $legacyInsertion);
+if ($insertionCount !== 1) {
+    throw new RuntimeException('Inserção não idempotente do changelog não foi localizada exatamente uma vez: ' . $insertionCount);
+}
+$reconciler = str_replace($legacyInsertion, $deterministicInsertion, $reconciler);
+file_put_contents($reconcilerPath, $reconciler);
+
 $architecturePath = $root . '/.github/workflows/architecture.yml';
 $architecture = (string) file_get_contents($architecturePath);
 $needle = "          php tools/version-asset-contract-check.php\n          php tools/php84-runtime-contract-check\n";
