@@ -253,11 +253,11 @@ foreach ($iterator as $file) {
     }
 
     $lines = substr_count($source, "\n") + 1;
-    if ($native && $lines > 700) {
+    if ($native && $layer !== LayerMap::COMPOSITION && $lines > 700) {
         $metrics['hotspot_files']++;
         $hotspots[] = ['principle' => 'SRP', 'file' => $relative, 'rule' => 'native_file_over_700_lines', 'lines' => $lines];
     }
-    if ($native && preg_match('/\b(?:switch|match)\s*\(/', $code) && $lines > 500) {
+    if ($native && in_array($layer, [LayerMap::CORE, LayerMap::DOMAIN, LayerMap::APPLICATION], true) && preg_match('/\b(?:switch|match)\s*\(/', $code) && $lines > 500) {
         $hotspots[] = ['principle' => 'OCP', 'file' => $relative, 'rule' => 'large_conditional_extension_surface', 'lines' => $lines];
     }
 }

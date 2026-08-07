@@ -137,7 +137,7 @@ final class DatabaseSchemaInfrastructureOperations03
             );
         }
         if (class_exists("\\Prontoo\\Core\\Temporal\\PiTime")) {
-            $temporal = \Prontoo\Core\Temporal\PiTime::countTemporalViolations(pdo());
+            $temporal = \Prontoo\Infrastructure\Temporal\PdoTemporalIntegrity::countTemporalViolations(pdo());
             $count = (int) ($temporal["datetime_columns"] ?? 0) +
                 (int) ($temporal["date_columns"] ?? 0) +
                 (int) ($temporal["timestamp_columns"] ?? 0);

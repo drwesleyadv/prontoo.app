@@ -11,56 +11,56 @@ function mask_document_value(mixed $v): string
 }
 function pt_list(array $items): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::pt_list($items);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::pt_list($items);
 }
 function audit_change_body(array $fields): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_change_body($fields);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::audit_change_body($fields);
 }
 function audit_value_present(mixed $v): bool
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_value_present($v);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::audit_value_present($v);
 }
 function audit_field_list(array $ctx, array $labels, array $forced = []): array
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_field_list($ctx, $labels, $forced);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::audit_field_list($ctx, $labels, $forced);
 }
 function audit_registered_body(
     array $fields,
     string $empty = "Nenhum dado adicional foi informado.",
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_registered_body($fields, $empty);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::audit_registered_body($fields, $empty);
 }
 function audit_status_body(array $ctx, string $label = "status"): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_status_body($ctx, $label);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditCopyPolicy::audit_status_body($ctx, $label);
 }
 function audit_patient_name(array $ctx, mixed $entityId = null): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_patient_name($ctx, $entityId);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_patient_name($ctx, $entityId);
 }
 function audit_person_target(
     string $label,
     array $ctx,
     string $nameKey = "target_name",
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_person_target($label, $ctx, $nameKey);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_person_target($label, $ctx, $nameKey);
 }
 function audit_patient_record_target(array $ctx, mixed $entityId = null): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_patient_record_target($ctx, $entityId);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_patient_record_target($ctx, $entityId);
 }
 function audit_clinic_target(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_clinic_target($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_clinic_target($ctx);
 }
 function audit_task_target(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_task_target($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_task_target($ctx);
 }
 function audit_notice_target(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_notice_target($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_notice_target($ctx);
 }
 function audit_appointment_target(array $ctx): string
 {
@@ -68,7 +68,7 @@ function audit_appointment_target(array $ctx): string
 }
 function audit_ctx_pick(array $ctx, array $keys): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_ctx_pick($ctx, $keys);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, $keys);
 }
 function audit_money_text(
     array $ctx,
@@ -78,7 +78,7 @@ function audit_money_text(
 }
 function audit_status_text(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_status_text($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_status_text($ctx);
 }
 function audit_due_text(array $ctx): string
 {
@@ -86,23 +86,23 @@ function audit_due_text(array $ctx): string
 }
 function audit_target_scope_label(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_target_scope_label($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_target_scope_label($ctx);
 }
 function audit_finance_base_label_from_ctx(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_finance_base_label_from_ctx($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_finance_base_label_from_ctx($ctx);
 }
 function audit_account_name(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_account_name($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_account_name($ctx);
 }
 function audit_counterparty_name(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_counterparty_name($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_counterparty_name($ctx);
 }
 function audit_financial_title(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_financial_title($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditTargetPolicy::audit_financial_title($ctx);
 }
 function audit_body_for_event(
     string $event,
@@ -114,11 +114,11 @@ function audit_body_for_event(
 }
 function audit_context_array(array $row): array
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_context_array($row);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditRecordPolicy::audit_context_array($row);
 }
 function audit_integrity_base(array $r): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_integrity_base($r);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditRecordPolicy::audit_integrity_base($r);
 }
 function verify_audit_row(array $r): bool
 {
@@ -130,11 +130,11 @@ function audit_chain_integrity_status(int $limit = 240): array
 }
 function audit_select_sql(): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_select_sql();
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditRecordPolicy::audit_select_sql();
 }
 function int_ids(array $rows, string $key): array
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::int_ids($rows, $key);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditRecordPolicy::int_ids($rows, $key);
 }
 function fetch_map(string $table, array $ids, string $cols = "id"): array
 {
@@ -153,7 +153,7 @@ function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
 }
 function audit_where_sql(string $where): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::audit_where_sql($where);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditRecordPolicy::audit_where_sql($where);
 }
 function audit_rows_light(
     string $where = "1=1",
@@ -165,11 +165,11 @@ function audit_rows_light(
 }
 function activity_axis_for_event(string $event): array
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::activity_axis_for_event($event);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTaxonomy::activity_axis_for_event($event);
 }
 function activity_module_label(?string $entity): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::activity_module_label($entity);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTaxonomy::activity_module_label($entity);
 }
 function activity_time_direct(
     null|string|int $value,
@@ -180,11 +180,11 @@ function activity_time_direct(
 }
 function activity_text_value(mixed $v): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::activity_text_value($v);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityValuePolicy::activity_text_value($v);
 }
 function activity_clean_name(string $value, string $fallback = ""): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::activity_clean_name($value, $fallback);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityValuePolicy::activity_clean_name($value, $fallback);
 }
 function activity_money_from_ctx(array $ctx): string
 {
@@ -196,42 +196,42 @@ function activity_date_from_ctx(array $ctx, array $keys): string
 }
 function activity_status_from_ctx(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations01::activity_status_from_ctx($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityValuePolicy::activity_status_from_ctx($ctx);
 }
 function activity_display_label(string $label): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_display_label($label);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityDisplayPolicy::activity_display_label($label);
 }
 function activity_changed_fields(
     string $event,
     ?string $entity,
     array $ctx,
 ): array {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_changed_fields($event, $entity, $ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityDisplayPolicy::activity_changed_fields($event, $entity, $ctx);
 }
 function activity_patient_name(array $ctx, mixed $entityId = null): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_patient_name($ctx, $entityId);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_patient_name($ctx, $entityId);
 }
 function activity_title_from_ctx(
     array $ctx,
     string $fallback = "registro",
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_title_from_ctx($ctx, $fallback);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_title_from_ctx($ctx, $fallback);
 }
 function activity_person_from_ctx(
     array $ctx,
     string $fallback = "colaborador",
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_person_from_ctx($ctx, $fallback);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_person_from_ctx($ctx, $fallback);
 }
 function activity_target_scope_human(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_target_scope_human($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_target_scope_human($ctx);
 }
 function activity_financial_label(array $ctx, string $fallback): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_financial_label($ctx, $fallback);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_financial_label($ctx, $fallback);
 }
 function activity_environment_label(array $ctx): string
 {
@@ -248,7 +248,7 @@ function activity_human_sentence(
 }
 function activity_action_verb(string $event): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_action_verb($event);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_action_verb($event);
 }
 function activity_direct_target(
     string $event,
@@ -256,7 +256,7 @@ function activity_direct_target(
     mixed $entityId,
     array $ctx,
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_direct_target($event, $entity, $entityId, $ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\ActivityTargetPolicy::activity_direct_target($event, $entity, $entityId, $ctx);
 }
 function activity_direct_title(
     string $event,
@@ -287,7 +287,7 @@ function activity_meta_text(
     ?string $entity,
     string $currentMeta = "",
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::activity_meta_text($event, $entity, $currentMeta);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditWritePolicy::activity_meta_text($event, $entity, $currentMeta);
 }
 function activity_fallback_body(string $event, ?string $entity): string
 {
@@ -331,14 +331,14 @@ function audit_enrich_context(
 }
 function audit_should_write(string $event): bool
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_should_write($event);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditWritePolicy::audit_should_write($event);
 }
 
 function audit_trusted_origin_resolve(
     array &$context,
     ?array $trustedOrigin,
 ): array {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_trusted_origin_resolve($context, $trustedOrigin);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditWritePolicy::audit_trusted_origin_resolve($context, $trustedOrigin);
 }
 function audit(
     string $event,
@@ -355,29 +355,29 @@ function audit_actor_name(array $ctx, ?int $uid): string
 }
 function audit_document_type_text(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_document_type_text($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditDocumentPolicy::audit_document_type_text($ctx);
 }
 function audit_document_article(string $label): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_document_article($label);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditDocumentPolicy::audit_document_article($label);
 }
 function audit_document_activity_sentence(
     string $who,
     string $action,
     array $ctx,
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_document_activity_sentence($who, $action, $ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditDocumentPolicy::audit_document_activity_sentence($who, $action, $ctx);
 }
 function audit_model_title(array $ctx): string
 {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_model_title($ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditDocumentPolicy::audit_model_title($ctx);
 }
 function audit_model_activity_sentence(
     string $who,
     string $action,
     array $ctx,
 ): string {
-    return \Prontoo\Domain\Legacy\AuditActivity\AuditActivityDomainOperations02::audit_model_activity_sentence($who, $action, $ctx);
+    return \Prontoo\Domain\Legacy\AuditActivity\AuditDocumentPolicy::audit_model_activity_sentence($who, $action, $ctx);
 }
 function audit_direct_events(): array
 {
