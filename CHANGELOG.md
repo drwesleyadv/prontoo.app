@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## 1.8.7.5 — Contrato de resolução de símbolos internos
+
+- adiciona gate fail-closed para referências internas Prontoo que deixem de resolver após movimentações e refatorações.
+- alinha onze referências residuais de PiIntegrity à implementação canônica Infrastructure\Integrity\PiIntegrity.
+- alinha a referência residual de AuditChain à implementação canônica Infrastructure\Audit\AuditChain.
+- preserva schema, dados, interface, rotas e todos os recursos disponíveis ao usuário.
+
 ## 1.8.7.4 — Matriz de smoke tests de runtime crítico
 
 - valida vínculo clínico, resolução de credencial e rotação da geração de autenticação em banco real.

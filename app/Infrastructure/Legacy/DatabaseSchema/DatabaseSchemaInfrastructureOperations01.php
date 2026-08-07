@@ -328,7 +328,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+        if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::prepareForWriteTransaction();
         }
     
@@ -344,7 +344,7 @@ final class DatabaseSchemaInfrastructureOperations01
         }
         db_prepare_write_transaction();
         $connection->beginTransaction();
-        if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+        if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::markTransactionStart();
         }
     
@@ -359,18 +359,18 @@ final class DatabaseSchemaInfrastructureOperations01
             return;
         }
         try {
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::flushTransactionEvents();
             }
             $connection->commit();
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::markTransactionCommitted();
             }
         } catch (Throwable $error) {
             if ($connection->inTransaction()) {
                 $connection->rollBack();
             }
-            if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::discardTransactionEvents();
             }
             throw $error;
@@ -387,7 +387,7 @@ final class DatabaseSchemaInfrastructureOperations01
             return;
         }
         $connection->rollBack();
-        if (class_exists("\\Prontoo\\Core\\Integrity\\PiIntegrity")) {
+        if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::discardTransactionEvents();
         }
     

@@ -1,0 +1,194 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$excludedPrefixes = ['.git/', 'ssd/', 'vendor/', 'node_modules/'];
+$files = [];
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+);
+foreach ($iterator as $file) {
+    if (!$file->isFile() || $file->isLink()) {
+        continue;
+    }
+    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+    $excluded = false;
+    foreach ($excludedPrefixes as $prefix) {
+        if (str_starts_with($relative, $prefix)) {
+            $excluded = true;
+            break;
+        }
+    }
+    if ($excluded) {
+        continue;
+    }
+    $prefix = (string) file_get_contents($file->getPathname(), false, null, 0, 32);
+    if (!str_contains($prefix, '<?php')) {
+        continue;
+    }
+    $files[$relative] = $file->getPathname();
+}
+ksort($files, SORT_STRING);
+
+$symbols = [];
+$fileSymbols = [];
+foreach ($files as $relative => $path) {
+    $source = (string) file_get_contents($path);
+    $tokens = token_get_all($source);
+    $namespace = '';
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        if (!is_array($token)) {
+            continue;
+        }
+        if ($token[0] === T_NAMESPACE) {
+            $name = '';
+            for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+                $part = $tokens[$cursor];
+                if (is_string($part) && ($part === ';' || $part === '{')) {
+                    break;
+                }
+                if (is_array($part) && in_array($part[0], [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                    $name .= $part[1];
+                }
+            }
+            $namespace = ltrim(trim($name), '\\');
+            continue;
+        }
+        if (!in_array($token[0], [T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM], true)) {
+            continue;
+        }
+        if ($token[0] === T_CLASS) {
+            $previous = $index - 1;
+            while ($previous >= 0) {
+                $candidate = $tokens[$previous];
+                if (is_array($candidate) && in_array($candidate[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                    $previous--;
+                    continue;
+                }
+                if (is_array($candidate) && $candidate[0] === T_NEW) {
+                    continue 2;
+                }
+                break;
+            }
+        }
+        for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+            $candidate = $tokens[$cursor];
+            if (is_array($candidate) && $candidate[0] === T_STRING) {
+                $symbol = ltrim(($namespace !== '' ? $namespace . '\\' : '') . $candidate[1], '\\');
+                $symbols[$symbol] = $relative;
+                $fileSymbols[$relative][] = $symbol;
+                break;
+            }
+            if (is_string($candidate) && $candidate === '{') {
+                break;
+            }
+        }
+    }
+}
+
+$references = [];
+$record = static function (string $symbol, string $relative, int $line, string $kind) use (&$references): void {
+    $symbol = ltrim($symbol, '\\');
+    if (!str_starts_with($symbol, 'Prontoo\\')) {
+        return;
+    }
+    $references[$symbol][] = ['file' => $relative, 'line' => $line, 'kind' => $kind];
+};
+
+foreach ($files as $relative => $path) {
+    $source = (string) file_get_contents($path);
+    $lines = preg_split('/\R/', $source) ?: [];
+    foreach ($lines as $offset => $lineSource) {
+        $line = $offset + 1;
+        if (preg_match('/^\s*namespace\s+Prontoo\\\\/u', $lineSource) === 1) {
+            continue;
+        }
+        if (preg_match_all('/\\\\Prontoo\\\\(?:[A-Za-z_][A-Za-z0-9_]*\\\\)+[A-Za-z_][A-Za-z0-9_]*(?=\s*::)/u', $lineSource, $matches)) {
+            foreach ($matches[0] as $match) {
+                $record($match, $relative, $line, 'static');
+            }
+        }
+        if (preg_match_all('/\b(?:new|instanceof)\s+(\\\\?Prontoo\\\\(?:[A-Za-z_][A-Za-z0-9_]*\\\\)+[A-Za-z_][A-Za-z0-9_]*)/u', $lineSource, $matches)) {
+            foreach ($matches[1] as $match) {
+                $record($match, $relative, $line, 'construction');
+            }
+        }
+        if (preg_match_all('/^\s*use\s+(?!function\b|const\b)(\\\\?Prontoo\\\\(?:[A-Za-z_][A-Za-z0-9_]*\\\\)*[A-Za-z_][A-Za-z0-9_]*)(?:\s+as\s+[A-Za-z_][A-Za-z0-9_]*)?\s*;/u', $lineSource, $matches)) {
+            foreach ($matches[1] as $match) {
+                $record($match, $relative, $line, 'import');
+            }
+        }
+        if (preg_match_all('/["\x27](\\\\\\\\Prontoo\\\\\\\\(?:[A-Za-z_][A-Za-z0-9_]*\\\\\\\\)+[A-Za-z_][A-Za-z0-9_]*)["\x27]/u', $lineSource, $matches)) {
+            foreach ($matches[1] as $match) {
+                $record(str_replace('\\\\', '\\', $match), $relative, $line, 'runtime-string');
+            }
+        }
+    }
+
+    $tokens = token_get_all($source);
+    $inNamespace = false;
+    foreach ($tokens as $token) {
+        if (is_array($token) && $token[0] === T_NAMESPACE) {
+            $inNamespace = true;
+            continue;
+        }
+        if ($inNamespace) {
+            if (is_string($token) && ($token === ';' || $token === '{')) {
+                $inNamespace = false;
+            }
+            continue;
+        }
+        if (!is_array($token) || $token[0] !== T_NAME_FULLY_QUALIFIED) {
+            continue;
+        }
+        $record($token[1], $relative, (int) $token[2], 'fully-qualified');
+    }
+}
+
+$unresolved = [];
+foreach ($references as $symbol => $locations) {
+    if (isset($symbols[$symbol])) {
+        continue;
+    }
+    foreach ($locations as $location) {
+        $unresolved[] = [
+            'symbol' => $symbol,
+            'file' => $location['file'],
+            'line' => $location['line'],
+            'kind' => $location['kind'],
+        ];
+    }
+}
+usort($unresolved, static fn(array $left, array $right): int => [$left['file'], $left['line'], $left['symbol']] <=> [$right['file'], $right['line'], $right['symbol']]);
+
+if ($unresolved !== []) {
+    foreach ($unresolved as $finding) {
+        fwrite(
+            STDERR,
+            sprintf(
+                "unresolved %s at %s:%d (%s)\n",
+                $finding['symbol'],
+                $finding['file'],
+                $finding['line'],
+                $finding['kind'],
+            ),
+        );
+    }
+    throw new RuntimeException('Contrato de símbolos internos encontrou ' . count($unresolved) . ' referência(s) não resolvida(s).');
+}
+
+echo json_encode([
+    'ok' => true,
+    'policy' => 'runtime-symbol-contract-v1',
+    'php_sources' => count($files),
+    'declared_symbols' => count($symbols),
+    'referenced_symbols' => count($references),
+    'unresolved_symbols' => 0,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;

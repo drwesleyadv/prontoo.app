@@ -116,7 +116,7 @@ final class AuditActivityRuntimeOperations01
     
         $hash = mb_trim((string) ($r["integrity_hash"] ?? ""));
         try {
-            if (class_exists("\\Prontoo\\Core\\Integrity\\AuditChain")) {
+            if (class_exists("\\Prontoo\\Infrastructure\\Audit\\AuditChain")) {
                 return \Prontoo\Infrastructure\Audit\AuditChain::verifyRow(
                     $r,
                     secret_key(),

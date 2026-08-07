@@ -1,19 +1,19 @@
 {
-    "version": "1.8.7.4",
-    "release": "1.8.7.4",
-    "generated_at_unix": 1786134600,
-    "generated_at": "2026-08-07T20:30:00+00:00",
-    "updated_at": "2026-08-07T20:30:00+00:00",
-    "build": "1.8.7.4-critical-runtime-smokes",
+    "version": "1.8.7.5",
+    "release": "1.8.7.5",
+    "generated_at_unix": 1786136400,
+    "generated_at": "2026-08-07T21:00:00+00:00",
+    "updated_at": "2026-08-07T21:00:00+00:00",
+    "build": "1.8.7.5-runtime-symbol-contract",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
-    "logic_changes": false,
+    "logic_changes": true,
     "visual_changes": false,
-    "functional_equivalence_policy": "runtime-smoke-coverage-only-no-user-resource-or-feature-change",
+    "functional_equivalence_policy": "internal-symbol-alignment-only-no-user-resource-or-feature-change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Amplia a validação dinâmica com uma matriz de smoke tests dos fluxos críticos em PHP 8.4 + MySQL 8, sem alterar recursos do usuário.",
+    "notes": "Adiciona contrato fail-closed de resolução de símbolos internos e alinha referências residuais de integridade e auditoria às implementações canônicas, sem alterar recursos do usuário.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.7.3",
+    "previous_version": "1.8.7.4",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.7.4-critical-runtime-smokes",
-    "deployment_sync_requested_at": "2026-08-07T20:30:00+00:00",
+    "deployment_sync_id": "github-prontoo-1.8.7.5-runtime-symbol-contract",
+    "deployment_sync_requested_at": "2026-08-07T21:00:00+00:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -56,7 +56,7 @@
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
-    "rewrite_scope": "critical_runtime_smoke_matrix_for_auth_mfa_patient_agenda_and_financial",
+    "rewrite_scope": "runtime_symbol_resolution_gate_and_stale_integrity_reference_alignment",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
     "release_date": "2026-08-07",
@@ -88,12 +88,12 @@
         ]
     },
     "changelog": {
-        "title": "Matriz de smoke tests de runtime crítico",
+        "title": "Contrato de resolução de símbolos internos",
         "items": [
-            "valida vínculo clínico, resolução de credencial e rotação da geração de autenticação em banco real",
-            "valida persistência criptografada do MFA e leitura isolada de Pacientes e Agenda por consultório",
-            "valida recebimento financeiro transacional pelo Application Service e adapter PDO com movimento único",
-            "preserva schema, dados de produção, interface, rotas e todos os recursos disponíveis ao usuário"
+            "adiciona gate fail-closed para referências internas Prontoo que deixem de resolver após movimentações e refatorações",
+            "alinha onze referências residuais de PiIntegrity à implementação canônica Infrastructure\\Integrity\\PiIntegrity",
+            "alinha a referência residual de AuditChain à implementação canônica Infrastructure\\Audit\\AuditChain",
+            "preserva schema, dados, interface, rotas e todos os recursos disponíveis ao usuário"
         ]
     }
 }
