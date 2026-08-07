@@ -112,6 +112,7 @@ jobs:
         run: |
           set -euo pipefail
           php tools/architecture-check.php
+          php tools/native-unit-check
       - name: SOLID structural audit
         shell: bash
         run: |
