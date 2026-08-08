@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Domain\Leads\LeadsDomainOperations01;
 
 final class AdminPagesRuntimeOperations02
 {
@@ -69,7 +70,7 @@ final class AdminPagesRuntimeOperations02
         );
         $activeLeads = $qInt(
             "SELECT COUNT(*) FROM pi_leads WHERE created_at>=$since AND " .
-                lead_active_stage_sql("stage") .
+                LeadsDomainOperations01::lead_active_stage_sql("stage") .
                 " $modelScopedWhere",
         );
         $patients30 = $qInt(

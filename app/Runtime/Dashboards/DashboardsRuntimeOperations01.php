@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Domain\Leads\LeadsDomainOperations01;
 
 final class DashboardsRuntimeOperations01
 {
@@ -226,7 +227,7 @@ final class DashboardsRuntimeOperations01
         $activeLeads =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    lead_active_stage_sql("stage"),
+                    LeadsDomainOperations01::lead_active_stage_sql("stage"),
                 [$cid],
             ) ?? 0);
         $needsUpdate =

@@ -292,7 +292,7 @@ if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $u
     !str_contains($patientSecuritySource, 'JOIN pi_user_roles ur ON ur.user_id=u.id')) {
     $errors[] = 'patient_lookup_limit_or_tenant_policy';
 }
-$leadSecuritySource = compatibility_source($root, 'app/Domain/Leads/Leads.php');
+$leadSecuritySource = (string) file_get_contents($root . '/app/Runtime/Leads/LeadsRuntimeOperations01.php');
 if (!str_contains($leadSecuritySource, 'WHERE p.cpf=?') ||
     !str_contains($leadSecuritySource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
     $errors[] = 'lead_patient_lookup_tenant_policy';
