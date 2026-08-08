@@ -1,0 +1,51 @@
+name: Zero Legacy Path Fix
+on:
+  pull_request:
+    branches: [prontoo]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.head_ref == 'agent/zero-legacy-phase1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-phase1
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Correct moved filesystem depth
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          files = [
+              Path('app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php'),
+              Path('app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php'),
+              Path('app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php'),
+              Path('app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php'),
+          ]
+          for p in files:
+              s = p.read_text()
+              old = s
+              s = s.replace('dirname(__DIR__, 3)', 'dirname(__DIR__, 2)')
+              if s == old:
+                  raise SystemExit(f'expected moved-depth expression not found: {p}')
+              p.write_text(s)
+          PY
+          rm -f .github/workflows/zero-legacy-path-audit.yml .github/workflows/zero-legacy-path-fix.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/native-unit-check
+          php tools/architecture-check.php
+          php tools/solid-audit --strict
+          git config user.name 'Prontoo Architecture Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Corrigir paths físicos após promoção Legacy'
+          git push origin HEAD:agent/zero-legacy-phase1
