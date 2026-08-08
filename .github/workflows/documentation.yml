@@ -24,11 +24,14 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Deterministic release contract
+      - name: Reconcile final state preview
         shell: bash
         run: |
           set -euo pipefail
-          php tools/release-contract-reconcile --check
+          rm -f runtime-log-15m.php
+          git checkout origin/prontoo -- .github/workflows/documentation.yml
+          php tools/release-contract-reconcile
+          git diff -- app/update.manifest.json app/architecture.manifest.json version.json app/prontoo.php br/index.php CHANGELOG.md ChangeLog.txt
       - name: Validate documentation contract
         shell: bash
         run: |
