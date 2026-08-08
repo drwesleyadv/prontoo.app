@@ -3,7 +3,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/compatibility-source.php';
 
 $telemetryContractRoot = dirname(__DIR__);
-require_once $telemetryContractRoot . "/app/Support/Telemetry.php";
+require_once $telemetryContractRoot . "/app/Runtime/Autoload/ProntooAutoloader.php";
 $telemetryContractAssert = static function (bool $condition, string $message): void {
     if (!$condition) {
         throw new RuntimeException("Contrato de carregamento de página: " . $message);
