@@ -30,7 +30,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           roots=[Path('app'),Path('br'),Path('public'),Path('cron'),Path('tools'),Path('docs')]
-          exts={'.php','.md','.json','.txt','.yml','.yaml'}
+          exts={'.php','.md','.json','.txt','.yml','.yaml',''}
           for root in roots:
               if not root.exists(): continue
               for p in root.rglob('*'):
@@ -69,6 +69,7 @@ jobs:
           php tools/security-regression-check.php
           php tools/architecture-check.php
           php tools/solid-audit
+          php tools/php84-runtime-contract-check
       - name: Finalize deterministic branch
         shell: bash
         run: |
