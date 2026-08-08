@@ -1,0 +1,222 @@
+from pathlib import Path
+
+
+import json
+
+
+import re
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def read(path: str) -> str:
+    return (ROOT / path).read_text()
+
+
+def write(path: str, content: str) -> None:
+    (ROOT / path).write_text(content)
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    source = read(path)
+    if old not in source:
+        raise SystemExit(f'expected block not found: {path}: {old[:120]}')
+    write(path, source.replace(old, new, 1))
+
+
+write(
+    'app/bootstrap_specialized.php',
+    '''<?php
+declare(strict_types=1);
+require_once __DIR__ . "/Ui/SpeedChartGeometry.php";
+\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->loadRuntimeCore(
+    \\Prontoo\\Runtime\\Modules\\RuntimeBootPolicy::useLightBoot(getenv('PRONTOO_DISABLE_LIGHT_BOOT')),
+);
+''',
+)
+
+
+replace_once(
+    'index.php',
+    'prontoo_require_module("Install/Installer.php");',
+    '\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->requireModule("Install/Installer.php");',
+)
+
+
+replace_once('index.php', 'prontoo_run(false);', '\\Prontoo\\Runtime\\Runner::run(false);')
+
+
+replace_once(
+    'install.php',
+    'prontoo_require_module("Install/Installer.php");',
+    '\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->requireModule("Install/Installer.php");',
+)
+
+
+replace_once(
+    'cron/maestro.php',
+    'prontoo_load_full_runtime_modules();',
+    '\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->loadFullRuntime();',
+)
+
+
+path = 'app/Runtime/Runner.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator;\n',
+    'use Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator;\nuse Prontoo\\Runtime\\Modules\\RuntimeModuleComposition;\n',
+    1,
+)
+
+
+source = source.replace(
+    "\\prontoo_load_route_modules('admin_health');",
+    "RuntimeModuleComposition::loader()->loadRouteModules('admin_health');",
+)
+
+
+source = source.replace(
+    '\\prontoo_load_route_modules($route);',
+    'RuntimeModuleComposition::loader()->loadRouteModules($route);',
+)
+
+
+write(path, source)
+
+
+path = 'app/Runtime/Boot/RuntimeBootCoordinator.php'
+
+
+source = read(path)
+
+
+source = source.replace('use PDO;\n', 'use PDO;\nuse Prontoo\\Runtime\\Modules\\RuntimeModuleComposition;\n', 1)
+
+
+source = source.replace(
+    '\\prontoo_load_full_runtime_modules();',
+    'RuntimeModuleComposition::loader()->loadFullRuntime();',
+)
+
+
+write(path, source)
+
+
+path = 'app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php'
+
+
+source = read(path)
+
+
+old = '''        $route = function_exists('prontoo_boot_requested_route')
+            ? prontoo_boot_requested_route()
+            : preg_replace('/[^a-z0-9_\\-]/i', '', (string) ($_GET['r'] ?? ''));'''
+
+
+new = '''        $route = preg_replace('/[^a-z0-9_\\-]/i', '', (string) ($_GET['r'] ?? '')) ?: 'login';'''
+
+
+if old not in source:
+    raise SystemExit(f'expected route policy block not found: {path}')
+
+
+write(path, source.replace(old, new, 1))
+
+
+path = 'app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Runtime\\Patients\\PatientViewComposition;\n',
+    1,
+)
+
+
+source = source.replace(
+    'return prontoo_onboarding_tip_render($tip, $key, $return, csrf_field());',
+    'return PatientViewComposition::onboardingTip($tip, $key, $return, csrf_field());',
+)
+
+
+write(path, source)
+
+
+path = 'app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator;\n',
+    1,
+)
+
+
+source = source.replace(
+    'prontoo_login_post_password_maintenance($uid);',
+    'RuntimeBootCoordinator::postPasswordMaintenance($uid);',
+)
+
+
+write(path, source)
+
+
+path = 'app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Presentation\\Http\\JsonResponder;\nuse Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator;\nuse Prontoo\\Runtime\\Routing\\RouteCatalog;\n',
+    1,
+)
+
+
+old = '''        $wantsJson =
+            function_exists("prontoo_route_wants_json") &&
+            prontoo_route_wants_json("login");'''
+
+
+new = '''        $wantsJson = RouteCatalog::wantsJson(
+            "login",
+            (string) ($_SERVER["HTTP_ACCEPT"] ?? ""),
+        );'''
+
+
+if old not in source:
+    raise SystemExit(f'expected JSON route block not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+source = source.replace('prontoo_json_response(', 'JsonResponder::send(')
+
+
+source = source.replace(
+    'prontoo_login_post_password_maintenance($uid);',
+    'RuntimeBootCoordinator::postPasswordMaintenance($uid);',
+)
+
+
+write(path, source)
+
+
+path = 'app/Runtime/Patients/PatientsRuntimeOperations01.php'
+
+
+source = read(path)
+
