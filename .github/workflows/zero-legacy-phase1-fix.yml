@@ -1,0 +1,51 @@
+name: Zero Legacy Phase 1 Fix
+on:
+  pull_request:
+    branches: [prontoo]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.head_ref == 'agent/zero-legacy-phase1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-phase1
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Normalize decompositions and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('version.json')
+          s=p.read_text()
+          for layer in ('Core','Domain','Application','Infrastructure','Presentation','Runtime'):
+              s=s.replace(f'app/{layer}/Legacy/', f'app/{layer}/')
+              s=s.replace(f'Prontoo\\\\{layer}\\\\Legacy\\\\', f'Prontoo\\\\{layer}\\\\')
+          p.write_text(s)
+          PY
+          if grep -RIn --exclude-dir=.git -E 'Prontoo\\(Core|Domain|Application|Infrastructure|Presentation|Runtime)\\Legacy\\|app/(Core|Domain|Application|Infrastructure|Presentation|Runtime)/Legacy/' version.json app br public cron tools docs; then exit 1; fi
+          php tools/native-unit-check
+          php tools/architecture-check.php
+          php tools/solid-audit
+          php tools/security-regression-check.php
+          php tools/php84-runtime-contract-check
+      - name: Reconcile and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/zero-legacy-phase1-fix.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git config user.name 'Prontoo Architecture Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Concluir Fase 1 zero legacy'
+          git push origin HEAD:agent/zero-legacy-phase1
