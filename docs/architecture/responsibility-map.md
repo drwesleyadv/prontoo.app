@@ -10,20 +10,20 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | políticas temporais | `app/Core/Temporal` |
 | arquitetura e classificação | `app/Core/Architecture` |
 | regras puras de identidade/paciente | `app/Domain/Identity`, `app/Domain/Patients` |
-| regras históricas já classificadas como domínio | `app/Domain/Legacy/*` |
+| regras históricas já classificadas como domínio | `app/Domain/*` |
 | casos de uso e portas | `app/Application/*` |
 | contratos e catálogo declarativo de autorização | `app/Application/Authorization/*` |
 | PDO e repositórios | `app/Infrastructure/*` |
 | auditoria/integridade concreta | `app/Infrastructure/Audit`, `app/Infrastructure/Integrity` |
-| adaptadores históricos de persistência | `app/Infrastructure/Legacy/*` |
+| adaptadores históricos de persistência | `app/Infrastructure/*` |
 | HTTP, views e JSON | `app/Presentation/*` |
-| apresentação histórica isolada | `app/Presentation/Legacy/*` |
+| apresentação histórica isolada | `app/Presentation/*` |
 | composição de módulos | `app/Runtime/Modules/*` |
 | composição do catálogo de autorização | `app/Runtime/Authorization/*` |
 | prontidão e manutenção | `app/Runtime/Boot/*` |
 | roteamento | `app/Runtime/Routing/*` |
 | wiring de Pacientes e Financeiro | `app/Runtime/Patients/*`, `app/Runtime/Financial/*` |
-| runtime histórico compatível | `app/Runtime/Legacy/*` |
+| runtime histórico compatível | `app/Runtime/*` |
 | fachada de composição global | `app/Support/ModuleLoader.php` |
 | entradas web | `br`, `public` |
 | execução secundária | `cron/maestro.php` |

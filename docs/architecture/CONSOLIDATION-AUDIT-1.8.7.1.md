@@ -22,9 +22,9 @@ As implementações canônicas já estavam, respectivamente, em:
 
 Depois que `native-unit-contract-v1` foi integrado à CI, a própria auditoria dinâmica encontrou mais três stubs namespace-only deixados pela decomposição final do PR #172:
 
-- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php`;
-- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php`;
-- `app/Domain/Legacy/Documents/DocumentsDomainOperations01.php`.
+- `app/Domain/AuditActivity/AuditActivityDomainOperations01.php`;
+- `app/Domain/AuditActivity/AuditActivityDomainOperations02.php`;
+- `app/Domain/Documents/DocumentsDomainOperations01.php`.
 
 O histórico do PR #172 confirma que esses três arquivos continham implementações antes da decomposição e foram esvaziados quando suas responsabilidades migraram para policies coesas. Os destinos são:
 
