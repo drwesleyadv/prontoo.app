@@ -44,7 +44,7 @@ security_runtime_path.write_text(security_runtime)
 security_test_path = root / 'tools/security-regression-check.php'
 security_test = security_test_path.read_text()
 autoload_line = 'require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";\n'
-seam_setup = autoload_line + """\Prontoo\Runtime\Architecture\OperationRegistry::register();
+seam_setup = autoload_line + r"""\Prontoo\Runtime\Architecture\OperationRegistry::register();
 \Prontoo\Core\Architecture\OperationGateway::override('has_cfg', static function (): bool {
     return (bool) $GLOBALS['prontoo_test_has_cfg'];
 });
