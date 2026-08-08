@@ -1,6 +1,9 @@
 name: Zero Legacy Public Finalizer
 
 on:
+  workflow_run:
+    workflows: ["Zero Legacy Migration Harness"]
+    types: [completed]
   issues:
     types: [opened]
 
@@ -9,7 +12,12 @@ permissions:
 
 jobs:
   finalize:
-    if: github.event.issue.title == 'ZERO LEGACY PUBLIC FINALIZE'
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'agent/zero-legacy-final') ||
+      (github.event_name == 'issues' &&
+       github.event.issue.title == 'ZERO LEGACY PUBLIC FINALIZE')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout final branch
@@ -49,6 +57,7 @@ jobs:
           rm -f .github/workflows/zero-legacy-migration.yml
           rm -f .github/workflows/zero-legacy-final-readonly.yml
           rm -f .github/workflows/zero-legacy-final-push.yml
+          rm -f .github/workflows/zero-legacy-public-finalizer.yml
           php tools/release-contract-reconcile --write || fail release-write
           php tools/release-contract-reconcile --check || fail release-check
           php tools/native-unit-check || fail native-unit
