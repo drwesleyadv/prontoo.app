@@ -1,0 +1,41 @@
+legacy_symbols = [
+    'prontoo_module_file', 'prontoo_module_layer', 'prontoo_require_module', 'prontoo_require_modules',
+    'prontoo_runtime_specialization_policy', 'prontoo_boot_requested_route', 'prontoo_public_light_routes',
+    'prontoo_use_light_boot', 'prontoo_runtime_core_modules', 'prontoo_full_runtime_modules',
+    'prontoo_load_runtime_core_modules', 'prontoo_load_full_runtime_modules', 'prontoo_load_route_modules',
+    'prontoo_route_module_groups', 'prontoo_runtime_layer_coverage', 'prontoo_load_financial_guard_module',
+    'prontoo_route_map', 'prontoo_public_runtime_routes', 'prontoo_json_runtime_routes', 'prontoo_route_wants_json',
+    'prontoo_json_response', 'prontoo_json_failure_message', 'prontoo_route_is_public_light',
+    'prontoo_schema_boot_marker_path', 'prontoo_schema_boot_marker_valid', 'prontoo_schema_boot_mark_ok',
+    'prontoo_boot_database_for_route', 'prontoo_run_runtime_maintenance_cycle', 'prontoo_login_post_password_maintenance',
+    'prontoo_flush_integrity_before_render', 'prontoo_run', 'prontoo_patient_tab_active_rows',
+    'prontoo_patient_tab_label_by_id', 'prontoo_patient_tab_icon_picker', 'prontoo_onboarding_tip_render',
+    'prontoo_patient_read_service', 'prontoo_patient_appointment_registration_block_reason', 'prontoo_patient_legal_guardians',
+    'prontoo_patient_has_legal_guardian', 'prontoo_patient_reception_history_read_service',
+    'prontoo_patient_reception_history_read_model', 'prontoo_patient_tab_command_service', 'prontoo_create_patient_tab_command',
+    'prontoo_patient_contact_edit_form', 'prontoo_patient_contact_command_service', 'prontoo_update_patient_contact_command',
+    'prontoo_patient_revenue_receipt_service', 'prontoo_receive_patient_revenue_command',
+]
+
+
+for base in ['app', 'br', 'cron', 'public', 'tools']:
+    root = ROOT / base
+    if not root.exists():
+        continue
+    for file in root.rglob('*'):
+        if not file.is_file():
+            continue
+        relative = file.relative_to(ROOT).as_posix()
+        if relative in ('app/architecture.manifest.json', 'app/update.manifest.json'):
+            continue
+        try:
+            value = file.read_text()
+        except UnicodeDecodeError:
+            continue
+        for symbol in legacy_symbols:
+            if re.search(r'\\b' + re.escape(symbol) + r'\\b', value):
+                raise SystemExit(f'legacy ModuleLoader symbol remains: {relative}: {symbol}')
+
+
+print('phase3 module facade transform ok')
+
