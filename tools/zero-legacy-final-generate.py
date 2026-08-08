@@ -75,6 +75,18 @@ first=br.find(autoload_require); second=br.find(autoload_require,first+len(autol
 if second>=0: br=br[:second]+br[second+len(autoload_require):]
 br_file.write_text(br)
 
+root_support_require='require_once __DIR__ . "/app/Support/Telemetry.php";'
+root_autoload_require='require_once __DIR__ . "/app/Runtime/Autoload/ProntooAutoloader.php";'
+root_installer_load='\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->requireModule("Install/Installer.php");\n'
+for rel in ['index.php','install.php']:
+    file=root/rel
+    source=file.read_text()
+    if root_support_require not in source: raise SystemExit(f'{rel}: telemetry facade require shape changed')
+    source=source.replace(root_support_require,root_autoload_require,1)
+    source=source.replace(root_installer_load,'')
+    source=replace_calls(source)
+    file.write_text(source)
+
 loader=root/'app/Runtime/Modules/RuntimeModuleLoader.php'; loader_source=loader.read_text()
 old_guard="$this->requireModule('Domain/Financial/Financial.php');"
 new_guard="$this->requireModule('Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php');"
@@ -242,6 +254,9 @@ for path in ['README.md','docs/architecture/overview.md','docs/architecture/laye
 
 harness=root/'.github/workflows/zero-legacy-migration.yml'
 if harness.exists(): harness.unlink()
+for helper in ['tools/zero-legacy-root-entrypoints-fix.py','tools/sitecustomize.py']:
+    helper_path=root/helper
+    if helper_path.exists(): helper_path.unlink()
 
 residual=[]
 for base in ['app','br','public','cron','tools']:
@@ -255,6 +270,12 @@ for base in ['app','br','public','cron','tools']:
             prefix=text[max(0,m.start()-24):m.start()]
             if not re.search(r'function\s*$',prefix): residual.append(f'{rel}:call:{m.group(1)}')
         for m in probe_pattern.finditer(text): residual.append(f'{rel}:probe:{m.group(2)}')
+for rel in ['index.php','install.php']:
+    text=(root/rel).read_text()
+    for m in direct_pattern.finditer(text): residual.append(f'{rel}:call:{m.group(1)}')
+    for m in probe_pattern.finditer(text): residual.append(f'{rel}:probe:{m.group(2)}')
+    if 'Support/Telemetry.php' in text: residual.append(f'{rel}:loads-telemetry-facade')
+    if 'Install/Installer.php' in text: residual.append(f'{rel}:loads-installer-facade')
 for path in facades:
     if (root/path).exists(): residual.append(f'file-present:{path}')
 if 'Support/Telemetry.php' in (root/'br/index.php').read_text(): residual.append('landing-loads-telemetry-facade')
@@ -262,5 +283,5 @@ if 'Domain/Financial/Financial.php' in (root/'app/Runtime/Modules/RuntimeModuleL
 if residual:
     print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2)); raise SystemExit('executable legacy residuals remain')
 
-print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21,'source_migrations':len(facade_targets)},indent=2))
+print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21,'source_migrations':len(facade_targets),'root_entrypoints_migrated':2},indent=2))
 
