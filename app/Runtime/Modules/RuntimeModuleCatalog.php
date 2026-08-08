@@ -26,7 +26,6 @@ final class RuntimeModuleCatalog
             'Domain/Clinic/SubscriptionSettings.php',
             'Domain/Permissions/UsersPermissions.php',
             'Ui/Components.php',
-            'Ui/PublicWeb.php',
             'Presentation/Auth/OnboardingTipView.php',
             'Auth/AuthOnboarding.php',
             'Runtime/Runner.php',
@@ -63,13 +62,12 @@ final class RuntimeModuleCatalog
             'Domain/Financial/Financial.php',
             'Domain/Maestro/Maestro.php',
             'Admin/AdminPages.php',
-            'Pages/Dashboards.php',
         ])));
     }
 
     public static function routeModuleGroups(string $route): array
     {
-        $commonClinic = ['dashboards' => ['Pages/Dashboards.php']];
+        $commonClinic = [];
         $patients = ['patients' => [
             'Application/Patients/PatientContactCommandPort.php',
             'Application/Patients/PatientContactCommandService.php',

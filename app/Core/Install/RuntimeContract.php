@@ -18,6 +18,7 @@ use Prontoo\Runtime\LayeredKernel;
 use Prontoo\Runtime\Modules\RuntimeBootPolicy;
 use Prontoo\Runtime\Modules\RuntimeModuleCatalog;
 use Prontoo\Runtime\Routing\RouteCatalog;
+use Prontoo\Runtime\Routing\PageDispatcher;
 
 final class RuntimeContract
 {
@@ -53,7 +54,7 @@ final class RuntimeContract
     public static function requiredFullFunctions(): array
     {
 
-        return ['page_home', 'audit', 'audit_items', 'verify_audit_row'];
+        return ['audit', 'audit_items', 'verify_audit_row'];
     }
 
     public static function requiredFunctions(): array
@@ -79,6 +80,7 @@ final class RuntimeContract
             PdoActionProofStore::class,
             ActionMiddleware::class,
             LayeredKernel::class,
+            PageDispatcher::class,
         ];
     }
 
@@ -225,6 +227,9 @@ final class RuntimeContract
         if (self::fullRuntimeExpected()) {
             self::assertFunctions(self::requiredFullFunctions());
             foreach (RouteCatalog::all() as $route) {
+                if (PageDispatcher::hasNativeHandler($route)) {
+                    continue;
+                }
                 $function = 'page_' . $route;
                 if (!\function_exists($function)) {
                     throw new \RuntimeException('Rota sem função de página: ' . $function);
