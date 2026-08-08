@@ -73,7 +73,7 @@ if ($selected === null && $readable !== []) {
 if ($selected === null) {
     echo "runtime_log=[none]\n";
     echo 'configured=' . ($configured !== '' ? basename($configured) : '[empty]') . "\n";
-    echo 'readable_logs=0' . "\n";
+    echo "readable_logs=0\n";
     exit;
 }
 
@@ -94,12 +94,26 @@ $raw = stream_get_contents($handle);
 fclose($handle);
 $raw = is_string($raw) ? $raw : '';
 
-$todayUtc = gmdate('d-M-Y');
-$todayIso = gmdate('Y-m-d');
+$zone = new DateTimeZone('America/Cuiaba');
+$todayLocal = (new DateTimeImmutable('now', $zone))->format('Y-m-d');
 $lines = preg_split('/\R/', $raw) ?: [];
 $today = [];
+$includeContinuation = false;
 foreach ($lines as $line) {
-    if (str_contains($line, $todayUtc) || str_contains($line, $todayIso)) {
+    $stamp = null;
+    if (preg_match('/\[(\d{2}-[A-Za-z]{3}-\d{4} \d{2}:\d{2}:\d{2} UTC)\]/', $line, $m) === 1) {
+        $stamp = DateTimeImmutable::createFromFormat('d-M-Y H:i:s T', $m[1], new DateTimeZone('UTC')) ?: null;
+    } elseif (preg_match('/\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\]/', $line, $m) === 1) {
+        try {
+            $stamp = new DateTimeImmutable($m[1]);
+        } catch (Throwable) {
+            $stamp = null;
+        }
+    }
+    if ($stamp instanceof DateTimeImmutable) {
+        $includeContinuation = $stamp->setTimezone($zone)->format('Y-m-d') === $todayLocal;
+    }
+    if ($includeContinuation) {
         $today[] = $line;
     }
 }
@@ -116,6 +130,7 @@ echo 'expires_utc=' . gmdate('c', PRONTOO_RUNTIME_LOG_PUBLIC_EXPIRES_AT) . "\n";
 echo 'runtime_log=' . basename($selected) . "\n";
 echo 'size=' . $size . "\n";
 echo 'readable_logs=' . count($readable) . "\n";
+echo 'local_date=' . $todayLocal . "\n";
 echo 'today_lines=' . count($today) . "\n";
 echo "----- today sanitized -----\n";
 echo $raw . "\n";
