@@ -1,23 +1,21 @@
 # Fase 4 — comandos transacionais
 
+> **Documento histórico.** Fase concluída. Consulte `responsibility-map.md` para a arquitetura vigente.
+
 ## Escopo concluído
 
-1. criação de uma porta de comando para abas do paciente;
-2. criação de caso de uso independente de HTTP, sessão e persistência;
-3. implementação PDO com transação própria somente quando necessário;
-4. bloqueio pessimista das leituras que determinam duplicidade e ordenação;
-5. resultado idempotente para repetição de uma aba ativa com o mesmo nome;
-6. manutenção da ação, mensagens, auditoria e redirecionamentos existentes na fachada;
-7. testes de caracterização da transação, idempotência, isolamento e direção das dependências.
+1. porta de comando para abas do paciente;
+2. caso de uso independente de HTTP, sessão e persistência;
+3. implementação PDO transacional;
+4. bloqueio pessimista das leituras de duplicidade/ordenação;
+5. resultado idempotente para repetição;
+6. preservação da fachada HTTP e comportamento público;
+7. caracterização de transação, isolamento e dependências.
 
-## Fronteira transacional
+## Resultado permanente
 
-`PatientTabCommandService` valida o comando e aceita somente os resultados `created` e `duplicate`. `PdoPatientTabCommandRepository` usa a conexão canônica, participa de transação já aberta ou cria uma transação própria, bloqueia as linhas do paciente no consultório e confirma ou reverte a operação como uma unidade.
+`PatientTabCommandService` valida o comando e depende da porta; `PdoPatientTabCommandRepository` participa de transação existente ou cria a própria, mantém locks e confirma/reverte como unidade. O padrão foi posteriormente aplicado a contato do paciente e recebimento financeiro.
 
-## Compatibilidade
+## Evolução posterior
 
-A fachada continua limpando o nome, normalizando o ícone, emitindo as mesmas mensagens, registrando a mesma auditoria e retornando à mesma ficha. Banco, schema, permissões, rotas e aparência não foram alterados.
-
-## Próxima etapa
-
-Aplicar a mesma disciplina em uma área crítica, com autorização explícita, isolamento multitenant, idempotência e prova regressiva antes do merge.
+A “próxima etapa” original foi concluída na Fase 5 e em extrações posteriores. Mutações protegidas hoje também obedecem ao núcleo de invariantes e à política de prova transacional do action ledger.
