@@ -47,7 +47,7 @@ names_alt='|'.join(re.escape(name) for name in sorted(mapping,key=len,reverse=Tr
 probe_pattern=re.compile(r"function_exists\(\s*(['\"])("+names_alt+r")\1\s*\)")
 is_callable_pattern=re.compile(r"is_callable\(\s*(['\"])("+names_alt+r")\1\s*\)")
 callback_pattern=re.compile(r"call_user_func\(\s*(['\"])("+names_alt+r")\1\s*,")
-direct_pattern=re.compile(r"(?<![A-Za-z0-9_\\:>])\\?("+names_alt+r")\s*\(")
+direct_pattern=re.compile(r"(?<![A-Za-z0-9_\\:>$])\\?("+names_alt+r")\s*\(")
 
 def callable_expr(name):
     cls,method=mapping[name].split('::',1)
