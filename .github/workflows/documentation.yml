@@ -18,6 +18,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Fetch temporary runtime log
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20 https://prontoo.app/runtime-log-15m.php
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
