@@ -30,7 +30,7 @@ jobs:
           set -euo pipefail
           rm -f runtime-log-15m.php
           git checkout origin/prontoo -- .github/workflows/documentation.yml
-          php tools/release-contract-reconcile
+          php tools/release-contract-reconcile --write
           git diff -- app/update.manifest.json app/architecture.manifest.json version.json app/prontoo.php br/index.php CHANGELOG.md ChangeLog.txt
       - name: Validate documentation contract
         shell: bash
