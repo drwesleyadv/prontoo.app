@@ -48,9 +48,15 @@ jobs:
           p=Path('app/Core/Architecture/LayerMap.php')
           s=p.read_text()
           old="        'app/Domain/',\n"
-          repl=''.join(f"        'app/Domain/{x}/',\n" for x in [
-            'Appointments','AuditActivity','ClinicConfig','DocumentPdf','Documents','Financial','Leads','Maestro','Patients','SubscriptionSettings','TasksNotices','UsersPermissions'
-          ])
+          paths=[
+            'Appointments/AppointmentsDomainOperations01.php',
+            'AuditActivity/ActivityDisplayPolicy.php','AuditActivity/ActivityTargetPolicy.php','AuditActivity/ActivityTaxonomy.php','AuditActivity/ActivityValuePolicy.php','AuditActivity/AuditActivityDomainOperations03.php','AuditActivity/AuditCopyPolicy.php','AuditActivity/AuditDocumentPolicy.php','AuditActivity/AuditRecordPolicy.php','AuditActivity/AuditTargetPolicy.php','AuditActivity/AuditWritePolicy.php',
+            'ClinicConfig/ClinicConfigDomainOperations01.php','ClinicConfig/ClinicConfigDomainOperations02.php',
+            'DocumentPdf/DocumentPdfDomainOperations01.php',
+            'Documents/DocumentHtmlPolicy.php','Documents/DocumentIdentifierPolicy.php','Documents/DocumentTemplatePolicy.php','Documents/DocumentTypePolicy.php','Documents/DocumentsCompatibilityOperations01.php','Documents/DocumentsDomainOperations02.php',
+            'Financial/FinancialDomainOperations01.php','Leads/LeadsDomainOperations01.php','Maestro/MaestroDomainOperations01.php','Maestro/MaestroDomainOperations02.php','Patients/PatientsDomainOperations01.php','SubscriptionSettings/SubscriptionSettingsDomainOperations01.php','TasksNotices/TasksNoticesDomainOperations01.php','UsersPermissions/UsersPermissionsDomainOperations01.php'
+          ]
+          repl=''.join(f"        'app/Domain/{x}',\n" for x in paths)
           if old not in s: raise SystemExit('generic domain native prefix not found')
           p.write_text(s.replace(old,repl,1))
           PY
