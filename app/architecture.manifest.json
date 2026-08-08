@@ -5,7 +5,7 @@
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
     "native_files_min": 277,
-    "transitional_files_max": 51,
+    "transitional_files_max": 50,
     "native_migration_policy": "effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
@@ -68,15 +68,10 @@
         "app/Core/Integrity/PiSequence.php",
         "app/Core/Integrity/ActionProof.php",
         "app/Infrastructure/Database/CleanInstallReset.php",
-        "app/Core/Invariant/Request/ActionProof.php"
+        "app/Core/Invariant/Request/ActionProof.php",
+        "app/Support/ModuleLoader.php"
     ],
-    "compatibility_boundaries": [
-        {
-            "symbol": "prontoo_* composition facade",
-            "file": "app/Support/ModuleLoader.php",
-            "rule": "thin delegation to native Runtime, Routing, Boot, Patient, Financial and Presentation composition units only; no runtime catalog, loading state, dispatch, persistence or presentation logic"
-        }
-    ],
+    "compatibility_boundaries": [],
     "database_changes": false,
     "schema_changes": false,
     "visual_changes": false,

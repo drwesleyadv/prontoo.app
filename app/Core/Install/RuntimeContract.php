@@ -15,6 +15,9 @@ use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
 use Prontoo\Infrastructure\Database\SeqContract;
 use Prontoo\Presentation\Http\ActionMiddleware;
 use Prontoo\Runtime\LayeredKernel;
+use Prontoo\Runtime\Modules\RuntimeBootPolicy;
+use Prontoo\Runtime\Modules\RuntimeModuleCatalog;
+use Prontoo\Runtime\Routing\RouteCatalog;
 
 final class RuntimeContract
 {
@@ -100,10 +103,8 @@ final class RuntimeContract
             'public/assets/design-system.css',
             'public/assets/app.js',
         ];
-        if (\function_exists('prontoo_full_runtime_modules')) {
-            foreach (\prontoo_full_runtime_modules() as $module) {
-                $files[] = 'app/' . mb_ltrim((string) $module, '/');
-            }
+        foreach (RuntimeModuleCatalog::fullModules() as $module) {
+            $files[] = 'app/' . mb_ltrim((string) $module, '/');
         }
         return array_values(array_unique(array_map(
             static  fn(string $file): string => rtrim($root, '/') . '/' . ltrim($file, '/'),
@@ -145,10 +146,7 @@ final class RuntimeContract
     private static function fullRuntimeExpected(): bool
     {
 
-        if (\function_exists('prontoo_use_light_boot') && \prontoo_use_light_boot()) {
-            return false;
-        }
-        return true;
+        return !RuntimeBootPolicy::useLightBoot(getenv('PRONTOO_DISABLE_LIGHT_BOOT'));
     }
 
     private static function assertVersionContract(string $root, string $version): void
@@ -180,7 +178,12 @@ final class RuntimeContract
     private static function assertRuntimeArchitecture(string $root): void
     {
 
-        $report = ArchitectureVerifier::report($root, false);
+        $report = ArchitectureVerifier::report(
+            $root,
+            false,
+            RuntimeModuleCatalog::fullModules(),
+            RouteCatalog::all(),
+        );
         $runtimeErrors = [];
         $repositoryOnly = [];
         foreach ((array) ($report['errors'] ?? []) as $error) {
@@ -222,12 +225,10 @@ final class RuntimeContract
 
         if (self::fullRuntimeExpected()) {
             self::assertFunctions(self::requiredFullFunctions());
-            if (\function_exists('prontoo_route_map')) {
-                foreach (\prontoo_route_map() as $route) {
-                    $function = 'page_' . $route;
-                    if (!\function_exists($function)) {
-                        throw new \RuntimeException('Rota sem função de página: ' . $function);
-                    }
+            foreach (RouteCatalog::all() as $route) {
+                $function = 'page_' . $route;
+                if (!\function_exists($function)) {
+                    throw new \RuntimeException('Rota sem função de página: ' . $function);
                 }
             }
         }

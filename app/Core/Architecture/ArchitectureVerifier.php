@@ -17,11 +17,20 @@ final class ArchitectureVerifier
 
     }
 
-    public static function report(string $root, bool $strictActions = false): array
+    public static function report(
+        string $root,
+        bool $strictActions = false,
+        array $runtimeModules = [],
+        array $routes = [],
+    ): array
     {
 
         $root = rtrim(str_replace('\\', '/', $root), '/');
-        $cacheKey = $root . '|' . ($strictActions ? 'strict' : 'runtime');
+        $runtimeModules = array_values(array_unique(array_map('strval', $runtimeModules)));
+        $routes = array_values(array_unique(array_map('strval', $routes)));
+        $cacheKey = $root . '|' .
+            ($strictActions ? 'strict' : 'runtime') . '|' .
+            hash('sha256', serialize([$runtimeModules, $routes]));
         if (isset(self::$cache[$cacheKey])) {
             return self::$cache[$cacheKey];
         }
@@ -54,9 +63,6 @@ final class ArchitectureVerifier
             }
         }
 
-        $runtimeModules = function_exists('prontoo_full_runtime_modules')
-            ? array_values(array_unique(array_map('strval', \prontoo_full_runtime_modules())))
-            : [];
         foreach ($runtimeModules as $module) {
             $relative = 'app/' . ltrim($module, '/');
             if (!isset($classified[$relative])) {
@@ -64,9 +70,7 @@ final class ArchitectureVerifier
             }
         }
 
-        $routes = function_exists('prontoo_route_map')
-            ? array_fill_keys(array_map('strval', \prontoo_route_map()), true)
-            : [];
+        $routes = array_fill_keys($routes, true);
         $sources = [];
         $knownBySource = [];
         $contracts = ActionCatalog::all();
@@ -293,6 +297,10 @@ final class ArchitectureVerifier
         $security = $root . '/app/Support/SecurityAccess.php';
         if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
             $errors[] = 'legacy_authorization_adapter_present:enforce_action_integrity';
+        }
+        $moduleLoader = $root . '/app/Support/ModuleLoader.php';
+        if (is_file($moduleLoader)) {
+            $errors[] = 'legacy_composition_facade_present:app/Support/ModuleLoader.php';
         }
     }
 

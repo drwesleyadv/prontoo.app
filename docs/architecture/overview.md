@@ -56,7 +56,7 @@ A composição foi decomposta em unidades coesas:
 - composições específicas de Pacientes e Financeiro em `app/Runtime/Patients` e `app/Runtime/Financial`;
 - `app/Runtime/Runner.php` — coordenação final do runtime.
 
-`app/Support/ModuleLoader.php` permanece somente como fachada de composição compatível e não deve recuperar lógica de catálogo, dispatch, persistência ou apresentação.
+A fachada global `app/Support/ModuleLoader.php` foi removida. Entrypoints e unidades de runtime consomem diretamente `RuntimeModuleComposition`, `RuntimeBootPolicy`, `RouteCatalog`, `JsonResponder` e as composições de feature.
 
 ## Prontidão versus manutenção
 

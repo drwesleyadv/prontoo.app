@@ -12,6 +12,7 @@ require_once __DIR__ . '/Financial/FinancialComposition.php';
 
 use Prontoo\Presentation\Http\JsonResponder;
 use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
+use Prontoo\Runtime\Modules\RuntimeModuleComposition;
 use Prontoo\Runtime\Routing\RouteCatalog;
 use Throwable;
 
@@ -97,7 +98,7 @@ final class Runner
                     ], 503);
                     return;
                 }
-                \prontoo_load_route_modules('admin_health');
+                RuntimeModuleComposition::loader()->loadRouteModules('admin_health');
                 \page_maintenance_notice();
                 return;
             }
@@ -131,7 +132,7 @@ final class Runner
                 }
                 \redirect('financial');
             }
-            \prontoo_load_route_modules($route);
+            RuntimeModuleComposition::loader()->loadRouteModules($route);
             if ($route !== 'logout' && !$publicStatus) {
                 RuntimeBootCoordinator::flushIntegrityBeforeRender();
             }

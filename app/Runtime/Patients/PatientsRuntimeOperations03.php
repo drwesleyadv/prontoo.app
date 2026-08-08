@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\Patients\PatientComposition;
 
 final class PatientsRuntimeOperations03
 {
@@ -384,7 +385,7 @@ final class PatientsRuntimeOperations03
         $personId = (int) ($p["person_id"] ?? 0);
         $phoneDigits = substr(only_digits((string) ($p["phone"] ?? "")), 0, 11);
         try {
-            $readModel = prontoo_patient_reception_history_read_model(
+            $readModel = PatientComposition::receptionHistory(
                 $cid,
                 $patientId,
                 $personId,

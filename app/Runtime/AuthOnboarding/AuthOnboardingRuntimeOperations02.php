@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
 
 final class AuthOnboardingRuntimeOperations02
 {
@@ -77,7 +78,7 @@ final class AuthOnboardingRuntimeOperations02
         } else {
             unset($_SESSION["privileged_auth_at"]);
         }
-        prontoo_login_post_password_maintenance($uid);
+        RuntimeBootCoordinator::postPasswordMaintenance($uid);
         return login_apply_resolved_credential(
             $uid,
             $credential,

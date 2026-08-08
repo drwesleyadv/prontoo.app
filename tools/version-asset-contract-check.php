@@ -46,7 +46,6 @@ foreach ([
 }
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
-$loader = (string) @file_get_contents($root . '/app/Support/ModuleLoader.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $auth = (string) @file_get_contents($root . '/app/Auth/AuthOnboarding.php');
 $section = static function (string $source, string $start, string $end): string {
@@ -83,16 +82,16 @@ foreach ([
 if (!str_contains($moduleCatalog, "'login_telemetry_wave' => []")) {
     throw new RuntimeException('Catálogo modular não reconhece a rota das faixas.');
 }
+if (is_file($root . '/app/Support/ModuleLoader.php')) {
+    throw new RuntimeException('Fachada global de composição ainda está presente.');
+}
 foreach ([
-    'return RuntimeModuleCatalog::routeModuleGroups($route);',
     'RuntimeModuleComposition::loader()->loadRouteModules($route);',
-    'return RouteCatalog::all();',
-    'return RouteCatalog::public();',
-    'return RouteCatalog::json();',
-    'Runner::run($installMode);',
+    'RuntimeBootCoordinator::bootDatabaseForRoute(',
+    'JsonResponder::send(',
 ] as $contract) {
-    if (!str_contains($loader, $contract)) {
-        throw new RuntimeException('Fachada de composição não delega ao runtime nativo: ' . $contract);
+    if (!str_contains($runner, $contract)) {
+        throw new RuntimeException('Runner não consome o runtime nativo diretamente: ' . $contract);
     }
 }
 if (!str_contains($auth, 'function page_login_telemetry_wave(): void')) {

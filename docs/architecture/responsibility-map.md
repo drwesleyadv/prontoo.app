@@ -24,7 +24,6 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | roteamento | `app/Runtime/Routing/*` |
 | wiring de Pacientes e Financeiro | `app/Runtime/Patients/*`, `app/Runtime/Financial/*` |
 | runtime histórico compatível | `app/Runtime/*` |
-| fachada de composição global | `app/Support/ModuleLoader.php` |
 | entradas web | `br`, `public` |
 | execução secundária | `cron/maestro.php` |
 
@@ -38,7 +37,7 @@ A composição deixou de concentrar boot, catálogo, loading e wiring numa únic
 
 ## Compatibilidade
 
-Fachadas globais e namespaces `Legacy` existem para preservar chamadas e comportamento durante a migração. Eles não são destino preferencial para lógica nova. Nova regra deve nascer na camada correta; alterações em código histórico devem, quando possível, reduzir a responsabilidade da fronteira.
+A fachada global de composição foi eliminada. Fronteiras históricas remanescentes existem apenas para preservar chamadas ainda não migradas e não são destino para lógica nova. Nova regra deve nascer na camada correta; alterações em código histórico devem reduzir a responsabilidade da fronteira.
 
 ## Casos de uso nativos já consolidados
 

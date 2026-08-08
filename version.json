@@ -19,7 +19,7 @@
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
     "architecture_native_files_min": 277,
-    "architecture_transitional_files_max": 51,
+    "architecture_transitional_files_max": 50,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
@@ -67,7 +67,20 @@
         "app/Core/Database/SqlScopeGuard.php": "app/Core/Invariant/Tenant/SqlScopeGuard.php",
         "app/Core/Integrity/AuditChain.php": "app/Infrastructure/Audit/AuditChain.php",
         "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php",
-        "app/Core/Invariant/Request/ActionProof.php": "app/Runtime/LayeredKernel.php"
+        "app/Core/Invariant/Request/ActionProof.php": "app/Runtime/LayeredKernel.php",
+        "app/Support/ModuleLoader.php": [
+            "app/Runtime/Modules/RuntimeBootPolicy.php",
+            "app/Runtime/Modules/RuntimeModuleCatalog.php",
+            "app/Runtime/Modules/RuntimeModuleLoader.php",
+            "app/Runtime/Modules/RuntimeModuleComposition.php",
+            "app/Runtime/Routing/RouteCatalog.php",
+            "app/Presentation/Http/JsonResponder.php",
+            "app/Runtime/Boot/RuntimeBootCoordinator.php",
+            "app/Runtime/Patients/PatientComposition.php",
+            "app/Runtime/Patients/PatientViewComposition.php",
+            "app/Runtime/Financial/FinancialComposition.php",
+            "app/Runtime/Runner.php"
+        ]
     },
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [

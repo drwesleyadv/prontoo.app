@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Boot;
 
 use PDO;
+use Prontoo\Runtime\Modules\RuntimeModuleComposition;
 use RuntimeException;
 use Throwable;
 
@@ -131,7 +132,7 @@ final class RuntimeBootCoordinator
         string $reason = '',
     ): array {
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
-        \prontoo_load_full_runtime_modules();
+        RuntimeModuleComposition::loader()->loadFullRuntime();
         \ensure_runtime_schema_minimum();
         $result['steps'][] = 'schema_contract';
         if (class_exists('\Prontoo\Infrastructure\Integrity\PiIntegrity')) {
@@ -230,7 +231,7 @@ final class RuntimeBootCoordinator
             if (self::schemaMarkerValid()) {
                 return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'maintenance_already_completed']);
             }
-            \prontoo_load_full_runtime_modules();
+            RuntimeModuleComposition::loader()->loadFullRuntime();
             \ensure_runtime_schema_minimum();
             $result['steps'][] = 'schema_contract';
             if (function_exists('maestro_ensure_schema')) {

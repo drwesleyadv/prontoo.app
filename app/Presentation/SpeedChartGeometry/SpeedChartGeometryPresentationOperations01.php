@@ -206,9 +206,7 @@ final class SpeedChartGeometryPresentationOperations01
         if (PHP_SAPI === 'cli') {
             return;
         }
-        $route = function_exists('prontoo_boot_requested_route')
-            ? prontoo_boot_requested_route()
-            : preg_replace('/[^a-z0-9_\-]/i', '', (string) ($_GET['r'] ?? ''));
+        $route = preg_replace('/[^a-z0-9_\-]/i', '', (string) ($_GET['r'] ?? '')) ?: 'login';
         if ($route !== 'status' && !str_starts_with((string) $route, 'admin_')) {
             return;
         }

@@ -11,6 +11,7 @@ require __DIR__ . '/page-load-telemetry-contract-check';
 use Prontoo\Core\Architecture\ArchitectureVerifier;
 use Prontoo\Runtime\LayeredKernel;
 use Prontoo\Runtime\Routing\RouteCatalog;
+use Prontoo\Runtime\Modules\RuntimeModuleComposition;
 
 $root = dirname(__DIR__);
 if (!defined('PRONTOO_ROOT')) {
@@ -37,7 +38,6 @@ if (!class_exists('ProntooHttpError')) {
 }
 
 require_once $root . '/app/bootstrap_architecture.php';
-require_once $root . '/app/Support/ModuleLoader.php';
 require_once $root . '/app/Runtime/Runner.php';
 require_once $root . '/app/Domain/Identity/IdentityDocumentValidator.php';
 require_once $root . '/app/Domain/Patients/PatientPure.php';
@@ -59,7 +59,12 @@ $assert = static function (bool $condition, string $name) use (&$failures): void
     }
 };
 
-$architecture = ArchitectureVerifier::report($root, true);
+$architecture = ArchitectureVerifier::report(
+    $root,
+    true,
+    \Prontoo\Runtime\Modules\RuntimeModuleCatalog::fullModules(),
+    RouteCatalog::all(),
+);
 $selfTest = LayeredKernel::logicSelfTest($root);
 $assert(!empty($architecture['ok']), 'architecture_verifier');
 $assert(!empty($selfTest['ok']), 'layered_kernel_self_test');
@@ -89,7 +94,6 @@ $bootSource = (string) file_get_contents($root . '/app/Runtime/Boot/RuntimeBootC
 $patientCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientComposition.php');
 $patientViewCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientViewComposition.php');
 $financialCompositionSource = (string) file_get_contents($root . '/app/Runtime/Financial/FinancialComposition.php');
-$loaderSource = (string) file_get_contents($root . '/app/Support/ModuleLoader.php');
 
 foreach ([
     'RuntimeBootCoordinator::bootDatabaseForRoute(',
@@ -98,7 +102,7 @@ foreach ([
     'JsonResponder::send(',
     'RuntimeBootCoordinator::flushIntegrityBeforeRender(',
     'LayeredKernel::enforceAction($route, $method, $_POST, $context)',
-    'prontoo_load_route_modules($route)',
+    'RuntimeModuleComposition::loader()->loadRouteModules($route)',
 ] as $token) {
     $assert(str_contains($runnerSource, $token), 'runner_missing:' . $token);
 }
@@ -111,6 +115,7 @@ foreach ([
 ] as $token) {
     $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
 }
+$assert(!is_file($root . '/app/Support/ModuleLoader.php'), 'legacy_module_loader_removed');
 foreach ([
     "self::runReadinessCycle('route_readiness')",
     "self::runMaintenanceCycle('forced_deep')",
@@ -149,28 +154,6 @@ foreach ([
 foreach (['new PdoPatientRevenueReceiptRepository()', 'receivePatientRevenue('] as $token) {
     $assert(str_contains($financialCompositionSource, $token), 'financial_composition_missing:' . $token);
 }
-foreach ([
-    'Runner::run($installMode)',
-    'return RouteCatalog::all()',
-    'return RuntimeBootCoordinator::postPasswordMaintenance($uid)',
-    'return PatientComposition::readService()',
-    'return PatientComposition::tabCommandService()',
-    'return PatientComposition::contactCommandService()',
-    'return FinancialComposition::patientRevenueService()',
-] as $token) {
-    $assert(str_contains($loaderSource, $token), 'compatibility_facade_missing:' . $token);
-}
-foreach ([
-    'new PdoPatientReadRepository()',
-    'new PdoPatientRevenueReceiptRepository()',
-    'SELECT ',
-    'INSERT ',
-    'UPDATE ',
-    'DELETE ',
-] as $token) {
-    $assert(!str_contains($loaderSource, $token), 'compatibility_facade_logic:' . $token);
-}
-
 $assert(\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224725'), 'cpf_valid');
 $assert(!\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('11111111111'), 'cpf_repeated_rejected');
 $assert(\Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj('11222333000181'), 'cnpj_valid');

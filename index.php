@@ -15,12 +15,12 @@ if ((string) ($_GET["r"] ?? "") === "install") {
     require_once __DIR__ . "/app/Core/Install/InstallAccess.php";
     \Prontoo\Core\Install\InstallAccess::assertInstallerEntry();
     require __DIR__ . "/app/prontoo.php";
-    prontoo_require_module("Install/Installer.php");
+    \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->requireModule("Install/Installer.php");
     prontoo_install();
     telemetry_route_finish_marker();
     exit;
 }
 
 require __DIR__ . "/app/prontoo.php";
-prontoo_run(false);
+\Prontoo\Runtime\Runner::run(false);
 telemetry_route_finish_marker();
