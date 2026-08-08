@@ -12,7 +12,7 @@ $telemetryContractAssert = static function (bool $condition, string $message): v
 $telemetryContractServer = $_SERVER;
 $telemetryContractScenario = static function (array $server, string $route): bool {
     $_SERVER = $server;
-    return telemetry_page_request_candidate($route);
+    return \Prontoo\Runtime\SupportTelemetry\SupportTelemetryRuntimeOperations01::telemetry_page_request_candidate($route);
 };
 $telemetryContractAssert(
     $telemetryContractScenario(
@@ -66,7 +66,7 @@ foreach ([
     );
 }
 $_SERVER = $telemetryContractServer;
-$telemetryContractEvent = telemetry_build_event(
+$telemetryContractEvent = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_build_event(
     "painel",
     1000,
     2001000,
@@ -79,28 +79,28 @@ $telemetryContractEvent = telemetry_build_event(
     "/",
 );
 $telemetryContractAssert(
-    telemetry_normalize_event($telemetryContractEvent) !== null,
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($telemetryContractEvent) !== null,
     "evento v2 válido deve ser aceito",
 );
 $telemetryContractAssert(
-    telemetry_normalize_event([
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event([
         "schema" => "prontoo.telemetria.rota.v1",
         "tipo" => "route_request",
     ]) === null,
     "evento legado de requisição não pode compor a fonte de verdade",
 );
 $telemetryContractAssert(
-    telemetry_page_response_candidate(200),
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_response_candidate(200),
     "resposta HTML sem cabeçalho explícito deve ser elegível",
 );
 $telemetryContractAssert(
-    !telemetry_page_response_candidate(302),
+    !\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_response_candidate(302),
     "redirecionamento não pode ser contabilizado como página carregada",
 );
 foreach (["index.php", "install.php", "br/index.php"] as $path) {
     $source = (string) file_get_contents($telemetryContractRoot . "/" . $path);
     $telemetryContractAssert(
-        str_contains($source, "telemetry_route_finish_marker();"),
+        str_contains($source, "\\Prontoo\\Runtime\\SupportTelemetry\\SupportTelemetryRuntimeOperations01::telemetry_route_finish_marker();"),
         "entrada sem marco final explícito: " . $path,
     );
     $telemetryContractAssert(
