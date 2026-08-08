@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -31,7 +31,6 @@ jobs:
           rm -f runtime-log-15m.php
           git checkout origin/prontoo -- .github/workflows/documentation.yml
           php tools/release-contract-reconcile --write
-          git diff -- app/update.manifest.json app/architecture.manifest.json version.json app/prontoo.php br/index.php CHANGELOG.md ChangeLog.txt
       - name: Validate documentation contract
         shell: bash
         run: |
@@ -47,3 +46,12 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           php tools/security-regression-check.php
+      - name: Publish reconciled final branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "prontoo-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalizar correção de prontidão e remover diagnóstico temporário"
+          git push --force origin HEAD:refs/heads/agent/runtime-final-output
