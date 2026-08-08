@@ -8,6 +8,10 @@ for path in root.rglob('*.php'):
     rel = path.relative_to(root).as_posix()
     if any(part in rel for part in ('.git/', 'ssd/', 'vendor/', 'node_modules/')):
         continue
+    source = path.read_text()
+    normalized = source.replace('\\\\Prontoo\\Core\\Architecture\\OperationGateway', '\\Prontoo\\Core\\Architecture\\OperationGateway')
+    if normalized != source:
+        path.write_text(normalized)
     result = subprocess.run(['php', '-l', str(path)], text=True, capture_output=True)
     if result.returncode != 0:
         print(f'GENERATED_PHP_SYNTAX_ERROR={rel}')
