@@ -98,7 +98,6 @@ final class RuntimeContract
             'app/Database/operational-schema.contract.json',
             'br/index.php',
             'app/bootstrap_architecture.php',
-            'app/bootstrap_specialized.php',
             'app/Database/schema.sql',
             'public/assets/design-system.css',
             'public/assets/app.js',

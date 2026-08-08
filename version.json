@@ -19,7 +19,7 @@
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
     "architecture_native_files_min": 277,
-    "architecture_transitional_files_max": 50,
+    "architecture_transitional_files_max": 47,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
@@ -80,6 +80,14 @@
             "app/Runtime/Patients/PatientViewComposition.php",
             "app/Runtime/Financial/FinancialComposition.php",
             "app/Runtime/Runner.php"
+        ],
+        "app/Support/FinancialGuard.php": "app/Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php",
+        "app/Ui/SpeedChartGeometry.php": "app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php",
+        "app/bootstrap_specialized.php": [
+            "app/prontoo.php",
+            "app/Runtime/Modules/RuntimeModuleComposition.php",
+            "app/Runtime/Modules/RuntimeBootPolicy.php",
+            "app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php"
         ]
     },
     "native_consolidation_path_decompositions": {

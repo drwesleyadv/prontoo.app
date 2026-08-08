@@ -13,6 +13,7 @@ require_once __DIR__ . '/Financial/FinancialComposition.php';
 use Prontoo\Presentation\Http\JsonResponder;
 use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
 use Prontoo\Runtime\Modules\RuntimeModuleComposition;
+use Prontoo\Runtime\FinancialGuard\FinancialGuardRuntimeOperations01;
 use Prontoo\Runtime\Routing\RouteCatalog;
 use Throwable;
 
@@ -119,8 +120,7 @@ final class Runner
             }
             if ($context &&
                 ($context['scope'] ?? '') === 'clinic' &&
-                function_exists('financial_cashier_requires_attention_light') &&
-                \financial_cashier_requires_attention_light($context) &&
+                FinancialGuardRuntimeOperations01::financial_cashier_requires_attention_light($context) &&
                 !in_array($route, ['financial', 'logout', 'switch', 'goal_status', 'notices'], true)) {
                 if (RouteCatalog::wantsJson($route, (string) ($_SERVER['HTTP_ACCEPT'] ?? ''))) {
                     JsonResponder::send([

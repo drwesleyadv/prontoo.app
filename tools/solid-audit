@@ -23,7 +23,6 @@ $allowedDependencies = [
 $bootstrapBoundaries = [
     'app/prontoo.php',
     'app/bootstrap_architecture.php',
-    'app/bootstrap_specialized.php',
 ];
 
 $analyze = static function (string $source): array {
