@@ -66,7 +66,8 @@
     "php84_baseline_path_migrations": {
         "app/Core/Database/SqlScopeGuard.php": "app/Core/Invariant/Tenant/SqlScopeGuard.php",
         "app/Core/Integrity/AuditChain.php": "app/Infrastructure/Audit/AuditChain.php",
-        "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php"
+        "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php",
+        "app/Core/Invariant/Request/ActionProof.php": "app/Runtime/LayeredKernel.php"
     },
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
