@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/compatibility-source.php';
+require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
 
 $testStorageRoot =
     sys_get_temp_dir() .
@@ -67,10 +68,6 @@ function security_regression_assert(bool $condition, string $message): void
 
 $GLOBALS["testStorageRoot"] = $testStorageRoot;
 mkdir($testStorageRoot, 0750, true);
-
-require dirname(__DIR__) . "/app/Support/SecurityAccess.php";
-require dirname(__DIR__) . "/app/Support/Telemetry.php";
-require dirname(__DIR__) . "/app/Domain/Audit/AuditActivity.php";
 
 security_regression_assert(
     mfa_enrollment_state(7) === "inactive",
