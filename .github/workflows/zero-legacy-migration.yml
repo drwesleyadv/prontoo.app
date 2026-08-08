@@ -10,13 +10,13 @@ permissions:
 
 jobs:
   final:
-    if: github.head_ref == 'agent/zero-legacy-final'
+    if: startsWith(github.head_ref, 'agent/zero-legacy-final')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout final branch
         uses: actions/checkout@v4
         with:
-          ref: agent/zero-legacy-final
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -61,4 +61,4 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add -A
           git commit -m 'Zero legacy: materializar árvore final validada'
-          git push origin HEAD:agent/zero-legacy-final
+          git push origin HEAD:${{ github.head_ref }}
