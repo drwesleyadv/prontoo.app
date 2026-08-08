@@ -12,17 +12,28 @@ jobs:
   finalize:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v4
-        with:
-          ref: agent/zero-legacy-final
-          fetch-depth: 0
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-          tools: none
+      - name: Checkout without actions
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin agent/zero-legacy-final
+          git checkout -B agent/zero-legacy-final FETCH_HEAD
+      - name: Ensure PHP 8.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -v || true
+          if ! php -r 'exit(PHP_MAJOR_VERSION===8 && PHP_MINOR_VERSION===4 ? 0 : 1);'; then
+            sudo add-apt-repository -y ppa:ondrej/php
+            sudo apt-get update
+            sudo apt-get install -y php8.4-cli php8.4-mbstring php8.4-mysql
+            sudo update-alternatives --set php /usr/bin/php8.4
+          fi
+          php -r 'if (PHP_MAJOR_VERSION!==8 || PHP_MINOR_VERSION!==4) {fwrite(STDERR, PHP_VERSION.PHP_EOL); exit(1);}'
       - name: Generate and validate
         shell: bash
         run: |
