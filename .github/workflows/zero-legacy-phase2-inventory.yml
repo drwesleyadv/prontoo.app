@@ -1,0 +1,32 @@
+name: Zero Legacy Phase 2 Inventory
+on:
+  pull_request:
+    branches: [prontoo]
+permissions:
+  contents: read
+jobs:
+  inventory:
+    if: github.head_ref == 'agent/zero-legacy-phase2-inventory'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: List compatibility units and global functions
+        shell: bash
+        run: |
+          set -euo pipefail
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require 'app/Core/Architecture/LayerMap.php';
+          use Prontoo\Core\Architecture\LayerMap;
+          $rows=[];
+          foreach (LayerMap::phpFiles(getcwd()) as $file) {
+              $rel=ltrim(str_replace(str_replace('\\','/',getcwd()),'',str_replace('\\','/',$file)),'/');
+              if (str_starts_with($rel,'app/') && !LayerMap::isNativePath($rel)) {
+                  $src=(string)file_get_contents($file);
+                  preg_match_all('/(?<!::)\bfunction\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/',$src,$m);
+                  $rows[]=['file'=>$rel,'layer'=>LayerMap::layerFor($rel),'functions'=>count($m[1]??[]),'names'=>$m[1]??[]];
+              }
+          }
+          echo json_encode(['count'=>count($rows),'rows'=>$rows],JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES),PHP_EOL;
+          PHP
