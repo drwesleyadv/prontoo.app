@@ -1,0 +1,30 @@
+name: Zero Legacy Inventory
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== LEGACY PATHS ==='
+          find app -type f -path '*/Legacy/*' | sort
+          echo '=== LEGACY PATH COUNT ==='
+          find app -type f -path '*/Legacy/*' | wc -l
+          echo '=== COLLISIONS AFTER REMOVING /Legacy ==='
+          while IFS= read -r f; do
+            target="${f/\/Legacy\//\/}"
+            if [ -e "$target" ]; then echo "$f -> $target"; fi
+          done < <(find app -type f -path '*/Legacy/*' | sort)
+          echo '=== TEXTUAL LEGACY REFERENCES COUNT ==='
+          grep -RIl --exclude-dir=.git --exclude='*.json' -E 'Prontoo\\\\(Core|Domain|Application|Infrastructure|Presentation|Runtime)\\\\Legacy\\\\|app/(Core|Domain|Application|Infrastructure|Presentation|Runtime)/Legacy/' . | wc -l || true
+          echo '=== COMPATIBILITY SYMBOL REFERENCES ==='
+          for token in enforce_action_integrity 'Prontoo\\Core\\Integrity\\ActionProof' 'prontoo_'; do
+            echo "--- $token ---"
+            grep -RIn --exclude-dir=.git --exclude='*.json' "$token" app br public cron tools 2>/dev/null | head -n 200 || true
+          done
