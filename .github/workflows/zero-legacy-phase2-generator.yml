@@ -1,0 +1,104 @@
+name: Zero Legacy Phase 2 Generator
+on:
+  pull_request:
+    branches: [prontoo]
+permissions:
+  contents: read
+jobs:
+  generate:
+    if: github.head_ref == 'agent/zero-legacy-phase2-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-phase2-v2
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Transform
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace(path, old, new):
+              p=Path(path); s=p.read_text()
+              if old not in s: raise SystemExit(f'expected block not found: {path}')
+              p.write_text(s.replace(old,new,1))
+
+          replace('app/Runtime/Runner.php',
+              "                \\enforce_action_integrity($context, $route);",
+              "                LayeredKernel::enforceAction($route, $method, $_POST, $context);")
+          replace('app/Support/SecurityAccess.php',
+              "function enforce_action_integrity(array $c, string $route): void\n{\n    \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::enforce_action_integrity($c, $route);\n}\n",
+              "")
+
+          p=Path('app/Presentation/SecurityAccess/SecurityAccessPresentationOperations01.php')
+          s=p.read_text(); start=s.index('    public static function enforce_action_integrity(')
+          brace=s.index('{',start); depth=0; end=None
+          for i in range(brace,len(s)):
+              if s[i]=='{': depth+=1
+              elif s[i]=='}':
+                  depth-=1
+                  if depth==0: end=i+1; break
+          if end is None: raise SystemExit('method end not found')
+          while end < len(s) and s[end] in '\r\n': end+=1
+          p.write_text(s[:start]+s[end:])
+
+          replace('app/bootstrap_architecture.php', "    __DIR__ . '/Core/Invariant/Request/ActionProof.php',\n", "")
+          replace('app/Core/Architecture/LayerMap.php', "            $path === 'Core/Invariant/Request/ActionProof.php',\n", "")
+
+          p=Path('app/Core/Architecture/ArchitectureVerifier.php'); s=p.read_text()
+          bridge="""        $bridge = $root . '/app/Core/Invariant/Request/ActionProof.php';
+        if (is_file($bridge)) {
+            $content = (string) @file_get_contents($bridge);
+            if (str_contains($content, 'pdo(') || str_contains($content, 'AuthorizationService')) {
+                $errors[] = 'compatibility_bridge_contains_business_logic:app/Core/Invariant/Request/ActionProof.php';
+            }
+        }
+"""
+          if bridge not in s: raise SystemExit('architecture bridge block not found')
+          s=s.replace(bridge,'',1)
+          warning="""        $security = $root . '/app/Support/SecurityAccess.php';
+        if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
+            $warnings[] = 'thin_compatibility_adapter_active:enforce_action_integrity';
+        }
+"""
+          if warning not in s: raise SystemExit('architecture warning block not found')
+          s=s.replace(warning,"""        $security = $root . '/app/Support/SecurityAccess.php';
+        if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
+            $errors[] = 'legacy_authorization_adapter_present:enforce_action_integrity';
+        }
+""",1)
+          p.write_text(s)
+
+          p=Path('app/architecture.manifest.json'); data=json.loads(p.read_text())
+          data['compatibility_boundaries']=[x for x in data.get('compatibility_boundaries',[]) if x.get('symbol') not in ('enforce_action_integrity','Prontoo\\Core\\Integrity\\ActionProof')]
+          removed=list(data.get('removed_legacy_files',[])); bridge_path='app/Core/Invariant/Request/ActionProof.php'
+          if bridge_path not in removed: removed.append(bridge_path)
+          data['removed_legacy_files']=removed
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=4,separators=(',', ': '))+'\n')
+          PY
+          rm app/Core/Invariant/Request/ActionProof.php
+          rm .github/workflows/zero-legacy-phase2-generator.yml
+          if grep -RIn --exclude-dir=.git --exclude='app/update.manifest.json' -E 'enforce_action_integrity|Core[/\\]Invariant[/\\]Request[/\\]ActionProof|Prontoo\\Core\\Integrity\\ActionProof' app br public cron tools version.json; then exit 1; fi
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/native-unit-check
+          php tools/architecture-check.php
+          php tools/solid-audit --strict
+          php tools/security-regression-check.php
+          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null
+          git diff --binary origin/prontoo...HEAD > /tmp/base.patch || true
+          git diff --binary > /tmp/generated.patch
+          tar --exclude=.git --exclude=ssd --exclude=vendor --exclude=node_modules -czf /tmp/zero-legacy-phase2.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zero-legacy-phase2-generated
+          path: /tmp/zero-legacy-phase2.tar.gz
+          if-no-files-found: error
