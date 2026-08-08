@@ -1,0 +1,151 @@
+facade_expectations = '''foreach ([
+    'Runner::run($installMode)',
+    'return RouteCatalog::all()',
+    'return RuntimeBootCoordinator::postPasswordMaintenance($uid)',
+    'return PatientComposition::readService()',
+    'return PatientComposition::tabCommandService()',
+    'return PatientComposition::contactCommandService()',
+    'return FinancialComposition::patientRevenueService()',
+] as $token) {
+    $assert(str_contains($loaderSource, $token), 'compatibility_facade_missing:' . $token);
+}
+'''
+
+
+if facade_expectations not in source:
+    raise SystemExit(f'expected architecture loader expectations not found: {path}')
+
+
+source = source.replace(facade_expectations, '', 1)
+
+
+source = source.replace(
+    "'prontoo_load_route_modules($route)',",
+    "'RuntimeModuleComposition::loader()->loadRouteModules($route)',",
+    1,
+)
+
+
+runner_guard = '''foreach ([
+    'function prontoo_',
+    'PdoPatientReadRepository',
+    'PdoPatientTabCommandRepository',
+    'PdoPatientRevenueReceiptRepository',
+    'PatientContactView::editForm(',
+] as $token) {
+    $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
+}
+'''
+
+
+if runner_guard not in source:
+    raise SystemExit(f'expected architecture runner guard not found: {path}')
+
+
+source = source.replace(
+    runner_guard,
+    runner_guard + "$assert(!is_file($root . '/app/Support/ModuleLoader.php'), 'legacy_module_loader_removed');\n",
+    1,
+)
+
+
+obsolete = '''foreach ([
+    'new PdoPatientReadRepository()',
+    'new PdoPatientRevenueReceiptRepository()',
+    'SELECT ',
+    'INSERT ',
+    'UPDATE ',
+    'DELETE ',
+] as $token) {
+    $assert(!str_contains($loaderSource, $token), 'compatibility_facade_logic:' . $token);
+}
+
+'''
+
+
+if obsolete not in source:
+    raise SystemExit(f'expected architecture loader guard not found: {path}')
+
+
+write(path, source.replace(obsolete, '', 1))
+
+
+path = 'tools/login-post-password-runtime-check'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'prontoo_schema_boot_marker_path()',
+    '\\Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator::schemaMarkerPath()',
+)
+
+
+source = source.replace(
+    'prontoo_login_post_password_maintenance($userId)',
+    '\\Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator::postPasswordMaintenance($userId)',
+)
+
+
+source = source.replace(
+    'prontoo_schema_boot_marker_valid()',
+    '\\Prontoo\\Runtime\\Boot\\RuntimeBootCoordinator::schemaMarkerValid()',
+)
+
+
+write(path, source)
+
+
+replace_once(
+    'tools/critical-runtime-smoke-check',
+    'prontoo_load_full_runtime_modules();',
+    '\\Prontoo\\Runtime\\Modules\\RuntimeModuleComposition::loader()->loadFullRuntime();',
+)
+
+
+path = 'tools/version-asset-contract-check.php'
+
+
+source = read(path)
+
+
+source = source.replace("$loader = (string) @file_get_contents($root . '/app/Support/ModuleLoader.php');\n", '', 1)
+
+
+old = '''foreach ([
+    'return RuntimeModuleCatalog::routeModuleGroups($route);',
+    'RuntimeModuleComposition::loader()->loadRouteModules($route);',
+    'return RouteCatalog::all();',
+    'return RouteCatalog::public();',
+    'return RouteCatalog::json();',
+    'Runner::run($installMode);',
+] as $contract) {
+    if (!str_contains($loader, $contract)) {
+        throw new RuntimeException('Fachada de composição não delega ao runtime nativo: ' . $contract);
+    }
+}
+'''
+
+
+new = '''if (is_file($root . '/app/Support/ModuleLoader.php')) {
+    throw new RuntimeException('Fachada global de composição ainda está presente.');
+}
+foreach ([
+    'RuntimeModuleComposition::loader()->loadRouteModules($route);',
+    'RuntimeBootCoordinator::bootDatabaseForRoute(',
+    'JsonResponder::send(',
+] as $contract) {
+    if (!str_contains($runner, $contract)) {
+        throw new RuntimeException('Runner não consome o runtime nativo diretamente: ' . $contract);
+    }
+}
+'''
+
+
+if old not in source:
+    raise SystemExit(f'expected version asset facade contract not found: {path}')
+
+
+write(path, source.replace(old, new, 1))
+
