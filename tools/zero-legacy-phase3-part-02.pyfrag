@@ -1,0 +1,175 @@
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Runtime\\Patients\\PatientComposition;\n',
+    1,
+)
+
+
+source = source.replace(
+    'prontoo_patient_tab_active_rows($cid, $patientId)',
+    'PatientComposition::activeTabs($cid, $patientId)',
+)
+
+
+source = source.replace(
+    'prontoo_patient_legal_guardians($cid, $patientId)',
+    'PatientComposition::legalGuardians($cid, $patientId)',
+)
+
+
+source = source.replace(
+    'prontoo_patient_has_legal_guardian($cid, $patientId)',
+    'PatientComposition::hasLegalGuardian($cid, $patientId)',
+)
+
+
+marker = '''    public static function patient_cpf_br(string $cpf): string
+    
+    {
+        $digits = function_exists('only_digits')
+            ? only_digits($cpf)
+            : preg_replace('/\\D+/', '', $cpf);
+        return \\Prontoo\\Domain\\Patients\\PatientPure::cpfBr($cpf, (string) $digits);
+    
+    }
+'''
+
+
+addition = marker + '''
+    public static function patient_record_type_label(string $type): string
+    {
+        $customTabLabel = null;
+        $normalized = trim($type);
+        if (str_starts_with($normalized, "tab_")) {
+            $tabId = (int) substr($normalized, 4);
+            if ($tabId > 0) {
+                try {
+                    $customTabLabel = PatientComposition::tabLabel($tabId);
+                } catch (Throwable $error) {
+                    error_log("[Prontoo recoverable " . __FUNCTION__ . "] " . $error->getMessage());
+                }
+            }
+        }
+        return \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_record_type_label(
+            $type,
+            $customTabLabel,
+        );
+    }
+'''
+
+
+if marker not in source:
+    raise SystemExit(f'expected patient runtime insertion point not found: {path}')
+
+
+write(path, source.replace(marker, addition, 1))
+
+
+path = 'app/Runtime/Patients/PatientsRuntimeOperations03.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Runtime\\Patients\\PatientComposition;\n',
+    1,
+)
+
+
+source = source.replace(
+    'prontoo_patient_reception_history_read_model(',
+    'PatientComposition::receptionHistory(',
+)
+
+
+write(path, source)
+
+
+path = 'app/Runtime/Patients/PatientsRuntimeOperations07.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'use \\Throwable;\n',
+    'use \\Throwable;\nuse Prontoo\\Runtime\\Financial\\FinancialComposition;\nuse Prontoo\\Runtime\\Patients\\PatientComposition;\nuse Prontoo\\Runtime\\Patients\\PatientViewComposition;\n',
+    1,
+)
+
+
+source = source.replace('prontoo_update_patient_contact_command(', 'PatientComposition::updateContact(')
+
+
+source = source.replace('prontoo_receive_patient_revenue_command(', 'FinancialComposition::receivePatientRevenue(')
+
+
+source = source.replace('prontoo_create_patient_tab_command(', 'PatientComposition::createTab(')
+
+
+source = source.replace('prontoo_patient_contact_edit_form(', 'PatientViewComposition::contactEditForm(')
+
+
+write(path, source)
+
+
+path = 'app/Domain/Patients/PatientsDomainOperations01.php'
+
+
+source = read(path)
+
+
+old = '''    public static function patient_record_type_label(string $type): string
+    
+    {
+    
+        $type = trim($type);'''
+
+
+new = '''    public static function patient_record_type_label(
+        string $type,
+        ?string $customTabLabel = null,
+    ): string {
+        $type = trim($type);'''
+
+
+if old not in source:
+    raise SystemExit(f'expected patient Domain signature not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+old = '''        if (str_starts_with($type, "tab_")) {
+            $id = (int) substr($type, 4);
+            if ($id > 0) {
+                try {
+                    $label = prontoo_patient_tab_label_by_id($id);
+                    if (trim($label) !== "") {
+                        return patient_tab_label_clean($label);
+                    }
+                } catch (Throwable $e) {
+                    error_log(
+                        "[Prontoo recoverable " .
+                            __FUNCTION__ .
+                            "] " .
+                            $e->getMessage(),
+                    );
+                }
+            }
+        }'''
+
+
+new = '''        if (str_starts_with($type, "tab_") && mb_trim((string) $customTabLabel) !== "") {
+            return patient_tab_label_clean((string) $customTabLabel);
+        }'''
+
+
+if old not in source:
+    raise SystemExit(f'expected patient Domain resolver not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
