@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Presentation\Dashboards\DashboardsPresentationOperations01;
 
 final class DashboardsRuntimeOperations03
 {
@@ -40,7 +41,7 @@ final class DashboardsRuntimeOperations03
             $cid,
             $c,
         );
-        $today = manager_metric_row(
+        $today = DashboardsRuntimeOperations02::manager_metric_row(
             "SELECT COUNT(*) total, SUM(CASE WHEN arrived_at IS NOT NULL OR status IN ('chegou','em_preparo','pronto_atendimento') THEN 1 ELSE 0 END) arrived, SUM(CASE WHEN consultation_finished_at IS NOT NULL OR status IN ('atendimento_concluido','finalizado') THEN 1 ELSE 0 END) finished, SUM(CASE WHEN status='cancelado' THEN 1 ELSE 0 END) canceled FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<?",
             [$cid, $todayStart, $todayEnd],
         );
@@ -54,52 +55,52 @@ final class DashboardsRuntimeOperations03
             min(100, ($todayTotal / $estimatedCapacity) * 100),
             1,
         \RoundingMode::HalfAwayFromZero);
-        $activeLeads = manager_metric_val(
+        $activeLeads = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
                 lead_active_stage_sql("stage"),
             [$cid],
         );
-        $leadsNoNext = manager_metric_val(
+        $leadsNoNext = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
                 lead_active_stage_sql("stage") .
                 " AND next_action_at IS NULL",
             [$cid],
         );
-        $lateLeads = manager_metric_val(
+        $lateLeads = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
                 lead_active_stage_sql("stage") .
                 " AND next_action_at IS NOT NULL AND next_action_at<NOW()",
             [$cid],
         );
-        $pendingTasks = manager_metric_val(
+        $pendingTasks = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando')",
             [$cid],
         );
-        $lateTasks = manager_metric_val(
+        $lateTasks = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at<NOW()",
             [$cid],
         );
-        $unassignedTasks = manager_metric_val(
+        $unassignedTasks = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND assigned_to IS NULL",
             [$cid],
         );
-        $pendingRevenue = manager_metric_val(
+        $pendingRevenue = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND (r.expected_at IS NULL OR r.expected_at<?) AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
             [$cid, $nextMonth],
         );
-        $overdueRevenue = manager_metric_val(
+        $overdueRevenue = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND expected_at<NOW()",
             [$cid],
         );
-        $receivedRevenue = manager_metric_val(
+        $receivedRevenue = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
             [$cid, $monthStart, $nextMonth],
         );
-        $plannedRevenue = manager_metric_val(
+        $plannedRevenue = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
             [$cid, $monthStart, $nextMonth],
         );
-        $paidExpenses = manager_metric_val(
+        $paidExpenses = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE clinic_id=? AND status='paga' AND paid_at>=? AND paid_at<?",
             [$cid, $monthStart, $nextMonth],
         );
@@ -117,7 +118,7 @@ final class DashboardsRuntimeOperations03
             $target > 0 ? (float) round(($monthDay / $monthDays) * 100, 1, \RoundingMode::HalfAwayFromZero) : 0.0;
         $businessLeft = max(
             1,
-            manager_count_business_days($localNow->format("Y-m-d"), $monthEnd),
+            DashboardsPresentationOperations01::manager_count_business_days($localNow->format("Y-m-d"), $monthEnd),
         );
         $dailyNeeded = $missing > 0 ? (int) ceil($missing / $businessLeft) : 0;
         $goalState =
@@ -128,7 +129,7 @@ final class DashboardsRuntimeOperations03
                     : ($goalPct + 5 >= $expectedPct
                         ? "No ritmo da meta"
                         : "Abaixo do ritmo esperado"));
-        $finishedMonth = manager_metric_val(
+        $finishedMonth = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND (consultation_finished_at IS NOT NULL OR status IN ('atendimento_concluido','finalizado'))",
             [$cid, $monthStart, $nextMonth],
         );
@@ -145,7 +146,7 @@ final class DashboardsRuntimeOperations03
         }
         $kpis =
             '<div class="kpis manager-kpis manager-operational-kpis">' .
-            manager_dashboard_card(
+            DashboardsPresentationOperations01::manager_dashboard_card(
                 "Agendados",
                 (string) $todayTotal,
                 "calendar_month",
@@ -156,22 +157,22 @@ final class DashboardsRuntimeOperations03
                     $todayCanceled .
                     " cancelados",
             ) .
-            manager_dashboard_card(
+            DashboardsPresentationOperations01::manager_dashboard_card(
                 "Ocupação Estimada",
-                manager_percent_label($estimatedOcc),
+                DashboardsPresentationOperations01::manager_percent_label($estimatedOcc),
                 "speed",
                 $todayTotal .
                     " de " .
                     $estimatedCapacity .
                     " horários úteis estimados",
             ) .
-            manager_dashboard_card(
+            DashboardsPresentationOperations01::manager_dashboard_card(
                 "Interessados Ativos",
                 (string) $activeLeads,
                 "person_search",
                 $leadsNoNext . " sem próxima ação",
             ) .
-            manager_dashboard_card(
+            DashboardsPresentationOperations01::manager_dashboard_card(
                 "Tarefas Pendentes",
                 (string) $pendingTasks,
                 "pending_actions",
@@ -181,7 +182,7 @@ final class DashboardsRuntimeOperations03
                     " sem responsável",
                 $lateTasks > 0 || $unassignedTasks > 0 ? "bad" : "",
             ) .
-            manager_dashboard_card(
+            DashboardsPresentationOperations01::manager_dashboard_card(
                 "Retornos Vencidos",
                 (string) $lateLeads,
                 "event_busy",
@@ -210,7 +211,7 @@ final class DashboardsRuntimeOperations03
             e(
                 $target > 0
                     ? "O ritmo esperado para hoje é " .
-                        manager_percent_label($expectedPct) .
+                        DashboardsPresentationOperations01::manager_percent_label($expectedPct) .
                         ". A meta está calculada sobre " .
                         $goalBaseLabel .
                         " e considera os dias úteis restantes."
@@ -232,12 +233,12 @@ final class DashboardsRuntimeOperations03
             ($ticket > 0 ? money_br($ticket) : "—") .
             "</b><small>ticket médio efetivado</small></span></div></section>";
         $actions = [];
-        $paymentRejected = manager_metric_val(
+        $paymentRejected = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_notices n LEFT JOIN pi_notice_reads nr ON nr.notice_id=n.id AND nr.user_id=? WHERE n.clinic_id=? AND n.title='Pagamento não confirmado' AND (nr.hidden_at IS NULL)",
             [(int) $c["user"]["id"], $cid],
         );
         if ($paymentRejected > 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "upload_file",
                 "Pagamento não confirmado",
                 "Envie o comprovante de pagamento em Meu Consultório > Assinatura para nova conferência.",
@@ -246,7 +247,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($target <= 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "flag",
                 "Definir meta mensal",
                 "Sem meta, o sistema não consegue orientar ritmo, faltante e tendência financeira.",
@@ -254,7 +255,7 @@ final class DashboardsRuntimeOperations03
                 "Configurar",
             );
         } elseif ($goalPct + 5 < $expectedPct) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "trending_down",
                 "Meta abaixo do ritmo",
                 "Revise agenda, conversão de interessados e receitas previstas para recuperar o mês.",
@@ -263,7 +264,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($leadsNoNext > 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "person_search",
                 $leadsNoNext . " interessado(s) sem próxima ação",
                 "Defina responsável, prazo ou próximo contato para não perder demanda.",
@@ -272,7 +273,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($lateLeads > 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "event_repeat",
                 $lateLeads . " retorno(s) vencido(s)",
                 "Há interessados com próximo contato vencido. Atualize prazo, responsável ou desfecho.",
@@ -281,7 +282,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($lateTasks > 0 || $unassignedTasks > 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "checklist",
                 $lateTasks .
                     " tarefa(s) atrasada(s) e " .
@@ -293,7 +294,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($overdueRevenue > 0) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "account_balance_wallet",
                 "Receitas previstas vencidas",
                 "Há " .
@@ -304,7 +305,7 @@ final class DashboardsRuntimeOperations03
             );
         }
         if ($estimatedOcc < 40) {
-            $actions[] = manager_action_card(
+            $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "event_busy",
                 "Ocupação estimada baixa",
                 "A ocupação estimada está abaixo de 40%; avalie retornos, encaixes e contatos pendentes.",
@@ -366,15 +367,15 @@ final class DashboardsRuntimeOperations03
             redirect("appointments");
         }
         if (($c["role"] ?? "") === "medico") {
-            page_medico_painel($c);
+            DashboardsRuntimeOperations01::page_medico_painel($c);
             return;
         }
         if (($c["role"] ?? "") === "recepcionista") {
-            page_recepcao_painel($c);
+            DashboardsRuntimeOperations01::page_recepcao_painel($c);
             return;
         }
         if (($c["role"] ?? "") === "assistente") {
-            page_triagem_painel($c);
+            DashboardsRuntimeOperations02::page_triagem_painel($c);
             return;
         }
         [$todayStart, $todayEnd] = app_local_day_utc_range(

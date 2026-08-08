@@ -18,8 +18,8 @@
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
-    "architecture_native_files_min": 277,
-    "architecture_transitional_files_max": 47,
+    "architecture_native_files_min": 278,
+    "architecture_transitional_files_max": 45,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
@@ -88,6 +88,18 @@
             "app/Runtime/Modules/RuntimeModuleComposition.php",
             "app/Runtime/Modules/RuntimeBootPolicy.php",
             "app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php"
+        ],
+        "app/Pages/Dashboards.php": [
+            "app/Runtime/Routing/PageDispatcher.php",
+            "app/Runtime/Dashboards/DashboardsRuntimeOperations01.php",
+            "app/Runtime/Dashboards/DashboardsRuntimeOperations02.php",
+            "app/Runtime/Dashboards/DashboardsRuntimeOperations03.php",
+            "app/Presentation/Dashboards/DashboardsPresentationOperations01.php"
+        ],
+        "app/Ui/PublicWeb.php": [
+            "app/Runtime/Routing/PageDispatcher.php",
+            "app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php",
+            "app/Presentation/PublicWeb/PublicWebEscapeOperation.php"
         ]
     },
     "native_consolidation_path_decompositions": {

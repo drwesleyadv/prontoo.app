@@ -4,8 +4,8 @@
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 277,
-    "transitional_files_max": 47,
+    "native_files_min": 278,
+    "transitional_files_max": 45,
     "native_migration_policy": "effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
@@ -72,7 +72,9 @@
         "app/Support/ModuleLoader.php",
         "app/Support/FinancialGuard.php",
         "app/Ui/SpeedChartGeometry.php",
-        "app/bootstrap_specialized.php"
+        "app/bootstrap_specialized.php",
+        "app/Pages/Dashboards.php",
+        "app/Ui/PublicWeb.php"
     ],
     "compatibility_boundaries": [],
     "database_changes": false,

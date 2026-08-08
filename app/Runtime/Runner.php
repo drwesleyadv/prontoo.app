@@ -15,6 +15,7 @@ use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
 use Prontoo\Runtime\Modules\RuntimeModuleComposition;
 use Prontoo\Runtime\FinancialGuard\FinancialGuardRuntimeOperations01;
 use Prontoo\Runtime\Routing\RouteCatalog;
+use Prontoo\Runtime\Routing\PageDispatcher;
 use Throwable;
 
 final class Runner
@@ -136,11 +137,14 @@ final class Runner
             if ($route !== 'logout' && !$publicStatus) {
                 RuntimeBootCoordinator::flushIntegrityBeforeRender();
             }
-            $page = in_array($route, RouteCatalog::all(), true) ? 'page_' . $route : 'page_home';
-            if (!function_exists($page)) {
-                throw new \RuntimeException('Rota sem função de página: ' . $page);
+            $effectiveRoute = in_array($route, RouteCatalog::all(), true) ? $route : 'home';
+            if (!PageDispatcher::dispatch($effectiveRoute)) {
+                $page = 'page_' . $effectiveRoute;
+                if (!function_exists($page)) {
+                    throw new \RuntimeException('Rota sem função de página: ' . $page);
+                }
+                $page();
             }
-            $page();
         } catch (Throwable $error) {
             if (function_exists('financial_cash_debug_request_active') &&
                 \financial_cash_debug_request_active() &&
