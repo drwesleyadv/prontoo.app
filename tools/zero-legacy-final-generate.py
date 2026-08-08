@@ -43,15 +43,16 @@ for path in facades:
             if (root/candidate).is_file(): targets.append(candidate)
     facade_targets[path]=sorted(set(targets))
 
-# Replace direct global calls and explicit callable probes.
 def replace_calls(source):
     for name,target in sorted(mapping.items(),key=lambda kv:len(kv[0]),reverse=True):
         cls,method=target.split('::',1)
         qname=re.escape(name)
-        source=re.sub(r"function_exists\(\s*(['\"])"+qname+r"\1\s*\)", f"is_callable([{cls}::class, '{method}'])", source)
-        source=re.sub(r"is_callable\(\s*(['\"])"+qname+r"\1\s*\)", f"is_callable([{cls}::class, '{method}'])", source)
-        source=re.sub(r"call_user_func\(\s*(['\"])"+qname+r"\1\s*,", f"call_user_func([{cls}::class, '{method}'],", source)
-        source=re.sub(r"(?<![A-Za-z0-9_])\\"+qname+r"\s*\(", target+'(', source)
+        repl_probe=f"is_callable([{cls}::class, '{method}'])"
+        source=re.sub(r"function_exists\(\s*(['\"])"+qname+r"\1\s*\)", lambda _m, v=repl_probe: v, source)
+        source=re.sub(r"is_callable\(\s*(['\"])"+qname+r"\1\s*\)", lambda _m, v=repl_probe: v, source)
+        repl_callback=f"call_user_func([{cls}::class, '{method}'],"
+        source=re.sub(r"call_user_func\(\s*(['\"])"+qname+r"\1\s*,", lambda _m, v=repl_callback: v, source)
+        source=re.sub(r"(?<![A-Za-z0-9_])\\"+qname+r"\s*\(", lambda _m, v=target+'(': v, source)
         pattern=re.compile(r"(?<![A-Za-z0-9_\\:>])"+qname+r"\s*\(")
         pieces=[]; pos=0
         for m in pattern.finditer(source):
@@ -73,7 +74,6 @@ for base in ['app','br','public','cron','tools']:
         changed=replace_calls(source)
         if changed!=source: file.write_text(changed)
 
-# Remove facade paths from executable composition/contracts where they were load requirements.
 path_hosts=[
 'app/bootstrap_architecture.php','app/Runtime/Modules/RuntimeModuleCatalog.php','app/Core/Install/RuntimeContract.php',
 'app/Core/Architecture/ArchitectureVerifier.php','tools/architecture-check.php','tools/solid-audit']
@@ -88,7 +88,6 @@ for host in path_hosts:
         kept.append(line)
     file.write_text(''.join(kept))
 
-# Remove deleted global names from the requiredCoreFunctions contract only.
 rc=root/'app/Core/Install/RuntimeContract.php'
 src=rc.read_text()
 marker='public static function requiredCoreFunctions(): array'
@@ -108,7 +107,6 @@ if start>=0:
     src=src[:brace+1]+''.join(block_lines)+src[end-1:]
     rc.write_text(src)
 
-# Build a fully native route dispatcher for every page_* wrapper plus handlers already migrated earlier.
 handlers={
 'home': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations01::page_home',
 'painel': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations03::page_painel',
@@ -165,7 +163,6 @@ final class PageDispatcher
 """ % '\n'.join(entries)
 (root/'app/Runtime/Routing/PageDispatcher.php').write_text(page_dispatcher)
 
-# No fallback to global page_* functions remains.
 runner=root/'app/Runtime/Runner.php'
 r=runner.read_text()
 old="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
@@ -183,11 +180,9 @@ new="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
 if old not in r: raise SystemExit('Runner global page fallback shape changed')
 runner.write_text(r.replace(old,new,1))
 
-# Remove facade files.
 for path in facades:
     (root/path).unlink()
 
-# Canonical migration contracts.
 version_path=root/'version.json'; version=json.loads(version_path.read_text())
 version['architecture_transitional_files_max']=21
 baseline=json.loads((root/'docs/audits/php84-conformance-1.8.6.1.json').read_text())
@@ -210,7 +205,6 @@ manifest['solid_runtime_composition_policy']='native_runtime_composition_without
 manifest['solid_runtime_runner_policy']='native_route_catalog_json_boot_dispatch_and_feature_composition_without_global_api_facades'
 manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=4,separators=(',',': '))+'\n')
 
-# Documentation now distinguishes zero legacy from legitimate procedural entrypoints/tools.
 for path in ['README.md','docs/architecture/overview.md','docs/architecture/layers.md','docs/architecture/responsibility-map.md','docs/architecture/dependencies.md','CONTRIBUTING.md']:
     file=root/path
     if not file.exists(): continue
@@ -220,11 +214,9 @@ for path in ['README.md','docs/architecture/overview.md','docs/architecture/laye
     text=text.replace('compatibilidade remanescente permanece explicitamente classificada e limitada','não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas')
     file.write_text(text)
 
-# Remove the temporary migration harness from the final product.
 harness=root/'.github/workflows/zero-legacy-migration.yml'
 if harness.exists(): harness.unlink()
 
-# Fail if an executable PHP file still references a deleted facade path or calls/probes a deleted global function.
 residual=[]
 for base in ['app','br','public','cron','tools']:
     b=root/base
