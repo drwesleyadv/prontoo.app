@@ -12,8 +12,6 @@ jobs:
   final:
     if: github.head_ref == 'agent/zero-legacy-final'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout final branch
         uses: actions/checkout@v4
@@ -41,16 +39,10 @@ jobs:
           php tools/version-asset-contract-check.php
           php tools/php84-runtime-contract-check
           find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null
-      - name: Materialize validated tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'Prontoo Architecture Bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          if git diff --cached --quiet; then
-            echo 'No generated changes to materialize.'
-            exit 0
-          fi
-          git commit -m 'Zero legacy: eliminar todas as fronteiras transitórias'
-          git push origin HEAD:agent/zero-legacy-final
+          tar --exclude=.git --exclude=ssd --exclude=vendor --exclude=node_modules -czf /tmp/zero-legacy-final.tar.gz .
+      - name: Upload validated final tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-legacy-final-tree
+          path: /tmp/zero-legacy-final.tar.gz
+          if-no-files-found: error
