@@ -18,6 +18,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Robots-Tag: noindex, nofollow, noarchive');
 
 $root = __DIR__;
+$home = dirname($root);
 $configured = trim((string) ini_get('error_log'));
 $candidates = [];
 if ($configured !== '') {
@@ -26,20 +27,53 @@ if ($configured !== '') {
         $candidates[] = $root . '/' . $configured;
     }
 }
-$candidates[] = $root . '/runtime.log';
-$candidates[] = $root . '/ssd/runtime.log';
-$candidates[] = $root . '/storage/runtime.log';
+foreach ([
+    $root . '/runtime.log',
+    $root . '/app/runtime.log',
+    $root . '/logs/runtime.log',
+    $root . '/ssd/runtime.log',
+    $root . '/ssd/logs/runtime.log',
+    $root . '/storage/runtime.log',
+    $home . '/runtime.log',
+    $home . '/logs/runtime.log',
+    $home . '/logs/php_error.log',
+    $home . '/logs/error_log',
+] as $candidate) {
+    $candidates[] = $candidate;
+}
+foreach ([
+    $root . '/*.log',
+    $root . '/logs/*.log',
+    $root . '/app/*.log',
+    $root . '/ssd/*.log',
+    $root . '/ssd/logs/*.log',
+    $home . '/*.log',
+    $home . '/logs/*.log',
+] as $pattern) {
+    foreach ((glob($pattern) ?: []) as $candidate) {
+        $candidates[] = $candidate;
+    }
+}
 
 $selected = null;
+$readable = [];
 foreach (array_values(array_unique($candidates)) as $candidate) {
     if (is_file($candidate) && is_readable($candidate)) {
-        $selected = $candidate;
-        break;
+        $readable[] = $candidate;
+        if ($selected === null && (basename($candidate) === 'runtime.log' || str_contains(strtolower(basename($candidate)), 'runtime'))) {
+            $selected = $candidate;
+        }
     }
+}
+if ($selected === null && $readable !== []) {
+    usort($readable, static fn(string $a, string $b): int => ((int) @filemtime($b)) <=> ((int) @filemtime($a)));
+    $selected = $readable[0];
 }
 
 if ($selected === null) {
     echo "runtime_log=[none]\n";
+    echo 'configured=' . ($configured !== '' ? basename($configured) : '[empty]') . "\n";
+    echo 'readable_logs=0' . "\n";
     exit;
 }
 
@@ -76,11 +110,12 @@ $raw = preg_replace('/(Bearer\s+)[A-Za-z0-9._~+\/-]+=*/i', '$1[REDACTED]', $raw)
 $raw = preg_replace('/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i', '[EMAIL]', $raw) ?? $raw;
 $raw = preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[IP]', $raw) ?? $raw;
 $raw = preg_replace('/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/', '[CPF]', $raw) ?? $raw;
-$raw = str_replace($root, '[ROOT]', $raw);
+$raw = str_replace([$root, $home], ['[ROOT]', '[HOME]'], $raw);
 
 echo 'expires_utc=' . gmdate('c', PRONTOO_RUNTIME_LOG_PUBLIC_EXPIRES_AT) . "\n";
 echo 'runtime_log=' . basename($selected) . "\n";
 echo 'size=' . $size . "\n";
+echo 'readable_logs=' . count($readable) . "\n";
 echo 'today_lines=' . count($today) . "\n";
 echo "----- today sanitized -----\n";
 echo $raw . "\n";
