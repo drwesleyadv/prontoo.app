@@ -62,10 +62,26 @@ def replace_calls(source):
     source=callback_pattern.sub(callback_repl,source)
     def direct_repl(m):
         prefix=m.string[max(0,m.start()-24):m.start()]
-        if re.search(r'function\s*$',prefix):
-            return m.group(0)
+        if re.search(r'function\s*$',prefix): return m.group(0)
         return mapping[m.group(1)]+'('
     return direct_pattern.sub(direct_repl,source)
+
+# The public landing used the telemetry facade before registering the native autoloader.
+br_file=root/'br/index.php'; br=br_file.read_text()
+support_require='require_once dirname(__DIR__) . "/app/Support/Telemetry.php";'
+autoload_require='require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";'
+if support_require not in br: raise SystemExit('landing telemetry facade require shape changed')
+br=br.replace(support_require,autoload_require,1)
+first=br.find(autoload_require); second=br.find(autoload_require,first+len(autoload_require))
+if second>=0: br=br[:second]+br[second+len(autoload_require):]
+br_file.write_text(br)
+
+# This loader method must target the native guard rather than the removed financial facade.
+loader=root/'app/Runtime/Modules/RuntimeModuleLoader.php'; loader_source=loader.read_text()
+old_guard="$this->requireModule('Domain/Financial/Financial.php');"
+new_guard="$this->requireModule('Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php');"
+if old_guard not in loader_source: raise SystemExit('financial guard loader shape changed')
+loader.write_text(loader_source.replace(old_guard,new_guard,1))
 
 excluded=set(facades+['tools/zero-legacy-final-generate.py'])
 for base in ['app','br','public','cron','tools']:
@@ -77,15 +93,15 @@ for base in ['app','br','public','cron','tools']:
         source=file.read_text(); changed=replace_calls(source)
         if changed!=source: file.write_text(changed)
 
-path_hosts=[
-'app/bootstrap_architecture.php','app/Runtime/Modules/RuntimeModuleCatalog.php','app/Core/Install/RuntimeContract.php',
-'app/Core/Architecture/ArchitectureVerifier.php','tools/architecture-check.php','tools/solid-audit']
+# Remove facade modules from composition/load lists; source metadata is intentionally preserved.
+path_hosts=['app/bootstrap_architecture.php','app/Runtime/Modules/RuntimeModuleCatalog.php','app/Core/Install/RuntimeContract.php']
 for host in path_hosts:
     file=root/host
     if not file.exists(): continue
     lines=file.read_text().splitlines(True)
     file.write_text(''.join(line for line in lines if not any((p in line or p.removeprefix('app/') in line) for p in facades)))
 
+# Global function runtime contract now contains only functions that still exist as canonical procedural primitives.
 rc=root/'app/Core/Install/RuntimeContract.php'; src=rc.read_text()
 marker='public static function requiredCoreFunctions(): array'; start=src.find(marker)
 if start>=0:
@@ -100,6 +116,7 @@ if start>=0:
     block=''.join(line for line in block.splitlines(True) if not name_line.search(line))
     src=src[:brace+1]+block+src[end-1:]; rc.write_text(src)
 
+# Native route dispatch replaces every page_* facade and eliminates dynamic global page invocation.
 handlers={
 'home': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations01::page_home',
 'painel': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations03::page_painel',
@@ -144,9 +161,7 @@ final class PageDispatcher
     public static function dispatch(string $route): bool
     {
         $handler = self::HANDLERS[$route] ?? null;
-        if (!is_array($handler) || count($handler) !== 2) {
-            return false;
-        }
+        if (!is_array($handler) || count($handler) !== 2) return false;
         [$class, $method] = $handler;
         $class::$method();
         return true;
@@ -170,16 +185,49 @@ new="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
 if old not in r: raise SystemExit('Runner global page fallback shape changed')
 runner.write_text(r.replace(old,new,1))
 
-for path in facades: (root/path).unlink()
-
+# Preserve historical action-source identifiers through an explicit path-migration map.
 version_path=root/'version.json'; version=json.loads(version_path.read_text())
 version['architecture_transitional_files_max']=21
+version['architecture_source_path_migrations']={path:(targets[0] if len(targets)==1 else targets) for path,targets in facade_targets.items()}
 baseline=json.loads((root/'docs/audits/php84-conformance-1.8.6.1.json').read_text())
 baseline_paths={str(x.get('path','')) for x in baseline.get('files',[]) if isinstance(x,dict)}
-migrations=version.setdefault('php84_baseline_path_migrations',{})
+php84=version.setdefault('php84_baseline_path_migrations',{})
 for path,targets in facade_targets.items():
-    if path in baseline_paths: migrations[path]=targets[0] if len(targets)==1 else targets
+    if path in baseline_paths: php84[path]=targets[0] if len(targets)==1 else targets
 version_path.write_text(json.dumps(version,ensure_ascii=False,indent=4,separators=(',',': '))+'\n')
+
+resolver=root/'app/Core/Architecture/CompatibilitySourceResolver.php'; rs=resolver.read_text()
+old_missing="""        $file = $root . '/' . $relative;
+        if (!is_file($file)) {
+            return array_keys($paths);
+        }
+        $source = (string) file_get_contents($file);
+"""
+new_missing="""        $file = $root . '/' . $relative;
+        if (!is_file($file)) {
+            $versionFile = $root . '/version.json';
+            $version = is_file($versionFile)
+                ? json_decode((string) file_get_contents($versionFile), true)
+                : null;
+            $key = str_starts_with($relative, 'app/') ? $relative : 'app/' . $relative;
+            $targets = is_array($version)
+                ? ($version['architecture_source_path_migrations'][$key] ?? [])
+                : [];
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $target = mb_ltrim((string) $target, '/');
+                if ($target !== '' && is_file($root . '/' . $target)) {
+                    $paths[$target] = true;
+                }
+            }
+            return array_keys($paths);
+        }
+        $source = (string) file_get_contents($file);
+"""
+if old_missing not in rs: raise SystemExit('source resolver shape changed')
+resolver.write_text(rs.replace(old_missing,new_missing,1))
+
+for path in facades: (root/path).unlink()
 
 manifest_path=root/'app/architecture.manifest.json'; manifest=json.loads(manifest_path.read_text())
 manifest['transitional_files_max']=21; manifest['compatibility_boundaries']=[]
@@ -187,7 +235,7 @@ removed=list(manifest.get('removed_legacy_files',[]))
 for path in facades:
     if path not in removed: removed.append(path)
 manifest['removed_legacy_files']=removed
-manifest['native_migration_policy']='zero_legacy_facades_transitional_entrypoints_views_cron_and_contract_tools_only_ceiling_21'
+manifest['native_migration_policy']='zero_legacy_facades_entrypoints_views_cron_and_contract_tools_only_ceiling_21'
 manifest['solid_runtime_composition_policy']='native_runtime_composition_without_global_compatibility_facades'
 manifest['solid_runtime_runner_policy']='native_route_catalog_json_boot_dispatch_and_feature_composition_without_global_api_facades'
 manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=4,separators=(',',': '))+'\n')
@@ -198,11 +246,12 @@ for path in ['README.md','docs/architecture/overview.md','docs/architecture/laye
         text=file.read_text().replace('fronteiras transitórias/compatíveis','entrypoints e ferramentas procedurais não classificados como unidades nativas').replace('compatibilidade remanescente permanece explicitamente classificada e limitada','não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas')
         file.write_text(text)
 
+# The migration harness is not part of the final product.
 harness=root/'.github/workflows/zero-legacy-migration.yml'
 if harness.exists(): harness.unlink()
 
+# Zero executable legacy: no removed globals and no physical runtime loads of removed facade files.
 residual=[]
-facade_tokens=[token for path in facades for token in (path,path.removeprefix('app/'))]
 for base in ['app','br','public','cron','tools']:
     b=root/base
     if not b.exists(): continue
@@ -210,13 +259,15 @@ for base in ['app','br','public','cron','tools']:
         rel=file.relative_to(root).as_posix()
         if rel=='tools/zero-legacy-final-generate.py': continue
         text=file.read_text()
-        for token in facade_tokens:
-            if token in text: residual.append(f'{rel}:path:{token}')
         for m in direct_pattern.finditer(text):
             prefix=text[max(0,m.start()-24):m.start()]
             if not re.search(r'function\s*$',prefix): residual.append(f'{rel}:call:{m.group(1)}')
         for m in probe_pattern.finditer(text): residual.append(f'{rel}:probe:{m.group(2)}')
+for path in facades:
+    if (root/path).exists(): residual.append(f'file-present:{path}')
+if 'Support/Telemetry.php' in (root/'br/index.php').read_text(): residual.append('landing-loads-telemetry-facade')
+if 'Domain/Financial/Financial.php' in (root/'app/Runtime/Modules/RuntimeModuleLoader.php').read_text(): residual.append('loader-loads-financial-facade')
 if residual:
-    print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2)); raise SystemExit('legacy residuals remain')
+    print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2)); raise SystemExit('executable legacy residuals remain')
 
-print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21},indent=2))
+print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21,'source_migrations':len(facade_targets)},indent=2))
