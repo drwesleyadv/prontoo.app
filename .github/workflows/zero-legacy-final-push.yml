@@ -36,22 +36,39 @@ jobs:
           php -r 'if (PHP_MAJOR_VERSION!==8 || PHP_MINOR_VERSION!==4) {fwrite(STDERR, PHP_VERSION.PHP_EOL); exit(1);}'
       - name: Generate and validate
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
-          python3 tools/zero-legacy-final-generate.py
+          set -uo pipefail
+          LOG=/tmp/zero-legacy-final.log
+          : > "$LOG"
+          exec > >(tee -a "$LOG") 2>&1
+          fail() {
+            rc=$?
+            echo "FAILED_STEP=$1" >> "$LOG"
+            cp "$LOG" zero-legacy-final-failure.log
+            git config user.name 'Prontoo Architecture Bot'
+            git config user.email 'actions@users.noreply.github.com'
+            git add zero-legacy-final-failure.log
+            git commit -m 'Diagnóstico zero legacy: falha em validação [skip ci]' || true
+            git push origin HEAD:agent/zero-legacy-final || true
+            exit "$rc"
+          }
+          python3 tools/zero-legacy-final-generate.py || fail generate
           rm tools/zero-legacy-final-generate.py
           rm -f .github/workflows/zero-legacy-migration.yml
           rm -f .github/workflows/zero-legacy-final-readonly.yml
           rm -f .github/workflows/zero-legacy-final-push.yml
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --check
-          php tools/native-unit-check
-          php tools/architecture-check.php
-          php tools/solid-audit --strict
-          php tools/security-regression-check.php
-          php tools/version-asset-contract-check.php
-          php tools/php84-runtime-contract-check
-          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null
+          rm -f zero-legacy-final-failure.log
+          php tools/release-contract-reconcile --write || fail release-write
+          php tools/release-contract-reconcile --check || fail release-check
+          php tools/native-unit-check || fail native-unit
+          php tools/architecture-check.php || fail architecture
+          php tools/solid-audit --strict || fail solid
+          php tools/security-regression-check.php || fail security
+          php tools/version-asset-contract-check.php || fail assets
+          php tools/php84-runtime-contract-check || fail php84
+          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null || fail lint
       - name: Commit validated tree
         shell: bash
         run: |
