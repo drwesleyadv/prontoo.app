@@ -2,25 +2,46 @@
 
 ## Objetivo
 
-Demonstrar comportamento correto, falha segura e preservação das invariantes.
+Demonstrar comportamento correto, falha segura, preservação das invariantes e ausência de regressão estrutural na arquitetura consolidada.
 
 ## Níveis
 
-**Unitários:** decisões puras, normalização, cálculos e máquinas de estado.  
-**Integração:** banco, transações, escopo, filas e armazenamento.  
-**HTTP:** autenticação, CSRF, contratos de ação e respostas.  
+**Unitários:** decisões puras, normalização, cálculos, policies e máquinas de estado.  
+**Integração:** MySQL, transações, escopo, repositórios PDO, filas e armazenamento.  
+**HTTP:** autenticação, CSRF, contratos exatos de ação, roteamento e respostas.  
+**Runtime:** boot, resolução de símbolos, prontidão pós-senha, Maestro e composição.  
 **End-to-end:** fluxos essenciais vistos pelo usuário.  
-**Propriedades:** integridade financeira, auditoria, tempo e idempotência.  
+**Propriedades:** integridade financeira, auditoria, tempo, idempotência e isolamento.  
+**Arquitetura:** classificação, dependências, SOLID, contratos de release e ausência de tombstones/unidades inválidas.  
 **Operacionais:** instalação, deploy, rollback e recuperação.
 
-## Pirâmide
+## CI canônica
 
-A maioria dos testes deve ser rápida e determinística. Testes de integração cobrem fronteiras reais. End-to-end fica restrito aos caminhos críticos.
+`.github/workflows/architecture.yml` executa em PHP 8.4 e MySQL 8 reais e cobre, entre outros gates:
+
+- sintaxe e depreciações PHP 8.4;
+- contratos JSON canônicos;
+- documentação e política sem comentários inline;
+- regressões de segurança;
+- invariantes arquiteturais;
+- resolução de símbolos internos;
+- auditoria estrutural SOLID;
+- contrato de schema;
+- segurança do instalador;
+- regressão do runtime pós-senha;
+- regressão do Maestro;
+- smoke matrix do runtime crítico.
+
+O Documentation Contract executa `release-contract-reconcile --check` em modo read-only: divergência de release deve falhar, não gerar commit automático.
+
+## Hot path
+
+Há regressão específica para garantir que login pós-senha execute prontidão mínima sem trazer manutenção profunda para o caminho síncrono. Cache/lock indisponível deve preservar schema contract e integrity lightcheck via fallback sem cache.
 
 ## Casos negativos
 
-Toda área sensível deve testar ausência de permissão, tenant incorreto, estado indeterminado, repetição, concorrência, entrada inválida e indisponibilidade de dependência.
+Toda área sensível testa ausência de permissão, tenant incorreto, estado indeterminado, repetição, concorrência, entrada inválida e indisponibilidade de dependência. A regra é fail-closed, exceto fallbacks explicitamente desenhados para preservar a mesma validação sem depender de cache.
 
 ## Ambiente
 
-CI usa PHP 8.4 e MySQL 8.0. Dados de teste são sintéticos e não contêm informações reais.
+Web, CLI e CI pertencem exclusivamente à família PHP 8.4. CI usa MySQL 8 real para contratos que dependem do banco. Dados de teste são sintéticos e não contêm informações reais.
