@@ -1,0 +1,65 @@
+name: Zero Legacy Public Finalizer
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.event.issue.title == 'ZERO LEGACY PUBLIC FINALIZE'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout final branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-final
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Generate, validate and persist result
+        shell: bash
+        run: |
+          set -uo pipefail
+          LOG=/tmp/zero-legacy-public-finalizer.log
+          : > "$LOG"
+          exec > >(tee -a "$LOG") 2>&1
+          fail() {
+            rc=$?
+            echo "FAILED_STEP=$1" >> "$LOG"
+            cp "$LOG" zero-legacy-final-failure.log
+            git config user.name 'Prontoo Architecture Bot'
+            git config user.email 'actions@users.noreply.github.com'
+            git add zero-legacy-final-failure.log
+            git commit -m "Diagnóstico zero legacy: falha em $1 [skip ci]" || true
+            git push origin HEAD:agent/zero-legacy-final || true
+            exit "$rc"
+          }
+          python3 tools/zero-legacy-final-generate.py || fail generate
+          python3 tools/zero-legacy-root-entrypoints-fix.py || fail root-entrypoints
+          rm tools/zero-legacy-final-generate.py
+          rm tools/zero-legacy-root-entrypoints-fix.py
+          rm -f zero-legacy-final-failure.log
+          rm -f .github/workflows/zero-legacy-migration.yml
+          rm -f .github/workflows/zero-legacy-final-readonly.yml
+          rm -f .github/workflows/zero-legacy-final-push.yml
+          php tools/release-contract-reconcile --write || fail release-write
+          php tools/release-contract-reconcile --check || fail release-check
+          php tools/native-unit-check || fail native-unit
+          php tools/architecture-check.php || fail architecture
+          php tools/solid-audit --strict || fail solid
+          php tools/security-regression-check.php || fail security
+          php tools/version-asset-contract-check.php || fail assets
+          php tools/php84-runtime-contract-check || fail php84
+          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null || fail lint
+          git config user.name 'Prontoo Architecture Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Zero legacy: materializar árvore final validada' || true
+          git push origin HEAD:agent/zero-legacy-final
