@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Domain\Leads\LeadsDomainOperations01;
 
 final class LeadsRuntimeOperations01
 {
@@ -59,7 +60,7 @@ final class LeadsRuntimeOperations01
     ): ?array 
     {
     
-        $phoneDigits = lead_phone_digits($phoneDigits);
+        $phoneDigits = self::lead_phone_digits($phoneDigits);
         if ($cid <= 0 || $phoneDigits === "") {
             return null;
         }
@@ -73,7 +74,7 @@ final class LeadsRuntimeOperations01
         }
         return one(
             "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at,updated_at FROM pi_leads WHERE $where ORDER BY CASE WHEN " .
-                lead_active_stage_sql("stage") .
+                LeadsDomainOperations01::lead_active_stage_sql("stage") .
                 " THEN 0 WHEN stage='arquivado' THEN 1 ELSE 2 END, COALESCE(updated_at,created_at) DESC, id DESC LIMIT 1",
             $params,
         ) ?:
@@ -102,8 +103,8 @@ final class LeadsRuntimeOperations01
         ensure_lead_events_schema();
         $eventType = preg_replace("/[^a-z0-9_\-]/i", "", $eventType) ?: "contato";
         $stageFrom =
-            trim($stageFrom) !== "" ? lead_stage_normalize($stageFrom) : "";
-        $stageTo = trim($stageTo) !== "" ? lead_stage_normalize($stageTo) : "";
+            trim($stageFrom) !== "" ? LeadsDomainOperations01::lead_stage_normalize($stageFrom) : "";
+        $stageTo = trim($stageTo) !== "" ? LeadsDomainOperations01::lead_stage_normalize($stageTo) : "";
         $body = trim($body);
         if ($body === "") {
             $body =
@@ -223,7 +224,7 @@ final class LeadsRuntimeOperations01
     
     {
     
-        $phoneDigits = lead_phone_digits($phoneDigits);
+        $phoneDigits = self::lead_phone_digits($phoneDigits);
         if ($cid <= 0 || strlen($phoneDigits) < 10) {
             return null;
         }
@@ -297,7 +298,7 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $phoneDigits = lead_phone_digits((string) ($_GET["phone"] ?? ""));
+        $phoneDigits = self::lead_phone_digits((string) ($_GET["phone"] ?? ""));
         if (strlen($phoneDigits) < 10) {
             echo json_encode(
                 [
@@ -309,9 +310,9 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $lead = lead_find_by_phone($cid, $phoneDigits);
+        $lead = self::lead_find_by_phone($cid, $phoneDigits);
         if (!$lead) {
-            $patient = lead_patient_by_phone($cid, $phoneDigits);
+            $patient = self::lead_patient_by_phone($cid, $phoneDigits);
             if ($patient) {
                 echo json_encode(
                     [
@@ -366,7 +367,7 @@ final class LeadsRuntimeOperations01
                 "phone" => (string) ($lead["phone"] ?? phone_br($phoneDigits)),
                 "source" => (string) ($lead["source"] ?? ""),
                 "interest" => (string) ($lead["interest"] ?? ""),
-                "stage" => lead_stage_normalize(
+                "stage" => LeadsDomainOperations01::lead_stage_normalize(
                     (string) ($lead["stage"] ?? "em_aberto"),
                 ),
                 "next_action_at" => $next,
@@ -463,7 +464,7 @@ final class LeadsRuntimeOperations01
                     ? "Este interessado já era paciente. Ao concluir, o interesse será arquivado."
                     : "Dados encontrados e preenchidos automaticamente.",
                 "name" => (string) ($person["full_name"] ?? ""),
-                "cpf" => lead_cpf_br((string) ($person["cpf"] ?? "")),
+                "cpf" => self::lead_cpf_br((string) ($person["cpf"] ?? "")),
                 "birth_date" => app_date_input_from_storage(
                     $person["birth_date"] ?? "",
                 ),

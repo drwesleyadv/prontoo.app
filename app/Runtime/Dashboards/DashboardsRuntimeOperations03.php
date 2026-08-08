@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Domain\Leads\LeadsDomainOperations01;
 use Prontoo\Presentation\Dashboards\DashboardsPresentationOperations01;
 
 final class DashboardsRuntimeOperations03
@@ -57,18 +58,18 @@ final class DashboardsRuntimeOperations03
         \RoundingMode::HalfAwayFromZero);
         $activeLeads = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                lead_active_stage_sql("stage"),
+                LeadsDomainOperations01::lead_active_stage_sql("stage"),
             [$cid],
         );
         $leadsNoNext = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                lead_active_stage_sql("stage") .
+                LeadsDomainOperations01::lead_active_stage_sql("stage") .
                 " AND next_action_at IS NULL",
             [$cid],
         );
         $lateLeads = DashboardsRuntimeOperations02::manager_metric_val(
             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                lead_active_stage_sql("stage") .
+                LeadsDomainOperations01::lead_active_stage_sql("stage") .
                 " AND next_action_at IS NOT NULL AND next_action_at<NOW()",
             [$cid],
         );

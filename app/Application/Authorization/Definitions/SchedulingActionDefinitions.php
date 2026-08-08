@@ -11,7 +11,7 @@ final class SchedulingActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $leads = 'Domain/Leads/Leads.php';
+        $leads = 'Runtime/Leads/LeadsRuntimeOperations02.php';
         $appointments = 'Domain/Appointments/Appointments.php';
 
         $definitions->add('leads', ['__default__', 'save'], 'clinic', $leads, ['leads:add'], ['leads:add']);

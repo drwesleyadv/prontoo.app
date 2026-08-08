@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Domain\Leads\LeadsDomainOperations01;
 
 final class LeadsRuntimeOperations02
 {
@@ -34,7 +35,7 @@ final class LeadsRuntimeOperations02
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
         ensure_lead_events_schema();
-        $stageOptions = lead_stage_options();
+        $stageOptions = LeadsDomainOperations01::lead_stage_options();
         $editableStageOptions = [
             "em_aberto" => "Em Aberto",
             "aguarda_retorno" => "Aguarda retorno",
@@ -43,7 +44,7 @@ final class LeadsRuntimeOperations02
         $stageLabels = $stageOptions;
         $stageClass = function (string $stage): string {
     
-            $stage = lead_stage_normalize($stage);
+            $stage = LeadsDomainOperations01::lead_stage_normalize($stage);
             return preg_replace("/[^a-z0-9_-]+/i", "-", $stage) ?: "em_aberto";
         };
         $leadTime = function (?string $v) use ($cid, $c): string {
@@ -70,21 +71,21 @@ final class LeadsRuntimeOperations02
                     $postedCpf = only_digits((string) ($_POST["cpf"] ?? ""));
                     $existingPatient =
                         $postedCpf !== ""
-                            ? lead_patient_by_cpf($cid, $postedCpf)
+                            ? LeadsRuntimeOperations01::lead_patient_by_cpf($cid, $postedCpf)
                             : null;
                     $leadPersonId = (int) ($lead["person_id"] ?? 0);
                     if (
                         $existingPatient &&
                         (int) ($existingPatient["person_id"] ?? 0) !== $leadPersonId
                     ) {
-                        $oldStage = lead_stage_normalize(
+                        $oldStage = LeadsDomainOperations01::lead_stage_normalize(
                             (string) ($lead["stage"] ?? "em_aberto"),
                         );
                         q(
                             "UPDATE pi_leads SET stage='arquivado', updated_at=NOW() WHERE id=? AND clinic_id=?",
                             [$leadId, $cid],
                         );
-                        lead_event_create(
+                        LeadsRuntimeOperations01::lead_event_create(
                             $cid,
                             $leadId,
                             $uid,
@@ -114,7 +115,7 @@ final class LeadsRuntimeOperations02
                         }
                         redirect("leads", ["status" => "arquivado"]);
                     }
-                    $pid = lead_prepare_person_for_patient($lead, $_POST, $cid);
+                    $pid = LeadsRuntimeOperations01::lead_prepare_person_for_patient($lead, $_POST, $cid);
                     q(
                         "INSERT INTO pi_patients (clinic_id,person_id,phone,notes,created_by,created_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE phone=COALESCE(NULLIF(VALUES(phone),''),phone), notes=COALESCE(NULLIF(VALUES(notes),''),notes), active=1, updated_at=NOW()",
                         [
@@ -133,11 +134,11 @@ final class LeadsRuntimeOperations02
                         "UPDATE pi_leads SET person_id=?, stage='convertido', updated_at=NOW() WHERE id=? AND clinic_id=?",
                         [$pid, $leadId, $cid],
                     );
-                    lead_event_create(
+                    LeadsRuntimeOperations01::lead_event_create(
                         $cid,
                         $leadId,
                         $uid,
-                        lead_stage_normalize(
+                        LeadsDomainOperations01::lead_stage_normalize(
                             (string) ($lead["stage"] ?? "em_aberto"),
                         ),
                         "convertido",
@@ -180,7 +181,7 @@ final class LeadsRuntimeOperations02
                     flash("Interessado não encontrado.", "bad");
                     redirect("leads");
                 }
-                $oldStage = lead_stage_normalize(
+                $oldStage = LeadsDomainOperations01::lead_stage_normalize(
                     (string) ($lead["stage"] ?? "em_aberto"),
                 );
                 if ($oldStage === "convertido") {
@@ -191,7 +192,7 @@ final class LeadsRuntimeOperations02
                     "UPDATE pi_leads SET stage='arquivado', updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [$leadId, $cid],
                 );
-                lead_event_create(
+                LeadsRuntimeOperations01::lead_event_create(
                     $cid,
                     $leadId,
                     $uid,
@@ -223,15 +224,15 @@ final class LeadsRuntimeOperations02
                     flash("Interessado não encontrado.", "bad");
                     redirect("leads");
                 }
-                $stage = lead_stage_normalize(
+                $stage = LeadsDomainOperations01::lead_stage_normalize(
                     (string) ($_POST["stage"] ?? "" ?: "em_aberto"),
                 );
                 if (!isset($editableStageOptions[$stage])) {
                     flash("Etapa do interessado inválida.", "bad");
                     redirect("leads");
                 }
-                $postedPhone = lead_phone_digits((string) ($_POST["phone"] ?? ""));
-                $currentPhone = lead_phone_digits(
+                $postedPhone = LeadsRuntimeOperations01::lead_phone_digits((string) ($_POST["phone"] ?? ""));
+                $currentPhone = LeadsRuntimeOperations01::lead_phone_digits(
                     (string) ($lead["phone_digits"] ?? ($lead["phone"] ?? "")),
                 );
                 if (
@@ -270,7 +271,7 @@ final class LeadsRuntimeOperations02
                     ],
                 );
                 if (isset($_POST["contact_event"])) {
-                    lead_event_create(
+                    LeadsRuntimeOperations01::lead_event_create(
                         $cid,
                         $leadId,
                         $uid,
@@ -298,7 +299,7 @@ final class LeadsRuntimeOperations02
                 redirect("leads", ["status" => $stage]);
             }
             if ($act === "save") {
-                $phoneDigits = lead_phone_digits((string) ($_POST["phone"] ?? ""));
+                $phoneDigits = LeadsRuntimeOperations01::lead_phone_digits((string) ($_POST["phone"] ?? ""));
                 if (strlen($phoneDigits) < 10) {
                     flash(
                         "Informe o telefone do interessado para iniciar ou continuar o histórico.",
@@ -326,7 +327,7 @@ final class LeadsRuntimeOperations02
                     );
                     redirect("leads");
                 }
-                $stage = lead_stage_normalize(
+                $stage = LeadsDomainOperations01::lead_stage_normalize(
                     (string) ($_POST["stage"] ?? "" ?: "em_aberto"),
                 );
                 if (!in_array($stage, ["em_aberto", "aguarda_retorno"], true)) {
@@ -334,7 +335,7 @@ final class LeadsRuntimeOperations02
                     redirect("leads");
                 }
                 try {
-                    $existing = lead_find_by_phone($cid, $phoneDigits);
+                    $existing = LeadsRuntimeOperations01::lead_find_by_phone($cid, $phoneDigits);
                     $next =
                         $leadTime((string) ($_POST["next_action_at"] ?? "")) ?:
                         null;
@@ -342,7 +343,7 @@ final class LeadsRuntimeOperations02
                     $interest = mb_trim((string) ($_POST["interest"] ?? ""));
                     $notes = mb_trim((string) ($_POST["notes"] ?? ""));
                     $patientByPhone = !$existing
-                        ? lead_patient_by_phone($cid, $phoneDigits)
+                        ? LeadsRuntimeOperations01::lead_patient_by_phone($cid, $phoneDigits)
                         : null;
                     if ($patientByPhone) {
                         audit(
@@ -364,7 +365,7 @@ final class LeadsRuntimeOperations02
                     }
                     if ($existing) {
                         $leadId = (int) $existing["id"];
-                        $oldStage = lead_stage_normalize(
+                        $oldStage = LeadsDomainOperations01::lead_stage_normalize(
                             (string) ($existing["stage"] ?? "em_aberto"),
                         );
                         if ($name === "") {
@@ -381,7 +382,7 @@ final class LeadsRuntimeOperations02
                         $stageTo =
                             $oldStage === "convertido"
                                 ? "convertido"
-                                : lead_stage_normalize($stage);
+                                : LeadsDomainOperations01::lead_stage_normalize($stage);
                         q(
                             "UPDATE pi_leads SET person_id=COALESCE(NULLIF(?,0),person_id), name=?, source=COALESCE(NULLIF(?,''),source), interest=COALESCE(NULLIF(?,''),interest), stage=?, next_action_at=COALESCE(?,next_action_at), notes=COALESCE(NULLIF(?,''),notes), phone_digits=COALESCE(NULLIF(phone_digits,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
                             [
@@ -397,7 +398,7 @@ final class LeadsRuntimeOperations02
                                 $cid,
                             ],
                         );
-                        lead_event_create(
+                        LeadsRuntimeOperations01::lead_event_create(
                             $cid,
                             $leadId,
                             $uid,
@@ -433,7 +434,7 @@ final class LeadsRuntimeOperations02
                         $cpf !== "" &&
                         (int) val(
                             "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND person_id=? AND " .
-                                lead_active_stage_sql("stage"),
+                                LeadsDomainOperations01::lead_active_stage_sql("stage"),
                             [$cid, $pid],
                         ) > 0
                     ) {
@@ -460,7 +461,7 @@ final class LeadsRuntimeOperations02
                         ],
                     );
                     $leadId = db_last_insert_id();
-                    lead_event_create(
+                    LeadsRuntimeOperations01::lead_event_create(
                         $cid,
                         $leadId,
                         $uid,
@@ -488,18 +489,18 @@ final class LeadsRuntimeOperations02
             }
         }
         $statusRaw = (string) ($_GET["status"] ?? "em_aberto");
-        $status = lead_stage_normalize($statusRaw);
+        $status = LeadsDomainOperations01::lead_stage_normalize($statusRaw);
         $qTerm = mb_trim((string) ($_GET["q"] ?? ""));
         $leadSearchMode = $qTerm !== "";
         $where = "clinic_id=?";
         $params = [$cid];
         if (!$leadSearchMode) {
             if (isset($stageOptions[$status])) {
-                $where .= " AND " . lead_stage_sql_case("stage") . "=?";
+                $where .= " AND " . LeadsDomainOperations01::lead_stage_sql_case("stage") . "=?";
                 $params[] = $status;
             } else {
                 $status = "em_aberto";
-                $where .= " AND " . lead_stage_sql_case("stage") . "=?";
+                $where .= " AND " . LeadsDomainOperations01::lead_stage_sql_case("stage") . "=?";
                 $params[] = $status;
             }
         } else {
@@ -524,26 +525,26 @@ final class LeadsRuntimeOperations02
         )->fetchAll();
         $allCounts = q(
             "SELECT " .
-                lead_stage_sql_case("stage") .
+                LeadsDomainOperations01::lead_stage_sql_case("stage") .
                 " AS stage,COUNT(*) total FROM pi_leads WHERE clinic_id=? GROUP BY " .
-                lead_stage_sql_case("stage"),
+                LeadsDomainOperations01::lead_stage_sql_case("stage"),
             [$cid],
         )->fetchAll();
         $counts = [];
         foreach ($allCounts as $cr) {
-            $st = lead_stage_normalize((string) $cr["stage"]);
+            $st = LeadsDomainOperations01::lead_stage_normalize((string) $cr["stage"]);
             $counts[$st] = ($counts[$st] ?? 0) + (int) $cr["total"];
         }
         $activeTotal =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    lead_active_stage_sql("stage"),
+                    LeadsDomainOperations01::lead_active_stage_sql("stage"),
                 [$cid],
             ) ?? 0);
         $newLeads =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    lead_active_stage_sql("stage") .
+                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
                     " AND created_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
                 [$cid],
             ) ?? 0);
@@ -555,14 +556,14 @@ final class LeadsRuntimeOperations02
         $todayReturns =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    lead_active_stage_sql("stage") .
+                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
                     " AND next_action_at>=? AND next_action_at<?",
                 [$cid, $leadTodayStart, $leadTodayEnd],
             ) ?? 0);
         $lateReturns =
             (int) (val(
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    lead_active_stage_sql("stage") .
+                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
                     " AND next_action_at IS NOT NULL AND next_action_at<NOW()",
                 [$cid],
             ) ?? 0);
@@ -763,7 +764,7 @@ final class LeadsRuntimeOperations02
                     "</b><span>Retornos vencidos</span></span></a></aside>"
                 : "";
         $chips = $stageOptions;
-        $chipIcons = lead_stage_icons();
+        $chipIcons = LeadsDomainOperations01::lead_stage_icons();
         $chipHtml =
             '<nav class="patient-filter-chips lead-filter-chips ds-selection-chips" aria-label="Filtros de interessados por etapa">';
         if ($qTerm !== "") {
@@ -814,11 +815,11 @@ final class LeadsRuntimeOperations02
         $convertLeadId = (int) ($_GET["convert_lead"] ?? 0);
         $convertCpf = only_digits((string) ($_GET["convert_cpf"] ?? ""));
         $convertExistingPatient =
-            $convertCpf !== "" ? lead_patient_by_cpf($cid, $convertCpf) : null;
+            $convertCpf !== "" ? LeadsRuntimeOperations01::lead_patient_by_cpf($cid, $convertCpf) : null;
         $cards = "";
         foreach ($rows as $r) {
             $rawStage = (string) ($r["stage"] ?? "em_aberto");
-            $normStage = lead_stage_normalize($rawStage);
+            $normStage = LeadsDomainOperations01::lead_stage_normalize($rawStage);
             $stageLabel = $stageLabels[$normStage] ?? $normStage;
             $stageIcon = $chipIcons[$normStage] ?? "person_search";
             $ps = $persons[(int) ($r["person_id"] ?? 0)] ?? [];
@@ -1042,7 +1043,7 @@ final class LeadsRuntimeOperations02
                 '</summary><article class="' .
                 $class .
                 ' lead-card-compact lead-card-expanded lead-card-occurrences-only">' .
-                lead_history_html(
+                LeadsRuntimeOperations01::lead_history_html(
                     $leadEvents[(int) $r["id"]] ?? [],
                     $leadEventUsers,
                     $stageLabels,

@@ -52,7 +52,6 @@ final class RuntimeModuleCatalog
             'Presentation/Patients/PatientContactView.php',
             'Domain/Patients/Patients.php',
             'Domain/Appointments/Appointments.php',
-            'Domain/Leads/Leads.php',
             'Domain/Documents/Documents.php',
             'Domain/Documents/DocumentPdf.php',
             'Domain/Tasks/TasksNotices.php',
@@ -86,7 +85,7 @@ final class RuntimeModuleCatalog
             'Presentation/Patients/PatientContactView.php',
             'Domain/Patients/Patients.php',
         ]];
-        $leads = ['leads' => ['Domain/Leads/Leads.php']];
+        $leads = [];
         $tasks = ['tasks' => ['Domain/Tasks/TasksNotices.php']];
         $financial = ['financial' => [
             'Application/Financial/PatientRevenueReceiptPort.php',
@@ -99,7 +98,7 @@ final class RuntimeModuleCatalog
         $audit = ['audit' => ['Domain/Audit/AuditActivity.php']];
         $clinic = ['clinic' => ['Domain/Clinic/ClinicConfig.php', 'Domain/Clinic/SubscriptionSettings.php']];
         $users = ['users' => ['Domain/Appointments/Appointments.php', 'Domain/Permissions/UsersPermissions.php']];
-        $admin = ['admin' => ['Domain/Leads/Leads.php', 'Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
+        $admin = ['admin' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
         $status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
 
         $map = [

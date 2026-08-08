@@ -57,7 +57,7 @@ final class LeadsDomainOperations01
     {
     
         $candidate = mb_trim((string) $stage);
-        return array_key_exists($candidate, lead_stage_options())
+        return array_key_exists($candidate, self::lead_stage_options())
             ? $candidate
             : "em_aberto";
     
@@ -78,10 +78,10 @@ final class LeadsDomainOperations01
         $column = preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
         $active = array_map(
             static  fn($s) => "'" . str_replace("'", "''", $s) . "'",
-            lead_active_stages(),
+            self::lead_active_stages(),
         );
         return "(" .
-            lead_stage_sql_case($column) .
+            self::lead_stage_sql_case($column) .
             ") IN (" .
             implode(",", $active) .
             ")";
