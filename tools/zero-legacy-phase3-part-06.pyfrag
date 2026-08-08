@@ -1,0 +1,101 @@
+for path, old, new in [
+    (
+        'docs/architecture/overview.md',
+        '`app/Support/ModuleLoader.php` permanece somente como fachada de composição compatível e não deve recuperar lógica de catálogo, dispatch, persistência ou apresentação.',
+        'A fachada global `app/Support/ModuleLoader.php` foi removida. Entrypoints e unidades de runtime consomem diretamente `RuntimeModuleComposition`, `RuntimeBootPolicy`, `RouteCatalog`, `JsonResponder` e as composições de feature.',
+    ),
+    (
+        'docs/architecture/layers.md',
+        '`app/Runtime` e `app/Install` são Composition. Também são classificados como Composition os frontais/arquivos explicitamente especiais definidos pelo `LayerMap`, como `Support/ModuleLoader.php`, `Core/Architecture/ArchitectureVerifier.php` e contratos de instalação.',
+        '`app/Runtime` e `app/Install` são Composition. Também são classificados como Composition os frontais/arquivos explicitamente especiais definidos pelo `LayerMap`, como `Core/Architecture/ArchitectureVerifier.php` e contratos de instalação.',
+    ),
+    (
+        'docs/architecture/dependencies.md',
+        'Fronteiras históricas podem delegar para componentes nativos. A delegação deve ser fina. `app/Support/ModuleLoader.php`, por exemplo, é fachada compatível de composição e não pode reabsorver catálogo, loading state, dispatch, persistência ou apresentação.',
+        'Fronteiras históricas remanescentes podem delegar para componentes nativos, sempre de forma fina. A antiga fachada global `app/Support/ModuleLoader.php` foi removida; catálogo, loading state, dispatch e composição são consumidos pelas unidades nativas correspondentes.',
+    ),
+    (
+        'docs/architecture/responsibility-map.md',
+        '| fachada de composição global | `app/Support/ModuleLoader.php` |\n',
+        '',
+    ),
+    (
+        'docs/architecture/responsibility-map.md',
+        'Fachadas globais e namespaces `Legacy` existem para preservar chamadas e comportamento durante a migração. Eles não são destino preferencial para lógica nova. Nova regra deve nascer na camada correta; alterações em código histórico devem, quando possível, reduzir a responsabilidade da fronteira.',
+        'A fachada global de composição foi eliminada. Fronteiras históricas remanescentes existem apenas para preservar chamadas ainda não migradas e não são destino para lógica nova. Nova regra deve nascer na camada correta; alterações em código histórico devem reduzir a responsabilidade da fronteira.',
+    ),
+]:
+    replace_once(path, old, new)
+
+
+version_path = ROOT / 'version.json'
+
+
+version = json.loads(version_path.read_text())
+
+
+if int(version.get('architecture_transitional_files_max', 0)) != 51:
+    raise SystemExit('unexpected canonical architecture_transitional_files_max before phase 3')
+
+
+version['architecture_transitional_files_max'] = 50
+
+
+migrations = version.setdefault('php84_baseline_path_migrations', {})
+
+
+migrations['app/Support/ModuleLoader.php'] = [
+    'app/Runtime/Modules/RuntimeBootPolicy.php',
+    'app/Runtime/Modules/RuntimeModuleCatalog.php',
+    'app/Runtime/Modules/RuntimeModuleLoader.php',
+    'app/Runtime/Modules/RuntimeModuleComposition.php',
+    'app/Runtime/Routing/RouteCatalog.php',
+    'app/Presentation/Http/JsonResponder.php',
+    'app/Runtime/Boot/RuntimeBootCoordinator.php',
+    'app/Runtime/Patients/PatientComposition.php',
+    'app/Runtime/Patients/PatientViewComposition.php',
+    'app/Runtime/Financial/FinancialComposition.php',
+    'app/Runtime/Runner.php',
+]
+
+
+version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4, separators=(',', ': ')) + '\n')
+
+
+manifest_path = ROOT / 'app/architecture.manifest.json'
+
+
+manifest = json.loads(manifest_path.read_text())
+
+
+manifest['transitional_files_max'] = 50
+
+
+manifest['compatibility_boundaries'] = [
+    item for item in manifest.get('compatibility_boundaries', [])
+    if item.get('file') != 'app/Support/ModuleLoader.php'
+]
+
+
+removed = list(manifest.get('removed_legacy_files', []))
+
+
+if 'app/Support/ModuleLoader.php' not in removed:
+    removed.append('app/Support/ModuleLoader.php')
+
+
+manifest['removed_legacy_files'] = removed
+
+
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4, separators=(',', ': ')) + '\n')
+
+
+module_loader = ROOT / 'app/Support/ModuleLoader.php'
+
+
+if not module_loader.exists():
+    raise SystemExit('ModuleLoader facade already absent before phase 3')
+
+
+module_loader.unlink()
+
