@@ -389,7 +389,10 @@ class ProntooHttpError extends RuntimeException
     }
 }
 require_once __DIR__ . "/bootstrap_architecture.php";
-require_once __DIR__ . "/bootstrap_specialized.php";
+\Prontoo\Presentation\SpeedChartGeometry\SpeedChartGeometryPresentationOperations01::prontoo_register_speed_chart_geometry();
+\Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadRuntimeCore(
+    \Prontoo\Runtime\Modules\RuntimeBootPolicy::useLightBoot(getenv('PRONTOO_DISABLE_LIGHT_BOOT')),
+);
 if (function_exists("server_json_cache_register_deferred_invalidation")) {
     server_json_cache_register_deferred_invalidation();
 }

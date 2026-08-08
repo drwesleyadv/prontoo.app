@@ -21,7 +21,6 @@ final class RuntimeModuleCatalog
             'Support/DeferredAudit.php',
             'Database/DatabaseSchema.php',
             'Support/SecurityAccess.php',
-            'Support/FinancialGuard.php',
             'Domain/Audit/AuditActivity.php',
             'Domain/Clinic/ClinicConfig.php',
             'Domain/Clinic/SubscriptionSettings.php',

@@ -20,6 +20,7 @@ use \PDOStatement;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\FinancialGuard\FinancialGuardRuntimeOperations01;
 
 final class DatabaseSchemaRuntimeOperations01
 {
@@ -58,9 +59,7 @@ final class DatabaseSchemaRuntimeOperations01
                 if ($autoIntegrityTransaction) {
                     db_begin_transaction();
                 }
-                if (function_exists("financial_movement_write_guard")) {
-                    financial_movement_write_guard($sql, $params);
-                }
+                FinancialGuardRuntimeOperations01::financial_movement_write_guard($sql, $params);
                 if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                     [
                         $runtimeSql,

@@ -91,7 +91,7 @@ final class SpeedChartGeometryPresentationOperations01
             return $html;
         }
     
-        $html = prontoo_performance_replace_chart(
+        $html = self::prontoo_performance_replace_chart(
             $html,
             'Velocidade',
             'Últimas 24 horas',
@@ -103,7 +103,7 @@ final class SpeedChartGeometryPresentationOperations01
             ],
             true,
         );
-        $html = prontoo_performance_replace_chart(
+        $html = self::prontoo_performance_replace_chart(
             $html,
             'Leitura e gravação',
             'Últimos 30 dias',
@@ -192,11 +192,11 @@ final class SpeedChartGeometryPresentationOperations01
     public static function prontoo_performance_geometry_transform_html(string $html): string
     
     {
-        $html = prontoo_performance_transform_html($html);
+        $html = self::prontoo_performance_transform_html($html);
         if (!str_contains($html, 'data-performance-speed-chart="1"') || !str_contains($html, '</body>')) {
             return $html;
         }
-        return str_replace('</body>', prontoo_speed_chart_geometry_script() . '</body>', $html);
+        return str_replace('</body>', self::prontoo_speed_chart_geometry_script() . '</body>', $html);
     
     }
 
@@ -210,7 +210,7 @@ final class SpeedChartGeometryPresentationOperations01
         if ($route !== 'status' && !str_starts_with((string) $route, 'admin_')) {
             return;
         }
-        ob_start('prontoo_performance_geometry_transform_html');
+        ob_start([self::class, 'prontoo_performance_geometry_transform_html']);
     
     }
 }
