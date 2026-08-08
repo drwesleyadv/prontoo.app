@@ -14,8 +14,7 @@ jobs:
   finalize:
     if: >-
       (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'agent/zero-legacy-final') ||
+       github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'issues' &&
        github.event.issue.title == 'ZERO LEGACY PUBLIC FINALIZE')
     runs-on: ubuntu-latest
