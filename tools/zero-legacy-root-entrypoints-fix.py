@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Temporary deterministic migration for PHP entrypoints outside scanned directories.
 root = Path(__file__).resolve().parents[1]
 
 legacy_require = 'require_once __DIR__ . "/app/Support/Telemetry.php";'
