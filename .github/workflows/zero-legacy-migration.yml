@@ -29,7 +29,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/zero-legacy-final-generate.py
+          python3 tools/zero-legacy-root-entrypoints-fix.py
           rm tools/zero-legacy-final-generate.py
+          rm tools/zero-legacy-root-entrypoints-fix.py
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/native-unit-check
