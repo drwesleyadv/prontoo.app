@@ -47,12 +47,12 @@ jobs:
           from pathlib import Path
           p=Path('app/Core/Architecture/LayerMap.php')
           s=p.read_text()
-          old="        'app/Domain/Legacy/',\n"
+          old="        'app/Domain/',\n"
           repl=''.join(f"        'app/Domain/{x}/',\n" for x in [
             'Appointments','AuditActivity','ClinicConfig','DocumentPdf','Documents','Financial','Leads','Maestro','Patients','SubscriptionSettings','TasksNotices','UsersPermissions'
           ])
-          if old not in s: raise SystemExit('legacy domain native prefix not found')
-          p.write_text(s.replace(old,repl))
+          if old not in s: raise SystemExit('generic domain native prefix not found')
+          p.write_text(s.replace(old,repl,1))
           PY
           test "$(find app -type f -path '*/Legacy/*' | wc -l)" -eq 0
           if grep -RIl --exclude-dir=.git -E 'Prontoo\\(Core|Domain|Application|Infrastructure|Presentation|Runtime)\\Legacy\\|app/(Core|Domain|Application|Infrastructure|Presentation|Runtime)/Legacy/' app br public cron tools docs >/tmp/legacy_refs; then
