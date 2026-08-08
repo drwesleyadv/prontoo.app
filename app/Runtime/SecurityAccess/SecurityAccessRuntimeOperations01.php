@@ -31,7 +31,7 @@ final class SecurityAccessRuntimeOperations01
     {
     
         if (function_exists("security_disable_runtime_error_display")) {
-            security_disable_runtime_error_display();
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_disable_runtime_error_display();
         }
         if (
             function_exists("security_storage_deny_file") &&
@@ -68,10 +68,10 @@ final class SecurityAccessRuntimeOperations01
                 is_file($storageGuardMarker) &&
                 time() - (int) filemtime($storageGuardMarker) < 3600;
             if (!$storageGuardFresh) {
-                security_storage_deny_file(storage_path());
-                security_storage_deny_file(storage_path("cache"));
-                security_storage_deny_file(storage_path("logs"));
-                security_storage_deny_file(storage_path("maestro-deferred"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path());
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("cache"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("logs"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("maestro-deferred"));
                 if (is_dir($storageGuardRoot)) {
                     @file_put_contents(
                         $storageGuardMarker,
@@ -89,7 +89,7 @@ final class SecurityAccessRuntimeOperations01
         ini_set("session.use_only_cookies", "1");
         ini_set("session.cookie_httponly", "1");
         $secure = function_exists("security_https_active")
-            ? security_https_active()
+            ? \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
             : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
                 (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
         session_name("PRONTOO");
@@ -173,7 +173,7 @@ final class SecurityAccessRuntimeOperations01
         header("Referrer-Policy: same-origin");
         header("Permissions-Policy: camera=(), microphone=(), geolocation=()");
         $upgrade =
-            function_exists("security_https_active") && security_https_active()
+            \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
                 ? "; upgrade-insecure-requests"
                 : "";
         $csp = "default-src 'self'; script-src $script; style-src $style; font-src 'self' https://fonts.gstatic.com; img-src $img; connect-src 'self' https://servicodados.ibge.gov.br https://viacep.com.br https://brasilapi.com.br; object-src 'none'; frame-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'$upgrade";
@@ -190,7 +190,7 @@ final class SecurityAccessRuntimeOperations01
         }
         if (
             function_exists("security_https_active")
-                ? security_https_active()
+                ? \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
                 : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
                     (string) ($_SERVER["SERVER_PORT"] ?? "") === "443"
         ) {

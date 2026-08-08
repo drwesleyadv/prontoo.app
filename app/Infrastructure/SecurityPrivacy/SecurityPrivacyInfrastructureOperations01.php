@@ -117,7 +117,7 @@ final class SecurityPrivacyInfrastructureOperations01
     
     {
     
-        return privacy_sanitize_text($e->getMessage(), $limit);
+        return \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_text($e->getMessage(), $limit);
     
     }
 

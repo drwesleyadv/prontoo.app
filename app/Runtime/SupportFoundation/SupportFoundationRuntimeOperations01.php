@@ -420,7 +420,7 @@ final class SupportFoundationRuntimeOperations01
     {
     
         if (function_exists("security_https_active")) {
-            return security_https_active();
+            return \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
         }
         return (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
             (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
@@ -482,11 +482,11 @@ final class SupportFoundationRuntimeOperations01
             error_log(
                 "[Prontoo fatal] " .
                     (function_exists("privacy_sanitize_error_message")
-                        ? privacy_sanitize_error_message($e, 240)
+                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 240)
                         : $e->getMessage()) .
                     " in " .
                     (function_exists("privacy_log_file_label")
-                        ? privacy_log_file_label($e->getFile())
+                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
                         : basename($e->getFile())) .
                     ":" .
                     $e->getLine(),

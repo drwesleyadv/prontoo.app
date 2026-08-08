@@ -197,7 +197,7 @@ foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     $httpsRuntimeSource = (string) file_get_contents($root . '/' . $httpsRuntimeFile);
     if (!str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
         !str_contains($httpsRuntimeSource, 'true, 308') ||
-        !str_contains($httpsRuntimeSource, 'security_https_active()') ||
+        !str_contains($httpsRuntimeSource, '\Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()') ||
         str_contains($httpsRuntimeSource, 'HTTP_X_FORWARDED_PROTO')) {
         $errors[] = 'runtime_https_guard:' . $httpsRuntimeFile;
     }

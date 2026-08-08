@@ -72,7 +72,7 @@ final class DeferredAuditInfrastructureOperations01
                 return false;
             }
             if (function_exists("security_storage_deny_file")) {
-                security_storage_deny_file($dir);
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
             }
             $temporary = tempnam($dir, ".pending-");
             if (

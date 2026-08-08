@@ -20,10 +20,10 @@ if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
 if (!defined("PRONTOO_ROOT")) {
     define("PRONTOO_ROOT", dirname(__DIR__));
 }
-require_once __DIR__ . "/Support/SecurityPrivacy.php";
+require_once __DIR__ . "/Runtime/Autoload/ProntooAutoloader.php";
 if (PHP_SAPI !== "cli") {
     
-    $prontooRequestSecure = security_https_active();
+    $prontooRequestSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     $prontooRequestHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $prontooRequestHost = preg_replace('/:\d+$/', '', $prontooRequestHost) ?? "";
     if (!$prontooRequestSecure || $prontooRequestHost !== "prontoo.app") {

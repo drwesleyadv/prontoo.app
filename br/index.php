@@ -28,10 +28,10 @@ telemetry_route_start_marker(
     $brRouteStartedUnixUs,
 );
 unset($brRouteStartedMonotonicNs, $brRouteStartedUnixUs);
-require_once dirname(__DIR__) . "/app/Support/SecurityPrivacy.php";
+require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
 if (PHP_SAPI !== "cli") {
     
-    $brSecure = security_https_active();
+    $brSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     $brHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $brHost = preg_replace('/:\d+$/', '', $brHost) ?? "";
     if (!$brSecure || $brHost !== "prontoo.app") {
