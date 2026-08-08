@@ -69,7 +69,7 @@ foreach ([
 foreach ([
     "\$publicTelemetry = \$route === 'login_telemetry_wave';",
     "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
-    '\\headers_secure($publicStatus);',
+    '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);',
     "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\ctx();",
     'if (!$publicTelemetry) {',
     "if (\$route !== 'logout' && !\$publicTelemetry) {",
