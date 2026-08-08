@@ -10,15 +10,15 @@ permissions:
 
 jobs:
   final:
-    if: github.head_ref == 'agent/zero-legacy-final'
+    if: github.head_ref == 'agent/zero-legacy-final-diagnostic'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout final branch
+      - name: Checkout diagnostic branch
         uses: actions/checkout@v4
         with:
-          ref: agent/zero-legacy-final
+          ref: agent/zero-legacy-final-diagnostic
           fetch-depth: 0
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -41,7 +41,7 @@ jobs:
             git config user.email 'actions@users.noreply.github.com'
             git add zero-legacy-final-failure.log
             git commit -m 'Diagnóstico zero legacy: falha em $1 [skip ci]' || true
-            git push origin HEAD:agent/zero-legacy-final || true
+            git push origin HEAD:agent/zero-legacy-final-diagnostic || true
             exit "$rc"
           }
           python3 tools/zero-legacy-final-generate.py || fail generate
@@ -55,7 +55,7 @@ jobs:
           php tools/version-asset-contract-check.php || fail assets
           php tools/php84-runtime-contract-check || fail php84
           find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null || fail lint
-      - name: Materialize validated tree
+      - name: Materialize diagnostic success
         shell: bash
         run: |
           set -euo pipefail
@@ -70,5 +70,5 @@ jobs:
             echo 'No generated changes to materialize.'
             exit 0
           fi
-          git commit -m 'Zero legacy: eliminar todas as fronteiras transitórias'
-          git push origin HEAD:agent/zero-legacy-final
+          git commit -m 'Zero legacy diagnóstico: árvore validada'
+          git push origin HEAD:agent/zero-legacy-final-diagnostic
