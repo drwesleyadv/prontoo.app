@@ -286,20 +286,13 @@ final class ArchitectureVerifier
                 $errors[] = 'legacy_authorization_file_present:' . $legacyFile;
             }
         }
-        $bridge = $root . '/app/Core/Invariant/Request/ActionProof.php';
-        if (is_file($bridge)) {
-            $content = (string) @file_get_contents($bridge);
-            if (str_contains($content, 'pdo(') || str_contains($content, 'AuthorizationService')) {
-                $errors[] = 'compatibility_bridge_contains_business_logic:app/Core/Invariant/Request/ActionProof.php';
-            }
-        }
         $kernel = $root . '/app/Core/Invariant/InvariantKernel.php';
         if (is_file($kernel) && preg_match('/CapabilityInvariant|AuthorizationService|ActionCatalog/', (string) @file_get_contents($kernel))) {
             $errors[] = 'core_kernel_depends_on_authorization_application';
         }
         $security = $root . '/app/Support/SecurityAccess.php';
         if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
-            $warnings[] = 'thin_compatibility_adapter_active:enforce_action_integrity';
+            $errors[] = 'legacy_authorization_adapter_present:enforce_action_integrity';
         }
     }
 

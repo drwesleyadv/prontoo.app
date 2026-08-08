@@ -63,7 +63,6 @@ $__prontoo_core_files = [
     __DIR__ . '/Runtime/Modules/RuntimeModuleComposition.php',
     __DIR__ . '/Runtime/Authorization/ActionCatalogComposition.php',
     __DIR__ . '/Runtime/LayeredKernel.php',
-    __DIR__ . '/Core/Invariant/Request/ActionProof.php',
     __DIR__ . '/Core/Install/RuntimeContract.php',
 ];
 

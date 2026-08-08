@@ -176,16 +176,4 @@ final class SecurityAccessPresentationOperations01
     
     }
 
-    public static function enforce_action_integrity(array $c, string $route): void
-    
-    {
-    
-        \Prontoo\Core\Integrity\ActionProof::enforce(
-            $route,
-            (string) ($_SERVER["REQUEST_METHOD"] ?? "GET"),
-            $_POST,
-            $c,
-        );
-    
-    }
 }

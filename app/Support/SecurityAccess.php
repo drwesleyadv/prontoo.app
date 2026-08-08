@@ -521,10 +521,6 @@ function enforce_read_only(array $c, string $route): void
 {
     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::enforce_read_only($c, $route);
 }
-function enforce_action_integrity(array $c, string $route): void
-{
-    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::enforce_action_integrity($c, $route);
-}
 function ctx(): array
 {
     return \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();

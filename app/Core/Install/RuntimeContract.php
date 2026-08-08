@@ -40,7 +40,6 @@ final class RuntimeContract
             'sql_write_scope_guard',
             'tenant_scoped_tables',
             'read_only_write_allowed_for_sql',
-            'enforce_action_integrity',
             'page',
             'route',
             'redirect',
