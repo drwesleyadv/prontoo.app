@@ -32,7 +32,7 @@ final class SupportTelemetryInfrastructureOperations01
         if (function_exists("storage_path")) {
             return storage_path("telemetry");
         }
-        return dirname((dirname(__DIR__, 3) . '/Support'), 2) . "/ssd/telemetry";
+        return dirname((dirname(__DIR__, 2) . '/Support'), 2) . "/ssd/telemetry";
     
     }
 

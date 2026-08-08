@@ -30,7 +30,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        return defined("PRONTOO_ROOT") ? PRONTOO_ROOT : dirname((dirname(__DIR__, 3) . '/Support'), 2);
+        return defined("PRONTOO_ROOT") ? PRONTOO_ROOT : dirname((dirname(__DIR__, 2) . '/Support'), 2);
     
     }
 

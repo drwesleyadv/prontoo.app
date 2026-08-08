@@ -129,7 +129,7 @@ final class DocumentPdfRuntimeOperations01
             (string) (getenv("PRONTOO_APP_KEY") ?: getenv("APP_KEY") ?: "");
         if ($seed === "") {
             $seed =
-                (dirname(__DIR__, 3) . '/Domain/Documents') .
+                (dirname(__DIR__, 2) . '/Domain/Documents') .
                 "|" .
                 (defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "prontoo");
         }

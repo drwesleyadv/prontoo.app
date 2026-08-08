@@ -39,7 +39,7 @@ final class DatabaseSchemaInfrastructureOperations01
         $version = defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "runtime";
         $dir = function_exists("storage_path")
             ? storage_path("cache/runtime-notices")
-            : dirname((dirname(__DIR__, 3) . '/Database'), 2) . "/ssd/cache/runtime-notices";
+            : dirname((dirname(__DIR__, 2) . '/Database'), 2) . "/ssd/cache/runtime-notices";
         $marker =
             $dir .
             "/" .
@@ -429,7 +429,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        return (dirname(__DIR__, 3) . '/Database') . "/schema.sql";
+        return (dirname(__DIR__, 2) . '/Database') . "/schema.sql";
     
     }
 
@@ -437,7 +437,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        return (dirname(__DIR__, 3) . '/Database') . "/operational-schema.contract.json";
+        return (dirname(__DIR__, 2) . '/Database') . "/operational-schema.contract.json";
     
     }
 
@@ -514,7 +514,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        return (dirname(__DIR__, 3) . '/Database') . "/schema.r6.contract";
+        return (dirname(__DIR__, 2) . '/Database') . "/schema.r6.contract";
     
     }
 
