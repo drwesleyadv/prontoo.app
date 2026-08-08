@@ -99,8 +99,16 @@ $telemetryContractAssert(
 );
 foreach (["index.php", "install.php", "br/index.php"] as $path) {
     $source = (string) file_get_contents($telemetryContractRoot . "/" . $path);
+    $nativeFinish = str_contains(
+        $source,
+        "\\Prontoo\\Runtime\\SupportTelemetry\\SupportTelemetryRuntimeOperations01::telemetry_route_finish_marker();",
+    );
+    $gatewayFinish = str_contains(
+        $source,
+        "\\Prontoo\\Core\\Architecture\\OperationGateway::invoke('telemetry_route_finish_marker',",
+    );
     $telemetryContractAssert(
-        str_contains($source, "\\Prontoo\\Runtime\\SupportTelemetry\\SupportTelemetryRuntimeOperations01::telemetry_route_finish_marker();"),
+        $nativeFinish || $gatewayFinish,
         "entrada sem marco final explícito: " . $path,
     );
     $telemetryContractAssert(
@@ -128,4 +136,6 @@ unset(
     $telemetryContractScenario,
     $telemetryContractEvent,
     $telemetryContractSource,
+    $nativeFinish,
+    $gatewayFinish,
 );
