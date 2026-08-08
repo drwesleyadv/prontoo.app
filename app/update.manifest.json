@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 448,
-    "total_uncompressed_bytes": 5460127,
+    "total_uncompressed_bytes": 5460175,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -222,7 +222,7 @@
         "app/Presentation/Patients/PatientTabView.php": "fa6a4d2669eeec1d32f7b6851cfb9c9d35b6b8281ae1a07d12f0fdd47b2fc897",
         "app/Runtime/Authorization/ActionCatalogComposition.php": "6d8b6089b843b5a48ab838be8010b824694af8fd67483c31d8d177332ef4eefc",
         "app/Runtime/Autoload/ProntooAutoloader.php": "526c020ce6602e74fb3ec7f05166e6df394640787366cdc2d63b42ffd15f1004",
-        "app/Runtime/Boot/RuntimeBootCoordinator.php": "85ec8326ef525cd2d44119b9c0db2fe525d49c8a37ea795c7f002fdd19f8d41c",
+        "app/Runtime/Boot/RuntimeBootCoordinator.php": "4584fb4536f32f50daec73dd514d484d9e357ff7964f3c2777e5208c18d4b2f4",
         "app/Runtime/Financial/FinancialComposition.php": "6eacc9efcc0d88a22232ef9fe225fe28848db768346685eceb16ab0cf0fccc96",
         "app/Runtime/LayeredKernel.php": "fd176874ed4a6c843b469b1a7086da080b0ded6fa7c6163f91c912344a3111f4",
         "app/Runtime/Legacy/AdminPages/AdminPagesRuntimeOperations01.php": "680c746891425b3e01d3b652536f2379f8e5906e9e5f808bf241f061c84846d1",
