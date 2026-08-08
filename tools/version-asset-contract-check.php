@@ -47,7 +47,7 @@ foreach ([
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
-$auth = (string) @file_get_contents($root . '/app/Auth/AuthOnboarding.php');
+$authRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
 $section = static function (string $source, string $start, string $end): string {
     $from = strpos($source, $start);
     $to = $from === false ? false : strpos($source, $end, $from + strlen($start));
@@ -70,7 +70,7 @@ foreach ([
     "\$publicTelemetry = \$route === 'login_telemetry_wave';",
     "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
     '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);',
-    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\ctx();",
+    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations04::ctx();",
     'if (!$publicTelemetry) {',
     "if (\$route !== 'logout' && !\$publicTelemetry) {",
     "if (\$route !== 'logout' && !\$publicStatus) {",
@@ -94,8 +94,8 @@ foreach ([
         throw new RuntimeException('Runner não consome o runtime nativo diretamente: ' . $contract);
     }
 }
-if (!str_contains($auth, 'function page_login_telemetry_wave(): void')) {
-    throw new RuntimeException('Endpoint JSON das faixas ausente.');
+if (!str_contains($authRuntime, 'public static function page_login_telemetry_wave(): void')) {
+    throw new RuntimeException('Endpoint JSON nativo das faixas ausente.');
 }
 foreach ([
     'body.has-telemetry-mountains .login-telemetry-wave{',
