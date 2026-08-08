@@ -1,0 +1,34 @@
+name: Zero Legacy Path Audit
+on:
+  pull_request:
+    branches: [prontoo]
+permissions:
+  contents: read
+jobs:
+  audit:
+    if: github.head_ref == 'agent/zero-legacy-phase1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Audit moved filesystem-relative expressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/prontoo HEAD)"
+          git diff --find-renames=40% --name-status "$base"...HEAD > /tmp/changes
+          echo '=== MOVED FILES WITH __DIR__ / dirname ==='
+          while IFS=$'\t' read -r status old new; do
+            case "$status" in
+              R*)
+                if [[ "$old" == *'/Legacy/'* ]] && [[ -f "$new" ]]; then
+                  hits="$(grep -nE '__DIR__|dirname\(' "$new" || true)"
+                  if [[ -n "$hits" ]]; then
+                    echo "--- $old -> $new"
+                    printf '%s\n' "$hits"
+                  fi
+                fi
+              ;;
+            esac
+          done < /tmp/changes
