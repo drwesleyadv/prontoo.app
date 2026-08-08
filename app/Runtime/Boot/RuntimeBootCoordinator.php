@@ -159,7 +159,7 @@ final class RuntimeBootCoordinator
         $startedAt = microtime(true);
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
         if (self::readinessMarkerValid()) {
-            return $result + ['ok' => true, 'ran' => false, 'reason' => 'readiness_marker_fresh'];
+            return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'readiness_marker_fresh']);
         }
         $lockDir = \storage_path('cache/locks');
         if (!is_dir($lockDir) && !@mkdir($lockDir, 0750, true) && !is_dir($lockDir)) {
@@ -199,7 +199,7 @@ final class RuntimeBootCoordinator
         }
         try {
             if (self::readinessMarkerValid()) {
-                return $result + ['ok' => true, 'ran' => false, 'reason' => 'readiness_completed_concurrently'];
+                return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'readiness_completed_concurrently']);
             }
             return self::executeReadinessChecks($mode, $uid, $startedAt, true);
         } finally {
@@ -224,11 +224,11 @@ final class RuntimeBootCoordinator
             if (is_resource($lockHandle)) {
                 fclose($lockHandle);
             }
-            return $result + ['ok' => true, 'ran' => false, 'reason' => 'maintenance_in_progress'];
+            return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'maintenance_in_progress']);
         }
         try {
             if (self::schemaMarkerValid()) {
-                return $result + ['ok' => true, 'ran' => false, 'reason' => 'maintenance_already_completed'];
+                return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'maintenance_already_completed']);
             }
             \prontoo_load_full_runtime_modules();
             \ensure_runtime_schema_minimum();
