@@ -1,0 +1,177 @@
+for method, next_method in [
+    ('patient_tab_icon_picker', 'patient_guardian_relationship_options'),
+    ('patient_appointment_registration_block_reason', 'patient_directory_filter_options'),
+]:
+    start = source.find(f'    public static function {method}(')
+    end = source.find(f'    public static function {next_method}(', start)
+    if start < 0 or end < 0:
+        raise SystemExit(f'expected patient Domain method bounds not found: {method}')
+    source = source[:start] + source[end:]
+
+
+write(path, source)
+
+
+path = 'app/Domain/Patients/Patients.php'
+
+
+source = read(path)
+
+
+old = '''function patient_record_type_label(string $type): string
+{
+    return \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_record_type_label($type);
+}'''
+
+
+new = '''function patient_record_type_label(string $type): string
+{
+    return \\Prontoo\\Runtime\\Patients\\PatientsRuntimeOperations01::patient_record_type_label($type);
+}'''
+
+
+if old not in source:
+    raise SystemExit(f'expected patient facade label not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+old = '''function patient_tab_icon_picker(string $current = "clinical_notes"): string
+{
+    return \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_tab_icon_picker($current);
+}'''
+
+
+new = '''function patient_tab_icon_picker(string $current = "clinical_notes"): string
+{
+    return \\Prontoo\\Runtime\\Patients\\PatientViewComposition::tabIconPicker(
+        patient_health_icon_options(),
+        normalize_patient_tab_icon($current),
+    );
+}'''
+
+
+if old not in source:
+    raise SystemExit(f'expected patient facade icon not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+old = '''function patient_appointment_registration_block_reason(
+    int $cid,
+    int $patientId,
+): ?string {
+    return \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_appointment_registration_block_reason($cid, $patientId);
+}'''
+
+
+new = '''function patient_appointment_registration_block_reason(
+    int $cid,
+    int $patientId,
+): ?string {
+    return \\Prontoo\\Runtime\\Patients\\PatientComposition::registrationBlockReason($cid, $patientId);
+}'''
+
+
+if old not in source:
+    raise SystemExit(f'expected patient facade block reason not found: {path}')
+
+
+write(path, source.replace(old, new, 1))
+
+
+path = 'app/Core/Architecture/ArchitectureVerifier.php'
+
+
+source = read(path)
+
+
+source = source.replace(
+    'public static function report(string $root, bool $strictActions = false): array',
+    'public static function report(\n        string $root,\n        bool $strictActions = false,\n        array $runtimeModules = [],\n        array $routes = [],\n    ): array',
+    1,
+)
+
+
+old = '''        $cacheKey = $root . '|' . ($strictActions ? 'strict' : 'runtime');'''
+
+
+new = '''        $runtimeModules = array_values(array_unique(array_map('strval', $runtimeModules)));
+        $routes = array_values(array_unique(array_map('strval', $routes)));
+        $cacheKey = $root . '|' .
+            ($strictActions ? 'strict' : 'runtime') . '|' .
+            hash('sha256', serialize([$runtimeModules, $routes]));'''
+
+
+if old not in source:
+    raise SystemExit(f'expected verifier cache key not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+old = '''        $runtimeModules = function_exists('prontoo_full_runtime_modules')
+            ? array_values(array_unique(array_map('strval', \\prontoo_full_runtime_modules())))
+            : [];
+        foreach ($runtimeModules as $module) {'''
+
+
+new = '''        foreach ($runtimeModules as $module) {'''
+
+
+if old not in source:
+    raise SystemExit(f'expected verifier module facade not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+old = '''        $routes = function_exists('prontoo_route_map')
+            ? array_fill_keys(array_map('strval', \\prontoo_route_map()), true)
+            : [];
+        $sources = [];'''
+
+
+new = '''        $routes = array_fill_keys($routes, true);
+        $sources = [];'''
+
+
+if old not in source:
+    raise SystemExit(f'expected verifier route facade not found: {path}')
+
+
+source = source.replace(old, new, 1)
+
+
+marker = '''        $security = $root . '/app/Support/SecurityAccess.php';
+        if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
+            $errors[] = 'legacy_authorization_adapter_present:enforce_action_integrity';
+        }
+'''
+
+
+if marker not in source:
+    raise SystemExit(f'expected verifier legacy marker not found: {path}')
+
+
+source = source.replace(
+    marker,
+    marker + '''        $moduleLoader = $root . '/app/Support/ModuleLoader.php';
+        if (is_file($moduleLoader)) {
+            $errors[] = 'legacy_composition_facade_present:app/Support/ModuleLoader.php';
+        }
+''',
+    1,
+)
+
+
+write(path, source)
+
+
+path = 'app/Core/Architecture/LayerMap.php'
+
+
+source = read(path)
+
