@@ -66,7 +66,6 @@ def replace_calls(source):
         return mapping[m.group(1)]+'('
     return direct_pattern.sub(direct_repl,source)
 
-# The public landing used the telemetry facade before registering the native autoloader.
 br_file=root/'br/index.php'; br=br_file.read_text()
 support_require='require_once dirname(__DIR__) . "/app/Support/Telemetry.php";'
 autoload_require='require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";'
@@ -76,7 +75,6 @@ first=br.find(autoload_require); second=br.find(autoload_require,first+len(autol
 if second>=0: br=br[:second]+br[second+len(autoload_require):]
 br_file.write_text(br)
 
-# This loader method must target the native guard rather than the removed financial facade.
 loader=root/'app/Runtime/Modules/RuntimeModuleLoader.php'; loader_source=loader.read_text()
 old_guard="$this->requireModule('Domain/Financial/Financial.php');"
 new_guard="$this->requireModule('Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php');"
@@ -93,7 +91,6 @@ for base in ['app','br','public','cron','tools']:
         source=file.read_text(); changed=replace_calls(source)
         if changed!=source: file.write_text(changed)
 
-# Remove facade modules from composition/load lists; source metadata is intentionally preserved.
 path_hosts=['app/bootstrap_architecture.php','app/Runtime/Modules/RuntimeModuleCatalog.php','app/Core/Install/RuntimeContract.php']
 for host in path_hosts:
     file=root/host
@@ -101,7 +98,6 @@ for host in path_hosts:
     lines=file.read_text().splitlines(True)
     file.write_text(''.join(line for line in lines if not any((p in line or p.removeprefix('app/') in line) for p in facades)))
 
-# Global function runtime contract now contains only functions that still exist as canonical procedural primitives.
 rc=root/'app/Core/Install/RuntimeContract.php'; src=rc.read_text()
 marker='public static function requiredCoreFunctions(): array'; start=src.find(marker)
 if start>=0:
@@ -116,7 +112,6 @@ if start>=0:
     block=''.join(line for line in block.splitlines(True) if not name_line.search(line))
     src=src[:brace+1]+block+src[end-1:]; rc.write_text(src)
 
-# Native route dispatch replaces every page_* facade and eliminates dynamic global page invocation.
 handlers={
 'home': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations01::page_home',
 'painel': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations03::page_painel',
@@ -185,7 +180,6 @@ new="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
 if old not in r: raise SystemExit('Runner global page fallback shape changed')
 runner.write_text(r.replace(old,new,1))
 
-# Preserve historical action-source identifiers through an explicit path-migration map.
 version_path=root/'version.json'; version=json.loads(version_path.read_text())
 version['architecture_transitional_files_max']=21
 version['architecture_source_path_migrations']={path:(targets[0] if len(targets)==1 else targets) for path,targets in facade_targets.items()}
@@ -246,11 +240,9 @@ for path in ['README.md','docs/architecture/overview.md','docs/architecture/laye
         text=file.read_text().replace('fronteiras transitórias/compatíveis','entrypoints e ferramentas procedurais não classificados como unidades nativas').replace('compatibilidade remanescente permanece explicitamente classificada e limitada','não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas')
         file.write_text(text)
 
-# The migration harness is not part of the final product.
 harness=root/'.github/workflows/zero-legacy-migration.yml'
 if harness.exists(): harness.unlink()
 
-# Zero executable legacy: no removed globals and no physical runtime loads of removed facade files.
 residual=[]
 for base in ['app','br','public','cron','tools']:
     b=root/base
@@ -271,3 +263,4 @@ if residual:
     print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2)); raise SystemExit('executable legacy residuals remain')
 
 print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21,'source_migrations':len(facade_targets)},indent=2))
+
