@@ -69,24 +69,24 @@
         "app/Core/Integrity/PiIntegrity.php": "app/Infrastructure/Integrity/PiIntegrity.php"
     },
     "native_consolidation_path_decompositions": {
-        "app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php": [
-            "app/Domain/Legacy/AuditActivity/AuditCopyPolicy.php",
-            "app/Domain/Legacy/AuditActivity/AuditTargetPolicy.php",
-            "app/Domain/Legacy/AuditActivity/AuditRecordPolicy.php",
-            "app/Domain/Legacy/AuditActivity/ActivityTaxonomy.php",
-            "app/Domain/Legacy/AuditActivity/ActivityValuePolicy.php"
+        "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
+            "app/Domain/AuditActivity/AuditCopyPolicy.php",
+            "app/Domain/AuditActivity/AuditTargetPolicy.php",
+            "app/Domain/AuditActivity/AuditRecordPolicy.php",
+            "app/Domain/AuditActivity/ActivityTaxonomy.php",
+            "app/Domain/AuditActivity/ActivityValuePolicy.php"
         ],
-        "app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php": [
-            "app/Domain/Legacy/AuditActivity/ActivityDisplayPolicy.php",
-            "app/Domain/Legacy/AuditActivity/ActivityTargetPolicy.php",
-            "app/Domain/Legacy/AuditActivity/AuditWritePolicy.php",
-            "app/Domain/Legacy/AuditActivity/AuditDocumentPolicy.php"
+        "app/Domain/AuditActivity/AuditActivityDomainOperations02.php": [
+            "app/Domain/AuditActivity/ActivityDisplayPolicy.php",
+            "app/Domain/AuditActivity/ActivityTargetPolicy.php",
+            "app/Domain/AuditActivity/AuditWritePolicy.php",
+            "app/Domain/AuditActivity/AuditDocumentPolicy.php"
         ],
-        "app/Domain/Legacy/Documents/DocumentsDomainOperations01.php": [
-            "app/Domain/Legacy/Documents/DocumentIdentifierPolicy.php",
-            "app/Domain/Legacy/Documents/DocumentTypePolicy.php",
-            "app/Domain/Legacy/Documents/DocumentTemplatePolicy.php",
-            "app/Domain/Legacy/Documents/DocumentHtmlPolicy.php"
+        "app/Domain/Documents/DocumentsDomainOperations01.php": [
+            "app/Domain/Documents/DocumentIdentifierPolicy.php",
+            "app/Domain/Documents/DocumentTypePolicy.php",
+            "app/Domain/Documents/DocumentTemplatePolicy.php",
+            "app/Domain/Documents/DocumentHtmlPolicy.php"
         ]
     },
     "changelog": {

@@ -242,7 +242,7 @@ foreach ($features as $feature => $count) {
         $failures[] = "Recurso PHP 8.4 esperado não adotado: " . $feature;
     }
 }
-$runtimeHelper = $read("app/Infrastructure/Legacy/SupportRuntime/SupportRuntimeInfrastructureOperations01.php");
+$runtimeHelper = $read("app/Infrastructure/SupportRuntime/SupportRuntimeInfrastructureOperations01.php");
 if (!str_contains($runtimeHelper, '(int) $match[1] === 8') || !str_contains($runtimeHelper, '(int) $match[2] === 4')) {
     $failures[] = "Helper interno canônico não restringe a família PHP 8.4.";
 }

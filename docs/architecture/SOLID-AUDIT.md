@@ -63,9 +63,9 @@ As três migrações históricas consolidadas são:
 
 Os três containers esvaziados no PR #172 não existiam na baseline `1.8.6.1`, por isso pertencem a um contrato distinto, `native_consolidation_path_decompositions`, verificado por `tools/native-unit-check`:
 
-- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations01.php` → policies de copy, target, record, taxonomy e value;
-- `app/Domain/Legacy/AuditActivity/AuditActivityDomainOperations02.php` → policies de display, target, write e documentos;
-- `app/Domain/Legacy/Documents/DocumentsDomainOperations01.php` → policies de identifier, type, template e HTML.
+- `app/Domain/AuditActivity/AuditActivityDomainOperations01.php` → policies de copy, target, record, taxonomy e value;
+- `app/Domain/AuditActivity/AuditActivityDomainOperations02.php` → policies de display, target, write e documentos;
+- `app/Domain/Documents/DocumentsDomainOperations01.php` → policies de identifier, type, template e HTML.
 
 ## Regra de conclusão
 
