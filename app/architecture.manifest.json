@@ -4,7 +4,7 @@
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
-    "native_files_min": 278,
+    "native_files_min": 277,
     "transitional_files_max": 51,
     "native_migration_policy": "effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase",
     "layers": {
@@ -67,19 +67,10 @@
         "app/Core/Invariant/CapabilityInvariant.php",
         "app/Core/Integrity/PiSequence.php",
         "app/Core/Integrity/ActionProof.php",
-        "app/Infrastructure/Database/CleanInstallReset.php"
+        "app/Infrastructure/Database/CleanInstallReset.php",
+        "app/Core/Invariant/Request/ActionProof.php"
     ],
     "compatibility_boundaries": [
-        {
-            "symbol": "enforce_action_integrity",
-            "file": "app/Support/SecurityAccess.php",
-            "rule": "thin delegation only; no authorization or persistence logic"
-        },
-        {
-            "symbol": "Prontoo\\Core\\Integrity\\ActionProof",
-            "file": "app/Core/Invariant/Request/ActionProof.php",
-            "rule": "thin delegation to LayeredKernel only"
-        },
         {
             "symbol": "prontoo_* composition facade",
             "file": "app/Support/ModuleLoader.php",

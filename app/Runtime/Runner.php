@@ -70,7 +70,7 @@ final class Runner
                 \enforce_read_only($context, $route);
             }
             if ($route !== 'logout' && !$publicTelemetry) {
-                \enforce_action_integrity($context, $route);
+                LayeredKernel::enforceAction($route, $method, $_POST, $context);
             }
             if ($isPost) {
                 if (function_exists('server_json_cache_schedule_invalidation_for_write')) {

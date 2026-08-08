@@ -81,7 +81,6 @@ final class LayerMap
             return self::COMPOSITION;
         }
         return match (true) {
-            $path === 'Core/Invariant/Request/ActionProof.php',
             $path === 'Core/Architecture/ArchitectureVerifier.php',
             $path === 'Core/Install/RuntimeContract.php',
             $path === 'Core/Install/InstallAccess.php',

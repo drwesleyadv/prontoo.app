@@ -97,7 +97,7 @@ foreach ([
     'RouteCatalog::wantsJson(',
     'JsonResponder::send(',
     'RuntimeBootCoordinator::flushIntegrityBeforeRender(',
-    'enforce_action_integrity($context, $route)',
+    'LayeredKernel::enforceAction($route, $method, $_POST, $context)',
     'prontoo_load_route_modules($route)',
 ] as $token) {
     $assert(str_contains($runnerSource, $token), 'runner_missing:' . $token);
