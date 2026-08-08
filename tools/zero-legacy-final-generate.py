@@ -43,35 +43,38 @@ for path in facades:
             if (root/candidate).is_file(): targets.append(candidate)
     facade_targets[path]=sorted(set(targets))
 
-def replace_calls(source):
-    for name,target in sorted(mapping.items(),key=lambda kv:len(kv[0]),reverse=True):
-        cls,method=target.split('::',1)
-        qname=re.escape(name)
-        repl_probe=f"is_callable([{cls}::class, '{method}'])"
-        source=re.sub(r"function_exists\(\s*(['\"])"+qname+r"\1\s*\)", lambda _m, v=repl_probe: v, source)
-        source=re.sub(r"is_callable\(\s*(['\"])"+qname+r"\1\s*\)", lambda _m, v=repl_probe: v, source)
-        repl_callback=f"call_user_func([{cls}::class, '{method}'],"
-        source=re.sub(r"call_user_func\(\s*(['\"])"+qname+r"\1\s*,", lambda _m, v=repl_callback: v, source)
-        source=re.sub(r"(?<![A-Za-z0-9_])\\"+qname+r"\s*\(", lambda _m, v=target+'(': v, source)
-        pattern=re.compile(r"(?<![A-Za-z0-9_\\:>])"+qname+r"\s*\(")
-        pieces=[]; pos=0
-        for m in pattern.finditer(source):
-            prefix=source[max(0,m.start()-20):m.start()]
-            if re.search(r'function\s*$',prefix): continue
-            pieces.append(source[pos:m.start()]); pieces.append(target+'('); pos=m.end()
-        if pieces:
-            pieces.append(source[pos:]); source=''.join(pieces)
-    return source
+names_alt='|'.join(re.escape(name) for name in sorted(mapping,key=len,reverse=True))
+probe_pattern=re.compile(r"function_exists\(\s*(['\"])("+names_alt+r")\1\s*\)")
+is_callable_pattern=re.compile(r"is_callable\(\s*(['\"])("+names_alt+r")\1\s*\)")
+callback_pattern=re.compile(r"call_user_func\(\s*(['\"])("+names_alt+r")\1\s*,")
+direct_pattern=re.compile(r"(?<![A-Za-z0-9_\\:>])\\?("+names_alt+r")\s*\(")
 
-excluded=set(facades+[str(Path('tools/zero-legacy-final-generate.py'))])
+def callable_expr(name):
+    cls,method=mapping[name].split('::',1)
+    return f"is_callable([{cls}::class, '{method}'])"
+
+def replace_calls(source):
+    source=probe_pattern.sub(lambda m: callable_expr(m.group(2)),source)
+    source=is_callable_pattern.sub(lambda m: callable_expr(m.group(2)),source)
+    def callback_repl(m):
+        cls,method=mapping[m.group(2)].split('::',1)
+        return f"call_user_func([{cls}::class, '{method}'],"
+    source=callback_pattern.sub(callback_repl,source)
+    def direct_repl(m):
+        prefix=m.string[max(0,m.start()-24):m.start()]
+        if re.search(r'function\s*$',prefix):
+            return m.group(0)
+        return mapping[m.group(1)]+'('
+    return direct_pattern.sub(direct_repl,source)
+
+excluded=set(facades+['tools/zero-legacy-final-generate.py'])
 for base in ['app','br','public','cron','tools']:
     b=root/base
     if not b.exists(): continue
     for file in b.rglob('*.php'):
         rel=file.relative_to(root).as_posix()
         if rel in excluded: continue
-        source=file.read_text()
-        changed=replace_calls(source)
+        source=file.read_text(); changed=replace_calls(source)
         if changed!=source: file.write_text(changed)
 
 path_hosts=[
@@ -81,17 +84,10 @@ for host in path_hosts:
     file=root/host
     if not file.exists(): continue
     lines=file.read_text().splitlines(True)
-    kept=[]
-    for line in lines:
-        if any((p in line or p.removeprefix('app/') in line) for p in facades):
-            continue
-        kept.append(line)
-    file.write_text(''.join(kept))
+    file.write_text(''.join(line for line in lines if not any((p in line or p.removeprefix('app/') in line) for p in facades)))
 
-rc=root/'app/Core/Install/RuntimeContract.php'
-src=rc.read_text()
-marker='public static function requiredCoreFunctions(): array'
-start=src.find(marker)
+rc=root/'app/Core/Install/RuntimeContract.php'; src=rc.read_text()
+marker='public static function requiredCoreFunctions(): array'; start=src.find(marker)
 if start>=0:
     brace=src.find('{',start); depth=0; end=None
     for i in range(brace,len(src)):
@@ -100,12 +96,9 @@ if start>=0:
             depth-=1
             if depth==0: end=i+1; break
     block=src[brace+1:end-1]
-    block_lines=[]
-    for line in block.splitlines(True):
-        if any(re.search(r"['\"]"+re.escape(name)+r"['\"]",line) for name in mapping): continue
-        block_lines.append(line)
-    src=src[:brace+1]+''.join(block_lines)+src[end-1:]
-    rc.write_text(src)
+    name_line=re.compile(r"['\"](?:"+names_alt+r")[ '\"]?\s*[,)]")
+    block=''.join(line for line in block.splitlines(True) if not name_line.search(line))
+    src=src[:brace+1]+block+src[end-1:]; rc.write_text(src)
 
 handlers={
 'home': r'\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations01::page_home',
@@ -122,9 +115,8 @@ for name,target in mapping.items():
         handlers[route]=target
 entries=[]
 for route,target in sorted(handlers.items()):
-    cls,method=target.split('::',1)
-    entries.append(f"        '{route}' => [{cls}::class, '{method}'],")
-page_dispatcher="""<?php
+    cls,method=target.split('::',1); entries.append(f"        '{route}' => [{cls}::class, '{method}'],")
+(root/'app/Runtime/Routing/PageDispatcher.php').write_text("""<?php
 declare(strict_types=1);
 
 namespace Prontoo\\Runtime\\Routing;
@@ -160,11 +152,9 @@ final class PageDispatcher
         return true;
     }
 }
-""" % '\n'.join(entries)
-(root/'app/Runtime/Routing/PageDispatcher.php').write_text(page_dispatcher)
+""" % '\n'.join(entries))
 
-runner=root/'app/Runtime/Runner.php'
-r=runner.read_text()
+runner=root/'app/Runtime/Runner.php'; r=runner.read_text()
 old="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
                 $page = 'page_' . $effectiveRoute;
                 if (!function_exists($page)) {
@@ -180,8 +170,7 @@ new="""            if (!PageDispatcher::dispatch($effectiveRoute)) {
 if old not in r: raise SystemExit('Runner global page fallback shape changed')
 runner.write_text(r.replace(old,new,1))
 
-for path in facades:
-    (root/path).unlink()
+for path in facades: (root/path).unlink()
 
 version_path=root/'version.json'; version=json.loads(version_path.read_text())
 version['architecture_transitional_files_max']=21
@@ -189,13 +178,11 @@ baseline=json.loads((root/'docs/audits/php84-conformance-1.8.6.1.json').read_tex
 baseline_paths={str(x.get('path','')) for x in baseline.get('files',[]) if isinstance(x,dict)}
 migrations=version.setdefault('php84_baseline_path_migrations',{})
 for path,targets in facade_targets.items():
-    if path in baseline_paths:
-        migrations[path]=targets[0] if len(targets)==1 else targets
+    if path in baseline_paths: migrations[path]=targets[0] if len(targets)==1 else targets
 version_path.write_text(json.dumps(version,ensure_ascii=False,indent=4,separators=(',',': '))+'\n')
 
 manifest_path=root/'app/architecture.manifest.json'; manifest=json.loads(manifest_path.read_text())
-manifest['transitional_files_max']=21
-manifest['compatibility_boundaries']=[]
+manifest['transitional_files_max']=21; manifest['compatibility_boundaries']=[]
 removed=list(manifest.get('removed_legacy_files',[]))
 for path in facades:
     if path not in removed: removed.append(path)
@@ -207,17 +194,15 @@ manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=4,separat
 
 for path in ['README.md','docs/architecture/overview.md','docs/architecture/layers.md','docs/architecture/responsibility-map.md','docs/architecture/dependencies.md','CONTRIBUTING.md']:
     file=root/path
-    if not file.exists(): continue
-    text=file.read_text()
-    text=text.replace('fronteiras transitórias/compatíveis','entrypoints e ferramentas procedurais não classificados como unidades nativas')
-    text=text.replace('fronteiras transitórias/compatíveis na baseline atual','entrypoints e ferramentas procedurais na baseline atual')
-    text=text.replace('compatibilidade remanescente permanece explicitamente classificada e limitada','não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas')
-    file.write_text(text)
+    if file.exists():
+        text=file.read_text().replace('fronteiras transitórias/compatíveis','entrypoints e ferramentas procedurais não classificados como unidades nativas').replace('compatibilidade remanescente permanece explicitamente classificada e limitada','não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas')
+        file.write_text(text)
 
 harness=root/'.github/workflows/zero-legacy-migration.yml'
 if harness.exists(): harness.unlink()
 
 residual=[]
+facade_tokens=[token for path in facades for token in (path,path.removeprefix('app/'))]
 for base in ['app','br','public','cron','tools']:
     b=root/base
     if not b.exists(): continue
@@ -225,16 +210,13 @@ for base in ['app','br','public','cron','tools']:
         rel=file.relative_to(root).as_posix()
         if rel=='tools/zero-legacy-final-generate.py': continue
         text=file.read_text()
-        for path in facades:
-            if path in text or path.removeprefix('app/') in text:
-                residual.append(f'{rel}:path:{path}')
-        for name in mapping:
-            if re.search(r'(?<![A-Za-z0-9_\\:>])\\?'+re.escape(name)+r'\s*\(',text):
-                residual.append(f'{rel}:call:{name}')
-            if re.search(r"function_exists\(\s*['\"]"+re.escape(name)+r"['\"]",text):
-                residual.append(f'{rel}:probe:{name}')
+        for token in facade_tokens:
+            if token in text: residual.append(f'{rel}:path:{token}')
+        for m in direct_pattern.finditer(text):
+            prefix=text[max(0,m.start()-24):m.start()]
+            if not re.search(r'function\s*$',prefix): residual.append(f'{rel}:call:{m.group(1)}')
+        for m in probe_pattern.finditer(text): residual.append(f'{rel}:probe:{m.group(2)}')
 if residual:
-    print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2))
-    raise SystemExit('legacy residuals remain')
+    print(json.dumps({'residual_count':len(residual),'residual':residual[:300]},indent=2)); raise SystemExit('legacy residuals remain')
 
 print(json.dumps({'removed_facades':len(facades),'removed_global_functions':len(mapping),'native_page_handlers':len(handlers),'transitional_ceiling':21},indent=2))
