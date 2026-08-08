@@ -39,7 +39,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/zero-legacy-final-generate.py
+          python3 tools/zero-legacy-root-entrypoints-fix.py
           rm tools/zero-legacy-final-generate.py
+          rm tools/zero-legacy-root-entrypoints-fix.py
           rm -f .github/workflows/zero-legacy-migration.yml
           rm -f .github/workflows/zero-legacy-final-readonly.yml
           rm -f .github/workflows/zero-legacy-final-push.yml
