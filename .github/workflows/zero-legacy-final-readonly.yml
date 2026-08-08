@@ -1,0 +1,55 @@
+name: Zero Legacy Final Readonly
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.head_ref == 'agent/zero-legacy-final'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout final branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-final
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Generate final tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/zero-legacy-final-generate.py
+          rm tools/zero-legacy-final-generate.py
+          rm -f .github/workflows/zero-legacy-final-readonly.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/native-unit-check
+          php tools/architecture-check.php
+          php tools/solid-audit --strict
+          php tools/security-regression-check.php
+          php tools/version-asset-contract-check.php
+          php tools/php84-runtime-contract-check
+          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null
+      - name: Pack validated tree
+        shell: bash
+        run: tar --exclude=.git --exclude=ssd --exclude=vendor --exclude=node_modules -czf /tmp/zero-legacy-final.tar.gz .
+      - name: Upload validated tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-legacy-final-tree
+          path: /tmp/zero-legacy-final.tar.gz
+          if-no-files-found: error
