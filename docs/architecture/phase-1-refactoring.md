@@ -1,25 +1,26 @@
 # Fase 1 — enxugamento estrutural
 
+> **Documento histórico.** Esta fase está concluída e não representa o mapa atual da árvore. Consulte `overview.md`, `layers.md` e `responsibility-map.md` para a arquitetura vigente.
+
 ## Escopo concluído
 
 1. compactação segura de blocos de linhas vazias em tokens PHP;
-2. mapa de responsabilidades e direção de modularização;
+2. mapa inicial de responsabilidades e direção de modularização;
 3. inventário inicial de funções puras;
 4. extração de validadores e formatadores sem mudança de assinatura pública;
 5. testes de caracterização incorporados ao contrato arquitetural.
 
-## Estratégia de compatibilidade
+## Estratégia usada
 
-Os arquivos legados permanecem como fachadas. Chamadores existentes continuam usando as mesmas funções globais, enquanto a implementação pura passa a residir em componentes de domínio.
+Os arquivos históricos funcionaram inicialmente como fachadas enquanto implementações puras foram extraídas. Essa estratégia evoluiu nas fases posteriores para portas/casos de uso, adaptadores PDO, Presentation dedicada e, por fim, decomposição sistemática em unidades `Domain/Legacy`, `Infrastructure/Legacy`, `Presentation/Legacy` e `Runtime/Legacy` classificadas por camada.
 
-## Resultado esperado
+## Legado da fase
 
-- menor extensão visual dos arquivos;
-- localização mais rápida de regras puras;
-- redução gradual de responsabilidades nos arquivos monolíticos;
-- base testável para as próximas extrações;
-- nenhuma mudança de banco, schema, interface ou comportamento funcional.
+- `app/Domain/Identity/IdentityDocumentValidator.php`;
+- `app/Domain/Patients/PatientPure.php`;
+- caracterização permanente no contrato arquitetural;
+- princípio de preservação de comportamento durante migração.
 
-## Próxima etapa
+## Situação posterior
 
-Concluída na Fase 2: apresentação e leitura das abas do paciente e apresentação da dica de onboarding foram separadas preservando as fachadas.
+A arquitetura consolidada possui composition root decomposto, catálogo de autorização coeso, runtime orientado a módulos/rotas e contratos de classificação/SOLID. Portanto, referências desta fase a “próxima etapa” devem ser interpretadas apenas como histórico cronológico.

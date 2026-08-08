@@ -1,14 +1,19 @@
 # Índice da documentação
 
-## Arquitetura
+## Arquitetura atual — fonte de trabalho
 
 - [Visão geral](architecture/overview.md)
-- [Camadas](architecture/layers.md)
+- [Camadas e classificação](architecture/layers.md)
 - [Regra de dependências](architecture/dependencies.md)
+- [Mapa atual de responsabilidades](architecture/responsibility-map.md)
 - [C4 — contexto](architecture/c4-context.md)
 - [C4 — contêineres](architecture/c4-containers.md)
-- [Fluxos de dados](architecture/data-flow.md)
-- [Mapa de responsabilidades](architecture/responsibility-map.md)
+- [Fluxos de dados e runtime](architecture/data-flow.md)
+
+## Histórico da migração arquitetural
+
+Os documentos abaixo registram etapas concluídas. Para localização atual de código, use o mapa de responsabilidades acima.
+
 - [Fase 1 — enxugamento estrutural](architecture/phase-1-refactoring.md)
 - [Fase 2 — apresentação e leitura](architecture/phase-2-presentation-boundaries.md)
 - [Fase 3 — consultas e casos de uso](architecture/phase-3-read-use-cases.md)
@@ -59,7 +64,7 @@
 - [Testes de propriedades](testing/property-tests.md)
 - [Baseline de caracterização](testing/characterization-baseline.md)
 
-## Referência
+## Performance e casos arquiteturais específicos
 
 - [Glossário](glossary.md)
 - [Orçamentos de desempenho](performance/performance-budgets.md)
@@ -68,3 +73,7 @@
 - [Read model do histórico da recepção](performance/patient-reception-read-model.md)
 - [Comando de contato do paciente](architecture/patient-contact-command.md)
 - [View de contato do paciente](architecture/patient-contact-view.md)
+
+## Contratos executáveis
+
+A documentação é complementada por `app/architecture.manifest.json`, `app/update.manifest.json`, `app/version.json`, `tools/architecture-check.php`, `tools/solid-audit`, `tools/documentation-check.php`, `tools/release-contract-reconcile` e pelos workflows de CI. Em divergência entre texto histórico e contrato atual, corrija a documentação; não contorne o contrato silenciosamente.

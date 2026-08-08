@@ -1,33 +1,46 @@
 # Regra de dependências
 
-## Regra principal
+## Fonte de verdade
 
-Dependências de código apontam para o centro da arquitetura. Um componente interno não conhece detalhes externos.
+A política executável é `app/Core/Architecture/LayerMap.php`. `tools/architecture-check.php` verifica a árvore versionada e o workflow de arquitetura impede merge de relações proibidas.
 
 ## Relações permitidas
 
 | Origem | Destinos permitidos |
 |---|---|
 | Core | Core |
-| Domain | Core e Domain |
-| Application | Core, Domain e portas próprias |
-| Infrastructure | Core, Domain, Application |
-| Presentation | Core, Domain, Application |
-| Composition | todas as camadas |
+| Domain | Core, Domain |
+| Application | Core, Domain, Application |
+| Infrastructure | Core, Domain, Application, Infrastructure |
+| Presentation | Core, Domain, Application, Presentation |
+| Composition | Core, Domain, Application, Infrastructure, Presentation, Composition |
+
+A direção é de dependências para dentro. `Infrastructure` implementa portas declaradas em `Application`; `Presentation` consome casos de uso sem acessar adaptadores concretos; `Composition` conecta as implementações concretas.
 
 ## Relações proibidas
 
-- `Core` chamando PDO;
-- `Domain` lendo `$_POST`, `$_SESSION` ou `$_SERVER`;
-- `Application` renderizando HTML;
-- `Presentation` executando SQL;
-- adaptadores externos decidindo autorização;
-- páginas criando regras alternativas às invariantes.
+- `Core` chamando PDO, HTTP ou apresentação;
+- `Domain` lendo `$_GET`, `$_POST`, `$_SESSION`, `$_SERVER`, HTML ou PDO;
+- `Application` renderizando HTML ou conhecendo repositórios PDO concretos;
+- `Presentation` executando SQL ou dependendo de `Infrastructure`;
+- `Infrastructure` decidindo política de autorização;
+- adaptadores externos criando regras alternativas às invariantes;
+- unidades `Legacy` usando sua origem histórica como exceção às regras da camada.
+
+## Exceções de classificação
+
+Alguns arquivos físicos possuem classificação especial porque são composition roots ou contratos de bootstrap. Essas exceções estão enumeradas no `LayerMap`, não devem ser inferidas por convenção e não podem ser ampliadas silenciosamente.
 
 ## Compatibilidade
 
-Fronteiras legadas podem delegar para componentes modernos. A delegação deve ser fina e não conter lógica paralela.
+Fronteiras históricas podem delegar para componentes nativos. A delegação deve ser fina. `app/Support/ModuleLoader.php`, por exemplo, é fachada compatível de composição e não pode reabsorver catálogo, loading state, dispatch, persistência ou apresentação.
 
-## Verificação
+`Legacy` é um namespace de compatibilidade dentro de uma camada real. A regra de dependências da camada continua integralmente aplicável.
 
-`tools/architecture-check.php` e o workflow de arquitetura são os contratos executáveis. Alterações na política exigem ADR.
+## Política de evolução
+
+- cobertura de classificação: 100%;
+- unidades nativas: não podem diminuir abaixo da baseline consolidada;
+- fronteiras transitórias: não podem ultrapassar o teto consolidado;
+- remoção/movimentação de símbolos internos deve passar pelo contrato de resolução;
+- mudança da matriz de dependências exige ADR e atualização dos contratos executáveis.

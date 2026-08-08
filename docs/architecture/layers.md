@@ -1,40 +1,51 @@
 # Camadas
 
+A classificação normativa está em `Prontoo\Core\Architecture\LayerMap`. O nome físico do diretório é importante, mas exceções de composição e compatibilidade são resolvidas pelo mapa executável.
+
 ## Core
 
-Contém invariantes, políticas canônicas, integridade, tempo, escopo, workflows e decisões que não dependem de detalhes externos.
+Contém invariantes, políticas canônicas, integridade estrutural, tempo, escopo, workflows e decisões internas estáveis. Depende somente de `Core`.
 
-Pode depender apenas de linguagem, tipos próprios e conceitos internos estáveis.
+Exemplos: `Core/Invariant`, `Core/Temporal`, políticas de banco e arquitetura.
 
 ## Domain
 
-Contém conceitos e regras de negócio: agenda, pessoas, financeiro, documentos, tarefas, permissões e Maestro.
+Contém conceitos, validações e regras de negócio independentes de HTTP e persistência. Pode depender de `Core` e `Domain`.
 
-Não conhece HTTP, sessão, HTML, PDO ou arquivos de configuração.
+`app/Domain/Legacy` é domínio histórico já classificado: o sufixo `Legacy` não autoriza acesso a PDO, sessão ou apresentação.
 
 ## Application
 
-Coordena casos de uso e define portas. Recebe comandos já interpretados pela apresentação e devolve resultados de aplicação.
+Coordena casos de uso e define portas. Pode depender de `Core`, `Domain` e `Application`.
 
-Não implementa detalhes de persistência.
+Abriga também o catálogo declarativo de autorização: fontes de definições, registry, requirements e definições por capacidade. Não implementa persistência nem HTML.
 
 ## Infrastructure
 
-Implementa acesso a banco, credenciais, armazenamento, filas e outros adaptadores externos. Depende das portas definidas para dentro.
+Implementa portas e detalhes externos: PDO, credenciais vivas, auditoria, integridade, armazenamento e integrações. Pode depender de `Core`, `Domain`, `Application` e da própria `Infrastructure`.
+
+`app/Infrastructure/Legacy` contém adaptadores históricos já separados na camada correta.
 
 ## Presentation
 
-Interpreta requisições, valida forma, converte entradas, chama casos de uso e renderiza respostas. Não deve conter regra de negócio ou SQL.
+Interpreta HTTP, valida forma, converte entradas, chama casos de uso e renderiza respostas. Pode depender de `Core`, `Domain`, `Application` e `Presentation`, mas não de `Infrastructure`.
+
+`app/Presentation/Legacy` contém views e operações históricas de apresentação. `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` são classificados como Presentation enquanto permanecerem como fronteiras compatíveis.
 
 ## Composition e Runtime
 
-Monta dependências, inicializa serviços e conecta camadas. É a única região autorizada a conhecer simultaneamente componentes de todas as camadas.
+É a única camada autorizada a conhecer todas as camadas. Faz wiring, bootstrap, catálogo/carregamento de módulos, composição de serviços, dispatch e coordenação de prontidão/manutenção.
 
-## Diretórios transitórios
+`app/Runtime` e `app/Install` são Composition. Também são classificados como Composition os frontais/arquivos explicitamente especiais definidos pelo `LayerMap`, como `Support/ModuleLoader.php`, `Core/Architecture/ArchitectureVerifier.php` e contratos de instalação.
 
-Arquivos em `Pages`, `Admin`, `Auth` e `Ui` podem exercer mais de uma responsabilidade por compatibilidade. Toda alteração deve:
+## Diretórios históricos adicionais
 
-- impedir novo SQL na apresentação;
-- impedir nova regra de negócio na borda;
-- delegar autorização ao ponto central;
-- reduzir ou manter a complexidade existente.
+`app/Support` e `app/Database` são, por padrão, Infrastructure, exceto os paths explicitamente promovidos a Composition no `LayerMap`. `br` e `public` são Presentation. `tools`, arquivos PHP de raiz e demais entradas de orquestração são Composition.
+
+## Regra para `Legacy`
+
+`Legacy` descreve compatibilidade, não permissão de dependência. Uma unidade `Presentation/Legacy` continua proibida de executar SQL; uma unidade `Domain/Legacy` continua proibida de ler sessão; uma unidade `Infrastructure/Legacy` não decide autorização.
+
+## Migração monotônica
+
+A baseline arquitetural exige classificação de 100% dos PHP versionados, pelo menos 278 unidades nativas e no máximo 51 fronteiras transitórias. Alterações devem manter ou melhorar esses limites.
