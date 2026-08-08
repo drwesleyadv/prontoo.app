@@ -308,17 +308,17 @@ final class SupportFoundationRuntimeOperations02
     {
     
         $message = function_exists("privacy_sanitize_error_message")
-            ? privacy_sanitize_error_message($e, 900)
+            ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 900)
             : mb_substr($e->getMessage(), 0, 900);
         $file = function_exists("privacy_log_file_label")
-            ? privacy_log_file_label($e->getFile())
+            ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
             : basename($e->getFile());
         $dir = storage_path("logs");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($dir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         }
         $line =
             "[" .
@@ -375,7 +375,7 @@ final class SupportFoundationRuntimeOperations02
             error_log(
                 "[Prontoo error_event] " .
                     (function_exists("privacy_sanitize_error_message")
-                        ? privacy_sanitize_error_message($ignored, 240)
+                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($ignored, 240)
                         : $ignored->getMessage()),
             );
         }

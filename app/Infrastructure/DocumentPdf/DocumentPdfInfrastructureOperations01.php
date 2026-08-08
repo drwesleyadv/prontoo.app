@@ -35,7 +35,7 @@ final class DocumentPdfInfrastructureOperations01
             @mkdir($dir, 0750, true);
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($dir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         }
         return $dir;
     
@@ -50,7 +50,7 @@ final class DocumentPdfInfrastructureOperations01
             @mkdir($dir, 0750, true);
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($dir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         }
         return $dir;
     

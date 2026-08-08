@@ -398,7 +398,7 @@ final class SecurityAccessRuntimeOperations02
     {
     
         return function_exists("security_https_active")
-            ? security_https_active()
+            ? \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
             : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
                 (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
     

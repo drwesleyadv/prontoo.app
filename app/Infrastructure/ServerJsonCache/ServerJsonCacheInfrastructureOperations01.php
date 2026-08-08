@@ -50,7 +50,7 @@ final class ServerJsonCacheInfrastructureOperations01
             return $resolved;
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($resolved);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($resolved);
         } else {
             $deny = $resolved . "/.htaccess";
             if (!is_file($deny)) {
@@ -75,7 +75,7 @@ final class ServerJsonCacheInfrastructureOperations01
             return $resolved[$category] = $dir;
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($dir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         }
         return $resolved[$category] = $dir;
     
@@ -209,7 +209,7 @@ final class ServerJsonCacheInfrastructureOperations01
             return $generationDir . "/" . $key . ".json";
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($generationDir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($generationDir);
         }
         return $generationDir . "/" . $key . ".json";
     

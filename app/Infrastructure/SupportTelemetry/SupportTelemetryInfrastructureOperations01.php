@@ -151,7 +151,7 @@ final class SupportTelemetryInfrastructureOperations01
         }
         @chmod($dir, 0750);
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file($dir);
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         } else {
             if (!is_file($dir . "/.htaccess")) {
                 @file_put_contents($dir . "/.htaccess", "Require all denied\n", LOCK_EX);

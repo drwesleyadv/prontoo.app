@@ -5,7 +5,7 @@
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
     "native_files_min": 278,
-    "transitional_files_max": 44,
+    "transitional_files_max": 43,
     "native_migration_policy": "effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
@@ -75,7 +75,8 @@
         "app/bootstrap_specialized.php",
         "app/Pages/Dashboards.php",
         "app/Ui/PublicWeb.php",
-        "app/Domain/Leads/Leads.php"
+        "app/Domain/Leads/Leads.php",
+        "app/Support/SecurityPrivacy.php"
     ],
     "compatibility_boundaries": [],
     "database_changes": false,

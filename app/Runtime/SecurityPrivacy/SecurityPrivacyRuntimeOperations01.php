@@ -47,7 +47,7 @@ final class SecurityPrivacyRuntimeOperations01
         }
         foreach (preg_split("/[,\s]+/", $raw) ?: [] as $entry) {
             $entry = trim($entry);
-            if ($entry !== "" && security_ip_in_cidr($remote, $entry)) {
+            if ($entry !== "" && \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_ip_in_cidr($remote, $entry)) {
                 return true;
             }
         }
@@ -72,7 +72,7 @@ final class SecurityPrivacyRuntimeOperations01
         $front = strtolower((string) ($_SERVER["HTTP_FRONT_END_HTTPS"] ?? ""));
         if (
             ($forwarded === "https" || $front === "on") &&
-            security_trusted_proxy_request()
+            \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_trusted_proxy_request()
         ) {
             return true;
         }

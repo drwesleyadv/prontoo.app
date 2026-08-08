@@ -19,7 +19,7 @@
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
     "architecture_native_files_min": 278,
-    "architecture_transitional_files_max": 44,
+    "architecture_transitional_files_max": 43,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
@@ -106,6 +106,10 @@
             "app/Runtime/Leads/LeadsRuntimeOperations01.php",
             "app/Runtime/Leads/LeadsRuntimeOperations02.php",
             "app/Runtime/Routing/PageDispatcher.php"
+        ],
+        "app/Support/SecurityPrivacy.php": [
+            "app/Infrastructure/SecurityPrivacy/SecurityPrivacyInfrastructureOperations01.php",
+            "app/Runtime/SecurityPrivacy/SecurityPrivacyRuntimeOperations01.php"
         ]
     },
     "native_consolidation_path_decompositions": {

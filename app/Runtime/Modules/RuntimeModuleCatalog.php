@@ -13,7 +13,6 @@ final class RuntimeModuleCatalog
     {
         return [
             'Support/Runtime.php',
-            'Support/SecurityPrivacy.php',
             'Support/Foundation.php',
             'Support/ServerJsonCache.php',
             'Core/Performance/PerformanceBudget.php',

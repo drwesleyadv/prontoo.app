@@ -541,8 +541,8 @@ final class InstallInstallerRuntimeOperations01
             );
         }
         if (function_exists("security_storage_deny_file")) {
-            security_storage_deny_file(storage_path("logs"));
-            security_storage_deny_file(storage_path("pdfs"));
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("logs"));
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("pdfs"));
         }
     
     }
