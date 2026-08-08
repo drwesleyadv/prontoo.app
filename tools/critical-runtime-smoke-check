@@ -45,7 +45,7 @@ require $root . '/app/prontoo.php';
 \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
     install_fresh_schema();
 });
-prontoo_load_full_runtime_modules();
+\Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 
 $pdo = pdo();
 $now = time();

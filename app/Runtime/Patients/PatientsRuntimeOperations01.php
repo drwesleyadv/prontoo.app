@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\Patients\PatientComposition;
 
 final class PatientsRuntimeOperations01
 {
@@ -36,12 +37,32 @@ final class PatientsRuntimeOperations01
     
     }
 
+    public static function patient_record_type_label(string $type): string
+    {
+        $customTabLabel = null;
+        $normalized = trim($type);
+        if (str_starts_with($normalized, "tab_")) {
+            $tabId = (int) substr($normalized, 4);
+            if ($tabId > 0) {
+                try {
+                    $customTabLabel = PatientComposition::tabLabel($tabId);
+                } catch (Throwable $error) {
+                    error_log("[Prontoo recoverable " . __FUNCTION__ . "] " . $error->getMessage());
+                }
+            }
+        }
+        return \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_record_type_label(
+            $type,
+            $customTabLabel,
+        );
+    }
+
     public static function patient_extra_tabs(int $cid, int $patientId): array
     
     {
     
         patient_tabs_ensure_schema();
-        $rows = prontoo_patient_tab_active_rows($cid, $patientId);
+        $rows = PatientComposition::activeTabs($cid, $patientId);
         foreach ($rows as &$r) {
             $r["id"] = (int) $r["id"];
             $r["label"] = patient_tab_label_clean((string) ($r["label"] ?? ""));
@@ -134,7 +155,7 @@ final class PatientsRuntimeOperations01
             return [];
         }
         patient_guardians_ensure_schema();
-        return prontoo_patient_legal_guardians($cid, $patientId);
+        return PatientComposition::legalGuardians($cid, $patientId);
     
     }
 
@@ -154,7 +175,7 @@ final class PatientsRuntimeOperations01
             return false;
         }
         patient_guardians_ensure_schema();
-        return prontoo_patient_has_legal_guardian($cid, $patientId);
+        return PatientComposition::hasLegalGuardian($cid, $patientId);
     
     }
 

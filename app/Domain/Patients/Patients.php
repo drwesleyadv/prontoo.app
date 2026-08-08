@@ -42,11 +42,14 @@ function patient_tab_record_options(array $tabs): array
 }
 function patient_record_type_label(string $type): string
 {
-    return \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_record_type_label($type);
+    return \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_record_type_label($type);
 }
 function patient_tab_icon_picker(string $current = "clinical_notes"): string
 {
-    return \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_tab_icon_picker($current);
+    return \Prontoo\Runtime\Patients\PatientViewComposition::tabIconPicker(
+        patient_health_icon_options(),
+        normalize_patient_tab_icon($current),
+    );
 }
 function patient_guardians_ensure_schema(): void
 {
@@ -89,7 +92,7 @@ function patient_appointment_registration_block_reason(
     int $cid,
     int $patientId,
 ): ?string {
-    return \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_appointment_registration_block_reason($cid, $patientId);
+    return \Prontoo\Runtime\Patients\PatientComposition::registrationBlockReason($cid, $patientId);
 }
 function patient_legal_guardians(int $cid, int $patientId): array
 {

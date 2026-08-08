@@ -19,6 +19,7 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\Patients\PatientViewComposition;
 
 final class AuthOnboardingRuntimeOperations01
 {
@@ -207,7 +208,7 @@ final class AuthOnboardingRuntimeOperations01
         $params = $_GET;
         unset($params["r"]);
         $return = href($route, $params);
-        return prontoo_onboarding_tip_render($tip, $key, $return, csrf_field());
+        return PatientViewComposition::onboardingTip($tip, $key, $return, csrf_field());
     
     }
 

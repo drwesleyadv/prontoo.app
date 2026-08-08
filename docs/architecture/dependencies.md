@@ -33,7 +33,7 @@ Alguns arquivos físicos possuem classificação especial porque são compositio
 
 ## Compatibilidade
 
-Fronteiras históricas podem delegar para componentes nativos. A delegação deve ser fina. `app/Support/ModuleLoader.php`, por exemplo, é fachada compatível de composição e não pode reabsorver catálogo, loading state, dispatch, persistência ou apresentação.
+Fronteiras históricas remanescentes podem delegar para componentes nativos, sempre de forma fina. A antiga fachada global `app/Support/ModuleLoader.php` foi removida; catálogo, loading state, dispatch e composição são consumidos pelas unidades nativas correspondentes.
 
 `Legacy` é um namespace de compatibilidade dentro de uma camada real. A regra de dependências da camada continua integralmente aplicável.
 

@@ -19,6 +19,9 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Runtime\Financial\FinancialComposition;
+use Prontoo\Runtime\Patients\PatientComposition;
+use Prontoo\Runtime\Patients\PatientViewComposition;
 
 final class PatientsRuntimeOperations07
 {
@@ -283,7 +286,7 @@ final class PatientsRuntimeOperations07
                 }
                 $contact = patient_invoice_contact_from_post();
                 $loc = patient_location_from_post($cid);
-                prontoo_update_patient_contact_command(
+                PatientComposition::updateContact(
                     $cid,
                     $id,
                     (int) $c["user"]["id"],
@@ -330,7 +333,7 @@ final class PatientsRuntimeOperations07
                 $rid = (int) ($_POST["revenue_id"] ?? 0);
                 try {
                     $uid = (int) $c["user"]["id"];
-                    $receipt = prontoo_receive_patient_revenue_command(
+                    $receipt = FinancialComposition::receivePatientRevenue(
                         $cid,
                         $id,
                         $rid,
@@ -479,7 +482,7 @@ final class PatientsRuntimeOperations07
                     flash("Informe o nome da nova aba.", "bad");
                     redirect("patient", ["id" => $id]);
                 }
-                $command = prontoo_create_patient_tab_command(
+                $command = PatientComposition::createTab(
                     $cid,
                     $id,
                     $label,
@@ -1109,7 +1112,7 @@ final class PatientsRuntimeOperations07
                 ) .
                 "</b></div></div>";
             $patientContactEdit = $canUpdatePatientContact
-                ? prontoo_patient_contact_edit_form($p, $cid)
+                ? PatientViewComposition::contactEditForm($p, $cid)
                 : "";
             $dataPanel =
                 '<section class="patient-panel patient-panel-cadastro" role="tabpanel"><h2>Cadastro</h2><p class="muted-copy">Dados de identificação e contato do paciente.</p>' .
@@ -1368,7 +1371,7 @@ final class PatientsRuntimeOperations07
             "</b></div>" .
             "</div>";
         $patientContactEdit = $canUpdatePatientContact
-            ? prontoo_patient_contact_edit_form($p, $cid)
+            ? PatientViewComposition::contactEditForm($p, $cid)
             : "";
         $patientCpfField =
             mb_trim((string) ($p["cpf"] ?? "")) !== ""

@@ -82,10 +82,10 @@ final class PatientsDomainOperations01
     
     }
 
-    public static function patient_record_type_label(string $type): string
-    
-    {
-    
+    public static function patient_record_type_label(
+        string $type,
+        ?string $customTabLabel = null,
+    ): string {
         $type = trim($type);
         $base = [
             "note" => "Nota",
@@ -104,36 +104,13 @@ final class PatientsDomainOperations01
         if (isset($base[$type])) {
             return $base[$type];
         }
-        if (str_starts_with($type, "tab_")) {
-            $id = (int) substr($type, 4);
-            if ($id > 0) {
-                try {
-                    $label = prontoo_patient_tab_label_by_id($id);
-                    if (trim($label) !== "") {
-                        return patient_tab_label_clean($label);
-                    }
-                } catch (Throwable $e) {
-                    error_log(
-                        "[Prontoo recoverable " .
-                            __FUNCTION__ .
-                            "] " .
-                            $e->getMessage(),
-                    );
-                }
-            }
+        if (str_starts_with($type, "tab_") && mb_trim((string) $customTabLabel) !== "") {
+            return patient_tab_label_clean((string) $customTabLabel);
         }
         $fallback = trim(str_replace("_", " ", $type));
         return $fallback !== ""
             ? mb_convert_case($fallback, MB_CASE_TITLE, "UTF-8")
             : "Atividade";
-    
-    }
-
-    public static function patient_tab_icon_picker(string $current = "clinical_notes"): string
-    
-    {
-        $current = normalize_patient_tab_icon($current);
-        return prontoo_patient_tab_icon_picker(patient_health_icon_options(), $current);
     
     }
 
@@ -162,15 +139,6 @@ final class PatientsDomainOperations01
     
     {
         return \Prontoo\Domain\Patients\PatientPure::isMinor($p);
-    
-    }
-
-    public static function patient_appointment_registration_block_reason(
-        int $cid,
-        int $patientId,
-    ): ?string 
-    {
-        return prontoo_patient_appointment_registration_block_reason($cid, $patientId);
     
     }
 

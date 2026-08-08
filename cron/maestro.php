@@ -63,7 +63,7 @@ define("PRONTOO_CRON", true);
 
 try {
     require $__prontooCronRoot . "/app/prontoo.php";
-    prontoo_load_full_runtime_modules();
+    \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 } catch (Throwable $error) {
     prontoo_cron_bootstrap_log("bootstrap " . $error->getMessage());
     fwrite(

@@ -36,7 +36,7 @@ Interpreta HTTP, valida forma, converte entradas, chama casos de uso e renderiza
 
 É a única camada autorizada a conhecer todas as camadas. Faz wiring, bootstrap, catálogo/carregamento de módulos, composição de serviços, dispatch e coordenação de prontidão/manutenção.
 
-`app/Runtime` e `app/Install` são Composition. Também são classificados como Composition os frontais/arquivos explicitamente especiais definidos pelo `LayerMap`, como `Support/ModuleLoader.php`, `Core/Architecture/ArchitectureVerifier.php` e contratos de instalação.
+`app/Runtime` e `app/Install` são Composition. Também são classificados como Composition os frontais/arquivos explicitamente especiais definidos pelo `LayerMap`, como `Core/Architecture/ArchitectureVerifier.php` e contratos de instalação.
 
 ## Diretórios históricos adicionais
 

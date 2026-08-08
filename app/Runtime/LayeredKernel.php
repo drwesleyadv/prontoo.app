@@ -9,6 +9,8 @@ use Prontoo\Core\Invariant\InvariantKernel;
 use Prontoo\Infrastructure\Audit\PdoActionProofStore;
 use Prontoo\Infrastructure\Authorization\RuntimeCapabilityProvider;
 use Prontoo\Presentation\Http\ActionMiddleware;
+use Prontoo\Runtime\Modules\RuntimeModuleCatalog;
+use Prontoo\Runtime\Routing\RouteCatalog;
 
 final class LayeredKernel
 {
@@ -45,7 +47,12 @@ final class LayeredKernel
         $middleware = ActionMiddleware::logicSelfTest();
         $mutations = InvariantKernel::logicSelfTest();
         $architecture = $root !== null && $root !== ''
-            ? ArchitectureVerifier::report($root, false)
+            ? ArchitectureVerifier::report(
+                $root,
+                false,
+                RuntimeModuleCatalog::fullModules(),
+                class_exists(RouteCatalog::class) ? RouteCatalog::all() : [],
+            )
             : ['ok' => true, 'skipped' => true];
         return [
             'ok' => !empty($authorization['ok']) &&

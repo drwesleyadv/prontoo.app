@@ -19,6 +19,9 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
+use Prontoo\Presentation\Http\JsonResponder;
+use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
+use Prontoo\Runtime\Routing\RouteCatalog;
 
 final class AuthOnboardingRuntimeOperations03
 {
@@ -31,9 +34,10 @@ final class AuthOnboardingRuntimeOperations03
     {
     
         unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
-        $wantsJson =
-            function_exists("prontoo_route_wants_json") &&
-            prontoo_route_wants_json("login");
+        $wantsJson = RouteCatalog::wantsJson(
+            "login",
+            (string) ($_SERVER["HTTP_ACCEPT"] ?? ""),
+        );
         $currentCtx = ctx();
         if ($currentCtx) {
             redirect(
@@ -65,7 +69,7 @@ final class AuthOnboardingRuntimeOperations03
                     $message =
                         "Não foi possível consultar a verificação em duas etapas agora. O acesso não foi liberado; tente novamente em instantes.";
                     if ($wantsJson) {
-                        prontoo_json_response(
+                        JsonResponder::send(
                             [
                                 "ok" => false,
                                 "stage" => "password",
@@ -82,7 +86,7 @@ final class AuthOnboardingRuntimeOperations03
                 if (!$user || $userMfaState !== "active") {
                     mfa_pending_login_clear();
                     if ($wantsJson) {
-                        prontoo_json_response(
+                        JsonResponder::send(
                             [
                                 "ok" => false,
                                 "stage" => "password",
@@ -103,7 +107,7 @@ final class AuthOnboardingRuntimeOperations03
                 $uid = (int) $user["id"];
                 if (mfa_attempt_limited($uid, "login")) {
                     if ($wantsJson) {
-                        prontoo_json_response(
+                        JsonResponder::send(
                             [
                                 "ok" => false,
                                 "stage" => "mfa",
@@ -140,7 +144,7 @@ final class AuthOnboardingRuntimeOperations03
                     login_session_forget();
                     $destination = mfa_complete_pending_login(!$wantsJson);
                     if ($wantsJson) {
-                        prontoo_json_response([
+                        JsonResponder::send([
                             "ok" => true,
                             "stage" => "complete",
                             "redirect" => href($destination),
@@ -157,7 +161,7 @@ final class AuthOnboardingRuntimeOperations03
                         "Não foi possível confirmar o código de verificação.",
                     );
                     if ($wantsJson) {
-                        prontoo_json_response(
+                        JsonResponder::send(
                             [
                                 "ok" => false,
                                 "stage" => "mfa",
@@ -259,7 +263,7 @@ final class AuthOnboardingRuntimeOperations03
                     "aguarde_segundos" => $wait,
                 ]);
                 if ($wantsJson) {
-                    prontoo_json_response(
+                    JsonResponder::send(
                         [
                             "ok" => false,
                             "stage" => "password",
@@ -283,7 +287,7 @@ final class AuthOnboardingRuntimeOperations03
                     "aguarde_segundos" => $wait,
                 ]);
                 if ($wantsJson) {
-                    prontoo_json_response(
+                    JsonResponder::send(
                         [
                             "ok" => false,
                             "stage" => "password",
@@ -317,7 +321,7 @@ final class AuthOnboardingRuntimeOperations03
                     "aguarde_segundos" => $w,
                 ]);
                 if ($wantsJson) {
-                    prontoo_json_response(
+                    JsonResponder::send(
                         [
                             "ok" => false,
                             "stage" => "password",
@@ -341,7 +345,7 @@ final class AuthOnboardingRuntimeOperations03
                 $message =
                     "Não foi possível consultar a verificação em duas etapas agora. O acesso não foi liberado; tente novamente em instantes.";
                 if ($wantsJson) {
-                    prontoo_json_response(
+                    JsonResponder::send(
                         [
                             "ok" => false,
                             "stage" => "password",
@@ -360,7 +364,7 @@ final class AuthOnboardingRuntimeOperations03
                 mfa_begin_pending_login($uid, $credential);
                 if ($isGlobalAdmin && !$enrolled) {
                     if ($wantsJson) {
-                        prontoo_json_response([
+                        JsonResponder::send([
                             "ok" => true,
                             "stage" => "enroll",
                             "redirect" => href("mfa"),
@@ -370,7 +374,7 @@ final class AuthOnboardingRuntimeOperations03
                     redirect("mfa");
                 }
                 if ($wantsJson) {
-                    prontoo_json_response([
+                    JsonResponder::send([
                         "ok" => true,
                         "stage" => "mfa",
                         "message" =>
@@ -381,7 +385,7 @@ final class AuthOnboardingRuntimeOperations03
                 }
                 redirect("login");
             }
-            prontoo_login_post_password_maintenance($uid);
+            RuntimeBootCoordinator::postPasswordMaintenance($uid);
             $destination = login_apply_resolved_credential(
                 $uid,
                 $credential,
@@ -389,7 +393,7 @@ final class AuthOnboardingRuntimeOperations03
                 !$wantsJson,
             );
             if ($wantsJson) {
-                prontoo_json_response([
+                JsonResponder::send([
                     "ok" => true,
                     "stage" => "complete",
                     "redirect" => href($destination),
