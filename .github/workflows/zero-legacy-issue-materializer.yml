@@ -1,0 +1,52 @@
+name: Zero Legacy Issue Materializer
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.event.issue.title == 'ZERO LEGACY MATERIALIZE FINAL TREE'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout materialization branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/zero-legacy-final-materialize
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Generate validate and persist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/zero-legacy-final-generate.py
+          python3 tools/zero-legacy-root-entrypoints-fix.py
+          rm tools/zero-legacy-final-generate.py
+          rm tools/zero-legacy-root-entrypoints-fix.py
+          rm -f zero-legacy-final-failure.log
+          rm -f .github/workflows/zero-legacy-migration.yml
+          rm -f .github/workflows/zero-legacy-final-readonly.yml
+          rm -f .github/workflows/zero-legacy-final-push.yml
+          rm -f .github/workflows/zero-legacy-public-finalizer.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/native-unit-check
+          php tools/architecture-check.php
+          php tools/solid-audit --strict
+          php tools/security-regression-check.php
+          php tools/version-asset-contract-check.php
+          php tools/php84-runtime-contract-check
+          find . -name '*.php' -not -path './.git/*' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l >/dev/null
+          git config user.name 'Prontoo Architecture Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Zero legacy: materializar árvore final validada'
+          git push origin HEAD:agent/zero-legacy-final-materialize
