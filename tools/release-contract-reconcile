@@ -186,7 +186,7 @@ foreach ([
 $architecture['policy'] = (string) ($version['architecture_policy'] ?? $architecture['policy'] ?? '');
 $architecture['native_files_min'] = (int) ($version['architecture_native_files_min'] ?? 0);
 $architecture['transitional_files_max'] = (int) ($version['architecture_transitional_files_max'] ?? 0);
-$architecture['native_migration_policy'] = 'effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase';
+$architecture['native_migration_policy'] = 'effective_native_unit_count_must_not_decrease_and_current_non_native_ceiling_must_not_increase';
 $architectureContent = $encodeJson($architecture);
 
 foreach ([

@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.9.1 — Auditoria de consolidação pós-zero-legacy
+
+- alinha componentes arquiteturais ativos aos paths nativos após a remoção das fachadas globais.
+- transforma a ausência de fronteiras de compatibilidade e resíduos temporários em gate permanente de arquitetura.
+- corrige a documentação de estado atual para distinguir rastreabilidade histórica de compatibilidade executável.
+- encerra PRs técnicos de inventário e migração já superseded pela materialização zero-legacy.
+- preserva referências históricas somente nos mapas explícitos de migração, auditorias e contratos de baseline.
+- não altera banco, schema, comportamento funcional, layout ou assets públicos.
+
 ## 1.8.7.8 — Hotfix de disponibilidade do login
 
 - faz o formulário de login funcionar por envio HTML nativo mesmo sem JavaScript.

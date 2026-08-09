@@ -13,7 +13,7 @@ A fonte executável de verdade para classificação e dependências é `app/Core
 - manter composition root explícito e carregamento orientado à rota;
 - reduzir o caminho crítico de login e requisições normais;
 - tornar falhas explícitas, auditáveis e fail-closed;
-- preservar compatibilidade enquanto unidades históricas são classificadas e decompostas;
+- preservar rastreabilidade histórica sem reintroduzir compatibilidade executável;
 - impedir regressão estrutural por contratos executáveis.
 
 ## Camadas
@@ -62,16 +62,13 @@ A fachada global `app/Support/ModuleLoader.php` foi removida. Entrypoints e unid
 
 Login e rotas normais verificam somente contrato de schema e `integrity lightcheck`. O marcador de prontidão é separado do marcador de manutenção profunda. Autotestes pesados, runtime self-check, cleanup e verificações profundas são executados fora do hot path quando explicitamente necessários. Falha de gravabilidade do cache/lock não dispensa os checks mínimos: eles executam sem cache.
 
-## Compatibilidade `Legacy`
+## Histórico de migração
 
-`Legacy` não significa camada arquitetural. Significa **origem histórica/compatibilidade**. Cada unidade `Legacy` reside dentro de uma camada real e deve obedecer às dependências dessa camada, por exemplo:
+A árvore atual não possui camada, namespace ou fachada executável `Legacy`. Os nomes de origem removidos sobrevivem apenas como metadados históricos declarados nos mapas de migração de `version.json`, em `removed_legacy_files`, nas auditorias de baseline e nos contratos que resolvem origem histórica para destino nativo.
 
-- `Domain/Legacy` — regra/contrato de domínio histórico;
-- `Infrastructure/Legacy` — persistência ou integração histórica;
-- `Presentation/Legacy` — HTML/UI/HTTP histórico;
-- `Runtime/Legacy` — coordenação e compatibilidade de runtime.
+Essas referências não participam do dispatch, bootstrap ou composição do runtime. Componentes arquiteturais ativos devem apontar exclusivamente para arquivos existentes e não podem apontar para itens de `removed_legacy_files`; `tools/architecture-check.php` verifica essa condição.
 
-A migração é monotônica: o número efetivo de unidades nativas não pode diminuir e o teto de fronteiras compatíveis não pode aumentar.
+A migração permanece monotônica: o número efetivo de unidades nativas não pode diminuir e o teto corrente de entrypoints e ferramentas procedurais não nativos não pode aumentar.
 
 ## Pontos de entrada
 
@@ -100,7 +97,7 @@ A arquitetura não é apenas documental. São gates permanentes:
 2. integridade transacional e auditável;
 3. segurança fail-closed;
 4. consistência operacional;
-5. compatibilidade controlada;
+5. rastreabilidade histórica sem compatibilidade executável;
 6. legibilidade e coesão;
 7. desempenho do hot path;
 8. extensibilidade sem regressão estrutural.

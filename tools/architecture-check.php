@@ -255,6 +255,51 @@ try {
 } catch (InvalidArgumentException) {
 }
 
+
+$consolidationManifest = json_decode(
+    (string) file_get_contents($root . '/app/architecture.manifest.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+$assert(($consolidationManifest['compatibility_boundaries'] ?? null) === [], 'consolidation_compatibility_boundaries_not_empty');
+$removedLegacyFiles = array_fill_keys(array_map('strval', (array) ($consolidationManifest['removed_legacy_files'] ?? [])), true);
+foreach ($consolidationManifest as $key => $paths) {
+    if (!is_string($key) || !str_ends_with($key, '_components') || !is_array($paths)) {
+        continue;
+    }
+    foreach ($paths as $path) {
+        if (!is_string($path) || $path === '') {
+            $failures[] = 'consolidation_component_invalid:' . $key;
+            continue;
+        }
+        $assert(is_file($root . '/' . $path), 'consolidation_component_missing:' . $key . ':' . $path);
+        $assert(!isset($removedLegacyFiles[$path]), 'consolidation_component_removed_legacy:' . $key . ':' . $path);
+    }
+}
+foreach ([
+    '.github/workflows/zero-legacy-migration.yml',
+    '.github/workflows/zero-legacy-final-readonly.yml',
+    '.github/workflows/zero-legacy-final-push.yml',
+    '.github/workflows/zero-legacy-public-finalizer.yml',
+    '.github/workflows/zero-legacy-materializer-scheduled.yml',
+    '.zero-legacy-materialize-trigger',
+    'tools/zero-legacy-final-generate.py',
+    'tools/zero-legacy-root-entrypoints-fix.py',
+    'tools/sitecustomize.py',
+    'zero-legacy-final-failure.log',
+] as $path) {
+    $assert(!is_file($root . '/' . $path), 'consolidation_temporary_artifact:' . $path);
+}
+$appIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
+foreach ($appIterator as $file) {
+    if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+        continue;
+    }
+    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+    $assert(!str_contains($relative, '/Legacy/'), 'consolidation_legacy_path:' . $relative);
+}
+
 $result = [
     'ok' => $failures === [],
     'architecture' => $architecture,
