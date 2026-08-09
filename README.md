@@ -1,6 +1,6 @@
 # Prontoo
 
-Prontoo é uma aplicação web monolítica modular para consultórios e clínicas de pequeno porte. A arquitetura atual é um monólito PHP 8.4 em camadas, com núcleo de invariantes, composição explícita de runtime e fronteiras de compatibilidade classificadas pelo contrato arquitetural.
+Prontoo é uma aplicação web monolítica modular para consultórios e clínicas de pequeno porte. A arquitetura atual é um monólito PHP 8.4 em camadas, com núcleo de invariantes, composição explícita de runtime e **sem fachadas globais de compatibilidade executável**.
 
 ## Comece por aqui
 
@@ -24,19 +24,19 @@ Prontoo é uma aplicação web monolítica modular para consultórios e clínica
 | Diretório | Responsabilidade arquitetural |
 |---|---|
 | `app/Core` | invariantes canônicas, workflows, tempo, isolamento, integridade, políticas estruturais e arquitetura |
-| `app/Domain` | regras e contratos de negócio; `Domain/Legacy` contém unidades já classificadas como domínio extraídas da base histórica |
+| `app/Domain` | regras, políticas e contratos de negócio independentes de HTTP e persistência |
 | `app/Application` | casos de uso, portas e catálogo/contratos de autorização |
-| `app/Infrastructure` | PDO, persistência, credenciais vivas, auditoria, integridade e adaptadores externos; `Infrastructure/Legacy` mantém operações históricas já isoladas nesta camada |
-| `app/Presentation` | adaptadores HTTP/UI e views; `Presentation/Legacy` contém apresentação histórica já separada das demais responsabilidades |
-| `app/Runtime` | composition root, bootstrap, módulos, roteamento, autorização composta, serviços e coordenação de prontidão/manutenção; `Runtime/Legacy` preserva compatibilidade operacional |
-| `app/Admin`, `app/Auth`, `app/Pages`, `app/Ui` | fronteiras de apresentação compatíveis, sujeitas ao teto de transição do contrato arquitetural |
-| `app/Support`, `app/Database` | infraestrutura histórica e fachadas de composição explicitamente classificadas pelo `LayerMap` |
+| `app/Infrastructure` | PDO, persistência, credenciais vivas, auditoria, integridade, cache e adaptadores externos |
+| `app/Presentation` | adaptadores HTTP/UI, views e formatação de respostas |
+| `app/Runtime` | composition root, bootstrap, módulos, roteamento, autorização composta, serviços e coordenação de prontidão/manutenção |
 | `br`, `public` | front controllers e borda HTTP |
 | `cron` | entrada CLI do Maestro |
 | `tools` | contratos executáveis, auditorias e utilitários de release/manutenção |
 | `docs` | documentação arquitetural, domínio, segurança, operação, banco, testes e performance |
 
-A classificação efetiva é definida por `app/Core/Architecture/LayerMap.php` e verificada por `tools/architecture-check.php`. O alvo é **100% dos arquivos PHP versionados classificados**, com pelo menos **278 unidades nativas** e no máximo **51 entrypoints e ferramentas procedurais não classificados como unidades nativas** na baseline atual.
+Paths históricos removidos podem aparecer somente em mapas explícitos de migração, auditorias de baseline e metadados de rastreabilidade. Eles não são componentes ativos nem participam do bootstrap ou dispatch.
+
+A classificação efetiva é definida por `app/Core/Architecture/LayerMap.php` e verificada por `tools/architecture-check.php`. O alvo é **100% dos arquivos PHP versionados classificados**, com pelo menos **278 unidades nativas** e no máximo **21 entrypoints e ferramentas procedurais não classificados como unidades nativas** na baseline atual.
 
 ## Regra de dependências
 
@@ -61,16 +61,18 @@ Login e rotas normais executam apenas a prontidão mínima: contrato de schema e
 ```bash
 find . -name '*.php' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
 php tools/release-contract-reconcile --check
+php tools/native-unit-check
+php tools/architecture-check.php
+php tools/solid-audit --strict
 php tools/code-comment-check.php
 php tools/documentation-check.php
 php tools/security-regression-check.php
-php tools/architecture-check.php
 php tools/schema-check.php
 php tools/install-security-check.php
 php tools/login-post-password-runtime-check
 ```
 
-O workflow `.github/workflows/architecture.yml` complementa esses contratos com PHP 8.4/MySQL 8 reais, verificação de símbolos, auditoria SOLID, regressão do Maestro e smoke matrix do runtime crítico.
+O workflow `.github/workflows/architecture.yml` complementa esses contratos com PHP 8.4/MySQL 8 reais, verificação de símbolos, regressão do Maestro e smoke matrix do runtime crítico.
 
 ## Invariantes obrigatórias
 
@@ -83,21 +85,9 @@ O workflow `.github/workflows/architecture.yml` complementa esses contratos com 
 - Desenvolvedor usa MFA obrigatório; elevação global exige senha e MFA recentes;
 - sessões expiram após 60 minutos de inatividade e obedecem à geração canônica do usuário;
 - trabalhos secundários são duráveis, idempotentes e supervisionados pelo Maestro;
-- release, versão, manifestos e hashes são reconciliados deterministicamente e a CI é read-only para divergências.
+- release, versão, manifestos e hashes são reconciliados deterministicamente e a CI é read-only para divergências;
+- `compatibility_boundaries` permanece vazio e componentes arquiteturais ativos apontam somente para paths existentes e nativos.
 
 ## Documentação
 
 - [Índice completo](docs/index.md)
-- [Arquitetura](docs/architecture/overview.md)
-- [Domínios](docs/domain/)
-- [Segurança](docs/security/)
-- [Operação](docs/operations/)
-- [Banco de dados](docs/database/)
-- [Testes](docs/testing/)
-- [Contribuição](CONTRIBUTING.md)
-- [Política de segurança](SECURITY.md)
-- [Histórico de versões](CHANGELOG.md)
-
-## Licença e acesso
-
-O repositório é privado. A autorização de acesso não implica autorização de publicação, distribuição ou uso fora do ambiente do Prontoo.
