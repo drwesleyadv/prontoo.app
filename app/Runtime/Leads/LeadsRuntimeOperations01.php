@@ -31,7 +31,7 @@ final class LeadsRuntimeOperations01
     
     {
     
-        return substr(only_digits($phone), 0, 11);
+        return substr(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($phone), 0, 11);
     
     }
 
@@ -39,7 +39,7 @@ final class LeadsRuntimeOperations01
     
     {
     
-        $d = only_digits($cpf);
+        $d = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf);
         if (strlen($d) !== 11) {
             return $cpf;
         }
@@ -64,7 +64,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || $phoneDigits === "") {
             return null;
         }
-        ensure_lead_events_schema();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
         $where =
             "clinic_id=? AND (phone_digits=? OR LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=?)";
         $params = [$cid, $phoneDigits, $phoneDigits];
@@ -72,7 +72,7 @@ final class LeadsRuntimeOperations01
             $where .= " AND id<>?";
             $params[] = $excludeId;
         }
-        return one(
+        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at,updated_at FROM pi_leads WHERE $where ORDER BY CASE WHEN " .
                 LeadsDomainOperations01::lead_active_stage_sql("stage") .
                 " THEN 0 WHEN stage='arquivado' THEN 1 ELSE 2 END, COALESCE(updated_at,created_at) DESC, id DESC LIMIT 1",
@@ -100,7 +100,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || $leadId <= 0) {
             return;
         }
-        ensure_lead_events_schema();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
         $eventType = preg_replace("/[^a-z0-9_\-]/i", "", $eventType) ?: "contato";
         $stageFrom =
             trim($stageFrom) !== "" ? LeadsDomainOperations01::lead_stage_normalize($stageFrom) : "";
@@ -112,7 +112,7 @@ final class LeadsRuntimeOperations01
                     ? "Contato inicial registrado sem observação adicional."
                     : "Contato registrado sem observação adicional.";
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_lead_events (clinic_id,lead_id,event_type,stage_from,stage_to,phone,source,interest,next_action_at,body,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
             [
                 $cid,
@@ -140,42 +140,42 @@ final class LeadsRuntimeOperations01
     
         $leadId = (int) ($lead["id"] ?? 0);
         $name = mb_trim((string) ($data["name"] ?? ($lead["name"] ?? "")));
-        $cpf = only_digits((string) ($data["cpf"] ?? ""));
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($data["cpf"] ?? ""));
         $birth = mb_trim((string) ($data["birth_date"] ?? ""));
         if ($name === "") {
             throw new RuntimeException(
                 "Informe o nome do interessado antes de tornar paciente.",
             );
         }
-        if (!valid_cpf($cpf)) {
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             throw new RuntimeException(
                 "Informe um CPF válido para tornar paciente.",
             );
         }
-        if (!valid_birth_date($birth)) {
+        if (!\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($birth)) {
             throw new RuntimeException(
                 "Informe a data de nascimento para tornar paciente.",
             );
         }
         $pid = (int) ($lead["person_id"] ?? 0);
         $existingByCpf =
-            (int) (val("SELECT id FROM pi_persons WHERE cpf=? LIMIT 1", [$cpf]) ??
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE cpf=? LIMIT 1", [$cpf]) ??
                 0);
         if ($existingByCpf > 0 && $existingByCpf !== $pid) {
-            $identity = person_identity_immutable_values(
+            $identity = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_identity_immutable_values(
                 $existingByCpf,
                 $cpf,
                 $birth,
                 true,
             );
             $birth = (string) $identity["birth_date"];
-            $sig = person_signature_value($cpf, $name, $birth);
-            q(
+            $sig = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), assinatura=COALESCE(NULLIF(assinatura,''),?), clinic_id=COALESCE(clinic_id,?), updated_at=NOW() WHERE id=?",
                 [$name, $sig, $cid, $existingByCpf],
             );
             if ($leadId > 0) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_leads SET person_id=?, name=COALESCE(NULLIF(name,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [$existingByCpf, $name, $leadId, $cid],
                 );
@@ -183,19 +183,19 @@ final class LeadsRuntimeOperations01
             return $existingByCpf;
         }
         if ($pid > 0) {
-            $identity = person_identity_immutable_values($pid, $cpf, $birth, true);
+            $identity = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_identity_immutable_values($pid, $cpf, $birth, true);
             $cpf = (string) $identity["cpf"];
             $birth = (string) $identity["birth_date"];
-            $sig = person_signature_value($cpf, $name, $birth);
-            q(
+            $sig = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), cpf=?, birth_date=?, assinatura=COALESCE(NULLIF(assinatura,''),?), clinic_id=COALESCE(clinic_id,?), updated_at=NOW() WHERE id=?",
                 [$name, $cpf, $birth, $sig, $cid, $pid],
             );
             return $pid;
         }
-        $pid = upsert_person($name, $cpf, $birth);
+        $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($name, $cpf, $birth);
         if ($leadId > 0) {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_leads SET person_id=?, name=COALESCE(NULLIF(name,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$pid, $name, $leadId, $cid],
             );
@@ -208,11 +208,11 @@ final class LeadsRuntimeOperations01
     
     {
     
-        $cpf = only_digits($cpf);
-        if ($cid <= 0 || !valid_cpf($cpf)) {
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf);
+        if ($cid <= 0 || !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             return null;
         }
-        $row = one(
+        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT pat.id patient_id, pat.person_id, per.full_name, per.cpf, per.birth_date FROM pi_patients pat JOIN pi_persons per ON per.id=pat.person_id WHERE pat.clinic_id=? AND pat.active=1 AND per.cpf=? LIMIT 1",
             [$cid, $cpf],
         );
@@ -228,7 +228,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || strlen($phoneDigits) < 10) {
             return null;
         }
-        $row = one(
+        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT pat.id patient_id, pat.person_id, pat.phone, per.full_name, per.cpf, per.birth_date FROM pi_patients pat JOIN pi_persons per ON per.id=pat.person_id WHERE pat.clinic_id=? AND pat.active=1 AND LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(pat.phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=? LIMIT 1",
             [$cid, $phoneDigits],
         );
@@ -245,29 +245,29 @@ final class LeadsRuntimeOperations01
     
         if (!$items) {
             return '<div class="lead-history lead-history-compact empty-history"><span>' .
-                icon("history") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("history") .
                 "</span><small>Sem ocorrências registradas.</small></div>";
         }
         $html =
             '<div class="lead-history lead-history-compact" aria-label="Histórico de ocorrências">';
         foreach ($items as $ev) {
-            $who = first_name(
+            $who = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
                 $users[(int) ($ev["created_by"] ?? 0)]["name"] ?? "Sistema",
             );
-            $when = dt_notice_br((string) ($ev["created_at"] ?? ""));
+            $when = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br((string) ($ev["created_at"] ?? ""));
             $type = (string) ($ev["event_type"] ?? "contato");
             $body = mb_trim((string) ($ev["body"] ?? ""));
             if ($body === "") {
                 $body = "Sem observações.";
             }
             $bodyShort =
-                e(mb_substr($body, 0, 220)) . (mb_strlen($body) > 220 ? "…" : "");
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(mb_substr($body, 0, 220)) . (mb_strlen($body) > 220 ? "…" : "");
             $summary = "Falou com " . $who . " em " . $when . ".";
             $html .=
                 "<article><span>" .
-                icon($type === "cadastro" ? "person_add" : "forum") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($type === "cadastro" ? "person_add" : "forum") .
                 "</span><div><b>" .
-                e($summary) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($summary) .
                 "</b><p>" .
                 $bodyShort .
                 "</p></div></article>";
@@ -280,13 +280,13 @@ final class LeadsRuntimeOperations01
     
     {
     
-        $c = require_can("leads");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("leads");
         $cid = (int) $c["clinic_id"];
         if (!headers_sent()) {
             header("Content-Type: application/json; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
-        if (security_rate_limit(security_client_bucket("lead_lookup"), 40, 300)) {
+        if (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("lead_lookup"), 40, 300)) {
             http_response_code(429);
             echo json_encode(
                 [
@@ -321,14 +321,14 @@ final class LeadsRuntimeOperations01
                         "patient_found" => true,
                         "already_patient" => true,
                         "patient_id" => (int) $patient["patient_id"],
-                        "open_url" => href("patient", [
+                        "open_url" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", [
                             "id" => (int) $patient["patient_id"],
                         ]),
                         "message" =>
                             "Paciente já cadastrado localizado pelo telefone. Abra a ficha para registrar o atendimento.",
                         "name" => (string) ($patient["full_name"] ?? ""),
                         "phone" =>
-                            (string) ($patient["phone"] ?? phone_br($phoneDigits)),
+                            (string) ($patient["phone"] ?? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br($phoneDigits)),
                         "source" => "Recepção",
                         "interest" => "Paciente cadastrado",
                         "stage" => "convertido",
@@ -351,7 +351,7 @@ final class LeadsRuntimeOperations01
         }
         $next = "";
         if (!empty($lead["next_action_at"])) {
-            $next = app_db_utc_to_local_input(
+            $next = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local_input(
                 (string) $lead["next_action_at"],
                 $cid,
             );
@@ -364,7 +364,7 @@ final class LeadsRuntimeOperations01
                     "Telefone já registrado. Recuperamos os dados para continuar o histórico de ocorrências.",
                 "lead_id" => (int) $lead["id"],
                 "name" => (string) ($lead["name"] ?? ""),
-                "phone" => (string) ($lead["phone"] ?? phone_br($phoneDigits)),
+                "phone" => (string) ($lead["phone"] ?? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br($phoneDigits)),
                 "source" => (string) ($lead["source"] ?? ""),
                 "interest" => (string) ($lead["interest"] ?? ""),
                 "stage" => LeadsDomainOperations01::lead_stage_normalize(
@@ -382,15 +382,15 @@ final class LeadsRuntimeOperations01
     
     {
     
-        $c = require_can("leads");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("leads");
         $cid = (int) $c["clinic_id"];
         if (!headers_sent()) {
             header("Content-Type: application/json; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
         if (
-            security_rate_limit(
-                security_client_bucket("lead_patient_lookup"),
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("lead_patient_lookup"),
                 60,
                 300,
             )
@@ -406,8 +406,8 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
-        if (!valid_cpf($cpf)) {
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_GET["cpf"] ?? ""));
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             echo json_encode(
                 [
                     "ok" => false,
@@ -418,7 +418,7 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $person = one(
+        $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT p.id,p.full_name,p.cpf,p.birth_date
              FROM pi_persons p
              WHERE p.cpf=?
@@ -447,7 +447,7 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $patient = one(
+        $patient = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=1 LIMIT 1",
             [$cid, (int) $person["id"]],
         );
@@ -458,14 +458,14 @@ final class LeadsRuntimeOperations01
                 "already_patient" => (bool) $patient,
                 "patient_id" => $patient ? (int) $patient["id"] : null,
                 "open_url" => $patient
-                    ? href("patient", ["id" => (int) $patient["id"]])
+                    ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $patient["id"]])
                     : "",
                 "message" => $patient
                     ? "Este interessado já era paciente. Ao concluir, o interesse será arquivado."
                     : "Dados encontrados e preenchidos automaticamente.",
                 "name" => (string) ($person["full_name"] ?? ""),
                 "cpf" => self::lead_cpf_br((string) ($person["cpf"] ?? "")),
-                "birth_date" => app_date_input_from_storage(
+                "birth_date" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
                     $person["birth_date"] ?? "",
                 ),
             ],

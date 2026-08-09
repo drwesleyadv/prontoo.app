@@ -123,7 +123,7 @@ foreach ([
     "self::runReadinessCycle('post_password_login', \$uid)",
     'readinessMarkerPath()',
     'markReadinessOk($mode)',
-    '\\runtime_self_check();',
+    '::runtime_self_check();',
 ] as $token) {
     $assert(str_contains($bootSource, $token), 'boot_missing:' . $token);
 }

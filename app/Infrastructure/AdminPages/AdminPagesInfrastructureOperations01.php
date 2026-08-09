@@ -30,7 +30,7 @@ final class AdminPagesInfrastructureOperations01
     
     {
     
-        $dir = storage_path();
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path();
         $ok = is_dir($dir) && is_writable($dir);
         $free = function_exists("disk_free_space") ? @disk_free_space($dir) : false;
         return [
@@ -45,16 +45,16 @@ final class AdminPagesInfrastructureOperations01
     {
     
         static $validated = false;
-        if ($validated || !has_cfg()) {
+        if ($validated || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
-        if (!db_table_exists("pi_admin_alerts")) {
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_admin_alerts")) {
             throw new RuntimeException(
                 "Schema incompleto: alertas administrativos indisponíveis.",
             );
         }
         foreach (["sender_clinic_id", "source_scope"] as $column) {
-            if (!db_column_exists("pi_admin_alerts", $column)) {
+            if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_admin_alerts", $column)) {
                 throw new RuntimeException(
                     "Schema incompleto: pi_admin_alerts.{$column} ausente.",
                 );

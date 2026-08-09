@@ -45,31 +45,31 @@ final class MaestroPresentationOperations01
             $sel = $key === $selected ? " selected" : "";
             $h .=
                 '<option value="' .
-                e($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($key) .
                 '"' .
                 $sel .
                 ' data-module="' .
-                e((string) ($it["module"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["module"] ?? "")) .
                 '" data-amount="' .
                 (int) ($it["amount_default"] ?? 1) .
                 '" data-unit="' .
-                e((string) ($it["unit"] ?? "days")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["unit"] ?? "days")) .
                 '" data-amount-label="' .
-                e((string) ($it["amount_label"] ?? "Prazo")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["amount_label"] ?? "Prazo")) .
                 '" data-name="' .
-                e((string) ($it["default_name"] ?? $it["label"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["default_name"] ?? $it["label"])) .
                 '" data-title="' .
-                e((string) ($it["default_title"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["default_title"] ?? "")) .
                 '" data-description="' .
-                e((string) ($it["default_description"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["default_description"] ?? "")) .
                 '" data-role="' .
-                e((string) ($it["default_target_role"] ?? "recepcionista")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["default_target_role"] ?? "recepcionista")) .
                 '" data-priority="' .
                 (int) ($it["default_priority"] ?? 50) .
                 '" data-action="' .
-                e((string) ($it["default_action"] ?? "create_task")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["default_action"] ?? "create_task")) .
                 '">' .
-                e((string) $it["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $it["label"]) .
                 "</option>";
         }
         return $h . "</select>";

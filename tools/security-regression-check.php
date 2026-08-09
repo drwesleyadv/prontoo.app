@@ -2,6 +2,16 @@
 declare(strict_types=1);
 require_once __DIR__ . '/compatibility-source.php';
 require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
+\Prontoo\Runtime\Architecture\OperationRegistry::register();
+\Prontoo\Core\Architecture\OperationGateway::override('has_cfg', static function (): bool {
+    return (bool) $GLOBALS['prontoo_test_has_cfg'];
+});
+\Prontoo\Core\Architecture\OperationGateway::override('val', static function (string $sql, array $params = []): mixed {
+    return val($sql, $params);
+});
+\Prontoo\Core\Architecture\OperationGateway::override('secret_key', static function (): string {
+    return str_repeat('s', 48);
+});
 
 $testStorageRoot =
     sys_get_temp_dir() .
@@ -70,21 +80,21 @@ $GLOBALS["testStorageRoot"] = $testStorageRoot;
 mkdir($testStorageRoot, 0750, true);
 
 security_regression_assert(
-    mfa_enrollment_state(7) === "inactive",
+    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(7) === "inactive",
     "MFA ausente não foi reconhecido como inativo.",
 );
 $GLOBALS["prontoo_test_has_cfg"] = false;
 security_regression_assert(
-    mfa_enrollment_state(7) === "unavailable",
+    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(7) === "unavailable",
     "Instalação indisponível não fez MFA falhar fechado.",
 );
 $GLOBALS["prontoo_test_has_cfg"] = true;
 
-$testMfaSecret = mfa_totp_secret_generate();
+$testMfaSecret = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_secret_generate();
 $GLOBALS["prontoo_test_mfa_record"] = json_encode(
     [
         "v" => 1,
-        "secret" => mfa_secret_encrypt($testMfaSecret),
+        "secret" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_encrypt($testMfaSecret),
         "recovery" => [],
         "last_counter" => -1,
     ],
@@ -92,17 +102,17 @@ $GLOBALS["prontoo_test_mfa_record"] = json_encode(
 );
 $GLOBALS["prontoo_test_mfa_mode"] = "active";
 security_regression_assert(
-    mfa_enrollment_state(7) === "active",
+    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(7) === "active",
     "MFA íntegro não foi reconhecido como ativo.",
 );
 $GLOBALS["prontoo_test_mfa_mode"] = "corrupt";
 security_regression_assert(
-    mfa_enrollment_state(7) === "unavailable",
+    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(7) === "unavailable",
     "Cadastro MFA corrompido não falhou fechado.",
 );
 $GLOBALS["prontoo_test_mfa_mode"] = "throw";
 security_regression_assert(
-    mfa_enrollment_state(7) === "unavailable",
+    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(7) === "unavailable",
     "Falha de persistência MFA não falhou fechado.",
 );
 
@@ -112,7 +122,7 @@ $publicAuditContext = [
     "_skip_runtime_context" => 1,
     "safe" => "preserved",
 ];
-$publicOrigin = audit_trusted_origin_resolve(
+$publicOrigin = \Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_trusted_origin_resolve(
     $publicAuditContext,
     null,
 );
@@ -123,7 +133,7 @@ security_regression_assert(
     "Campos públicos conseguiram controlar a autoria da auditoria.",
 );
 $trustedAuditContext = ["safe" => "preserved"];
-$trustedOrigin = audit_trusted_origin_resolve(
+$trustedOrigin = \Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_trusted_origin_resolve(
     $trustedAuditContext,
     [
         "user_id" => 41,
@@ -140,7 +150,7 @@ security_regression_assert(
 );
 
 $telemetryNowUs = 2000000000000000;
-$telemetryWindowUs = telemetry_comparison_microseconds();
+$telemetryWindowUs = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparison_microseconds();
 $telemetryPreviousStartUs = $telemetryNowUs - 2 * $telemetryWindowUs;
 $telemetryCurrentStartUs = $telemetryNowUs - $telemetryWindowUs;
 $telemetryEvent = static function (
@@ -149,7 +159,7 @@ $telemetryEvent = static function (
     int $durationNs,
 ): array {
     $startedNs = 1000000000000;
-    return telemetry_build_event(
+    return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_build_event(
         $route,
         $startedNs,
         $startedNs + $durationNs,
@@ -167,17 +177,17 @@ foreach ([
     $telemetryEvent("landing", $telemetryNowUs - 1, 300000000),
     $telemetryEvent(
         "old",
-        $telemetryNowUs - telemetry_retention_microseconds() - 1,
+        $telemetryNowUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds() - 1,
         999000000,
     ),
     $telemetryEvent("future_boundary", $telemetryNowUs, 400000000),
 ] as $event) {
     security_regression_assert(
-        telemetry_append_event($event),
+        \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_append_event($event),
         "Evento canônico de telemetria não foi persistido.",
     );
 }
-$telemetrySummary = telemetry_comparative_summary($telemetryNowUs);
+$telemetrySummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparative_summary($telemetryNowUs);
 $telemetryCurrent = (array) ($telemetrySummary["current"] ?? []);
 $telemetryPrevious = (array) ($telemetrySummary["previous"] ?? []);
 $telemetryVariations = (array) ($telemetrySummary["variations"] ?? []);
@@ -203,13 +213,13 @@ security_regression_assert(
     "Variações percentuais da telemetria estão incorretas.",
 );
 security_regression_assert(
-    telemetry_nullable_percentage_variation(10.0, null) === null &&
-        telemetry_percentage_variation(0, 0) === 0.0 &&
-        telemetry_percentage_variation(1, 0) === null,
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(10.0, null) === null &&
+        \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(0, 0) === 0.0 &&
+        \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(1, 0) === null,
     "Denominador zero foi apresentado como percentual definido.",
 );
-$removedTelemetryEvents = telemetry_prune($telemetryNowUs);
-$telemetryLines = file(telemetry_file(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$removedTelemetryEvents = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prune($telemetryNowUs);
+$telemetryLines = file(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 security_regression_assert(
     $removedTelemetryEvents === 1 &&
         is_array($telemetryLines) &&
@@ -219,7 +229,7 @@ security_regression_assert(
 foreach ($telemetryLines as $line) {
     $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
     security_regression_assert(
-        is_array($decoded) && telemetry_normalize_event($decoded) !== null,
+        is_array($decoded) && \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) !== null,
         "telemetria.json não contém exatamente um evento JSON válido por linha.",
     );
 }
@@ -236,7 +246,7 @@ foreach (
         "profile_mfa_replace_enable",
         "profile_mfa_disable",
         "profile_mfa_recovery_codes_issued_at",
-        "mfa_enrollment_state(\$uid)",
+        "\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state(\$uid)",
     ]
     as $required
 ) {

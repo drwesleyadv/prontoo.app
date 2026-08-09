@@ -227,7 +227,7 @@ final class ActivityTaxonomy
             "login" => "Entrada",
             "seguranca" => "Segurança",
             "plataforma" => "Plataforma",
-        ][$entity ?? ""] ?? ucfirst(entity_label($entity));
+        ][$entity ?? ""] ?? ucfirst(\Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::entity_label($entity));
     
     }
 

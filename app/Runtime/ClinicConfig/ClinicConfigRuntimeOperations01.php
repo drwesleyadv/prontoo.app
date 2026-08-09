@@ -32,22 +32,22 @@ final class ClinicConfigRuntimeOperations01
     
         $ctx = $ctx ?: [];
         if ($ctx && ($ctx["scope"] ?? "") === "clinic") {
-            return clinic_visual_from_values(
+            return \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_visual_from_values(
                 $ctx["clinic_icon"] ?? null,
                 $ctx["accent_color"] ?? null,
                 $ctx["responsible_profession"] ?? null,
             );
         }
-        if ($clinicId && $clinicId > 0 && has_cfg()) {
+        if ($clinicId && $clinicId > 0 && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             $loader = function () use ($clinicId): array {
     
                 try {
-                    $row = one(
+                    $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT clinic_icon,accent_color,responsible_profession FROM pi_clinics WHERE id=?",
                         [$clinicId],
                     );
                     if ($row) {
-                        return clinic_visual_from_values(
+                        return \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_visual_from_values(
                             $row["clinic_icon"] ?? null,
                             $row["accent_color"] ?? null,
                             $row["responsible_profession"] ?? null,
@@ -55,26 +55,26 @@ final class ClinicConfigRuntimeOperations01
                     }
                 } catch (Throwable $e) {
                     if (
-                        !db_schema_error_is_missing_table($e) &&
+                        !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_schema_error_is_missing_table($e) &&
                         stripos($e->getMessage(), "Unknown column") === false
                     ) {
                         error_log("[Prontoo clinic visual] " . $e->getMessage());
                     }
                 }
-                return clinic_visual_from_values();
+                return \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_visual_from_values();
             };
-            if (function_exists("server_json_cache_remember")) {
-                return server_json_cache_remember(
+            if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+                return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                     "clinic",
-                    server_json_cache_safe_key("visual", [$clinicId]),
-                    server_json_cache_ttl("clinic"),
+                    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("visual", [$clinicId]),
+                    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                     $loader,
                     ["clinic:" . $clinicId],
                 );
             }
             return $loader();
         }
-        return clinic_visual_from_values();
+        return \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_visual_from_values();
     
     }
 
@@ -82,8 +82,8 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        seed_clinic_roles($cid);
-        $labels = clinic_roles($cid, false);
+        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
+        $labels = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($cid, false);
         $defs = [
             "recepcionista" => "Recepção",
             "assistente" => "Assistente",
@@ -102,9 +102,9 @@ final class ClinicConfigRuntimeOperations01
             if (isset($old[$role]) && $value === $old[$role]) {
                 $value = $label;
             }
-            $html .= form_row(
+            $html .= \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 $label,
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "role_label[" . $role . "]",
                     "text",
                     $value,
@@ -120,11 +120,11 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        seed_clinic_roles($cid);
-        $labels = clinic_roles($cid, false);
+        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
+        $labels = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($cid, false);
         $icons = [];
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT role_code,icon_name FROM pi_clinic_roles WHERE clinic_id=?",
                 [$cid],
             )->fetchAll();
@@ -151,14 +151,14 @@ final class ClinicConfigRuntimeOperations01
         $html =
             '<div class="sector-editor sector-editor-modern sector-editor-compact">';
         foreach ($defs as $role => $fallback) {
-            $opts = role_icon_options($role);
+            $opts = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::role_icon_options($role);
             $label = mb_trim((string) ($labels[$role] ?? $fallback));
             if ($label === "") {
                 $label = $fallback;
             }
-            $ico = mb_trim((string) ($icons[$role] ?? default_role_icon($role)));
+            $ico = mb_trim((string) ($icons[$role] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role)));
             if ($ico === "" || !isset($opts[$ico])) {
-                $ico = default_role_icon($role);
+                $ico = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
             }
             if (!isset($opts[$ico])) {
                 $ico = array_key_first($opts) ?: "groups";
@@ -166,19 +166,19 @@ final class ClinicConfigRuntimeOperations01
             $description = $descriptions[$role] ?? "Departamento do consultório.";
             $html .=
                 '<section class="sector-card sector-card-' .
-                e($role) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($role) .
                 '"><div class="sector-card-top"><span class="sector-card-icon">' .
-                icon($ico) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
                 '</span><div class="sector-card-copy"><strong>' .
-                e($fallback) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fallback) .
                 "</strong><small>" .
-                e($description) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
                 '</small></div><span class="sector-card-chip">' .
-                icon("visibility") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
                 '<span>Visível</span></span></div><div class="sector-card-fields">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Renomear",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "role_label[" . $role . "]",
                         "text",
                         $label,
@@ -186,7 +186,7 @@ final class ClinicConfigRuntimeOperations01
                     ),
                 ) .
                 '<div class="sector-icon-field"><div class="sector-icon-field-head"><span>Ícone do departamento</span><small>Escolha apenas pelo símbolo.</small></div>' .
-                role_icon_picker("role_icon[" . $role . "]", $ico, $role) .
+                \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::role_icon_picker("role_icon[" . $role . "]", $ico, $role) .
                 "</div></div></section>";
         }
         return $html . "</div>";
@@ -203,16 +203,16 @@ final class ClinicConfigRuntimeOperations01
         $loader = function () use ($clinicId): string {
     
             try {
-                $value = val(
+                $value = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT responsible_profession FROM pi_clinics WHERE id=?",
                     [$clinicId],
                 );
                 if ($value !== null && mb_trim((string) $value) !== "") {
-                    return normalize_profession((string) $value);
+                    return \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession((string) $value);
                 }
             } catch (Throwable $e) {
                 if (
-                    !db_schema_error_is_missing_table($e) &&
+                    !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_schema_error_is_missing_table($e) &&
                     stripos($e->getMessage(), "Unknown column") === false
                 ) {
                     error_log("[Prontoo profession] " . $e->getMessage());
@@ -220,11 +220,11 @@ final class ClinicConfigRuntimeOperations01
             }
             return "Profissional";
         };
-        if (function_exists("server_json_cache_remember")) {
-            return (string) server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return (string) \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("profession", [$clinicId]),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("profession", [$clinicId]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["clinic:" . $clinicId],
             );
@@ -243,7 +243,7 @@ final class ClinicConfigRuntimeOperations01
         $loader = function () use ($clinicId): bool {
     
             try {
-                return (int) safe_val(
+                return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
                     "SELECT COUNT(*) FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.id=? AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1)",
                     [$clinicId],
                     0,
@@ -253,11 +253,11 @@ final class ClinicConfigRuntimeOperations01
                 return false;
             }
         };
-        if (function_exists("server_json_cache_remember")) {
-            return (bool) server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return (bool) \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("global_admin_owned", [$clinicId]),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("global_admin_owned", [$clinicId]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["clinic:" . $clinicId],
             );
@@ -271,7 +271,7 @@ final class ClinicConfigRuntimeOperations01
     {
     
         try {
-            return (int) cached_val(
+            return (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                 "kpi_errors_open",
                 60,
                 "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
@@ -290,9 +290,9 @@ final class ClinicConfigRuntimeOperations01
             return;
         }
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_clinic_daily_stats (clinic_id,day_date,metric_key,metric_value,updated_at) VALUES (?,CURDATE(),?,?,NOW()) ON DUPLICATE KEY UPDATE metric_value=metric_value+VALUES(metric_value), updated_at=NOW()",
-                [$clinicId, counter_key($metric), $by],
+                [$clinicId, \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($metric), $by],
             );
         } catch (Throwable $e) {
             error_log("[Prontoo clinic_metric_inc] " . $e->getMessage());
@@ -312,7 +312,7 @@ final class ClinicConfigRuntimeOperations01
             return (bool) $cache[$cid];
         }
         try {
-            $row = one(
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT subscription_status,paid_until,trial_ends_at FROM pi_clinics WHERE id=? LIMIT 1",
                 [$cid],
             );
@@ -332,14 +332,14 @@ final class ClinicConfigRuntimeOperations01
             ) {
                 return $cache[$cid] = false;
             }
-            $paidActive = function_exists("subscription_paid_is_active")
-                ? subscription_paid_is_active($row["paid_until"] ?? null, $cid)
-                : app_date_only_end_timestamp($row["paid_until"] ?? null, $cid) >= time();
+            $paidActive = is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'subscription_paid_is_active'])
+                ? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_paid_is_active($row["paid_until"] ?? null, $cid)
+                : \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_only_end_timestamp($row["paid_until"] ?? null, $cid) >= time();
             $trialActive =
                 $status === "trial" &&
-                (function_exists("subscription_trial_is_active")
-                    ? subscription_trial_is_active($row["trial_ends_at"] ?? null)
-                    : app_storage_timestamp($row["trial_ends_at"] ?? null, true) >=
+                (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'subscription_trial_is_active'])
+                    ? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_is_active($row["trial_ends_at"] ?? null)
+                    : \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($row["trial_ends_at"] ?? null, true) >=
                         time());
             return $cache[$cid] = !($paidActive || $trialActive);
         } catch (Throwable $e) {
@@ -353,7 +353,7 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        $ctx = $ctx ?: ctx();
+        $ctx = $ctx ?: \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if (
             !$ctx ||
             ($ctx["scope"] ?? "") !== "clinic" ||
@@ -372,7 +372,7 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        $ctx = clinic_context_required($ctx);
+        $ctx = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_context_required($ctx);
         return (int) $ctx["clinic_id"];
     
     }
@@ -381,18 +381,18 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        with_read_only_guard_disabled(static function () use ($clinicId): void {
+        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_read_only_guard_disabled(static function () use ($clinicId): void {
     
             $position = 1;
             foreach (PRONTOO_ROLES as $code => $label) {
                 $enabled = in_array($code, ["medico", "gerente"], true) ? 1 : 0;
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_clinic_roles (clinic_id,role_code,label,icon_name,enabled,sort_order) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE icon_name=IF(icon_name='',VALUES(icon_name),icon_name), sort_order=IF(sort_order IS NULL OR sort_order=0,VALUES(sort_order),sort_order)",
                     [
                         $clinicId,
                         $code,
                         $label,
-                        default_role_icon($code),
+                        \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($code),
                         $enabled,
                         $position,
                     ],
@@ -412,13 +412,13 @@ final class ClinicConfigRuntimeOperations01
         }
         $loader = function () use ($clinicId, $enabledOnly): array {
     
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT role_code,label,enabled FROM pi_clinic_roles WHERE clinic_id=? ORDER BY sort_order, role_code",
                 [$clinicId],
             )->fetchAll();
             if (!$rows) {
-                seed_clinic_roles($clinicId);
-                $rows = q(
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($clinicId);
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT role_code,label,enabled FROM pi_clinic_roles WHERE clinic_id=? ORDER BY sort_order, role_code",
                     [$clinicId],
                 )->fetchAll();
@@ -436,11 +436,11 @@ final class ClinicConfigRuntimeOperations01
             }
             return $out;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("roles", [$clinicId, $enabledOnly]),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("roles", [$clinicId, $enabledOnly]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["clinic:" . $clinicId, "table:pi_clinic_roles"],
             );
@@ -455,16 +455,16 @@ final class ClinicConfigRuntimeOperations01
     
         $fallback = [];
         foreach (array_keys(PRONTOO_ROLES) as $role) {
-            $fallback[$role] = default_role_icon($role);
+            $fallback[$role] = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
         }
         if ($clinicId <= 0) {
             return $enabledOnly ? [] : $fallback;
         }
         $loader = function () use ($clinicId, $enabledOnly, $fallback): array {
     
-            seed_clinic_roles($clinicId);
+            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($clinicId);
             try {
-                $rows = q(
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT role_code,icon_name,enabled FROM pi_clinic_roles WHERE clinic_id=? ORDER BY sort_order, role_code",
                     [$clinicId],
                 )->fetchAll();
@@ -478,10 +478,10 @@ final class ClinicConfigRuntimeOperations01
                 if ($role === "" || ($enabledOnly && !(int) ($r["enabled"] ?? 0))) {
                     continue;
                 }
-                $opts = role_icon_options($role);
+                $opts = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::role_icon_options($role);
                 $iconName = mb_trim((string) ($r["icon_name"] ?? ""));
                 if ($iconName === "" || !isset($opts[$iconName])) {
-                    $iconName = default_role_icon($role);
+                    $iconName = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
                 }
                 $out[$role] = $iconName;
             }
@@ -492,11 +492,11 @@ final class ClinicConfigRuntimeOperations01
             }
             return $out;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("role_icons", [$clinicId, $enabledOnly]),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("role_icons", [$clinicId, $enabledOnly]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["clinic:" . $clinicId, "table:pi_clinic_roles"],
             );
@@ -509,7 +509,7 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        return clinic_roles($clinicId, $enabledOnly);
+        return \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($clinicId, $enabledOnly);
     
     }
 
@@ -518,7 +518,7 @@ final class ClinicConfigRuntimeOperations01
     {
     
         if ($clinicId && $clinicId > 0) {
-            $roles = clinic_roles($clinicId, false);
+            $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($clinicId, false);
             if (isset($roles[$role])) {
                 return (string) $roles[$role];
             }
@@ -532,12 +532,12 @@ final class ClinicConfigRuntimeOperations01
     {
     
         if ($clinicId && $clinicId > 0) {
-            $icons = clinic_role_icons($clinicId, false);
+            $icons = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_icons($clinicId, false);
             if (isset($icons[$role])) {
                 return $icons[$role];
             }
         }
-        return default_role_icon($role);
+        return \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
     
     }
 
@@ -548,7 +548,7 @@ final class ClinicConfigRuntimeOperations01
         if (($c["scope"] ?? "") !== "clinic") {
             return false;
         }
-        return (bool) one(
+        return (bool) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_clinics WHERE id=? AND owner_user_id=?",
             [(int) $c["clinic_id"], (int) $c["user"]["id"]],
         );
@@ -559,11 +559,11 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        $c ??= ctx();
-        if (!$c || ($c["scope"] ?? "") !== "clinic" || !is_responsible_doctor($c)) {
+        $c ??= \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
+        if (!$c || ($c["scope"] ?? "") !== "clinic" || !\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::is_responsible_doctor($c)) {
             return false;
         }
-        return (int) val("SELECT onboarding_done FROM pi_clinics WHERE id=?", [
+        return (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT onboarding_done FROM pi_clinics WHERE id=?", [
             (int) $c["clinic_id"],
         ]) !== 1;
     
@@ -573,7 +573,7 @@ final class ClinicConfigRuntimeOperations01
     
     {
     
-        return role_icon_for($r, $clinicId) ?: "badge";
+        return \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon_for($r, $clinicId) ?: "badge";
     
     }
 }

@@ -30,7 +30,7 @@ final class FinancialRuntimeOperations13
     
     {
     
-        $openRows = q(
+        $openRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT s.id,s.status,s.business_date,s.opening_balance_cents,s.expected_closing_cents,u.name user_name,l.name location_name FROM pi_cash_sessions s JOIN pi_users u ON u.id=s.user_id LEFT JOIN pi_financial_locations l ON l.id=s.location_id AND l.clinic_id=s.clinic_id WHERE s.clinic_id=? AND s.status IN ('opening_pending_review','opening_rejected') ORDER BY FIELD(s.status,'opening_pending_review','opening_rejected'), s.business_date DESC,s.id DESC LIMIT 80",
             [$cid],
         )->fetchAll();
@@ -43,59 +43,59 @@ final class FinancialRuntimeOperations13
             if ((string) $s["status"] === "opening_pending_review") {
                 $form =
                     '<form method="post" class="finance-inline-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_opening"><input type="hidden" name="session_id" value="' .
                     (int) $s["id"] .
                     '"><input type="hidden" name="decision" value="approve">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'placeholder="Observação opcional"',
                     ) .
                     '<button type="submit" class="primary small">' .
-                    icon("verified") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("verified") .
                     '<span>Autorizar</span></button></form><form method="post" class="finance-inline-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_opening"><input type="hidden" name="session_id" value="' .
                     (int) $s["id"] .
                     '"><input type="hidden" name="decision" value="reject">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'required placeholder="Motivo da recusa"',
                     ) .
                     '<button type="submit" class="danger small">' .
-                    icon("block") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("block") .
                     "<span>Recusar</span></button></form>";
             }
             $openList .=
                 '<article class="finance-row finance-action-row"><div><strong>' .
-                e(first_name((string) $s["user_name"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) $s["user_name"])) .
                 " · " .
-                e((string) ($s["location_name"] ?? "Gaveta")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($s["location_name"] ?? "Gaveta")) .
                 " · " .
-                date_br((string) $s["business_date"]) .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $s["business_date"]) .
                 "</strong><small>Esperado " .
-                money_br($expected) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected) .
                 " · Saldo informado " .
-                money_br($informed) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($informed) .
                 " · Diferença " .
-                money_br($diff) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($diff) .
                 "</small></div><b>" .
-                money_br($informed) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($informed) .
                 '</b><span class="pill ' .
                 ((string) $s["status"] === "opening_pending_review"
                     ? "warn"
                     : "bad") .
                 '">' .
-                e(financial_human_session_status((string) $s["status"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_session_status((string) $s["status"])) .
                 "</span>" .
                 $form .
                 "</article>";
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT s.id,s.location_id,s.status,s.business_date,s.expected_closing_cents,s.declared_closing_cents,s.difference_cents,s.transfer_to_safe_cents,u.name user_name,l.name location_name,l.drawer_locked_business_date FROM pi_cash_sessions s JOIN pi_users u ON u.id=s.user_id LEFT JOIN pi_financial_locations l ON l.id=s.location_id AND l.clinic_id=s.clinic_id WHERE s.clinic_id=? AND s.status IN ('closed_pending_review','approved','rejected') ORDER BY FIELD(s.status,'closed_pending_review','rejected','approved'), s.business_date DESC,s.id DESC LIMIT 120",
             [$cid],
         )->fetchAll();
@@ -104,7 +104,7 @@ final class FinancialRuntimeOperations13
             $diff = (int) $s["difference_cents"];
             $form = "";
             if ((string) $s["status"] === "closed_pending_review") {
-                $unlockDefault = financial_default_drawer_unlock_local(
+                $unlockDefault = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_default_drawer_unlock_local(
                     $cid,
                     (int) $s["location_id"],
                     [
@@ -114,71 +114,71 @@ final class FinancialRuntimeOperations13
                 );
                 $form =
                     '<form method="post" class="finance-inline-form finance-drawer-review-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_close"><input type="hidden" name="session_id" value="' .
                     (int) $s["id"] .
                     '"><input type="hidden" name="decision" value="approve">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'placeholder="Confirme a destinação das retiradas / observação"',
                     ) .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "drawer_unlock_at",
                         "datetime-local",
                         $unlockDefault,
                         'required title="Horário de destravamento da Gaveta"',
                     ) .
                     '<button type="submit" class="primary small">' .
-                    icon("lock_clock") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_clock") .
                     '<span>Conferir e agendar</span></button></form><form method="post" class="finance-inline-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_close"><input type="hidden" name="session_id" value="' .
                     (int) $s["id"] .
                     '"><input type="hidden" name="decision" value="reject">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'required placeholder="Motivo da devolução"',
                     ) .
                     '<button type="submit" class="danger small">' .
-                    icon("undo") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("undo") .
                     "<span>Devolver</span></button></form>";
             }
             $list .=
                 '<article class="finance-row finance-action-row"><div><strong>' .
-                e(first_name((string) $s["user_name"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) $s["user_name"])) .
                 " · " .
-                e((string) ($s["location_name"] ?? "Gaveta")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($s["location_name"] ?? "Gaveta")) .
                 " · " .
-                date_br((string) $s["business_date"]) .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $s["business_date"]) .
                 "</strong><small>Esperado " .
-                money_br((int) $s["expected_closing_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $s["expected_closing_cents"]) .
                 " · Declarado " .
-                money_br((int) $s["declared_closing_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $s["declared_closing_cents"]) .
                 " · Diferença " .
-                money_br($diff) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($diff) .
                 "</small></div><b>" .
-                money_br((int) $s["transfer_to_safe_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $s["transfer_to_safe_cents"]) .
                 '</b><span class="pill ' .
                 ((string) $s["status"] === "closed_pending_review"
                     ? "warn"
                     : "ok") .
                 '">' .
-                e(financial_human_session_status((string) $s["status"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_session_status((string) $s["status"])) .
                 "</span>" .
                 $form .
                 "</article>";
         }
-        return card(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<h2>Autorizações de Abertura</h2><p class="muted">Autorize apenas quando o Atendimento justificar Saldo Inicial diferente do saldo não retirado no último fechamento.</p>' .
                 ($openList ?:
                     '<div class="empty">Nenhuma abertura divergente aguardando autorização.</div>'),
             "finance-list",
         ) .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2>Fechamentos do Atendimento</h2><p class="muted">Conferir confirma a destinação das retiradas e agenda o horário de destravamento da Gaveta para o dia seguinte. Devolver mantém a Gaveta trancada.</p>' .
                     ($list ?:
                         '<div class="empty">Nenhum fechamento pendente.</div>'),
@@ -195,7 +195,7 @@ final class FinancialRuntimeOperations13
             return null;
         }
         try {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT account_id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
                 [$locationId, $cid],
             );
@@ -212,15 +212,15 @@ final class FinancialRuntimeOperations13
     {
     
         $safe = (int) $pos["safe_id"];
-        $safeCard = card(
+        $safeCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             "<h2>" .
-                icon("account_balance_wallet") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_balance_wallet") .
                 '<span>Cofre</span></h2><p class="muted">Local de guarda do Consultório antes de levar valores ao banco. Saldo atual: <strong>' .
-                money_br((int) $pos["safe_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["safe_cents"]) .
                 "</strong>.</p>",
             "finance-location-card finance-safe-card",
         );
-        $banks = q(
+        $banks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT a.id,a.name,a.bank_name,l.id location_id FROM pi_financial_accounts a LEFT JOIN pi_financial_locations l ON l.account_id=a.id AND l.clinic_id=a.clinic_id AND l.location_type='bank_account' WHERE a.clinic_id=? AND a.active=1 AND a.account_type IN ('conta_corrente','conta_poupanca','conta_pagamento','investimento') ORDER BY a.name",
             [$cid],
         )->fetchAll();
@@ -229,12 +229,12 @@ final class FinancialRuntimeOperations13
         foreach ($banks as $b) {
             $loc =
                 (int) ($b["location_id"] ?:
-                financial_ensure_bank_location($cid, (int) $b["id"], $uid));
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_bank_location($cid, (int) $b["id"], $uid));
             $opts[(int) $b["id"]] = (string) $b["name"];
             $b["resolved_location_id"] = $loc;
             $resolvedBanks[] = $b;
         }
-        $bankBalances = financial_location_movement_balances(
+        $bankBalances = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_location_movement_balances(
             $cid,
             array_map(
                 static  fn(array $bank): int =>
@@ -249,13 +249,13 @@ final class FinancialRuntimeOperations13
             );
             $cards .=
                 "<article><span>" .
-                icon("account_balance") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_balance") .
                 "</span><div><h3>" .
-                e((string) $b["name"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b["name"]) .
                 "</h3><p>" .
-                e((string) ($b["bank_name"] ?: "Conta Bancária")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($b["bank_name"] ?: "Conta Bancária")) .
                 "</p></div><b>" .
-                money_br($bal) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($bal) .
                 "</b></article>";
         }
         $cards .= $resolvedBanks
@@ -263,64 +263,64 @@ final class FinancialRuntimeOperations13
             : '<div class="empty">Nenhuma conta bancária cadastrada. O Consultório pode funcionar com Gavetas e Cofre.</div>';
         $new =
             '<form method="post" class="compact finance-lite-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="bank_account"><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome da conta",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "name",
                     "text",
                     "",
                     'required placeholder="Ex.: Sicredi, Banco do Brasil"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Banco",
-                input("bank_name", "text", "", 'placeholder="Opcional"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("bank_name", "text", "", 'placeholder="Opcional"'),
             ) .
             "</div>" .
-            form_actions("Cadastrar banco") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Cadastrar banco") .
             "</form>";
         $dep =
             '<form method="post" class="compact finance-lite-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="deposit_bank"><div class="three">' .
-            select_label("Banco de destino", "account_id", $opts, "", "required") .
-            form_row("Valor", financial_money_input("amount", "", "required")) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label("Banco de destino", "account_id", $opts, "", "required") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Valor", \Prontoo\Presentation\Financial\FinancialPresentationOperations01::financial_money_input("amount", "", "required")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Observação",
-                input("notes", "text", "", 'placeholder="Opcional"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("notes", "text", "", 'placeholder="Opcional"'),
             ) .
             "</div>" .
-            form_actions("Depositar do Cofre") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Depositar do Cofre") .
             "</form>";
         $banksPanel =
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>" .
-                    icon("account_balance") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_balance") .
                     "<span>Bancos</span></h2>" .
                     $cards,
                 "finance-accounts-panel",
             ) .
             '<div class="finance-form-stack finance-bank-actions">' .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>" .
-                    icon("add_business") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add_business") .
                     '<span>Novo banco</span></h2><p class="muted">Cadastre apenas locais reais de destino para valores do Consultório.</p>' .
                     $new,
                 "finance-form finance-context-form",
             ) .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>" .
-                    icon("move_down") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("move_down") .
                     '<span>Depósito do Cofre</span></h2><p class="muted">Move valor do Cofre para um Banco do Consultório.</p>' .
                     $dep,
                 "finance-form finance-context-form",
             ) .
             "</div>";
         return '<div class="finance-workspace finance-locations-workspace">' .
-            financial_admin_drawers_panel($cid, $uid) .
-            financial_admin_reviews_panel($cid, $uid) .
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations12::financial_admin_drawers_panel($cid, $uid) .
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations13::financial_admin_reviews_panel($cid, $uid) .
             $safeCard .
             $banksPanel .
             "</div>";
@@ -331,7 +331,7 @@ final class FinancialRuntimeOperations13
     
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT m.movement_type,m.title,m.created_at,m.amount_cents,m.status,lf.name from_name,lt.name to_name,u.name user_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lf ON lf.id=m.from_location_id AND lf.clinic_id=m.clinic_id LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id LEFT JOIN pi_users u ON u.id=m.created_by WHERE m.clinic_id=? ORDER BY m.created_at DESC,m.id DESC LIMIT " .
                 max(10, min(300, $limit)),
             [$cid],
@@ -347,24 +347,24 @@ final class FinancialRuntimeOperations13
             );
             $list .=
                 '<article class="finance-row"><div><strong>' .
-                e(
-                    financial_human_movement_type($type) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_type($type) .
                         " · " .
                         (string) $r["title"],
                 ) .
                 "</strong><small>" .
-                dt_br((string) $r["created_at"]) .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) $r["created_at"]) .
                 " · " .
-                e($path ?: "sem local") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($path ?: "sem local") .
                 " · " .
-                e(first_name((string) ($r["user_name"] ?? ""))) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($r["user_name"] ?? ""))) .
                 "</small></div><b>" .
-                money_br((int) $r["amount_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["amount_cents"]) .
                 '</b><span class="pill">' .
-                e(financial_human_movement_status((string) $r["status"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_status((string) $r["status"])) .
                 "</span></article>";
         }
-        return card(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<h2>Movimentos</h2><p class="muted">Registro simples das entradas, saídas e transferências do Consultório.</p>' .
                 ($list ?:
                     '<div class="empty">Nenhuma movimentação registrada.</div>'),
@@ -391,10 +391,10 @@ final class FinancialRuntimeOperations13
             $statusLabel =
                 $status === "not_started"
                     ? "Aguardando fechamento"
-                    : financial_human_session_status($status);
+                    : \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_session_status($status);
             $tot =
                 $sid > 0
-                    ? financial_session_movement_totals($cid, $sid)
+                    ? \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_session_movement_totals($cid, $sid)
                     : [
                         "receipt" => 0,
                         "payment" => 0,
@@ -412,72 +412,72 @@ final class FinancialRuntimeOperations13
                         : "muted"));
             $metrics =
                 '<div class="finance-drawer-partial-metrics"><span><small>Inicial</small><b>' .
-                money_br((int) ($r["opening_balance_cents"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($r["opening_balance_cents"] ?? 0)) .
                 "</b></span><span><small>Recebido</small><b>" .
-                money_br((int) ($tot["receipt"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($tot["receipt"] ?? 0)) .
                 "</b></span><span><small>Pagamentos</small><b>" .
-                money_br((int) ($tot["payment"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($tot["payment"] ?? 0)) .
                 "</b></span><span><small>Retirada</small><b>" .
-                money_br((int) ($r["transfer_to_safe_cents"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($r["transfer_to_safe_cents"] ?? 0)) .
                 "</b></span><span><small>Declarado</small><b>" .
-                money_br((int) ($r["declared_closing_cents"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($r["declared_closing_cents"] ?? 0)) .
                 "</b></span><span><small>Diferença</small><b>" .
-                money_br((int) ($r["difference_cents"] ?? 0)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($r["difference_cents"] ?? 0)) .
                 "</b></span></div>";
             $actions = "";
             if ($sid > 0 && $status === "closed_pending_review") {
-                $unlockDefault = financial_default_drawer_unlock_local(
+                $unlockDefault = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_default_drawer_unlock_local(
                     $cid,
                     (int) ($r["location_id"] ?? 0),
                 );
                 $actions =
                     '<div class="finance-drawer-partial-actions"><form method="post" class="finance-inline-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_close"><input type="hidden" name="session_id" value="' .
                     $sid .
                     '"><input type="hidden" name="decision" value="approve">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'placeholder="Observação ou ajuste justificado"',
                     ) .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "drawer_unlock_at",
                         "datetime-local",
                         $unlockDefault,
                         'required title="Horário de destravamento da Gaveta"',
                     ) .
                     '<button class="primary small" type="submit">' .
-                    icon("verified") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("verified") .
                     '<span>Está tudo certo</span></button></form><form method="post" class="finance-inline-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="review_close"><input type="hidden" name="session_id" value="' .
                     $sid .
                     '"><input type="hidden" name="decision" value="reject">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "notes",
                         "text",
                         "",
                         'required placeholder="Justifique a correção necessária"',
                     ) .
                     '<button class="danger small" type="submit">' .
-                    icon("edit_note") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_note") .
                     "<span>Corrigir</span></button></form></div>";
             }
             $h .=
                 '<article class="finance-row finance-action-row finance-drawer-partial-row"><div><strong>' .
-                e((string) ($r["drawer_name"] ?? "Gaveta")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($r["drawer_name"] ?? "Gaveta")) .
                 " · " .
-                e(first_name((string) ($r["user_name"] ?? "Colaborador"))) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($r["user_name"] ?? "Colaborador"))) .
                 "</strong><small>" .
-                e($statusLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($statusLabel) .
                 "</small>" .
                 $metrics .
                 '</div><span class="pill ' .
                 $cls .
                 '">' .
-                e($statusLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($statusLabel) .
                 "</span>" .
                 $actions .
                 "</article>";

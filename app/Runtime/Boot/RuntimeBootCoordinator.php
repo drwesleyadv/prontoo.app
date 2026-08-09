@@ -18,9 +18,9 @@ final class RuntimeBootCoordinator
 
     public static function schemaMarkerPath(): string
     {
-        $dir = \storage_path('cache');
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('cache');
         if (!is_dir($dir)) {
-            \prontoo_fs_mkdir($dir);
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_mkdir($dir);
         }
         return $dir . '/prontoo_schema_boot_' . hash(
             'sha256',
@@ -31,9 +31,9 @@ final class RuntimeBootCoordinator
 
     public static function readinessMarkerPath(): string
     {
-        $dir = \storage_path('cache');
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('cache');
         if (!is_dir($dir)) {
-            \prontoo_fs_mkdir($dir);
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_mkdir($dir);
         }
         return $dir . '/prontoo_runtime_readiness_' . hash(
             'sha256',
@@ -47,7 +47,7 @@ final class RuntimeBootCoordinator
         if (!is_file($file) || time() - filemtime($file) > $ttlSeconds) {
             return false;
         }
-        $raw = \prontoo_fs_read($file, false);
+        $raw = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_read($file, false);
         $json = is_string($raw) ? json_decode($raw, true) : null;
         return is_array($json) &&
             !empty($json['ok']) &&
@@ -87,7 +87,7 @@ final class RuntimeBootCoordinator
         if (!is_string($payload)) {
             throw new RuntimeException('Não foi possível serializar o marcador de runtime.');
         }
-        \prontoo_fs_write($file, $payload);
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_write($file, $payload);
     }
 
     public static function markSchemaOk(string $mode): void
@@ -102,7 +102,7 @@ final class RuntimeBootCoordinator
 
     public static function bootDatabaseForRoute(string $route, bool $publicLight, bool $forceDeep): void
     {
-        if (!\has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         if ($publicLight && !$forceDeep) {
@@ -133,7 +133,7 @@ final class RuntimeBootCoordinator
     ): array {
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
         RuntimeModuleComposition::loader()->loadFullRuntime();
-        \ensure_runtime_schema_minimum();
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
         $result['steps'][] = 'schema_contract';
         if (class_exists('\Prontoo\Infrastructure\Integrity\PiIntegrity')) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
@@ -162,7 +162,7 @@ final class RuntimeBootCoordinator
         if (self::readinessMarkerValid()) {
             return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'readiness_marker_fresh']);
         }
-        $lockDir = \storage_path('cache/locks');
+        $lockDir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('cache/locks');
         if (!is_dir($lockDir) && !@mkdir($lockDir, 0750, true) && !is_dir($lockDir)) {
             error_log('[Prontoo runtime readiness] lock indisponível; executando prontidão sem cache.');
             return self::executeReadinessChecks(
@@ -213,7 +213,7 @@ final class RuntimeBootCoordinator
     {
         $startedAt = microtime(true);
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
-        $lockDir = \storage_path('cache/locks');
+        $lockDir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('cache/locks');
         if (!is_dir($lockDir) && !@mkdir($lockDir, 0750, true) && !is_dir($lockDir)) {
             return $result + ['ran' => false, 'reason' => 'maintenance_lock_unavailable'];
         }
@@ -232,20 +232,20 @@ final class RuntimeBootCoordinator
                 return array_merge($result, ['ok' => true, 'ran' => false, 'reason' => 'maintenance_already_completed']);
             }
             RuntimeModuleComposition::loader()->loadFullRuntime();
-            \ensure_runtime_schema_minimum();
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
             $result['steps'][] = 'schema_contract';
-            if (function_exists('maestro_ensure_schema')) {
-                \maestro_ensure_schema();
+            if (is_callable([\Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::class, 'maestro_ensure_schema'])) {
+                \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
                 $result['steps'][] = 'maestro_contract';
             }
             if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexAutotest();
                 $result['steps'][] = 'integrity_autotest';
             }
-            \runtime_self_check();
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::runtime_self_check();
             $result['steps'][] = 'runtime_self_check';
-            if (function_exists('document_pdf_cleanup_due')) {
-                \document_pdf_cleanup_due();
+            if (is_callable([\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::class, 'document_pdf_cleanup_due'])) {
+                \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_cleanup_due();
                 $result['steps'][] = 'pdf_cleanup';
             }
             self::markSchemaOk($mode);
@@ -284,9 +284,9 @@ final class RuntimeBootCoordinator
             if (empty($result['ok'])) {
                 throw new RuntimeException('Prontidão mínima do runtime não pôde ser confirmada após a senha.');
             }
-            if (function_exists('audit')) {
+            if (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
                 try {
-                    \audit('login_manutencao_pos_senha', 'plataforma', $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit('login_manutencao_pos_senha', 'plataforma', $uid, [
                         'duration_ms' => (int) ($result['duration_ms'] ?? 0),
                         'steps' => $result['steps'] ?? [],
                         'audit_body' => 'Prontidão mínima do runtime confirmada após a senha; tarefas pesadas permanecem fora do caminho crítico de autenticação.',
@@ -298,9 +298,9 @@ final class RuntimeBootCoordinator
             return $result;
         } catch (Throwable $error) {
             error_log('[Prontoo post password readiness] ' . $error->getMessage());
-            if (function_exists('audit')) {
+            if (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
                 try {
-                    \audit('login_manutencao_pos_senha_falhou', 'plataforma', $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit('login_manutencao_pos_senha_falhou', 'plataforma', $uid, [
                         'erro_hash' => hash('sha256', $error->getMessage()),
                         'audit_body' => 'A verificação mínima de prontidão pós-senha falhou antes da liberação da sessão autenticada.',
                     ]);
@@ -315,8 +315,8 @@ final class RuntimeBootCoordinator
     public static function flushIntegrityBeforeRender(): void
     {
         try {
-            if (function_exists('pdo') && \has_cfg()) {
-                $pdo = \pdo();
+            if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+                $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
                 if ($pdo instanceof PDO &&
                     !$pdo->inTransaction() &&
                     class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity') &&

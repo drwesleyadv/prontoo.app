@@ -69,7 +69,7 @@ final class FinancialDomainOperations01
             );
         }
         $cents = ((int) $whole * 100) + (int) $fraction;
-        return financial_assert_amount_cents($cents);
+        return \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_amount_cents($cents);
     
     }
 
@@ -113,7 +113,7 @@ final class FinancialDomainOperations01
     ): int 
     {
     
-        return financial_assert_balance_cents($left + $right, $label);
+        return \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents($left + $right, $label);
     
     }
 
@@ -125,7 +125,7 @@ final class FinancialDomainOperations01
     ): int 
     {
     
-        financial_assert_amount_cents($amount);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_amount_cents($amount);
         return ($to === $locationId ? $amount : 0) -
             ($from === $locationId ? $amount : 0);
     
@@ -209,7 +209,7 @@ final class FinancialDomainOperations01
     {
     
         $v = strtolower(trim($v));
-        return array_key_exists($v, payment_methods_options()) ? $v : "";
+        return array_key_exists($v, \Prontoo\Domain\Financial\FinancialDomainOperations01::payment_methods_options()) ? $v : "";
     
     }
 
@@ -228,7 +228,7 @@ final class FinancialDomainOperations01
     
     {
     
-        $opts = financial_goal_base_options();
+        $opts = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_goal_base_options();
         return $opts[$base] ?? $opts["efetivada"];
     
     }
@@ -304,7 +304,7 @@ final class FinancialDomainOperations01
     
     {
     
-        $o = financial_location_type_options();
+        $o = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_location_type_options();
         return $o[$type] ?? "Local financeiro";
     
     }
@@ -322,7 +322,7 @@ final class FinancialDomainOperations01
     {
     
         return ($c["scope"] ?? "") === "clinic" &&
-            in_array((string) ($c["role"] ?? ""), financial_cashier_roles(), true);
+            in_array((string) ($c["role"] ?? ""), \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_cashier_roles(), true);
     
     }
 
@@ -427,7 +427,7 @@ final class FinancialDomainOperations01
     
         $amount = (int) ($a["payment_amount_cents"] ?? 0);
         $status = mb_strtolower(mb_trim((string) ($a["payment_status"] ?? "")));
-        $method = normalize_payment_method((string) ($a["payment_method"] ?? ""));
+        $method = \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method((string) ($a["payment_method"] ?? ""));
         $paid =
             !empty($a["payment_confirmed_at"]) ||
             in_array($status, ["efetivada", "recebido", "pago"], true);
@@ -452,8 +452,8 @@ final class FinancialDomainOperations01
                 "method" => $method,
             ];
         }
-        $journey = function_exists("appointment_status_code")
-            ? appointment_status_code($a)
+        $journey = is_callable([\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::class, 'appointment_status_code'])
+            ? \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a)
             : (string) ($a["status"] ?? "");
         if (in_array($journey, ["atendimento_concluido", "finalizado"], true)) {
             return [

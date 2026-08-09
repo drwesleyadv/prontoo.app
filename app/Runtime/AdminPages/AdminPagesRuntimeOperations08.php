@@ -30,12 +30,12 @@ final class AdminPagesRuntimeOperations08
     
     {
     
-        require_can("admin_clinics");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_clinics");
         $detailId = max(0, (int) ($_GET["clinic_id"] ?? 0));
         $returnClinicId = max(0, (int) ($_POST["return_clinic_id"] ?? 0));
         $redirectAfterClinicAction = static function (int $clinicId = 0): void {
     
-            redirect(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect(
                 "admin_clinics",
                 $clinicId > 0 ? ["clinic_id" => $clinicId] : [],
             );
@@ -51,7 +51,7 @@ final class AdminPagesRuntimeOperations08
                             ".",
                             (string) ($_POST["default_monthly_price"] ??
                                 number_format(
-                                    default_monthly_price_cents() / 100,
+                                    \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents() / 100,
                                     2,
                                     ".",
                                     "",
@@ -67,61 +67,61 @@ final class AdminPagesRuntimeOperations08
                     min(
                         3650,
                         (int) ($_POST["default_trial_days"] ??
-                            default_trial_days()),
+                            \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()),
                     ),
                 );
-                meta_set("default_monthly_price_cents", (string) $price);
-                meta_set("default_trial_days", (string) $trialDays);
-                audit("assinatura_atualizada", "assinatura", null, [
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set("default_monthly_price_cents", (string) $price);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set("default_trial_days", (string) $trialDays);
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_atualizada", "assinatura", null, [
                     "price_cents" => $price,
                     "trial_days" => $trialDays,
                     "audit_body" =>
                         "Regra comercial padrão da plataforma atualizada.",
                 ]);
-                flash("Regra comercial padrão atualizada.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Regra comercial padrão atualizada.");
                 $redirectAfterClinicAction();
             }
             $id = (int) ($_POST["id"] ?? 0);
             $cl =
                 $id > 0
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,active,monthly_price_cents FROM pi_clinics WHERE id=?",
                         [$id],
                     )
                     : null;
             if (!$cl) {
-                flash("Consultório não encontrado.", "bad");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório não encontrado.", "bad");
                 $redirectAfterClinicAction();
             }
             if ($act === "activate_subscription") {
-                $price = default_monthly_price_cents();
-                q(
+                $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinics SET active=1, subscription_status='active', paid_until=DATE_ADD(CURDATE(), INTERVAL 30 DAY), monthly_price_cents=?, updated_at=NOW() WHERE id=?",
                     [$price, $id],
                 );
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
-                audit("assinatura_ativada", "assinatura", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_ativada", "assinatura", $id, [
                     "audit_body" =>
                         "Consultório definido como Ativo pelo Desenvolvedor.",
                 ]);
-                flash("Consultório definido como Ativo.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório definido como Ativo.");
                 $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
             }
             if ($act === "deactivate_subscription") {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinics SET subscription_status='read_only', paid_until=CURDATE(), updated_at=NOW() WHERE id=?",
                     [$id],
                 );
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
-                audit("assinatura_desativada", "assinatura", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_desativada", "assinatura", $id, [
                     "audit_body" =>
                         "Consultório definido como Somente leitura pelo Desenvolvedor.",
                 ]);
-                flash("Consultório definido como Somente leitura.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório definido como Somente leitura.");
                 $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
             }
             if ($act === "billing") {
@@ -133,15 +133,15 @@ final class AdminPagesRuntimeOperations08
                 if ($status === "exempt") {
                     $paid = null;
                 }
-                $price = default_monthly_price_cents();
-                q(
+                $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinics SET subscription_status=?, paid_until=?, monthly_price_cents=?, updated_at=NOW() WHERE id=?",
                     [$status, $paid, $price, $id],
                 );
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
-                audit("assinatura_atualizada", "assinatura", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_atualizada", "assinatura", $id, [
                     "status" => $status,
                     "paid_until" => $paid,
                     "price_cents" => $price,
@@ -155,84 +155,84 @@ final class AdminPagesRuntimeOperations08
                             $status) .
                         ".",
                 ]);
-                flash("Status do consultório atualizado.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Status do consultório atualizado.");
                 $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
             }
             $new = (int) $cl["active"] ? 0 : 1;
-            q("UPDATE pi_clinics SET active=?,updated_at=NOW() WHERE id=?", [
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("UPDATE pi_clinics SET active=?,updated_at=NOW() WHERE id=?", [
                 $new,
                 $id,
             ]);
-            audit("clinica_status", "clinica", $id, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("clinica_status", "clinica", $id, [
                 "status" => $new ? "ativa" : "inativa",
             ]);
-            flash("Status do consultório atualizado.");
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Status do consultório atualizado.");
             $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
         }
         if ($detailId > 0) {
-            admin_clinic_detail_page($detailId);
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_detail_page($detailId);
             return;
         }
-        $exclude = admin_model_clinic_exclude_sql("id");
-        $total = (int) val("SELECT COUNT(*) FROM pi_clinics WHERE 1=1 $exclude");
-        $active = (int) val(
+        $exclude = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
+        $total = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT COUNT(*) FROM pi_clinics WHERE 1=1 $exclude");
+        $active = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 $exclude",
         );
-        $exempt = (int) val(
+        $exempt = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='exempt' $exclude",
         );
-        $readonly = (int) val(
+        $readonly = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status<>'exempt' AND (subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW()))) $exclude",
         );
         $activeOperational = max(0, $active - $readonly - $exempt);
-        $defaultPrice = default_monthly_price_cents();
-        $defaultTrialDays = default_trial_days();
+        $defaultPrice = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
+        $defaultTrialDays = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
         $defaultBilling =
             '<details class="stat-card default-price-card"><summary>' .
-            icon("payments") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
             "<div><b>" .
-            money_br($defaultPrice) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($defaultPrice) .
             "</b><span>Mensalidade única</span><small>" .
             (int) $defaultTrialDays .
             ' dias gratuitos</small></div></summary><form method="post" class="compact">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="default_billing">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Novo valor padrão",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "default_monthly_price",
                     "number",
                     number_format($defaultPrice / 100, 2, ".", ""),
                     'step="0.01" min="0"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Dias gratuitos",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "default_trial_days",
                     "number",
                     (string) $defaultTrialDays,
                     'min="0" max="3650" step="1"',
                 ),
             ) .
-            form_actions("Salvar", "primary small") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Salvar", "primary small") .
             "</form></details>";
         $commercial =
             '<div class="stats-grid admin-clinic-attention-grid">' .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Ativo",
                 $activeOperational,
                 "verified",
                 "operação liberada",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Somente leitura",
                 $readonly,
                 "lock",
                 "alterações bloqueadas",
             ) .
-            stat_card("Isento", $exempt, "workspace_premium", "fora da cobrança") .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Isento", $exempt, "workspace_premium", "fora da cobrança") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Consultórios",
                 $total,
                 "home_health",
@@ -240,11 +240,11 @@ final class AdminPagesRuntimeOperations08
             ) .
             $defaultBilling .
             "</div>";
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,display_name,responsible_profession,active,onboarding_done,owner_user_id,manager_user_id,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics ORDER BY CASE WHEN active=0 THEN 4 WHEN subscription_status='exempt' THEN 3 WHEN subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW())) THEN 0 ELSE 2 END ASC, updated_at DESC, id DESC LIMIT 120",
         )->fetchAll();
-        $ids = int_ids($rows, "id");
-        $peopleCounts = admin_clinic_people_counts_by_cpf($ids);
+        $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
+        $peopleCounts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_people_counts_by_cpf($ids);
         $bodyRows = "";
         foreach ($rows as $r) {
             $id = (int) $r["id"];
@@ -252,7 +252,7 @@ final class AdminPagesRuntimeOperations08
                 (int) ($peopleCounts[$id]["professionals"] ?? 0);
             $collaborators =
                 (int) ($peopleCounts[$id]["collaborators"] ?? 0);
-            $billing = billing_state($r);
+            $billing = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::billing_state($r);
             $status = (string) ($billing["status"] ?? "active");
             $attentionClass = "is-stable";
             $attentionIcon = "verified";
@@ -267,7 +267,7 @@ final class AdminPagesRuntimeOperations08
                 $attentionClass = "is-exempt";
                 $attentionIcon = "workspace_premium";
                 $attentionLabel = "Isento";
-                $attentionNote = clinic_is_global_admin_owned($id)
+                $attentionNote = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_is_global_admin_owned($id)
                     ? "Isento do Desenvolvedor fora das estatísticas"
                     : "Isento de cobrança";
             } elseif (!empty($billing["read_only"])) {
@@ -280,60 +280,60 @@ final class AdminPagesRuntimeOperations08
                 '<span class="clinic-attention-chip ' .
                 $attentionClass .
                 '">' .
-                icon($attentionIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
                 "<b>" .
-                e($attentionLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionLabel) .
                 "</b></span>";
             $actions =
                 '<a class="ghost small cmdlike clinic-actions-summary" href="' .
-                e(href("admin_clinics", ["clinic_id" => $id])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics", ["clinic_id" => $id])) .
                 '" aria-label="Abrir gestão do consultório">' .
-                icon("arrow_forward") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .
                 '<span>Gerenciar</span></a>';
-            $createdLabel = date_br($r["created_at"] ?? "");
+            $createdLabel = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($r["created_at"] ?? "");
             $dueLabel = !empty($billing["exempt"])
                 ? "Isento"
                 : (mb_trim((string) ($billing["paid_until"] ?? "")) !== ""
-                    ? date_br($billing["paid_until"])
+                    ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($billing["paid_until"])
                     : (!empty($billing["trial_active"])
-                        ? date_br($billing["trial_ends_at"] ?? "")
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($billing["trial_ends_at"] ?? "")
                         : "Sem vencimento"));
             $professionLabel =
                 mb_trim((string) ($r["responsible_profession"] ?? "")) ?:
                 "Área não informada";
             $adminStatsNote =
-                !empty($billing["exempt"]) && clinic_is_global_admin_owned($id)
+                !empty($billing["exempt"]) && \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_is_global_admin_owned($id)
                     ? '<span class="ds-clinic-test-pill">' .
-                        icon("bar_chart_off") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bar_chart_off") .
                         "<span>Fora das estatísticas</span></span>"
                     : "";
             $clinicMetrics =
                 '<span class="ds-clinic-row-meta-chip">' .
-                icon("event") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event") .
                 "<b>" .
-                e($createdLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createdLabel) .
                 '</b><small>Data Cadastro</small></span><span class="ds-clinic-row-meta-chip">' .
-                icon("stethoscope") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
                 "<b>" .
-                e((string) $professionals) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $professionals) .
                 '</b><small>Profissionais</small></span><span class="ds-clinic-row-meta-chip">' .
-                icon("groups") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
                 "<b>" .
-                e((string) $collaborators) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $collaborators) .
                 '</b><small>Colaboradores</small></span><span class="ds-clinic-row-meta-chip ds-clinic-due-chip">' .
-                icon("event_available") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
                 "<b>" .
-                e($dueLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dueLabel) .
                 "</b><small>Vencimento</small></span>";
             $bodyRows .=
                 '<article class="clinic-attention-item ds-clinic-list-item ds-clinic-list-item-inline ' .
                 $attentionClass .
                 '"><div class="ds-clinic-list-identity clinic-attention-main"><span class="clinic-attention-icon">' .
-                icon($attentionIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
                 '</span><span class="clinic-attention-copy"><strong>' .
-                e($r["display_name"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($r["display_name"]) .
                 "</strong><small>" .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     ((int) $r["active"] ? "Operando" : "Inativo") .
                         " · " .
                         $professionLabel,
@@ -341,7 +341,7 @@ final class AdminPagesRuntimeOperations08
                 '</small></span></div><div class="clinic-attention-state ds-clinic-list-status">' .
                 $attentionChip .
                 ($attentionNote !== ""
-                    ? "<small>" . e($attentionNote) . "</small>"
+                    ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionNote) . "</small>"
                     : "") .
                 $adminStatsNote .
                 '</div><div class="ds-clinic-row-meta">' .
@@ -359,13 +359,13 @@ final class AdminPagesRuntimeOperations08
         $onboardingHead =
             '<div class="admin-onboarding-head clinic-attention-head"><div><span class="eyebrow">Acompanhamento</span><h2>Consultórios</h2><p>Leitura compacta por status, data de cadastro, profissionais, colaboradores e vencimento. Status padronizados: Ativo, Somente leitura e Isento.</p></div></div>';
         $body =
-            page_head("Consultórios", "") .
-            card($commercial, "admin-clinics-focus-card") .
-            card(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Consultórios", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($commercial, "admin-clinics-focus-card") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 $onboardingHead . $table,
                 "admin-onboarding-card admin-clinics-list-card clinic-attention-card",
             );
-        page("Consultórios", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Consultórios", $body);
     
     }
 
@@ -373,7 +373,7 @@ final class AdminPagesRuntimeOperations08
     
     {
     
-        require_can("admin_security");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_security");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
             if ($act !== "release_login_lock") {
@@ -381,17 +381,17 @@ final class AdminPagesRuntimeOperations08
             }
             $id = (int) ($_POST["id"] ?? 0);
             if ($id <= 0) {
-                flash("Bloqueio não informado.", "bad");
-                redirect("admin_security");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não informado.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_security");
             }
-            $removed = q("DELETE FROM pi_login_locks WHERE id=?", [$id])->rowCount();
+            $removed = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_login_locks WHERE id=?", [$id])->rowCount();
             if ($removed < 1) {
-                flash("Bloqueio não encontrado ou já liberado.", "bad");
-                redirect("admin_security");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado ou já liberado.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_security");
             }
-            audit("bloqueio_login_removido", "seguranca", $id);
-            flash("Bloqueio removido.");
-            redirect("admin_security");
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_login_removido", "seguranca", $id);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio removido.");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_security");
         }
         $items = [
             [
@@ -402,7 +402,7 @@ final class AdminPagesRuntimeOperations08
                     "PHP " .
                     PHP_VERSION .
                     " · " .
-                    (is_file(app_root() . "/storage/install.lock")
+                    (is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/storage/install.lock")
                         ? "instalação bloqueada"
                         : "instalação aberta"),
                 "meta" => "Banco limpo com tabelas pi_",
@@ -411,76 +411,76 @@ final class AdminPagesRuntimeOperations08
                 "icon" => "lock",
                 "time" => "Agora",
                 "title" =>
-                    (int) val(
+                    (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
                     ) . " bloqueio(s) de entrada ativo(s)",
                 "body" => "Pausas progressivas por CPF e IP continuam no servidor.",
                 "meta" => "Proteção de força bruta",
             ],
         ];
-        $locks = q(
+        $locks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,fail_count,locked_until FROM pi_login_locks WHERE locked_until>NOW() ORDER BY id DESC LIMIT 30",
         )->fetchAll();
         foreach ($locks as $l) {
             $btn =
                 '<form method="post" class="inline">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="release_login_lock">' .
                 '<input type="hidden" name="id" value="' .
                 (int) $l["id"] .
                 '"><button type="submit" class="danger small">Liberar</button></form>';
             $items[] = [
                 "icon" => "lock_clock",
-                "time" => dt_br($l["locked_until"]),
+                "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($l["locked_until"]),
                 "title" => "Entrada pausada",
                 "body" => "Falhas consecutivas: " . $l["fail_count"],
                 "meta" => "Identificadores armazenados por hash",
                 "html" => $btn,
             ];
         }
-        $scopeStats = admin_scope_guard_stats(24);
+        $scopeStats = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_stats(24);
         $scopeGroups = (int) $scopeStats["actionable"] > 0
-            ? admin_scope_guard_groups(24, 40)
+            ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_groups(24, 40)
             : [];
         $scopeItems = [];
         foreach ($scopeGroups as $scopeGroup) {
-            $scopeItems[] = admin_scope_guard_timeline_item($scopeGroup);
+            $scopeItems[] = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_timeline_item($scopeGroup);
         }
         $scopeLogic = class_exists("\\Prontoo\\Core\\Database\\SqlScopeGuard")
             ? \Prontoo\Core\Database\SqlScopeGuard::logicSelfTest()
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["class_missing"]];
-        $scopeContext = function_exists("scope_guard_context_selftest")
-            ? scope_guard_context_selftest()
+        $scopeContext = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'scope_guard_context_selftest'])
+            ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::scope_guard_context_selftest()
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["function_missing"]];
         $scopeSummary =
             '<section id="scope-isolation" class="scope-isolation-panel"><div class="section-head"><div><span class="eyebrow">Isolamento entre consultórios</span><h2>Bloqueios com evidência explicável</h2><p>O guardião nega a operação antes do SQL. Os números abaixo medem bloqueios preventivos, não a probabilidade nem a confirmação de vazamento.</p></div><a class="ghost small" href="' .
-            href("admin_integrity") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") .
             '">Ver vínculos persistidos</a></div><div class="stats-grid scope-guard-kpis">' .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Causa demonstrável",
                 (int) $scopeStats["objective"],
                 "shield_lock",
                 "ocorrências em 24h",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Prova insuficiente",
                 (int) $scopeStats["review"],
                 "rule",
                 "revisão de código",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Padrões distintos",
                 (int) $scopeStats["patterns"],
                 "fingerprint",
                 "chave + rota + consultório",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Política de assinatura",
                 (int) $scopeStats["policy"],
                 "lock_clock",
                 "fora do risco de isolamento",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Prova lógica interna",
                 !empty($scopeLogic["ok"]) ? "Aprovada" : "Falhou",
                 !empty($scopeLogic["ok"]) ? "verified" : "gpp_bad",
@@ -489,7 +489,7 @@ final class AdminPagesRuntimeOperations08
                     (int) ($scopeLogic["total"] ?? 0) .
                     " casos lógicos críticos",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Contexto determinístico",
                 !empty($scopeContext["ok"]) ? "Aprovado" : "Falhou",
                 !empty($scopeContext["ok"]) ? "account_tree" : "gpp_bad",
@@ -499,21 +499,21 @@ final class AdminPagesRuntimeOperations08
                     " contratos sistema/consultório",
             ) .
             '</div><div class="kpi-info-strip scope-isolation-note">' .
-            icon("info") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("info") .
             '<span>Repetições idênticas dentro da mesma requisição são deduplicadas e eventos recentes são agrupados por fingerprint. Recorrência ajuda a priorizar a correção, mas não é usada como probabilidade de acesso cruzado.</span></div>' .
-            timeline(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline(
                 $scopeItems,
                 "Nenhuma operação de escopo exigiu revisão nas últimas 24 horas.",
             ) .
             "</section>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Segurança",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Segurança",
                 "Robustez, bloqueios de entrada e isolamento explicável entre consultórios.",
             ) .
-                card(timeline($items), "admin-security-access-card") .
-                card($scopeSummary, "admin-security-scope-card"),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items), "admin-security-access-card") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($scopeSummary, "admin-security-scope-card"),
         );
     
     }
@@ -522,18 +522,18 @@ final class AdminPagesRuntimeOperations08
     
     {
     
-        require_can("admin_health");
-        $rows = audit_rows_light("1=1", [], 120);
-        page(
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light("1=1", [], 120);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Atividades",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Atividades",
                 "Histórico direto recente de toda a plataforma.",
             ) .
-                card(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     '<div class="activity-timeline">' .
-                        timeline(
-                            audit_items($rows, true),
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline(
+                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows, true),
                             "Nenhuma atividade encontrada.",
                         ) .
                         "</div>",

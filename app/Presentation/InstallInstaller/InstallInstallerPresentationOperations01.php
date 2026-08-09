@@ -49,11 +49,11 @@ final class InstallInstallerPresentationOperations01
                 '<p class="install-check ' .
                 $class .
                 '">' .
-                icon($icon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
                 "<span><b>" .
-                e($check["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($check["label"]) .
                 "</b><small>" .
-                e($check["message"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($check["message"]) .
                 "</small></span></p>";
         }
         return $out . "</div>";

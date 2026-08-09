@@ -37,8 +37,8 @@ final class DatabaseSchemaInfrastructureOperations01
         }
         $requestNotices[$key] = true;
         $version = defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "runtime";
-        $dir = function_exists("storage_path")
-            ? storage_path("cache/runtime-notices")
+        $dir = is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/runtime-notices")
             : dirname((dirname(__DIR__, 2) . '/Database'), 2) . "/ssd/cache/runtime-notices";
         $marker =
             $dir .
@@ -77,7 +77,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $rawVersion = db_mysql_version($connection);
+        $rawVersion = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_mysql_version($connection);
         if ($rawVersion === "" || stripos($rawVersion, "mariadb") !== false) {
             throw new RuntimeException("O Prontoo requer MySQL compatível com a instalação limpa.");
         }
@@ -100,7 +100,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
             $GLOBALS["PRONTOO_INNODB_STRICT_MODE"] = (string) $strict === "1";
         } catch (Throwable $error) {
-            db_runtime_notice_once(
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_runtime_notice_once(
                 "innodb_strict_mode_unavailable",
                 "[Prontoo MySQL] Não foi possível consultar innodb_strict_mode: " .
                     $error->getMessage(),
@@ -154,7 +154,7 @@ final class DatabaseSchemaInfrastructureOperations01
             return;
         }
     
-        $modes = db_session_sql_modes($connection);
+        $modes = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_session_sql_modes($connection);
         foreach (
             [
                 "STRICT_ALL_TABLES",
@@ -177,8 +177,8 @@ final class DatabaseSchemaInfrastructureOperations01
             $driverCode = is_array($error->errorInfo ?? null)
                 ? (int) ($error->errorInfo[1] ?? 0)
                 : 0;
-            $current = db_session_sql_modes($connection);
-            if ($driverCode === 1227 && db_session_sql_mode_is_safe($current)) {
+            $current = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_session_sql_modes($connection);
+            if ($driverCode === 1227 && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_session_sql_mode_is_safe($current)) {
                 error_log(
                     "[Prontoo MySQL] A hospedagem bloqueou a alteração de sql_mode, " .
                         "mas a sessão já possui modo estrito compatível.",
@@ -192,8 +192,8 @@ final class DatabaseSchemaInfrastructureOperations01
             );
         }
     
-        $applied = db_session_sql_modes($connection);
-        if (!db_session_sql_mode_is_safe($applied)) {
+        $applied = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_session_sql_modes($connection);
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_session_sql_mode_is_safe($applied)) {
             throw new RuntimeException(
                 "O MySQL não confirmou o modo estrito necessário ao Prontoo.",
             );
@@ -210,7 +210,7 @@ final class DatabaseSchemaInfrastructureOperations01
             return $connection;
         }
     
-        $config = cfg();
+        $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg();
         foreach (["db_host", "db_name", "db_user", "db_pass"] as $key) {
             if (!array_key_exists($key, $config)) {
                 throw new RuntimeException("Configuração de banco incompleta.");
@@ -240,8 +240,8 @@ final class DatabaseSchemaInfrastructureOperations01
             (string) $config["db_pass"],
             $options,
         );
-        db_assert_mysql_runtime($connection);
-        db_apply_mysql_session_contract($connection, true);
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_assert_mysql_runtime($connection);
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_apply_mysql_session_contract($connection, true);
         return $connection;
     
     }
@@ -338,11 +338,11 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $connection = pdo();
+        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         if ($connection->inTransaction()) {
             return;
         }
-        db_prepare_write_transaction();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_prepare_write_transaction();
         $connection->beginTransaction();
         if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::markTransactionStart();
@@ -354,7 +354,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $connection = pdo();
+        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         if (!$connection->inTransaction()) {
             return;
         }
@@ -382,7 +382,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $connection = pdo();
+        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         if (!$connection->inTransaction()) {
             return;
         }
@@ -397,7 +397,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $connection = pdo();
+        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         if ($connection->inTransaction()) {
             return $callback();
         }
@@ -405,19 +405,19 @@ final class DatabaseSchemaInfrastructureOperations01
         $lastError = null;
         for ($attempt = 0; $attempt < 3; $attempt++) {
             try {
-                db_begin_transaction();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
                 $result = $callback();
-                db_commit();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 return $result;
             } catch (Throwable $error) {
                 $lastError = $error;
                 if ($connection->inTransaction()) {
-                    db_rollback();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
-                if ($attempt === 2 || !db_retryable_conflict($error)) {
+                if ($attempt === 2 || !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_retryable_conflict($error)) {
                     throw $error;
                 }
-                usleep(db_retry_delay_us($attempt));
+                usleep(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_retry_delay_us($attempt));
             }
         }
         throw $lastError ??
@@ -450,7 +450,7 @@ final class DatabaseSchemaInfrastructureOperations01
             return $cached;
         }
     
-        $file = prontoo_operational_schema_contract_file();
+        $file = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_operational_schema_contract_file();
         $raw = is_file($file) ? file_get_contents($file) : false;
         if (!is_string($raw) || trim($raw) === "") {
             throw new RuntimeException(
@@ -480,7 +480,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $contract = prontoo_operational_schema_contract();
+        $contract = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_operational_schema_contract();
         $tables = array_keys((array) ($contract["tables"] ?? []));
         foreach (["redesigned_tables", "new_support_tables"] as $key) {
             foreach ((array) ($contract[$key] ?? []) as $table) {
@@ -552,26 +552,26 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $target = prontoo_schema_file();
-        $payloadFile = prontoo_schema_release_contract_file();
-        $expectedHash = prontoo_schema_release_contract_hash();
+        $target = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_file();
+        $payloadFile = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_release_contract_file();
+        $expectedHash = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_release_contract_hash();
         $currentHash = is_file($target) ? hash_file("sha256", $target) : false;
     
         if (is_string($currentHash) && hash_equals($expectedHash, $currentHash)) {
-            prontoo_schema_clear_caches();
-            prontoo_fs_unlink($payloadFile, false);
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_clear_caches();
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($payloadFile, false);
             return;
         }
         if (
             !is_string($currentHash) ||
-            !hash_equals(prontoo_schema_previous_contract_hash(), $currentHash)
+            !hash_equals(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_previous_contract_hash(), $currentHash)
         ) {
             throw new RuntimeException(
                 "O contrato SQL instalado não corresponde à revisão esperada para a migração.",
             );
         }
     
-        $payload = prontoo_fs_read($payloadFile, false);
+        $payload = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_read($payloadFile, false);
         if (!is_string($payload) || trim($payload) === "") {
             throw new RuntimeException(
                 "O contrato SQL da revisão de múltiplos cargos não foi encontrado.",
@@ -586,19 +586,19 @@ final class DatabaseSchemaInfrastructureOperations01
     
         $temporary =
             $target . ".release_1_7_13_5_" . bin2hex(random_bytes(4));
-        if (prontoo_fs_write($temporary, $payload, LOCK_EX, true) === false) {
+        if (\Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_write($temporary, $payload, LOCK_EX, true) === false) {
             throw new RuntimeException(
                 "Não foi possível preparar o contrato SQL atualizado.",
             );
         }
-        prontoo_fs_chmod($temporary, 0644, false);
-        if (!prontoo_fs_rename($temporary, $target, true)) {
-            prontoo_fs_unlink($temporary, false);
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_chmod($temporary, 0644, false);
+        if (!\Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_rename($temporary, $target, true)) {
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($temporary, false);
             throw new RuntimeException(
                 "Não foi possível publicar o contrato SQL atualizado.",
             );
         }
-        prontoo_schema_clear_caches();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_clear_caches();
         $publishedHash = hash_file("sha256", $target);
         if (!is_string($publishedHash) || !hash_equals($expectedHash, $publishedHash)) {
             throw new RuntimeException(
@@ -616,7 +616,7 @@ final class DatabaseSchemaInfrastructureOperations01
         if (is_string($cached)) {
             return $cached;
         }
-        $contents = file_get_contents(prontoo_schema_file());
+        $contents = file_get_contents(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_file());
         if ($contents === false || trim($contents) === "") {
             throw new RuntimeException(
                 "Contrato SQL da instalação não encontrado.",

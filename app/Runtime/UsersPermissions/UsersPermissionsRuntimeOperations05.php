@@ -30,23 +30,23 @@ final class UsersPermissionsRuntimeOperations05
     
     {
     
-        $c = require_can("users");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("users");
         $cid = (int) $c["clinic_id"];
         $uid = (int) ($_GET["id"] ?? 0);
-        $person = one(
+        $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT u.id user_id,u.name,u.email,u.active user_active,u.last_login_at,u.person_id,p.full_name,p.cpf,p.birth_date,p.phone,p.email person_email,p.address_zip,p.address,p.address_number,p.address_neighborhood,p.address_complement,p.address_state,p.address_city,p.address_city_ibge FROM pi_users u LEFT JOIN pi_persons p ON p.id=u.person_id WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=?) LIMIT 1",
             [$uid, $cid],
         );
         if (!$person) {
             http_response_code(404);
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Colaborador",
                 '<div class="empty">Colaborador não encontrado neste consultório.</div>',
             );
             return;
         }
-        $manageable = manageable_team_roles($cid);
-        $roleRows = q(
+        $manageable = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid);
+        $roleRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,role_code,active FROM pi_user_roles WHERE user_id=? AND clinic_id=? ORDER BY FIELD(role_code,'recepcionista','assistente','medico','gerente')",
             [$uid, $cid],
         )->fetchAll();
@@ -62,24 +62,24 @@ final class UsersPermissionsRuntimeOperations05
                 if ($act === "update") {
                     $name = mb_trim((string) ($_POST["name"] ?? ""));
                     $email = mb_trim((string) ($_POST["email"] ?? ""));
-                    $roles = selected_team_roles($_POST, $cid);
+                    $roles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::selected_team_roles($_POST, $cid);
                     if ($name === "") {
                         throw new RuntimeException("Revise nome e cargos.");
                     }
-                    db_begin_transaction();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
                     try {
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
                             [$name, (int) $person["person_id"]],
                         );
-                        if (function_exists("person_common_profile_update")) {
-                            person_common_profile_update(
+                        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'person_common_profile_update'])) {
+                            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_update(
                                 (int) $person["person_id"],
                                 array_merge(
-                                    person_common_profile_from_array($_POST, ""),
+                                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_from_array($_POST, ""),
                                     [
                                         "legal_type" => "cpf",
-                                        "legal_document" => only_digits(
+                                        "legal_document" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits(
                                             (string) ($person["cpf"] ?? ""),
                                         ),
                                         "email" => $email !== "" ? $email : null,
@@ -87,93 +87,93 @@ final class UsersPermissionsRuntimeOperations05
                                 ),
                             );
                         }
-                        person_signature_refresh_verified(
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified(
                             (int) $person["person_id"],
                         );
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "UPDATE pi_users SET name=?, email=NULLIF(?,''), active=1, updated_at=NOW() WHERE id=?",
                             [$name, $email, $uid],
                         );
-                        $activeRoles = sync_user_roles_for_clinic(
+                        $activeRoles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::sync_user_roles_for_clinic(
                             $cid,
                             $uid,
                             $roles,
                             false,
                         );
                         if (in_array("medico", $roles, true)) {
-                            save_user_work_hours($cid, $uid, $_POST);
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::save_user_work_hours($cid, $uid, $_POST);
                         }
-                        audit("usuario_salvo", "usuario", $uid, [
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $uid, [
                             "perfil" => implode(",", $activeRoles),
                             "clinic_id" => $cid,
                             "audit_body" =>
                                 "Cadastro e cargos do colaborador atualizados em uma única transação.",
                         ]);
-                        db_commit();
-                        propagate_user_role_permissions($cid, $uid, "roles_sync");
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
                     } catch (Throwable $error) {
-                        if (pdo()->inTransaction()) {
-                            db_rollback();
+                        if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                         }
                         throw $error;
                     }
-                    flash("Colaborador atualizado e permissões aplicadas.");
-                    redirect("user", ["id" => $uid]);
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador atualizado e permissões aplicadas.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
                 }
                 if ($act === "deactivate") {
                     if ($uid === (int) $c["user"]["id"]) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Você não pode desativar seu próprio vínculo.",
                             "bad",
                         );
-                        redirect("user", ["id" => $uid]);
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
                     }
-                    clinic_assert_can_deactivate_user_roles($cid, $uid);
-                    q(
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_can_deactivate_user_roles($cid, $uid);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_user_roles SET active=0 WHERE user_id=? AND clinic_id=?",
                         [$uid, $cid],
                     );
-                    propagate_user_role_permissions($cid, $uid, "deactivate");
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "deactivate");
                     if (
-                        (int) val(
+                        (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                             "SELECT COUNT(*) FROM pi_user_roles WHERE user_id=? AND active=1",
                             [$uid],
                         ) === 0
                     ) {
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "UPDATE pi_users SET active=0, updated_at=NOW() WHERE id=?",
                             [$uid],
                         );
                     }
-                    audit("usuario_desativado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_desativado", "usuario", $uid, [
                         "clinic_id" => $cid,
                         "audit_body" =>
                             "Colaborador desativado e sessões/dispositivos do consultório revogados.",
                     ]);
-                    flash("Colaborador desativado neste consultório.");
-                    redirect("users");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador desativado neste consultório.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("users");
                 }
             } catch (Throwable $e) {
                 error_log("[Prontoo user detail] " . $e->getMessage());
-                flash(
-                    app_public_error_message(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_public_error_message(
                         $e,
                         "Não foi possível concluir a alteração do colaborador.",
                     ),
                     "bad",
                 );
-                redirect("user", ["id" => $uid]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
             }
         }
         $back =
             '<a class="ghost small" href="' .
-            href("users") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("users") .
             '">' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             '<span>Voltar para Colaboradores</span></a><a class="ghost small" href="' .
-            href("permissions") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("permissions") .
             '">' .
-            icon("shield_person") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("shield_person") .
             "<span>Editar permissões</span></a>";
         $status =
             (int) $person["user_active"] && $activeRoles ? "Ativo" : "Inativo";
@@ -181,67 +181,67 @@ final class UsersPermissionsRuntimeOperations05
         if ($activeRoles && $uid !== (int) $c["user"]["id"]) {
             $deactivate =
                 '<form method="post" class="inline" onsubmit="return confirm(&quot;Desativar o vínculo deste colaborador neste consultório?&quot;)">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="deactivate"><button class="danger small" type="submit">' .
-                icon("person_remove") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person_remove") .
                 "<span>Desativar colaborador</span></button></form>";
         }
         $form =
             '<form method="post" class="compact collaborator-edit-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="update"><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome completo",
-                input("name", "text", $person["name"] ?? "", "required"),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("name", "text", $person["name"] ?? "", "required"),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF",
                 '<input type="text" value="' .
-                    e(mask($person["cpf"] ?? "")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($person["cpf"] ?? "")) .
                     '" readonly aria-readonly="true" tabindex="-1" autocomplete="off">',
             ) .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nascimento",
                 '<input type="date" value="' .
-                    e(app_date_input_from_storage($person["birth_date"] ?? "")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($person["birth_date"] ?? "")) .
                     '" readonly aria-readonly="true" tabindex="-1" autocomplete="off">',
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "E-mail de acesso",
-                input("email", "email", $person["email"] ?? ""),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("email", "email", $person["email"] ?? ""),
             ) .
             "</div>" .
-            (function_exists("person_common_profile_fields_html")
-                ? person_common_profile_fields_html($cid, $person, "", false, true)
+            (is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'person_common_profile_fields_html'])
+                ? \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::person_common_profile_fields_html($cid, $person, "", false, true)
                 : "") .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Cargos",
-                role_checkbox_group("role_codes", $manageable, $activeRoles),
+                \Prontoo\Presentation\UsersPermissions\UsersPermissionsPresentationOperations01::role_checkbox_group("role_codes", $manageable, $activeRoles),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Status",
-                '<input type="text" value="' . e($status) . '" readonly>',
+                '<input type="text" value="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) . '" readonly>',
             ) .
             "</div>" .
-            work_hours_form_html($cid, $uid) .
+            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::work_hours_form_html($cid, $uid) .
             '<div class="form-actions">' .
             $deactivate .
             '<button type="submit" class="primary">' .
-            icon("save") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
             "<span>Salvar colaborador</span></button></div></form>";
         $perm =
             '<h2>Permissões do colaborador</h2><p class="muted-copy">As permissões exibidas consideram os cargos ativos. Na sessão, o colaborador frequenta apenas um Ambiente por vez.</p>' .
-            collaborator_permission_summary($activeRoles, $cid);
-        page(
+            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations03::collaborator_permission_summary($activeRoles, $cid);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Colaborador",
-            page_head("Colaborador", "", $back) .
-                card(
-                    "<h2>" . e($person["name"] ?? "Colaborador") . "</h2>" . $form,
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Colaborador", "", $back) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                    "<h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($person["name"] ?? "Colaborador") . "</h2>" . $form,
                     "collaborator-profile-card",
                 ) .
-                card($perm, "collaborator-permissions-card"),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($perm, "collaborator-permissions-card"),
         );
     
     }
@@ -250,11 +250,11 @@ final class UsersPermissionsRuntimeOperations05
     
     {
     
-        $c = require_can("permissions");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("permissions");
         $cid = (int) $c["clinic_id"];
-        $roles = manageable_team_roles($cid);
-        $modules = permission_module_defs();
-        $ops = permission_operations();
+        $roles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid);
+        $modules = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
+        $ops = \Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations();
         $selected = (string) ($_GET["role"] ?? "recepcionista");
         if (!isset($roles[$selected])) {
             $selected = "recepcionista";
@@ -265,56 +265,56 @@ final class UsersPermissionsRuntimeOperations05
                 $role = "recepcionista";
             }
             try {
-                persist_permission_rules($cid, $role, $_POST["allow"] ?? []);
+                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::persist_permission_rules($cid, $role, $_POST["allow"] ?? []);
                 foreach (
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "SELECT DISTINCT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code=? AND active=1",
                         [$cid, $role],
                     )->fetchAll(PDO::FETCH_COLUMN)
                     as $affectedUid
                 ) {
-                    propagate_user_role_permissions(
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions(
                         $cid,
                         (int) $affectedUid,
                         "permission_matrix_updated",
                     );
                 }
-                audit("permissoes_atualizadas", "permissoes", $cid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("permissoes_atualizadas", "permissoes", $cid, [
                     "perfil" => $role,
                     "audit_body" =>
                         "Permissões do cargo " .
-                        role_label_for($role, $cid) .
+                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid) .
                         " atualizadas e propagadas para colaboradores ativos.",
                 ]);
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Permissões atualizadas para " .
-                        role_label_for($role, $cid) .
+                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid) .
                         ".",
                 );
-                redirect("permissions", ["role" => $role]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("permissions", ["role" => $role]);
             } catch (Throwable $e) {
                 error_log("[Prontoo permissions] " . $e->getMessage());
-                flash("Não foi possível salvar as permissões.", "bad");
-                redirect("permissions", ["role" => $role]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Não foi possível salvar as permissões.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("permissions", ["role" => $role]);
             }
         }
-        $rules = permission_rules_for_role($selected, $cid);
+        $rules = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_rules_for_role($selected, $cid);
         $roleBlocks = "";
         foreach ($roles as $role => $label) {
             $count = 0;
             $enabled = 0;
             foreach ($modules as $module => $m) {
-                if (!permission_module_available_for_role($role, $module)) {
+                if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_available_for_role($role, $module)) {
                     continue;
                 }
                 $count++;
                 foreach ($ops as $op => $opLabel) {
                     if (
-                        permission_operation_supported($module, $op) &&
+                        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($module, $op) &&
                         !empty(
                             ($role === $selected
                                 ? $rules
-                                : permission_rules_for_role($role, $cid))[$module][
+                                : \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_rules_for_role($role, $cid))[$module][
                                 $op
                             ]
                         )
@@ -327,26 +327,26 @@ final class UsersPermissionsRuntimeOperations05
                 '<a class="permission-role-block ' .
                 ($role === $selected ? "is-active" : "") .
                 '" href="' .
-                href("permissions", ["role" => $role]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("permissions", ["role" => $role]) .
                 '"><span class="permission-role-icon">' .
-                icon(role_icon($role, $cid)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon($role, $cid)) .
                 '</span><span class="permission-role-copy"><strong>' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</strong><small>" .
-                e((string) $count) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $count) .
                 " módulos · " .
-                e((string) $enabled) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $enabled) .
                 " liberações</small></span></a>";
         }
         $cards = "";
         foreach ($modules as $module => $m) {
-            if (!permission_module_available_for_role($selected, $module)) {
+            if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_available_for_role($selected, $module)) {
                 continue;
             }
             $toggles = "";
             $activeOps = 0;
             foreach ($ops as $op => $label) {
-                if (!permission_operation_supported($module, $op)) {
+                if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($module, $op)) {
                     continue;
                 }
                 $checked = !empty($rules[$module][$op]);
@@ -357,9 +357,9 @@ final class UsersPermissionsRuntimeOperations05
                 $hidden =
                     $selected === "gerente" && $checked
                         ? '<input type="hidden" name="allow[' .
-                            e($module) .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($module) .
                             "][" .
-                            e($op) .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($op) .
                             ']" value="1">'
                         : "";
                 $toggles .=
@@ -368,14 +368,14 @@ final class UsersPermissionsRuntimeOperations05
                     '">' .
                     $hidden .
                     '<input type="checkbox" name="allow[' .
-                    e($module) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($module) .
                     "][" .
-                    e($op) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($op) .
                     ']" value="1" ' .
                     ($checked ? "checked" : "") .
                     $disabled .
                     '><span class="permission-toggle-knob"></span><b>' .
-                    e($label) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</b></label>";
             }
             if ($toggles === "") {
@@ -384,48 +384,48 @@ final class UsersPermissionsRuntimeOperations05
             }
             $cards .=
                 '<article class="permission-edit-card permission-module-card"><header><span class="permission-edit-title">' .
-                icon($m["icon"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($m["icon"]) .
                 "<strong>" .
-                e($m["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($m["label"]) .
                 "</strong></span><small>" .
-                e((string) $activeOps) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $activeOps) .
                 "/" .
-                e((string) count($m["ops"] ?? [])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) count($m["ops"] ?? [])) .
                 ' ações</small></header><div class="permission-toggle-list permission-toggle-list-compact">' .
                 $toggles .
                 "</div>";
             if (!empty($m["note"])) {
                 $cards .=
-                    '<p class="permission-module-note">' . e($m["note"]) . "</p>";
+                    '<p class="permission-module-note">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($m["note"]) . "</p>";
             }
             $cards .= "</article>";
         }
         $html =
             '<form method="post" class="permissions-compact-form permissions-ds-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="role_code" value="' .
-            e($selected) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($selected) .
             '"><div class="permissions-ds-shell"><aside class="permissions-role-rail"><div class="permissions-rail-head"><span>' .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             "</span><div><strong>Cargos</strong><small>Escolha o perfil</small></div></div>" .
             $roleBlocks .
             '</aside><section class="permissions-editor-pane"><div class="permission-compact-toolbar permissions-editor-toolbar"><div><strong>' .
-            e($roles[$selected]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($roles[$selected]) .
             '</strong><span>Módulos e ações reais deste cargo, organizados em blocos compactos lado a lado.</span></div><span class="task-chip info">' .
-            e((string) count($modules)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) count($modules)) .
             ' módulos</span></div><div class="permission-edit-grid permissions-module-grid">' .
             $cards .
             '</div><div class="form-actions permission-save-actions permissions-sticky-actions"><a class="ghost" href="' .
-            href("users") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("users") .
             '">' .
-            icon("groups") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
             '<span>Colaboradores</span></a><button class="primary" type="submit">' .
-            icon("save") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
             "<span>Salvar permissões</span></button></div></section></div></form>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Permissões",
-            page_head("Permissões", "") .
-                card(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Permissões", "") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     $html,
                     "permissions-role-card compact-permissions-card permissions-ds-card",
                 ),

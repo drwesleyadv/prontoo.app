@@ -12,21 +12,8 @@ final class RuntimeModuleCatalog
     public static function coreModules(): array
     {
         return [
-            'Support/Runtime.php',
-            'Support/Foundation.php',
-            'Support/ServerJsonCache.php',
             'Core/Performance/PerformanceBudget.php',
-            'Support/Telemetry.php',
-            'Support/DeferredAudit.php',
-            'Database/DatabaseSchema.php',
-            'Support/SecurityAccess.php',
-            'Domain/Audit/AuditActivity.php',
-            'Domain/Clinic/ClinicConfig.php',
-            'Domain/Clinic/SubscriptionSettings.php',
-            'Domain/Permissions/UsersPermissions.php',
-            'Ui/Components.php',
             'Presentation/Auth/OnboardingTipView.php',
-            'Auth/AuthOnboarding.php',
             'Runtime/Runner.php',
         ];
     }
@@ -49,17 +36,9 @@ final class RuntimeModuleCatalog
             'Infrastructure/Patients/PatientTabReadRepository.php',
             'Presentation/Patients/PatientTabView.php',
             'Presentation/Patients/PatientContactView.php',
-            'Domain/Patients/Patients.php',
-            'Domain/Appointments/Appointments.php',
-            'Domain/Documents/Documents.php',
-            'Domain/Documents/DocumentPdf.php',
-            'Domain/Tasks/TasksNotices.php',
             'Application/Financial/PatientRevenueReceiptPort.php',
             'Application/Financial/PatientRevenueReceiptService.php',
             'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php',
-            'Domain/Financial/Financial.php',
-            'Domain/Maestro/Maestro.php',
-            'Admin/AdminPages.php',
         ])));
     }
 
@@ -82,23 +61,13 @@ final class RuntimeModuleCatalog
             'Infrastructure/Patients/PatientTabReadRepository.php',
             'Presentation/Patients/PatientTabView.php',
             'Presentation/Patients/PatientContactView.php',
-            'Domain/Patients/Patients.php',
         ]];
         $leads = [];
-        $tasks = ['tasks' => ['Domain/Tasks/TasksNotices.php']];
         $financial = ['financial' => [
             'Application/Financial/PatientRevenueReceiptPort.php',
             'Application/Financial/PatientRevenueReceiptService.php',
             'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php',
-            'Domain/Financial/Financial.php',
         ]];
-        $appointments = ['appointments' => ['Domain/Appointments/Appointments.php']];
-        $documents = ['documents' => ['Domain/Documents/Documents.php', 'Domain/Documents/DocumentPdf.php']];
-        $audit = ['audit' => ['Domain/Audit/AuditActivity.php']];
-        $clinic = ['clinic' => ['Domain/Clinic/ClinicConfig.php', 'Domain/Clinic/SubscriptionSettings.php']];
-        $users = ['users' => ['Domain/Appointments/Appointments.php', 'Domain/Permissions/UsersPermissions.php']];
-        $admin = ['admin' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
-        $status = ['status' => ['Domain/Maestro/Maestro.php', 'Admin/AdminPages.php']];
 
         $map = [
             'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
@@ -143,7 +112,6 @@ final class RuntimeModuleCatalog
             'permissions' => $users,
             'audit' => $audit + $documents + $financial + $tasks,
             'settings' => $clinic,
-            'maestro' => ['maestro' => ['Domain/Maestro/Maestro.php']],
             'admin_painel' => $admin + $clinic,
             'admin_stats' => $admin,
             'admin_clinics' => $admin + $clinic,

@@ -71,7 +71,7 @@ final class AppointmentsDomainOperations01
     {
     
         $out = [];
-        foreach (work_weekday_labels() as $wd => $label) {
+        foreach (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_weekday_labels() as $wd => $label) {
             $out[$wd] = [
                 "weekday" => $wd,
                 "active" => in_array($wd, [1, 2, 3, 4, 5], true) ? 1 : 0,
@@ -150,7 +150,7 @@ final class AppointmentsDomainOperations01
     
     {
     
-        return appointment_status_code($a) === "cancelado";
+        return \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a) === "cancelado";
     
     }
 
@@ -159,7 +159,7 @@ final class AppointmentsDomainOperations01
     {
     
         return in_array(
-            appointment_status_code($a),
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a),
             ["atendimento_concluido", "finalizado"],
             true,
         );
@@ -171,7 +171,7 @@ final class AppointmentsDomainOperations01
     {
     
         return in_array(
-            appointment_status_code($a),
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a),
             ["finalizado", "cancelado", "nao_compareceu", "reagendado"],
             true,
         );
@@ -298,7 +298,7 @@ final class AppointmentsDomainOperations01
     
     {
     
-        $start = agenda_day_week_start($day);
+        $start = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_day_week_start($day);
         $end = date("Y-m-d", strtotime($start . " +6 days"));
         $startTs = strtotime($start . " 12:00:00");
         $endTs = strtotime($end . " 12:00:00");
@@ -311,19 +311,19 @@ final class AppointmentsDomainOperations01
         ) {
             return date("d", $startTs) .
                 " de " .
-                agenda_month_name_br($start) .
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_month_name_br($start) .
                 " a " .
                 date("d", $endTs) .
                 " de " .
-                agenda_month_name_br($end);
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_month_name_br($end);
         }
         return date("d", $startTs) .
             " de " .
-            agenda_month_name_br($start) .
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_month_name_br($start) .
             " a " .
             date("d", $endTs) .
             " de " .
-            agenda_month_name_br($end);
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_month_name_br($end);
     
     }
 
@@ -356,9 +356,9 @@ final class AppointmentsDomainOperations01
             return str_replace(" ", "T", substr($value, 0, 16));
         }
         if (preg_match('/^\d{2}:\d{2}$/', $value)) {
-            return agenda_iso_local_value($fallbackDay, $value);
+            return \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($fallbackDay, $value);
         }
-        return agenda_iso_local_value($fallbackDay, $fallbackHm);
+        return \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($fallbackDay, $fallbackHm);
     
     }
 
@@ -417,7 +417,7 @@ final class AppointmentsDomainOperations01
         if ($scope === "role") {
             $target = (string) ($note["target_role"] ?? "");
             return $target !== "" &&
-                in_array($target, agenda_note_role_codes($c), true);
+                in_array($target, \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_note_role_codes($c), true);
         }
         return false;
     

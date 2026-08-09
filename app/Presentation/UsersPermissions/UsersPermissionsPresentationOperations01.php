@@ -40,13 +40,13 @@ final class UsersPermissionsPresentationOperations01
             $checked = in_array((string) $code, $selected, true) ? " checked" : "";
             $h .=
                 '<label class="role-check"><input type="checkbox" name="' .
-                e($field) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($field) .
                 '" value="' .
-                e((string) $code) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $code) .
                 '"' .
                 $checked .
                 "><span>" .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span></label>";
         }
         return $h .

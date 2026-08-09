@@ -30,7 +30,7 @@ final class PatientsRuntimeOperations02
     
     {
     
-        $zip = only_digits((string) ($_POST["address_zip"] ?? ""));
+        $zip = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_POST["address_zip"] ?? ""));
         $street = mb_trim((string) ($_POST["address"] ?? ""));
         $number = mb_trim((string) ($_POST["address_number"] ?? ""));
         $neighborhood = mb_trim((string) ($_POST["address_neighborhood"] ?? ""));
@@ -50,7 +50,7 @@ final class PatientsRuntimeOperations02
         if ($neighborhood === "") {
             throw new RuntimeException("Informe o bairro do paciente.");
         }
-        if (!isset(br_states()[$uf])) {
+        if (!isset(\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states()[$uf])) {
             throw new RuntimeException("Escolha um Estado válido.");
         }
         if ($city === "" || $cityIbge <= 0) {
@@ -73,7 +73,7 @@ final class PatientsRuntimeOperations02
     
     {
     
-        $d = only_digits($cep);
+        $d = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cep);
         if (strlen($d) !== 8) {
             return $cep;
         }
@@ -86,7 +86,7 @@ final class PatientsRuntimeOperations02
     {
     
         $email = mb_trim((string) ($_POST["email"] ?? ""));
-        $phone = phone_br((string) ($_POST["phone"] ?? ""));
+        $phone = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) ($_POST["phone"] ?? ""));
         if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new RuntimeException(
                 "Informe um e-mail válido para emissão fiscal.",
@@ -113,7 +113,7 @@ final class PatientsRuntimeOperations02
             "SELECT id FROM pi_patients WHERE id=? AND clinic_id=?" .
             ($activeOnly ? " AND active=1 AND deleted_at IS NULL" : "") .
             " LIMIT 1";
-        return (bool) one($sql, [$patientId, $cid]);
+        return (bool) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($sql, [$patientId, $cid]);
     
     }
 
@@ -125,13 +125,13 @@ final class PatientsRuntimeOperations02
         if (isset($memo[$cid])) {
             return $memo[$cid];
         }
-        $base = q(
+        $base = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,person_id FROM pi_patients WHERE clinic_id=? AND active=1 AND deleted_at IS NULL ORDER BY id DESC LIMIT 300",
             [$cid],
         )->fetchAll();
-        $persons = fetch_map(
+        $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_persons",
-            int_ids($base, "person_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($base, "person_id"),
             "id,full_name",
         );
         $o = [];
@@ -152,33 +152,33 @@ final class PatientsRuntimeOperations02
     
         $limit = max(0, min(80, (int) ($_GET["patient_preload"] ?? 0)));
         if ($limit <= 0) {
-            return '<datalist id="' . e($id) . '"></datalist>';
+            return '<datalist id="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($id) . '"></datalist>';
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT pp.id,p.full_name,p.birth_date,p.cpf FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.clinic_id=? AND pp.active=1 AND pp.deleted_at IS NULL ORDER BY pp.updated_at DESC, pp.id DESC LIMIT " .
                 $limit,
             [$cid],
         )->fetchAll();
-        $h = '<datalist id="' . e($id) . '">';
+        $h = '<datalist id="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($id) . '">';
         foreach ($rows as $r) {
             $birth = !empty($r["birth_date"])
-                ? date_br((string) $r["birth_date"])
+                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $r["birth_date"])
                 : "Nascimento não informado";
             $value = (string) $r["full_name"] . " · " . $birth;
-            $label = !empty($r["cpf"]) ? "CPF " . mask((string) $r["cpf"]) : $birth;
+            $label = !empty($r["cpf"]) ? "CPF " . \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) $r["cpf"]) : $birth;
             $h .=
                 '<option value="' .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '" label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" data-patient-id="' .
                 (int) $r["id"] .
                 '" data-patient-name="' .
-                e((string) $r["full_name"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["full_name"]) .
                 '" data-birth="' .
-                e(app_date_input_from_storage($r["birth_date"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($r["birth_date"] ?? "")) .
                 '" data-cpf="' .
-                e(mask((string) ($r["cpf"] ?? ""))) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($r["cpf"] ?? ""))) .
                 '"></option>';
         }
         return $h . "</datalist>";
@@ -196,7 +196,7 @@ final class PatientsRuntimeOperations02
         $display = "";
         $pid = (int) $hiddenValue;
         if ($pid > 0) {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT p.full_name,p.birth_date FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1 LIMIT 1",
                 [$pid, $cid],
             );
@@ -204,20 +204,20 @@ final class PatientsRuntimeOperations02
                 $display =
                     (string) $r["full_name"] .
                     (!empty($r["birth_date"])
-                        ? " · " . date_br((string) $r["birth_date"])
+                        ? " · " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $r["birth_date"])
                         : " · Nascimento não informado");
             }
         }
         return '<input type="hidden" name="' .
-            e($hiddenName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hiddenName) .
             '" value="' .
-            e($hiddenValue) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hiddenValue) .
             '" data-patient-id-target><input type="search" name="' .
-            e($inputName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($inputName) .
             '" value="' .
-            e($display) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($display) .
             '" list="prontoo_patient_suggestions" placeholder="Busque por nome, CPF ou nascimento" autocomplete="off" spellcheck="false" data-ds-lookup="patient" aria-label="Buscar paciente por nome, CPF ou nascimento" data-patient-document-suggest data-patient-suggest-url="' .
-            e(href("patient_suggest")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient_suggest")) .
             '" aria-autocomplete="list">';
     
     }
@@ -230,7 +230,7 @@ final class PatientsRuntimeOperations02
     {
     
         if ($postedId > 0) {
-            $ok = (int) val(
+            $ok = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
                 [$postedId, $cid],
             );
@@ -243,7 +243,7 @@ final class PatientsRuntimeOperations02
             return 0;
         }
         $clean = mb_strtolower($search, "UTF-8");
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT pp.id,p.full_name,p.birth_date,p.cpf FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.clinic_id=? AND pp.active=1 ORDER BY p.full_name ASC LIMIT 1000",
             [$cid],
         )->fetchAll();
@@ -252,17 +252,17 @@ final class PatientsRuntimeOperations02
         $starts = [];
         foreach ($rows as $r) {
             $birth = !empty($r["birth_date"])
-                ? date_br((string) $r["birth_date"])
+                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $r["birth_date"])
                 : "Nascimento não informado";
             $display = mb_strtolower(
                 (string) $r["full_name"] . " · " . $birth,
                 "UTF-8",
             );
             $name = mb_strtolower((string) $r["full_name"], "UTF-8");
-            $cpf = only_digits((string) ($r["cpf"] ?? ""));
+            $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($r["cpf"] ?? ""));
             if (
                 $display === $clean ||
-                ($cpf !== "" && only_digits($search) === $cpf)
+                ($cpf !== "" && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search) === $cpf)
             ) {
                 $exact[] = (int) $r["id"];
             }
@@ -290,12 +290,12 @@ final class PatientsRuntimeOperations02
     
     {
     
-        $cpf = only_digits($cpf);
-        if (!valid_cpf($cpf)) {
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf);
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             return null;
         }
         try {
-            $row = one(
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT p.id,p.full_name,p.cpf,p.birth_date
                  FROM pi_persons p
                  WHERE p.cpf=?
@@ -324,15 +324,15 @@ final class PatientsRuntimeOperations02
     
     {
     
-        $cpf = only_digits($cpf);
-        if (!valid_cpf($cpf)) {
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf);
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             return [
                 "ok" => false,
                 "found" => false,
                 "message" => "Informe um CPF válido.",
             ];
         }
-        $p = patient_identity_by_cpf($cpf, $cid);
+        $p = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_identity_by_cpf($cpf, $cid);
         if (!$p) {
             return [
                 "ok" => true,
@@ -343,7 +343,7 @@ final class PatientsRuntimeOperations02
         $active = null;
         $deleted = null;
         try {
-            $active = one(
+            $active = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=1 LIMIT 1",
                 [$cid, (int) $p["id"]],
             );
@@ -351,15 +351,15 @@ final class PatientsRuntimeOperations02
             error_log("[Prontoo patient CPF active lookup] " . $e->getMessage());
         }
         try {
-            $deleted = one(
+            $deleted = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=0 LIMIT 1",
                 [$cid, (int) $p["id"]],
             );
         } catch (Throwable $e) {
             error_log("[Prontoo patient CPF deleted lookup] " . $e->getMessage());
         }
-        $birth = function_exists("app_date_input_from_storage")
-            ? app_date_input_from_storage($p["birth_date"] ?? "")
+        $birth = is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'app_date_input_from_storage'])
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($p["birth_date"] ?? "")
             : (preg_match("/^\d{4}-\d{2}-\d{2}/", (string) ($p["birth_date"] ?? ""))
                 ? substr((string) $p["birth_date"], 0, 10)
                 : "");
@@ -375,7 +375,7 @@ final class PatientsRuntimeOperations02
                     ? (int) $deleted["id"]
                     : null),
             "open_url" => $active
-                ? href("patient", ["id" => (int) $active["id"]])
+                ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $active["id"]])
                 : "",
             "message" => $active
                 ? "Este paciente já está cadastrado. Os dados foram recuperados; abra a ficha existente se quiser consultar ou alterar."
@@ -383,7 +383,7 @@ final class PatientsRuntimeOperations02
                     ? "Cadastro anterior encontrado como excluído. Os dados foram recuperados; ao salvar, o Prontoo reativará a ficha para revisão."
                     : "Dados encontrados e preenchidos automaticamente."),
             "name" => $name,
-            "cpf" => patient_cpf_br((string) ($p["cpf"] ?? "")),
+            "cpf" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_cpf_br((string) ($p["cpf"] ?? "")),
             "birth_date" => $birth,
         ];
     
@@ -399,7 +399,7 @@ final class PatientsRuntimeOperations02
             header("X-Robots-Tag: noindex, nofollow");
         }
         try {
-            $c = ctx();
+            $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
             if (!$c) {
                 http_response_code(401);
                 echo json_encode(
@@ -429,7 +429,7 @@ final class PatientsRuntimeOperations02
                 );
                 return;
             }
-            if (!can("patients")) {
+            if (!\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("patients")) {
                 http_response_code(403);
                 echo json_encode(
                     [
@@ -446,7 +446,7 @@ final class PatientsRuntimeOperations02
             $uid = (int) ($c["user"]["id"] ?? 0);
             if (
                 $uid <= 0 ||
-                security_rate_limit(
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
                     "patient_lookup_c" . $cid . "_u" . $uid,
                     6,
                     60,
@@ -468,9 +468,9 @@ final class PatientsRuntimeOperations02
                 );
                 return;
             }
-            $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
+            $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_GET["cpf"] ?? ""));
             echo json_encode(
-                patient_lookup_payload($cid, $cpf),
+                \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_lookup_payload($cid, $cpf),
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
             );
             return;
@@ -502,8 +502,8 @@ final class PatientsRuntimeOperations02
     
     {
     
-        $today = app_today_in_timezone($cid);
-        $zone = new DateTimeZone(app_context_timezone(null, $cid));
+        $today = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid);
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $cid));
         $dt = new DateTimeImmutable($today . " 00:00:00", $zone);
         $weekday = (int) $dt->format("N");
         $start = $dt->modify("-" . ($weekday - 1) . " days");
@@ -519,7 +519,7 @@ final class PatientsRuntimeOperations02
     
     {
     
-        return app_local_day_utc_range(app_today_in_timezone($cid), $cid);
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid), $cid);
     
     }
 
@@ -531,18 +531,18 @@ final class PatientsRuntimeOperations02
     ): string 
     {
     
-        $filter = array_key_exists($filter, patient_directory_filter_options())
+        $filter = array_key_exists($filter, \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options())
             ? $filter
-            : patient_directory_filter_default();
+            : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
         $cid = (int) ($params[0] ?? 0);
         if ($filter === "today") {
-            [$start, $end] = patient_today_utc_range($cid);
+            [$start, $end] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
             $params[] = $start;
             $params[] = $end;
             return " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id={$patientAlias}.clinic_id AND pa.patient_link_id={$patientAlias}.id AND pa.start_at>=? AND pa.start_at<? AND pa.status NOT IN ('cancelado','nao_compareceu'))";
         }
         if ($filter === "week") {
-            [$start, $end] = patient_week_utc_range($cid);
+            [$start, $end] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_week_utc_range($cid);
             $params[] = $start;
             $params[] = $end;
             return " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id={$patientAlias}.clinic_id AND pa.patient_link_id={$patientAlias}.id AND pa.start_at>=? AND pa.start_at<? AND pa.status NOT IN ('cancelado','nao_compareceu'))";
@@ -561,7 +561,7 @@ final class PatientsRuntimeOperations02
     
     {
     
-        [$todayStart, $todayEnd] = patient_today_utc_range($cid);
+        [$todayStart, $todayEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
         return ",(SELECT MIN(pa.start_at) FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.start_at>=" .
             (int) $todayStart .
             " AND pa.start_at<" .

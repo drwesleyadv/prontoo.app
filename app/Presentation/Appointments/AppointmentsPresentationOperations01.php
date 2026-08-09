@@ -35,13 +35,13 @@ final class AppointmentsPresentationOperations01
             $state = (string) ($step["state"] ?? "upcoming");
             $html .=
                 '<span class="journey-ux-step is-' .
-                e($state) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
                 '" title="' .
-                e((string) $step["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $step["label"]) .
                 '"><span class="journey-ux-dot">' .
-                icon((string) $step["icon"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) $step["icon"]) .
                 '</span><span class="journey-ux-step-label">' .
-                e((string) $step["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $step["label"]) .
                 "</span></span>";
         }
         return $html . "</span>";
@@ -60,11 +60,11 @@ final class AppointmentsPresentationOperations01
             $value = "—";
         }
         return '<span class="journey-ux-fact">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<b>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</b><em>" .
-            e($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
             "</em></span>";
     
     }
@@ -80,7 +80,7 @@ final class AppointmentsPresentationOperations01
         }
         $price = (int) ($p["price_cents"] ?? 0);
         if ($price > 0) {
-            $parts[] = money_br($price);
+            $parts[] = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($price);
         }
         $pay = mb_trim((string) ($p["payment_methods"] ?? ""));
         if ($pay !== "") {
@@ -97,11 +97,11 @@ final class AppointmentsPresentationOperations01
     ): string 
     {
     
-        $name = first_name($doctorName);
+        $name = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($doctorName);
         return match ($view) {
-            "semanal" => agenda_week_range_label($day) . " de " . $name,
-            "mensal" => agenda_month_name_br($day) . " de " . $name,
-            default => agenda_day_short_label($day) . " de " . $name,
+            "semanal" => \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_week_range_label($day) . " de " . $name,
+            "mensal" => \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_month_name_br($day) . " de " . $name,
+            default => \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_day_short_label($day) . " de " . $name,
         };
     
     }

@@ -34,9 +34,9 @@ final class AppointmentsRuntimeOperations02
     {
     
         $nowTs = $nowTs ?? time();
-        $technical = appointment_status_code($a);
+        $technical = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a);
         $code = $technical;
-        $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+        $start = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
         if (
             in_array($code, ["agendado", "confirmado"], true) &&
             $start > 0 &&
@@ -164,7 +164,7 @@ final class AppointmentsRuntimeOperations02
         ];
         $phaseIndex = $order[$m[1]] ?? -1;
         $steps = [];
-        foreach (appointment_journey_steps() as $idx => $step) {
+        foreach (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_steps() as $idx => $step) {
             $state = "upcoming";
             if ($phaseIndex < 0) {
                 $state = "muted";
@@ -187,11 +187,11 @@ final class AppointmentsRuntimeOperations02
             "icon" => $m[4],
             "owner" => $m[5],
             "action" => $m[6],
-            "elapsed" => appointment_journey_elapsed_label($a, $code, $nowTs),
+            "elapsed" => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_elapsed_label($a, $code, $nowTs),
             "steps" => $steps,
             "role" => $role,
-            "role_actions" => appointment_journey_role_actions($a, $role, $nowTs),
-            "role_hint" => appointment_journey_role_hint($a, $role, $nowTs),
+            "role_actions" => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_role_actions($a, $role, $nowTs),
+            "role_hint" => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_role_hint($a, $role, $nowTs),
         ];
     
     }
@@ -203,7 +203,7 @@ final class AppointmentsRuntimeOperations02
     ): array 
     {
     
-        return appointment_journey_view_model($a, $role, $nowTs);
+        return \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_view_model($a, $role, $nowTs);
     
     }
 
@@ -212,8 +212,8 @@ final class AppointmentsRuntimeOperations02
     {
     
         $nowTs = $nowTs ?? time();
-        $code = appointment_status_code($a);
-        $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+        $code = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a);
+        $start = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
         if (
             in_array($code, ["agendado", "confirmado"], true) &&
             $start > 0 &&
@@ -232,7 +232,7 @@ final class AppointmentsRuntimeOperations02
     ): array 
     {
     
-        $vmCode = appointment_journey_view_code($a, $nowTs);
+        $vmCode = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_view_code($a, $nowTs);
         $role = (string) $role;
         $map = [
             "recepcionista" => [
@@ -288,9 +288,9 @@ final class AppointmentsRuntimeOperations02
     
         $nowTs = $nowTs ?? time();
         $role = (string) $role;
-        $technical = appointment_status_code($a);
-        $display = appointment_journey_view_code($a, $nowTs);
-        $start = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+        $technical = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a);
+        $display = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_view_code($a, $nowTs);
+        $start = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
         $actions = [];
         $add = function (
             string $act,
@@ -310,7 +310,7 @@ final class AppointmentsRuntimeOperations02
                 "danger" => $danger,
             ];
         };
-        if (appointment_journey_role_matches($role, "recepcionista")) {
+        if (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "recepcionista")) {
             if ($technical === "agendado" && empty($a["arrived_at"])) {
                 $add(
                     "confirm",
@@ -356,7 +356,7 @@ final class AppointmentsRuntimeOperations02
                     "Encerrar jornada administrativa",
                 );
             }
-        } elseif (appointment_journey_role_matches($role, "assistente")) {
+        } elseif (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "assistente")) {
             if ($technical === "chegou") {
                 $add(
                     "start_prepare",
@@ -375,7 +375,7 @@ final class AppointmentsRuntimeOperations02
                     "Concluir preparo e avisar profissional",
                 );
             }
-        } elseif (appointment_journey_role_matches($role, "medico")) {
+        } elseif (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "medico")) {
             if ($technical === "pronto_atendimento") {
                 $add(
                     "start_consultation",
@@ -403,7 +403,7 @@ final class AppointmentsRuntimeOperations02
             }
             if (
                 $real !== "" &&
-                appointment_journey_hard_guard_message(
+                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                     $a,
                     $real,
                     $role,
@@ -428,7 +428,7 @@ final class AppointmentsRuntimeOperations02
     {
     
         $returnHidden = (string) ($returnHidden ?? "");
-        $actions = appointment_journey_role_actions($a, $role, null, $uid);
+        $actions = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_role_actions($a, $role, null, $uid);
         if (!$actions) {
             return "";
         }
@@ -436,7 +436,7 @@ final class AppointmentsRuntimeOperations02
         if ($id <= 0) {
             return "";
         }
-        $actionAttr = $actionUrl !== "" ? ' action="' . e($actionUrl) . '"' : "";
+        $actionAttr = $actionUrl !== "" ? ' action="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($actionUrl) . '"' : "";
         $html =
             '<span class="journey-ux-quick" aria-label="Ações rápidas da jornada">';
         foreach ($actions as $act) {
@@ -457,22 +457,22 @@ final class AppointmentsRuntimeOperations02
                 $actionAttr .
                 $confirm .
                 ">" .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 $returnHidden .
                 '<input type="hidden" name="act" value="' .
-                e($realAct) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($realAct) .
                 '"><input type="hidden" name="id" value="' .
                 $id .
                 '">' .
                 $extra .
                 '<button type="submit" class="small ' .
-                e($class) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
                 '" title="' .
-                e($title) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                 '">' .
-                icon((string) $act["icon"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) $act["icon"]) .
                 "<span>" .
-                e((string) $act["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $act["label"]) .
                 "</span></button></form>";
         }
         return $html . "</span>";
@@ -488,12 +488,12 @@ final class AppointmentsRuntimeOperations02
     {
     
         $returnHidden = (string) ($returnHidden ?? "");
-        $vm = appointment_journey_view_model($a, $role);
+        $vm = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_view_model($a, $role);
         $elapsed = mb_trim((string) ($vm["elapsed"] ?? ""));
         $elapsed = $elapsed !== "" ? $elapsed : "Agora";
         $moves =
             $returnHidden !== "" || $actionUrl !== ""
-                ? appointment_journey_quick_actions_html(
+                ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_quick_actions_html(
                     $a,
                     $role,
                     $returnHidden,
@@ -501,23 +501,23 @@ final class AppointmentsRuntimeOperations02
                 )
                 : "";
         $facts =
-            appointment_journey_fact_html(
+            \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::appointment_journey_fact_html(
                 "account_circle",
                 "Responsável",
                 (string) $vm["owner"],
             ) .
-            appointment_journey_fact_html("timer", "Na etapa há", $elapsed) .
-            appointment_journey_fact_html(
+            \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::appointment_journey_fact_html("timer", "Na etapa há", $elapsed) .
+            \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::appointment_journey_fact_html(
                 "arrow_forward",
                 "Próxima medida",
                 (string) $vm["action"],
             );
         return '<span class="journey-ux journey-ux--compact journey-ux--operable journey-ux--timeline-card journey-ux--lean is-' .
-            e((string) $vm["class"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $vm["class"]) .
             '" title="' .
-            e((string) $vm["label"] . " · " . (string) $vm["phase_label"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $vm["label"] . " · " . (string) $vm["phase_label"]) .
             '">' .
-            appointment_journey_steps_html($vm) .
+            \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::appointment_journey_steps_html($vm) .
             '<span class="journey-ux-facts">' .
             $facts .
             "</span>" .

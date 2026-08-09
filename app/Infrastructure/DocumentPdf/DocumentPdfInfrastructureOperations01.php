@@ -30,7 +30,7 @@ final class DocumentPdfInfrastructureOperations01
     
     {
     
-        $dir = storage_path("pdfs");
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("pdfs");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
@@ -45,7 +45,7 @@ final class DocumentPdfInfrastructureOperations01
     
     {
     
-        $dir = storage_path("pdfs");
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("pdfs");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }

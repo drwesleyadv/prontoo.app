@@ -29,7 +29,7 @@ final class DeferredAuditInfrastructureOperations01
     public static function maestro_deferred_storage_dir(): string
     
     {
-        return storage_path("maestro-deferred");
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro-deferred");
     
     }
 
@@ -37,8 +37,8 @@ final class DeferredAuditInfrastructureOperations01
     
     {
         return array_values(array_unique([
-            maestro_deferred_storage_dir(),
-            storage_path("logs/maestro-deferred-emergency"),
+            \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_storage_dir(),
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs/maestro-deferred-emergency"),
         ]));
     
     }
@@ -54,7 +54,7 @@ final class DeferredAuditInfrastructureOperations01
         }
         ksort($value);
         foreach ($value as $key => $item) {
-            $value[$key] = maestro_deferred_canonicalize($item);
+            $value[$key] = \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_canonicalize($item);
         }
         return $value;
     
@@ -103,7 +103,7 @@ final class DeferredAuditInfrastructureOperations01
     {
         $payload = (array) ($envelope["payload"] ?? []);
         $event = mb_substr((string) ($payload["event"] ?? ""), 0, 80);
-        return $event !== "" && (!function_exists("audit_should_write") || audit_should_write($event));
+        return $event !== "" && (!is_callable([\Prontoo\Domain\AuditActivity\AuditWritePolicy::class, 'audit_should_write']) || \Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_should_write($event));
     
     }
 
@@ -172,7 +172,7 @@ final class DeferredAuditInfrastructureOperations01
     public static function maestro_deferred_state_write(array $stats): void
     
     {
-        $stateDir = maestro_deferred_storage_dir() . "/state";
+        $stateDir = \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_storage_dir() . "/state";
         if (!is_dir($stateDir)) {
             @mkdir($stateDir, 0750, true);
         }

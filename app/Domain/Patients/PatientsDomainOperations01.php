@@ -31,7 +31,7 @@ final class PatientsDomainOperations01
     {
     
         $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
-        return array_key_exists($icon, patient_health_icon_options())
+        return array_key_exists($icon, \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::patient_health_icon_options())
             ? $icon
             : "clinical_notes";
     
@@ -105,7 +105,7 @@ final class PatientsDomainOperations01
             return $base[$type];
         }
         if (str_starts_with($type, "tab_") && mb_trim((string) $customTabLabel) !== "") {
-            return patient_tab_label_clean((string) $customTabLabel);
+            return \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_tab_label_clean((string) $customTabLabel);
         }
         $fallback = trim(str_replace("_", " ", $type));
         return $fallback !== ""
@@ -188,9 +188,9 @@ final class PatientsDomainOperations01
     
     {
     
-        $filter = array_key_exists($filter, patient_directory_filter_options())
+        $filter = array_key_exists($filter, \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options())
             ? $filter
-            : patient_directory_filter_default();
+            : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
         return match ($filter) {
             "today"
                 => "today_appointment_start_at ASC, p.full_name ASC, pp.id DESC",
@@ -206,8 +206,8 @@ final class PatientsDomainOperations01
     
     {
     
-        return function_exists("appointment_status_code")
-            ? appointment_status_code($a)
+        return is_callable([\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::class, 'appointment_status_code'])
+            ? \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a)
             : mb_strtolower(mb_trim((string) ($a["status"] ?? "")));
     
     }
@@ -216,7 +216,7 @@ final class PatientsDomainOperations01
     
     {
     
-        $code = patient_appointment_code($a);
+        $code = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_appointment_code($a);
         return match ($code) {
             "atendimento_concluido", "finalizado" => "Consulta realizada",
             "em_atendimento" => "Consulta em atendimento",
@@ -236,7 +236,7 @@ final class PatientsDomainOperations01
     
     {
     
-        $code = patient_appointment_code($a);
+        $code = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_appointment_code($a);
         return match ($code) {
             "atendimento_concluido", "finalizado" => "event_available",
             "em_atendimento" => "stethoscope",
@@ -254,7 +254,7 @@ final class PatientsDomainOperations01
     
     {
     
-        $code = patient_appointment_code($a);
+        $code = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_appointment_code($a);
         $safe = preg_replace('/[^a-z0-9_\t -]/i', "", $code) ?: "agendado";
         return "patient-appointment-didactic patient-appointment-status-" .
             str_replace("_", "-", $safe);
@@ -269,9 +269,9 @@ final class PatientsDomainOperations01
         if ($key === "") {
             return "Documento";
         }
-        if (function_exists("document_type_options")) {
+        if (is_callable([\Prontoo\Domain\Documents\DocumentTypePolicy::class, 'document_type_options'])) {
             try {
-                $opts = document_type_options();
+                $opts = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
                 if (isset($opts[$key]) && mb_trim((string) $opts[$key]) !== "") {
                     return (string) $opts[$key];
                 }
@@ -313,12 +313,12 @@ final class PatientsDomainOperations01
         foreach ($docs as $d) {
             $title = mb_trim((string) ($d["title"] ?? ""));
             if ($title === "") {
-                $title = patient_document_type_human_label($d["type_key"] ?? null);
+                $title = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_document_type_human_label($d["type_key"] ?? null);
             }
             $status = mb_trim((string) ($d["document_status"] ?? ""));
             $statusLabel =
-                $status !== "" && function_exists("document_status_label")
-                    ? document_status_label($status)
+                $status !== "" && is_callable([\Prontoo\Domain\Documents\DocumentTypePolicy::class, 'document_status_label'])
+                    ? \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label($status)
                     : ($status !== ""
                         ? ucfirst(str_replace("_", " ", $status))
                         : "");

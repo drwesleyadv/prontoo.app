@@ -34,7 +34,7 @@ final class FinancialInfrastructureOperations01
         if ($validated) {
             return;
         }
-        if (!db_table_exists("pi_financial_daily_closings")) {
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_financial_daily_closings")) {
             throw new RuntimeException(
                 "Schema incompleto: consolidação financeira diária indisponível.",
             );

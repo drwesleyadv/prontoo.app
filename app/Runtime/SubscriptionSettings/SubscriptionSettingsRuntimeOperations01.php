@@ -30,7 +30,7 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        $v = meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
+        $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
         $c = (int) $v;
         return $c > 0 ? $c : PRONTOO_MONTHLY_PRICE_CENTS;
     
@@ -40,14 +40,14 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        $v = meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
+        $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
         $days = (int) $v;
         $policyRevision = "trial_30_days_2026_07_14";
-        $storedRevision = (string) meta_get("trial_days_policy_revision", "");
+        $storedRevision = (string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("trial_days_policy_revision", "");
         if ($days === 90 && $storedRevision !== $policyRevision) {
             try {
-                meta_set("default_trial_days", (string) PRONTOO_TRIAL_DAYS);
-                meta_set("trial_days_policy_revision", $policyRevision);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set("default_trial_days", (string) PRONTOO_TRIAL_DAYS);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set("trial_days_policy_revision", $policyRevision);
             } catch (Throwable $ignored) {
                 error_log(
                     "[Prontoo recoverable " .
@@ -69,7 +69,7 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        $key = mb_trim((string) meta_get("subscription_pix_key", "pix@prontoo.app"));
+        $key = mb_trim((string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("subscription_pix_key", "pix@prontoo.app"));
         return $key !== "" ? $key : "pix@prontoo.app";
     
     }
@@ -80,7 +80,7 @@ final class SubscriptionSettingsRuntimeOperations01
     ): int 
     {
     
-        return app_storage_timestamp($value, $endOfDay);
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($value, $endOfDay);
     
     }
 
@@ -90,14 +90,14 @@ final class SubscriptionSettingsRuntimeOperations01
     ): int 
     {
     
-        $days = $days ?? default_trial_days();
+        $days = $days ?? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
         if ($days <= 0) {
             $days = PRONTOO_TRIAL_DAYS;
         }
         if ($days <= 0) {
             $days = 30;
         }
-        $startTs = subscription_time_ts($start);
+        $startTs = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_time_ts($start);
         if ($startTs <= 0) {
             $startTs = time();
         }
@@ -109,7 +109,7 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        $ts = subscription_time_ts($trialEnd, true);
+        $ts = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_time_ts($trialEnd, true);
         return $ts <= 0 || $ts >= time();
     
     }
@@ -121,7 +121,7 @@ final class SubscriptionSettingsRuntimeOperations01
     ): bool 
     {
     
-        $ts = app_date_only_end_timestamp($paidUntil, $clinicId, $context);
+        $ts = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_only_end_timestamp($paidUntil, $clinicId, $context);
         return $ts > 0 && $ts >= time();
     
     }
@@ -132,12 +132,12 @@ final class SubscriptionSettingsRuntimeOperations01
     ): void 
     {
     
-        if ($clinicId <= 0 || !has_cfg()) {
+        if ($clinicId <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         $fn = function () use ($clinicId, $onlyIfOnboardingPending): void {
     
-            $cl = one(
+            $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,onboarding_done,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics WHERE id=? LIMIT 1",
                 [$clinicId],
             );
@@ -153,39 +153,39 @@ final class SubscriptionSettingsRuntimeOperations01
             $status = (string) ($cl["subscription_status"] ?? "trial");
             if (
                 $status === "exempt" ||
-                subscription_paid_is_active($cl["paid_until"] ?? null, $clinicId)
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_paid_is_active($cl["paid_until"] ?? null, $clinicId)
             ) {
                 return;
             }
-            $startedTs = subscription_time_ts($cl["trial_started_at"] ?? null);
+            $startedTs = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_time_ts($cl["trial_started_at"] ?? null);
             if ($startedTs <= 0) {
-                $startedTs = subscription_time_ts($cl["created_at"] ?? null);
+                $startedTs = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_time_ts($cl["created_at"] ?? null);
             }
             if ($startedTs <= 0) {
                 $startedTs = time();
             }
-            $trialTs = subscription_time_ts($cl["trial_ends_at"] ?? null, true);
-            $minTrialTs = subscription_trial_end_from_start(
+            $trialTs = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_time_ts($cl["trial_ends_at"] ?? null, true);
+            $minTrialTs = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_end_from_start(
                 $startedTs,
-                default_trial_days(),
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
             );
             if ($trialTs < time()) {
                 $trialTs = max(
                     $minTrialTs,
-                    subscription_trial_end_from_start(time(), default_trial_days()),
+                    \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_end_from_start(time(), \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()),
                 );
             }
             $price = (int) ($cl["monthly_price_cents"] ?? 0);
             if ($price <= 0) {
-                $price = default_monthly_price_cents();
+                $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_clinics SET subscription_status='trial', trial_started_at=?, trial_ends_at=?, monthly_price_cents=?, paid_until=NULL, updated_at=NOW() WHERE id=?",
                 [$startedTs, $trialTs, $price, $clinicId],
             );
         };
-        if (function_exists("with_read_only_guard_disabled")) {
-            with_read_only_guard_disabled($fn);
+        if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::class, 'with_read_only_guard_disabled'])) {
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_read_only_guard_disabled($fn);
         } else {
             $fn();
         }
@@ -209,14 +209,14 @@ final class SubscriptionSettingsRuntimeOperations01
             $status === "active" &&
             ($paid === null ||
                 mb_trim((string) $paid) === "" ||
-                subscription_paid_is_active($paid, (int) ($cl["id"] ?? 0), $cl))
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_paid_is_active($paid, (int) ($cl["id"] ?? 0), $cl))
         ) {
             return "active";
         }
-        if (subscription_paid_is_active($paid, (int) ($cl["id"] ?? 0), $cl)) {
+        if (\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_paid_is_active($paid, (int) ($cl["id"] ?? 0), $cl)) {
             return "active";
         }
-        if ($status === "trial" && subscription_trial_is_active($trial)) {
+        if ($status === "trial" && \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_is_active($trial)) {
             return "trial";
         }
         return "pause";
@@ -227,11 +227,11 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        $kind = clinic_subscription_kind($cl);
+        $kind = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::clinic_subscription_kind($cl);
         $price =
-            (int) ($cl["monthly_price_cents"] ?? default_monthly_price_cents());
+            (int) ($cl["monthly_price_cents"] ?? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents());
         if ($price <= 0) {
-            $price = default_monthly_price_cents();
+            $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
         }
         $until = mb_trim((string) ($cl["paid_until"] ?? ""));
         $trial = mb_trim((string) ($cl["trial_ends_at"] ?? ""));
@@ -244,7 +244,7 @@ final class SubscriptionSettingsRuntimeOperations01
                 ? "Este consultório está isento de cobrança e liberado para testes ou uso administrativo."
                 : "O consultório está liberado para atendimento, agenda, pessoas, documentos e financeiro.";
             $vigencia =
-                $until !== "" ? date_br($until) : "Sem vencimento informado";
+                $until !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($until) : "Sem vencimento informado";
             $tone = "ok";
         } elseif ($kind === "trial") {
             $title = "Assinatura ativa";
@@ -254,8 +254,8 @@ final class SubscriptionSettingsRuntimeOperations01
                 "O consultório está liberado durante o período inicial. Ao final do prazo, regularize a mensalidade para manter a operação liberada.";
             $vigencia =
                 $trial !== ""
-                    ? date_br($trial)
-                    : trial_period_label(default_trial_days());
+                    ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($trial)
+                    : \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::trial_period_label(\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days());
             $tone = "trial";
         } else {
             $title = "Somente leitura";
@@ -271,25 +271,25 @@ final class SubscriptionSettingsRuntimeOperations01
             '">' .
             '<div class="subscription-hero-main">' .
             '<span class="subscription-hero-icon">' .
-            icon($ico) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
             "</span>" .
             '<div class="subscription-hero-copy"><span class="eyebrow">Assinaturas</span><h2>' .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             "</h2><p>" .
-            e($body) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($body) .
             "</p></div>" .
             "</div>" .
             '<div class="subscription-metric-row" aria-label="Resumo da assinatura">' .
             '<span class="subscription-metric ' .
             $tone .
             '"><small>Status</small><strong>' .
-            e($status) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) .
             "</strong></span>" .
             '<span class="subscription-metric"><small>Mensalidade</small><strong>' .
-            e(money_br($price)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($price)) .
             "</strong></span>" .
             '<span class="subscription-metric"><small>Vigência</small><strong>' .
-            e($vigencia) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($vigencia) .
             "</strong></span>" .
             "</div>" .
             "</section>";
@@ -301,10 +301,10 @@ final class SubscriptionSettingsRuntimeOperations01
     {
     
         if (
-            security_rate_limit(security_client_bucket("payment_proof"), 8, 3600) ||
-            security_rate_limit(security_ip_bucket("payment_proof"), 30, 3600) ||
-            security_rate_limit(
-                security_value_bucket("payment_proof_clinic", (string) $cid),
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("payment_proof"), 8, 3600) ||
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_ip_bucket("payment_proof"), 30, 3600) ||
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_value_bucket("payment_proof_clinic", (string) $cid),
                 20,
                 3600,
             )
@@ -333,7 +333,7 @@ final class SubscriptionSettingsRuntimeOperations01
         if ((int) $f["error"] !== UPLOAD_ERR_OK) {
             throw new RuntimeException("Falha no envio do comprovante.");
         }
-        subscription_payment_proof_guard($cid, $uid);
+        \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_payment_proof_guard($cid, $uid);
         $tmp = (string) ($f["tmp_name"] ?? "");
         if ($tmp === "" || !is_uploaded_file($tmp)) {
             throw new RuntimeException("Upload inválido.");
@@ -377,11 +377,11 @@ final class SubscriptionSettingsRuntimeOperations01
             );
         }
         if ($mime === "application/pdf") {
-            subscription_payment_proof_validate_pdf($tmp);
+            \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_validate_pdf($tmp);
         } else {
-            subscription_payment_proof_validate_image($tmp, $mime);
+            \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::subscription_payment_proof_validate_image($tmp, $mime);
         }
-        $storage = subscription_payment_proof_storage(
+        $storage = \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_storage(
             $cid,
             $mime !== "application/pdf",
         );
@@ -402,7 +402,7 @@ final class SubscriptionSettingsRuntimeOperations01
             $storedExt = "jpg";
             $name = $baseName . ".jpg";
             $dest = $dir . "/" . $name;
-            $stored = subscription_payment_proof_reencode_image($tmp, $dest, $mime);
+            $stored = \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::subscription_payment_proof_reencode_image($tmp, $dest, $mime);
             if (!$stored) {
                 @unlink($dest);
                 $storedExt = match ($mime) {
@@ -432,9 +432,9 @@ final class SubscriptionSettingsRuntimeOperations01
             return "";
         }
         return '<a class="ghost small" target="_blank" rel="noopener" href="' .
-            href("admin_payment_proof", ["payment_id" => (int) $payment["id"]]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_payment_proof", ["payment_id" => (int) $payment["id"]]) .
             '">' .
-            action_summary_label("Visualizar comprovante", "visibility") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Visualizar comprovante", "visibility") .
             "</a>";
     
     }
@@ -443,25 +443,25 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        require_can("admin_painel");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
         $pid = (int) ($_GET["payment_id"] ?? 0);
         $p =
             $pid > 0
-                ? one(
+                ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT sp.id,sp.clinic_id,sp.status,sp.proof_path,c.display_name FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.id=?",
                     [$pid],
                 )
                 : null;
         if (!$p || mb_trim((string) ($p["proof_path"] ?? "")) === "") {
-            flash("Comprovante não encontrado para este pagamento.", "bad");
-            redirect("admin_painel");
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comprovante não encontrado para este pagamento.", "bad");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
         }
-        $full = subscription_payment_proof_absolute_path((string) $p["proof_path"]);
+        $full = \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_absolute_path((string) $p["proof_path"]);
         if ($full === null || !is_file($full)) {
-            flash("O arquivo do comprovante não está mais disponível.", "bad");
-            redirect("admin_painel");
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("O arquivo do comprovante não está mais disponível.", "bad");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
         }
-        audit(
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
             "assinatura_comprovante_visualizado",
             "assinatura",
             (int) $p["clinic_id"],
@@ -503,7 +503,7 @@ final class SubscriptionSettingsRuntimeOperations01
     {
     
         try {
-            $row = one(
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,amount_cents,proof_path,applied_until,created_at FROM pi_subscription_payments WHERE clinic_id=? AND status='pending_admin' ORDER BY id DESC LIMIT 1",
                 [$cid],
             );

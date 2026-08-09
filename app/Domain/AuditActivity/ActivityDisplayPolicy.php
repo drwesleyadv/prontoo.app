@@ -165,7 +165,7 @@ final class ActivityDisplayPolicy
                     ? $ctx[$k]
                     : explode(",", (string) $ctx[$k]);
                 foreach ($raw as $v) {
-                    $v = activity_display_label((string) $v);
+                    $v = \Prontoo\Domain\AuditActivity\ActivityDisplayPolicy::activity_display_label((string) $v);
                     if ($v !== "") {
                         $out[] = $v;
                     }
@@ -176,8 +176,8 @@ final class ActivityDisplayPolicy
             if (!array_key_exists($key, $ctx)) {
                 continue;
             }
-            if (audit_value_present($ctx[$key])) {
-                $out[] = activity_display_label($label);
+            if (\Prontoo\Domain\AuditActivity\AuditCopyPolicy::audit_value_present($ctx[$key])) {
+                $out[] = \Prontoo\Domain\AuditActivity\ActivityDisplayPolicy::activity_display_label($label);
             }
         }
         $eventFields = [

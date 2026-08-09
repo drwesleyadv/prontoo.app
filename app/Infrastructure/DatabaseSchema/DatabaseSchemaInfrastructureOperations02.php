@@ -90,7 +90,7 @@ final class DatabaseSchemaInfrastructureOperations02
         if (is_array($statements)) {
             return $statements;
         }
-        $statements = schema_split_sql(prontoo_schema_sql());
+        $statements = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_split_sql(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_sql());
         $actualTables = [];
         foreach ($statements as $statement) {
             if (
@@ -114,7 +114,7 @@ final class DatabaseSchemaInfrastructureOperations02
         }
         $actualNames = array_keys($actualTables);
         sort($actualNames, SORT_STRING);
-        $expectedNames = prontoo_schema_expected_table_names();
+        $expectedNames = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_expected_table_names();
         if ($actualNames !== $expectedNames) {
             $missing = array_values(array_diff($expectedNames, $actualNames));
             $unexpected = array_values(array_diff($actualNames, $expectedNames));
@@ -136,7 +136,7 @@ final class DatabaseSchemaInfrastructureOperations02
                 );
             }
         }
-        schema_assert_mysql_constraint_compatibility($statements);
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_assert_mysql_constraint_compatibility($statements);
         $GLOBALS["PRONTOO_SCHEMA_STATEMENTS_CACHE"] = $statements;
         return $statements;
     
@@ -218,7 +218,7 @@ final class DatabaseSchemaInfrastructureOperations02
             $referentialActionColumns = [];
             $checks = [];
     
-            foreach (schema_split_definitions($tableMatch[2]) as $definition) {
+            foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_split_definitions($tableMatch[2]) as $definition) {
                 if (
                     preg_match(
                         "/^`?([A-Za-z0-9_]+)`?\\s+.*\\bAUTO_INCREMENT\\b/is",
@@ -314,7 +314,7 @@ final class DatabaseSchemaInfrastructureOperations02
             return $map;
         }
         $map = [];
-        foreach (prontoo_schema_statements() as $statement) {
+        foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_statements() as $statement) {
             if (
                 !preg_match(
                     "/^CREATE\s+TABLE\s+`?([A-Za-z0-9_]+)`?\s*\((.*)\)\s*ENGINE=/is",
@@ -329,7 +329,7 @@ final class DatabaseSchemaInfrastructureOperations02
             $table = $match[1];
             $columns = [];
             $objects = [];
-            foreach (schema_split_definitions($match[2]) as $definition) {
+            foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_split_definitions($match[2]) as $definition) {
                 if (
                     preg_match(
                         "/^CONSTRAINT\s+`?([A-Za-z0-9_]+)`?/i",
@@ -381,7 +381,7 @@ final class DatabaseSchemaInfrastructureOperations02
     
     {
     
-        return array_keys(prontoo_schema_definition_map());
+        return array_keys(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_definition_map());
     
     }
 
@@ -390,7 +390,7 @@ final class DatabaseSchemaInfrastructureOperations02
     {
     
         $result = [];
-        foreach (prontoo_schema_definition_map() as $table => $definition) {
+        foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_definition_map() as $table => $definition) {
             $result[$table] = $definition["columns"];
         }
         return $result;
@@ -402,7 +402,7 @@ final class DatabaseSchemaInfrastructureOperations02
     {
     
         $result = [];
-        foreach (prontoo_schema_definition_map() as $table => $definition) {
+        foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_definition_map() as $table => $definition) {
             $result[$table] = $definition["objects"];
         }
         return $result;
@@ -413,7 +413,7 @@ final class DatabaseSchemaInfrastructureOperations02
     
     {
     
-        return hash("sha256", prontoo_schema_sql());
+        return hash("sha256", \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_sql());
     
     }
 
@@ -423,7 +423,7 @@ final class DatabaseSchemaInfrastructureOperations02
     
         $allowed = $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"] ?? null;
         if (!is_array($allowed)) {
-            $allowed = array_fill_keys(prontoo_schema_table_names(), true);
+            $allowed = array_fill_keys(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_table_names(), true);
             $GLOBALS["PRONTOO_SCHEMA_ALLOWED_TABLES_CACHE"] = $allowed;
         }
         if (!isset($allowed[$table])) {
@@ -494,7 +494,7 @@ final class DatabaseSchemaInfrastructureOperations02
         }
         $GLOBALS["PRONTOO_INSTALL_LAST_SCHEMA_SQL"] = $sql;
         try {
-            pdo()->exec($sql);
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->exec($sql);
             if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::proveSchemaOperation(
                     $sql,
@@ -510,7 +510,7 @@ final class DatabaseSchemaInfrastructureOperations02
                     $error->getMessage(),
                 );
             }
-            db_log_query_failure($error, $sql);
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_log_query_failure($error, $sql);
             throw $error;
         }
     
@@ -524,7 +524,7 @@ final class DatabaseSchemaInfrastructureOperations02
         if (isset($existing[$table])) {
             return true;
         }
-        $statement = pdo()->prepare(
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare(
             "SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1",
         );
         $statement->execute([$table]);
@@ -545,7 +545,7 @@ final class DatabaseSchemaInfrastructureOperations02
         if (isset($existing[$key])) {
             return true;
         }
-        $statement = pdo()->prepare(
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare(
             "SELECT 1 FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=? LIMIT 1",
         );
         $statement->execute([$table, $column]);
@@ -566,7 +566,7 @@ final class DatabaseSchemaInfrastructureOperations02
         if (isset($existing[$key])) {
             return true;
         }
-        $statement = pdo()->prepare(
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare(
             "SELECT 1 FROM information_schema.statistics WHERE table_schema=DATABASE() AND table_name=? AND index_name=? LIMIT 1",
         );
         $statement->execute([$table, $index]);
@@ -582,7 +582,7 @@ final class DatabaseSchemaInfrastructureOperations02
     
     {
     
-        return storage_path("schema.ready");
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("schema.ready");
     
     }
 }

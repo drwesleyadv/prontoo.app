@@ -35,20 +35,20 @@ final class DatabaseSchemaInfrastructureOperations03
                 "revision" => defined("PRONTOO_SCHEMA_REV")
                     ? PRONTOO_SCHEMA_REV
                     : "",
-                "contract" => prontoo_schema_contract_hash(),
+                "contract" => \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(),
                 "generated_at" => gmdate("c"),
             ],
             JSON_UNESCAPED_SLASHES,
         );
         if (
-            file_put_contents(schema_lock_file(), $payload ?: "{}", LOCK_EX) ===
+            file_put_contents(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file(), $payload ?: "{}", LOCK_EX) ===
             false
         ) {
             throw new RuntimeException(
                 "Não foi possível registrar o schema instalado.",
             );
         }
-        prontoo_fs_chmod(schema_lock_file(), 0640);
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_chmod(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file(), 0640);
     
     }
 
@@ -56,13 +56,13 @@ final class DatabaseSchemaInfrastructureOperations03
     
     {
     
-        $expected = prontoo_schema_definition_map();
+        $expected = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_definition_map();
         $normalize = static  fn(mixed $value): string => strtolower(
             mb_trim((string) $value),
         );
     
         $actualColumns = [];
-        $columnStatement = pdo()->query(
+        $columnStatement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->query(
             "SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.columns WHERE table_schema=DATABASE()",
         );
         foreach (
@@ -82,7 +82,7 @@ final class DatabaseSchemaInfrastructureOperations03
         $objectSql =
             "SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.table_constraints WHERE table_schema=DATABASE() " .
             "UNION ALL SELECT TABLE_NAME, INDEX_NAME FROM information_schema.statistics WHERE table_schema=DATABASE()";
-        $objectStatement = pdo()->query($objectSql);
+        $objectStatement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->query($objectSql);
         foreach (
             ($objectStatement ? $objectStatement->fetchAll(PDO::FETCH_NUM) : [])
             as $row
@@ -137,7 +137,7 @@ final class DatabaseSchemaInfrastructureOperations03
             );
         }
         if (class_exists("\\Prontoo\\Core\\Temporal\\PiTime")) {
-            $temporal = \Prontoo\Infrastructure\Temporal\PdoTemporalIntegrity::countTemporalViolations(pdo());
+            $temporal = \Prontoo\Infrastructure\Temporal\PdoTemporalIntegrity::countTemporalViolations(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo());
             $count = (int) ($temporal["datetime_columns"] ?? 0) +
                 (int) ($temporal["date_columns"] ?? 0) +
                 (int) ($temporal["timestamp_columns"] ?? 0);
@@ -157,13 +157,13 @@ final class DatabaseSchemaInfrastructureOperations03
         $revision = defined("PRONTOO_SCHEMA_REV")
             ? PRONTOO_SCHEMA_REV
             : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
-        $statement = pdo()->prepare(
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare(
             "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value),updated_at=VALUES(updated_at)",
         );
         foreach (
             [
                 "schema_revision" => $revision,
-                "schema_contract_hash" => prontoo_schema_contract_hash(),
+                "schema_contract_hash" => \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(),
                 "app_secret" => bin2hex(random_bytes(32)),
             ]
             as $key => $value
@@ -178,11 +178,11 @@ final class DatabaseSchemaInfrastructureOperations03
     {
     
             \Prontoo\Core\Database\SchemaMutationLock::assertActive();
-    $connection = pdo();
+    $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $connection->exec("SET FOREIGN_KEY_CHECKS=0");
         try {
             foreach (array_reverse($tables) as $table) {
-                $connection->exec("DROP TABLE IF EXISTS " . db_ident($table));
+                $connection->exec("DROP TABLE IF EXISTS " . \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_ident($table));
             }
         } finally {
             $connection->exec("SET FOREIGN_KEY_CHECKS=1");
@@ -195,7 +195,7 @@ final class DatabaseSchemaInfrastructureOperations03
     {
     
             \Prontoo\Core\Database\SchemaMutationLock::assertActive();
-    $connection = pdo();
+    $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $tableCount = (int) $connection
             ->query(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()",
@@ -208,7 +208,7 @@ final class DatabaseSchemaInfrastructureOperations03
         $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
         $created = [];
         try {
-            foreach (prontoo_schema_statements() as $statement) {
+            foreach (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_statements() as $statement) {
                 if (
                     !preg_match(
                         "/^CREATE\s+TABLE\s+`?([A-Za-z0-9_]+)`?/i",
@@ -218,15 +218,15 @@ final class DatabaseSchemaInfrastructureOperations03
                 ) {
                     throw new RuntimeException("Tabela inválida no contrato SQL.");
                 }
-                run_schema_sql($statement);
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::run_schema_sql($statement);
                 $created[] = $match[1];
             }
-            schema_seed_meta();
-            schema_validate_complete();
-            schema_mark_ready();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_seed_meta();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_validate_complete();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_mark_ready();
         } catch (Throwable $error) {
-            schema_cleanup_failed_install($created);
-            prontoo_fs_unlink(schema_lock_file());
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_cleanup_failed_install($created);
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file());
             throw $error;
         } finally {
             unset($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"]);
@@ -247,7 +247,7 @@ final class DatabaseSchemaInfrastructureOperations03
     {
     
         foreach ($tables as $table) {
-            if (!db_table_exists((string) $table)) {
+            if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists((string) $table)) {
                 throw new RuntimeException("Schema {$domain} incompleto.");
             }
         }
@@ -258,7 +258,7 @@ final class DatabaseSchemaInfrastructureOperations03
     
     {
     
-        db_assert_tables(["pi_leads", "pi_lead_events"], "de interessados");
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::db_assert_tables(["pi_leads", "pi_lead_events"], "de interessados");
     
     }
 
@@ -266,7 +266,7 @@ final class DatabaseSchemaInfrastructureOperations03
     
     {
     
-        db_assert_tables(
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::db_assert_tables(
             [
                 "pi_financial_accounts",
                 "pi_financial_revenues",

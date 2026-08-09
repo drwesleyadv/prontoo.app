@@ -35,9 +35,9 @@ final class SecurityAccessRuntimeOperations01
         }
         if (
             function_exists("security_storage_deny_file") &&
-            function_exists("storage_path")
+            is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])
         ) {
-            $storageGuardRoot = storage_path("cache");
+            $storageGuardRoot = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache");
             $storageGuardVersion = defined("PRONTOO_VERSION")
                 ? PRONTOO_VERSION
                 : "runtime";
@@ -47,14 +47,14 @@ final class SecurityAccessRuntimeOperations01
                 hash("sha256", $storageGuardVersion) .
                 ".json";
             $storageGuardFiles = [
-                storage_path() . "/.htaccess",
-                storage_path() . "/index.html",
-                storage_path("cache") . "/.htaccess",
-                storage_path("cache") . "/index.html",
-                storage_path("logs") . "/.htaccess",
-                storage_path("logs") . "/index.html",
-                storage_path("maestro-deferred") . "/.htaccess",
-                storage_path("maestro-deferred") . "/index.html",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path() . "/.htaccess",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path() . "/index.html",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache") . "/.htaccess",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache") . "/index.html",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs") . "/.htaccess",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs") . "/index.html",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro-deferred") . "/.htaccess",
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro-deferred") . "/index.html",
             ];
             $storageGuardFilesPresent = true;
             foreach ($storageGuardFiles as $storageGuardFile) {
@@ -68,10 +68,10 @@ final class SecurityAccessRuntimeOperations01
                 is_file($storageGuardMarker) &&
                 time() - (int) filemtime($storageGuardMarker) < 3600;
             if (!$storageGuardFresh) {
-                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path());
-                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("cache"));
-                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("logs"));
-                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("maestro-deferred"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path());
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs"));
+                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro-deferred"));
                 if (is_dir($storageGuardRoot)) {
                     @file_put_contents(
                         $storageGuardMarker,
@@ -103,7 +103,7 @@ final class SecurityAccessRuntimeOperations01
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-        security_clear_legacy_device_cookie();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         $now = time();
         if (empty($_SESSION["born"])) {
             $_SESSION["born"] = $now;
@@ -113,8 +113,8 @@ final class SecurityAccessRuntimeOperations01
             $_SESSION["fp"] = $fp;
         }
         if (!hash_equals((string) $_SESSION["fp"], $fp)) {
-            secure_session_destroy();
-            header("Location: " . href("login"));
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
+            header("Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login"));
             exit();
         }
         if (!empty($_SESSION["uid"])) {
@@ -131,8 +131,8 @@ final class SecurityAccessRuntimeOperations01
                 ($absolute > 0 && $now - $born > $absolute)
             ) {
                 try {
-                    if (function_exists("audit")) {
-                        audit("sessao_expirada", "seguranca", null, [
+                    if (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("sessao_expirada", "seguranca", null, [
                             "audit_body" =>
                                 "Sessão encerrada automaticamente por tempo de inatividade ou duração máxima.",
                         ]);
@@ -145,8 +145,8 @@ final class SecurityAccessRuntimeOperations01
                             $e->getMessage(),
                     );
                 }
-                secure_session_destroy();
-                header("Location: " . href("login"));
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
+                header("Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login"));
                 exit();
             }
         }
@@ -210,7 +210,7 @@ final class SecurityAccessRuntimeOperations01
         foreach ($data as $key => $value) {
             $name = $prefix === "" ? (string) $key : $prefix . "." . (string) $key;
             if (is_array($value)) {
-                $err = posted_identity_document_error($value, $name);
+                $err = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::posted_identity_document_error($value, $name);
                 if ($err !== null) {
                     return $err;
                 }
@@ -220,7 +220,7 @@ final class SecurityAccessRuntimeOperations01
             if (str_ends_with($field, "_omitted") || str_contains($field, "omit")) {
                 continue;
             }
-            $digits = only_digits((string) $value);
+            $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) $value);
             $isCpfField =
                 (bool) preg_match('/(^|_|-)cpf($|_|-)/', $field) ||
                 in_array(
@@ -243,7 +243,7 @@ final class SecurityAccessRuntimeOperations01
                 (str_contains($field, "document") &&
                     !str_contains($field, "proof"));
             if ($isCpfField && !$isDocField) {
-                if ($digits !== "" && !valid_cpf($digits)) {
+                if ($digits !== "" && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($digits)) {
                     return "Informe um CPF válido.";
                 }
                 continue;
@@ -252,10 +252,10 @@ final class SecurityAccessRuntimeOperations01
                 if ($digits === "") {
                     continue;
                 }
-                if (strlen($digits) === 11 && !valid_cpf($digits)) {
+                if (strlen($digits) === 11 && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($digits)) {
                     return "Informe um CPF válido.";
                 }
-                if (strlen($digits) === 14 && !valid_cnpj($digits)) {
+                if (strlen($digits) === 14 && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cnpj($digits)) {
                     return "Informe um CNPJ válido.";
                 }
                 if (!in_array(strlen($digits), [11, 14], true)) {
@@ -274,7 +274,7 @@ final class SecurityAccessRuntimeOperations01
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
             return;
         }
-        $err = posted_identity_document_error($_POST);
+        $err = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::posted_identity_document_error($_POST);
         if ($err !== null) {
             http_response_code(400);
             header("Content-Type: text/plain; charset=utf-8");
@@ -287,8 +287,8 @@ final class SecurityAccessRuntimeOperations01
     
     {
     
-        if (function_exists("app_enforce_canonical_host")) {
-            app_enforce_canonical_host();
+        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_enforce_canonical_host'])) {
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_enforce_canonical_host();
         }
         $method = $_SERVER["REQUEST_METHOD"] ?? "GET";
         if (!in_array($method, ["GET", "POST"], true)) {
@@ -337,7 +337,7 @@ final class SecurityAccessRuntimeOperations01
                 http_response_code(400);
                 exit("Envio maior que o permitido.");
             }
-            enforce_posted_identity_documents();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::enforce_posted_identity_documents();
         }
     
     }
@@ -347,7 +347,7 @@ final class SecurityAccessRuntimeOperations01
     {
     
         try {
-            return val($sql, $p) ?? $fallback;
+            return \Prontoo\Core\Architecture\OperationGateway::invoke('val', $sql, $p) ?? $fallback;
         } catch (Throwable $e) {
             error_log("[Prontoo safe_val] " . $e->getMessage());
             return $fallback;
@@ -359,7 +359,7 @@ final class SecurityAccessRuntimeOperations01
     
     {
     
-        return '<input type="hidden" name="csrf" value="' . e(csrf()) . '">';
+        return '<input type="hidden" name="csrf" value="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf()) . '">';
     
     }
 
@@ -371,7 +371,7 @@ final class SecurityAccessRuntimeOperations01
             ($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST" &&
             !hash_equals($_SESSION["csrf"] ?? "", $_POST["csrf"] ?? "")
         ) {
-            audit("csrf_bloqueado", "seguranca", null, ["janela" => route()]);
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("csrf_bloqueado", "seguranca", null, ["janela" => \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route()]);
             throw new ProntooHttpError(
                 403,
                 "Sessão expirada ou formulário inválido.",
@@ -386,7 +386,7 @@ final class SecurityAccessRuntimeOperations01
         return hash_hmac(
             "sha256",
             "prontoo-mfa-secret-v1",
-            secret_key(),
+            \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key'),
             true,
         );
     
@@ -405,7 +405,7 @@ final class SecurityAccessRuntimeOperations01
         $ciphertext = openssl_encrypt(
             $secret,
             "aes-256-gcm",
-            mfa_crypto_key(),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_crypto_key(),
             OPENSSL_RAW_DATA,
             $nonce,
             $tag,
@@ -434,7 +434,7 @@ final class SecurityAccessRuntimeOperations01
         $secret = openssl_decrypt(
             substr($payload, 28),
             "aes-256-gcm",
-            mfa_crypto_key(),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_crypto_key(),
             OPENSSL_RAW_DATA,
             substr($payload, 0, 12),
             substr($payload, 12, 16),
@@ -450,12 +450,12 @@ final class SecurityAccessRuntimeOperations01
     public static function mfa_record_load(int $uid): ?array
     
     {
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Core\Architecture\OperationGateway::invoke('has_cfg')) {
             return null;
         }
-        $raw = val(
+        $raw = \Prontoo\Core\Architecture\OperationGateway::invoke('val', 
             "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
-            [mfa_meta_key($uid)],
+            [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid)],
         );
         if (!is_string($raw) || trim($raw) === "") {
             return null;
@@ -483,23 +483,23 @@ final class SecurityAccessRuntimeOperations01
             $record,
             JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
         );
-        meta_set(mfa_meta_key($uid), $encoded);
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid), $encoded);
     
     }
 
     public static function mfa_enrollment_state(int $uid): string
     
     {
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Core\Architecture\OperationGateway::invoke('has_cfg')) {
             return "unavailable";
         }
         try {
-            $record = mfa_record_load($uid);
+            $record = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid);
             if ($record === null) {
                 return "inactive";
             }
-            $secret = mfa_secret_decrypt((string) $record["secret"]);
-            if (strlen(mfa_base32_decode($secret)) < 16) {
+            $secret = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_decrypt((string) $record["secret"]);
+            if (strlen(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_base32_decode($secret)) < 16) {
                 throw new RuntimeException("Segredo MFA inválido.");
             }
             return "active";
@@ -513,7 +513,7 @@ final class SecurityAccessRuntimeOperations01
     public static function mfa_is_enrolled(int $uid): bool
     
     {
-        return mfa_enrollment_state($uid) === "active";
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) === "active";
     
     }
 
@@ -522,8 +522,8 @@ final class SecurityAccessRuntimeOperations01
     {
         return hash_hmac(
             "sha256",
-            mfa_recovery_code_normalize($code),
-            secret_key(),
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_code_normalize($code),
+            \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key'),
         );
     
     }
@@ -537,25 +537,25 @@ final class SecurityAccessRuntimeOperations01
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Core\Architecture\OperationGateway::invoke('val', "SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger o cadastro MFA.",
                 );
             }
-            if (mfa_record_load($uid) !== null) {
+            if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid) !== null) {
                 throw new RuntimeException("O MFA já está cadastrado.");
             }
-            $counter = mfa_totp_matching_counter($secret, $firstCode);
+            $counter = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_matching_counter($secret, $firstCode);
             if ($counter === null) {
                 throw new RuntimeException(
                     "O código do autenticador não confere.",
                 );
             }
-            $codes = mfa_recovery_codes_generate();
-            mfa_record_save($uid, [
+            $codes = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_codes_generate();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, [
                 "v" => 1,
-                "secret" => mfa_secret_encrypt($secret),
+                "secret" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_encrypt($secret),
                 "recovery" => array_map("mfa_recovery_code_hash", $codes),
                 "last_counter" => $counter,
                 "enrolled_at" => time(),
@@ -565,7 +565,7 @@ final class SecurityAccessRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Core\Architecture\OperationGateway::invoke('val', "SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log("[Prontoo MFA enroll unlock] " . $e->getMessage());
                 }

@@ -13,7 +13,7 @@ final class PdoActionProofStore implements ActionProofPort
     public function write(string $route, array $context, Decision $decision): bool
     {
 
-        if (!function_exists('pdo')) {
+        if (!is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo'])) {
             error_log('[Prontoo layered action ledger] PDO indisponível.');
             return false;
         }
@@ -40,7 +40,7 @@ final class PdoActionProofStore implements ActionProofPort
             $authorizationHash = Canonical::hash('action_ledger_authorization', $payload);
             $sql = "INSERT INTO pi_action_ledger (request_id,clinic_id,user_id,route,action_key,module_key,operation_key,scope,role_code,allowed,status,reason,authorization_hash,contract_hash,context_json,policy_version,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?, ?,?,?,?,?,NOW())";
             $sql = PiIntegrity::rewriteSqlForRuntime($sql);
-            $statement = \pdo()->prepare($sql);
+            $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
             $statement->execute([
                 $requestId,
                 $context['clinic_id'] ?? null,
@@ -59,7 +59,7 @@ final class PdoActionProofStore implements ActionProofPort
                 Canonical::json($payload),
                 PiIntegrity::POLICY_VERSION,
             ]);
-            $ledgerId = (int) \pdo()->lastInsertId();
+            $ledgerId = (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->lastInsertId();
             if ($decision->allowed && $ledgerId > 0) {
                 $GLOBALS['PRONTOO_ACTION_LEDGER_ID'] = $ledgerId;
                 $GLOBALS['PRONTOO_ACTION_LEDGER_REQUEST_ID'] = $requestId;

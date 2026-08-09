@@ -74,22 +74,22 @@ final class SupportFoundationPresentationOperations01
         $cityOptions =
             $city !== ""
                 ? '<option value="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '" data-ibge="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" selected>' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     "</option>"
                 : '<option value="">Escolha primeiro o estado</option>';
         $states =
             ["" => "Escolha o estado"] +
-            (function_exists("br_states") ? br_states() : []);
+            (is_callable([\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::class, 'br_states']) ? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states() : []);
         $contact = "";
         $contactFields = "";
         if ($includePhone) {
-            $contactFields .= form_row(
+            $contactFields .= \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Telefone",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "phone",
                     "text",
                     $get("phone"),
@@ -98,9 +98,9 @@ final class SupportFoundationPresentationOperations01
             );
         }
         if ($includeEmail) {
-            $contactFields .= form_row(
+            $contactFields .= \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "E-mail",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "email",
                     "email",
                     $get("email"),
@@ -114,18 +114,18 @@ final class SupportFoundationPresentationOperations01
         return $contact .
             '<section class="patient-address-block person-common-address-block" data-patient-address-block>' .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CEP",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "address_zip",
                     "text",
                     $get("address_zip"),
                     'inputmode="numeric" maxlength="9" autocomplete="postal-code" data-patient-address-zip',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Logradouro",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "address",
                     "text",
                     $get("address"),
@@ -133,18 +133,18 @@ final class SupportFoundationPresentationOperations01
                 ),
             ) .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Número",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "address_number",
                     "text",
                     $get("address_number"),
                     'maxlength="20" autocomplete="address-line2" data-patient-address-number',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Bairro",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "address_neighborhood",
                     "text",
                     $get("address_neighborhood"),
@@ -152,16 +152,16 @@ final class SupportFoundationPresentationOperations01
                 ),
             ) .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Complemento",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     $prefix . "address_complement",
                     "text",
                     $get("address_complement"),
                     'maxlength="120" autocomplete="address-line3" data-patient-address-complement',
                 ),
             ) .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Estado",
                 $prefix . "address_state",
                 $states,
@@ -169,18 +169,18 @@ final class SupportFoundationPresentationOperations01
                 "data-br-state data-patient-address-state",
             ) .
             "</div>" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Cidade",
                 '<select name="' .
-                    e($prefix . "address_city") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($prefix . "address_city") .
                     '" data-br-city data-selected-city="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '" data-patient-address-city>' .
                     $cityOptions .
                     '</select><input type="hidden" name="' .
-                    e($prefix . "address_city_ibge") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($prefix . "address_city_ibge") .
                     '" value="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" data-br-city-ibge data-patient-address-ibge>',
             ) .
             "</section>";

@@ -21,6 +21,7 @@ if (!defined("PRONTOO_ROOT")) {
     define("PRONTOO_ROOT", dirname(__DIR__));
 }
 require_once __DIR__ . "/Runtime/Autoload/ProntooAutoloader.php";
+\Prontoo\Runtime\Architecture\OperationRegistry::register();
 if (PHP_SAPI !== "cli") {
     
     $prontooRequestSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
@@ -393,6 +394,6 @@ require_once __DIR__ . "/bootstrap_architecture.php";
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadRuntimeCore(
     \Prontoo\Runtime\Modules\RuntimeBootPolicy::useLightBoot(getenv('PRONTOO_DISABLE_LIGHT_BOOT')),
 );
-if (function_exists("server_json_cache_register_deferred_invalidation")) {
-    server_json_cache_register_deferred_invalidation();
+if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_register_deferred_invalidation'])) {
+    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_register_deferred_invalidation();
 }

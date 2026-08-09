@@ -506,13 +506,13 @@ final class PiIntegrity
     private static function canUseDatabase(): bool
     {
 
-        return function_exists('has_cfg') && \has_cfg() && function_exists('pdo');
+        return is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']);
     }
 
     private static function pdo(): \PDO
     {
 
-        return \pdo();
+        return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
     }
 
     private static function contextInt(string $key): ?int
@@ -602,9 +602,9 @@ final class PiIntegrity
     {
 
         try {
-            return function_exists('secret_key')
-                ? (string) \secret_key()
-                : (string) (\cfg()['secret'] ?? 'prontoo-integrity');
+            return \Prontoo\Core\Architecture\OperationGateway::has('secret_key')
+                ? (string) \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key', )
+                : (string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()['secret'] ?? 'prontoo-integrity');
         } catch (\Throwable) {
             return 'prontoo-integrity';
         }

@@ -30,7 +30,7 @@ final class ClinicConfigDomainOperations02
     
     {
     
-        $rgb = clinic_hex_rgb($hex);
+        $rgb = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_hex_rgb($hex);
         $vals = [];
         foreach ($rgb as $v) {
             $c = $v / 255;
@@ -44,8 +44,8 @@ final class ClinicConfigDomainOperations02
     
     {
     
-        $la = clinic_luminance($a) + 0.05;
-        $lb = clinic_luminance($b) + 0.05;
+        $la = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_luminance($a) + 0.05;
+        $lb = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_luminance($b) + 0.05;
         return max($la, $lb) / min($la, $lb);
     
     }
@@ -54,8 +54,8 @@ final class ClinicConfigDomainOperations02
     
     {
     
-        $white = clinic_contrast_ratio($bg, "#ffffff");
-        $ink = clinic_contrast_ratio($bg, "#17181c");
+        $white = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_ratio($bg, "#ffffff");
+        $ink = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_ratio($bg, "#17181c");
         return $white >= $ink ? "#ffffff" : "#17181c";
     
     }
@@ -64,29 +64,29 @@ final class ClinicConfigDomainOperations02
     
     {
     
-        $base = normalize_accent_color($color);
-        $rgb = clinic_hex_rgb($base);
-        $strong = $palette["dark"] ?? clinic_mix_hex($base, "#000000", 0.82);
-        if (clinic_contrast_ratio($strong, "#ffffff") < 4.5) {
-            $strong = clinic_mix_hex($base, "#000000", 0.7);
+        $base = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color($color);
+        $rgb = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_hex_rgb($base);
+        $strong = $palette["dark"] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#000000", 0.82);
+        if (\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_ratio($strong, "#ffffff") < 4.5) {
+            $strong = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#000000", 0.7);
         }
-        $hover = clinic_mix_hex($base, "#000000", 0.88);
-        $pressed = clinic_mix_hex($base, "#000000", 0.76);
-        $surface = clinic_mix_hex($base, "#ffffff", 0.018);
-        $surfaceElevated = clinic_mix_hex($base, "#ffffff", 0.01);
-        $surfaceSoft = $palette["soft2"] ?? clinic_mix_hex($base, "#ffffff", 0.055);
-        $bg = clinic_mix_hex($base, "#ffffff", 0.045);
-        $soft = $palette["soft"] ?? clinic_mix_hex($base, "#ffffff", 0.105);
-        $subtle = $palette["soft2"] ?? clinic_mix_hex($base, "#ffffff", 0.05);
-        $muted = clinic_mix_hex($base, "#ffffff", 0.22);
-        $border = clinic_mix_hex($base, "#ffffff", 0.34);
-        $line = clinic_mix_hex($base, "#ffffff", 0.155);
-        $lineStrong = clinic_mix_hex($base, "#ffffff", 0.245);
-        $controlBorder = clinic_mix_hex($base, "#ffffff", 0.205);
-        $surfaceTint = clinic_mix_hex($base, "#ffffff", 0.035);
+        $hover = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#000000", 0.88);
+        $pressed = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#000000", 0.76);
+        $surface = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.018);
+        $surfaceElevated = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.01);
+        $surfaceSoft = $palette["soft2"] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.055);
+        $bg = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.045);
+        $soft = $palette["soft"] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.105);
+        $subtle = $palette["soft2"] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.05);
+        $muted = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.22);
+        $border = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.34);
+        $line = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.155);
+        $lineStrong = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.245);
+        $controlBorder = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.205);
+        $surfaceTint = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#ffffff", 0.035);
         $focus = "rgba(" . $rgb[0] . "," . $rgb[1] . "," . $rgb[2] . ",.16)";
         $shadow = "rgba(" . $rgb[0] . "," . $rgb[1] . "," . $rgb[2] . ",.22)";
-        $on = clinic_contrast_text($base);
+        $on = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_text($base);
         $clockInk = "#ffffff";
         $css =
             "--clinic-accent:" .
@@ -300,7 +300,7 @@ final class ClinicConfigDomainOperations02
     
     {
     
-        $sets = role_icon_sets();
+        $sets = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::role_icon_sets();
         if ($role !== null && isset($sets[$role])) {
             return $sets[$role];
         }

@@ -31,17 +31,17 @@ final class MaestroRuntimeOperations04
     {
     
         $cid = (int) $rule["clinic_id"];
-        $act = maestro_decode_json($rule["action_json"] ?? "");
+        $act = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_decode_json($rule["action_json"] ?? "");
         $vars = $match["variables"] ?? [];
-        $title = maestro_text(
-            maestro_apply_placeholders(
+        $title = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_text(
+            \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_apply_placeholders(
                 (string) ($act["title"] ?? "Ação da rotina"),
                 $vars,
             ),
             180,
         );
-        $body = maestro_template(
-            maestro_apply_placeholders((string) ($act["description"] ?? ""), $vars),
+        $body = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_template(
+            \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_apply_placeholders((string) ($act["description"] ?? ""), $vars),
             1200,
         );
         if ($title === "") {
@@ -57,11 +57,11 @@ final class MaestroRuntimeOperations04
         }
         if (
             $scope === "role" &&
-            !array_key_exists((string) $role, clinic_role_options($cid, true))
+            !array_key_exists((string) $role, \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, true))
         ) {
             throw new RuntimeException("Cargo destinatário indisponível para a ação.");
         }
-        if ($scope === "user" && (!$userId || !clinic_user_exists($cid, $userId))) {
+        if ($scope === "user" && (!$userId || !\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $userId))) {
             throw new RuntimeException("Pessoa destinatária indisponível para a ação.");
         }
         if ($scope !== "role") {
@@ -71,7 +71,7 @@ final class MaestroRuntimeOperations04
             $userId = null;
         }
         if ((string) $rule["action_type"] === "create_notice") {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
@@ -81,13 +81,13 @@ final class MaestroRuntimeOperations04
                     $scope === "clinic" ? "all" : $scope,
                     $role,
                     $userId,
-                    maestro_actor_id(),
+                    \Prontoo\Presentation\Maestro\MaestroPresentationOperations01::maestro_actor_id(),
                 ],
             );
-            $id = db_last_insert_id();
-            counter_inc("notices_total");
-            clinic_metric_inc($cid, "notices");
-            audit("maestro_notificacao_criada", "comunicado", $id, [
+            $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
+            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_notificacao_criada", "comunicado", $id, [
                 "clinic_id" => $cid,
                 "regra_id" => (int) $rule["id"],
                 "titulo" => $title,
@@ -98,7 +98,7 @@ final class MaestroRuntimeOperations04
         $sourceEvent = "maestro_" . (int) $rule["id"];
         $sourceEntity = (string) ($match["source_entity"] ?? "registro");
         $sourceId = (string) ($match["source_entity_id"] ?? "0");
-        $taskId = create_workflow_task(
+        $taskId = \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::create_workflow_task(
             $cid,
             $title,
             $body,
@@ -108,7 +108,7 @@ final class MaestroRuntimeOperations04
             $sourceEvent,
             $sourceEntity,
             $sourceId,
-            maestro_due_dt((int) ($act["due_offset_days"] ?? 0), $cid),
+            \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_due_dt((int) ($act["due_offset_days"] ?? 0), $cid),
             $scope,
             $role,
             true,
@@ -131,7 +131,7 @@ final class MaestroRuntimeOperations04
     
         $priority = (int) ($rule["priority"] ?? 50);
         $next = $rule["next_run_at"]
-            ? app_storage_timestamp($rule["next_run_at"])
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($rule["next_run_at"])
             : 0;
         $lag = $next
             ? max(0, min(240, (time() - $next) / 60))
@@ -151,7 +151,7 @@ final class MaestroRuntimeOperations04
     ): void 
     {
     
-        db_tx(function () use (
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
             $key,
             $duration,
             $created,
@@ -159,18 +159,18 @@ final class MaestroRuntimeOperations04
             $skipped,
         ): void {
     
-            $old = one(
+            $old = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT * FROM pi_maestro_job_stats WHERE routine_key=? FOR UPDATE",
                 [$key],
             );
             if ($skipped) {
                 if ($old) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_maestro_job_stats SET skip_count=skip_count+1,last_score=?,updated_at=NOW() WHERE routine_key=?",
                         [$score, $key],
                     );
                 } else {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_maestro_job_stats (routine_key,ewma_duration_ms,ewma_yield,run_count,skip_count,last_score,last_run_at,updated_at) VALUES (?,0,0,0,1,?,NULL,NOW())",
                         [$key, $score],
                     );
@@ -178,21 +178,21 @@ final class MaestroRuntimeOperations04
                 return;
             }
             $hasObservation = $old && (int) ($old["run_count"] ?? 0) > 0;
-            $dur = (float) maestro_ewma_observation(
+            $dur = (float) \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_ewma_observation(
                 $hasObservation ? (float) $old["ewma_duration_ms"] : null,
                 max(0.0, $duration),
             );
-            $yield = (float) maestro_ewma_observation(
+            $yield = (float) \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_ewma_observation(
                 $hasObservation ? (float) $old["ewma_yield"] : null,
                 max(0, $created),
             );
             if ($old) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_maestro_job_stats SET ewma_duration_ms=?,ewma_yield=?,run_count=run_count+1,last_score=?,last_run_at=NOW(),updated_at=NOW() WHERE routine_key=?",
                     [$dur, $yield, $score, $key],
                 );
             } else {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_maestro_job_stats (routine_key,ewma_duration_ms,ewma_yield,run_count,skip_count,last_score,last_run_at,updated_at) VALUES (?,?,?,1,0,?,NOW(),NOW())",
                     [$key, $dur, $yield, $score],
                 );
@@ -205,9 +205,9 @@ final class MaestroRuntimeOperations04
     
     {
     
-        return with_scope_guard_clinic(
+        return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
             $cid,
-            static  fn() => with_read_only_guard_disabled($fn),
+            static  fn() => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_read_only_guard_disabled($fn),
         );
     
     }
@@ -217,9 +217,9 @@ final class MaestroRuntimeOperations04
     {
     
         $cid = (int) ($rule["clinic_id"] ?? 0);
-        return maestro_with_guarded_clinic(
+        return \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_with_guarded_clinic(
             $cid,
-            static  fn() => maestro_run_rule_scoped($rule, $deadline),
+            static  fn() => \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_run_rule_scoped($rule, $deadline),
         );
     
     }
@@ -229,14 +229,14 @@ final class MaestroRuntimeOperations04
     {
     
         $cid = (int) $rule["clinic_id"];
-        if (clinic_read_only_db($cid)) {
+        if (\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($cid)) {
             return ["created" => 0, "seen" => 0, "errors" => 0];
         }
         $started = microtime(true);
         $created = 0;
         $seen = 0;
         $errors = 0;
-        $matches = maestro_fetch_candidates($rule, 20);
+        $matches = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations03::maestro_fetch_candidates($rule, 20);
         foreach ($matches as $m) {
             if (microtime(true) >= $deadline) {
                 break;
@@ -245,13 +245,13 @@ final class MaestroRuntimeOperations04
             $source = (string) ($m["source_entity"] ?? "registro");
             $sourceId = (string) ($m["source_entity_id"] ?? "0");
             $actionKey = (string) $rule["action_type"] . ":" . (int) $rule["id"];
-            $ins = q(
+            $ins = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT IGNORE INTO pi_maestro_executions (clinic_id,rule_id,source_entity,source_entity_id,action_key,status,message,executed_at) VALUES (?,?,?,?,?,'running','Em processamento',NOW())",
                 [$cid, (int) $rule["id"], $source, $sourceId, $actionKey],
             );
             $claimed = $ins->rowCount() > 0;
             if (!$claimed) {
-                $reclaimed = q(
+                $reclaimed = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_maestro_executions SET message='Retomada determinística após interrupção', executed_at=NOW() WHERE rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND clinic_id=? AND status='running' AND executed_at<=DATE_SUB(NOW(), INTERVAL 15 MINUTE)",
                     [
                         (int) $rule["id"],
@@ -267,9 +267,9 @@ final class MaestroRuntimeOperations04
                 continue;
             }
             try {
-                db_begin_transaction();
-                $res = maestro_create_action($rule, $m);
-                q(
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                $res = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action($rule, $m);
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_maestro_executions SET status='created', action_entity=?, action_entity_id=?, message='Ação criada', executed_at=NOW() WHERE rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND clinic_id=?",
                     [
                         $res["entity"] ?? null,
@@ -281,14 +281,14 @@ final class MaestroRuntimeOperations04
                         $cid,
                     ],
                 );
-                db_commit();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 $created++;
             } catch (Throwable $e) {
-                if (pdo()->inTransaction()) {
-                    db_rollback();
+                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 $errors++;
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_maestro_executions SET status='error', message=?, executed_at=NOW() WHERE rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND clinic_id=?",
                     [
                         mb_substr($e->getMessage(), 0, 240),
@@ -302,7 +302,7 @@ final class MaestroRuntimeOperations04
                 error_log("[Prontoo Maestro action] " . $e->getMessage());
             }
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_maestro_rules SET last_run_at=NOW(), next_run_at=DATE_ADD(NOW(), INTERVAL min_interval_minutes MINUTE), run_count=run_count+1, updated_at=NOW() WHERE id=? AND clinic_id=?",
             [(int) $rule["id"], $cid],
         );
@@ -321,7 +321,7 @@ final class MaestroRuntimeOperations04
         $previousTimezone = date_default_timezone_get();
         $hadDisplayTimezone = array_key_exists("PRONTOO_DISPLAY_TIMEZONE", $GLOBALS);
         $previousDisplayTimezone = $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? null;
-        $timezone = app_context_timezone(null, $clinicId);
+        $timezone = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $clinicId);
         try {
             $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = $timezone;
             @date_default_timezone_set($timezone);
@@ -340,7 +340,7 @@ final class MaestroRuntimeOperations04
     public static function maestro_supervised_candidate_result(array $rule, int $limit = 300): array
     
     {
-        $tmpDir = storage_path("tmp");
+        $tmpDir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("tmp");
         if (!is_dir($tmpDir)) {
             @mkdir($tmpDir, 0750, true);
         }
@@ -353,7 +353,7 @@ final class MaestroRuntimeOperations04
             @ini_set("error_log", $tmp);
         }
         try {
-            $matches = maestro_fetch_candidates($rule, max(1, min(300, $limit)));
+            $matches = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations03::maestro_fetch_candidates($rule, max(1, min(300, $limit)));
         } finally {
             if (is_string($previousLog)) {
                 @ini_set("error_log", $previousLog);
@@ -401,13 +401,13 @@ final class MaestroRuntimeOperations04
         $values = array_keys($ids);
         $placeholders = implode(",", array_fill(0, count($values), "?"));
         $params = array_merge([$clinicId, $ruleId, $actionKey], $values);
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT source_entity,source_entity_id,status,message,executed_at FROM pi_maestro_executions WHERE clinic_id=? AND rule_id=? AND action_key=? AND source_entity_id IN ($placeholders)",
             $params,
         )->fetchAll();
         $map = [];
         foreach ($rows as $row) {
-            $map[maestro_supervised_execution_key(
+            $map[\Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_supervised_execution_key(
                 (string) ($row["source_entity"] ?? ""),
                 (string) ($row["source_entity_id"] ?? ""),
             )] = $row;
@@ -428,7 +428,7 @@ final class MaestroRuntimeOperations04
         $sourceId = (string) ($match["source_entity_id"] ?? "0");
         $actionKey = (string) $rule["action_type"] . ":" . $ruleId;
         if (!$existing) {
-            $insert = q(
+            $insert = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT IGNORE INTO pi_maestro_executions (clinic_id,rule_id,source_entity,source_entity_id,action_key,status,message,executed_at) VALUES (?,?,?,?,?,'running','attempt:0;Em processamento',NOW())",
                 [$clinicId, $ruleId, $source, $sourceId, $actionKey],
             );
@@ -442,7 +442,7 @@ final class MaestroRuntimeOperations04
         if ($status === "created") {
             return ["claimed" => false, "attempt" => 0, "terminal" => false];
         }
-        $retry = maestro_supervised_execution_retry_state($existing);
+        $retry = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_supervised_execution_retry_state($existing);
         if ($retry["terminal"]) {
             return [
                 "claimed" => false,
@@ -451,7 +451,7 @@ final class MaestroRuntimeOperations04
             ];
         }
         if ($status === "running") {
-            $executedAt = app_storage_timestamp($existing["executed_at"] ?? null);
+            $executedAt = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($existing["executed_at"] ?? null);
             if ($executedAt > 0 && $executedAt > time() - 900) {
                 return [
                     "claimed" => false,
@@ -459,7 +459,7 @@ final class MaestroRuntimeOperations04
                     "terminal" => false,
                 ];
             }
-            $update = q(
+            $update = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_maestro_executions SET message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND status='running'",
                 [
                     "attempt:" . (int) $retry["attempt"] . ";Retomada determinística",
@@ -481,7 +481,7 @@ final class MaestroRuntimeOperations04
         }
         $nextAt = (int) $retry["next_at"];
         if ($nextAt <= 0) {
-            $executedAt = app_storage_timestamp($existing["executed_at"] ?? null);
+            $executedAt = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($existing["executed_at"] ?? null);
             $nextAt = $executedAt > 0 ? $executedAt + 1800 : 0;
         }
         if ($nextAt > time()) {
@@ -491,7 +491,7 @@ final class MaestroRuntimeOperations04
                 "terminal" => false,
             ];
         }
-        $update = q(
+        $update = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_maestro_executions SET status='running',message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=? AND status='error'",
             [
                 "attempt:" . (int) $retry["attempt"] . ";Nova tentativa supervisionada",
@@ -514,19 +514,19 @@ final class MaestroRuntimeOperations04
     
     {
         $clinicId = (int) $rule["clinic_id"];
-        $action = maestro_decode_json($rule["action_json"] ?? "");
+        $action = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_decode_json($rule["action_json"] ?? "");
         $scope = (string) ($action["target_scope"] ?? "clinic");
         if ($scope === "clinic") {
             return;
         }
         if ($scope === "role") {
             $role = mb_trim((string) ($action["target_role"] ?? ""));
-            $roles = clinic_role_options($clinicId, true);
+            $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($clinicId, true);
             if ($role === "" || !array_key_exists($role, $roles)) {
                 throw new RuntimeException("Destinatário da rotina inválido: cargo não disponível.");
             }
-            $recipients = function_exists("team_user_ids_for_roles")
-                ? team_user_ids_for_roles($clinicId, [$role])
+            $recipients = is_callable([\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::class, 'team_user_ids_for_roles'])
+                ? \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($clinicId, [$role])
                 : [];
             if ($recipients === []) {
                 throw new RuntimeException("Destinatário da rotina indisponível: cargo sem colaborador ativo.");
@@ -535,7 +535,7 @@ final class MaestroRuntimeOperations04
         }
         if ($scope === "user") {
             $userId = (int) ($action["target_user_id"] ?? 0);
-            if ($userId <= 0 || !clinic_user_exists($clinicId, $userId)) {
+            if ($userId <= 0 || !\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($clinicId, $userId)) {
                 throw new RuntimeException("Destinatário da rotina inválido: pessoa não está ativa no consultório.");
             }
             return;
@@ -553,12 +553,12 @@ final class MaestroRuntimeOperations04
     {
         $attempt = max(1, $previousAttempt + 1);
         $terminal = $attempt >= 5;
-        $nextAt = $terminal ? 0 : time() + maestro_supervised_retry_delay_seconds($attempt);
+        $nextAt = $terminal ? 0 : time() + \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_supervised_retry_delay_seconds($attempt);
         $message = ($terminal ? "terminal;" : "retry;") .
             "attempt:" . $attempt .
             ";next:" . $nextAt .
             ";error:" . mb_substr(preg_replace('/\s+/u', " ", trim($error->getMessage())) ?: "erro", 0, 170);
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_maestro_executions SET status='error',message=?,executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=?",
             [
                 $message,

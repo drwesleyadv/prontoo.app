@@ -36,7 +36,7 @@ final class UiComponentsRuntimeOperations03
         if ($current === "audit") {
             return [];
         }
-        $parent = context_parent_for_route($current, $c);
+        $parent = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::context_parent_for_route($current, $c);
         if (($c["scope"] ?? "") === "global") {
             $alertView = (string) ($_GET["view"] ?? "received");
             if (!in_array($alertView, ["received", "sent"], true)) {
@@ -77,8 +77,8 @@ final class UiComponentsRuntimeOperations03
         $cashLabel = $role === "recepcionista" ? "Caixa" : "Painel";
         $cashIcon =
             $role === "recepcionista"
-                ? (function_exists("reception_cash_state_icon")
-                    ? reception_cash_state_icon($c)
+                ? (is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::class, 'reception_cash_state_icon'])
+                    ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::reception_cash_state_icon($c)
                     : "point_of_sale")
                 : "monitoring";
         $agendaParams = [];
@@ -154,8 +154,8 @@ final class UiComponentsRuntimeOperations03
         };
         if (
             $parent === "patients" &&
-            function_exists("has_effective_role") &&
-            has_effective_role($c, "gerente")
+            is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'has_effective_role']) &&
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
         ) {
             $ops[] = ["creditors", "Credores", "receipt_long"];
         }
@@ -223,14 +223,14 @@ final class UiComponentsRuntimeOperations03
             if ($route === "" || isset($seen[$key])) {
                 continue;
             }
-            if (function_exists("can") && !can($route)) {
+            if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'can']) && !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can($route)) {
                 continue;
             }
             $seen[$key] = 1;
-            if (operation_current_match($route, $params, $current)) {
+            if (\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::operation_current_match($route, $params, $current)) {
                 $active = true;
             }
-            $links .= operation_link_html(
+            $links .= \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::operation_link_html(
                 $route,
                 (string) $item[1],
                 (string) $item[2],
@@ -245,11 +245,11 @@ final class UiComponentsRuntimeOperations03
         return '<div class="' .
             $cls .
             '"><button type="button" class="operation-chip operation-menu-trigger" aria-haspopup="true" aria-expanded="false">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
-            icon("expand_more") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("expand_more") .
             '</button><div class="operation-menu-panel" role="menu">' .
             $links .
             "</div></div>";
@@ -260,7 +260,7 @@ final class UiComponentsRuntimeOperations03
     
     {
     
-        $specs = page_operation_specs($current, $c);
+        $specs = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_operation_specs($current, $c);
         if (!$specs) {
             return "";
         }
@@ -272,7 +272,7 @@ final class UiComponentsRuntimeOperations03
             }
             $route = (string) $op[0];
             if ($route === "__menu") {
-                $html .= operation_menu_html(
+                $html .= \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::operation_menu_html(
                     (string) $op[1],
                     (string) $op[2],
                     (array) ($op[3]["items"] ?? []),
@@ -286,11 +286,11 @@ final class UiComponentsRuntimeOperations03
             ) {
                 continue;
             }
-            if (function_exists("can") && !can($route)) {
+            if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'can']) && !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can($route)) {
                 continue;
             }
             $seen[$route . ":" . json_encode($op[3] ?? [])] = 1;
-            $html .= operation_link_html(
+            $html .= \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::operation_link_html(
                 $route,
                 (string) $op[1],
                 (string) $op[2],
@@ -310,23 +310,23 @@ final class UiComponentsRuntimeOperations03
     
     {
     
-        $current = route();
+        $current = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
         $params = $_GET;
         if ($current === "admin_painel") {
             return "network_ping";
         }
-        if (function_exists("prontoo_icon_for_route_label")) {
+        if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
             if (
                 str_starts_with($current, "admin_") &&
-                function_exists("admin_nav_parent")
+                is_callable([\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::class, 'admin_nav_parent'])
             ) {
-                $parent = admin_nav_parent($current);
+                $parent = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($current);
                 if ($parent !== $current) {
-                    return prontoo_icon_for_route_label(
+                    return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                         $parent,
                         $title,
                         (array) $params,
-                        prontoo_icon_for_route_label(
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                             $current,
                             $title,
                             (array) $params,
@@ -335,7 +335,7 @@ final class UiComponentsRuntimeOperations03
                     );
                 }
             }
-            $ico = prontoo_icon_for_route_label(
+            $ico = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                 $current,
                 $title,
                 (array) $params,
@@ -346,14 +346,14 @@ final class UiComponentsRuntimeOperations03
             }
         }
         if (str_starts_with($current, "admin_")) {
-            $parent = admin_nav_parent($current);
+            $parent = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($current);
             if (isset(PRONTOO_ADMIN_ACTIONS[$parent]["icon"])) {
                 return (string) PRONTOO_ADMIN_ACTIONS[$parent]["icon"];
             }
         }
-        $c = ctx();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if ($current === "painel" && ($c["scope"] ?? "") === "clinic") {
-            return role_icon(
+            return \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon(
                 (string) ($c["role"] ?? ""),
                 (int) ($c["clinic_id"] ?? 0),
             );
@@ -363,9 +363,9 @@ final class UiComponentsRuntimeOperations03
             ($c["scope"] ?? "") === "clinic" &&
             (string) ($c["role"] ?? "") === "recepcionista"
         ) {
-            return reception_cash_state_icon($c);
+            return \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::reception_cash_state_icon($c);
         }
-        $actions = actions();
+        $actions = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions();
         if (isset($actions[$current]["icon"])) {
             return (string) $actions[$current]["icon"];
         }
@@ -438,14 +438,14 @@ final class UiComponentsRuntimeOperations03
     
     {
     
-        $ico = page_head_icon_name($title);
-        $c = ctx();
+        $ico = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head_icon_name($title);
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if (($c["scope"] ?? "") === "global") {
             $action = "";
         }
         $ops =
-            $c && function_exists("page_operations_html")
-                ? page_operations_html(route(), $c)
+            $c && is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::class, 'page_operations_html'])
+                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_operations_html(\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(), $c)
                 : "";
         $hasOps = $ops !== "";
         $hasAction = $action !== "";
@@ -453,9 +453,9 @@ final class UiComponentsRuntimeOperations03
             ($hasOps ? " has-operations" : "") .
             ($hasAction ? " has-actions" : "") .
             '" aria-label="Operações da tela"><div class="pagehead-copy"><h1><span class="pagehead-icon">' .
-            icon($ico) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
             "</span><span>" .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             "</span></h1></div>" .
             $ops .
             ($hasAction
@@ -472,8 +472,8 @@ final class UiComponentsRuntimeOperations03
     {
     
         $l = mb_strtolower($label);
-        if (function_exists("prontoo_icon_for_route_label")) {
-            $byLabel = prontoo_icon_for_route_label("", $label, [], "");
+        if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
+            $byLabel = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label("", $label, [], "");
             if ($byLabel !== "") {
                 return $byLabel;
             }
@@ -531,9 +531,9 @@ final class UiComponentsRuntimeOperations03
     
     {
     
-        return icon($iconName !== "" ? $iconName : action_icon_for($label)) .
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName !== "" ? $iconName : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_icon_for($label)) .
             "<span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>";
     
     }

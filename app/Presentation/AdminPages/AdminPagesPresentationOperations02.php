@@ -87,7 +87,7 @@ final class AdminPagesPresentationOperations02
                 " Z";
         }
         $last = $points ? $points[count($points) - 1][2] : 0.0;
-        $nowAvg5 = admin_metric_recent_average($series, 5);
+        $nowAvg5 = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($series, 5);
         $nonZero = array_values(
             array_filter($values, static  fn($v) => (float) $v > 0),
         );
@@ -115,7 +115,7 @@ final class AdminPagesPresentationOperations02
                 '" class="metric-grid-line"/><text x="6" y="' .
                 round($gy + 4, 2, \RoundingMode::HalfAwayFromZero) .
                 '" class="metric-axis-label">' .
-                e(number_format($gv, 0, ",", ".")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(number_format($gv, 0, ",", ".")) .
                 "</text>";
         }
         $ticks = "";
@@ -128,20 +128,20 @@ final class AdminPagesPresentationOperations02
                     '" y="' .
                     ($h - 8) .
                     '" class="metric-axis-label metric-x-label">' .
-                    e($pt[3]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pt[3]) .
                     "</text>";
             }
         }
         $hover = "";
         foreach ($points as $pt) {
-            $label = $pt[4] . " · " . admin_metric_value_label($pt[2], $mode);
+            $label = $pt[4] . " · " . \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($pt[2], $mode);
             $hover .=
                 '<circle cx="' .
                 $pt[0] .
                 '" cy="' .
                 $pt[1] .
                 '" r="4.5" class="metric-chart-hit"><title>' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</title></circle>";
         }
         $lastPt = end($points);
@@ -151,56 +151,56 @@ final class AdminPagesPresentationOperations02
                 '" cy="' .
                 $lastPt[1] .
                 '" r="3.5" class="metric-chart-dot"><title>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $lastPt[4] .
                         " · " .
-                        admin_metric_value_label($lastPt[2], $mode),
+                        \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($lastPt[2], $mode),
                 ) .
                 "</title></circle>"
             : "";
         $summary =
             $title .
             ": agora, média dos últimos 5 minutos, " .
-            admin_metric_value_compact($nowAvg5, $mode) .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($nowAvg5, $mode) .
             ", média de 30 minutos " .
-            admin_metric_value_compact($avg30, $mode) .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($avg30, $mode) .
             ", média de 24 horas " .
-            admin_metric_value_compact($avg24, $mode);
-        $nowCompact = admin_metric_value_compact($nowAvg5, $mode);
-        $avg30Compact = admin_metric_value_compact($avg30, $mode);
-        $avg24Compact = admin_metric_value_compact($avg24, $mode);
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($avg24, $mode);
+        $nowCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($nowAvg5, $mode);
+        $avg30Compact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($avg30, $mode);
+        $avg24Compact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($avg24, $mode);
         $pills =
             '<span title="Média dos últimos 5 minutos" aria-label="Agora, média dos últimos 5 minutos: ' .
-            e($nowCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($nowCompact) .
             '">' .
-            icon("radio_button_checked") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("radio_button_checked") .
             "<b>" .
-            e($nowCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($nowCompact) .
             "</b></span>" .
             '<span title="Média dos últimos 30 minutos" aria-label="Média dos últimos 30 minutos: ' .
-            e($avg30Compact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($avg30Compact) .
             '">' .
-            icon("timer") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
             "<b>" .
-            e($avg30Compact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($avg30Compact) .
             "</b></span>" .
             '<span title="Média das últimas 24 horas" aria-label="Média das últimas 24 horas: ' .
-            e($avg24Compact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($avg24Compact) .
             '">' .
-            icon("calendar_today") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_today") .
             "<b>" .
-            e($avg24Compact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($avg24Compact) .
             "</b></span>";
         return '<article class="metric-line-chart metric-area-chart" data-ds-card="admin-area-chart" aria-label="' .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             '"><header><div class="metric-chart-title">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<div><h3>" .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             '</h3></div></div><div class="metric-chart-value"><div class="metric-chart-pills">' .
             $pills .
             '</div></div></header><p class="sr-only">' .
-            e($summary) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($summary) .
             '</p><svg viewBox="0 0 ' .
             $w .
             " " .
@@ -209,7 +209,7 @@ final class AdminPagesPresentationOperations02
             $grid .
             "</g>" .
             ($fillD !== ""
-                ? '<path d="' . e($fillD) . '" class="metric-chart-fill"/>'
+                ? '<path d="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fillD) . '" class="metric-chart-fill"/>'
                 : "") .
             '<path d="' .
             trim($d) .

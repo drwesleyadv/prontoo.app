@@ -30,21 +30,21 @@ final class FinancialRuntimeOperations10
     
     {
     
-        financial_operational_schema_ready();
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $params = [$cid];
         $where = "clinic_id=? AND active=1";
         if ($type !== "") {
             $where .= " AND location_type=?";
             $params[] = $type;
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name,location_type FROM pi_financial_locations WHERE $where ORDER BY FIELD(location_type,'admin_safe','pos','bank_account'), name",
             $params,
         )->fetchAll();
         $out = ["" => "Selecione"];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] =
-                financial_location_type_label((string) $r["location_type"]) .
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_location_type_label((string) $r["location_type"]) .
                 " · " .
                 (string) $r["name"];
         }
@@ -56,20 +56,20 @@ final class FinancialRuntimeOperations10
     
     {
     
-        financial_operational_schema_ready();
-        financial_ensure_admin_safe($cid, $uid);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, $uid);
         try {
-            $accounts = q(
+            $accounts = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND active=1 AND account_type IN ('conta_corrente','conta_poupanca','conta_pagamento','investimento') ORDER BY name",
                 [$cid],
             )->fetchAll();
             foreach ($accounts as $a) {
-                financial_ensure_bank_location($cid, (int) $a["id"], $uid);
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_bank_location($cid, (int) $a["id"], $uid);
             }
         } catch (Throwable $e) {
             error_log("[Prontoo destinos financeiros] " . $e->getMessage());
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT l.id,l.name,l.location_type,a.bank_name FROM pi_financial_locations l LEFT JOIN pi_financial_accounts a ON a.id=l.account_id AND a.clinic_id=l.clinic_id WHERE l.clinic_id=? AND l.active=1 AND l.location_type IN ('admin_safe','bank_account') ORDER BY FIELD(l.location_type,'admin_safe','bank_account'), l.name",
             [$cid],
         )->fetchAll();
@@ -97,7 +97,7 @@ final class FinancialRuntimeOperations10
         if ($cid <= 0 || $locationId <= 0) {
             return false;
         }
-        return (int) (val(
+        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') LIMIT 1",
             [$locationId, $cid],
         ) ?:
@@ -109,8 +109,8 @@ final class FinancialRuntimeOperations10
     
     {
     
-        financial_operational_schema_ready();
-        $rows = q(
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT r.id,r.amount_cents,r.title,r.expected_at,a.start_at,a.status,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.procedure_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu') ORDER BY CASE WHEN a.status IN ('atendimento_concluido','finalizado') THEN 0 ELSE 1 END, COALESCE(a.start_at,r.expected_at,NOW()) ASC,r.id ASC LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -125,7 +125,7 @@ final class FinancialRuntimeOperations10
                 ) ?:
                 "Procedimento";
             $when = (string) ($r["start_at"] ?: $r["expected_at"] ?: "");
-            $date = $when !== "" ? dt_br($when) : "sem data";
+            $date = $when !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($when) : "sem data";
             $status = in_array(
                 (string) ($r["status"] ?? ""),
                 ["atendimento_concluido", "finalizado"],
@@ -140,7 +140,7 @@ final class FinancialRuntimeOperations10
                 " · " .
                 $date .
                 " · " .
-                money_br((int) $r["amount_cents"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["amount_cents"]) .
                 " · " .
                 $status;
         }
@@ -158,13 +158,13 @@ final class FinancialRuntimeOperations10
     ): int 
     {
     
-        financial_operational_schema_ready();
-        $method = normalize_payment_method($method);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $method = \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method($method);
         if ($method === "") {
             throw new RuntimeException("Informe a forma de recebimento.");
         }
-        $s = financial_require_open_session($cid, $uid);
-        return (int) db_tx(function () use (
+        $s = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_require_open_session($cid, $uid);
+        return (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
             $cid,
             $uid,
             $revenueId,
@@ -174,7 +174,7 @@ final class FinancialRuntimeOperations10
             $s,
         ): int {
     
-            $session = one(
+            $session = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
                 [(int) $s["id"], $cid, $uid],
             );
@@ -183,7 +183,7 @@ final class FinancialRuntimeOperations10
                     "Não há Gaveta aberta para registrar recebimento.",
                 );
             }
-            $rev = one(
+            $rev = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT r.*,a.status appointment_status,a.start_at,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.id=? AND r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.procedure_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado') FOR UPDATE",
                 [$revenueId, $cid],
             );
@@ -201,7 +201,7 @@ final class FinancialRuntimeOperations10
                 "Recebimento em dinheiro vinculado ao agendamento; compõe a conferência da Gaveta.";
             if ($method !== "dinheiro") {
                 if (
-                    !financial_office_destination_belongs(
+                    !\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_office_destination_belongs(
                         $cid,
                         $destinationLocationId,
                     )
@@ -210,7 +210,7 @@ final class FinancialRuntimeOperations10
                         "Informe o Destino entre as contas do Consultório para recebimentos que não forem em Dinheiro.",
                     );
                 }
-                $dest = one(
+                $dest = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,account_id,location_type,name FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
                     [$destinationLocationId, $cid],
                 );
@@ -236,12 +236,12 @@ final class FinancialRuntimeOperations10
                 $extraNote . ($cleanNotes !== "" ? " " . $cleanNotes : "");
             $movementStatus =
                 $method === "dinheiro" ? "pending_review" : "confirmed";
-            $existing = one(
+            $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' ORDER BY id DESC LIMIT 1 FOR UPDATE",
                 [$cid, $appointmentId],
             );
             if ($existing) {
-                financial_update_existing_movement(
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
                     $cid,
                     (int) $existing["id"],
                     "receipt",
@@ -257,7 +257,7 @@ final class FinancialRuntimeOperations10
                 );
                 $movementId = (int) $existing["id"];
             } else {
-                $movementId = financial_create_movement(
+                $movementId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
                     $cid,
                     "receipt",
                     $amount,
@@ -273,15 +273,15 @@ final class FinancialRuntimeOperations10
                     $appointmentId,
                 );
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_financial_revenues SET status='efetivada', payment_method=?, account_id=?, received_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$method, $accountId, $uid, $revenueId, $cid],
             );
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_appointments SET payment_status='efetivada', payment_method=?, payment_amount_cents=?, payment_confirmed_at=NOW(), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$method, $amount, $revenueId, $appointmentId, $cid],
             );
-            audit("recebimento_atendimento_agendado", "financeiro", $revenueId, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("recebimento_atendimento_agendado", "financeiro", $revenueId, [
                 "appointment_id" => $appointmentId,
                 "movement_id" => $movementId,
                 "valor" => $amount,
@@ -306,11 +306,11 @@ final class FinancialRuntimeOperations10
                 '<a class="ghost small' .
                 ($active === $key ? " active" : "") .
                 '" href="' .
-                href("financial", ["tab" => $key]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", ["tab" => $key]) .
                 '">' .
-                icon($meta[1]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($meta[1]) .
                 "<span>" .
-                e($meta[0]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($meta[0]) .
                 "</span></a>";
         }
         return $h . "</nav>";
@@ -321,7 +321,7 @@ final class FinancialRuntimeOperations10
     
     {
     
-        return function_exists("app_debug") && app_debug();
+        return is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'app_debug']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_debug();
     
     }
 
@@ -338,21 +338,21 @@ final class FinancialRuntimeOperations10
             $_SESSION["financial_cash_debug_error"],
             $_SESSION["financial_cash_error_at"],
         );
-        if (!financial_cash_debug_details_enabled()) {
+        if (!\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cash_debug_details_enabled()) {
             $ref =
                 $when !== ""
-                    ? " Horário técnico: <strong>" . e($when) . "</strong>."
+                    ? " Horário técnico: <strong>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($when) . "</strong>."
                     : "";
-            return card(
+            return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2>Erro operacional da Gaveta</h2><p class="muted">Não foi possível concluir a ação da Gaveta. O erro foi registrado no log técnico do sistema.' .
                     $ref .
                     "</p>",
                 "finance-alert-card",
             );
         }
-        return card(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<h2>Erro técnico da Gaveta</h2><p class="muted">Modo debug ativo. Copie todo o conteúdo abaixo para análise técnica.</p><textarea class="tech-debug-copy" rows="16" readonly onclick="this.select()">' .
-                e($debug) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($debug) .
                 "</textarea>",
             "finance-alert-card",
         );
@@ -372,12 +372,12 @@ final class FinancialRuntimeOperations10
             "ghost small finance-cash-action cash-action-" .
             $op .
             ($active === $op ? " active" : "");
-        $content = icon($iconName) . "<span>" . e($label) . "</span>";
+        $content = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) . "<span>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) . "</span>";
         if ($enabled) {
             return '<a class="' .
                 $cls .
                 '" href="' .
-                href("financial", ["op" => $op]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", ["op" => $op]) .
                 '">' .
                 $content .
                 "</a>";
@@ -399,28 +399,28 @@ final class FinancialRuntimeOperations10
     {
     
         return '<nav class="finance-pagehead-nav finance-cash-pagehead-actions" aria-label="Ações da Gaveta do Atendimento">' .
-            financial_cashier_pagehead_link(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cashier_pagehead_link(
                 "abrir",
                 "Abrir Gaveta",
                 "lock_open",
                 $canOpen,
                 $active,
             ) .
-            financial_cashier_pagehead_link(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cashier_pagehead_link(
                 "receber",
                 "Recebi",
                 "move_to_inbox",
                 $canPayReceive,
                 $active,
             ) .
-            financial_cashier_pagehead_link(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cashier_pagehead_link(
                 "pagar",
                 "Paguei",
                 "outbox",
                 $canPayReceive,
                 $active,
             ) .
-            financial_cashier_pagehead_link(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cashier_pagehead_link(
                 "fechar",
                 "Fechar Gaveta",
                 "lock",
@@ -448,14 +448,14 @@ final class FinancialRuntimeOperations10
         $payments = 0;
         $expected = $opening;
         if ($source) {
-            $totals = financial_session_movement_totals(
+            $totals = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_session_movement_totals(
                 (int) $source["clinic_id"],
                 (int) $source["id"],
             );
             $receipts = (int) $totals["receipt"];
             $payments = (int) $totals["payment"] + (int) $totals["refund"];
             if ((string) ($source["status"] ?? "") === "open") {
-                $expected = financial_session_expected($source);
+                $expected = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_session_expected($source);
             } elseif (
                 isset($source["expected_closing_cents"]) &&
                 (int) $source["expected_closing_cents"] > 0
@@ -491,26 +491,26 @@ final class FinancialRuntimeOperations10
                     : "closed");
             $statusIcon = $isOpen ? "currency_exchange" : "lock_clock";
         }
-        $subtitle = $drawerName !== "" ? "<em>" . e($drawerName) . "</em>" : "";
-        return card(
+        $subtitle = $drawerName !== "" ? "<em>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($drawerName) . "</em>" : "";
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="cash-drawer-line"><div class="cash-drawer-title"><span class="cash-drawer-status ' .
                 $statusClass .
                 '" title="Gaveta ' .
                 $statusTitle .
                 '">' .
-                icon($statusIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($statusIcon) .
                 "</span><strong>Minha Gaveta</strong><small>" .
-                e($statusLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($statusLabel) .
                 "</small>" .
                 $subtitle .
                 '</div><div class="cash-drawer-pills"><div class="cash-drawer-metric"><span>Saldo Inicial</span><b>' .
-                money_br($opening) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($opening) .
                 '</b></div><div class="cash-drawer-metric"><span>Recebi</span><b>' .
-                money_br($receipts) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($receipts) .
                 '</b></div><div class="cash-drawer-metric"><span>Paguei</span><b>' .
-                money_br($payments) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($payments) .
                 '</b></div><div class="cash-drawer-metric"><span>Esperado</span><b>' .
-                money_br($expected) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected) .
                 "</b></div></div></div>",
             "finance-dashboard-card cash-drawer-card",
         );
@@ -524,14 +524,14 @@ final class FinancialRuntimeOperations10
         $ctx = [];
         $ctxErr = null;
         try {
-            if (function_exists("ctx")) {
-                $ctx = ctx();
+            if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'ctx'])) {
+                $ctx = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
             }
         } catch (Throwable $ce) {
             $ctxErr = $ce;
         }
-        $debug = function_exists("financial_cash_exception_debug")
-            ? financial_cash_exception_debug(
+        $debug = is_callable([\Prontoo\Presentation\Financial\FinancialPresentationOperations01::class, 'financial_cash_exception_debug'])
+            ? \Prontoo\Presentation\Financial\FinancialPresentationOperations01::financial_cash_exception_debug(
                 $e,
                 is_array($ctx) ? $ctx : [],
                 (string) ($_POST["act"] ?? ""),
@@ -555,21 +555,21 @@ final class FinancialRuntimeOperations10
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
         $version = defined("PRONTOO_VERSION") ? PRONTOO_VERSION : (string) time();
-        $back = function_exists("href") ? href("financial") : "/?r=financial";
-        if (!financial_cash_debug_details_enabled()) {
+        $back = is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'href']) ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial") : "/?r=financial";
+        if (!\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cash_debug_details_enabled()) {
             echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Minha Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
                 rawurlencode($version) .
                 '"></head><body class="app"><main><section class="auth widebox finance-alert-card"><h1>Não foi possível concluir a ação da Gaveta</h1><p>O erro foi registrado no log técnico do sistema. Tente novamente após revisar a conexão e, se persistir, informe o horário da tentativa ao suporte.</p><p><a class="primary" href="' .
-                e($back) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($back) .
                 '">Voltar à Gaveta</a></p></section></main></body></html>';
             exit();
         }
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Erro técnico da Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
             rawurlencode($version) .
             '"></head><body class="app"><main><section class="auth widebox finance-alert-card"><h1>Erro técnico da Gaveta</h1><p>Modo debug ativo. Copie todo o conteúdo abaixo para análise técnica.</p><textarea class="tech-debug-copy" rows="22" readonly onclick="this.select()">' .
-            e($debug) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($debug) .
             '</textarea><p><a class="primary" href="' .
-            e($back) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($back) .
             '">Voltar à Gaveta</a></p></section></main></body></html>';
         exit();
     

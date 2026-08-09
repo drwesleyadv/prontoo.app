@@ -33,8 +33,8 @@ final class AuditDocumentPolicy
         $label = mb_trim((string) ($ctx["document_type_label"] ?? ""));
         if ($label === "") {
             $key = (string) ($ctx["document_type"] ?? ($ctx["type_key"] ?? ""));
-            $types = function_exists("document_type_options")
-                ? document_type_options()
+            $types = is_callable([\Prontoo\Domain\Documents\DocumentTypePolicy::class, 'document_type_options'])
+                ? \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options()
                 : [];
             $label = $types[$key] ?? "";
         }
@@ -66,10 +66,10 @@ final class AuditDocumentPolicy
     ): string 
     {
     
-        $doc = audit_document_type_text($ctx);
+        $doc = \Prontoo\Domain\AuditActivity\AuditDocumentPolicy::audit_document_type_text($ctx);
         $patient = mb_trim((string) ($ctx["patient_name"] ?? ""));
         $txt =
-            $who . " " . $action . " " . audit_document_article($doc) . " " . $doc;
+            $who . " " . $action . " " . \Prontoo\Domain\AuditActivity\AuditDocumentPolicy::audit_document_article($doc) . " " . $doc;
         if ($patient !== "") {
             $txt .= ($action === "visualizou" ? " de " : " para ") . $patient;
         }
@@ -96,7 +96,7 @@ final class AuditDocumentPolicy
     ): string 
     {
     
-        $model = audit_model_title($ctx);
+        $model = \Prontoo\Domain\AuditActivity\AuditDocumentPolicy::audit_model_title($ctx);
         return match ($action) {
             "criou" => "$who criou um modelo de $model.",
             "alterou" => "$who alterou o modelo $model.",

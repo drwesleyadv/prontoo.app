@@ -64,15 +64,15 @@ final class DashboardsPresentationOperations01
     {
     
         return '<article class="stat-card manager-stat ' .
-            e($class) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
             '">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<div><b>" .
-            e($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
             "</b><span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
-            ($note !== "" ? "<small>" . e($note) . "</small>" : "") .
+            ($note !== "" ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) . "</small>" : "") .
             "</div></article>";
     
     }

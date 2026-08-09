@@ -27,7 +27,7 @@ final class PdoPatientReceptionHistoryReadRepository implements PatientReception
         if ($identity === []) {
             return ['leads' => [], 'events' => [], 'users' => []];
         }
-        $rows = \q(
+        $rows = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
             "SELECT l.id AS lead_id,l.person_id,l.name,l.phone,l.phone_digits,l.source,l.interest,l.stage,l.next_action_at,l.notes,l.created_by AS lead_created_by,l.created_at AS lead_created_at,l.updated_at AS lead_updated_at,e.id AS event_id,e.event_type,e.stage_from,e.stage_to,e.phone AS event_phone,e.source AS event_source,e.interest AS event_interest,e.next_action_at AS event_next_action_at,e.body AS event_body,e.created_by AS event_created_by,e.created_at AS event_created_at,u.name AS event_created_by_name FROM pi_leads l LEFT JOIN pi_lead_events e ON e.clinic_id=l.clinic_id AND e.lead_id=l.id LEFT JOIN pi_users u ON u.id=e.created_by WHERE l.clinic_id=? AND EXISTS (SELECT 1 FROM pi_patients pp WHERE pp.id=? AND pp.clinic_id=l.clinic_id AND pp.active=1) AND (" . implode(' OR ', $identity) . ") ORDER BY l.created_at ASC,l.id ASC,e.created_at ASC,e.id ASC",
             $params,
         )->fetchAll();

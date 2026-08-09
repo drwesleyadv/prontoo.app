@@ -31,12 +31,12 @@ final class DeferredAuditRuntimeOperations01
     {
         static $key = null;
         if (!is_string($key) || $key === "") {
-            $configSecret = mb_trim((string) (cfg()["secret"] ?? ""));
-            $source = strlen($configSecret) >= 32 ? $configSecret : secret_key();
+            $configSecret = mb_trim((string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()["secret"] ?? ""));
+            $source = strlen($configSecret) >= 32 ? $configSecret : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key();
             $key = hash("sha256", "prontoo|maestro-deferred|" . $source, true);
         }
         $json = json_encode(
-            maestro_deferred_canonicalize($envelope),
+            \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_canonicalize($envelope),
             JSON_UNESCAPED_UNICODE |
                 JSON_UNESCAPED_SLASHES |
                 JSON_PRESERVE_ZERO_FRACTION,
@@ -51,7 +51,7 @@ final class DeferredAuditRuntimeOperations01
     public static function maestro_deferred_enqueue(string $type, array $payload): ?string
     
     {
-        if (!has_cfg() || $type !== "audit") {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() || $type !== "audit") {
             return null;
         }
         try {
@@ -65,7 +65,7 @@ final class DeferredAuditRuntimeOperations01
                 "queued_at_utc" => gmdate("Y-m-d H:i:s"),
                 "payload" => $payload,
             ];
-            $envelope = $unsigned + ["signature" => maestro_deferred_sign($unsigned)];
+            $envelope = $unsigned + ["signature" => \Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_deferred_sign($unsigned)];
             $json = json_encode(
                 $envelope,
                 JSON_UNESCAPED_UNICODE |
@@ -75,8 +75,8 @@ final class DeferredAuditRuntimeOperations01
             if (!is_string($json)) {
                 return null;
             }
-            foreach (maestro_deferred_storage_dirs() as $dir) {
-                if (maestro_deferred_spool_write($dir, $id, $json)) {
+            foreach (\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_storage_dirs() as $dir) {
+                if (\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_spool_write($dir, $id, $json)) {
                     return $id;
                 }
             }
@@ -105,7 +105,7 @@ final class DeferredAuditRuntimeOperations01
         if ($clinicId > 0 && empty($context["clinic_id"])) {
             $context["clinic_id"] = $clinicId;
         }
-        return maestro_deferred_enqueue("audit", [
+        return \Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_deferred_enqueue("audit", [
             "event" => mb_substr($event, 0, 80),
             "entity" => $entity !== null ? mb_substr($entity, 0, 80) : null,
             "entity_id" => (string) $entityId,
@@ -117,8 +117,8 @@ final class DeferredAuditRuntimeOperations01
             "user_agent" => $userAgent !== "" ? $userAgent : null,
             "occurred_at_utc" => gmdate("Y-m-d H:i:s"),
             "proof_context" => [
-                "route" => function_exists("route")
-                    ? (string) route()
+                "route" => is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route'])
+                    ? (string) \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route()
                     : (string) ($_GET["r"] ?? ""),
                 "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
                 "scope" => (string) ($_SESSION["scope"] ?? ""),
@@ -146,7 +146,7 @@ final class DeferredAuditRuntimeOperations01
         $unsigned = $envelope;
         unset($unsigned["signature"]);
         try {
-            return hash_equals(maestro_deferred_sign($unsigned), $signature);
+            return hash_equals(\Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_deferred_sign($unsigned), $signature);
         } catch (Throwable) {
             return false;
         }
@@ -157,19 +157,19 @@ final class DeferredAuditRuntimeOperations01
     
     {
         if (
-            !function_exists("audit") ||
-            !maestro_deferred_envelope_valid($envelope)
+            !is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit']) ||
+            !\Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_deferred_envelope_valid($envelope)
         ) {
             return false;
         }
-        $envelope = maestro_deferred_restore_scope($envelope);
+        $envelope = \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_restore_scope($envelope);
         $id = (string) ($envelope["id"] ?? "");
         $payload = (array) ($envelope["payload"] ?? []);
         $event = mb_substr((string) ($payload["event"] ?? ""), 0, 80);
-        if ($event === "" || !maestro_deferred_policy_allows($envelope)) {
+        if ($event === "" || !\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_policy_allows($envelope)) {
             return false;
         }
-        $existing = one(
+        $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_audit WHERE event_key=? AND JSON_UNQUOTE(JSON_EXTRACT(context_json,'$.deferred_id'))=? ORDER BY id DESC LIMIT 1",
             [$event, $id],
         );
@@ -184,7 +184,7 @@ final class DeferredAuditRuntimeOperations01
             $payload["occurred_at_utc"] ?? ($envelope["queued_at_utc"] ?? "")
         );
         $context["system_origin"] = "maestro";
-        return audit(
+        return \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
             $event,
             isset($payload["entity"]) ? (string) $payload["entity"] : null,
             $payload["entity_id"] ?? null,
@@ -232,11 +232,11 @@ final class DeferredAuditRuntimeOperations01
             "duration_ms" => 0,
         ];
         $dirs = array_values(array_filter(
-            maestro_deferred_storage_dirs(),
+            \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_storage_dirs(),
             static fn(string $dir): bool => is_dir($dir),
         ));
         if ($dirs === []) {
-            maestro_deferred_state_write($stats);
+            \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_state_write($stats);
             return $stats;
         }
         $files = [];
@@ -254,7 +254,7 @@ final class DeferredAuditRuntimeOperations01
         $stats["queued"] = count($files);
         $ready = [];
         foreach ($files as $file) {
-            $retry = maestro_deferred_retry_metadata($file);
+            $retry = \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_retry_metadata($file);
             if ((int) $retry["next_at"] > time()) {
                 $stats["waiting_retry"]++;
                 continue;
@@ -273,7 +273,7 @@ final class DeferredAuditRuntimeOperations01
             if (!@rename($file, $claimed)) {
                 continue;
             }
-            $retry = maestro_deferred_retry_metadata($file);
+            $retry = \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_retry_metadata($file);
             $attempt = (int) $retry["attempt"];
             $completed = false;
             $terminal = false;
@@ -284,16 +284,16 @@ final class DeferredAuditRuntimeOperations01
                 $envelope = is_string($raw) && trim($raw) !== ""
                     ? json_decode($raw, true)
                     : null;
-                if (!is_array($envelope) || !maestro_deferred_envelope_valid($envelope)) {
+                if (!is_array($envelope) || !\Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_deferred_envelope_valid($envelope)) {
                     $stats["invalid"]++;
                     $terminal = true;
                     $reason = "invalid";
-                } elseif (!maestro_deferred_policy_allows($envelope)) {
+                } elseif (!\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_policy_allows($envelope)) {
                     $completed = true;
                     $stats["processed"]++;
                     $stats["skipped_policy"]++;
                 } else {
-                    $completed = maestro_process_deferred_audit($envelope);
+                    $completed = \Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_process_deferred_audit($envelope);
                     if ($completed) {
                         $stats["processed"]++;
                         $stats["audit"]++;
@@ -318,7 +318,7 @@ final class DeferredAuditRuntimeOperations01
                     : preg_replace('/\.retry-\d+(?:-at-\d+)?$/', "", basename($file, ".json"));
             $id = preg_replace('/[^a-z0-9\-]/i', "_", (string) $id) ?: "unknown";
             if ($terminal || $attempt >= 8) {
-                if (maestro_deferred_dead_letter($claimed, $dir, $id, $reason)) {
+                if (\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_dead_letter($claimed, $dir, $id, $reason)) {
                     $stats["dead_letter_new"]++;
                 } else {
                     @rename($claimed, $file);
@@ -326,7 +326,7 @@ final class DeferredAuditRuntimeOperations01
                 }
                 continue;
             }
-            $nextAt = time() + maestro_deferred_retry_delay_seconds($attempt);
+            $nextAt = time() + \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_retry_delay_seconds($attempt);
             $retryFile = $dir . "/" . $id . ".retry-" . $attempt . "-at-" . $nextAt . ".json";
             if (@rename($claimed, $retryFile)) {
                 $stats["retrying"]++;
@@ -366,7 +366,7 @@ final class DeferredAuditRuntimeOperations01
         $stats["status"] = $cycleFailure
             ? "failed"
             : ($stats["alert"] ? "attention" : "healthy");
-        maestro_deferred_state_write($stats);
+        \Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_state_write($stats);
         return $stats;
     
     }

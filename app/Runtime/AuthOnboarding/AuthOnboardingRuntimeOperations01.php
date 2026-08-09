@@ -35,10 +35,10 @@ final class AuthOnboardingRuntimeOperations01
         if ($uid <= 0) {
             return true;
         }
-        $key = onboarding_tip_key($c, $route);
+        $key = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::onboarding_tip_key($c, $route);
         try {
-            onboarding_tips_ensure_schema();
-            return (int) val(
+            \Prontoo\Infrastructure\AuthOnboarding\AuthOnboardingInfrastructureOperations01::onboarding_tips_ensure_schema();
+            return (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_user_onboarding_tips WHERE user_id=? AND tip_key=? LIMIT 1",
                 [$uid, $key],
             ) > 0;
@@ -53,13 +53,13 @@ final class AuthOnboardingRuntimeOperations01
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         $uid = (int) ($c["user"]["id"] ?? 0);
         $key = mb_substr(mb_trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
         if ($uid > 0 && $key !== "") {
             try {
-                onboarding_tips_ensure_schema();
-                q(
+                \Prontoo\Infrastructure\AuthOnboarding\AuthOnboardingInfrastructureOperations01::onboarding_tips_ensure_schema();
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_user_onboarding_tips (user_id,tip_key,dismissed_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE dismissed_at=VALUES(dismissed_at)",
                     [$uid, $key],
                 );
@@ -68,12 +68,12 @@ final class AuthOnboardingRuntimeOperations01
             }
         }
         $to = (string) ($_POST["return_to"] ?? "");
-        $base = base_path() ?: "";
+        $base = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::base_path() ?: "";
         if ($to !== "" && str_starts_with($to, $base . "/?")) {
             header("Location: " . $to);
             exit();
         }
-        redirect(route());
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect(\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route());
     
     }
 
@@ -82,7 +82,7 @@ final class AuthOnboardingRuntimeOperations01
     {
     
         $role = (string) ($c["role"] ?? "");
-        $roleName = role_label_for($role, (int) ($c["clinic_id"] ?? 0));
+        $roleName = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, (int) ($c["clinic_id"] ?? 0));
         $tips = [
             "painel" => [
                 "icon" => "space_dashboard",
@@ -191,38 +191,38 @@ final class AuthOnboardingRuntimeOperations01
         if (!$c || ($c["scope"] ?? "") !== "clinic") {
             return "";
         }
-        if (!in_array($route, onboarding_tip_module_routes(), true)) {
+        if (!in_array($route, \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::onboarding_tip_module_routes(), true)) {
             return "";
         }
         if ($route === "documents" && (int) ($_GET["doc"] ?? 0) > 0) {
             return "";
         }
-        if (onboarding_tip_dismissed($c, $route)) {
+        if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_dismissed($c, $route)) {
             return "";
         }
-        $tip = onboarding_tip_copy($c, $route);
+        $tip = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_copy($c, $route);
         if (!$tip) {
             return "";
         }
-        $key = onboarding_tip_key($c, $route);
+        $key = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::onboarding_tip_key($c, $route);
         $params = $_GET;
         unset($params["r"]);
-        $return = href($route, $params);
-        return PatientViewComposition::onboardingTip($tip, $key, $return, csrf_field());
+        $return = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params);
+        return PatientViewComposition::onboardingTip($tip, $key, $return, \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field());
     
     }
 
     public static function valid_cpf(string $cpf): bool
     
     {
-        return \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf(only_digits($cpf));
+        return \Prontoo\Domain\Identity\IdentityDocumentValidator::cpf(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf));
     
     }
 
     public static function valid_cnpj(string $cnpj): bool
     
     {
-        return \Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj(only_digits($cnpj));
+        return \Prontoo\Domain\Identity\IdentityDocumentValidator::cnpj(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cnpj));
     
     }
 
@@ -230,8 +230,8 @@ final class AuthOnboardingRuntimeOperations01
     
     {
     
-        return function_exists("app_date_input_from_storage")
-            ? app_date_input_from_storage($birth)
+        return is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'app_date_input_from_storage'])
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($birth)
             : (string) $birth;
     
     }
@@ -243,7 +243,7 @@ final class AuthOnboardingRuntimeOperations01
     ): void 
     {
         
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         $scope = $scope === "global" ? "global" : "clinic";
@@ -262,20 +262,20 @@ final class AuthOnboardingRuntimeOperations01
             if (!is_string($payload)) {
                 return;
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?)
                  ON DUPLICATE KEY UPDATE
                    meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)",
-                [login_last_credential_key($uid), $payload],
+                [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), $payload],
             );
             if (
-                function_exists("server_json_cache_file") &&
-                function_exists("server_json_cache_safe_key")
+                is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_file']) &&
+                is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_safe_key'])
             ) {
-                $cacheFile = server_json_cache_file(
+                $cacheFile = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_file(
                     "meta",
-                    server_json_cache_safe_key("meta", [
-                        login_last_credential_key($uid),
+                    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("meta", [
+                        \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid),
                     ]),
                 );
                 if (is_file($cacheFile)) {
@@ -294,12 +294,12 @@ final class AuthOnboardingRuntimeOperations01
     
     {
     
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return null;
         }
         try {
-            return login_last_credential_normalize(
-                meta_get(login_last_credential_key($uid), ""),
+            return \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_normalize(
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get(\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), ""),
             );
         } catch (Throwable $e) {
             error_log("[Prontoo login last credential meta] " . $e->getMessage());
@@ -315,11 +315,11 @@ final class AuthOnboardingRuntimeOperations01
     ): ?array 
     {
     
-        $fromMeta = login_credential_match(
+        $fromMeta = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_credential_match(
             $uid,
             $isAdmin,
             $choices,
-            login_last_credential_from_meta($uid),
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_from_meta($uid),
         );
         if ($fromMeta) {
             return $fromMeta;
@@ -351,11 +351,11 @@ final class AuthOnboardingRuntimeOperations01
     {
     
         $scope = (string) ($credential["scope"] ?? "clinic");
-        session_harden_after_login($uid, $verifiedUserGeneration);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::session_harden_after_login($uid, $verifiedUserGeneration);
         $_SESSION["uid"] = $uid;
         unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
-        mfa_pending_login_clear();
-        security_clear_legacy_device_cookie();
+        \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         if ($scope === "global") {
             $_SESSION["scope"] = "global";
             unset(
@@ -364,10 +364,10 @@ final class AuthOnboardingRuntimeOperations01
                 $_SESSION["role_code"],
                 $_SESSION["effective_roles"],
             );
-            developer_first_login_clear_json_cache($uid, true);
-            mark_login_success($uid);
-            login_last_credential_remember($uid, "global", null);
-            audit("entrada_realizada", "usuario", $uid, [
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::developer_first_login_clear_json_cache($uid, true);
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::mark_login_success($uid);
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_remember($uid, "global", null);
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("entrada_realizada", "usuario", $uid, [
                 "scope" => "global",
                 "audit_body" =>
                     "Entrada realizada com a última credencial do usuário carregada automaticamente.",
@@ -376,7 +376,7 @@ final class AuthOnboardingRuntimeOperations01
                 "skip_context_enrichment" => true,
             ]);
             if ($redirectAfterLogin) {
-                redirect("admin_painel");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
             }
             return "admin_painel";
         }
@@ -391,9 +391,9 @@ final class AuthOnboardingRuntimeOperations01
         $_SESSION["clinic_id"] = (int) $choice["clinic_id"];
         $_SESSION["role_code"] = (string) $choice["role_code"];
         $_SESSION["effective_roles"] = [(string) $choice["role_code"]];
-        mark_login_success($uid);
-        login_last_credential_remember($uid, "clinic", (int) $choice["id"]);
-        audit("entrada_realizada", "usuario", $uid, [
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::mark_login_success($uid);
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_remember($uid, "clinic", (int) $choice["id"]);
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("entrada_realizada", "usuario", $uid, [
             "clinic_id" => (int) $choice["clinic_id"],
             "role_code" => (string) $choice["role_code"],
             "audit_body" =>
@@ -404,7 +404,7 @@ final class AuthOnboardingRuntimeOperations01
         ]);
         $destination = "appointments";
         if ($redirectAfterLogin) {
-            redirect($destination);
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect($destination);
         }
         return $destination;
     
@@ -419,7 +419,7 @@ final class AuthOnboardingRuntimeOperations01
     
         if (
             $uid <= 0 ||
-            !function_exists("server_json_cache_clear_all_json_files")
+            !is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_clear_all_json_files'])
         ) {
             return false;
         }
@@ -429,7 +429,7 @@ final class AuthOnboardingRuntimeOperations01
         try {
             $isDeveloper =
                 $knownDeveloper ||
-                (int) val(
+                (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT is_global_admin FROM pi_users WHERE id=? AND active=1 LIMIT 1",
                     [$uid],
                 ) === 1;
@@ -437,7 +437,7 @@ final class AuthOnboardingRuntimeOperations01
                 return false;
             }
             $ready =
-                (string) (val(
+                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
                     [$marker],
                 ) ?? "") === "1";
@@ -445,24 +445,24 @@ final class AuthOnboardingRuntimeOperations01
                 return true;
             }
             $locked =
-                (int) val("SELECT GET_LOCK(?,5)", [$lockName]) === 1;
+                (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lockName]) === 1;
             if (!$locked) {
                 return false;
             }
             $ready =
-                (string) (val(
+                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
                     [$marker],
                 ) ?? "") === "1";
             if ($ready) {
                 return true;
             }
-            $deleted = server_json_cache_clear_all_json_files();
-            q(
+            $deleted = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_all_json_files();
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?, '1', ?) ON DUPLICATE KEY UPDATE meta_value='1',updated_at=VALUES(updated_at)",
                 [$marker, time()],
             );
-            audit("cache_instalacao_limpo", "plataforma", null, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("cache_instalacao_limpo", "plataforma", null, [
                 "arquivos_json_removidos" => $deleted,
                 "primeiro_login_desenvolvedor" => true,
                 "audit_body" =>
@@ -477,7 +477,7 @@ final class AuthOnboardingRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lockName]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lockName]);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo first developer login unlock] " .
@@ -499,7 +499,7 @@ final class AuthOnboardingRuntimeOperations01
             "scope" => (string) ($credential["scope"] ?? "clinic"),
             "clinic_role_id" => (int) ($credential["clinic_role_id"] ?? 0),
             "issued_at" => time(),
-            "user_auth_generation" => user_auth_generation_ensure($uid),
+            "user_auth_generation" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_ensure($uid),
         ];
         unset(
             $_SESSION["mfa_enrollment_secret"],
@@ -518,11 +518,11 @@ final class AuthOnboardingRuntimeOperations01
             (int) ($pending["uid"] ?? 0) <= 0 ||
             time() - (int) ($pending["issued_at"] ?? 0) > 300
         ) {
-            mfa_pending_login_clear();
+            \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
             return null;
         }
         $uid = (int) $pending["uid"];
-        $user = one(
+        $user = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT u.id,u.name,u.email,u.password_hash,u.is_global_admin,u.active,
                     m.meta_value user_auth_generation
              FROM pi_users u
@@ -537,7 +537,7 @@ final class AuthOnboardingRuntimeOperations01
                 (string) ($pending["user_auth_generation"] ?? ""),
             )
         ) {
-            mfa_pending_login_clear();
+            \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
             return null;
         }
         return $user;

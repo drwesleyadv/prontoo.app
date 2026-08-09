@@ -141,7 +141,7 @@ final class SecurityAccessPresentationOperations01
         if (($_SESSION["scope"] ?? "") !== "clinic") {
             return true;
         }
-        return read_only_post_allowed(route());
+        return \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::read_only_post_allowed(\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route());
     
     }
 
@@ -153,7 +153,7 @@ final class SecurityAccessPresentationOperations01
             return ["*"];
         }
         return \Prontoo\Core\Readonly\ReadonlyPolicy::allowedWriteTables(
-            route(),
+            \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
             (string) ($_POST["act"] ?? ""),
             ($_SESSION["scope"] ?? "") === "clinic",
         );
@@ -169,7 +169,7 @@ final class SecurityAccessPresentationOperations01
         }
         return \Prontoo\Core\Readonly\ReadonlyPolicy::sqlAllowed(
             $sql,
-            route(),
+            \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
             (string) ($_POST["act"] ?? ""),
             ($_SESSION["scope"] ?? "") === "clinic",
         );

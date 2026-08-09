@@ -137,16 +137,16 @@ final class ForeignKeyGraph
         if (array_key_exists($table, self::$relations)) {
             return self::$relations[$table];
         }
-        if (!function_exists("pdo")) {
+        if (!\Prontoo\Core\Architecture\OperationGateway::has('pdo')) {
             return self::$relations[$table] = [];
         }
         $loader = static  fn(): array => self::loadRelations($table);
         $revision = defined("PRONTOO_SCHEMA_REV")
             ? (string) PRONTOO_SCHEMA_REV
             : "schema";
-        if (function_exists("cache_remember")) {
+        if (\Prontoo\Core\Architecture\OperationGateway::has('cache_remember')) {
             try {
-                $cached = \cache_remember(
+                $cached = \Prontoo\Core\Architecture\OperationGateway::invoke('cache_remember', 
                     "invariant_fk_" . hash("sha256", $revision . "|" . $table),
                     86400,
                     $loader,
@@ -167,7 +167,7 @@ final class ForeignKeyGraph
     {
 
         try {
-            $statement = \pdo()->prepare(
+            $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
                 "SELECT CONSTRAINT_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME " .
                     "FROM information_schema.KEY_COLUMN_USAGE " .
                     "WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? " .
@@ -215,7 +215,7 @@ final class ForeignKeyGraph
         if ($table === "" || $column === "" || $scopeColumn === "") {
             return null;
         }
-        $statement = \pdo()->prepare(
+        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
             "SELECT `{$scopeColumn}` FROM `{$table}` WHERE `{$column}`=? AND `{$scopeColumn}`=? LIMIT 1",
         );
         $statement->execute([$value, $clinicId]);
@@ -223,7 +223,7 @@ final class ForeignKeyGraph
         if ($found !== false && $found !== null) {
             return (int) $found;
         }
-        $statement = \pdo()->prepare(
+        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
             "SELECT `{$scopeColumn}` FROM `{$table}` WHERE `{$column}`=? LIMIT 1",
         );
         $statement->execute([$value]);
@@ -241,8 +241,8 @@ final class ForeignKeyGraph
     private static function deny(string $key, string $sql, string $detail): never
     {
 
-        if (function_exists("record_scope_violation")) {
-            \record_scope_violation($key, $sql, $detail);
+        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
+            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', $key, $sql, $detail);
         } else {
             error_log(
                 "[Prontoo invariant relation violation] {$key} | " .

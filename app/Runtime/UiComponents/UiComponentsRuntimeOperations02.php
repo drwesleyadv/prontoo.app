@@ -31,11 +31,11 @@ final class UiComponentsRuntimeOperations02
     {
     
         $public = $opts["public"] ?? false;
-        $current = route();
-        $c = $public ? [] : ctx();
+        $current = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
+        $c = $public ? [] : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if (
             PRONTOO_AUDIT_PAGE_VIEWS &&
-            function_exists("audit") &&
+            is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit']) &&
             $c &&
             !$public &&
             ($_SERVER["REQUEST_METHOD"] ?? "GET") === "GET"
@@ -49,8 +49,8 @@ final class UiComponentsRuntimeOperations02
                 ($c["scope"] ?? "") === "clinic"
             ) {
                 $patientId = (int) $_GET["id"];
-                $patientName = function_exists("audit_patient_name_by_link")
-                    ? audit_patient_name_by_link($patientId, (int) $c["clinic_id"])
+                $patientName = is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::class, 'audit_patient_name_by_link'])
+                    ? \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_patient_name_by_link($patientId, (int) $c["clinic_id"])
                     : "";
                 $auditEntity = "paciente";
                 $auditId = $patientId;
@@ -63,10 +63,10 @@ final class UiComponentsRuntimeOperations02
                     $auditCtx["patient_name"] = $patientName;
                 }
             }
-            audit("janela_aberta", $auditEntity, $auditId, $auditCtx);
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("janela_aberta", $auditEntity, $auditId, $auditCtx);
         }
-        $visual = function_exists("clinic_visual")
-            ? clinic_visual(
+        $visual = is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'clinic_visual'])
+            ? \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_visual(
                 $c && ($c["scope"] ?? "") === "clinic" ? (int) $c["clinic_id"] : 0,
                 $c ?: [],
             )
@@ -129,10 +129,10 @@ final class UiComponentsRuntimeOperations02
         $brandIconHtml =
             $c && ($c["scope"] ?? "") === "clinic"
                 ? '<span class="brand-mark clinic-brandmark-inline" title="Ícone do consultório">' .
-                    icon((string) ($visual["icon"] ?? "home_health")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) ($visual["icon"] ?? "home_health")) .
                     "</span>"
                 : '<span class="brand-mark app-brandmark-inline" data-app-brandmark><img class="brand-mark-img app-brandmark-img" src="/public/assets/app-icon-' .
-                    e(PRONTOO_ASSET_REV) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_ASSET_REV) .
                     '.png" alt="" aria-hidden="true"></span>';
         $brandVersionHtml = "";
         if ($c && ($c["scope"] ?? "") === "global") {
@@ -141,22 +141,22 @@ final class UiComponentsRuntimeOperations02
                 : "";
             $brandVersionHtml =
                 '<small class="pagehead-version">Versão: ' .
-                e($publishedVersion) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($publishedVersion) .
                 "</small>";
         }
         $brand =
             '<a class="brand" href="' .
-            href(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 $c && ($c["scope"] ?? "") === "global"
                     ? "admin_painel"
                     : "appointments",
             ) .
             '" aria-label="' .
-            e($appName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($appName) .
             '">' .
             $brandIconHtml .
             '<span class="brand-copy"><b>' .
-            e($appName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($appName) .
             "</b>" .
             $brandVersionHtml .
             "</span></a>";
@@ -164,26 +164,26 @@ final class UiComponentsRuntimeOperations02
         $topCenter = "";
         if ($c && $c["scope"] === "global") {
             $cmd = "";
-            $adminItems = cmdbar_order_items(
+            $adminItems = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::cmdbar_order_items(
                 PRONTOO_ADMIN_ACTIONS,
                 $current,
                 $c,
                 true,
             );
             foreach ($adminItems as $key => $a) {
-                $adminParent = function_exists("admin_nav_parent")
-                    ? admin_nav_parent($current)
+                $adminParent = is_callable([\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::class, 'admin_nav_parent'])
+                    ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($current)
                     : $current;
                 $isActive = $adminParent === $key;
                 $active = $isActive ? " active" : "";
                 $extra = "";
-                $labelHtml = cmdbar_label_html(
+                $labelHtml = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_label_html(
                     (string) $a["label"],
                     $isActive,
                     $extra,
                 );
-                $adminIcon = function_exists("prontoo_icon_for_route_label")
-                    ? prontoo_icon_for_route_label(
+                $adminIcon = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])
+                    ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                         (string) $key,
                         (string) $a["label"],
                         [],
@@ -194,15 +194,15 @@ final class UiComponentsRuntimeOperations02
                     '<a class="cmd' .
                     $active .
                     '" href="' .
-                    href($key) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($key) .
                     '" title="' .
-                    e($a["label"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($a["label"]) .
                     '" aria-label="' .
-                    e($a["label"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($a["label"]) .
                     '"' .
                     ($active ? ' aria-current="page"' : "") .
                     ">" .
-                    icon($adminIcon) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($adminIcon) .
                     $labelHtml .
                     "</a>";
             }
@@ -226,27 +226,27 @@ final class UiComponentsRuntimeOperations02
             $topCenter = "";
             $tabs =
                 '<a class="role active" href="' .
-                href("switch") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("switch") .
                 '" aria-current="true">' .
-                icon(role_icon($roleCode, (int) $c["clinic_id"])) .
-                e(role_label_for($roleCode, (int) $c["clinic_id"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon($roleCode, (int) $c["clinic_id"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($roleCode, (int) $c["clinic_id"])) .
                 "</a>";
             $visibleActions = [];
-            foreach (role_actions_effective($effectiveRoles) as $key => $a) {
-                if (can($key)) {
+            foreach (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::role_actions_effective($effectiveRoles) as $key => $a) {
+                if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can($key)) {
                     $visibleActions[$key] = $a;
                 }
             }
-            if (has_effective_role($c, "gerente")) {
+            if (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")) {
                 unset($visibleActions["painel"]);
             }
-            $visibleActions = cmdbar_order_items(
+            $visibleActions = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::cmdbar_order_items(
                 $visibleActions,
                 $current,
                 $c,
                 false,
             );
-            $activeKey = cmdbar_parent_key($current, $visibleActions, false);
+            $activeKey = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_parent_key($current, $visibleActions, false);
             $acts = "";
             foreach ($visibleActions as $key => $a) {
                 $isActive = $activeKey === $key;
@@ -257,10 +257,10 @@ final class UiComponentsRuntimeOperations02
                         : (string) $a["label"];
                 $navIcon =
                     $key === "financial" && $roleCode === "recepcionista"
-                        ? reception_cash_state_icon($c)
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::reception_cash_state_icon($c)
                         : (string) $a["icon"];
-                if (function_exists("prontoo_icon_for_route_label")) {
-                    $navIcon = prontoo_icon_for_route_label(
+                if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
+                    $navIcon = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                         (string) $key,
                         $navLabel,
                         [],
@@ -268,93 +268,93 @@ final class UiComponentsRuntimeOperations02
                     );
                 }
                 $extra = "";
-                $labelHtml = cmdbar_label_html($navLabel, $isActive, $extra);
-                $navHref = $key === "patients" ? href("patients") : href($key);
+                $labelHtml = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_label_html($navLabel, $isActive, $extra);
+                $navHref = $key === "patients" ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patients") : \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($key);
                 $acts .=
                     '<a class="cmd' .
                     $active .
                     '" href="' .
                     $navHref .
                     '" title="' .
-                    e($navLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($navLabel) .
                     '" aria-label="' .
-                    e($navLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($navLabel) .
                     '"' .
                     ($active ? ' aria-current="page"' : "") .
                     ">" .
-                    icon($navIcon) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($navIcon) .
                     $labelHtml .
                     "</a>";
             }
-            $goal = shared_goal_cmdbar_html($c);
+            $goal = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::shared_goal_cmdbar_html($c);
             $nav =
                 '<nav class="cmdbar contextsbar" aria-label="Contextos">' .
                 $acts .
                 $goal .
                 "</nav>";
         }
-        $flash = flash();
+        $flash = \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash();
         $flashHtml = $flash
             ? '<div class="flash ' .
                 $flash[0] .
                 '" role="' .
                 ($flash[0] === "bad" ? "alert" : "status") .
                 '">' .
-                e($flash[1]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($flash[1]) .
                 "</div>"
             : "";
         $logout = "";
         if ($c) {
-            $loggedFirstName = first_name((string) ($c["user"]["name"] ?? ""));
+            $loggedFirstName = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($c["user"]["name"] ?? ""));
             $loggedEnvironment =
                 ($c["scope"] ?? "") === "global"
                     ? "Desenvolvedor"
-                    : role_label_for(
+                    : \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for(
                         (string) ($c["role"] ?? ""),
                         (int) ($c["clinic_id"] ?? 0),
                     );
             $loggedContextLabel =
                 trim($loggedFirstName . " em " . $loggedEnvironment);
-            $notifyButton = function_exists("notification_button")
-                ? notification_button($c)
-                : notification_button_light($c);
+            $notifyButton = is_callable([\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::class, 'notification_button'])
+                ? \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::notification_button($c)
+                : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::notification_button_light($c);
             $accountIcon =
                 ($c["scope"] ?? "") === "global"
                     ? "admin_panel_settings"
-                    : role_icon(
+                    : \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon(
                         (string) ($c["role"] ?? ""),
                         (int) ($c["clinic_id"] ?? 0),
                     );
             $logout =
                 '<a class="top-user-name top-account" href="' .
-                href("profile") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("profile") .
                 '" title="' .
-                e($loggedContextLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($loggedContextLabel) .
                 '" aria-label="' .
-                e($loggedContextLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($loggedContextLabel) .
                 '"><span>' .
-                e($loggedFirstName) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($loggedFirstName) .
                 "</span>" .
-                icon($accountIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($accountIcon) .
                 "</a>" .
                 $notifyButton .
                 '<form method="post" action="' .
-                href("logout") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("logout") .
                 '" class="logout">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<button type="submit" class="top-icon logout-icon" aria-label="Sair" title="Sair">' .
-                icon("logout") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("logout") .
                 "</button></form>";
         } else {
             $logout =
                 '<a class="ghost" href="' .
-                href("login") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login") .
                 '">Entrar</a>' .
                 ($current === "signup" ||
-                (function_exists("clinic_signup_blocked") && clinic_signup_blocked())
+                (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'clinic_signup_blocked']) && \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::clinic_signup_blocked())
                     ? ""
                     : '<a class="primary" href="' .
-                        href("signup") .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("signup") .
                         '">Criar consultório</a>');
         }
         $clock = "";
@@ -365,20 +365,20 @@ final class UiComponentsRuntimeOperations02
                 (string) ($_GET["view"] ?? "diario") === "mensal";
             $pendingFloating =
                 !$suppressFloatingCards &&
-                function_exists("floating_pending_cards_html")
-                    ? floating_pending_cards_html($c, $current)
+                is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::class, 'floating_pending_cards_html'])
+                    ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_cards_html($c, $current)
                     : "";
             if ($pendingFloating !== "") {
                 $clock = $pendingFloating;
             } elseif ($current !== "appointments") {
-                $tz = app_timezone_safe(
+                $tz = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe(
                     (string) ($c["timezone"] ?? "America/Cuiaba"),
                 );
                 $clock =
                     '<aside class="floating-clock agenda-floating-card context-floating-clock-card" data-floating-clock data-clock-tz="' .
-                    e($tz) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($tz) .
                     '" aria-label="Horário atual"><span class="agenda-floating-icon" aria-hidden="true">' .
-                    icon("schedule") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                     '</span><div class="agenda-floating-copy"><b data-clock>--:--</b></div></aside>';
             }
         }
@@ -409,17 +409,17 @@ final class UiComponentsRuntimeOperations02
             }
         }
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/"><title>' .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             " · " .
-            e($appName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($appName) .
             '</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="' .
-            e($visual["brand"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($visual["brand"]) .
             '"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="application-name" content="' .
-            e($appName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($appName) .
             '"><meta name="prontoo-version" content="' .
-            e(PRONTOO_VERSION) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
             '"><meta name="csrf-token" content="' .
-            e(csrf()) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf()) .
             '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
             rawurlencode(PRONTOO_ASSET_REV) .
             '.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap" rel="stylesheet"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
@@ -435,13 +435,13 @@ final class UiComponentsRuntimeOperations02
             '&release=' .
             rawurlencode(PRONTOO_VERSION) .
             '&ui=design-system-global-enxuto"></script></head><body class="' .
-            e($bodyClass) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($bodyClass) .
             '" style="' .
-            e($visual["css_vars"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($visual["css_vars"]) .
             '" data-route="' .
-            e($current) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($current) .
             '" data-app-version="' .
-            e(PRONTOO_VERSION) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
             '"><a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header class="top">' .
             $brand .
             $topCenter .
@@ -451,8 +451,8 @@ final class UiComponentsRuntimeOperations02
             $nav .
             '<main id="conteudo" tabindex="-1">' .
             $flashHtml .
-            billing_notice($c) .
-            onboarding_tip_html($c, $current) .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::billing_notice($c) .
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_html($c, $current) .
             $body .
             "</main>" .
             $clock .
@@ -469,28 +469,28 @@ final class UiComponentsRuntimeOperations02
     ): string 
     {
     
-        if (function_exists("prontoo_icon_for_route_label")) {
-            $iconName = prontoo_icon_for_route_label(
+        if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
+            $iconName = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                 $route,
                 $label,
                 $params,
                 $iconName,
             );
         }
-        $active = operation_current_match($route, $params, $current);
+        $active = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::operation_current_match($route, $params, $current);
         $cls = "operation-chip" . ($active ? " is-active" : "");
         return '<a class="' .
             $cls .
             '" href="' .
-            href($route, $params) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params) .
             '" title="' .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             '"' .
             ($active ? ' aria-current="page"' : "") .
             ">" .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span></a>";
     
     }

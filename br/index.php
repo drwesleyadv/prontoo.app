@@ -19,8 +19,8 @@ if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) {
     unset($prontooPhpRuntimeMessage);
     exit(1);
 }
-require_once dirname(__DIR__) . "/app/Support/Telemetry.php";
-telemetry_route_start_marker(
+require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
+\Prontoo\Core\Architecture\OperationGateway::invoke('telemetry_route_start_marker', 
     (string) ($_GET["asset"] ?? "") !== ""
         ? "landing_" . (string) $_GET["asset"]
         : "landing",
@@ -28,7 +28,7 @@ telemetry_route_start_marker(
     $brRouteStartedUnixUs,
 );
 unset($brRouteStartedMonotonicNs, $brRouteStartedUnixUs);
-require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
+
 if (PHP_SAPI !== "cli") {
     
     $brSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
@@ -55,4 +55,4 @@ require __DIR__ . "/landing/view-head.php";
 require __DIR__ . "/landing/view-hero.php";
 require __DIR__ . "/landing/view-flow.php";
 require __DIR__ . "/landing/view-final.php";
-telemetry_route_finish_marker();
+\Prontoo\Core\Architecture\OperationGateway::invoke('telemetry_route_finish_marker', );

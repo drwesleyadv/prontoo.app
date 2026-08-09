@@ -31,11 +31,11 @@ final class DocumentPdfRuntimeOperations01
     {
     
         return '<a class="' .
-            e($class) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
             '" href="' .
-            href("document_pdf", ["id" => $docId]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_pdf", ["id" => $docId]) .
             '">' .
-            icon("picture_as_pdf") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("picture_as_pdf") .
             "<span>Gerar PDF</span></a>";
     
     }
@@ -44,8 +44,8 @@ final class DocumentPdfRuntimeOperations01
     
     {
     
-        document_pdf_public_router_dir();
-        $dir = document_pdf_storage_dir();
+        \Prontoo\Infrastructure\DocumentPdf\DocumentPdfInfrastructureOperations01::document_pdf_public_router_dir();
+        $dir = \Prontoo\Infrastructure\DocumentPdf\DocumentPdfInfrastructureOperations01::document_pdf_storage_dir();
         return $dir;
     
     }
@@ -55,8 +55,8 @@ final class DocumentPdfRuntimeOperations01
     {
     
         try {
-            $ttl = document_pdf_ttl_seconds();
-            $dir = document_pdf_dir((int) ($cid ?? 0));
+            $ttl = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_ttl_seconds();
+            $dir = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir((int) ($cid ?? 0));
             if (is_dir($dir)) {
                 $cut = time() - $ttl;
                 foreach (glob($dir . "/*.pdf") ?: [] as $file) {
@@ -79,15 +79,15 @@ final class DocumentPdfRuntimeOperations01
                     }
                 }
             }
-            if (has_cfg()) {
+            if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
                 $cutDb = gmdate("Y-m-d H:i:s", time() - $ttl);
                 if ($cid !== null && (int) $cid > 0) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND created_at < ?",
                         [(int) $cid, $cutDb],
                     );
                 } else {
-                    q("DELETE FROM pi_document_pdfs WHERE created_at < ?", [
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_document_pdfs WHERE created_at < ?", [
                         $cutDb,
                     ]);
                 }
@@ -103,7 +103,7 @@ final class DocumentPdfRuntimeOperations01
     {
     
         try {
-            $flag = storage_path("cache/document_pdf_cleanup.flag");
+            $flag = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/document_pdf_cleanup.flag");
             $last = is_file($flag) ? (int) filemtime($flag) : 0;
             if ($last > time() - 3600) {
                 return;
@@ -112,7 +112,7 @@ final class DocumentPdfRuntimeOperations01
                 @mkdir(dirname($flag), 0750, true);
             }
             @touch($flag);
-            document_pdf_cleanup(null);
+            \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_cleanup(null);
         } catch (Throwable $e) {
             error_log("[Prontoo document_pdf_cleanup_due] " . $e->getMessage());
         }
@@ -124,8 +124,8 @@ final class DocumentPdfRuntimeOperations01
     {
     
         $seed =
-            app_config_string("app_key", "") ?:
-            app_config_string("app_secret", "") ?:
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string("app_key", "") ?:
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string("app_secret", "") ?:
             (string) (getenv("PRONTOO_APP_KEY") ?: getenv("APP_KEY") ?: "");
         if ($seed === "") {
             $seed =
@@ -146,7 +146,7 @@ final class DocumentPdfRuntimeOperations01
     {
     
         $payload = basename($fileName) . "|" . $cid . "|" . $uid . "|" . $expires;
-        return hash_hmac("sha256", $payload, document_pdf_token_secret());
+        return hash_hmac("sha256", $payload, \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_token_secret());
     
     }
 
@@ -163,7 +163,7 @@ final class DocumentPdfRuntimeOperations01
             return false;
         }
         return hash_equals(
-            document_pdf_token($fileName, $cid, $uid, $expires),
+            \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_token($fileName, $cid, $uid, $expires),
             $token,
         );
     
@@ -174,7 +174,7 @@ final class DocumentPdfRuntimeOperations01
     {
     
         try {
-            $path = document_pdf_absolute_path($fileName);
+            $path = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_absolute_path($fileName);
             if (is_file($path)) {
                 @unlink($path);
             }
@@ -187,8 +187,8 @@ final class DocumentPdfRuntimeOperations01
             );
         }
         try {
-            if ($cid > 0 && has_cfg()) {
-                q(
+            if ($cid > 0 && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND file_name=?",
                     [$cid, basename($fileName)],
                 );
@@ -206,10 +206,10 @@ final class DocumentPdfRuntimeOperations01
     {
     
         $fileName = basename($fileName);
-        if (!document_pdf_file_name_valid($fileName)) {
+        if (!\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_file_name_valid($fileName)) {
             throw new RuntimeException("Nome de PDF inválido.");
         }
-        return document_pdf_dir() . "/" . $fileName;
+        return \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir() . "/" . $fileName;
     
     }
 
@@ -229,16 +229,16 @@ final class DocumentPdfRuntimeOperations01
                 $hash = str_repeat("0", 64);
             }
             $size = is_file($path) ? max(0, (int) filesize($path)) : 0;
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_document_pdfs (clinic_id,document_id,generated_by,document_identifier,generated_unix,file_name,file_path,file_sha256,file_size,created_at) VALUES (?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE clinic_id=VALUES(clinic_id), document_id=VALUES(document_id), generated_by=VALUES(generated_by), document_identifier=VALUES(document_identifier), generated_unix=VALUES(generated_unix), file_path=VALUES(file_path), file_sha256=VALUES(file_sha256), file_size=VALUES(file_size), created_at=VALUES(created_at)",
                 [
                     $cid,
                     (int) $doc["id"],
                     (int) ($c["user"]["id"] ?? 0),
-                    document_identifier_display($doc["document_identifier"] ?? ""),
+                    \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display($doc["document_identifier"] ?? ""),
                     $generatedAt,
                     $name,
-                    document_pdf_public_path($name),
+                    \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_public_path($name),
                     $hash,
                     $size,
                     $generatedAt,
@@ -255,8 +255,8 @@ final class DocumentPdfRuntimeOperations01
     {
     
         $cid = (int) ($c["clinic_id"] ?? 0);
-        document_pdf_cleanup($cid);
-        $dir = document_pdf_dir($cid);
+        \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_cleanup($cid);
+        $dir = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir($cid);
         if (!is_dir($dir) || !is_writable($dir)) {
             throw new RuntimeException(
                 "Não foi possível preparar o armazenamento do PDF.",
@@ -266,9 +266,9 @@ final class DocumentPdfRuntimeOperations01
         $name = "";
         $path = "";
         for ($attempt = 0; $attempt < 8; $attempt++) {
-            $candidate = document_pdf_file_name($doc, $generatedAt, $cid);
+            $candidate = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_file_name($doc, $generatedAt, $cid);
             $candidatePath = $dir . "/" . $candidate;
-            if (!is_file($candidatePath) && !document_pdf_catalog_row($candidate)) {
+            if (!is_file($candidatePath) && !\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_catalog_row($candidate)) {
                 $name = $candidate;
                 $path = $candidatePath;
                 break;
@@ -279,8 +279,8 @@ final class DocumentPdfRuntimeOperations01
                 "Não foi possível reservar um nome único para o PDF.",
             );
         }
-        $pdf = document_pdf_build_simple(
-            document_body_to_html((string) ($doc["content"] ?? "")),
+        $pdf = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_build_simple(
+            \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_body_to_html((string) ($doc["content"] ?? "")),
             [
                 "title" => $doc["title"] ?? "Documento",
                 "document_identifier" => $doc["document_identifier"] ?? null,
@@ -303,13 +303,13 @@ final class DocumentPdfRuntimeOperations01
             "generated_by" => (int) ($c["user"]["id"] ?? 0),
             "generated_at" => date("Y-m-d H:i:s", $generatedAt),
             "generated_unix" => $generatedAt,
-            "path" => document_pdf_public_path($name),
+            "path" => \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_public_path($name),
             "download_name" => $name,
             "file_sha256" => $hash,
             "file_size" => is_file($path) ? (int) filesize($path) : 0,
             "font_family" => "Fira Sans",
             "identifier_font_family" => "Science Gothic",
-            "document_identifier" => document_identifier_display(
+            "document_identifier" => \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display(
                 $doc["document_identifier"] ?? "",
             ),
         ];
@@ -319,7 +319,7 @@ final class DocumentPdfRuntimeOperations01
             LOCK_EX,
         );
         @chmod($path . ".json", 0640);
-        document_pdf_register_file($c, $doc, $path, $name, $generatedAt);
+        \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_register_file($c, $doc, $path, $name, $generatedAt);
         return $path;
     
     }
@@ -328,11 +328,11 @@ final class DocumentPdfRuntimeOperations01
     
     {
     
-        if (!document_pdf_file_name_valid($fileName)) {
+        if (!\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_file_name_valid($fileName)) {
             return null;
         }
         try {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT clinic_id,document_id,file_sha256,generated_unix,created_at FROM pi_document_pdfs WHERE file_name=? LIMIT 1",
                 [$fileName],
             );
@@ -342,7 +342,7 @@ final class DocumentPdfRuntimeOperations01
         } catch (Throwable $e) {
             error_log("[Prontoo document_pdf_catalog_row] " . $e->getMessage());
         }
-        $metaPath = document_pdf_dir() . "/" . $fileName . ".json";
+        $metaPath = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir() . "/" . $fileName . ".json";
         if (is_file($metaPath)) {
             $raw = json_decode((string) file_get_contents($metaPath), true);
             if (is_array($raw)) {
@@ -354,7 +354,7 @@ final class DocumentPdfRuntimeOperations01
                         (string) ($raw["document_identifier"] ?? ""),
                     "generated_unix" => (int) ($raw["generated_unix"] ?? 0),
                     "file_name" => $fileName,
-                    "file_path" => document_pdf_public_path($fileName),
+                    "file_path" => \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_public_path($fileName),
                     "file_sha256" => (string) ($raw["file_sha256"] ?? ""),
                     "file_size" => (int) ($raw["file_size"] ?? 0),
                     "created_at" => (string) ($raw["generated_at"] ?? ""),
@@ -395,7 +395,7 @@ final class DocumentPdfRuntimeOperations01
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             throw new ProntooHttpError(
                 403,
@@ -405,22 +405,22 @@ final class DocumentPdfRuntimeOperations01
         $cid = (int) ($c["clinic_id"] ?? 0);
         $uid = (int) ($c["user"]["id"] ?? ($c["user_id"] ?? 0));
         $file = basename((string) ($_GET["file"] ?? ""));
-        if (!document_pdf_file_name_valid($file)) {
+        if (!\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_file_name_valid($file)) {
             throw new ProntooHttpError(404, "PDF não encontrado.");
         }
-        $path = document_pdf_absolute_path($file);
+        $path = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_absolute_path($file);
         if (!is_file($path)) {
             throw new ProntooHttpError(404, "PDF não encontrado.");
         }
-        $row = document_pdf_catalog_row($file);
+        $row = \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_catalog_row($file);
         if (!$row || (int) ($row["clinic_id"] ?? 0) !== $cid) {
             throw new ProntooHttpError(
                 404,
                 "PDF não encontrado para esta credencial.",
             );
         }
-        if (document_pdf_expired_row($row)) {
-            document_pdf_delete_pair($file, $cid);
+        if (\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_expired_row($row)) {
+            \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_delete_pair($file, $cid);
             throw new ProntooHttpError(
                 410,
                 "PDF expirado. Gere uma nova pré-visualização.",
@@ -428,13 +428,13 @@ final class DocumentPdfRuntimeOperations01
         }
         $expires = (int) ($_GET["exp"] ?? 0);
         $token = (string) ($_GET["t"] ?? "");
-        if (!document_pdf_token_valid($file, $cid, $uid, $token, $expires)) {
+        if (!\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_token_valid($file, $cid, $uid, $token, $expires)) {
             throw new ProntooHttpError(
                 403,
                 "Link de PDF expirado ou inválido. Gere uma nova pré-visualização.",
             );
         }
-        $doc = fetch_document_for_current_user(
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user(
             $c,
             (int) ($row["document_id"] ?? 0),
         );
@@ -450,7 +450,7 @@ final class DocumentPdfRuntimeOperations01
                 "PDF disponível apenas para documentos já emitidos.",
             );
         }
-        $types = document_type_options();
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
         $actualHash = hash_file("sha256", $path) ?: "";
         $knownHash = (string) ($row["file_sha256"] ?? "");
         if ($knownHash !== "" && !hash_equals($knownHash, $actualHash)) {
@@ -459,20 +459,20 @@ final class DocumentPdfRuntimeOperations01
                 "O PDF gerado não confere com o registro de integridade.",
             );
         }
-        audit("documento_pdf_baixado", "documento", (int) $doc["id"], [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_pdf_baixado", "documento", (int) $doc["id"], [
             "titulo" => $doc["title"] ?? "",
             "document_type" => (string) ($doc["type_key"] ?? ""),
             "document_type_label" =>
                 $types[(string) ($doc["type_key"] ?? "")] ?? "Documento",
             "patient_link_id" => (int) ($doc["patient_link_id"] ?? 0),
             "patient_name" => $doc["patient_name"] ?? "",
-            "arquivo" => document_pdf_public_path($file),
+            "arquivo" => \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_public_path($file),
             "generated_unix" => (int) ($row["generated_unix"] ?? 0),
             "file_sha256" => $actualHash,
             "audit_body" =>
                 "PDF servido por /pdfs/ após validação da sessão, consultório, permissão documental, token temporário, expiração e hash do arquivo.",
         ]);
-        document_pdf_send_file($path, $file);
+        \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_send_file($path, $file);
     
     }
 
@@ -480,17 +480,17 @@ final class DocumentPdfRuntimeOperations01
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             throw new ProntooHttpError(
                 403,
                 "Documento disponível apenas no contexto do consultório.",
             );
         }
-        $doc = fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
         if (!$doc) {
             http_response_code(404);
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "PDF do documento",
                 '<div class="empty">Documento não encontrado para esta credencial.</div>',
             );
@@ -502,13 +502,13 @@ final class DocumentPdfRuntimeOperations01
                 "PDF disponível apenas para documentos já emitidos.",
             );
         }
-        if (!function_exists("document_print_document_shell_html")) {
+        if (!is_callable([\Prontoo\Presentation\Documents\DocumentsPresentationOperations01::class, 'document_print_document_shell_html'])) {
             throw new RuntimeException(
                 "Motor de impressão documental indisponível.",
             );
         }
-        $types = document_type_options();
-        audit("documento_pdf_preparado", "documento", (int) $doc["id"], [
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_pdf_preparado", "documento", (int) $doc["id"], [
             "titulo" => $doc["title"] ?? "",
             "document_type" => (string) ($doc["type_key"] ?? ""),
             "document_type_label" =>
@@ -523,7 +523,7 @@ final class DocumentPdfRuntimeOperations01
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
             header("Pragma: no-cache");
         }
-        echo document_print_document_shell_html($doc, true, "pdf");
+        echo \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_print_document_shell_html($doc, true, "pdf");
         exit();
     
     }

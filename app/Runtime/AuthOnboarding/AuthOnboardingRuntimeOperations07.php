@@ -30,8 +30,8 @@ final class AuthOnboardingRuntimeOperations07
     
     {
     
-        need_login();
-        redirect("profile");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
     
     }
 
@@ -39,22 +39,22 @@ final class AuthOnboardingRuntimeOperations07
     
     {
     
-        $c = need_login();
-        if (!is_responsible_doctor($c)) {
-            redirect("appointments");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
+        if (!\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::is_responsible_doctor($c)) {
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
         }
         $cid = (int) $c["clinic_id"];
-        if (function_exists("ensure_clinic_trial_active")) {
-            ensure_clinic_trial_active($cid, true);
+        if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
+            \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($cid, true);
         }
-        $cl = one(
+        $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,display_name,legal_name,legal_document,phone,responsible_profession,clinic_icon,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done FROM pi_clinics WHERE id=?",
             [$cid],
         );
         if (!$cl) {
-            redirect("appointments");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
         }
-        seed_clinic_roles($cid);
+        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $rolesEnabled = array_fill_keys(array_keys(PRONTOO_ROLES), 0);
             foreach ((array) ($_POST["roles"] ?? []) as $r) {
@@ -64,39 +64,39 @@ final class AuthOnboardingRuntimeOperations07
             }
             $rolesEnabled["medico"] = 1;
             $rolesEnabled["gerente"] = 1;
-            db_begin_transaction();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
             try {
                 $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
                 $city = mb_trim((string) ($_POST["address_city"] ?? ""));
                 $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
-                if (!isset(br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
+                if (!isset(\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
                     throw new RuntimeException(
                         "Escolha uma cidade da lista do IBGE.",
                     );
                 }
-                $tz = timezone_from_location($uf, $city);
-                $profession = normalize_profession(
+                $tz = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::timezone_from_location($uf, $city);
+                $profession = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession(
                     (string) ($_POST["responsible_profession"] ?? ""),
                 );
-                $clinicIcon = normalize_clinic_icon(
+                $clinicIcon = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_clinic_icon(
                     (string) ($_POST["clinic_icon"] ?? ($cl["clinic_icon"] ?? "")),
                 );
-                $accentColor = normalize_accent_color(
+                $accentColor = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color(
                     (string) ($_POST["accent_color"] ??
                         ($cl["accent_color"] ?? "")),
                 );
                 $trialStart = time();
-                $trialEnd = function_exists("subscription_trial_end_from_start")
-                    ? subscription_trial_end_from_start(
+                $trialEnd = is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'subscription_trial_end_from_start'])
+                    ? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_end_from_start(
                         $trialStart,
-                        default_trial_days(),
+                        \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
-                    : $trialStart + max(1, default_trial_days()) * 86400;
-                q(
+                    : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinics SET display_name=?, phone=?, responsible_profession=?, clinic_icon=?, accent_color=?, address_line=?, address_state=?, address_city=?, address_city_ibge=?, timezone=?, onboarding_done=1, onboarding_completed_at=NOW(), subscription_status='trial', trial_started_at=COALESCE(NULLIF(trial_started_at,0),?), trial_ends_at=IF(trial_ends_at IS NULL OR trial_ends_at=0 OR trial_ends_at<NOW(),?,trial_ends_at), paid_until=NULL, updated_at=NOW() WHERE id=?",
                     [
                         mb_trim((string) $_POST["display_name"]),
-                        phone_br((string) $_POST["phone"]),
+                        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
                         $profession,
                         $clinicIcon,
                         $accentColor,
@@ -119,15 +119,15 @@ final class AuthOnboardingRuntimeOperations07
                                 (string) ($_POST["role_label"][$role] ?? $default),
                             ) ?:
                             $default);
-                    $ico = default_role_icon($role);
-                    q(
+                    $ico = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_clinic_roles (clinic_id,role_code,label,icon_name,enabled,sort_order) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label), icon_name=IF(icon_name='' OR (icon_name='support_agent' AND role_code<>'recepcionista'),VALUES(icon_name),icon_name), enabled=VALUES(enabled), sort_order=VALUES(sort_order)",
                         [$cid, $role, $label, $ico, $rolesEnabled[$role], $i++],
                     );
                 }
-                $defaults = default_permissions();
+                $defaults = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions();
                 foreach (PRONTOO_ROLES as $role => $label) {
-                    foreach (actions() as $key => $a) {
+                    foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions() as $key => $a) {
                         $allow = 0;
                         if ($rolesEnabled[$role]) {
                             $allow = in_array($key, $defaults[$role] ?? [], true)
@@ -137,34 +137,34 @@ final class AuthOnboardingRuntimeOperations07
                         if ($role === "gerente" && $rolesEnabled[$role]) {
                             $allow = 1;
                         }
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allowed=VALUES(allowed)",
                             [$cid, $role, $key, $allow],
                         );
                     }
                 }
-                $newUid = save_team_member($cid, $_POST);
+                $newUid = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member($cid, $_POST);
                 if ($newUid) {
-                    audit("usuario_salvo", "usuario", $newUid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $newUid, [
                         "clinic_id" => $cid,
                         "origem" => "wizard",
                     ]);
                 }
-                audit("onboarding_concluido", "consultorio", $cid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("onboarding_concluido", "consultorio", $cid, [
                     "clinic_id" => $cid,
                     "clinic_icon" => $clinicIcon,
                     "accent_color" => $accentColor,
                     "audit_body" =>
                         "Onboarding concluído com identidade visual inicial. Permissões permaneceram com padrão do sistema para ajuste posterior.",
                 ]);
-                db_commit();
-                flash(
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Configuração inicial concluída. Você pode ajustar equipe, permissões e identidade visual depois em Meu Consultório.",
                 );
-                redirect("appointments");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
             } catch (Throwable $e) {
-                if (pdo()->inTransaction()) {
-                    db_rollback();
+                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 error_log(
                     "[Prontoo onboarding] " .
@@ -177,17 +177,17 @@ final class AuthOnboardingRuntimeOperations07
                         $e->getLine(),
                 );
                 $msg = $e instanceof RuntimeException ? trim($e->getMessage()) : "";
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $msg !== ""
                         ? $msg
                         : "Não foi possível salvar a configuração inicial. Revise os campos e tente novamente.",
                     "bad",
                 );
-                redirect("onboarding");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("onboarding");
             }
         }
-        $roles = clinic_roles($cid, false);
-        $enabled = q(
+        $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($cid, false);
+        $enabled = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT role_code,enabled FROM pi_clinic_roles WHERE clinic_id=?",
             [$cid],
         )->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -197,7 +197,7 @@ final class AuthOnboardingRuntimeOperations07
             $checked = $locked || (int) ($enabled[$role] ?? 0) ? "checked" : "";
             $disabled = $locked ? "disabled" : "";
             $hidden = $locked
-                ? '<input type="hidden" name="roles[]" value="' . e($role) . '">'
+                ? '<input type="hidden" name="roles[]" value="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($role) . '">'
                 : "";
             $desc = match ($role) {
                 "recepcionista"
@@ -212,7 +212,7 @@ final class AuthOnboardingRuntimeOperations07
             };
             $roleCards .=
                 '<article class="wiz-role"><label class="check"><input type="checkbox" name="roles[]" value="' .
-                e($role) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($role) .
                 '" ' .
                 $checked .
                 " " .
@@ -220,9 +220,9 @@ final class AuthOnboardingRuntimeOperations07
                 ">" .
                 $hidden .
                 " Usar este departamento</label>" .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Nome visível",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "role_label[" . $role . "]",
                         "text",
                         $roles[$role] ?? $default,
@@ -230,75 +230,75 @@ final class AuthOnboardingRuntimeOperations07
                     ),
                 ) .
                 "<p>" .
-                e($desc) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($desc) .
                 "</p></article>";
         }
-        $visual = clinic_visual_from_values(
+        $visual = \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_visual_from_values(
             $cl["clinic_icon"] ?? null,
             $cl["accent_color"] ?? null,
             $cl["responsible_profession"] ?? null,
         );
         $visualStep =
             '<div class="clinic-visual-preview"><span class="brand-mark">' .
-            icon($visual["icon"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($visual["icon"]) .
             "</span><div><strong>" .
-            e($cl["display_name"] ?? "Consultório") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cl["display_name"] ?? "Consultório") .
             "</strong><small>Seus ambientes de trabalho terão as cores e ícones escolhidos.</small></div></div><h3>Escolha um ícone</h3>" .
-            clinic_icon_picker($visual["icon"]) .
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_icon_picker($visual["icon"]) .
             "<h3>Escolha uma cor</h3>" .
-            clinic_color_picker($visual["brand"]);
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_color_picker($visual["brand"]);
         $steps =
             '<div class="wizard-progress" aria-label="Etapas da configuração"><span class="is-active">1</span><span>2</span><span>3</span><span>4</span></div>';
         $form =
             '<section class="wizard onboarding-wizard" data-onboarding-wizard><div class="wizard-head"><span class="eyebrow">Seu consultório, suas regras</span><h1>Vamos deixar seu consultório com a sua cara</h1><p>Informe os dados abaixo. Se precisar, ajustes podem ser feitos mais tarde.</p></div><form method="post" class="compact onboarding-form clinic-settings-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             $steps .
             '<section class="wizard-step is-active" data-wizard-step="0"><div class="wizard-step-title"><span>' .
-            icon("home_health") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
             '</span><div><h2>Fale sobre o Consultório</h2><p>Confirme o nome, telefone, profissão e cidade de atuação.</p></div></div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome do consultório",
-                input("display_name", "text", $cl["display_name"], "required"),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("display_name", "text", $cl["display_name"], "required"),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Telefone principal",
-                input("phone", "text", $cl["phone"] ?? ""),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("phone", "text", $cl["phone"] ?? ""),
             ) .
             "</div>" .
-            profession_select_fields($cl) .
-            clinic_location_fields($cl) .
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::profession_select_fields($cl) .
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_location_fields($cl) .
             '</section><section class="wizard-step" data-wizard-step="1" hidden><div class="wizard-step-title"><span>' .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             '</span><div><h2>Seus departamentos</h2><p>Os departamentos permitem que você distribua as tarefas por cargos.</p></div></div><div class="wizard-roles">' .
             $roleCards .
             '</div></section><section class="wizard-step" data-wizard-step="2" hidden><div class="wizard-step-title"><span>' .
-            icon("person_add") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person_add") .
             "</span><div><h2>Primeiro membro da equipe</h2><p>Você foi configurado como Administrativo e <span data-onboarding-profession>" .
-            e(
-                normalize_profession(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession(
                     (string) ($cl["responsible_profession"] ?? "Profissional"),
                 ),
             ) .
             '</span> do Consultório. Cadastre outros membros da equipe agora ou clique em Avançar para fazer isto mais tarde.</p></div></div><div class="two">' .
-            form_row("Nome completo", input("team_name", "text")) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Nome completo", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("team_name", "text")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF",
-                input("team_cpf", "text", "", 'inputmode="numeric" maxlength="14"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("team_cpf", "text", "", 'inputmode="numeric" maxlength="14"'),
             ) .
             '</div><div class="two">' .
-            form_row("Nascimento", input("team_birth", "date")) .
-            form_row("E-mail", input("team_email", "email")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Nascimento", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("team_birth", "date")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("E-mail", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("team_email", "email")) .
             "</div>" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Cargos",
-                role_checkbox_group("team_roles", manageable_team_roles($cid), [
+                \Prontoo\Presentation\UsersPermissions\UsersPermissionsPresentationOperations01::role_checkbox_group("team_roles", \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid), [
                     "recepcionista",
                 ]),
             ) .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Senha inicial",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "team_password",
                     "password",
                     "",
@@ -306,11 +306,11 @@ final class AuthOnboardingRuntimeOperations07
                 ),
             ) .
             '</div></section><section class="wizard-step" data-wizard-step="3" hidden><div class="wizard-step-title"><span>' .
-            icon("palette") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("palette") .
             "</span><div><h2>Aparência</h2><p>Escolha o ícone e a cor que melhor representam o seu consultório.</p></div></div>" .
             $visualStep .
             '</section><div class="wizard-nav"><button type="button" class="ghost" data-wizard-prev hidden>Voltar</button><button type="button" class="primary" data-wizard-next>Avançar</button><button type="submit" class="primary" data-wizard-submit hidden>Concluir configuração</button></div></form></section>';
-        page("Seu consultório, suas regras", $form);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Seu consultório, suas regras", $form);
     
     }
 
@@ -320,31 +320,31 @@ final class AuthOnboardingRuntimeOperations07
     ): string 
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT DISTINCT p.id,p.full_name,p.cpf,p.birth_date FROM pi_persons p JOIN (SELECT person_id FROM pi_patients WHERE clinic_id=? AND person_id IS NOT NULL UNION SELECT person_id FROM pi_leads WHERE clinic_id=? AND person_id IS NOT NULL) x ON x.person_id=p.id WHERE p.full_name<>'' ORDER BY p.full_name ASC LIMIT 500",
             [$cid, $cid],
         )->fetchAll();
-        $h = '<datalist id="' . e($id) . '">';
+        $h = '<datalist id="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($id) . '">';
         foreach ($rows as $r) {
             $label = trim(
                 (!empty($r["cpf"])
-                    ? "CPF " . mask((string) $r["cpf"])
+                    ? "CPF " . \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) $r["cpf"])
                     : "CPF não informado") .
                     " · " .
                     (!empty($r["birth_date"])
-                        ? "Nascimento " . date_br((string) $r["birth_date"])
+                        ? "Nascimento " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $r["birth_date"])
                         : "nascimento não informado"),
                 " ·",
             );
             $h .=
                 '<option value="' .
-                e((string) $r["full_name"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["full_name"]) .
                 '" label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" data-cpf="' .
-                e(mask((string) ($r["cpf"] ?? ""))) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($r["cpf"] ?? ""))) .
                 '" data-birth="' .
-                e(db_birth_date_input($r["birth_date"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::db_birth_date_input($r["birth_date"] ?? "")) .
                 '"></option>';
         }
         return $h . "</datalist>";
@@ -359,32 +359,32 @@ final class AuthOnboardingRuntimeOperations07
     {
     
         $name = trim($name);
-        $doc = only_digits($doc);
+        $doc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($doc);
         if ($name === "") {
             throw new RuntimeException("Nome da pessoa não informado.");
         }
         if (strlen($doc) === 11) {
-            return save_person_flexible($name, $doc, $birth);
+            return \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::save_person_flexible($name, $doc, $birth);
         }
         if (strlen($doc) === 14) {
-            if (!valid_cnpj($doc)) {
+            if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cnpj($doc)) {
                 throw new RuntimeException("Informe CNPJ válido.");
             }
-            $id = val("SELECT id FROM pi_persons WHERE legal_document=? LIMIT 1", [
+            $id = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE legal_document=? LIMIT 1", [
                 $doc,
             ]);
             if ($id) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), updated_at=NOW() WHERE id=?",
                     [$name, $id],
                 );
                 return (int) $id;
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_persons (full_name,cpf,birth_date,legal_document,created_at) VALUES (?,NULL,NULL,?,NOW())",
                 [$name, $doc],
             );
-            return db_last_insert_id();
+            return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
         }
         throw new RuntimeException("Informe CPF ou CNPJ válido.");
     
@@ -394,17 +394,17 @@ final class AuthOnboardingRuntimeOperations07
     
     {
         try {
-            $requests = function_exists("telemetry_route_requests_series_20d")
-      ? telemetry_route_requests_series_20d()
+            $requests = is_callable([\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::class, 'telemetry_route_requests_series_20d'])
+      ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_requests_series_20d()
       : [];
             $records = function_exists(
       "telemetry_sequence_records_series_20d",
             )
-      ? telemetry_sequence_records_series_20d()
+      ? \Prontoo\Runtime\SupportTelemetry\SupportTelemetryRuntimeOperations01::telemetry_sequence_records_series_20d()
       : [];
             return [
-      "requests" => login_telemetry_wave_values($requests),
-      "records" => login_telemetry_wave_values($records),
+      "requests" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_values($requests),
+      "records" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_values($records),
             ];
         } catch (Throwable $error) {
             error_log(
@@ -418,7 +418,7 @@ final class AuthOnboardingRuntimeOperations07
     public static function login_telemetry_wave_html(): string
     
     {
-        $data = login_telemetry_wave_data();
+        $data = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_data();
         $requests = $data["requests"];
         $records = $data["records"];
         $maximum = max(
@@ -426,20 +426,20 @@ final class AuthOnboardingRuntimeOperations07
             $requests ? max($requests) : 0.0,
             $records ? max($records) : 0.0,
         );
-        $requestsPath = login_telemetry_wave_path(
+        $requestsPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_path(
             $requests,
             $maximum,
         );
-        $recordsPath = login_telemetry_wave_path(
+        $recordsPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_path(
             $records,
             $maximum,
         );
         return '<div class="login-telemetry-wave" data-login-telemetry-wave data-refresh-url="' .
-            e(href("login_telemetry_wave")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login_telemetry_wave")) .
             '" data-refresh-ms="900000" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d="' .
-            e($requestsPath) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($requestsPath) .
             '"/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d="' .
-            e($recordsPath) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recordsPath) .
             '"/></svg></div>';
     
     }
@@ -458,7 +458,7 @@ final class AuthOnboardingRuntimeOperations07
         header("Cache-Control: public, max-age=60, stale-while-revalidate=300");
         header("X-Content-Type-Options: nosniff");
         echo json_encode(
-            login_telemetry_wave_data(),
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_data(),
             JSON_UNESCAPED_UNICODE |
       JSON_UNESCAPED_SLASHES |
       JSON_PRESERVE_ZERO_FRACTION,

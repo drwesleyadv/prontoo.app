@@ -29,8 +29,8 @@ final class SecurityAccessRuntimeOperations02
     public static function mfa_record_verify_code(array &$record, string $code): bool
     
     {
-        $secret = mfa_secret_decrypt((string) ($record["secret"] ?? ""));
-        $counter = mfa_totp_matching_counter(
+        $secret = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_decrypt((string) ($record["secret"] ?? ""));
+        $counter = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_matching_counter(
             $secret,
             $code,
             (int) ($record["last_counter"] ?? -1),
@@ -40,11 +40,11 @@ final class SecurityAccessRuntimeOperations02
             $record["updated_at"] = time();
             return true;
         }
-        $normalized = mfa_recovery_code_normalize($code);
+        $normalized = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_code_normalize($code);
         if (strlen($normalized) !== 12) {
             return false;
         }
-        $candidate = mfa_recovery_code_hash($normalized);
+        $candidate = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_recovery_code_hash($normalized);
         foreach ((array) ($record["recovery"] ?? []) as $index => $hash) {
             if (hash_equals((string) $hash, $candidate)) {
                 unset($record["recovery"][$index]);
@@ -63,23 +63,23 @@ final class SecurityAccessRuntimeOperations02
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 return false;
             }
-            $record = mfa_record_load($uid);
+            $record = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid);
             if (!$record) {
                 return false;
             }
-            if (!mfa_record_verify_code($record, $code)) {
+            if (!\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_record_verify_code($record, $code)) {
                 return false;
             }
-            mfa_record_save($uid, $record);
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, $record);
             return true;
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log("[Prontoo MFA unlock] " . $e->getMessage());
                 }
@@ -94,30 +94,30 @@ final class SecurityAccessRuntimeOperations02
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger a atualização MFA.",
                 );
             }
-            $record = mfa_record_load($uid);
-            if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            $record = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid);
+            if (!$record || !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_record_verify_code($record, $currentCode)) {
                 throw new RuntimeException(
                     "O código de autenticação não confere.",
                 );
             }
-            $codes = mfa_recovery_codes_generate();
+            $codes = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_codes_generate();
             $record["recovery"] = array_map(
                 "mfa_recovery_code_hash",
                 $codes,
             );
             $record["updated_at"] = time();
-            mfa_record_save($uid, $record);
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, $record);
             return $codes;
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo MFA recovery unlock] " . $e->getMessage(),
@@ -138,28 +138,28 @@ final class SecurityAccessRuntimeOperations02
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger a troca do autenticador.",
                 );
             }
-            $record = mfa_record_load($uid);
-            if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            $record = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid);
+            if (!$record || !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_record_verify_code($record, $currentCode)) {
                 throw new RuntimeException(
                     "O código MFA atual não confere.",
                 );
             }
-            $counter = mfa_totp_matching_counter($newSecret, $newCode);
+            $counter = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_matching_counter($newSecret, $newCode);
             if ($counter === null) {
                 throw new RuntimeException(
                     "O código do novo autenticador não confere.",
                 );
             }
-            $codes = mfa_recovery_codes_generate();
-            mfa_record_save($uid, [
+            $codes = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_codes_generate();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, [
                 "v" => 1,
-                "secret" => mfa_secret_encrypt($newSecret),
+                "secret" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_encrypt($newSecret),
                 "recovery" => array_map("mfa_recovery_code_hash", $codes),
                 "last_counter" => $counter,
                 "enrolled_at" => (int) ($record["enrolled_at"] ?? time()),
@@ -170,7 +170,7 @@ final class SecurityAccessRuntimeOperations02
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo MFA replace unlock] " . $e->getMessage(),
@@ -187,14 +187,14 @@ final class SecurityAccessRuntimeOperations02
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger a desativação MFA.",
                 );
             }
             if (
-                (int) val(
+                (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT is_global_admin FROM pi_users WHERE id=? LIMIT 1",
                     [$uid],
                 ) === 1
@@ -203,17 +203,17 @@ final class SecurityAccessRuntimeOperations02
                     "A proteção MFA é obrigatória para Desenvolvedor.",
                 );
             }
-            $record = mfa_record_load($uid);
-            if (!$record || !mfa_record_verify_code($record, $currentCode)) {
+            $record = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_load($uid);
+            if (!$record || !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_record_verify_code($record, $currentCode)) {
                 throw new RuntimeException(
                     "O código de autenticação não confere.",
                 );
             }
-            q("DELETE FROM pi_meta WHERE meta_key=?", [mfa_meta_key($uid)]);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_meta WHERE meta_key=?", [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid)]);
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo MFA disable unlock] " . $e->getMessage(),
@@ -228,11 +228,11 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        if (!has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return "bootstrap";
         }
         try {
-            return (string) meta_get("auth_generation", "0");
+            return (string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("auth_generation", "0");
         } catch (Throwable $e) {
             error_log("[Prontoo auth generation] " . $e->getMessage());
             return "0";
@@ -243,13 +243,13 @@ final class SecurityAccessRuntimeOperations02
     public static function user_auth_generation_current(int $uid): string
     
     {
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return "0";
         }
         try {
-            return (string) (val(
+            return (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
-                [user_auth_generation_key($uid)],
+                [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::user_auth_generation_key($uid)],
             ) ?? "0");
         } catch (Throwable $e) {
             error_log("[Prontoo user auth generation] " . $e->getMessage());
@@ -261,29 +261,29 @@ final class SecurityAccessRuntimeOperations02
     public static function user_auth_generation_ensure(int $uid): string
     
     {
-        $current = user_auth_generation_current($uid);
+        $current = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_current($uid);
         if ($current !== "0" && $current !== "") {
             return $current;
         }
         $lock = "prontoo_auth_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger a geração de autenticação.",
                 );
             }
-            $current = user_auth_generation_current($uid);
+            $current = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_current($uid);
             if ($current === "0" || $current === "") {
                 $current = bin2hex(random_bytes(24));
-                meta_set(user_auth_generation_key($uid), $current);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::user_auth_generation_key($uid), $current);
             }
             return $current;
         } finally {
             if ($locked) {
                 try {
-                    val("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo user auth generation unlock] " .
@@ -302,9 +302,9 @@ final class SecurityAccessRuntimeOperations02
             throw new RuntimeException("Usuário inválido para revogação de sessão.");
         }
         $generation = bin2hex(random_bytes(24));
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)",
-            [user_auth_generation_key($uid), $generation],
+            [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::user_auth_generation_key($uid), $generation],
         );
         return $generation;
     
@@ -331,7 +331,7 @@ final class SecurityAccessRuntimeOperations02
         if ($privilegedVerified) {
             $_SESSION["privileged_auth_at"] = $now;
         }
-        $_SESSION["auth_generation"] = auth_generation_current();
+        $_SESSION["auth_generation"] = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::auth_generation_current();
         $_SESSION["auth_policy_generation"] = defined(
             "PRONTOO_AUTH_POLICY_GENERATION",
         )
@@ -342,7 +342,7 @@ final class SecurityAccessRuntimeOperations02
             $_SESSION["user_auth_generation"] =
                 $verifiedUserGeneration !== "" && $verifiedUserGeneration !== "0"
                     ? $verifiedUserGeneration
-                    : user_auth_generation_ensure($uid);
+                    : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_ensure($uid);
         }
     
     }
@@ -351,16 +351,16 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        if ($uid <= 0 || !has_cfg()) {
+        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
-        $current = auth_generation_current();
+        $current = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::auth_generation_current();
         $session = (string) ($_SESSION["auth_generation"] ?? "");
         $policy = defined("PRONTOO_AUTH_POLICY_GENERATION")
             ? PRONTOO_AUTH_POLICY_GENERATION
             : "password-session-v1";
         $sessionPolicy = (string) ($_SESSION["auth_policy_generation"] ?? "");
-        $userCurrent = user_auth_generation_current($uid);
+        $userCurrent = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_current($uid);
         $userSession = (string) ($_SESSION["user_auth_generation"] ?? "");
         if (
             $sessionPolicy === $policy &&
@@ -371,7 +371,7 @@ final class SecurityAccessRuntimeOperations02
             return;
         }
         try {
-            audit("sessao_obsoleta_encerrada", "seguranca", $uid, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("sessao_obsoleta_encerrada", "seguranca", $uid, [
                 "clinic_id" => (int) ($_SESSION["clinic_id"] ?? 0) ?: null,
                 "role_code" => (string) ($_SESSION["role_code"] ?? ""),
                 "audit_body" =>
@@ -383,11 +383,11 @@ final class SecurityAccessRuntimeOperations02
         } catch (Throwable $e) {
             error_log("[Prontoo auth generation audit] " . $e->getMessage());
         }
-        security_clear_legacy_device_cookie();
-        secure_session_destroy();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
+        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
         if (!headers_sent()) {
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-            header("Location: " . href("login", ["relogin" => "1"]));
+            header("Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login", ["relogin" => "1"]));
         }
         exit();
     
@@ -412,14 +412,14 @@ final class SecurityAccessRuntimeOperations02
             return;
         }
     
-        setcookie(device_cookie_name(), "", [
+        setcookie(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name(), "", [
             "expires" => time() - 42000,
             "path" => "/",
-            "secure" => device_secure_cookie(),
+            "secure" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_secure_cookie(),
             "httponly" => true,
             "samesite" => "Lax",
         ]);
-        unset($_COOKIE[device_cookie_name()]);
+        unset($_COOKIE[\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name()]);
     
     }
 
@@ -427,8 +427,8 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        device_cookie_set("", time() - 42000);
-        unset($_COOKIE[device_cookie_name()]);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_cookie_set("", time() - 42000);
+        unset($_COOKIE[\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name()]);
     
     }
 
@@ -440,7 +440,7 @@ final class SecurityAccessRuntimeOperations02
             isset($_SERVER["HTTP_COOKIE"]) &&
                 str_contains((string) $_SERVER["HTTP_COOKIE"], "PRONTOO_DEVICE=")
         ) {
-            device_cookie_clear();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_cookie_clear();
         }
     
     }
@@ -448,12 +448,12 @@ final class SecurityAccessRuntimeOperations02
     public static function security_retire_persistent_devices_for_user(int $uid): void
     
     {
-        if ($uid <= 0 || !has_cfg()) {
-            security_clear_legacy_device_cookie();
+        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
             return;
         }
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_user_devices SET revoked_at=COALESCE(revoked_at,NOW()), logout_at=COALESCE(logout_at,NOW()), token_hash=SHA2(CONCAT(token_hash,':retired:',id),256), updated_at=NOW() WHERE user_id=? AND (revoked_at IS NULL OR logout_at IS NULL)",
                 [$uid],
             );
@@ -462,7 +462,7 @@ final class SecurityAccessRuntimeOperations02
                 "[Prontoo persistent device retirement] " . $e->getMessage(),
             );
         }
-        security_clear_legacy_device_cookie();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
     
     }
 
@@ -470,7 +470,7 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        return hash_hmac("sha256", $token, secret_key());
+        return hash_hmac("sha256", $token, \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key());
     
     }
 
@@ -486,7 +486,7 @@ final class SecurityAccessRuntimeOperations02
                 "|" .
                 ($_SERVER["REMOTE_ADDR"] ?? "") .
                 "|prontoo-device",
-            secret_key(),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
         );
     
     }
@@ -496,7 +496,7 @@ final class SecurityAccessRuntimeOperations02
     {
     
         $hash = strtolower(mb_trim((string) ($_POST["device_hash"] ?? "")));
-        return device_hash_is_valid($hash) ? $hash : device_fallback_hash();
+        return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_hash_is_valid($hash) ? $hash : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_fallback_hash();
     
     }
 
@@ -509,7 +509,7 @@ final class SecurityAccessRuntimeOperations02
             $meta = "";
         }
         return [
-            "hash" => device_client_hash_from_post(),
+            "hash" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_client_hash_from_post(),
             "label" => mb_substr(
                 mb_trim((string) ($_POST["device_label"] ?? "")),
                 0,
@@ -531,7 +531,7 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        $raw = (string) ($_COOKIE[device_cookie_name()] ?? "");
+        $raw = (string) ($_COOKIE[\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name()] ?? "");
         if ($raw === "") {
             return null;
         }
@@ -544,7 +544,7 @@ final class SecurityAccessRuntimeOperations02
         $hash = strtolower($hash);
         if (
             $uid <= 0 ||
-            !device_hash_is_valid($hash) ||
+            !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_hash_is_valid($hash) ||
             !preg_match('/^[a-f0-9]{64}$/', $token)
         ) {
             return null;
@@ -564,7 +564,7 @@ final class SecurityAccessRuntimeOperations02
         $roleCode = null;
         if ($scope === "clinic" && $clinicRoleId && $clinicRoleId > 0) {
             try {
-                $r = one(
+                $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT clinic_id,role_code FROM pi_user_roles WHERE id=? LIMIT 1",
                     [$clinicRoleId],
                 );
@@ -588,7 +588,7 @@ final class SecurityAccessRuntimeOperations02
     ): void 
     {
     
-        security_retire_persistent_devices_for_user($uid);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
     
     }
 
@@ -598,7 +598,7 @@ final class SecurityAccessRuntimeOperations02
     ): void 
     {
     
-        security_clear_legacy_device_cookie();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
     
     }
 
@@ -606,7 +606,7 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        security_clear_legacy_device_cookie();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
     
     }
 
@@ -614,7 +614,7 @@ final class SecurityAccessRuntimeOperations02
     
     {
     
-        security_clear_legacy_device_cookie();
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         return false;
     
     }

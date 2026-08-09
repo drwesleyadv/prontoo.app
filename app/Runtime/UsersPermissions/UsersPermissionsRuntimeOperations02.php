@@ -34,7 +34,7 @@ final class UsersPermissionsRuntimeOperations02
             return;
         }
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT DISTINCT ur.clinic_id,ur.role_code FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE ur.user_id=? AND ur.active=1 AND (cr.role_code IS NULL OR COALESCE(cr.enabled,0)=0)",
                 [$uid],
             )->fetchAll();
@@ -47,7 +47,7 @@ final class UsersPermissionsRuntimeOperations02
                 }
             }
             foreach ($byClinic as $cid => $roles) {
-                clinic_enable_roles_for_assignment(
+                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_enable_roles_for_assignment(
                     (int) $cid,
                     $roles,
                     "active_user_link_repair",
@@ -70,7 +70,7 @@ final class UsersPermissionsRuntimeOperations02
         if ($cid <= 0 || $uid <= 0) {
             throw new RuntimeException("Colaborador ou consultório não informado.");
         }
-        $manageable = manageable_team_roles($cid);
+        $manageable = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid);
         $roles = array_values(
             array_intersect(
                 array_keys($manageable),
@@ -84,30 +84,30 @@ final class UsersPermissionsRuntimeOperations02
                     " cargos para o colaborador.",
             );
         }
-        clinic_assert_minimum_roles_after_change($cid, $uid, $roles);
-        $db = pdo();
+        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_minimum_roles_after_change($cid, $uid, $roles);
+        $db = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $own = !$db->inTransaction();
         if ($own) {
-            db_begin_transaction();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
         }
         try {
-            clinic_enable_roles_for_assignment($cid, $roles, "roles_sync");
-            $ownerFlag = (int) (val(
+            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_enable_roles_for_assignment($cid, $roles, "roles_sync");
+            $ownerFlag = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT COALESCE(MAX(is_owner),0) FROM pi_user_roles WHERE user_id=? AND clinic_id=?",
                 [$uid, $cid],
             ) ?: 0);
             $ph = implode(",", array_fill(0, count($roles), "?"));
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_user_roles SET active=0 WHERE user_id=? AND clinic_id=? AND active=1 AND role_code NOT IN ($ph)",
                 array_merge([$uid, $cid], $roles),
             );
             foreach ($roles as $role) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) VALUES (?,?,?,?,1,NOW()) ON DUPLICATE KEY UPDATE active=1,is_owner=GREATEST(is_owner,VALUES(is_owner))",
                     [$uid, $cid, $role, $ownerFlag],
                 );
             }
-            $actualRoles = active_role_codes_for_user_in_clinic($cid, $uid);
+            $actualRoles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::active_role_codes_for_user_in_clinic($cid, $uid);
             $expectedRoles = $roles;
             sort($actualRoles);
             sort($expectedRoles);
@@ -117,18 +117,18 @@ final class UsersPermissionsRuntimeOperations02
                 );
             }
             if ($own && $db->inTransaction()) {
-                db_commit();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
             }
         } catch (Throwable $e) {
             if ($own && $db->inTransaction()) {
-                db_rollback();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
             }
             throw $e;
         }
         if ($propagate) {
-            propagate_user_role_permissions($cid, $uid, "roles_sync");
+            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
         }
-        return active_role_codes_for_user_in_clinic($cid, $uid);
+        return \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::active_role_codes_for_user_in_clinic($cid, $uid);
     
     }
 
@@ -139,7 +139,7 @@ final class UsersPermissionsRuntimeOperations02
         if ($cid <= 0 || $uid <= 0) {
             return [];
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT role_code FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND active=1 ORDER BY FIELD(role_code,'recepcionista','assistente','medico','gerente'), id ASC",
             [$uid, $cid],
         )->fetchAll(PDO::FETCH_COLUMN);
@@ -158,7 +158,7 @@ final class UsersPermissionsRuntimeOperations02
             return null;
         }
         if ($preferRoleId && $preferRoleId > 0) {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,clinic_id,role_code FROM pi_user_roles WHERE id=? AND user_id=? AND clinic_id=? AND active=1 LIMIT 1",
                 [$preferRoleId, $uid, $cid],
             );
@@ -166,7 +166,7 @@ final class UsersPermissionsRuntimeOperations02
                 return $r;
             }
         }
-        return one(
+        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,clinic_id,role_code FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND active=1 ORDER BY is_owner DESC, FIELD(role_code,'gerente','medico','assistente','recepcionista'), id ASC LIMIT 1",
             [$uid, $cid],
         ) ?:
@@ -185,11 +185,11 @@ final class UsersPermissionsRuntimeOperations02
             return;
         }
         try {
-            seed_permissions($cid);
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::seed_permissions($cid);
         } catch (Throwable $e) {
             error_log("[Prontoo role propagation seed] " . $e->getMessage());
         }
-        $replacement = preferred_active_role_link_for_user(
+        $replacement = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::preferred_active_role_link_for_user(
             $cid,
             $uid,
             (int) ($_SESSION["uid"] ?? 0) === $uid &&
@@ -198,8 +198,8 @@ final class UsersPermissionsRuntimeOperations02
                 : null,
         );
         try {
-            $newGeneration = user_auth_generation_rotate($uid);
-            security_retire_persistent_devices_for_user($uid);
+            $newGeneration = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
             if ((int) ($_SESSION["uid"] ?? 0) === $uid) {
                 $_SESSION["user_auth_generation"] = $newGeneration;
             }
@@ -227,8 +227,8 @@ final class UsersPermissionsRuntimeOperations02
                 unset($_SESSION["effective_roles"]);
             }
         }
-        if (function_exists("server_json_cache_clear_categories")) {
-            server_json_cache_clear_categories([
+        if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_clear_categories'])) {
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([
                 "context",
                 "cmdbar",
                 "permissions",
@@ -239,7 +239,7 @@ final class UsersPermissionsRuntimeOperations02
             ]);
         }
         try {
-            audit("permissoes_atualizadas", "usuario", $uid, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("permissoes_atualizadas", "usuario", $uid, [
                 "clinic_id" => $cid,
                 "motivo" => $reason,
                 "audit_body" =>
@@ -257,7 +257,7 @@ final class UsersPermissionsRuntimeOperations02
     
         $labels = [];
         foreach ($codes as $code) {
-            $labels[] = role_label_for((string) $code, $cid);
+            $labels[] = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) $code, $cid);
         }
         return $labels;
     
@@ -274,7 +274,7 @@ final class UsersPermissionsRuntimeOperations02
         foreach ($codes as $code) {
             $h .=
                 '<span class="role-badge">' .
-                e(role_label_for((string) $code, $cid)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) $code, $cid)) .
                 "</span>";
         }
         return $h . "</span>";
@@ -285,13 +285,13 @@ final class UsersPermissionsRuntimeOperations02
     
     {
     
-        $links = q(
+        $links = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND active=1 ORDER BY id ASC LIMIT 200",
             [$cid],
         )->fetchAll();
-        $users = fetch_map(
+        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_users",
-            int_ids($links, "user_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($links, "user_id"),
             "id,name,active",
         );
         $o = [];
@@ -315,7 +315,7 @@ final class UsersPermissionsRuntimeOperations02
             return [];
         }
         $ph = implode(",", array_fill(0, count($roles), "?"));
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND active=1 AND role_code IN ($ph) ORDER BY id DESC LIMIT 800",
             array_merge([$cid], $roles),
         )->fetchAll();
@@ -331,7 +331,7 @@ final class UsersPermissionsRuntimeOperations02
     
     {
     
-        $acts = actions();
+        $acts = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions();
         $spec = [
             "painel" => ["ops" => ["view"], "note" => "Painel é somente leitura."],
             "leads" => [
@@ -419,7 +419,7 @@ final class UsersPermissionsRuntimeOperations02
     
     {
     
-        $defs = permission_module_defs();
+        $defs = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
         return isset($defs[$module]) &&
             in_array($op, $defs[$module]["ops"] ?? [], true);
     
@@ -431,7 +431,7 @@ final class UsersPermissionsRuntimeOperations02
     ): bool 
     {
     
-        $acts = actions();
+        $acts = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions();
         return isset($acts[$module]) &&
             in_array($role, $acts[$module]["roles"] ?? [], true);
     
@@ -444,8 +444,8 @@ final class UsersPermissionsRuntimeOperations02
     ): bool 
     {
     
-        return permission_module_available_for_role($role, $module) &&
-            permission_operation_supported($module, $op);
+        return \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_available_for_role($role, $module) &&
+            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($module, $op);
     
     }
 
@@ -457,7 +457,7 @@ final class UsersPermissionsRuntimeOperations02
     ): bool 
     {
     
-        foreach (collaborator_permission_matrix_base($role, $cid) as $row) {
+        foreach (\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations03::collaborator_permission_matrix_base($role, $cid) as $row) {
             if (($row["key"] ?? "") === $module) {
                 return !empty($row[$op]);
             }
@@ -480,7 +480,7 @@ final class UsersPermissionsRuntimeOperations02
             $stored = [];
             try {
                 foreach (
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "SELECT action_key,operation_key,allowed FROM pi_permission_rules WHERE clinic_id=? AND role_code=?",
                         [$cid, $role],
                     )->fetchAll()
@@ -493,16 +493,16 @@ final class UsersPermissionsRuntimeOperations02
                 error_log("[Prontoo permission rules] " . $e->getMessage());
             }
             $baseDefaults = [];
-            foreach (collaborator_permission_matrix_base($role, $cid) as $baseRow) {
+            foreach (\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations03::collaborator_permission_matrix_base($role, $cid) as $baseRow) {
                 $baseKey = (string) ($baseRow["key"] ?? "");
                 if ($baseKey !== "") {
                     $baseDefaults[$baseKey] = $baseRow;
                 }
             }
             $matrix = [];
-            foreach (permission_module_defs() as $module => $definition) {
-                foreach (permission_operations() as $operation => $label) {
-                    if (!permission_operation_configurable($role, $module, $operation)) {
+            foreach (\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs() as $module => $definition) {
+                foreach (\Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations() as $operation => $label) {
+                    if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_configurable($role, $module, $operation)) {
                         $matrix[$module][$operation] = false;
                         continue;
                     }
@@ -517,7 +517,7 @@ final class UsersPermissionsRuntimeOperations02
             if ($role === "gerente") {
                 foreach ($matrix as $module => $operations) {
                     foreach ($operations as $operation => $value) {
-                        if (permission_operation_configurable($role, $module, $operation)) {
+                        if (\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_configurable($role, $module, $operation)) {
                             $matrix[$module][$operation] = true;
                         }
                     }
@@ -525,11 +525,11 @@ final class UsersPermissionsRuntimeOperations02
             }
             return $matrix;
         };
-        if (function_exists("server_json_cache_remember") && $cid > 0) {
-            $matrix = server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) && $cid > 0) {
+            $matrix = \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "permissions",
-                server_json_cache_safe_key("role_rules", [$cid, $role]),
-                server_json_cache_ttl("permissions"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("role_rules", [$cid, $role]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("permissions"),
                 $loader,
                 ["clinic:" . $cid, "role:" . $role],
             );
@@ -544,35 +544,35 @@ final class UsersPermissionsRuntimeOperations02
     
     {
     
-        $mods = permission_module_defs();
-        $ops = permission_operations();
+        $mods = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
+        $ops = \Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations();
         foreach ($mods as $module => $m) {
             $row = $posted[$module] ?? [];
             $any = false;
             foreach (["add", "edit", "delete"] as $op) {
                 if (
-                    permission_operation_configurable($role, $module, $op) &&
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_configurable($role, $module, $op) &&
                     isset($row[$op])
                 ) {
                     $any = true;
                 }
             }
             $view =
-                permission_operation_configurable($role, $module, "view") &&
+                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_configurable($role, $module, "view") &&
                 (isset($row["view"]) || $any);
             foreach ($ops as $op => $label) {
-                $supported = permission_operation_configurable($role, $module, $op);
+                $supported = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_configurable($role, $module, $op);
                 $allowed =
                     $supported && ($op === "view" ? $view : isset($row[$op]));
                 if ($role === "gerente" && $supported) {
                     $allowed = true;
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_permission_rules (clinic_id,role_code,action_key,operation_key,allowed) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE allowed=VALUES(allowed)",
                     [$cid, $role, $module, $op, $allowed ? 1 : 0],
                 );
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allowed=VALUES(allowed)",
                 [$cid, $role, $module, $view ? 1 : 0],
             );

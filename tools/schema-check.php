@@ -19,14 +19,14 @@ if (!defined('PRONTOO_MIN_MYSQL_VERSION')) {
 }
 $GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [];
 $GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid();
-if (!function_exists('cfg')) {
+if (!is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'cfg'])) {
     function cfg(): array
     {
 
         return (array) ($GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] ?? []);
     }
 }
-if (!function_exists('storage_path')) {
+if (!is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])) {
     function storage_path(string $path = ''): string
     {
 
@@ -34,14 +34,14 @@ if (!function_exists('storage_path')) {
         return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
 }
-if (!function_exists('prontoo_fs_chmod')) {
+if (!is_callable([\Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::class, 'prontoo_fs_chmod'])) {
     function prontoo_fs_chmod(string $path, int $mode, bool $required = true): bool
     {
 
         return !file_exists($path) || @chmod($path, $mode);
     }
 }
-if (!function_exists('prontoo_fs_unlink')) {
+if (!is_callable([\Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::class, 'prontoo_fs_unlink'])) {
     function prontoo_fs_unlink(string $path, bool $required = true): bool
     {
 
@@ -62,7 +62,7 @@ foreach ($matches as $match) {
     $blocks[(string) $match[1]] = (string) $match[0];
 }
 $errors = [];
-$expectedTables = prontoo_schema_expected_table_names();
+$expectedTables = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_expected_table_names();
 $expectedTableCount = count($expectedTables);
 if (count($blocks) !== $expectedTableCount) {
     $errors[] = 'schema_table_count:' . count($blocks);
@@ -73,7 +73,7 @@ if ($blockNames !== $expectedTables) {
     $errors[] = 'schema_table_set_divergent';
 }
 try {
-    $runtimeStatements = prontoo_schema_statements();
+    $runtimeStatements = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_statements();
     if (count($runtimeStatements) !== $expectedTableCount) {
         $errors[] = 'runtime_schema_statement_count:' . count($runtimeStatements);
     }
@@ -206,7 +206,7 @@ if ($dsn !== '') {
     $dropAll($pdo);
     $ddlBlocked = false;
     try {
-        db_reject_runtime_ddl('ALTER TABLE pi_meta ADD COLUMN forbidden int');
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_reject_runtime_ddl('ALTER TABLE pi_meta ADD COLUMN forbidden int');
     } catch (RuntimeException $error) {
         $ddlBlocked = str_contains($error->getMessage(), 'estrutura do banco está congelada');
     }
@@ -227,18 +227,18 @@ if ($dsn !== '') {
         'db_user' => getenv('PRONTOO_SCHEMA_USER') ?: 'root',
         'db_pass' => getenv('PRONTOO_SCHEMA_PASS') ?: '',
     ];
-    $storage = storage_path();
+    $storage = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path();
     if (!is_dir($storage) && !mkdir($storage, 0750, true) && !is_dir($storage)) {
         throw new RuntimeException('Não foi possível criar storage temporário do instalador.');
     }
-    prontoo_schema_clear_caches();
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_schema_clear_caches();
     Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
         static function (): void {
 
-            install_fresh_schema();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
         },
     );
-    $runtimePdo = pdo();
+    $runtimePdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
     $installedCount = (int) $runtimePdo->query(
         "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
     )->fetchColumn();
@@ -251,7 +251,7 @@ if ($dsn !== '') {
     if (!hash_equals(PRONTOO_SCHEMA_REV, $installedRevision)) {
         $errors[] = 'runtime_install_schema_revision';
     }
-    if (!is_file(schema_lock_file())) {
+    if (!is_file(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file())) {
         $errors[] = 'runtime_install_schema_lock_missing';
     }
     $now = time();
@@ -277,7 +277,7 @@ if ($dsn !== '') {
         $errors[] = 'runtime_install_initial_admin_contract';
     }
     $dropAll($runtimePdo);
-    prontoo_fs_unlink(schema_lock_file(), false);
+    \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file(), false);
     @rmdir($storage);
 
     $dbResult = [

@@ -36,7 +36,7 @@ final class SecurityAccessInfrastructureOperations01
         $bucket = preg_replace("/[^a-zA-Z0-9_\-]/", "_", $bucket) ?: "rate";
         $limit = max(1, $limit);
         $windowSeconds = max(1, $windowSeconds);
-        $dir = storage_path("cache/rate-limits");
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/rate-limits");
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             error_log("[Prontoo rate limit] Diretório de controle indisponível.");
             return true;
@@ -145,7 +145,7 @@ final class SecurityAccessInfrastructureOperations01
         $length = mb_strlen($s);
         return $length >= 8 &&
             $length <= 128 &&
-            !password_common_rejected($s);
+            !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_common_rejected($s);
     
     }
 
@@ -231,7 +231,7 @@ final class SecurityAccessInfrastructureOperations01
     public static function mfa_totp_code(string $secret, int $counter): string
     
     {
-        $binary = mfa_base32_decode($secret);
+        $binary = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_base32_decode($secret);
         $counterBytes = pack(
             "N2",
             (int) floor($counter / 4294967296),
@@ -263,12 +263,12 @@ final class SecurityAccessInfrastructureOperations01
         if (strlen($code) !== 6) {
             return null;
         }
-        $current = mfa_totp_counter();
+        $current = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_counter();
         for ($delta = -1; $delta <= 1; $delta++) {
             $counter = $current + $delta;
             if (
                 $counter > $lastCounter &&
-                hash_equals(mfa_totp_code($secret, $counter), $code)
+                hash_equals(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_code($secret, $counter), $code)
             ) {
                 return $counter;
             }
@@ -310,7 +310,7 @@ final class SecurityAccessInfrastructureOperations01
     public static function mfa_totp_secret_generate(): string
     
     {
-        return mfa_base32_encode(random_bytes(20));
+        return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_base32_encode(random_bytes(20));
     
     }
 
@@ -436,7 +436,7 @@ final class SecurityAccessInfrastructureOperations01
     
     {
     
-        $payload = scope_violation_detail_decode($details);
+        $payload = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_detail_decode($details);
         $summary = mb_trim((string) ($payload["reason"] ?? ""));
         $context = array_values(
             array_filter([
@@ -540,8 +540,8 @@ final class SecurityAccessInfrastructureOperations01
     
     {
     
-        $expected = scope_guard_expected_clinic_id();
-        return $expected > 0 ? $expected : session_clinic_scope_id();
+        $expected = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id();
+        return $expected > 0 ? $expected : \Prontoo\Core\Architecture\OperationGateway::invoke('session_clinic_scope_id', );
     
     }
 
@@ -563,7 +563,7 @@ final class SecurityAccessInfrastructureOperations01
             "PRONTOO_SCOPE_GUARD_EXPECTED_CLINIC_ID",
             $GLOBALS,
         );
-        $previous = scope_guard_expected_clinic_id();
+        $previous = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id();
         if ($previous > 0 && $previous !== $clinicId) {
             throw new LogicException(
                 "Uma execução não pode trocar de consultório durante a mesma operação.",

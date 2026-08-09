@@ -42,10 +42,10 @@ final class InstallInstallerRuntimeOperations01
     
     {
     
-        if (function_exists("document_pdf_dir")) {
-            return document_pdf_dir();
+        if (is_callable([\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::class, 'document_pdf_dir'])) {
+            return \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir();
         }
-        return app_root() . "/pdfs";
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/pdfs";
     
     }
 
@@ -72,9 +72,9 @@ final class InstallInstallerRuntimeOperations01
         };
         $add(
             "php_version",
-            prontoo_php_runtime_ok(),
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_php_runtime_ok(),
             "PHP",
-            prontoo_php_runtime_message(),
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_php_runtime_message(),
         );
         foreach (
             ["pdo", "pdo_mysql", "json", "openssl", "date", "hash", "session"]
@@ -87,8 +87,8 @@ final class InstallInstallerRuntimeOperations01
                 extension_loaded($ext) ? "Disponível." : "Ausente no PHP.",
             );
         }
-        $memRaw = prontoo_memory_limit_label();
-        $memOk = prontoo_memory_limit_meets(128 * 1024 * 1024);
+        $memRaw = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_memory_limit_label();
+        $memOk = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_memory_limit_meets(128 * 1024 * 1024);
         $add(
             "memory_limit",
             $memOk,
@@ -96,18 +96,18 @@ final class InstallInstallerRuntimeOperations01
             "memory_limit atual: " . $memRaw . ".",
             "warn",
         );
-        $appDir = dirname(cfg_file());
+        $appDir = dirname(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file());
         $paths = [
             "app/" => $appDir,
-            "ssd/" => storage_path(),
-            "ssd/cache/" => storage_path("cache"),
-            "ssd/telemetry/" => storage_path("telemetry"),
-            "ssd/tmp/" => storage_path("tmp"),
-            "ssd/pdfs/" => install_pdf_dir(),
+            "ssd/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path(),
+            "ssd/cache/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache"),
+            "ssd/telemetry/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("telemetry"),
+            "ssd/tmp/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("tmp"),
+            "ssd/pdfs/" => \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_pdf_dir(),
         ];
         foreach ($paths as $label => $dir) {
             if ($touchPaths && !is_dir($dir)) {
-                prontoo_fs_mkdir($dir, 0750, true, false);
+                \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_mkdir($dir, 0750, true, false);
             }
             if (is_dir($dir)) {
                 $ok = is_writable($dir);
@@ -122,8 +122,8 @@ final class InstallInstallerRuntimeOperations01
                 $test = rtrim($dir, "/") . "/.prontoo_install_test_" . getmypid();
                 $ok =
                     is_dir($dir) &&
-                    prontoo_fs_write($test, "ok", LOCK_EX, false) !== false;
-                prontoo_fs_unlink($test, false);
+                    \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_write($test, "ok", LOCK_EX, false) !== false;
+                \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($test, false);
             }
             $add(
                 "write_" . trim(str_replace("/", "_", $label), "_"),
@@ -234,16 +234,16 @@ final class InstallInstallerRuntimeOperations01
     {
     
         $pdo = PDO::connect(
-            install_mysql_dsn(
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_mysql_dsn(
                 (string) ($context["db_host"] ?? ""),
                 (string) ($context["db_name"] ?? ""),
             ),
             (string) ($context["db_user"] ?? ""),
             (string) ($context["db_pass"] ?? ""),
-            install_pdo_options(),
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_pdo_options(),
         );
-        db_assert_mysql_runtime($pdo);
-        db_apply_mysql_session_contract($pdo, $strictMode);
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_assert_mysql_runtime($pdo);
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_apply_mysql_session_contract($pdo, $strictMode);
         return $pdo;
     
     }
@@ -267,7 +267,7 @@ final class InstallInstallerRuntimeOperations01
     
     {
     
-        return match (install_database_error_code($e)) {
+        return match (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_error_code($e)) {
             1045
                 => "O MySQL recusou o usuário ou a senha informados. Confira o usuário completo do banco, a senha e se esse usuário está vinculado ao banco.",
             1044
@@ -287,7 +287,7 @@ final class InstallInstallerRuntimeOperations01
     
     {
     
-        $code = install_database_error_code($e);
+        $code = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_error_code($e);
         $lines = [];
         if ($code === 1045) {
             $lines[] =
@@ -334,7 +334,7 @@ final class InstallInstallerRuntimeOperations01
             return $lines;
         }
         try {
-            $probe = install_open_database($context);
+            $probe = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_open_database($context);
             $version = (string) $probe->query("SELECT VERSION()")->fetchColumn();
             $database = (string) $probe->query("SELECT DATABASE()")->fetchColumn();
             $tableCount = (int) $probe
@@ -374,10 +374,10 @@ final class InstallInstallerRuntimeOperations01
             }
         } catch (Throwable $dbError) {
             $lines[] = "Probe DB: falhou.";
-            foreach (install_database_hint_lines($dbError, $context) as $line) {
+            foreach (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_hint_lines($dbError, $context) as $line) {
                 $lines[] = "DB Diagnóstico: " . $line;
             }
-            foreach (install_throwable_lines($dbError) as $line) {
+            foreach (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_throwable_lines($dbError) as $line) {
                 $lines[] = "DB " . $line;
             }
         }
@@ -408,39 +408,39 @@ final class InstallInstallerRuntimeOperations01
         $lines[] = "display_errors: " . (string) ini_get("display_errors");
         $lines[] =
             "extensions: pdo=" .
-            install_yesno(extension_loaded("pdo")) .
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("pdo")) .
             "; pdo_mysql=" .
-            install_yesno(extension_loaded("pdo_mysql")) .
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("pdo_mysql")) .
             "; json=" .
-            install_yesno(extension_loaded("json")) .
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("json")) .
             "; openssl=" .
-            install_yesno(extension_loaded("openssl")) .
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("openssl")) .
             "; hash=" .
-            install_yesno(extension_loaded("hash")) .
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("hash")) .
             "; session=" .
-            install_yesno(extension_loaded("session"));
-        $lines[] = "app_root: " . app_root();
-        $lines[] = "cfg_file: " . cfg_file();
-        $lines[] = "install_state: " . install_state();
-        $lines[] = "has_cfg: " . install_yesno(has_cfg());
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(extension_loaded("session"));
+        $lines[] = "app_root: " . \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root();
+        $lines[] = "cfg_file: " . \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file();
+        $lines[] = "install_state: " . \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_state();
+        $lines[] = "has_cfg: " . \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg());
         $lines[] =
             "install.lock exists: " .
-            install_yesno(is_file(storage_path("install.lock")));
+            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno(is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("install.lock")));
         foreach (
             [
-                ["app/", dirname(cfg_file())],
-                ["app/config.php", cfg_file()],
-                ["ssd/", storage_path()],
-                ["ssd/install.lock", storage_path("install.lock")],
-                ["ssd/cache/", storage_path("cache")],
-                ["ssd/telemetry/", storage_path("telemetry")],
-                ["ssd/tmp/", storage_path("tmp")],
-                ["ssd/pdfs/ (persistência física)", install_pdf_dir()],
-                ["ssd/img/", storage_path("img")],
+                ["app/", dirname(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file())],
+                ["app/config.php", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file()],
+                ["ssd/", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path()],
+                ["ssd/install.lock", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("install.lock")],
+                ["ssd/cache/", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache")],
+                ["ssd/telemetry/", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("telemetry")],
+                ["ssd/tmp/", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("tmp")],
+                ["ssd/pdfs/ (persistência física)", \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_pdf_dir()],
+                ["ssd/img/", \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("img")],
             ]
             as [$label, $path]
         ) {
-            $r = install_path_report($label, $path);
+            $r = \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_path_report($label, $path);
             $lines[] =
                 "PATH " .
                 $r["label"] .
@@ -449,19 +449,19 @@ final class InstallInstallerRuntimeOperations01
                 "; realpath=" .
                 $r["realpath"] .
                 "; exists=" .
-                install_yesno((bool) $r["exists"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["exists"]) .
                 "; dir=" .
-                install_yesno((bool) $r["is_dir"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["is_dir"]) .
                 "; file=" .
-                install_yesno((bool) $r["is_file"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["is_file"]) .
                 "; writable=" .
-                install_yesno((bool) $r["writable"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["writable"]) .
                 "; mode=" .
                 $r["mode"] .
                 "; parent_exists=" .
-                install_yesno((bool) $r["parent_exists"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["parent_exists"]) .
                 "; parent_writable=" .
-                install_yesno((bool) $r["parent_writable"]) .
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_yesno((bool) $r["parent_writable"]) .
                 "; parent_mode=" .
                 $r["parent_mode"];
         }
@@ -484,7 +484,7 @@ final class InstallInstallerRuntimeOperations01
         if (!empty($context["cleanup_note"])) {
             $lines[] = "Cleanup: " . (string) $context["cleanup_note"];
         }
-        foreach (install_database_probe_lines($context) as $line) {
+        foreach (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_probe_lines($context) as $line) {
             $lines[] = $line;
         }
         $lastSql = (string) ($GLOBALS["PRONTOO_INSTALL_LAST_SQL"] ?? "");
@@ -495,18 +495,18 @@ final class InstallInstallerRuntimeOperations01
         if ($lastSchemaSql !== "") {
             $lines[] = "Último schema SQL hash: " . hash("sha256", $lastSchemaSql);
             $lines[] =
-                "Último schema SQL: " . install_compact_text($lastSchemaSql, 2400);
+                "Último schema SQL: " . \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_compact_text($lastSchemaSql, 2400);
         }
         if ($lastSql !== "") {
             $lines[] = "Último SQL lógico hash: " . hash("sha256", $lastSql);
-            $lines[] = "Último SQL lógico: " . install_compact_text($lastSql, 1600);
+            $lines[] = "Último SQL lógico: " . \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_compact_text($lastSql, 1600);
         }
         if ($lastRuntimeSql !== "" && $lastRuntimeSql !== $lastSql) {
             $lines[] =
                 "Último SQL runtime hash: " . hash("sha256", $lastRuntimeSql);
             $lines[] =
                 "Último SQL runtime: " .
-                install_compact_text($lastRuntimeSql, 1600);
+                \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_compact_text($lastRuntimeSql, 1600);
         }
         if (array_key_exists("PRONTOO_INSTALL_LAST_PARAM_COUNT", $GLOBALS)) {
             $lines[] =
@@ -515,7 +515,7 @@ final class InstallInstallerRuntimeOperations01
         }
         if ($e instanceof Throwable) {
             $lines[] = "Falha capturada:";
-            foreach (install_throwable_lines($e) as $line) {
+            foreach (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_throwable_lines($e) as $line) {
                 $lines[] = $line;
             }
         }
@@ -528,21 +528,21 @@ final class InstallInstallerRuntimeOperations01
     
     {
     
-        $checks = install_environment_checks(true);
-        if (install_environment_has_blocker($checks)) {
+        $checks = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_environment_checks(true);
+        if (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_environment_has_blocker($checks)) {
             throw new RuntimeException(
                 "Pré-checagem de ambiente bloqueou a instalação.",
             );
         }
-        if (!is_file(storage_path(".htaccess"))) {
-            prontoo_fs_write(
-                storage_path(".htaccess"),
+        if (!is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path(".htaccess"))) {
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_write(
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path(".htaccess"),
                 "Deny from all\n",
             );
         }
         if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("logs"));
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(storage_path("pdfs"));
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs"));
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("pdfs"));
         }
     
     }

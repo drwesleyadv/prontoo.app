@@ -40,7 +40,7 @@ final class DocumentsRuntimeOperations04
                 "description",
                 "Emitidos",
                 "Consultar documentos confirmados, imprimir ou abrir o PDF.",
-                href("documents", ["recent" => 1]),
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["recent" => 1]),
                 $visibleDocs,
             ],
             [
@@ -48,7 +48,7 @@ final class DocumentsRuntimeOperations04
                 "post_add",
                 "Criar documento",
                 "Escolher modelo aprovado e gerar pré-visualização segura.",
-                href("documents", ["emit" => 1]),
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["emit" => 1]),
                 $approved,
             ],
             [
@@ -56,7 +56,7 @@ final class DocumentsRuntimeOperations04
                 "edit_note",
                 "Modelos",
                 "Criar, alterar e aprovar textos usados pela equipe.",
-                href("documents", ["models" => 1]),
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["models" => 1]),
                 $pending,
             ],
         ];
@@ -72,13 +72,13 @@ final class DocumentsRuntimeOperations04
                 '" href="' .
                 $url .
                 '"><span class="doc-stage-icon">' .
-                icon($ic) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ic) .
                 '</span><span class="doc-stage-copy"><strong>' .
-                e($title) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                 "</strong><small>" .
-                e($desc) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($desc) .
                 "</small></span><b>" .
-                n($count) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($count) .
                 "</b></a>";
         }
         return $out . "</nav>";
@@ -97,7 +97,7 @@ final class DocumentsRuntimeOperations04
     {
     
         if (!$typeOptions) {
-            $typeOptions = document_type_options();
+            $typeOptions = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
         }
         if (!isset($typeOptions[$selectedType])) {
             $selectedType =
@@ -117,22 +117,22 @@ final class DocumentsRuntimeOperations04
             '<div class="doc-template-author-steps" aria-label="Etapas da edição do modelo"><span><b>1</b>Identifique</span><span><b>2</b>Escreva</span><span><b>3</b>Revise</span></div>';
         $guide =
             '<aside class="doc-template-author-guide"><strong>' .
-            icon("lightbulb") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lightbulb") .
             "<span>Como escrever melhor</span></strong><ul><li>Use títulos curtos para separar seções.</li><li>Prefira frases objetivas para leitura na consulta.</li><li>Insira campos automáticos em vez de digitar dados do paciente.</li><li>Confira a pré-visualização antes da emissão definitiva.</li></ul></aside>";
         $identity =
             '<fieldset class="doc-template-author-section doc-template-identity"><legend>' .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             '<span>Identificação</span></legend><div class="doc-template-fields-grid">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Tipo de documento",
                 "type_key",
                 $typeOptions,
                 $selectedType,
                 "required",
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome do modelo",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "title",
                     "text",
                     $title,
@@ -142,34 +142,34 @@ final class DocumentsRuntimeOperations04
             '</div><p class="doc-template-section-help">O nome deve ajudar a equipe a escolher o modelo certo sem abrir o conteúdo.</p></fieldset>';
         $editor =
             '<fieldset class="doc-template-author-section doc-template-editor-section"><legend>' .
-            icon("article") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("article") .
             '<span>Texto do modelo</span></legend><div class="doc-template-editor-field"><span>Conteúdo e formatação</span>' .
-            document_editor_html("body", $body, $editorId) .
+            \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_editor_html("body", $body, $editorId) .
             "</div></fieldset>";
         $actions =
             $cancelHref !== ""
                 ? '<div class="form-actions"><a class="ghost" href="' .
-                    e($cancelHref) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cancelHref) .
                     '">' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     '<span>Cancelar</span></a><button type="submit" class="primary">' .
-                    icon(form_submit_icon($submitLabel)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_submit_icon($submitLabel)) .
                     "<span>" .
-                    e($submitLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($submitLabel) .
                     "</span></button></div>"
-                : form_actions($submitLabel);
+                : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions($submitLabel);
         return '<form method="post" class="compact doc-form doc-template-author-form" data-doc-template-form>' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="save_template">' .
             $idField .
             '<div class="doc-template-author-head"><div><span class="eyebrow">' .
-            icon("description") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("description") .
             "<span>" .
-            e($mode) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($mode) .
             "</span></span><h3>" .
-            e($mode) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($mode) .
             "</h3><p>" .
-            e($hint) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hint) .
             "</p></div>" .
             $guide .
             "</div>" .
@@ -202,23 +202,23 @@ final class DocumentsRuntimeOperations04
             $mode === "models"
                 ? "Nome, tipo, cargo, responsável ou status"
                 : "Nome do modelo, tipo de documento ou cargo";
-        $clear = href("documents", [$mode === "models" ? "models" : "emit" => 1]);
+        $clear = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", [$mode === "models" ? "models" : "emit" => 1]);
         return '<section class="card doc-search-primary doc-ds-search ds-search-card patient-search-card doc-model-search-card"><form method="get" class="patient-search-bar doc-model-search" role="search"><input type="hidden" name="r" value="documents">' .
             $hidden .
             '<label class="search-field"><input type="search" name="model_q" value="' .
-            e($modelSearch) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modelSearch) .
             '" placeholder="' .
-            e($placeholder) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($placeholder) .
             '" aria-label="' .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             '"></label><button class="primary small" type="submit">' .
-            icon("search") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("search") .
             "<span>Busca rápida</span></button>" .
             ($modelSearch !== ""
                 ? '<a class="ghost small" href="' .
                     $clear .
                     '">' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     "<span>Limpar</span></a>"
                 : "") .
             "</form></section>";

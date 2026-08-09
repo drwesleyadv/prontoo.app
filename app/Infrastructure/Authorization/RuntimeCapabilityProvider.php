@@ -102,10 +102,10 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
         try {
             if ($scope === 'global') {
-                if (!function_exists('one')) {
+                if (!\Prontoo\Core\Architecture\OperationGateway::has('one')) {
                     throw new \RuntimeException('Leitura de credencial global indisponível.');
                 }
-                $row = \one(
+                $row = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
                     'SELECT id,is_global_admin FROM pi_users WHERE id=? AND active=1 LIMIT 1',
                     [$userId],
                 );
@@ -119,10 +119,10 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
                 ];
             }
 
-            if ($clinicId <= 0 || !function_exists('q')) {
+            if ($clinicId <= 0 || !\Prontoo\Core\Architecture\OperationGateway::has('q')) {
                 throw new \RuntimeException('Leitura de vínculo clínico indisponível.');
             }
-            $rows = \q(
+            $rows = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
                 'SELECT DISTINCT ur.role_code FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id AND u.active=1 JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 WHERE ur.user_id=? AND ur.clinic_id=? AND ur.active=1',
                 [$userId, $clinicId],
             )->fetchAll();
@@ -177,11 +177,11 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             $matrix = ($this->permissionResolver)($role, $clinicId);
             return $this->permissionCache[$key] = is_array($matrix) ? $matrix : [];
         }
-        if (!function_exists('permission_rules_for_role')) {
+        if (!\Prontoo\Core\Architecture\OperationGateway::has('permission_rules_for_role')) {
             return $this->permissionCache[$key] = [];
         }
         try {
-            $matrix = \permission_rules_for_role($role, $clinicId);
+            $matrix = \Prontoo\Core\Architecture\OperationGateway::invoke('permission_rules_for_role', $role, $clinicId);
             return $this->permissionCache[$key] = is_array($matrix) ? $matrix : [];
         } catch (\Throwable $error) {
             error_log('[Prontoo layered capability] falha ao resolver capacidade: ' . $error->getMessage());

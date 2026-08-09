@@ -33,14 +33,14 @@ final class UiComponentsRuntimeOperations01
         try {
             $c = $context;
             if (!is_array($c) || !$c) {
-                if (function_exists("ctx")) {
-                    $c = ctx();
+                if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'ctx'])) {
+                    $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
                 }
             }
             if (
                 !is_array($c) ||
                 ($c["scope"] ?? "") !== "clinic" ||
-                !has_effective_role($c, "recepcionista")
+                !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "recepcionista")
             ) {
                 return "point_of_sale";
             }
@@ -49,15 +49,15 @@ final class UiComponentsRuntimeOperations01
             if ($cid <= 0 || $uid <= 0) {
                 return "lock_clock";
             }
-            if (function_exists("financial_current_open_session")) {
-                return financial_current_open_session($cid, $uid)
+            if (is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations07::class, 'financial_current_open_session'])) {
+                return \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_current_open_session($cid, $uid)
                     ? "currency_exchange"
                     : "lock_clock";
             }
-            if (function_exists("one") && function_exists("financial_today")) {
-                $open = one(
+            if (is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'one']) && is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class, 'financial_today'])) {
+                $open = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date=? AND status='open' LIMIT 1",
-                    [$cid, $uid, financial_today($cid)],
+                    [$cid, $uid, \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid)],
                 );
                 return $open ? "currency_exchange" : "lock_clock";
             }
@@ -77,13 +77,13 @@ final class UiComponentsRuntimeOperations01
             return "—";
         }
         if (preg_match('/^-?\d+$/', $value)) {
-            return app_date_br($value);
+            return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_br($value);
         }
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
             $ts = strtotime($value . " 00:00:00 UTC");
             return $ts ? gmdate("d/m/Y", $ts) : $value;
         }
-        return app_date_br($value);
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_br($value);
     
     }
 
@@ -101,11 +101,11 @@ final class UiComponentsRuntimeOperations01
                 $value,
                 new DateTimeZone("UTC"),
             )
-            : app_db_utc_to_local($value);
+            : \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($value);
         if (!$dt) {
             return $value;
         }
-        $m = prontoo_months_br();
+        $m = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::prontoo_months_br();
         return $dt->format("d") .
             " de " .
             $m[(int) $dt->format("n")] .
@@ -118,7 +118,7 @@ final class UiComponentsRuntimeOperations01
     
     {
     
-        return app_datetime_br($value);
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_datetime_br($value);
     
     }
 
@@ -126,7 +126,7 @@ final class UiComponentsRuntimeOperations01
     
     {
     
-        return dt_br($value);
+        return \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($value);
     
     }
 
@@ -134,7 +134,7 @@ final class UiComponentsRuntimeOperations01
     
     {
     
-        return dt_br($value);
+        return \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($value);
     
     }
 
@@ -152,18 +152,18 @@ final class UiComponentsRuntimeOperations01
             if (
                 $cid > 0 &&
                 $uid > 0 &&
-                db_table_exists("pi_notices") &&
-                db_table_exists("pi_notice_reads")
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_notices") &&
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_notice_reads")
             ) {
-                [$targetSql, $targetParams] = function_exists("notice_target_sql")
-                    ? notice_target_sql($c, "n")
+                [$targetSql, $targetParams] = is_callable([\Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::class, 'notice_target_sql'])
+                    ? \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n")
                     : [
                         "(n.target_scope='all' OR (n.target_scope='role' AND n.target_role=?) OR (n.target_scope='user' AND n.target_user_id=?))",
                         [(string) ($c["role"] ?? ""), $uid],
                     ];
                 $params = array_merge([$cid], $targetParams, [$uid]);
                 $n =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COUNT(*) FROM pi_notices n WHERE n.clinic_id=? AND $targetSql AND NOT EXISTS (SELECT 1 FROM pi_notice_reads r WHERE r.notice_id=n.id AND r.user_id=? AND (r.read_at IS NOT NULL OR r.ack_at IS NOT NULL OR r.hidden_at IS NOT NULL) LIMIT 1)",
                         $params,
                     ) ?:
@@ -173,9 +173,9 @@ final class UiComponentsRuntimeOperations01
             $n = 0;
         }
         return '<a class="notify-link top-icon" href="' .
-            href("notices") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices") .
             '" aria-label="Avisos" title="Avisos">' .
-            icon("campaign") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
             ($n > 0 ? '<b class="badge">' . min(99, $n) . "</b>" : "") .
             "</a>";
     
@@ -187,8 +187,8 @@ final class UiComponentsRuntimeOperations01
     
         try {
             if (!is_array($c) || !$c) {
-                if (function_exists("ctx")) {
-                    $c = ctx();
+                if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'ctx'])) {
+                    $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
                 }
             }
             if (!is_array($c) || ($c["scope"] ?? "") !== "clinic") {
@@ -197,20 +197,20 @@ final class UiComponentsRuntimeOperations01
             $cid = (int) ($c["clinic_id"] ?? 0);
             if (
                 $cid <= 0 ||
-                !function_exists("db_table_exists") ||
-                !function_exists("one") ||
-                !function_exists("val")
+                !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) ||
+                !is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'one']) ||
+                !is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val'])
             ) {
                 return "";
             }
             if (
-                !db_table_exists("pi_financial_goals") ||
-                !db_table_exists("pi_financial_revenues")
+                !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_financial_goals") ||
+                !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_financial_revenues")
             ) {
                 return "";
             }
-            $month = app_month_in_timezone($cid, $c);
-            $goal = one(
+            $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $c);
+            $goal = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT target_cents,base_metric,share_with_team FROM pi_financial_goals WHERE clinic_id=? AND month_key=? AND share_with_team=1 LIMIT 1",
                 [$cid, $month],
             );
@@ -225,16 +225,16 @@ final class UiComponentsRuntimeOperations01
             if (!in_array($base, ["prevista", "efetivada"], true)) {
                 $base = "efetivada";
             }
-            [$start, $next] = app_local_month_utc_range($month, $cid, $c);
+            [$start, $next] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_month_utc_range($month, $cid, $c);
             if ($base === "prevista") {
                 $done =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
                         [$cid, $start, $next],
                     ) ?? 0);
             } else {
                 $done =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
                         [$cid, $start, $next],
                     ) ?? 0);
@@ -243,19 +243,19 @@ final class UiComponentsRuntimeOperations01
             $pct = max(0, min(100, (int) $pct));
             $label = "Meta compartilhada: " . $pct . "%";
             return '<div class="cmdbar-shared-goal" role="group" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" title="Meta compartilhada: ' .
-                e((string) $pct) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $pct) .
                 '%">' .
-                icon("flag") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("flag") .
                 '<div class="cmdbar-shared-goal-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' .
-                e((string) $pct) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $pct) .
                 '" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '"><i style="width:' .
-                e((string) $pct) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $pct) .
                 '%"></i></div><strong>' .
-                e((string) $pct) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $pct) .
                 "%</strong></div>";
         } catch (Throwable $e) {
             error_log("[Prontoo shared goal cmdbar] " . $e->getMessage());
@@ -271,12 +271,12 @@ final class UiComponentsRuntimeOperations01
         if ($actionKey === "") {
             return;
         }
-        [$uid, $scope, $clinic, $role] = cmdbar_context_key($c);
-        if ($uid <= 0 || !cmdbar_access_schema_ready()) {
+        [$uid, $scope, $clinic, $role] = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_context_key($c);
+        if ($uid <= 0 || !\Prontoo\Infrastructure\UiComponents\UiComponentsInfrastructureOperations01::cmdbar_access_schema_ready()) {
             return;
         }
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_user_cmdbar_access (user_id,scope,clinic_scope_id,role_code,action_key,last_accessed_at,access_count,created_at,updated_at) VALUES (?,?,?,?,?,NOW(),1,NOW(),NOW()) ON DUPLICATE KEY UPDATE last_accessed_at=VALUES(last_accessed_at), access_count=access_count+1, updated_at=NOW()",
                 [$uid, $scope, $clinic, $role, $actionKey],
             );
@@ -296,14 +296,14 @@ final class UiComponentsRuntimeOperations01
         if (!$keys) {
             return [];
         }
-        [$uid, $scope, $clinic, $role] = cmdbar_context_key($c);
-        if ($uid <= 0 || !cmdbar_access_schema_ready()) {
+        [$uid, $scope, $clinic, $role] = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_context_key($c);
+        if ($uid <= 0 || !\Prontoo\Infrastructure\UiComponents\UiComponentsInfrastructureOperations01::cmdbar_access_schema_ready()) {
             return [];
         }
         try {
             $ph = implode(",", array_fill(0, count($keys), "?"));
             $params = array_merge([$uid, $scope, $clinic, $role], $keys);
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT action_key,last_accessed_at FROM pi_user_cmdbar_access WHERE user_id=? AND scope=? AND clinic_scope_id=? AND role_code=? AND action_key IN ($ph)",
                 $params,
             )->fetchAll();
@@ -328,9 +328,9 @@ final class UiComponentsRuntimeOperations01
     ): array 
     {
     
-        $active = cmdbar_parent_key($current, $items, $global);
+        $active = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cmdbar_parent_key($current, $items, $global);
         if ($active !== "") {
-            cmdbar_access_touch($c, $active);
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::cmdbar_access_touch($c, $active);
         }
         return $items;
     
@@ -352,8 +352,8 @@ final class UiComponentsRuntimeOperations01
             $a .
             "target_role,'') IS NOT NULL THEN 'role' ELSE 'clinic' END)";
         $clinicWide =
-            function_exists("has_effective_role") &&
-            has_effective_role($c, "gerente")
+            is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'has_effective_role']) &&
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
                 ? " OR " . $scope . "='clinic'"
                 : "";
         $sql =
@@ -381,7 +381,7 @@ final class UiComponentsRuntimeOperations01
     {
     
         try {
-            return (int) (val($sql, $params) ?: 0);
+            return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val($sql, $params) ?: 0);
         } catch (Throwable $e) {
             error_log("[Prontoo floating pending count] " . $e->getMessage());
             return 0;
@@ -396,7 +396,7 @@ final class UiComponentsRuntimeOperations01
         if (($c["scope"] ?? "") !== "clinic") {
             return "";
         }
-        if (!function_exists("has_cfg") || !has_cfg()) {
+        if (!is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return "";
         }
         $cid = (int) ($c["clinic_id"] ?? 0);
@@ -406,30 +406,30 @@ final class UiComponentsRuntimeOperations01
         }
         $cards = [];
         $active = "t.status IN ('aberta','em_andamento','aguardando')";
-        if (function_exists("db_table_exists") && db_table_exists("pi_tasks")) {
-            [$access, $accessParams] = floating_pending_task_access_sql($c, "t");
+        if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_tasks")) {
+            [$access, $accessParams] = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_task_access_sql($c, "t");
             $base = array_merge([$cid], $accessParams);
-            $overdue = floating_pending_count(
+            $overdue = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                 "SELECT COUNT(*) FROM pi_tasks t WHERE t.clinic_id=? AND $active AND ($access) AND t.due_at IS NOT NULL AND t.due_at<NOW()",
                 $base,
             );
             $today = 0;
             try {
                 if (
-                    function_exists("app_today_in_timezone") &&
-                    function_exists("app_local_day_utc_range")
+                    is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_today_in_timezone']) &&
+                    is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_local_day_utc_range'])
                 ) {
-                    [$start, $end] = app_local_day_utc_range(
-                        app_today_in_timezone($cid, $c),
+                    [$start, $end] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
                         $cid,
                         $c,
                     );
-                    $today = floating_pending_count(
+                    $today = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                         "SELECT COUNT(*) FROM pi_tasks t WHERE t.clinic_id=? AND $active AND ($access) AND t.due_at IS NOT NULL AND t.due_at>=? AND t.due_at<?",
                         array_merge($base, [$start, $end]),
                     );
                 } else {
-                    $today = floating_pending_count(
+                    $today = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                         "SELECT COUNT(*) FROM pi_tasks t WHERE t.clinic_id=? AND $active AND ($access) AND t.due_at IS NOT NULL AND t.due_at>=CURDATE() AND t.due_at<DATE_ADD(CURDATE(), INTERVAL 1 DAY)",
                         $base,
                     );
@@ -437,11 +437,11 @@ final class UiComponentsRuntimeOperations01
             } catch (Throwable $e) {
                 $today = 0;
             }
-            $mine = floating_pending_count(
+            $mine = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                 "SELECT COUNT(*) FROM pi_tasks t WHERE t.clinic_id=? AND $active AND ($access)",
                 $base,
             );
-            $progress = floating_pending_count(
+            $progress = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                 "SELECT COUNT(*) FROM pi_tasks t WHERE t.clinic_id=? AND t.status='em_andamento' AND (t.assigned_to=? OR t.started_by=?)",
                 [$cid, $uid, $uid],
             );
@@ -451,7 +451,7 @@ final class UiComponentsRuntimeOperations01
                     "task_alt",
                     (string) $overdue,
                     "Tarefa",
-                    href("tasks", ["view" => "overdue"]),
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["view" => "overdue"]),
                     $overdue === 1
                         ? "1 tarefa atrasada"
                         : $overdue . " tarefas atrasadas",
@@ -462,7 +462,7 @@ final class UiComponentsRuntimeOperations01
                     "task_alt",
                     (string) $today,
                     "Tarefa",
-                    href("tasks", ["view" => "today"]),
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["view" => "today"]),
                     $today === 1
                         ? "1 tarefa vence hoje"
                         : $today . " tarefas vencem hoje",
@@ -473,7 +473,7 @@ final class UiComponentsRuntimeOperations01
                     "task_alt",
                     (string) $progress,
                     "Tarefa",
-                    href("tasks", ["view" => "progress"]),
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["view" => "progress"]),
                     $progress === 1
                         ? "1 tarefa em andamento"
                         : $progress . " tarefas em andamento",
@@ -484,20 +484,20 @@ final class UiComponentsRuntimeOperations01
                     "task_alt",
                     (string) $mine,
                     "Tarefa",
-                    href("tasks"),
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks"),
                     $mine === 1 ? "1 tarefa aberta" : $mine . " tarefas abertas",
                 ];
             }
         }
         if (
-            function_exists("db_table_exists") &&
-            db_table_exists("pi_notices") &&
-            db_table_exists("pi_notice_reads") &&
-            function_exists("notice_target_sql")
+            is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_notices") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_notice_reads") &&
+            is_callable([\Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::class, 'notice_target_sql'])
         ) {
             try {
-                [$targetSql, $targetParams] = notice_target_sql($c, "n");
-                $notice = floating_pending_count(
+                [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
+                $notice = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::floating_pending_count(
                     "SELECT COUNT(*) FROM pi_notices n WHERE n.clinic_id=? AND n.requires_ack=1 AND $targetSql AND NOT EXISTS (SELECT 1 FROM pi_notice_reads r WHERE r.notice_id=n.id AND r.user_id=? AND (r.ack_at IS NOT NULL OR r.hidden_at IS NOT NULL) LIMIT 1)",
                     array_merge([$cid], $targetParams, [$uid]),
                 );
@@ -507,7 +507,7 @@ final class UiComponentsRuntimeOperations01
                         "campaign",
                         (string) $notice,
                         "Avisos",
-                        href("notices"),
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices"),
                         $notice === 1
                             ? "1 aviso aguardando ciência"
                             : $notice . " avisos aguardando ciência",
@@ -531,22 +531,22 @@ final class UiComponentsRuntimeOperations01
             $aria = $label . ": " . $hint;
             $cardHtml .=
                 '<a class="agenda-floating-card context-floating-pending-card context-floating-pending-card-' .
-                e($kindClass) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($kindClass) .
                 '" href="' .
-                e($url) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($url) .
                 '" aria-label="' .
-                e($aria) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($aria) .
                 '" title="' .
-                e($hint) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hint) .
                 '">' .
                 '<span class="agenda-floating-icon" aria-hidden="true">' .
-                icon($ico) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
                 '</span><div class="agenda-floating-copy"><b>' .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '</b><span class="agenda-floating-label">' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '</span><span class="sr-only">' .
-                e($hint) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hint) .
                 "</span></div></a>";
         }
         return '<aside class="context-floating-pending-kpis" data-ds-fixed-layer="context-pending" aria-label="Pendências do usuário">' .

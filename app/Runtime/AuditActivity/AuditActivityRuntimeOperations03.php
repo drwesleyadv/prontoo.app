@@ -43,7 +43,7 @@ final class AuditActivityRuntimeOperations03
     
             $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
             try {
-                $rows = q(
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT clinic_id,metric_key,SUM(metric_value) AS metric_value FROM pi_clinic_daily_stats WHERE clinic_id IN ($placeholders) AND day_date>=? GROUP BY clinic_id,metric_key",
                     array_merge($clinicIds, [$from]),
                 )->fetchAll();
@@ -59,15 +59,15 @@ final class AuditActivityRuntimeOperations03
             }
             return $out;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "dashboard",
-                server_json_cache_safe_key("clinic_metrics", [
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("clinic_metrics", [
                     $clinicIds,
                     $days,
                     $from,
                 ]),
-                server_json_cache_ttl("dashboard"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("dashboard"),
                 $loader,
                 ["table:pi_clinic_daily_stats", "admin:clinic_metrics"],
             );
@@ -85,19 +85,19 @@ final class AuditActivityRuntimeOperations03
         }
         try {
             if ($cid) {
-                $pat = one(
+                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,person_id FROM pi_patients WHERE id=? AND clinic_id=?",
                     [$patientId, $cid],
                 );
             } else {
-                $pat = one("SELECT id,person_id FROM pi_patients WHERE id=?", [
+                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,person_id FROM pi_patients WHERE id=?", [
                     $patientId,
                 ]);
             }
             if (!$pat) {
                 return "";
             }
-            $person = one("SELECT full_name FROM pi_persons WHERE id=?", [
+            $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT full_name FROM pi_persons WHERE id=?", [
                 (int) $pat["person_id"],
             ]);
             return mb_trim((string) ($person["full_name"] ?? ""));
@@ -123,19 +123,19 @@ final class AuditActivityRuntimeOperations03
     
             try {
                 $u = $cid
-                    ? one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
-                    : one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
                 return mb_trim((string) ($u["name"] ?? ""));
             } catch (Throwable $e) {
                 error_log("[Prontoo audit user lookup] " . $e->getMessage());
                 return "";
             }
         };
-        if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
-            $cache[$memoryKey] = (string) server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) && \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()) {
+            $cache[$memoryKey] = (string) \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "lookup",
-                server_json_cache_safe_key("audit_user_name", [$cid ?: 0, $uid]),
-                server_json_cache_ttl("lookup"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("audit_user_name", [$cid ?: 0, $uid]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("lookup"),
                 $loader,
                 ["table:pi_users", "table:pi_user_roles", "scope:" . ($cid ?: 0)],
             );
@@ -160,18 +160,18 @@ final class AuditActivityRuntimeOperations03
         $loader = static function () use ($cid): string {
     
             try {
-                $cl = one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
+                $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
                 return mb_trim((string) ($cl["display_name"] ?? ""));
             } catch (Throwable $e) {
                 error_log("[Prontoo audit clinic lookup] " . $e->getMessage());
                 return "";
             }
         };
-        if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
-            $cache[$cid] = (string) server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) && \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()) {
+            $cache[$cid] = (string) \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("audit_clinic_name", $cid),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("audit_clinic_name", $cid),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["table:pi_clinics", "scope:" . $cid],
             );
@@ -193,7 +193,7 @@ final class AuditActivityRuntimeOperations03
     
         $id = (int) $entityId;
         if (empty($context["clinic_name"]) && $cid) {
-            $n = audit_clinic_name_lookup((int) $cid);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_clinic_name_lookup((int) $cid);
             if ($n !== "") {
                 $context["clinic_name"] = $n;
             }
@@ -203,32 +203,32 @@ final class AuditActivityRuntimeOperations03
                 (int) ($context["patient_link_id"] ??
                     ($entity === "paciente" && $id > 0 ? $id : 0));
             if ($pid > 0) {
-                $n = audit_patient_name_by_link($pid, $cid);
+                $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_patient_name_by_link($pid, $cid);
                 if ($n !== "") {
                     $context["patient_name"] = $n;
                 }
             }
         }
         if (empty($context["doctor_name"]) && !empty($context["doctor_user_id"])) {
-            $n = audit_user_name_lookup((int) $context["doctor_user_id"], $cid);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup((int) $context["doctor_user_id"], $cid);
             if ($n !== "") {
                 $context["doctor_name"] = $n;
             }
         }
         if (empty($context["assigned_name"]) && !empty($context["assigned_to"])) {
-            $n = audit_user_name_lookup((int) $context["assigned_to"], $cid);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup((int) $context["assigned_to"], $cid);
             if ($n !== "") {
                 $context["assigned_name"] = $n;
             }
         }
         if (empty($context["target_name"]) && $entity === "usuario" && $id > 0) {
-            $n = audit_user_name_lookup($id, $cid);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup($id, $cid);
             if ($n !== "") {
                 $context["target_name"] = $n;
             }
         }
         if (empty($context["target_name"]) && !empty($context["destinatario"])) {
-            $n = audit_user_name_lookup((int) $context["destinatario"], $cid);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup((int) $context["destinatario"], $cid);
             if ($n !== "") {
                 $context["target_name"] = $n;
             }
@@ -236,11 +236,11 @@ final class AuditActivityRuntimeOperations03
         if (empty($context["task_title"]) && !empty($context["tarefa_id"])) {
             try {
                 $t = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,title FROM pi_tasks WHERE id=? AND clinic_id=?",
                         [(int) $context["tarefa_id"], $cid],
                     )
-                    : one("SELECT id,title FROM pi_tasks WHERE id=?", [
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,title FROM pi_tasks WHERE id=?", [
                         (int) $context["tarefa_id"],
                     ]);
                 if ($t && !empty($t["title"])) {
@@ -270,11 +270,11 @@ final class AuditActivityRuntimeOperations03
         ) {
             try {
                 $tpl = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,title,type_key,status FROM pi_document_templates WHERE id=? AND clinic_id=?",
                         [$id, $cid],
                     )
-                    : one(
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,title,type_key,status FROM pi_document_templates WHERE id=?",
                         [$id],
                     );
@@ -298,7 +298,7 @@ final class AuditActivityRuntimeOperations03
                         $context["status"] = function_exists(
                             "document_status_label",
                         )
-                            ? document_status_label((string) $tpl["status"])
+                            ? \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label((string) $tpl["status"])
                             : (string) $tpl["status"];
                     }
                 }
@@ -327,11 +327,11 @@ final class AuditActivityRuntimeOperations03
         ) {
             try {
                 $d = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT d.id,d.title,d.type_key,d.patient_link_id,p.full_name AS patient_name FROM pi_documents d LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id AND pl.clinic_id=d.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=? AND d.clinic_id=?",
                         [$id, $cid],
                     )
-                    : one(
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT d.id,d.title,d.type_key,d.patient_link_id,p.full_name AS patient_name FROM pi_documents d LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=?",
                         [$id],
                     );
@@ -349,8 +349,8 @@ final class AuditActivityRuntimeOperations03
                         empty($context["document_type_label"]) &&
                         !empty($d["type_key"])
                     ) {
-                        $types = function_exists("document_type_options")
-                            ? document_type_options()
+                        $types = is_callable([\Prontoo\Domain\Documents\DocumentTypePolicy::class, 'document_type_options'])
+                            ? \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options()
                             : [];
                         $context["document_type_label"] =
                             $types[(string) $d["type_key"]] ?? "Documento";
@@ -380,11 +380,11 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "consulta" && $id > 0) {
             try {
                 $a = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,reason FROM pi_appointments WHERE id=? AND clinic_id=?",
                         [$id, $cid],
                     )
-                    : one(
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,reason FROM pi_appointments WHERE id=?",
                         [$id],
                     );
@@ -404,7 +404,7 @@ final class AuditActivityRuntimeOperations03
                         }
                     }
                     if (empty($context["patient_name"])) {
-                        $n = audit_patient_name_by_link(
+                        $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_patient_name_by_link(
                             (int) $a["patient_link_id"],
                             $cid,
                         );
@@ -413,7 +413,7 @@ final class AuditActivityRuntimeOperations03
                         }
                     }
                     if (empty($context["doctor_name"])) {
-                        $n = audit_user_name_lookup(
+                        $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup(
                             (int) $a["doctor_user_id"],
                             $cid,
                         );
@@ -434,11 +434,11 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "tarefa" && $id > 0) {
             try {
                 $t = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT t.id,t.title,t.assigned_to,td.patient_link_id,t.due_at FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
                         [$id, $cid],
                     )
-                    : one(
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT t.id,t.title,t.assigned_to,td.patient_link_id,t.due_at FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id WHERE t.id=?",
                         [$id],
                     );
@@ -450,7 +450,7 @@ final class AuditActivityRuntimeOperations03
                         empty($context["assigned_name"]) &&
                         !empty($t["assigned_to"])
                     ) {
-                        $n = audit_user_name_lookup((int) $t["assigned_to"], $cid);
+                        $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_user_name_lookup((int) $t["assigned_to"], $cid);
                         if ($n !== "") {
                             $context["assigned_name"] = $n;
                         }
@@ -459,7 +459,7 @@ final class AuditActivityRuntimeOperations03
                         empty($context["patient_name"]) &&
                         !empty($t["patient_link_id"])
                     ) {
-                        $n = audit_patient_name_by_link(
+                        $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_patient_name_by_link(
                             (int) $t["patient_link_id"],
                             $cid,
                         );
@@ -483,11 +483,11 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "comunicado" && $id > 0) {
             try {
                 $n = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,title FROM pi_notices WHERE id=? AND clinic_id=?",
                         [$id, $cid],
                     )
-                    : one("SELECT id,title FROM pi_notices WHERE id=?", [$id]);
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,title FROM pi_notices WHERE id=?", [$id]);
                 if ($n && empty($context["notice_title"])) {
                     $context["notice_title"] = $n["title"] ?? "";
                 }
@@ -503,11 +503,11 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "lead" && $id > 0) {
             try {
                 $l = $cid
-                    ? one(
+                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,name,person_id FROM pi_leads WHERE id=? AND clinic_id=?",
                         [$id, $cid],
                     )
-                    : one("SELECT id,name,person_id FROM pi_leads WHERE id=?", [
+                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,name,person_id FROM pi_leads WHERE id=?", [
                         $id,
                     ]);
                 if ($l && empty($context["target_name"])) {
@@ -527,7 +527,7 @@ final class AuditActivityRuntimeOperations03
             $id > 0 &&
             empty($context["clinic_name"])
         ) {
-            $n = audit_clinic_name_lookup($id);
+            $n = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_clinic_name_lookup($id);
             if ($n !== "") {
                 $context["clinic_name"] = $n;
             }
@@ -535,10 +535,10 @@ final class AuditActivityRuntimeOperations03
         if (
             empty($context["environment_label"]) &&
             !empty($context["role_code"]) &&
-            function_exists("role_label_for")
+            is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'role_label_for'])
         ) {
             try {
-                $context["environment_label"] = role_label_for(
+                $context["environment_label"] = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for(
                     (string) $context["role_code"],
                     $cid ?: null,
                 );

@@ -42,7 +42,7 @@ final class SupportFoundationInfrastructureOperations01
         if ($env !== "" && str_starts_with($env, "/")) {
             return $env;
         }
-        return app_root() . "/app/config.php";
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/app/config.php";
     
     }
 
@@ -50,7 +50,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        return is_file(cfg_file());
+        return is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file());
     
     }
 
@@ -78,9 +78,9 @@ final class SupportFoundationInfrastructureOperations01
     {
     
         @date_default_timezone_set("UTC");
-        if (function_exists("pdo") && has_cfg()) {
+        if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             try {
-                pdo()->exec("SET time_zone='+00:00'");
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->exec("SET time_zone='+00:00'");
             } catch (Throwable $e) {
                 error_log("[Prontoo timezone UTC session] " . $e->getMessage());
             }
@@ -92,7 +92,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $zone = new DateTimeZone(app_timezone_safe($tz));
+        $zone = new DateTimeZone(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz));
         $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
         $offset = $zone->getOffset($dt);
         $sign = $offset < 0 ? "-" : "+";
@@ -110,7 +110,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $zone = new DateTimeZone(app_timezone_safe($tz));
+        $zone = new DateTimeZone(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz));
         $dt = new DateTimeImmutable("@" . ($timestamp ?? time()));
         return (int) floor($zone->getOffset($dt) / 60);
     
@@ -120,8 +120,8 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = app_timezone_safe($tz);
-        app_force_utc_runtime();
+        $GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_force_utc_runtime();
     
     }
 
@@ -205,7 +205,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $d = only_digits((string) ($cpf ?? ""));
+        $d = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($cpf ?? ""));
         return strlen($d) === 11
             ? substr($d, 0, 3) .
                     "." .
@@ -223,8 +223,8 @@ final class SupportFoundationInfrastructureOperations01
     {
     
         try {
-            if (function_exists("cfg") && has_cfg()) {
-                $c = cfg();
+            if (is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'cfg']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+                $c = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg();
                 if (isset($c[$key]) && is_scalar($c[$key])) {
                     return mb_trim((string) $c[$key]);
                 }
@@ -241,9 +241,9 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $defaultEnv = has_cfg() ? "production" : "development";
+        $defaultEnv = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ? "production" : "development";
         $env = strtolower(
-            app_config_string(
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string(
                 "app_env",
                 (string) (getenv("APP_ENV") ?:
                 getenv("PRONTOO_ENV") ?:
@@ -258,7 +258,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $host = app_config_string(
+        $host = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string(
             "canonical_host",
             defined("PRONTOO_CANONICAL_HOST")
                 ? (string) PRONTOO_CANONICAL_HOST
@@ -281,13 +281,13 @@ final class SupportFoundationInfrastructureOperations01
     {
     
         if (
-            app_is_production() &&
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_is_production() &&
             (string) getenv("PRONTOO_ALLOW_PRODUCTION_DEBUG") !== "1"
         ) {
             return false;
         }
         try {
-            $c = has_cfg() ? cfg() : [];
+            $c = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg() : [];
             return !empty($c["debug"]);
         } catch (Throwable $e) {
             error_log("[Prontoo debug cfg] " . $e->getMessage());
@@ -322,7 +322,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        \Prontoo\Core\Install\RuntimeContract::assert(app_root(), PRONTOO_VERSION);
+        \Prontoo\Core\Install\RuntimeContract::assert(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root(), PRONTOO_VERSION);
     
     }
 
@@ -334,7 +334,7 @@ final class SupportFoundationInfrastructureOperations01
         if ($c !== null) {
             return $c;
         }
-        $c = has_cfg() ? require cfg_file() : [];
+        $c = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ? require \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg_file() : [];
         return is_array($c) ? $c : [];
     
     }
@@ -343,7 +343,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        return app_root() . "/ssd" . ($path ? "/" . ltrim($path, "/") : "");
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd" . ($path ? "/" . ltrim($path, "/") : "");
     
     }
 
@@ -351,7 +351,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $dir = storage_path("cache");
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
@@ -366,7 +366,7 @@ final class SupportFoundationInfrastructureOperations01
     
     {
     
-        $f = cache_path($key);
+        $f = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_path($key);
         if (!is_file($f) || time() - filemtime($f) > $ttl) {
             return null;
         }
@@ -384,7 +384,7 @@ final class SupportFoundationInfrastructureOperations01
     {
     
         @file_put_contents(
-            cache_path($key),
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_path($key),
             json_encode(["t" => time(), "v" => $value], JSON_UNESCAPED_UNICODE),
             LOCK_EX,
         );
@@ -404,12 +404,12 @@ final class SupportFoundationInfrastructureOperations01
                 return null;
             }
         }
-        $v = cache_get($key, $ttl);
+        $v = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_get($key, $ttl);
         if ($v !== null) {
             return $v;
         }
         try {
-            return cache_set($key, $fn());
+            return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set($key, $fn());
         } catch (Throwable $e) {
             error_log("[Prontoo cache_remember] " . $e->getMessage());
             return null;
@@ -440,7 +440,7 @@ final class SupportFoundationInfrastructureOperations01
         $ok = true;
         $checks = ["mode" => "login_light", "version" => PRONTOO_VERSION];
         try {
-            $dbOk = (int) pdo()->query("SELECT 1")->fetchColumn() === 1;
+            $dbOk = (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->query("SELECT 1")->fetchColumn() === 1;
             $checks["db"] = $dbOk;
             $checks["database"] = $dbOk;
             $ok = $ok && $dbOk;
@@ -452,15 +452,15 @@ final class SupportFoundationInfrastructureOperations01
         }
         try {
             $runtimeOk =
-                db_table_exists("pi_meta");
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_meta");
             $checks["pi_runtime"] = $runtimeOk;
         } catch (Throwable $e) {
             $checks["pi_runtime"] = false;
         }
         try {
-            $storageDir = function_exists("storage_path")
-                ? storage_path()
-                : app_root();
+            $storageDir = is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])
+                ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path()
+                : \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root();
             $free = @disk_free_space($storageDir);
             $writable = is_dir($storageDir) && is_writable($storageDir);
             $freeOk = $free === false ? true : $free > 20 * 1024 * 1024;

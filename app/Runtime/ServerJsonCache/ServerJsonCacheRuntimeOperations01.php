@@ -30,9 +30,9 @@ final class ServerJsonCacheRuntimeOperations01
     
     {
     
-        return server_json_cache_enabled() &&
-            function_exists("storage_path") &&
-            server_json_cache_request_is_read();
+        return \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_enabled() &&
+            is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path']) &&
+            \Prontoo\Presentation\ServerJsonCache\ServerJsonCachePresentationOperations01::server_json_cache_request_is_read();
     
     }
 
@@ -40,7 +40,7 @@ final class ServerJsonCacheRuntimeOperations01
     
     {
     
-        return server_json_cache_read_allowed();
+        return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed();
     
     }
 
@@ -51,16 +51,16 @@ final class ServerJsonCacheRuntimeOperations01
     ): mixed 
     {
     
-        if (!server_json_cache_read_allowed()) {
+        if (!\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()) {
             return null;
         }
-        $ttl = $ttlSeconds ?? server_json_cache_ttl($category);
+        $ttl = $ttlSeconds ?? \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl($category);
         if ($ttl <= 0) {
             return null;
         }
-        $file = server_json_cache_file($category, $key);
+        $file = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
         $memoryFound = false;
-        $memoryValue = server_json_cache_memory_get($file, $memoryFound);
+        $memoryValue = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_memory_get($file, $memoryFound);
         if ($memoryFound) {
             return $memoryValue;
         }
@@ -90,7 +90,7 @@ final class ServerJsonCacheRuntimeOperations01
             @unlink($file);
             return null;
         }
-        server_json_cache_memory_set($file, $json["value"]);
+        \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_memory_set($file, $json["value"]);
         return $json["value"];
     
     }
@@ -104,10 +104,10 @@ final class ServerJsonCacheRuntimeOperations01
     ): mixed 
     {
     
-        if (!server_json_cache_write_allowed()) {
+        if (!\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_write_allowed()) {
             return $value;
         }
-        $ttl = $ttlSeconds ?? server_json_cache_ttl($category);
+        $ttl = $ttlSeconds ?? \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl($category);
         if ($ttl <= 0) {
             return $value;
         }
@@ -129,7 +129,7 @@ final class ServerJsonCacheRuntimeOperations01
         if ($encoded === false) {
             return $value;
         }
-        $file = server_json_cache_file($category, $key);
+        $file = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
         try {
             $suffix = bin2hex(random_bytes(4));
         } catch (Throwable $e) {
@@ -147,7 +147,7 @@ final class ServerJsonCacheRuntimeOperations01
         } elseif (is_file($tmp)) {
             @unlink($tmp);
         }
-        server_json_cache_memory_set($file, $value);
+        \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_memory_set($file, $value);
         return $value;
     
     }
@@ -161,15 +161,15 @@ final class ServerJsonCacheRuntimeOperations01
     ): mixed 
     {
     
-        $cached = server_json_cache_get($category, $key, $ttlSeconds);
+        $cached = \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_get($category, $key, $ttlSeconds);
         if ($cached !== null) {
             return $cached;
         }
-        if (!server_json_cache_read_allowed()) {
+        if (!\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()) {
             return $loader();
         }
     
-        $file = server_json_cache_file($category, $key);
+        $file = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
         $lock = @fopen($file . ".lock", "c");
         $locked = false;
         if (is_resource($lock)) {
@@ -185,12 +185,12 @@ final class ServerJsonCacheRuntimeOperations01
         if ($locked && is_resource($lock)) {
             try {
                 unset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"][$file]);
-                $cached = server_json_cache_get($category, $key, $ttlSeconds);
+                $cached = \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_get($category, $key, $ttlSeconds);
                 if ($cached !== null) {
                     return $cached;
                 }
                 $value = $loader();
-                return server_json_cache_set(
+                return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_set(
                     $category,
                     $key,
                     $value,
@@ -218,7 +218,7 @@ final class ServerJsonCacheRuntimeOperations01
     ): string 
     {
     
-        return server_json_cache_safe_key("ctx", [
+        return \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("ctx", [
             "uid" => $uid,
             "scope" => $scope,
             "clinic_id" => $clinicId,
@@ -254,8 +254,8 @@ final class ServerJsonCacheRuntimeOperations01
                 $_SESSION["uc_id"] = $ucId;
             }
         }
-        if (function_exists("app_apply_request_timezone") && !empty($ctx["timezone"])) {
-            app_apply_request_timezone((string) $ctx["timezone"]);
+        if (is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'app_apply_request_timezone']) && !empty($ctx["timezone"])) {
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_apply_request_timezone((string) $ctx["timezone"]);
         }
     
     }

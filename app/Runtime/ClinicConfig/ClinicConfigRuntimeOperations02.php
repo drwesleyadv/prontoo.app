@@ -36,22 +36,22 @@ final class ClinicConfigRuntimeOperations02
         );
         $clinic = mb_trim((string) ($r["display_name"] ?? "Consultório"));
         $roleCode = (string) ($r["role_code"] ?? "");
-        $role = role_label_for($roleCode, (int) $r["clinic_id"]);
-        $ico = function_exists("role_icon")
-            ? role_icon($roleCode, (int) $r["clinic_id"])
+        $role = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($roleCode, (int) $r["clinic_id"]);
+        $ico = is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'role_icon'])
+            ? \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon($roleCode, (int) $r["clinic_id"])
             : "badge";
         return '<button class="clinic-choice credential-choice" type="submit" name="clinic_role_id" value="' .
             (int) $r["id"] .
             '"><span class="credential-icon">' .
-            icon($ico) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
             '</span><span class="credential-main"><span class="credential-role">' .
-            e($role) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($role) .
             '</span><span class="credential-context"><span>' .
-            e($clinic !== "" ? $clinic : "Consultório") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($clinic !== "" ? $clinic : "Consultório") .
             "</span><small>" .
-            e($place !== "" ? $place : "Cidade não informada") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($place !== "" ? $place : "Cidade não informada") .
             '</small></span></span><span class="credential-enter">' .
-            icon("login") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("login") .
             "</span></button>";
     
     }
@@ -62,7 +62,7 @@ final class ClinicConfigRuntimeOperations02
     
         $loader = function (): array {
     
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id,display_name FROM pi_clinics ORDER BY id DESC LIMIT 500",
             )->fetchAll();
             $options = ["" => "Sem consultório específico"];
@@ -71,11 +71,11 @@ final class ClinicConfigRuntimeOperations02
             }
             return $options;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "clinic",
-                server_json_cache_safe_key("global_options", [PRONTOO_SCHEMA_REV]),
-                server_json_cache_ttl("clinic"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("global_options", [PRONTOO_SCHEMA_REV]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("clinic"),
                 $loader,
                 ["table:pi_clinics"],
             );

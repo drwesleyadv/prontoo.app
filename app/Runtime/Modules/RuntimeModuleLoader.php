@@ -104,6 +104,6 @@ final class RuntimeModuleLoader
             return;
         }
         $this->financialGuardLoaded = true;
-        $this->requireModule('Domain/Financial/Financial.php');
+        $this->requireModule('Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php');
     }
 }

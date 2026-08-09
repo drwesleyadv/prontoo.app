@@ -80,13 +80,13 @@ final class ArchitectureVerifier
             if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
                 $knownBySource[$source][$contract->action] = true;
             }
-            if (!is_file($root . '/' . $source)) {
+            if (CompatibilitySourceResolver::content($root, $source) === '') {
                 $errors[] = 'action_source_missing:' . $contract->route . ':' . $contract->action . ':' . $source;
             }
             if ($routes !== [] && !isset($routes[$contract->route])) {
                 $errors[] = 'action_route_missing:' . $contract->route . ':' . $contract->action;
             }
-            if ($contract->action !== ActionCatalog::DEFAULT_ACTION && is_file($root . '/' . $source)) {
+            if ($contract->action !== ActionCatalog::DEFAULT_ACTION && CompatibilitySourceResolver::content($root, $source) !== '') {
                 $content = CompatibilitySourceResolver::content($root, $source);
                 if (!str_contains($content, $contract->action)) {
                     $errors[] = 'action_token_not_in_handler:' . $contract->route . ':' . $contract->action . ':' . $source;
@@ -98,7 +98,7 @@ final class ArchitectureVerifier
                 if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
                     $knownBySource[$producer][$contract->action] = true;
                 }
-                if (!is_file($root . '/' . $producer)) {
+                if (CompatibilitySourceResolver::content($root, $producer) === '') {
                     $errors[] = 'action_producer_missing:' . $contract->route . ':' . $contract->action . ':' . $producer;
                     continue;
                 }
@@ -118,11 +118,11 @@ final class ArchitectureVerifier
         $discoveredSources = [];
         $unregisteredPairs = [];
         foreach (array_keys($sources) as $source) {
-            $path = $root . '/' . $source;
-            if (!is_file($path)) {
+            $content = CompatibilitySourceResolver::content($root, $source);
+            if ($content === '') {
                 continue;
             }
-            foreach (self::discoverActionTokens(CompatibilitySourceResolver::content($root, $source)) as $token) {
+            foreach (self::discoverActionTokens($content) as $token) {
                 $discovered[$token] = true;
                 $discoveredSources[$token][$source] = true;
                 if (!isset($knownBySource[$source][$token])) {

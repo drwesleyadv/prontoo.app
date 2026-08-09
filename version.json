@@ -19,7 +19,7 @@
     "architecture_manifest": "app/architecture.manifest.json",
     "architecture_classification_coverage_target_percent": 100,
     "architecture_native_files_min": 278,
-    "architecture_transitional_files_max": 43,
+    "architecture_transitional_files_max": 21,
     "version_policy": "version_json_is_unique_canonical_source_runtime_pagehead_manifest_and_landing_match_assets_remain_separate",
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
@@ -110,6 +110,212 @@
         "app/Support/SecurityPrivacy.php": [
             "app/Infrastructure/SecurityPrivacy/SecurityPrivacyInfrastructureOperations01.php",
             "app/Runtime/SecurityPrivacy/SecurityPrivacyRuntimeOperations01.php"
+        ],
+        "app/Admin/AdminPages.php": [
+            "app/Infrastructure/AdminPages/AdminPagesInfrastructureOperations01.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations01.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations02.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations03.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations04.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations05.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations07.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php"
+        ],
+        "app/Auth/AuthOnboarding.php": [
+            "app/Infrastructure/AuthOnboarding/AuthOnboardingInfrastructureOperations01.php",
+            "app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php"
+        ],
+        "app/Database/DatabaseSchema.php": [
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php",
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations02.php",
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations03.php",
+            "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php"
+        ],
+        "app/Domain/Appointments/Appointments.php": [
+            "app/Domain/Appointments/AppointmentsDomainOperations01.php",
+            "app/Infrastructure/Appointments/AppointmentsInfrastructureOperations01.php",
+            "app/Presentation/Appointments/AppointmentsPresentationOperations01.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations01.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations02.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations04.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php"
+        ],
+        "app/Domain/Audit/AuditActivity.php": [
+            "app/Domain/AuditActivity/ActivityDisplayPolicy.php",
+            "app/Domain/AuditActivity/ActivityTargetPolicy.php",
+            "app/Domain/AuditActivity/ActivityTaxonomy.php",
+            "app/Domain/AuditActivity/ActivityValuePolicy.php",
+            "app/Domain/AuditActivity/AuditActivityDomainOperations03.php",
+            "app/Domain/AuditActivity/AuditCopyPolicy.php",
+            "app/Domain/AuditActivity/AuditDocumentPolicy.php",
+            "app/Domain/AuditActivity/AuditRecordPolicy.php",
+            "app/Domain/AuditActivity/AuditTargetPolicy.php",
+            "app/Domain/AuditActivity/AuditWritePolicy.php",
+            "app/Presentation/AuditActivity/AuditActivityPresentationOperations01.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations01.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations02.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations03.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations05.php"
+        ],
+        "app/Domain/Clinic/ClinicConfig.php": [
+            "app/Domain/ClinicConfig/ClinicConfigDomainOperations01.php",
+            "app/Domain/ClinicConfig/ClinicConfigDomainOperations02.php",
+            "app/Presentation/ClinicConfig/ClinicConfigPresentationOperations01.php",
+            "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php",
+            "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations02.php"
+        ],
+        "app/Domain/Clinic/SubscriptionSettings.php": [
+            "app/Domain/SubscriptionSettings/SubscriptionSettingsDomainOperations01.php",
+            "app/Infrastructure/SubscriptionSettings/SubscriptionSettingsInfrastructureOperations01.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations01.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php"
+        ],
+        "app/Domain/Documents/DocumentPdf.php": [
+            "app/Domain/DocumentPdf/DocumentPdfDomainOperations01.php",
+            "app/Infrastructure/DocumentPdf/DocumentPdfInfrastructureOperations01.php",
+            "app/Presentation/DocumentPdf/DocumentPdfPresentationOperations01.php",
+            "app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php"
+        ],
+        "app/Domain/Documents/Documents.php": [
+            "app/Domain/Documents/DocumentHtmlPolicy.php",
+            "app/Domain/Documents/DocumentIdentifierPolicy.php",
+            "app/Domain/Documents/DocumentTemplatePolicy.php",
+            "app/Domain/Documents/DocumentTypePolicy.php",
+            "app/Domain/Documents/DocumentsDomainOperations02.php",
+            "app/Presentation/Documents/DocumentsPresentationOperations01.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations01.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations02.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations03.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations04.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations05.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations06.php"
+        ],
+        "app/Domain/Financial/Financial.php": [
+            "app/Domain/Financial/FinancialDomainOperations01.php",
+            "app/Infrastructure/Financial/FinancialInfrastructureOperations01.php",
+            "app/Presentation/Financial/FinancialPresentationOperations01.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations01.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations02.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations03.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations04.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations05.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations06.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations07.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations08.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations09.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations10.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations11.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations12.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations13.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations14.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations15.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations16.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations17.php"
+        ],
+        "app/Domain/Maestro/Maestro.php": [
+            "app/Domain/Maestro/MaestroDomainOperations01.php",
+            "app/Domain/Maestro/MaestroDomainOperations02.php",
+            "app/Infrastructure/Maestro/MaestroInfrastructureOperations01.php",
+            "app/Presentation/Maestro/MaestroPresentationOperations01.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations01.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations02.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations03.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations04.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations05.php"
+        ],
+        "app/Domain/Patients/Patients.php": [
+            "app/Domain/Patients/PatientsDomainOperations01.php",
+            "app/Infrastructure/Patients/PatientsInfrastructureOperations01.php",
+            "app/Presentation/Patients/PatientsPresentationOperations01.php",
+            "app/Runtime/Patients/PatientComposition.php",
+            "app/Runtime/Patients/PatientViewComposition.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations01.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations02.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations03.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations04.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations05.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations06.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations07.php"
+        ],
+        "app/Domain/Permissions/UsersPermissions.php": [
+            "app/Domain/UsersPermissions/UsersPermissionsDomainOperations01.php",
+            "app/Presentation/UsersPermissions/UsersPermissionsPresentationOperations01.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php"
+        ],
+        "app/Domain/Tasks/TasksNotices.php": [
+            "app/Domain/TasksNotices/TasksNoticesDomainOperations01.php",
+            "app/Infrastructure/TasksNotices/TasksNoticesInfrastructureOperations01.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php"
+        ],
+        "app/Install/Installer.php": [
+            "app/Infrastructure/InstallInstaller/InstallInstallerInfrastructureOperations01.php",
+            "app/Presentation/InstallInstaller/InstallInstallerPresentationOperations01.php",
+            "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php",
+            "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php"
+        ],
+        "app/Support/DeferredAudit.php": [
+            "app/Infrastructure/DeferredAudit/DeferredAuditInfrastructureOperations01.php",
+            "app/Runtime/DeferredAudit/DeferredAuditRuntimeOperations01.php"
+        ],
+        "app/Support/Foundation.php": [
+            "app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php",
+            "app/Presentation/SupportFoundation/SupportFoundationPresentationOperations01.php",
+            "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php",
+            "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php"
+        ],
+        "app/Support/Runtime.php": "app/Infrastructure/SupportRuntime/SupportRuntimeInfrastructureOperations01.php",
+        "app/Support/SecurityAccess.php": [
+            "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations01.php",
+            "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations02.php",
+            "app/Presentation/SecurityAccess/SecurityAccessPresentationOperations01.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations01.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php",
+            "app/Runtime/Tenant/SessionTenantAccess.php"
+        ],
+        "app/Support/ServerJsonCache.php": [
+            "app/Infrastructure/ServerJsonCache/ServerJsonCacheInfrastructureOperations01.php",
+            "app/Presentation/ServerJsonCache/ServerJsonCachePresentationOperations01.php",
+            "app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php"
+        ],
+        "app/Support/Telemetry.php": [
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+            "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
+        ],
+        "app/Ui/Components.php": [
+            "app/Infrastructure/UiComponents/UiComponentsInfrastructureOperations01.php",
+            "app/Presentation/UiComponents/UiComponentsPresentationOperations01.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations01.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php"
         ]
     },
     "native_consolidation_path_decompositions": {
@@ -144,5 +350,215 @@
             "preserva schema, dados, interface funcional e todos os recursos do usuário"
         ]
     },
-    "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript"
+    "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
+    "architecture_source_path_migrations": {
+        "app/Admin/AdminPages.php": [
+            "app/Infrastructure/AdminPages/AdminPagesInfrastructureOperations01.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations01.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations02.php",
+            "app/Presentation/AdminPages/AdminPagesPresentationOperations03.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations04.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations05.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations07.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php",
+            "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php",
+            "app/Presentation/AdminPages/AdminChoiceCardOperation.php"
+        ],
+        "app/Auth/AuthOnboarding.php": [
+            "app/Infrastructure/AuthOnboarding/AuthOnboardingInfrastructureOperations01.php",
+            "app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php",
+            "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php",
+            "app/Presentation/AuthOnboarding/AdminChoiceCardOperation.php"
+        ],
+        "app/Database/DatabaseSchema.php": [
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php",
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations02.php",
+            "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations03.php",
+            "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php"
+        ],
+        "app/Domain/Appointments/Appointments.php": [
+            "app/Domain/Appointments/AppointmentsDomainOperations01.php",
+            "app/Infrastructure/Appointments/AppointmentsInfrastructureOperations01.php",
+            "app/Presentation/Appointments/AppointmentsPresentationOperations01.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations01.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations02.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations04.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php",
+            "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php"
+        ],
+        "app/Domain/Audit/AuditActivity.php": [
+            "app/Domain/AuditActivity/ActivityDisplayPolicy.php",
+            "app/Domain/AuditActivity/ActivityTargetPolicy.php",
+            "app/Domain/AuditActivity/ActivityTaxonomy.php",
+            "app/Domain/AuditActivity/ActivityValuePolicy.php",
+            "app/Domain/AuditActivity/AuditActivityDomainOperations03.php",
+            "app/Domain/AuditActivity/AuditCopyPolicy.php",
+            "app/Domain/AuditActivity/AuditDocumentPolicy.php",
+            "app/Domain/AuditActivity/AuditRecordPolicy.php",
+            "app/Domain/AuditActivity/AuditTargetPolicy.php",
+            "app/Domain/AuditActivity/AuditWritePolicy.php",
+            "app/Presentation/AuditActivity/AuditActivityPresentationOperations01.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations01.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations02.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations03.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php",
+            "app/Runtime/AuditActivity/AuditActivityRuntimeOperations05.php"
+        ],
+        "app/Domain/Clinic/ClinicConfig.php": [
+            "app/Domain/ClinicConfig/ClinicConfigDomainOperations01.php",
+            "app/Domain/ClinicConfig/ClinicConfigDomainOperations02.php",
+            "app/Presentation/ClinicConfig/ClinicConfigPresentationOperations01.php",
+            "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php",
+            "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations02.php"
+        ],
+        "app/Domain/Clinic/SubscriptionSettings.php": [
+            "app/Domain/SubscriptionSettings/SubscriptionSettingsDomainOperations01.php",
+            "app/Infrastructure/SubscriptionSettings/SubscriptionSettingsInfrastructureOperations01.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations01.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php",
+            "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php"
+        ],
+        "app/Domain/Documents/DocumentPdf.php": [
+            "app/Domain/DocumentPdf/DocumentPdfDomainOperations01.php",
+            "app/Infrastructure/DocumentPdf/DocumentPdfInfrastructureOperations01.php",
+            "app/Presentation/DocumentPdf/DocumentPdfPresentationOperations01.php",
+            "app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php"
+        ],
+        "app/Domain/Documents/Documents.php": [
+            "app/Domain/Documents/DocumentHtmlPolicy.php",
+            "app/Domain/Documents/DocumentIdentifierPolicy.php",
+            "app/Domain/Documents/DocumentTemplatePolicy.php",
+            "app/Domain/Documents/DocumentTypePolicy.php",
+            "app/Domain/Documents/DocumentsDomainOperations02.php",
+            "app/Presentation/Documents/DocumentsPresentationOperations01.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations01.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations02.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations03.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations04.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations05.php",
+            "app/Runtime/Documents/DocumentsRuntimeOperations06.php"
+        ],
+        "app/Domain/Financial/Financial.php": [
+            "app/Domain/Financial/FinancialDomainOperations01.php",
+            "app/Infrastructure/Financial/FinancialInfrastructureOperations01.php",
+            "app/Presentation/Financial/FinancialPresentationOperations01.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations01.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations02.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations03.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations04.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations05.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations06.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations07.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations08.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations09.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations10.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations11.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations12.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations13.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations14.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations15.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations16.php",
+            "app/Runtime/Financial/FinancialRuntimeOperations17.php"
+        ],
+        "app/Domain/Maestro/Maestro.php": [
+            "app/Domain/Maestro/MaestroDomainOperations01.php",
+            "app/Domain/Maestro/MaestroDomainOperations02.php",
+            "app/Infrastructure/Maestro/MaestroInfrastructureOperations01.php",
+            "app/Presentation/Maestro/MaestroPresentationOperations01.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations01.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations02.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations03.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations04.php",
+            "app/Runtime/Maestro/MaestroRuntimeOperations05.php"
+        ],
+        "app/Domain/Patients/Patients.php": [
+            "app/Domain/Patients/PatientsDomainOperations01.php",
+            "app/Infrastructure/Patients/PatientsInfrastructureOperations01.php",
+            "app/Presentation/Patients/PatientsPresentationOperations01.php",
+            "app/Runtime/Patients/PatientComposition.php",
+            "app/Runtime/Patients/PatientViewComposition.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations01.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations02.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations03.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations04.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations05.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations06.php",
+            "app/Runtime/Patients/PatientsRuntimeOperations07.php"
+        ],
+        "app/Domain/Permissions/UsersPermissions.php": [
+            "app/Domain/UsersPermissions/UsersPermissionsDomainOperations01.php",
+            "app/Presentation/UsersPermissions/UsersPermissionsPresentationOperations01.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php",
+            "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php"
+        ],
+        "app/Domain/Tasks/TasksNotices.php": [
+            "app/Domain/TasksNotices/TasksNoticesDomainOperations01.php",
+            "app/Infrastructure/TasksNotices/TasksNoticesInfrastructureOperations01.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php",
+            "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php"
+        ],
+        "app/Install/Installer.php": [
+            "app/Infrastructure/InstallInstaller/InstallInstallerInfrastructureOperations01.php",
+            "app/Presentation/InstallInstaller/InstallInstallerPresentationOperations01.php",
+            "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php",
+            "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php"
+        ],
+        "app/Support/DeferredAudit.php": [
+            "app/Infrastructure/DeferredAudit/DeferredAuditInfrastructureOperations01.php",
+            "app/Runtime/DeferredAudit/DeferredAuditRuntimeOperations01.php"
+        ],
+        "app/Support/Foundation.php": [
+            "app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php",
+            "app/Presentation/SupportFoundation/SupportFoundationPresentationOperations01.php",
+            "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php",
+            "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php"
+        ],
+        "app/Support/Runtime.php": "app/Infrastructure/SupportRuntime/SupportRuntimeInfrastructureOperations01.php",
+        "app/Support/SecurityAccess.php": [
+            "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations01.php",
+            "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations02.php",
+            "app/Presentation/SecurityAccess/SecurityAccessPresentationOperations01.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations01.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php",
+            "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php",
+            "app/Runtime/Tenant/SessionTenantAccess.php"
+        ],
+        "app/Support/ServerJsonCache.php": [
+            "app/Infrastructure/ServerJsonCache/ServerJsonCacheInfrastructureOperations01.php",
+            "app/Presentation/ServerJsonCache/ServerJsonCachePresentationOperations01.php",
+            "app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php"
+        ],
+        "app/Support/Telemetry.php": [
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+            "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
+        ],
+        "app/Ui/Components.php": [
+            "app/Infrastructure/UiComponents/UiComponentsInfrastructureOperations01.php",
+            "app/Presentation/UiComponents/UiComponentsPresentationOperations01.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations01.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php",
+            "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php"
+        ]
+    }
 }

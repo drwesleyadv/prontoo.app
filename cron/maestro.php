@@ -78,10 +78,10 @@ try {
 
 function prontoo_cron_record_failure(float $startedAt, string $note): void
 {
-    if (!function_exists("maestro_supervised_record_job_run")) {
+    if (!is_callable([\Prontoo\Runtime\Maestro\MaestroRuntimeOperations05::class, 'maestro_supervised_record_job_run'])) {
         return;
     }
-    maestro_supervised_record_job_run($startedAt, [
+    \Prontoo\Runtime\Maestro\MaestroRuntimeOperations05::maestro_supervised_record_job_run($startedAt, [
         "success" => false,
         "status" => "failed",
         "rules_seen" => 0,
@@ -108,7 +108,7 @@ function prontoo_cron_preflight_marker_path(): string
     $version = defined("PRONTOO_VERSION")
         ? (string) PRONTOO_VERSION
         : "sem_versao";
-    $dir = storage_path("cache");
+    $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }
@@ -117,7 +117,7 @@ function prontoo_cron_preflight_marker_path(): string
 
 function prontoo_cron_preflight_report_path(string $suffix = "latest"): string
 {
-    $dir = storage_path("logs");
+    $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }
@@ -160,7 +160,7 @@ function prontoo_cron_preflight_once(): array
         }
     };
     $add("php_sapi", PHP_SAPI === "cli", "Executado por CLI.");
-    $add("php_version", prontoo_php_runtime_ok(), prontoo_php_runtime_message());
+    $add("php_version", \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_php_runtime_ok(), \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_php_runtime_message());
     foreach (["pdo", "pdo_mysql", "json", "openssl", "date", "hash", "session"] as $extension) {
         $add(
             "ext_" . $extension,
@@ -168,14 +168,14 @@ function prontoo_cron_preflight_once(): array
             "Extensão " . $extension . " disponível.",
         );
     }
-    $memoryLabel = prontoo_memory_limit_label();
+    $memoryLabel = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_memory_limit_label();
     $add(
         "memory_limit",
-        prontoo_memory_limit_meets(96 * 1024 * 1024),
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_memory_limit_meets(96 * 1024 * 1024),
         "memory_limit do cron: " . $memoryLabel . ".",
         "warn",
     );
-    $free = @disk_free_space(app_root());
+    $free = @disk_free_space(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root());
     $add(
         "disk_free",
         $free !== false && $free > 1024 * 1024 * 1024,
@@ -184,11 +184,11 @@ function prontoo_cron_preflight_once(): array
             ".",
     );
     foreach ([
-        storage_path(),
-        storage_path("cache"),
-        storage_path("logs"),
-        storage_path("tmp"),
-        storage_path("maestro-deferred"),
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path(),
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache"),
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs"),
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("tmp"),
+        \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro-deferred"),
     ] as $dir) {
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
@@ -198,21 +198,21 @@ function prontoo_cron_preflight_once(): array
             is_writable($dir) &&
             @file_put_contents($probe, "ok", LOCK_EX) !== false;
         @unlink($probe);
-        $label = str_replace(app_root() . "/", "", $dir);
+        $label = str_replace(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/", "", $dir);
         $add(
             "write_" . preg_replace("/[^a-zA-Z0-9_\-]/", "_", $label),
             $ok,
             "Escrita em " . $label . ".",
         );
     }
-    if (!has_cfg()) {
+    if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
         $add("config", false, "Configuração não encontrada.");
     } else {
         $add("config", true, "Configuração encontrada.");
         try {
             $add(
                 "db_connect",
-                (int) pdo()->query("SELECT 1")->fetchColumn() === 1,
+                (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->query("SELECT 1")->fetchColumn() === 1,
                 "Conexão com banco confirmada.",
             );
             foreach ([
@@ -224,7 +224,7 @@ function prontoo_cron_preflight_once(): array
             ] as $table) {
                 $add(
                     "table_" . $table,
-                    db_table_exists($table),
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists($table),
                     "Tabela " . $table . " presente.",
                 );
             }
@@ -236,7 +236,7 @@ function prontoo_cron_preflight_once(): array
             ] as [$table, $column]) {
                 $add(
                     "column_" . $table . "_" . $column,
-                    db_table_exists($table) && db_column_exists($table, $column),
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists($table) && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists($table, $column),
                     "Coluna " . $table . "." . $column . " presente.",
                 );
             }
@@ -332,7 +332,7 @@ function prontoo_cron_maintenance(): array
     $started = microtime(true);
     $removed = 0;
     $cutoff = time() - 30 * 86400;
-    foreach ((array) glob(storage_path("logs/cron_preflight_*.json")) as $file) {
+    foreach ((array) glob(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs/cron_preflight_*.json")) as $file) {
         if (str_ends_with($file, "cron_preflight_latest.json")) {
             continue;
         }
@@ -340,7 +340,7 @@ function prontoo_cron_maintenance(): array
             $removed++;
         }
     }
-    $bootstrap = storage_path("logs/maestro-bootstrap.log");
+    $bootstrap = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs/maestro-bootstrap.log");
     if (is_file($bootstrap) && (int) @filesize($bootstrap) > 2 * 1024 * 1024) {
         for ($index = 4; $index >= 1; $index--) {
             $source = $bootstrap . "." . $index;
@@ -361,7 +361,7 @@ function prontoo_cron_maintenance(): array
 
 function prontoo_cron_cycle_state_write(array $cycle): void
 {
-    $dir = storage_path("maestro/state");
+    $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("maestro/state");
     if (!is_dir($dir)) {
         @mkdir($dir, 0750, true);
     }
@@ -382,7 +382,7 @@ $__prontooCronStarted = microtime(true);
 $__prontooCronDeadline = $__prontooCronStarted + PRONTOO_MAESTRO_CRON_BUDGET_MS / 1000;
 
 try {
-    if (!has_cfg()) {
+    if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
         $__prontooCronFinished = true;
         echo json_encode(
             ["ok" => true, "note" => "Prontoo ainda não configurado"],
@@ -414,7 +414,7 @@ try {
     }
     $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));
     $rules = $rulesBudget >= 5000
-        ? maestro_supervised_cron_run($rulesBudget)
+        ? \Prontoo\Runtime\Maestro\MaestroRuntimeOperations05::maestro_supervised_cron_run($rulesBudget)
         : [
             "success" => true,
             "status" => "attention",
@@ -426,7 +426,7 @@ try {
             "note" => "Regras adiadas por orçamento residual insuficiente.",
         ];
     $deferredBudget = min(20000, max(250, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
-    $deferredWork = maestro_process_deferred_work($deferredBudget, 1000);
+    $deferredWork = \Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_process_deferred_work($deferredBudget, 1000);
     $integrityBudget = min(10000, max(0, prontoo_cron_remaining_budget_ms($__prontooCronDeadline)));
     $piResult = prontoo_cron_integrity_flush($integrityBudget);
     $maintenance = prontoo_cron_maintenance();

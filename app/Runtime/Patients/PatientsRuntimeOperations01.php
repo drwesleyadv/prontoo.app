@@ -30,8 +30,8 @@ final class PatientsRuntimeOperations01
     public static function patient_cpf_br(string $cpf): string
     
     {
-        $digits = function_exists('only_digits')
-            ? only_digits($cpf)
+        $digits = is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'only_digits'])
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf)
             : preg_replace('/\D+/', '', $cpf);
         return \Prontoo\Domain\Patients\PatientPure::cpfBr($cpf, (string) $digits);
     
@@ -61,16 +61,16 @@ final class PatientsRuntimeOperations01
     
     {
     
-        patient_tabs_ensure_schema();
+        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_tabs_ensure_schema();
         $rows = PatientComposition::activeTabs($cid, $patientId);
         foreach ($rows as &$r) {
             $r["id"] = (int) $r["id"];
-            $r["label"] = patient_tab_label_clean((string) ($r["label"] ?? ""));
-            $r["icon_name"] = normalize_patient_tab_icon(
+            $r["label"] = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_tab_label_clean((string) ($r["label"] ?? ""));
+            $r["icon_name"] = \Prontoo\Domain\Patients\PatientsDomainOperations01::normalize_patient_tab_icon(
                 (string) ($r["icon_name"] ?? ""),
             );
-            $r["record_type"] = patient_tab_record_type((int) $r["id"]);
-            $r["tab_key"] = patient_tab_key((int) $r["id"]);
+            $r["record_type"] = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_tab_record_type((int) $r["id"]);
+            $r["tab_key"] = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_tab_key((int) $r["id"]);
         }
         unset($r);
         return $rows;
@@ -82,8 +82,8 @@ final class PatientsRuntimeOperations01
     {
     
         return mb_trim((string) ($p["full_name"] ?? "")) !== "" &&
-            valid_cpf(only_digits((string) ($p["cpf"] ?? ""))) &&
-            valid_birth_date((string) ($p["birth_date"] ?? ""));
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($p["cpf"] ?? ""))) &&
+            \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date((string) ($p["birth_date"] ?? ""));
     
     }
 
@@ -95,10 +95,10 @@ final class PatientsRuntimeOperations01
         if (mb_trim((string) ($p["full_name"] ?? "")) === "") {
             $missing[] = "nome completo";
         }
-        if (!valid_cpf(only_digits((string) ($p["cpf"] ?? "")))) {
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($p["cpf"] ?? "")))) {
             $missing[] = "CPF";
         }
-        if (!valid_birth_date((string) ($p["birth_date"] ?? ""))) {
+        if (!\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date((string) ($p["birth_date"] ?? ""))) {
             $missing[] = "nascimento";
         }
         if (mb_trim((string) ($p["phone"] ?? "")) === "") {
@@ -108,7 +108,7 @@ final class PatientsRuntimeOperations01
         if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $missing[] = "e-mail";
         }
-        if (strlen(only_digits((string) ($p["address_zip"] ?? ""))) !== 8) {
+        if (strlen(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($p["address_zip"] ?? ""))) !== 8) {
             $missing[] = "CEP";
         }
         if (mb_trim((string) ($p["address"] ?? "")) === "") {
@@ -134,7 +134,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        return patient_invoice_registration_missing_fields($p) === [];
+        return \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_missing_fields($p) === [];
     
     }
 
@@ -142,7 +142,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        $missing = patient_invoice_registration_missing_fields($p);
+        $missing = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_missing_fields($p);
         return "Atualização cadastral obrigatória antes de agendar a próxima consulta" .
             ($missing ? ": informe " . implode(", ", $missing) . "." : ".");
     
@@ -154,7 +154,7 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return [];
         }
-        patient_guardians_ensure_schema();
+        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
         return PatientComposition::legalGuardians($cid, $patientId);
     
     }
@@ -163,7 +163,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        $g = patient_legal_guardians($cid, $patientId);
+        $g = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_legal_guardians($cid, $patientId);
         return $g[0] ?? null;
     
     }
@@ -174,7 +174,7 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return false;
         }
-        patient_guardians_ensure_schema();
+        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
         return PatientComposition::hasLegalGuardian($cid, $patientId);
     
     }
@@ -183,7 +183,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        if (!patient_identity_complete($p)) {
+        if (!\Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_identity_complete($p)) {
             return [
                 "level" => "bad",
                 "label" => "Ficha incompleta",
@@ -191,14 +191,14 @@ final class PatientsRuntimeOperations01
                     "CPF, Nome Completo e Nascimento são obrigatórios para considerar o cadastro mínimo válido.",
             ];
         }
-        if (!patient_invoice_registration_complete($p)) {
+        if (!\Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_complete($p)) {
             return [
                 "level" => "warn",
                 "label" => "Atualização obrigatória",
-                "message" => patient_invoice_registration_alert_message($p),
+                "message" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_alert_message($p),
             ];
         }
-        if (patient_is_minor($p) && !$guardians) {
+        if (\Prontoo\Domain\Patients\PatientsDomainOperations01::patient_is_minor($p) && !$guardians) {
             return [
                 "level" => "warn",
                 "label" => "Ficha incompleta",
@@ -214,7 +214,7 @@ final class PatientsRuntimeOperations01
                     "Cadastro recuperado ou pendente de revisão administrativa.",
             ];
         }
-        if (patient_is_minor($p)) {
+        if (\Prontoo\Domain\Patients\PatientsDomainOperations01::patient_is_minor($p)) {
             return [
                 "level" => "ok",
                 "label" => "Menor com responsável",
@@ -237,21 +237,21 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return null;
         }
-        $p = one(
+        $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT pp.id,pp.clinic_id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,pp.registration_needs_update,p.full_name,p.cpf,p.birth_date FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1",
             [$patientId, $cid],
         );
         if (!$p) {
             return null;
         }
-        if (!patient_identity_complete($p)) {
+        if (!\Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_identity_complete($p)) {
             return "A ficha do paciente está incompleta. Informe CPF, Nome Completo e Nascimento antes de emitir documentos.";
         }
-        if (!patient_invoice_registration_complete($p)) {
+        if (!\Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_complete($p)) {
             return "A ficha fiscal do paciente está incompleta. " .
-                patient_invoice_registration_alert_message($p);
+                \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_alert_message($p);
         }
-        if (patient_is_minor($p) && !patient_has_legal_guardian($cid, $patientId)) {
+        if (\Prontoo\Domain\Patients\PatientsDomainOperations01::patient_is_minor($p) && !\Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_has_legal_guardian($cid, $patientId)) {
             return "Paciente menor de idade sem Responsável Legal vinculado. Cadastre o responsável legal antes de emitir documentos ou concluir atos sensíveis.";
         }
         return null;
@@ -265,7 +265,7 @@ final class PatientsRuntimeOperations01
     {
     
         $gid = (int) ($guardian["id"] ?? 0);
-        $rel = normalize_guardian_relationship(
+        $rel = \Prontoo\Domain\Patients\PatientsDomainOperations01::normalize_guardian_relationship(
             (string) ($guardian["relationship"] ?? "mae"),
         );
         $isPrimary =
@@ -273,13 +273,13 @@ final class PatientsRuntimeOperations01
                 ? " checked"
                 : "";
         return '<form method="post" class="compact patient-guardian-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="save_legal_guardian"><input type="hidden" name="guardian_id" value="' .
             $gid .
             '">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome completo do responsável legal",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "guardian_name",
                     "text",
                     $guardian["full_name"] ?? "",
@@ -287,54 +287,54 @@ final class PatientsRuntimeOperations01
                 ),
             ) .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF do responsável",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "guardian_cpf",
                     "text",
-                    mask($guardian["cpf"] ?? ""),
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($guardian["cpf"] ?? ""),
                     'required inputmode="numeric" data-cpf-mask',
                 ),
             ) .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Vínculo jurídico",
                 "guardian_relationship",
-                patient_guardian_relationship_options(),
+                \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_guardian_relationship_options(),
                 $rel,
                 "required",
             ) .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Telefone",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "guardian_phone",
                     "text",
                     $guardian["phone"] ?? "",
                     'inputmode="tel"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "E-mail",
-                input("guardian_email", "email", $guardian["email"] ?? ""),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("guardian_email", "email", $guardian["email"] ?? ""),
             ) .
             "</div>" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Documento ou observação de comprovação",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "guardian_document_note",
                     "text",
                     $guardian["document_note"] ?? "",
                     'maxlength="180" placeholder="Ex.: certidão, guarda, tutela, autorização"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Observações sobre guarda, restrição ou autorização",
-                textarea("guardian_notes", $guardian["notes"] ?? "", 'rows="4"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea("guardian_notes", $guardian["notes"] ?? "", 'rows="4"'),
             ) .
             '<label class="checkline"><input type="checkbox" name="guardian_primary" value="1"' .
             $isPrimary .
             "><span>Marcar como responsável principal</span></label>" .
-            form_actions($submit) .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions($submit) .
             "</form>";
     
     }
@@ -348,25 +348,25 @@ final class PatientsRuntimeOperations01
     ): string 
     {
     
-        $minor = patient_is_minor($p);
+        $minor = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_is_minor($p);
         if (!$minor && !$guardians) {
             return "";
         }
-        $status = patient_profile_status($p, $guardians);
-        $relOpts = patient_guardian_relationship_options();
+        $status = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_profile_status($p, $guardians);
+        $relOpts = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_guardian_relationship_options();
         $html =
             '<section class="patient-guardian-card ' .
             ($minor && !$guardians ? "is-pending" : "is-ok") .
             '"><div class="patient-section-title"><div><h2>' .
-            icon("supervisor_account") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("supervisor_account") .
             "<span>Responsável Legal</span></h2><p>" .
             ($minor
                 ? "Obrigatório para paciente menor de idade."
                 : "Vínculo administrativo registrado na ficha.") .
             '</p></div><span class="pill ' .
-            e($status["level"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status["level"]) .
             '">' .
-            e($status["label"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status["label"]) .
             "</span></div>";
         if ($minor && !$guardians) {
             $html .=
@@ -376,25 +376,25 @@ final class PatientsRuntimeOperations01
             $html .= '<div class="guardian-list">';
             foreach ($guardians as $g) {
                 $rel = $relOpts[(string) $g["relationship"]] ?? "Responsável";
-                $meta = $rel . " · CPF " . mask((string) $g["cpf"]);
+                $meta = $rel . " · CPF " . \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) $g["cpf"]);
                 if (!empty($g["phone"])) {
-                    $meta .= " · " . phone_br((string) $g["phone"]);
+                    $meta .= " · " . \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $g["phone"]);
                 }
                 if (!empty($g["email"])) {
                     $meta .= " · " . (string) $g["email"];
                 }
                 $html .=
                     '<article class="guardian-row"><div class="guardian-main"><span class="guardian-avatar">' .
-                    icon("family_restroom") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("family_restroom") .
                     "</span><div><strong>" .
-                    e($g["full_name"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["full_name"]) .
                     "</strong><small>" .
-                    e($meta) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($meta) .
                     "</small>" .
                     (!empty($g["document_note"])
-                        ? "<small>Documento: " . e($g["document_note"]) . "</small>"
+                        ? "<small>Documento: " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["document_note"]) . "</small>"
                         : "") .
-                    (!empty($g["notes"]) ? "<p>" . e($g["notes"]) . "</p>" : "") .
+                    (!empty($g["notes"]) ? "<p>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["notes"]) . "</p>" : "") .
                     '</div></div><div class="guardian-actions">' .
                     ((int) $g["is_primary"] === 1
                         ? '<span class="pill ok">Principal</span>'
@@ -402,11 +402,11 @@ final class PatientsRuntimeOperations01
                 if ($canManage) {
                     $html .=
                         '<details class="guardian-edit"><summary class="ghost small cmdlike">' .
-                        action_summary_label("Alterar", "edit") .
+                        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Alterar", "edit") .
                         "</summary>" .
-                        patient_guardian_form_html($g, "Salvar responsável") .
+                        \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_guardian_form_html($g, "Salvar responsável") .
                         '</details><form method="post" class="inline" onsubmit="return confirm(\'Remover este responsável legal da ficha?\')">' .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="delete_legal_guardian"><input type="hidden" name="guardian_id" value="' .
                         (int) $g["id"] .
                         '"><button type="submit" class="danger small">Remover</button></form>';
@@ -420,14 +420,14 @@ final class PatientsRuntimeOperations01
                 '<details class="patient-guardian-new" ' .
                 (!$guardians && $minor ? "open" : "") .
                 '><summary class="primary small cmdlike">' .
-                action_summary_label(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label(
                     $guardians
                         ? "Adicionar responsável"
                         : "Cadastrar responsável legal",
                     "person_add",
                 ) .
                 "</summary>" .
-                patient_guardian_form_html([], "Salvar responsável legal") .
+                \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_guardian_form_html([], "Salvar responsável legal") .
                 "</details>";
         }
         return $html . "</section>";
@@ -438,7 +438,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        $row = require_same_clinic_entity(
+        $row = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::require_same_clinic_entity(
             $cid,
             "pi_patients",
             $patientId,
@@ -463,7 +463,7 @@ final class PatientsRuntimeOperations01
         $ibge = mb_trim((string) ($p["address_city_ibge"] ?? ""));
         if ($uf === "" && $cid > 0) {
             $cl =
-                one(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT address_state,address_city,address_city_ibge FROM pi_clinics WHERE id=?",
                     [$cid],
                 ) ?:
@@ -491,12 +491,12 @@ final class PatientsRuntimeOperations01
     
     {
     
-        return form_row(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
             "CEP",
-            input(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                 "address_zip",
                 "text",
-                mask_cep((string) ($p["address_zip"] ?? "")),
+                \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::mask_cep((string) ($p["address_zip"] ?? "")),
                 'required inputmode="numeric" maxlength="9" autocomplete="postal-code" data-patient-cep',
             ),
         );
@@ -507,36 +507,36 @@ final class PatientsRuntimeOperations01
     
     {
     
-        $loc = patient_location_defaults($cid, $p);
+        $loc = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_location_defaults($cid, $p);
         $uf = (string) $loc["address_state"];
         $city = (string) $loc["address_city"];
         $cityIbge = (string) $loc["address_city_ibge"];
         $cityOptions =
             $city !== ""
                 ? '<option value="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '" data-ibge="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" selected>' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     "</option>"
                 : '<option value="">Escolha primeiro o estado</option>';
-        $states = ["" => "Escolha o estado"] + br_states();
+        $states = ["" => "Escolha o estado"] + \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states();
         return '<section class="patient-address-block" data-patient-address-block>' .
-            patient_zip_input($p) .
+            \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_zip_input($p) .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Logradouro",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "address",
                     "text",
                     $p["address"] ?? "",
                     'required maxlength="255" autocomplete="address-line1" data-patient-address-street',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Número",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "address_number",
                     "text",
                     $p["address_number"] ?? "",
@@ -544,18 +544,18 @@ final class PatientsRuntimeOperations01
                 ),
             ) .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Bairro",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "address_neighborhood",
                     "text",
                     $p["address_neighborhood"] ?? "",
                     'required maxlength="120" data-patient-address-neighborhood',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Complemento",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "address_complement",
                     "text",
                     $p["address_complement"] ?? "",
@@ -563,21 +563,21 @@ final class PatientsRuntimeOperations01
                 ),
             ) .
             '</div><div class="two patient-location-fields">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Estado",
                 "address_state",
                 $states,
                 $uf,
                 "required data-br-state data-patient-address-state",
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Cidade",
                 '<select name="address_city" required data-br-city data-selected-city="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '" data-patient-address-city>' .
                     $cityOptions .
                     '</select><input type="hidden" name="address_city_ibge" value="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" data-br-city-ibge data-patient-address-ibge>',
             ) .
             "</div></section>";
@@ -588,7 +588,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        return patient_address_fields($cid, $p);
+        return \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_address_fields($cid, $p);
     
     }
 }

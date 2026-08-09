@@ -31,25 +31,25 @@ final class AuthOnboardingRuntimeOperations05
     {
     
         $name = trim($name);
-        $cpf = only_digits($cpf);
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf);
         if ($name === "") {
             throw new RuntimeException("Nome da pessoa não informado.");
         }
-        if (!valid_cpf($cpf)) {
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             throw new RuntimeException("Este CPF não existe.");
         }
-        if (!valid_birth_date($birth)) {
+        if (!\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($birth)) {
             throw new RuntimeException("Nascimento inválido.");
         }
     
-        $id = val("SELECT id FROM pi_persons WHERE cpf=?", [$cpf]);
+        $id = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE cpf=?", [$cpf]);
         if ($id) {
             $id = (int) $id;
-            $identity = person_identity_immutable_values($id, $cpf, $birth, true);
-            $expectedBirth = app_date_input_from_storage(
+            $identity = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_identity_immutable_values($id, $cpf, $birth, true);
+            $expectedBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
                 (string) $identity["birth_date"],
             );
-            $current = one(
+            $current = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT full_name,birth_date FROM pi_persons WHERE id=?",
                 [$id],
             ) ?: [];
@@ -59,39 +59,39 @@ final class AuthOnboardingRuntimeOperations05
                 $sets[] = "full_name=?";
                 $params[] = $name;
             }
-            $currentBirth = app_date_input_from_storage(
+            $currentBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
                 (string) ($current["birth_date"] ?? ""),
             );
-            if ($currentBirth === "" || !valid_birth_date($currentBirth)) {
+            if ($currentBirth === "" || !\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($currentBirth)) {
                 $sets[] = "birth_date=?";
                 $params[] = $expectedBirth;
             }
             if ($sets) {
                 $sets[] = "updated_at=NOW()";
                 $params[] = $id;
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_persons SET " . implode(",", $sets) . " WHERE id=?",
                     $params,
                 );
             }
-            $storedBirth = app_date_input_from_storage(
-                (string) val("SELECT birth_date FROM pi_persons WHERE id=?", [$id]),
+            $storedBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
+                (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT birth_date FROM pi_persons WHERE id=?", [$id]),
             );
             if ($storedBirth === "" || $storedBirth !== $expectedBirth) {
                 throw new RuntimeException(
                     "A data de nascimento não pôde ser registrada corretamente.",
                 );
             }
-            person_signature_refresh_verified($id);
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified($id);
             return $id;
         }
     
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_persons (full_name,cpf,birth_date,assinatura,created_at) VALUES (?,?,?,?,NOW())",
-            [$name, $cpf, $birth, person_signature_value($cpf, $name, $birth)],
+            [$name, $cpf, $birth, \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth)],
         );
-        $id = db_last_insert_id();
-        person_signature_refresh_verified($id);
+        $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified($id);
         return $id;
     
     }
@@ -100,12 +100,12 @@ final class AuthOnboardingRuntimeOperations05
     
     {
     
-        if ($personId <= 0 || !pdo()->inTransaction()) {
+        if ($personId <= 0 || !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
             throw new RuntimeException(
                 "Não foi possível iniciar a gravação segura do usuário.",
             );
         }
-        $locked = one(
+        $locked = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_persons WHERE id=? FOR UPDATE",
             [$personId],
         );
@@ -125,30 +125,30 @@ final class AuthOnboardingRuntimeOperations05
     {
     
         $name = trim($name);
-        $cpf = only_digits((string) ($cpf ?? ""));
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($cpf ?? ""));
         $birth = mb_trim((string) ($birth ?? "")) ?: null;
         if ($name === "") {
             throw new RuntimeException("Nome da pessoa não informado.");
         }
-        if ($cpf !== "" && !valid_cpf($cpf)) {
+        if ($cpf !== "" && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             throw new RuntimeException("Este CPF não existe.");
         }
-        if ($birth !== null && !valid_birth_date($birth)) {
+        if ($birth !== null && !\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($birth)) {
             throw new RuntimeException("Nascimento inválido.");
         }
-        $clinicId = session_clinic_scope_id() ?: null;
+        $clinicId = \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId() ?: null;
         if ($cpf !== "") {
-            $id = val("SELECT id FROM pi_persons WHERE cpf=? LIMIT 1", [$cpf]);
+            $id = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE cpf=? LIMIT 1", [$cpf]);
             if ($id) {
                 $id = (int) $id;
-                $identity = person_identity_immutable_values(
+                $identity = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_identity_immutable_values(
                     $id,
                     $cpf,
                     $birth,
                     false,
                 );
                 $expectedBirth = (string) ($identity["birth_date"] ?? "");
-                $current = one(
+                $current = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT full_name,birth_date,clinic_id FROM pi_persons WHERE id=?",
                     [$id],
                 ) ?: [];
@@ -165,53 +165,53 @@ final class AuthOnboardingRuntimeOperations05
                     $sets[] = "full_name=?";
                     $params[] = $name;
                 }
-                $currentBirth = app_date_input_from_storage(
+                $currentBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
                     (string) ($current["birth_date"] ?? ""),
                 );
                 if (
                     $expectedBirth !== "" &&
-                    ($currentBirth === "" || !valid_birth_date($currentBirth))
+                    ($currentBirth === "" || !\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($currentBirth))
                 ) {
                     $sets[] = "birth_date=?";
-                    $params[] = app_date_input_from_storage($expectedBirth);
+                    $params[] = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($expectedBirth);
                 }
                 if ($sets) {
                     $sets[] = "updated_at=NOW()";
                     $params[] = $id;
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_persons SET " . implode(",", $sets) . " WHERE id=?",
                         $params,
                     );
                 }
                 if ($expectedBirth !== "") {
-                    $storedBirth = app_date_input_from_storage(
-                        (string) val(
+                    $storedBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
+                        (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                             "SELECT birth_date FROM pi_persons WHERE id=?",
                             [$id],
                         ),
                     );
-                    $normalizedExpected = app_date_input_from_storage($expectedBirth);
+                    $normalizedExpected = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($expectedBirth);
                     if ($storedBirth === "" || $storedBirth !== $normalizedExpected) {
                         throw new RuntimeException(
                             "A data de nascimento não pôde ser registrada corretamente.",
                         );
                     }
                 }
-                person_signature_refresh_verified($id);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified($id);
                 return $id;
             }
         }
     
         $signature = $cpf !== ""
-            ? person_signature_value($cpf, $name, $birth)
+            ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth)
             : null;
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_persons (full_name,cpf,birth_date,assinatura,clinic_id,created_at) VALUES (?,?,?,?,?,NOW())",
             [$name, $cpf !== "" ? $cpf : null, $birth, $signature, $clinicId],
         );
-        $id = db_last_insert_id();
+        $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
         if ($cpf !== "") {
-            person_signature_refresh_verified($id);
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified($id);
         }
         return $id;
     
@@ -221,7 +221,7 @@ final class AuthOnboardingRuntimeOperations05
     
     {
     
-        $d = only_digits((string) ($phone ?? ""));
+        $d = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($phone ?? ""));
         if ($d === "") {
             return "";
         }
@@ -250,19 +250,19 @@ final class AuthOnboardingRuntimeOperations05
     
     {
     
-        $cpf = only_digits((string) ($_GET["cpf"] ?? ""));
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_GET["cpf"] ?? ""));
         if (!headers_sent()) {
             header("Content-Type: application/json; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
         $limited =
-            security_rate_limit(security_client_bucket("person_lookup"), 8, 300) ||
-            security_rate_limit(security_ip_bucket("person_lookup"), 30, 300);
-        if ($cpf !== "" && valid_cpf($cpf)) {
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("person_lookup"), 8, 300) ||
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_ip_bucket("person_lookup"), 30, 300);
+        if ($cpf !== "" && \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             $limited =
                 $limited ||
-                security_rate_limit(
-                    security_value_bucket("person_lookup_cpf", $cpf),
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                    \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_value_bucket("person_lookup_cpf", $cpf),
                     4,
                     300,
                 );
@@ -279,7 +279,7 @@ final class AuthOnboardingRuntimeOperations05
             );
             return;
         }
-        if (!valid_cpf($cpf)) {
+        if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             echo json_encode(
                 [
                     "ok" => false,
@@ -290,16 +290,16 @@ final class AuthOnboardingRuntimeOperations05
             );
             return;
         }
-        $current = ctx();
+        $current = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         $detailed =
-            has_session_user() &&
-            (can("patients") ||
-                can("users") ||
-                can("financial") ||
-                can("admin_people"));
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::has_session_user() &&
+            (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("patients") ||
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("users") ||
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("financial") ||
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("admin_people"));
         $p = null;
-        if ($detailed && ($current["scope"] ?? "") === "global" && can("admin_people")) {
-            $p = one(
+        if ($detailed && ($current["scope"] ?? "") === "global" && \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("admin_people")) {
+            $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT full_name,cpf,birth_date FROM pi_persons WHERE cpf=? LIMIT 1",
                 [$cpf],
             );
@@ -309,7 +309,7 @@ final class AuthOnboardingRuntimeOperations05
             (int) ($current["clinic_id"] ?? 0) > 0
         ) {
             $cid = (int) $current["clinic_id"];
-            $p = one(
+            $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT p.full_name,p.cpf,p.birth_date
                  FROM pi_persons p
                  WHERE p.cpf=?
@@ -345,8 +345,8 @@ final class AuthOnboardingRuntimeOperations05
                 "found" => true,
                 "message" => "Dados encontrados e preenchidos automaticamente.",
                 "name" => (string) ($p["full_name"] ?? ""),
-                "cpf" => cpf_br((string) ($p["cpf"] ?? "")),
-                "birth_date" => db_birth_date_input($p["birth_date"] ?? ""),
+                "cpf" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cpf_br((string) ($p["cpf"] ?? "")),
+                "birth_date" => \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::db_birth_date_input($p["birth_date"] ?? ""),
             ],
             JSON_UNESCAPED_UNICODE,
         );
@@ -358,14 +358,14 @@ final class AuthOnboardingRuntimeOperations05
     {
     
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
-            redirect("login");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
         $uid = (int) ($_SESSION["uid"] ?? 0);
         $clinicId = (int) ($_SESSION["clinic_id"] ?? 0);
         $roleCode = (string) ($_SESSION["role_code"] ?? "");
         try {
             if ($uid > 0) {
-                user_auth_generation_rotate($uid);
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
             }
             $auditContext = [
                 "clinic_id" => $clinicId > 0 ? $clinicId : null,
@@ -374,8 +374,8 @@ final class AuthOnboardingRuntimeOperations05
                     "Logout concluído pela rotação da geração canônica; sessões, contextos e credenciais derivadas serão recusados na próxima tentativa de uso.",
             ];
             $queued =
-                function_exists("maestro_defer_audit_event") &&
-                maestro_defer_audit_event(
+                is_callable([\Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::class, 'maestro_defer_audit_event']) &&
+                \Prontoo\Runtime\DeferredAudit\DeferredAuditRuntimeOperations01::maestro_defer_audit_event(
                     "saida_realizada",
                     "seguranca",
                     $uid ?: null,
@@ -392,10 +392,10 @@ final class AuthOnboardingRuntimeOperations05
         } catch (Throwable $e) {
             error_log("[Prontoo logout cascade] " . $e->getMessage());
         } finally {
-            secure_session_destroy();
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
         }
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-        header("Location: " . href("login"));
+        header("Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login"));
         exit();
     
     }

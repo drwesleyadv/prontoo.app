@@ -38,34 +38,34 @@ final class AuthOnboardingRuntimeOperations03
             "login",
             (string) ($_SERVER["HTTP_ACCEPT"] ?? ""),
         );
-        $currentCtx = ctx();
+        $currentCtx = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if ($currentCtx) {
-            redirect(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect(
                 ($currentCtx["scope"] ?? "") === "global"
                     ? "admin_painel"
                     : "appointments",
             );
         }
-        $pendingMfaUser = mfa_pending_login_user();
+        $pendingMfaUser = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::mfa_pending_login_user();
         $pendingMfaState = is_array($pendingMfaUser)
-            ? mfa_enrollment_state((int) ($pendingMfaUser["id"] ?? 0))
+            ? \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state((int) ($pendingMfaUser["id"] ?? 0))
             : "inactive";
         $mfaStage =
             is_array($pendingMfaUser) &&
             $pendingMfaState === "active";
-        $cpf = only_digits($_POST["cpf"] ?? ($_SESSION["login_last_cpf"] ?? ""));
-        $wait = max($cpf ? login_lock($cpf) : 0, login_session_wait());
+        $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($_POST["cpf"] ?? ($_SESSION["login_last_cpf"] ?? ""));
+        $wait = max($cpf ? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf) : 0, \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_wait());
         if ($wait <= 0 && !$mfaStage) {
-            login_session_forget();
+            \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_forget();
         }
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             if ((string) ($_POST["act"] ?? "") === "mfa_verify") {
-                $user = mfa_pending_login_user();
+                $user = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::mfa_pending_login_user();
                 $userMfaState = $user
-                    ? mfa_enrollment_state((int) ($user["id"] ?? 0))
+                    ? \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state((int) ($user["id"] ?? 0))
                     : "inactive";
                 if ($user && $userMfaState === "unavailable") {
-                    mfa_pending_login_clear();
+                    \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
                     $message =
                         "Não foi possível consultar a verificação em duas etapas agora. O acesso não foi liberado; tente novamente em instantes.";
                     if ($wantsJson) {
@@ -80,11 +80,11 @@ final class AuthOnboardingRuntimeOperations03
                         );
                         return;
                     }
-                    flash($message, "bad");
-                    redirect("login");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($message, "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
                 }
                 if (!$user || $userMfaState !== "active") {
-                    mfa_pending_login_clear();
+                    \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
                     if ($wantsJson) {
                         JsonResponder::send(
                             [
@@ -98,14 +98,14 @@ final class AuthOnboardingRuntimeOperations03
                         );
                         return;
                     }
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "A verificação expirou. Informe novamente o CPF e a senha.",
                         "warn",
                     );
-                    redirect("login");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
                 }
                 $uid = (int) $user["id"];
-                if (mfa_attempt_limited($uid, "login")) {
+                if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "login")) {
                     if ($wantsJson) {
                         JsonResponder::send(
                             [
@@ -119,15 +119,15 @@ final class AuthOnboardingRuntimeOperations03
                         );
                         return;
                     }
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Muitas tentativas de autenticação. Aguarde alguns minutos.",
                         "bad",
                     );
-                    redirect("login");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
                 }
                 try {
                     if (
-                        !mfa_verify_user_code(
+                        !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_verify_user_code(
                             $uid,
                             (string) ($_POST["code"] ?? ""),
                         )
@@ -137,26 +137,26 @@ final class AuthOnboardingRuntimeOperations03
                         );
                     }
                     $_SESSION["mfa_pending_verified"] = true;
-                    audit("mfa_validado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_validado", "usuario", $uid, [
                         "audit_body" =>
                             "Segundo fator do usuário validado na mesma tela do login antes da criação da sessão autenticada.",
                     ]);
-                    login_session_forget();
-                    $destination = mfa_complete_pending_login(!$wantsJson);
+                    \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_forget();
+                    $destination = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_complete_pending_login(!$wantsJson);
                     if ($wantsJson) {
                         JsonResponder::send([
                             "ok" => true,
                             "stage" => "complete",
-                            "redirect" => href($destination),
+                            "redirect" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($destination),
                         ]);
                         return;
                     }
                 } catch (Throwable $e) {
                     usleep(random_int(250000, 450000));
-                    audit("falha_mfa", "login", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_mfa", "login", $uid, [
                         "motivo_hash" => hash("sha256", $e->getMessage()),
                     ]);
-                    $message = app_public_error_message(
+                    $message = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_public_error_message(
                         $e,
                         "Não foi possível confirmar o código de verificação.",
                     );
@@ -171,15 +171,15 @@ final class AuthOnboardingRuntimeOperations03
                         );
                         return;
                     }
-                    flash($message, "bad");
-                    redirect("login");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($message, "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
                 }
             }
-            login_locks_cleanup_maybe();
-            $cpf = only_digits($_POST["cpf"] ?? "");
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_locks_cleanup_maybe();
+            $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($_POST["cpf"] ?? "");
             $_SESSION["login_last_cpf"] = $cpf;
-            $cpfValid = valid_cpf($cpf);
-            [$loginSubjectHash, $loginIpHash] = login_key($cpf);
+            $cpfValid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf);
+            [$loginSubjectHash, $loginIpHash] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_key($cpf);
             $loginAttemptLock =
                 "prontoo_login_" .
                 substr(
@@ -194,17 +194,17 @@ final class AuthOnboardingRuntimeOperations03
             $wait = 2;
             try {
                 $loginAttemptLocked =
-                    (int) val("SELECT GET_LOCK(?,2)", [$loginAttemptLock]) === 1;
+                    (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,2)", [$loginAttemptLock]) === 1;
                 if ($loginAttemptLocked) {
                     $wait = max(
-                        $cpf ? login_lock($cpf) : 0,
-                        login_session_wait(),
+                        $cpf ? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf) : 0,
+                        \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_wait(),
                     );
                     if ($wait > 0) {
                         $loginAttemptState = "locked";
                     } else {
                         $person = $cpfValid
-                            ? one(
+                            ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                                 "SELECT p.full_name,p.cpf,p.birth_date,u.id uid,u.password_hash,u.active,u.is_global_admin
                                  FROM pi_persons p
                                  JOIN pi_users u ON u.person_id=p.id
@@ -228,10 +228,10 @@ final class AuthOnboardingRuntimeOperations03
                             !(int) $person["active"] ||
                             !$passwordValid
                         ) {
-                            $wait = login_fail($cpf);
+                            $wait = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_fail($cpf);
                             $loginAttemptState = "invalid";
                         } else {
-                            login_clear($cpf);
+                            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_clear($cpf);
                             $loginAttemptState = "authenticated";
                         }
                     }
@@ -239,7 +239,7 @@ final class AuthOnboardingRuntimeOperations03
             } finally {
                 if ($loginAttemptLocked) {
                     try {
-                        val("SELECT RELEASE_LOCK(?)", [$loginAttemptLock]);
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$loginAttemptLock]);
                     } catch (Throwable $unlockError) {
                         error_log(
                             "[Prontoo login attempt unlock] " .
@@ -249,12 +249,12 @@ final class AuthOnboardingRuntimeOperations03
                 }
             }
             if (in_array($loginAttemptState, ["busy", "locked"], true)) {
-                login_session_remember(
+                \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_remember(
                     $cpf,
                     $wait,
                     "Você tentou entrar muitas vezes.",
                 );
-                audit("falha_entrada", "login", null, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_entrada", "login", null, [
                     "cpf" => $cpf,
                     "motivo" =>
                         $loginAttemptState === "busy"
@@ -274,15 +274,15 @@ final class AuthOnboardingRuntimeOperations03
                     );
                     return;
                 }
-                redirect("login");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             }
             if ($loginAttemptState === "invalid") {
-                login_session_remember(
+                \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_remember(
                     $cpf,
                     $wait,
                     "CPF ou senha não conferem.",
                 );
-                audit("falha_entrada", "login", null, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_entrada", "login", null, [
                     "cpf" => $cpf,
                     "aguarde_segundos" => $wait,
                 ]);
@@ -298,24 +298,24 @@ final class AuthOnboardingRuntimeOperations03
                     );
                     return;
                 }
-                redirect("login");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             }
-            login_session_forget();
+            \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_forget();
             $uid = (int) $person["uid"];
-            $choices = active_clinic_roles_for_user($uid);
-            $credential = login_resolve_user_credential(
+            $choices = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::active_clinic_roles_for_user($uid);
+            $credential = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_resolve_user_credential(
                 $uid,
                 (int) $person["is_global_admin"] === 1,
                 $choices,
             );
             if (!$credential) {
-                $w = login_fail($cpf);
-                login_session_remember(
+                $w = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_fail($cpf);
+                \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_remember(
                     $cpf,
                     $w,
                     "CPF ou senha não conferem.",
                 );
-                audit("falha_entrada", "login", null, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_entrada", "login", null, [
                     "cpf" => $cpf,
                     "motivo" => "sem vínculo clínico ativo",
                     "aguarde_segundos" => $w,
@@ -332,12 +332,12 @@ final class AuthOnboardingRuntimeOperations03
                     );
                     return;
                 }
-                redirect("login");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             }
             $isGlobalAdmin = (int) $person["is_global_admin"] === 1;
-            $mfaState = mfa_enrollment_state($uid);
+            $mfaState = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid);
             if ($mfaState === "unavailable") {
-                audit("falha_mfa", "login", $uid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_mfa", "login", $uid, [
                     "motivo" => "cadastro_mfa_indisponivel",
                     "audit_body" =>
                         "A senha foi confirmada, mas o estado MFA não pôde ser comprovado; a sessão não foi criada.",
@@ -355,23 +355,23 @@ final class AuthOnboardingRuntimeOperations03
                     );
                     return;
                 }
-                flash($message, "bad");
-                redirect("login");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($message, "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             }
             $enrolled = $mfaState === "active";
             if ($isGlobalAdmin || $enrolled) {
                 $_SESSION["login_last_cpf"] = $cpf;
-                mfa_begin_pending_login($uid, $credential);
+                \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::mfa_begin_pending_login($uid, $credential);
                 if ($isGlobalAdmin && !$enrolled) {
                     if ($wantsJson) {
                         JsonResponder::send([
                             "ok" => true,
                             "stage" => "enroll",
-                            "redirect" => href("mfa"),
+                            "redirect" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("mfa"),
                         ]);
                         return;
                     }
-                    redirect("mfa");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("mfa");
                 }
                 if ($wantsJson) {
                     JsonResponder::send([
@@ -379,14 +379,14 @@ final class AuthOnboardingRuntimeOperations03
                         "stage" => "mfa",
                         "message" =>
                             "Senha confirmada. Agora, digite o código do aplicativo.",
-                        "csrf" => csrf(),
+                        "csrf" => \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf(),
                     ]);
                     return;
                 }
-                redirect("login");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             }
             RuntimeBootCoordinator::postPasswordMaintenance($uid);
-            $destination = login_apply_resolved_credential(
+            $destination = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_apply_resolved_credential(
                 $uid,
                 $credential,
                 null,
@@ -396,16 +396,16 @@ final class AuthOnboardingRuntimeOperations03
                 JsonResponder::send([
                     "ok" => true,
                     "stage" => "complete",
-                    "redirect" => href($destination),
+                    "redirect" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($destination),
                 ]);
                 return;
             }
         }
         $wait = $mfaStage
             ? 0
-            : max($cpf ? login_lock($cpf) : 0, login_session_wait());
-        $prefill = e($_SESSION["login_last_cpf"] ?? "");
-        $lockTitle = e(
+            : max($cpf ? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf) : 0, \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_wait());
+        $prefill = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($_SESSION["login_last_cpf"] ?? "");
+        $lockTitle = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
             (string) ($_SESSION["login_lock_message"] ?? "CPF ou senha não conferem."),
         );
         $reloginNotice =
@@ -419,13 +419,13 @@ final class AuthOnboardingRuntimeOperations03
                     '" data-login-lock-total="' .
                     max(1, $wait) .
                     '"><div class="login-lock-icon">' .
-                    icon("lock_clock") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_clock") .
                     '</div><div class="login-lock-copy"><strong>' .
                     $lockTitle .
                     '</strong><span>Tente novamente em <em data-countdown="' .
                     $wait .
                     '">' .
-                    seconds_label($wait) .
+                    \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::seconds_label($wait) .
                     '</em>.</span></div><div class="login-lock-meter" aria-hidden="true"><i data-countdown-bar style="--progress:100%"></i></div></div>'
                 : ($mfaStage ? "" : $reloginNotice);
         $bootStatus = $mfaStage
@@ -437,9 +437,9 @@ final class AuthOnboardingRuntimeOperations03
             ($mfaStage ? ' readonly aria-readonly="true"' : "");
         $credentialField = $mfaStage
             ? '<input type="hidden" name="act" value="mfa_verify" data-login-act>' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Código de verificação",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "code",
                         "text",
                         "",
@@ -447,33 +447,33 @@ final class AuthOnboardingRuntimeOperations03
                     ),
                 ) .
                 '<small id="login-verification-help" class="field-help login-mfa-help" data-login-mfa-help>Abra seu aplicativo autenticador e digite o código exibido. Você também pode usar um código de recuperação.</small>'
-            : form_row(
+            : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Senha",
                 '<div class="password-field">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "password",
                         "password",
                         "",
                         'required minlength="8" maxlength="128" autocomplete="current-password" placeholder="Sua senha" data-login-password data-password-toggle',
                     ) .
                     '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
-                    icon("visibility") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
                     "</button></div>",
             );
         $submitLabel = $mfaStage ? "Validar e entrar" : "Entrar";
         $submitIcon = $mfaStage ? "verified_user" : "hourglass_top";
         $form =
-            login_telemetry_wave_html() .
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_html() .
             '<section class="auth login-card login-shell"><div class="auth-titleline login-titleline"><div class="auth-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon" src="/public/assets/app-icon-' .
-            e(PRONTOO_ASSET_REV) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_ASSET_REV) .
             '.png" alt="" aria-hidden="true"></div><div><span class="eyebrow">Prontoo</span><h1>Meu Consultório</h1></div></div>' .
             $msg .
             '<div class="login-boot' .
             ($mfaStage ? " is-ok" : "") .
             '" data-login-boot role="status" aria-live="polite"><span data-login-boot-icon>' .
-            icon($bootIcon) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($bootIcon) .
             "</span><small data-login-boot-status>" .
-            e($bootStatus) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($bootStatus) .
             "</small></div>" .
             '<form method="post" data-login-form data-login-stage="' .
             ($mfaStage ? "mfa" : "password") .
@@ -482,10 +482,10 @@ final class AuthOnboardingRuntimeOperations03
             ' data-login-locked="' .
             (!$mfaStage && $wait > 0 ? "1" : "0") .
             '" class="login-form">' .
-            csrf_field() .
-            form_row(
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "cpf",
                     "text",
                     $prefill,
@@ -494,20 +494,20 @@ final class AuthOnboardingRuntimeOperations03
             ) .
             $credentialField .
             '<button type="submit" class="primary wide login-submit" data-login-submit>' .
-            icon($submitIcon) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($submitIcon) .
             "<span>" .
-            e($submitLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($submitLabel) .
             "</span></button></form>" .
             ($mfaStage ||
-            (function_exists("clinic_signup_blocked") && clinic_signup_blocked())
+            (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'clinic_signup_blocked']) && \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::clinic_signup_blocked())
                 ? ""
                 : '<div class="auth-footer"><span>Ainda não usa o Prontoo?</span><a class="ghost small" href="' .
-                    href("signup") .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("signup") .
                     '">' .
-                    icon("home_health") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
                     "<span>Criar consultório</span></a></div>") .
             "</section>";
-        page("Meu Consultório", $form, ["public" => true]);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Meu Consultório", $form, ["public" => true]);
     
     }
 
@@ -515,7 +515,7 @@ final class AuthOnboardingRuntimeOperations03
     
     {
     
-        $secret = secret_key();
+        $secret = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key();
         return [
             hash_hmac("sha256", $cpf . "|subject", $secret),
             hash_hmac("sha256", ($_SERVER["REMOTE_ADDR"] ?? "") . "|ip", $secret),
@@ -526,8 +526,8 @@ final class AuthOnboardingRuntimeOperations03
     public static function login_bucket_keys(string $cpf): array
     
     {
-        [$subject, $ip] = login_key($cpf);
-        $secret = secret_key();
+        [$subject, $ip] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_key($cpf);
+        $secret = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key();
         return [
             [$subject, $ip],
             [
@@ -549,7 +549,7 @@ final class AuthOnboardingRuntimeOperations03
             return;
         }
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "DELETE FROM pi_login_locks WHERE locked_until<UNIX_TIMESTAMP()-604800 LIMIT 500",
             );
         } catch (Throwable $e) {

@@ -33,7 +33,7 @@ final class SupportTelemetryInfrastructureOperations02
         $nowUs = (int) floor(microtime(true) * 1000000);
         $startUs = $nowUs - $hours * 3600 * 1000000;
         $routes = [];
-        foreach (telemetry_read_events($nowUs) as $event) {
+        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUs) as $event) {
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
             if ($finishedUs < $startUs || $finishedUs >= $nowUs) {
                 continue;
@@ -78,7 +78,7 @@ final class SupportTelemetryInfrastructureOperations02
             "total" => $total,
             "avg_ms" => $total > 0 ? ($totalDurationNs / $total) / 1000000 : 0.0,
             "routes" => array_values($routes),
-            "updated_at" => telemetry_utc_from_unix_microseconds($nowUs),
+            "updated_at" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_utc_from_unix_microseconds($nowUs),
         ];
     
     }
@@ -87,7 +87,7 @@ final class SupportTelemetryInfrastructureOperations02
     
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $timezone = telemetry_cuiaba_tz();
+        $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
             ->setTimezone($timezone)
             ->setTime(0, 0);
@@ -97,12 +97,12 @@ final class SupportTelemetryInfrastructureOperations02
             $key = $day->format("Y-m-d");
             $days[$key] = [
                 "ts" => $day->getTimestamp(),
-                "label" => telemetry_day_axis_label($day),
+                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
                 "tooltip" => $day->format("d/m/Y"),
                 "value" => 0,
             ];
         }
-        foreach (telemetry_read_events($nowUnixUs) as $event) {
+        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
             if ($finishedUs >= $nowUnixUs) {
                 continue;

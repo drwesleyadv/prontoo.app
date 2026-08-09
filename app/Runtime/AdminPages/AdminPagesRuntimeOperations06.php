@@ -30,11 +30,11 @@ final class AdminPagesRuntimeOperations06
     
     {
     
-        require_can("admin_painel");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
             if ($act === "goal") {
-                $goalContext = ctx();
+                $goalContext = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
                 $cid = (int) ($goalContext["clinic_id"] ?? 0);
                 $uid = (int) ($goalContext["user"]["id"] ?? 0);
                 if ($cid <= 0 || $uid <= 0) {
@@ -42,24 +42,24 @@ final class AdminPagesRuntimeOperations06
                         "A meta mensal exige um consultório ativo.",
                     );
                 }
-                $target = parse_money_cents((string) ($_POST["target"] ?? "0"));
+                $target = \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["target"] ?? "0"));
                 $share = isset($_POST["share_with_team"]) ? 1 : 0;
                 $base = (string) ($_POST["base_metric"] ?? "efetivada");
                 if (!in_array($base, ["prevista", "efetivada"], true)) {
                     $base = "efetivada";
                 }
-                $month = app_month_in_timezone($cid, $goalContext);
-                q(
+                $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $goalContext);
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_financial_goals (clinic_id,month_key,target_cents,base_metric,share_with_team,updated_by) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE target_cents=VALUES(target_cents), base_metric=VALUES(base_metric), share_with_team=VALUES(share_with_team), updated_by=VALUES(updated_by), updated_at=NOW()",
                     [$cid, $month, $target, $base, $share, $uid],
                 );
-                audit("meta_financeira_salva", "financeiro", $cid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("meta_financeira_salva", "financeiro", $cid, [
                     "valor" => $target,
                     "base" => $base,
                     "compartilhar" => $share,
                 ]);
-                flash("Meta mensal atualizada.");
-                redirect("financial", ["tab" => "meta"]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Meta mensal atualizada.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("financial", ["tab" => "meta"]);
             }
             if (
                 in_array(
@@ -71,19 +71,19 @@ final class AdminPagesRuntimeOperations06
                 $pid = (int) ($_POST["payment_id"] ?? 0);
                 $p =
                     $pid > 0
-                        ? one(
+                        ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                             "SELECT sp.*,c.display_name FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.id=? AND sp.status='pending_admin'",
                             [$pid],
                         )
                         : null;
                 if (!$p) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Pedido de assinatura não encontrado ou já analisado.",
                         "bad",
                     );
-                    redirect("admin_painel");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
                 }
-                $adminId = (int) (ctx()["user"]["id"] ?? 0);
+                $adminId = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx()["user"]["id"] ?? 0);
                 $cid = (int) $p["clinic_id"];
                 $hadProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
                 if ($act === "confirm_subscription_payment") {
@@ -91,19 +91,19 @@ final class AdminPagesRuntimeOperations06
                         ? "Comprovante aprovado."
                         : "Recebimento confirmado.";
                     if ($hadProof) {
-                        subscription_payment_delete_proof(
+                        \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_delete_proof(
                             (string) $p["proof_path"],
                         );
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_subscription_payments SET status='confirmed', reviewed_by=?, reviewed_at=NOW(), review_note=?, proof_path=NULL WHERE id=? AND clinic_id=?",
                         [$adminId, $reviewNote, $pid, $cid],
                     );
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_clinics SET active=1, subscription_status='active', paid_until=COALESCE(?,paid_until), subscription_trust_blocked_until=NULL, subscription_last_payment_claim_at=NULL, updated_at=NOW() WHERE id=?",
                         [$p["applied_until"] ?: null, $cid],
                     );
-                    audit(
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                         $hadProof
                             ? "assinatura_comprovante_aprovado"
                             : "assinatura_pagamento_confirmado",
@@ -117,7 +117,7 @@ final class AdminPagesRuntimeOperations06
                         ],
                     );
                     if ($hadProof) {
-                        audit(
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                             "assinatura_comprovante_excluido",
                             "assinatura",
                             $cid,
@@ -128,29 +128,29 @@ final class AdminPagesRuntimeOperations06
                             ],
                         );
                     }
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         $hadProof
                             ? "Comprovante aprovado. A assinatura foi ativada de forma definitiva."
                             : "Pagamento confirmado. A assinatura foi ativada de forma definitiva.",
                     );
-                    redirect("admin_painel");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
                 }
                 $reviewNote = $hadProof
                     ? "Comprovante recusado."
                     : "Recebimento não confirmado.";
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_subscription_payments SET status='rejected', reviewed_by=?, reviewed_at=NOW(), review_note=? WHERE id=? AND clinic_id=?",
                     [$adminId, $reviewNote, $pid, $cid],
                 );
-                $trustBlockedUntil = app_storage_timestamp(
+                $trustBlockedUntil = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
                     "2099-12-31 23:59:59",
                 );
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinics SET subscription_status='read_only', paid_until=CURDATE(), subscription_trust_blocked_until=?, updated_at=NOW() WHERE id=?",
                     [$trustBlockedUntil, $cid],
                 );
-                clinic_subscription_rejected_notice($cid, $hadProof);
-                audit(
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations02::clinic_subscription_rejected_notice($cid, $hadProof);
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     $hadProof
                         ? "assinatura_comprovante_recusado"
                         : "assinatura_pagamento_nao_confirmado",
@@ -163,19 +163,19 @@ final class AdminPagesRuntimeOperations06
                             : "Desenvolvedor recusou o pagamento informado. Consultório retornou para Somente Leitura e exigirá comprovante.",
                     ],
                 );
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $hadProof
                         ? "Comprovante recusado. O consultório voltou para Somente Leitura e poderá enviar novo comprovante."
                         : "Pagamento recusado. O consultório voltou para Somente Leitura e a clínica recebeu aviso.",
                 );
-                redirect("admin_painel");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
             }
         }
         $qInt = function (string $sql, array $p = []): int {
     
-            return (int) safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
         };
-        $modelClinicWhere = admin_model_clinic_exclude_sql("id");
+        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
         $readOnly = $qInt(
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (subscription_status='read_only' OR (paid_until IS NOT NULL AND paid_until<CURDATE())) $modelClinicWhere",
         );
@@ -194,20 +194,20 @@ final class AdminPagesRuntimeOperations06
         $errors24h = $qInt(
             "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
         );
-        $scopeStats24h = admin_scope_guard_stats(24);
+        $scopeStats24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_stats(24);
         $scopeViolations24h = (int) $scopeStats24h["actionable"];
         $scopeGroups24h = $scopeViolations24h > 0
-            ? admin_scope_guard_groups(24, 12)
+            ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_groups(24, 12)
             : [];
-        $checks = platform_backend_selftest([
+        $checks = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_backend_selftest([
             "open_errors" => $openErrors,
             "login_locks" => $locks,
             "scope_alerts_24h" => $scopeViolations24h,
         ]);
         $actions = [];
         try {
-            $pendingModelWhere = admin_model_clinic_exclude_sql("sp.clinic_id");
-            $pending = q(
+            $pendingModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sp.clinic_id");
+            $pending = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT sp.id,sp.clinic_id,sp.amount_cents,sp.account_self,sp.account_holder_name,sp.proof_path,sp.applied_until,sp.created_at,c.display_name,(SELECT COUNT(*) FROM pi_subscription_payments spr WHERE spr.clinic_id=sp.clinic_id AND spr.status='rejected') AS rejected_count FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.status='pending_admin' $pendingModelWhere ORDER BY sp.created_at ASC LIMIT 20",
             )->fetchAll();
             foreach ($pending as $p) {
@@ -218,8 +218,8 @@ final class AdminPagesRuntimeOperations06
                         ? "Conta própria"
                         : "Titular: " .
                             ($p["account_holder_name"] ?: "não informado");
-                $view = subscription_payment_proof_view_link($p);
-                $isProofReview = subscription_payment_is_proof_review($p);
+                $view = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_payment_proof_view_link($p);
+                $isProofReview = \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::subscription_payment_is_proof_review($p);
                 $confirmLabel = $isProofReview
                     ? "Aprovar comprovante"
                     : "Confirmar pagamento";
@@ -231,19 +231,19 @@ final class AdminPagesRuntimeOperations06
                 $forms =
                     $view .
                     '<form method="post" class="inline">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="confirm_subscription_payment"><input type="hidden" name="payment_id" value="' .
                     (int) $p["id"] .
                     '"><button class="primary small" type="submit">' .
-                    action_summary_label($confirmLabel, $confirmIcon) .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($confirmLabel, $confirmIcon) .
                     '</button></form><form method="post" class="inline" onsubmit="return confirm(&quot;' .
-                    e($rejectQuestion) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($rejectQuestion) .
                     '&quot;)">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="reject_subscription_payment"><input type="hidden" name="payment_id" value="' .
                     (int) $p["id"] .
                     '"><button class="danger small" type="submit">' .
-                    action_summary_label($rejectLabel, "block") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($rejectLabel, "block") .
                     "</button></form>";
                 if ($isProofReview) {
                     $actions[] = [
@@ -254,7 +254,7 @@ final class AdminPagesRuntimeOperations06
                             ($p["display_name"] ?? "consultório"),
                         "body" =>
                             "O consultório enviou comprovante após um pagamento recusado. Abra o arquivo antes de aprovar ou recusar. Valor informado: " .
-                            money_br((int) $p["amount_cents"]) .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $p["amount_cents"]) .
                             " · " .
                             $holder,
                         "meta" =>
@@ -271,7 +271,7 @@ final class AdminPagesRuntimeOperations06
                             ($p["display_name"] ?? "consultório"),
                         "body" =>
                             "Valor informado: " .
-                            money_br((int) $p["amount_cents"]) .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $p["amount_cents"]) .
                             " · " .
                             $holder,
                         "meta" =>
@@ -331,16 +331,16 @@ final class AdminPagesRuntimeOperations06
             $review = (int) ($scopeStats24h["review"] ?? 0);
             $latest = $scopeGroups24h[0] ?? [];
             $latestDefinition = $latest
-                ? admin_scope_guard_definition(
+                ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_scope_guard_definition(
                     (string) ($latest["violation_key"] ?? ""),
                 )
                 : [];
             $detailsHtml = $latest
-                ? admin_scope_evidence_html($latest, true)
+                ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_evidence_html($latest, true)
                 : "";
             $detailsHtml .=
                 '<a class="ghost small" href="' .
-                href("admin_security") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") .
                 '#scope-isolation">Abrir todas as evidências em Segurança</a>';
             $actions[] = [
                 "icon" => "policy",
@@ -399,26 +399,26 @@ final class AdminPagesRuntimeOperations06
                     "Revise dados do consultório, cargos, procedimentos e agenda.",
             ];
         }
-        $charts = admin_performance_card_html();
+        $charts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
         $telemetry =
             '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .
-            admin_telemetry_kpi_cards_html(true) .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true) .
             "</div>";
         $actionsCard = $actions
-            ? card(
-                "<h2>Ações recomendadas</h2>" . timeline($actions),
+            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                "<h2>Ações recomendadas</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions),
                 "priority-actions",
             )
             : "";
         $body =
-            page_head("Desenvolvedor Prontoo", "") .
-            card(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Desenvolvedor Prontoo", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>Telemetria do sistema</h2>" . $telemetry,
                 "admin-telemetry-card",
             ) .
             $charts .
             $actionsCard;
-        page("Desenvolvedor Prontoo", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Desenvolvedor Prontoo", $body);
     
     }
 
@@ -426,8 +426,8 @@ final class AdminPagesRuntimeOperations06
     
     {
     
-        require_can("admin_users");
-        $rows = q(
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_users");
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date,COUNT(ur.id) AS vinculos FROM pi_users u JOIN pi_persons p ON p.id=u.person_id LEFT JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.active=1 GROUP BY u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date ORDER BY u.name ASC LIMIT 200",
         )->fetchAll();
         $items = [];
@@ -438,21 +438,21 @@ final class AdminPagesRuntimeOperations06
                 "title" => (string) $r["name"],
                 "body" =>
                     "CPF " .
-                    mask((string) ($r["cpf"] ?? "")) .
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($r["cpf"] ?? "")) .
                     " · " .
                     ((int) $r["vinculos"]) .
                     " vínculo(s) com consultórios",
                 "meta" => mb_trim((string) ($r["email"] ?? "")) ?: "sem e-mail",
             ];
         }
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Usuários",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Usuários",
                 "Credenciais, pessoas cadastradas e vínculos ativos na plataforma.",
             ) .
-                card(
-                    timeline($items, "Nenhuma pessoa cadastrada."),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items, "Nenhuma pessoa cadastrada."),
                     "admin-people-card",
                 ),
         );
@@ -463,7 +463,7 @@ final class AdminPagesRuntimeOperations06
     
     {
     
-        redirect("admin_people");
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_people");
     
     }
 
@@ -471,7 +471,7 @@ final class AdminPagesRuntimeOperations06
     
     {
     
-        redirect("admin_painel");
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
     
     }
 }

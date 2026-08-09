@@ -44,8 +44,8 @@ final class PatientComposition
         return self::readService()->appointmentRegistrationBlockReason(
             $clinicId,
             $patientId,
-            static fn(array $patient): bool => \patient_invoice_registration_complete($patient),
-            static fn(array $patient): string => \patient_invoice_registration_alert_message($patient),
+            static fn(array $patient): bool => \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_complete($patient),
+            static fn(array $patient): string => \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_invoice_registration_alert_message($patient),
         );
     }
 
@@ -54,8 +54,8 @@ final class PatientComposition
         return self::readService()->legalGuardians(
             $clinicId,
             $patientId,
-            static fn(string $cpf): string => \only_digits($cpf),
-            static fn(string $relationship): string => \normalize_guardian_relationship($relationship),
+            static fn(string $cpf): string => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($cpf),
+            static fn(string $relationship): string => \Prontoo\Domain\Patients\PatientsDomainOperations01::normalize_guardian_relationship($relationship),
         );
     }
 

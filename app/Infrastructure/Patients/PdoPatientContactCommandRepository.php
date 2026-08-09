@@ -15,20 +15,20 @@ final class PdoPatientContactCommandRepository implements PatientContactCommandP
         int $userId,
         array $contact,
     ): array {
-        $pdo = \pdo();
+        $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $ownsTransaction = !$pdo->inTransaction();
         if ($ownsTransaction) {
             $pdo->beginTransaction();
         }
         try {
-            $patient = \one(
+            $patient = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                 [$patientId, $clinicId],
             );
             if (!$patient) {
                 throw new RuntimeException('Paciente não encontrado no consultório atual.');
             }
-            \q(
+            \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
                 "UPDATE pi_patients SET phone=?,email=?,address=?,address_zip=?,address_number=?,address_neighborhood=?,address_complement=?,address_state=?,address_city=?,address_city_ibge=?,registration_needs_update=0,updated_at=NOW() WHERE id=? AND clinic_id=? AND active=1",
                 [
                     $contact['phone'],

@@ -32,7 +32,7 @@ final class PatientsRuntimeOperations03
     {
     
         $guardians = (int) ($r["guardian_count"] ?? 0) > 0 ? [["id" => 1]] : [];
-        $status = patient_profile_status($r, $guardians);
+        $status = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_profile_status($r, $guardians);
         $level = in_array(
             (string) ($status["level"] ?? ""),
             ["ok", "warn", "bad"],
@@ -54,25 +54,25 @@ final class PatientsRuntimeOperations03
     
         $name = (string) ($r["full_name"] ?? "Paciente #" . ($r["id"] ?? ""));
         $birth = (string) ($r["birth_date"] ?? "");
-        $birthLabel = $birth !== "" ? date_br($birth) : "Nascimento não informado";
-        $age = patient_age_years($birth);
+        $birthLabel = $birth !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($birth) : "Nascimento não informado";
+        $age = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_age_years($birth);
         $ageLabel = $age !== null ? $age . " anos" : "Idade não informada";
-        $cpf = mask((string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? ""));
+        $cpf = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? ""));
         if (trim($cpf) === "") {
             $cpf = "CPF não informado";
         }
-        $phone = phone_br((string) ($r["phone"] ?? ""));
+        $phone = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) ($r["phone"] ?? ""));
         if (trim($phone) === "") {
             $phone = "Sem telefone";
         }
-        [$level, $label, $message] = patient_directory_status($r);
+        [$level, $label, $message] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations03::patient_directory_status($r);
         $timeRaw = mb_trim((string) ($r["today_appointment_start_at"] ?? ""));
         $timePill = "";
         $timeLabel = "";
         $journeyHtml = "";
         $journeySearch = "";
         if ($timeRaw !== "" && $timeRaw !== "0") {
-            $timeLabel = app_time_br($timeRaw, $cid);
+            $timeLabel = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br($timeRaw, $cid);
             $apptMini = [
                 "status" => (string) ($r["today_appointment_status"] ?? "agendado"),
                 "start_at" => $timeRaw,
@@ -82,8 +82,8 @@ final class PatientsRuntimeOperations03
                 "consultation_finished_at" =>
                     $r["today_appointment_finished_at"] ?? null,
             ];
-            $role = (string) (ctx()["role"] ?? "" ?: "");
-            $jm = appointment_journey_meta($apptMini, $role);
+            $role = (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx()["role"] ?? "" ?: "");
+            $jm = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_meta($apptMini, $role);
             $journeySearch =
                 $jm["label"] .
                 " " .
@@ -95,17 +95,17 @@ final class PatientsRuntimeOperations03
             if ($timeLabel !== "" && $timeLabel !== "--:--") {
                 $timePill =
                     '<span class="patient-schedule-pill" title="Horário do agendamento de hoje">' .
-                    icon("schedule") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                     "<span>" .
-                    e($timeLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($timeLabel) .
                     '</span></span><span class="pill ' .
-                    e($jm["class"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($jm["class"]) .
                     ' patient-journey-pill">' .
-                    icon($jm["icon"]) .
-                    e($jm["label"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($jm["icon"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($jm["label"]) .
                     "</span>";
             }
-            $journeyHtml = appointment_journey_compact_html($apptMini, $role);
+            $journeyHtml = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_compact_html($apptMini, $role);
         }
         $searchData =
             $timeLabel .
@@ -125,73 +125,73 @@ final class PatientsRuntimeOperations03
             (string) ($r["email"] ?? "") .
             " " .
             $label;
-        $statusTitle = $message !== "" ? ' title="' . e($message) . '"' : "";
-        $created = !empty($r["created_at"]) ? dt_br((string) $r["created_at"]) : "";
+        $statusTitle = $message !== "" ? ' title="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($message) . '"' : "";
+        $created = !empty($r["created_at"]) ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) $r["created_at"]) : "";
         $createdHtml =
             $created !== ""
                 ? '<span class="patient-card-created">' .
-                    icon("schedule") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                     "<span>Cadastrado em " .
-                    e($created) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($created) .
                     "</span></span>"
                 : "";
         $lastRaw = mb_trim((string) ($r["last_consultation_at"] ?? ""));
         $lastHtml = "";
         if ($lastRaw !== "" && $lastRaw !== "0") {
-            $lastLabel = function_exists("app_date_br")
-                ? app_date_br($lastRaw, $cid)
-                : date_br($lastRaw);
+            $lastLabel = is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_date_br'])
+                ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_br($lastRaw, $cid)
+                : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($lastRaw);
             if ($lastLabel !== "" && $lastLabel !== "—") {
                 $lastHtml =
                     '<span class="patient-card-last-consultation" title="Última consulta registrada">' .
-                    icon("stethoscope") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
                     "<span>Última consulta: " .
-                    e($lastLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($lastLabel) .
                     "</span></span>";
             }
         }
         return '<article class="patient-card-row ds-person-row ds-patient-row patient-status-' .
-            e($level) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($level) .
             '" data-patient-row data-patient-search="' .
-            e($searchData) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($searchData) .
             '">' .
             '<span class="patient-card-avatar ds-person-avatar" aria-hidden="true">' .
-            icon("personal_injury") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("personal_injury") .
             "</span>" .
             '<div class="patient-card-main ds-person-main"><div class="patient-card-title ds-person-title">' .
             $timePill .
             "<strong>" .
-            e($name) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
             '</strong><span class="pill patient-status-pill ds-status-pill ' .
-            e($level) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($level) .
             '"' .
             $statusTitle .
             ">" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span></div>" .
             '<div class="patient-card-meta ds-person-meta"><span>' .
-            icon("cake") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("cake") .
             "<span>" .
-            e($birthLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($birthLabel) .
             " · " .
-            e($ageLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($ageLabel) .
             "</span></span><span>" .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             "<span>" .
-            e($cpf) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cpf) .
             "</span></span><span>" .
-            icon("call") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("call") .
             "<span>" .
-            e($phone) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($phone) .
             "</span></span>" .
             $lastHtml .
             $createdHtml .
             $journeyHtml .
             "</div></div>" .
             '<div class="patient-card-actions ds-person-actions"><a class="primary small" href="' .
-            href("patient", ["id" => (int) $r["id"]]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $r["id"]]) .
             '">' .
-            icon("folder_open") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("folder_open") .
             "<span>Abrir ficha</span></a></div>" .
             "</article>";
     
@@ -209,16 +209,16 @@ final class PatientsRuntimeOperations03
     
         $name = mb_trim((string) ($p["full_name"] ?? "Paciente"));
         $birth = mb_trim((string) ($p["birth_date"] ?? ""));
-        $age = patient_age_years($birth);
-        $birthLabel = $birth !== "" ? date_br($birth) : "Nascimento não informado";
+        $age = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_age_years($birth);
+        $birthLabel = $birth !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($birth) : "Nascimento não informado";
         if ($age !== null) {
             $birthLabel .= " · " . $age . " anos";
         }
-        $cpfLabel = mask((string) ($p["cpf"] ?? ""));
+        $cpfLabel = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($p["cpf"] ?? ""));
         if (trim($cpfLabel) === "") {
             $cpfLabel = "CPF não informado";
         }
-        $phoneLabel = phone_br((string) ($p["phone"] ?? ""));
+        $phoneLabel = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) ($p["phone"] ?? ""));
         if (trim($phoneLabel) === "") {
             $phoneLabel = "Telefone não informado";
         }
@@ -226,7 +226,7 @@ final class PatientsRuntimeOperations03
         if ($emailLabel === "") {
             $emailLabel = "E-mail não informado";
         }
-        $cityLabel = city_state_label(
+        $cityLabel = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::city_state_label(
             $p["address_city"] ?? "",
             $p["address_state"] ?? "",
         );
@@ -234,52 +234,52 @@ final class PatientsRuntimeOperations03
             $cityLabel = "Cidade não informada";
         }
         $updated = !empty($p["updated_at"])
-            ? dt_card_full_br((string) $p["updated_at"])
-            : dt_card_full_br((string) ($p["created_at"] ?? ""));
+            ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_card_full_br((string) $p["updated_at"])
+            : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_card_full_br((string) ($p["created_at"] ?? ""));
         $level = (string) ($profileStatus["level"] ?? "ok");
         $label = (string) ($profileStatus["label"] ?? "Cadastro");
         $message = (string) ($profileStatus["message"] ?? "");
-        $statusTitle = $message !== "" ? ' title="' . e($message) . '"' : "";
+        $statusTitle = $message !== "" ? ' title="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($message) . '"' : "";
         return '<section class="patient-profile-overview ds-patient-profile" aria-label="Resumo da ficha do paciente">' .
             '<div class="patient-profile-id">' .
             '<span class="patient-profile-avatar" aria-hidden="true">' .
-            icon("personal_injury") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("personal_injury") .
             "</span>" .
             '<div class="patient-profile-copy"><span class="eyebrow">Ficha do paciente</span><h2>' .
-            e($name) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
             "</h2><p>" .
-            e($birthLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($birthLabel) .
             " · " .
-            e($cpfLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cpfLabel) .
             "</p></div>" .
             '<span class="pill patient-profile-status ' .
-            e($level) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($level) .
             '"' .
             $statusTitle .
             ">" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
             "</div>" .
             '<div class="patient-profile-facts" aria-label="Dados principais">' .
             '<span class="patient-profile-fact">' .
-            icon("call") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("call") .
             "<small>Telefone</small><b>" .
-            e($phoneLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($phoneLabel) .
             "</b></span>" .
             '<span class="patient-profile-fact">' .
-            icon("mail") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("mail") .
             "<small>E-mail</small><b>" .
-            e($emailLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emailLabel) .
             "</b></span>" .
             '<span class="patient-profile-fact">' .
-            icon("location_on") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("location_on") .
             "<small>Cidade</small><b>" .
-            e($cityLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityLabel) .
             "</b></span>" .
             '<span class="patient-profile-fact">' .
-            icon("update") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("update") .
             "<small>Atualização</small><b>" .
-            e($updated) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updated) .
             "</b></span>" .
             "</div>" .
             '<div class="patient-profile-metrics" aria-label="Resumo operacional">' .
@@ -293,7 +293,7 @@ final class PatientsRuntimeOperations03
             (int) $totalConsultations .
             "</b></span>" .
             '<span class="patient-profile-metric is-wide"><small>Primeira consulta</small><b>' .
-            e($firstConsultationLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($firstConsultationLabel) .
             "</b></span>" .
             "</div>" .
             "</section>";
@@ -310,8 +310,8 @@ final class PatientsRuntimeOperations03
         }
         $dt = null;
         try {
-            if (function_exists("app_db_utc_to_local")) {
-                $dt = app_db_utc_to_local($raw);
+            if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_db_utc_to_local'])) {
+                $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($raw);
             }
         } catch (Throwable $e) {
             $dt = null;
@@ -330,8 +330,8 @@ final class PatientsRuntimeOperations03
         if (!$dt) {
             return $raw;
         }
-        $months = function_exists("prontoo_months_br")
-            ? prontoo_months_br()
+        $months = is_callable([\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::class, 'prontoo_months_br'])
+            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::prontoo_months_br()
             : [
                 1 => "Janeiro",
                 2 => "Fevereiro",
@@ -364,7 +364,7 @@ final class PatientsRuntimeOperations03
         return "Falou com " .
             $who .
             " em " .
-            patient_reception_story_time($createdAt) .
+            \Prontoo\Runtime\Patients\PatientsRuntimeOperations03::patient_reception_story_time($createdAt) .
             ".";
     
     }
@@ -379,11 +379,11 @@ final class PatientsRuntimeOperations03
         if ($cid <= 0 || $patientId <= 0) {
             return [];
         }
-        if (function_exists("ensure_lead_events_schema")) {
-            ensure_lead_events_schema();
+        if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::class, 'ensure_lead_events_schema'])) {
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
         }
         $personId = (int) ($p["person_id"] ?? 0);
-        $phoneDigits = substr(only_digits((string) ($p["phone"] ?? "")), 0, 11);
+        $phoneDigits = substr(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($p["phone"] ?? "")), 0, 11);
         try {
             $readModel = PatientComposition::receptionHistory(
                 $cid,
@@ -406,7 +406,7 @@ final class PatientsRuntimeOperations03
             $lid = (int) $lead["id"];
             $leadEvents = $events[$lid] ?? [];
             if (!$leadEvents) {
-                $who = first_name(
+                $who = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
                     $users[(int) ($lead["created_by"] ?? 0)]["name"] ?? "Recepção",
                 );
                 $body = mb_trim((string) ($lead["notes"] ?? ""));
@@ -424,8 +424,8 @@ final class PatientsRuntimeOperations03
                 ) {
                     $v = mb_trim((string) ($lead[$k] ?? ""));
                     if ($v !== "") {
-                        if ($k === "phone" && function_exists("phone_br")) {
-                            $v = phone_br($v);
+                        if ($k === "phone" && is_callable([\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::class, 'phone_br'])) {
+                            $v = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br($v);
                         }
                         $metaParts[] = ["label" => $label, "value" => $v];
                     }
@@ -437,19 +437,19 @@ final class PatientsRuntimeOperations03
                 $items[] = [
                     "icon" => "forum",
                     "time" => "",
-                    "title" => patient_reception_story_title(
+                    "title" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations03::patient_reception_story_title(
                         $who,
                         (string) ($lead["created_at"] ?? ""),
                     ),
                     "body" => $body,
                     "meta" => "",
-                    "html" => patient_reception_meta_chips_html($metaParts),
+                    "html" => \Prontoo\Presentation\Patients\PatientsPresentationOperations01::patient_reception_meta_chips_html($metaParts),
                     "class" => "patient-reception-event patient-reception-story",
                 ];
                 continue;
             }
             foreach ($leadEvents as $ev) {
-                $who = first_name(
+                $who = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
                     $users[(int) ($ev["created_by"] ?? 0)]["name"] ?? "Recepção",
                 );
                 $body = mb_trim((string) ($ev["body"] ?? ""));
@@ -473,8 +473,8 @@ final class PatientsRuntimeOperations03
                 ) {
                     $v = mb_trim((string) ($ev[$k] ?? ""));
                     if ($v !== "") {
-                        if ($k === "phone" && function_exists("phone_br")) {
-                            $v = phone_br($v);
+                        if ($k === "phone" && is_callable([\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::class, 'phone_br'])) {
+                            $v = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br($v);
                         }
                         $metaParts[] = ["label" => $label, "value" => $v];
                     }
@@ -485,13 +485,13 @@ final class PatientsRuntimeOperations03
                 $items[] = [
                     "icon" => "forum",
                     "time" => "",
-                    "title" => patient_reception_story_title(
+                    "title" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations03::patient_reception_story_title(
                         $who,
                         (string) ($ev["created_at"] ?? ""),
                     ),
                     "body" => $body,
                     "meta" => "",
-                    "html" => patient_reception_meta_chips_html($metaParts),
+                    "html" => \Prontoo\Presentation\Patients\PatientsPresentationOperations01::patient_reception_meta_chips_html($metaParts),
                     "class" => "patient-reception-event patient-reception-story",
                 ];
             }

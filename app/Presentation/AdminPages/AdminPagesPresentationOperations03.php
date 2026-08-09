@@ -185,7 +185,7 @@ final class AdminPagesPresentationOperations03
                 '" class="metric-grid-line"/><text x="6" y="' .
                 round($gy + 4, 2, \RoundingMode::HalfAwayFromZero) .
                 '" class="metric-axis-label">' .
-                e(number_format($gv, 0, ",", ".")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(number_format($gv, 0, ",", ".")) .
                 "</text>";
         }
         $ticks = "";
@@ -199,7 +199,7 @@ final class AdminPagesPresentationOperations03
                     '" y="' .
                     ($h - 8) .
                     '" class="metric-axis-label metric-x-label">' .
-                    e($pt[3]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pt[3]) .
                     "</text>";
             }
         }
@@ -211,10 +211,10 @@ final class AdminPagesPresentationOperations03
                 '" cy="' .
                 $pt[1] .
                 '" r="4.5" class="metric-chart-hit"><title>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $pt[4] .
                         " · " . $primaryLabel . " " .
-                        admin_metric_value_label($pt[2], $valueType),
+                        \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($pt[2], $valueType),
                 ) .
                 "</title></circle>";
         }
@@ -225,10 +225,10 @@ final class AdminPagesPresentationOperations03
                 '" cy="' .
                 $pt[1] .
                 '" r="3.8" class="metric-chart-hit"><title>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $pt[4] .
                         " · " . $secondaryLabel . " " .
-                        admin_metric_value_label($pt[2], $valueType),
+                        \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($pt[2], $valueType),
                 ) .
                 "</title></circle>";
         }
@@ -237,48 +237,48 @@ final class AdminPagesPresentationOperations03
             ? ($recentValues
                 ? array_sum($recentValues) / count($recentValues)
                 : 0.0)
-            : admin_metric_recent_average($loadSeries, $recentPoints);
+            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $recentPoints);
         $overallValue = $valueType === "count"
             ? (count($loadValues) > 0
                 ? array_sum($loadValues) / count($loadValues)
                 : 0.0)
-            : admin_metric_recent_average($loadSeries, count($loadSeries));
+            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, count($loadSeries));
         $middleValues = array_slice($loadValues, -$middlePoints);
         $middleValue = $valueType === "count"
             ? (count($middleValues) > 0
                 ? array_sum($middleValues) / count($middleValues)
                 : 0.0)
-            : admin_metric_recent_average($loadSeries, $middlePoints);
-        $recentCompact = admin_metric_value_compact($recentValue, $valueType);
-        $middleCompact = admin_metric_value_compact($middleValue, $valueType);
-        $overallCompact = admin_metric_value_compact($overallValue, $valueType);
+            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $middlePoints);
+        $recentCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($recentValue, $valueType);
+        $middleCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($middleValue, $valueType);
+        $overallCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($overallValue, $valueType);
         $pills =
             '<span title="' .
-            e($recentTitle) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recentTitle) .
             '" aria-label="' .
-            e($recentTitle . ": " . $recentCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recentTitle . ": " . $recentCompact) .
             '">' .
-            icon("radio_button_checked") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("radio_button_checked") .
             "<b>" .
-            e($recentCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recentCompact) .
             "</b></span>" .
             '<span title="' .
-            e($middleTitle) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($middleTitle) .
             '" aria-label="' .
-            e($middleTitle . ": " . $middleCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($middleTitle . ": " . $middleCompact) .
             '">' .
-            icon("timer") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
             "<b>" .
-            e($middleCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($middleCompact) .
             "</b></span>" .
             '<span title="' .
-            e($overallTitle) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($overallTitle) .
             '" aria-label="' .
-            e($overallTitle . ": " . $overallCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($overallTitle . ": " . $overallCompact) .
             '">' .
-            icon("calendar_today") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_today") .
             "<b>" .
-            e($overallCompact) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($overallCompact) .
             "</b></span>";
         $legend = "";
         $lastLoad = end($loadPoints);
@@ -289,10 +289,10 @@ final class AdminPagesPresentationOperations03
                 '" cy="' .
                 $lastLoad[1] .
                 '" r="3.6" class="metric-chart-dot metric-chart-dot-load"><title>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $lastLoad[4] .
                         " · " . $primaryLabel . " " .
-                        admin_metric_value_label($lastLoad[2], $valueType),
+                        \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($lastLoad[2], $valueType),
                 ) .
                 "</title></circle>"
             : "";
@@ -302,10 +302,10 @@ final class AdminPagesPresentationOperations03
                 '" cy="' .
                 $lastResp[1] .
                 '" r="3.2" class="metric-chart-dot metric-chart-dot-response"><title>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $lastResp[4] .
                         " · " . $secondaryLabel . " " .
-                        admin_metric_value_label($lastResp[2], $valueType),
+                        \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_label($lastResp[2], $valueType),
                 ) .
                 "</title></circle>"
             : "";
@@ -328,27 +328,27 @@ final class AdminPagesPresentationOperations03
             ".";
         $loadArea =
             $loadFill !== ""
-                ? '<path d="' . e($loadFill) . '" class="metric-chart-fill-load"/>'
+                ? '<path d="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($loadFill) . '" class="metric-chart-fill-load"/>'
                 : "";
         $responseArea =
             $responseFill !== ""
                 ? '<path d="' .
-                    e($responseFill) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($responseFill) .
                     '" class="metric-chart-fill-response"/>'
                 : "";
         $fillAreas = $loadArea . $responseArea;
         return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
-            e($valueType) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($valueType) .
             '" data-ds-card="admin-dual-area-chart" aria-label="' .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             '"><header><div class="metric-chart-title">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<div><h3>" .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             '</h3></div></div><div class="metric-chart-value"><div class="metric-chart-pills">' .
             $pills .
             '</div></div></header><p class="sr-only">' .
-            e($summary) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($summary) .
             '</p><svg viewBox="0 0 ' .
             $w .
             " " .
@@ -358,11 +358,11 @@ final class AdminPagesPresentationOperations03
             "</g>" .
             $fillAreas .
             ($loadD !== ""
-                ? '<path d="' . e($loadD) . '" class="metric-chart-line-load"/>'
+                ? '<path d="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($loadD) . '" class="metric-chart-line-load"/>'
                 : "") .
             ($responseD !== ""
                 ? '<path d="' .
-                    e($responseD) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($responseD) .
                     '" class="metric-chart-line-response"/>'
                 : "") .
             $loadCircle .
@@ -414,11 +414,11 @@ final class AdminPagesPresentationOperations03
         return '<span class="onboard-cell ' .
             ($ok ? "ok" : "bad") .
             '" title="' .
-            e($label . ": " . ($ok ? "usado" : "pendente")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . ": " . ($ok ? "usado" : "pendente")) .
             '" aria-label="' .
-            e($label . ": " . ($ok ? "usado" : "pendente")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . ": " . ($ok ? "usado" : "pendente")) .
             '">' .
-            icon($ok ? "check_circle" : "radio_button_unchecked") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ok ? "check_circle" : "radio_button_unchecked") .
             "</span>";
     
     }
@@ -448,7 +448,7 @@ final class AdminPagesPresentationOperations03
                 '<span class="onboard-stage ' .
                 ($ok ? "is-done" : "is-empty") .
                 '" title="' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     $i +
                         1 .
                         "/" .
@@ -461,13 +461,13 @@ final class AdminPagesPresentationOperations03
                 '" aria-hidden="true"></span>';
         }
         return '<span class="onboard-progress" role="img" aria-label="' .
-            e("Onboard: " . $done . " de " . $total . " etapas concluídas") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e("Onboard: " . $done . " de " . $total . " etapas concluídas") .
             '" title="' .
-            e("Onboard: " . $done . " de " . $total . " etapas concluídas") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e("Onboard: " . $done . " de " . $total . " etapas concluídas") .
             '">' .
             $segments .
             "<b>" .
-            e($done . "/" . $total) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($done . "/" . $total) .
             "</b></span>";
     
     }
@@ -482,13 +482,13 @@ final class AdminPagesPresentationOperations03
     
         $value = trim($value) !== "" ? $value : "Não informado";
         return '<div class="admin-clinic-detail-item"><span class="admin-clinic-detail-item-icon">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             '</span><div><small>' .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             '</small><b>' .
-            e($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
             '</b>' .
-            ($note !== "" ? '<span>' . e($note) . '</span>' : "") .
+            ($note !== "" ? '<span>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) . '</span>' : "") .
             '</div></div>';
     
     }
@@ -507,7 +507,7 @@ final class AdminPagesPresentationOperations03
         if ($name === "") {
             return "Desenvolvedor";
         }
-        return first_name($name);
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($name);
     
     }
 
@@ -539,16 +539,16 @@ final class AdminPagesPresentationOperations03
                 '<tr class="' .
                 $tone .
                 '"><td><code>' .
-                e($route) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($route) .
                 "</code></td><td>" .
-                n($count) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($count) .
                 "</td><td><b>" .
-                e(admin_performance_format_ms($avg)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms($avg)) .
                 "</b></td><td>" .
-                e(admin_performance_format_ms($max)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms($max)) .
                 "</td><td>" .
                 ($errors > 0
-                    ? '<span class="status danger">' . n($errors) . "</span>"
+                    ? '<span class="status danger">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($errors) . "</span>"
                     : '<span class="status ok">0</span>') .
                 "</td></tr>";
         }

@@ -30,7 +30,7 @@ final class AppointmentsRuntimeOperations01
     
     {
     
-        $defaults = default_work_hours_rows();
+        $defaults = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::default_work_hours_rows();
         if ($cid <= 0 || $uid <= 0) {
             return $defaults;
         }
@@ -38,7 +38,7 @@ final class AppointmentsRuntimeOperations01
     
             $hours = $defaults;
             try {
-                $rows = q(
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT weekday,active,start_time,end_time FROM pi_user_work_hours WHERE clinic_id=? AND user_id=? ORDER BY FIELD(weekday,1,2,3,4,5,6,0)",
                     [$cid, $uid],
                 )->fetchAll();
@@ -59,11 +59,11 @@ final class AppointmentsRuntimeOperations01
             }
             return $hours;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "work_hours",
-                server_json_cache_safe_key("hours", [$cid, $uid]),
-                server_json_cache_ttl("work_hours"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("hours", [$cid, $uid]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("work_hours"),
                 $loader,
                 ["clinic:" . $cid, "user:" . $uid],
             );
@@ -79,18 +79,18 @@ final class AppointmentsRuntimeOperations01
         if ($cid <= 0 || $uid <= 0) {
             return;
         }
-        require_user_in_clinic($cid, $uid, ["medico"]);
-        $labels = work_weekday_labels();
+        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::require_user_in_clinic($cid, $uid, ["medico"]);
+        $labels = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_weekday_labels();
         $active = (array) ($data["work_active"] ?? []);
         $starts = (array) ($data["work_start"] ?? []);
         $ends = (array) ($data["work_end"] ?? []);
         foreach ($labels as $wd => $label) {
             $isActive = isset($active[$wd]) ? 1 : 0;
-            $start = normalize_work_time(
+            $start = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::normalize_work_time(
                 (string) ($starts[$wd] ?? "08:00"),
                 "08:00:00",
             );
-            $end = normalize_work_time(
+            $end = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::normalize_work_time(
                 (string) ($ends[$wd] ?? "17:00"),
                 "17:00:00",
             );
@@ -104,7 +104,7 @@ final class AppointmentsRuntimeOperations01
                         " precisa terminar depois do início.",
                 );
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_user_work_hours (clinic_id,user_id,weekday,active,start_time,end_time,updated_by,updated_at) VALUES (?,?,?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE active=VALUES(active),start_time=VALUES(start_time),end_time=VALUES(end_time),updated_by=VALUES(updated_by),updated_at=NOW()",
                 [
                     $cid,
@@ -124,12 +124,12 @@ final class AppointmentsRuntimeOperations01
     
     {
     
-        $hours = user_work_hours($cid, $uid);
+        $hours = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::user_work_hours($cid, $uid);
         $h =
             '<details class="work-hours-panel" open><summary>' .
-            icon("schedule") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
             '<span>Expediente do profissional</span></summary><p class="muted-copy">Usado pela Agenda para limitar os horários que a equipe pode marcar para este profissional.</p><div class="work-hours-grid">';
-        foreach (work_weekday_labels() as $wd => $label) {
+        foreach (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_weekday_labels() as $wd => $label) {
             $r = $hours[$wd] ?? [
                 "active" => 0,
                 "start_time" => "08:00:00",
@@ -142,15 +142,15 @@ final class AppointmentsRuntimeOperations01
                 ']" value="1"' .
                 $checked .
                 "> " .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '</span><span class="work-hour-fields"><input type="time" name="work_start[' .
                 $wd .
                 ']" value="' .
-                e(work_time_short((string) $r["start_time"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_time_short((string) $r["start_time"])) .
                 '"><em>até</em><input type="time" name="work_end[' .
                 $wd .
                 ']" value="' .
-                e(work_time_short((string) $r["end_time"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_time_short((string) $r["end_time"])) .
                 '"></span></label>';
         }
         return $h . "</div></details>";
@@ -168,7 +168,7 @@ final class AppointmentsRuntimeOperations01
         ) {
             return [];
         }
-        $zone = new DateTimeZone(app_context_timezone(null, $cid));
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $cid));
         $fmtLocal = function (int $ts) use ($zone): string {
     
             return new DateTimeImmutable("@" . $ts)
@@ -176,13 +176,13 @@ final class AppointmentsRuntimeOperations01
                 ->format("H:i");
         };
         $wd = (int) new DateTimeImmutable($day . " 00:00:00", $zone)->format("w");
-        $hours = user_work_hours($cid, $doctorId);
+        $hours = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::user_work_hours($cid, $doctorId);
         $r = $hours[$wd] ?? null;
         if (!$r || empty($r["active"])) {
             return [];
         }
-        $start = work_time_short((string) $r["start_time"]);
-        $end = work_time_short((string) $r["end_time"]);
+        $start = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_time_short((string) $r["start_time"]);
+        $end = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::work_time_short((string) $r["end_time"]);
         if ($start === "" || $end === "") {
             return [];
         }
@@ -202,7 +202,7 @@ final class AppointmentsRuntimeOperations01
     
     {
     
-        $ranges = doctor_work_ranges_for_day($cid, $doctorId, $day);
+        $ranges = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $doctorId, $day);
         if (!$ranges) {
             return "Sem expediente cadastrado para este dia.";
         }
@@ -222,15 +222,15 @@ final class AppointmentsRuntimeOperations01
     ): bool 
     {
     
-        $ls = app_db_utc_to_local($startAt, $cid);
-        $le = app_db_utc_to_local($endAt, $cid);
+        $ls = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($startAt, $cid);
+        $le = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($endAt, $cid);
         if (!$ls || !$le || $le <= $ls) {
             return false;
         }
         $date = $ls->format("Y-m-d");
         $s = $ls->getTimestamp();
         $e = $le->getTimestamp();
-        foreach (doctor_work_ranges_for_day($cid, $doctorId, $date) as $range) {
+        foreach (\Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $doctorId, $date) as $range) {
             if ($s >= $range[0] && $e <= $range[1]) {
                 return true;
             }
@@ -247,12 +247,12 @@ final class AppointmentsRuntimeOperations01
     ): string 
     {
     
-        if (appointment_within_doctor_hours($cid, $doctorId, $startAt, $endAt)) {
+        if (\Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_within_doctor_hours($cid, $doctorId, $startAt, $endAt)) {
             return "";
         }
         $day = substr($startAt, 0, 10);
         return "Este horário está fora do expediente do profissional. " .
-            doctor_work_hours_label($cid, $doctorId, $day);
+            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_hours_label($cid, $doctorId, $day);
     
     }
 
@@ -264,10 +264,10 @@ final class AppointmentsRuntimeOperations01
     ): ?string 
     {
     
-        $sUtc = app_parse_db_utc($startAt);
-        $eUtc = app_parse_db_utc($endAt);
-        $sLoc = app_db_utc_to_local($startAt, $cid);
-        $eLoc = app_db_utc_to_local($endAt, $cid);
+        $sUtc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_parse_db_utc($startAt);
+        $eUtc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_parse_db_utc($endAt);
+        $sLoc = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($startAt, $cid);
+        $eLoc = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($endAt, $cid);
         if (!$sUtc || !$eUtc || !$sLoc || !$eLoc || $eUtc <= $sUtc) {
             return "Não foi possível concluir o " .
                 $operation .
@@ -292,8 +292,8 @@ final class AppointmentsRuntimeOperations01
     {
     
         $nowTs = $nowTs ?? time();
-        $code = appointment_status_code($a);
-        $startTs = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+        $code = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a);
+        $startTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
         $arrived = !empty($a["arrived_at"]);
         $started =
             !empty($a["consultation_started_at"]) || $code === "em_atendimento";
@@ -307,10 +307,10 @@ final class AppointmentsRuntimeOperations01
             true,
         );
         $isReception =
-            appointment_journey_role_matches($role, "recepcionista") ||
-            appointment_journey_role_matches($role, "gerente");
-        $isAssistant = appointment_journey_role_matches($role, "assistente");
-        $isDoctor = appointment_journey_role_matches($role, "medico");
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "recepcionista") ||
+            \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "gerente");
+        $isAssistant = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "assistente");
+        $isDoctor = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "medico");
         $doctorOwnerOk = $doctor <= 0 || ($uid > 0 && $doctor === $uid);
         $stageLabel =
             [
@@ -490,7 +490,7 @@ final class AppointmentsRuntimeOperations01
     ): bool 
     {
     
-        return appointment_journey_hard_guard_message(
+        return \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
             $a,
             $action,
             $role,
@@ -510,7 +510,7 @@ final class AppointmentsRuntimeOperations01
         $pick = function (array $keys) use ($a): int {
     
             foreach ($keys as $k) {
-                $ts = app_storage_timestamp((string) ($a[$k] ?? ""));
+                $ts = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a[$k] ?? ""));
                 if ($ts > 0) {
                     return $ts;
                 }
@@ -519,7 +519,7 @@ final class AppointmentsRuntimeOperations01
         };
         $ts = 0;
         if (in_array($code, ["agendado", "confirmado", "atrasado"], true)) {
-            $ts = app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
+            $ts = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp((string) ($a["start_at"] ?? "")) ?: 0;
         } elseif (
             in_array($code, ["chegou", "em_preparo", "pronto_atendimento"], true)
         ) {
@@ -546,15 +546,15 @@ final class AppointmentsRuntimeOperations01
             return "Agora";
         }
         if ($code === "atrasado") {
-            return "Atrasado há " . format_minutes($mins);
+            return "Atrasado há " . \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::format_minutes($mins);
         }
         if (in_array($code, ["finalizado", "cancelado", "reagendado"], true)) {
             return "";
         }
         if ($code === "nao_compareceu") {
-            return "Ausência registrada há " . format_minutes($mins);
+            return "Ausência registrada há " . \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::format_minutes($mins);
         }
-        return "Na etapa há " . format_minutes($mins);
+        return "Na etapa há " . \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::format_minutes($mins);
     
     }
 }

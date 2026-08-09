@@ -30,43 +30,43 @@ final class FinancialRuntimeOperations05
     
     {
     
-        [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($businessDate, $cid);
         $activeAppointment =
             "(a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))";
-        $expected = (int) (val(
+        $expected = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
                 $activeAppointment,
             [$cid, $dayStart, $dayEnd],
         ) ?? 0);
-        $received = (int) (val(
+        $received = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='efetivada' AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
                 $activeAppointment,
             [$cid, $dayStart, $dayEnd],
         ) ?? 0);
-        $pending = (int) (val(
+        $pending = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.expected_at>=? AND r.expected_at<? AND " .
                 $activeAppointment,
             [$cid, $dayStart, $dayEnd],
         ) ?? 0);
-        $movements = (int) (val(
+        $movements = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(DISTINCT m.id) FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status='confirmed' AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?)",
             [$cid, $dayStart, $dayEnd, $businessDate],
         ) ?? 0);
-        $expected = financial_assert_balance_cents(
+        $expected = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $expected,
             "Receita prevista diária",
         );
-        $received = financial_assert_balance_cents(
+        $received = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $received,
             "Receita recebida diária",
         );
-        $pending = financial_assert_balance_cents(
+        $pending = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $pending,
             "Receita pendente diária",
         );
         if (
             $expected !==
-            financial_checked_add(
+            \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
                 $received,
                 $pending,
                 "Partição da receita diária",
@@ -96,20 +96,20 @@ final class FinancialRuntimeOperations05
     {
     
         $issues = [];
-        $sessions = q(
+        $sessions = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND status IN ('approved','kept_closed') ORDER BY id",
             [$cid, $businessDate],
         )->fetchAll();
         foreach ($sessions as $session) {
             try {
                 if ($prepareLegacy && (string) $session["status"] === "approved") {
-                    financial_ensure_closing_adjustment(
+                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_ensure_closing_adjustment(
                         $session,
                         $uid,
                         "confirmed",
                     );
                 }
-                financial_assert_session_reconciled($session);
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations08::financial_assert_session_reconciled($session);
             } catch (Throwable $error) {
                 $issues[] =
                     "Sessão #" .
@@ -118,8 +118,8 @@ final class FinancialRuntimeOperations05
                     $error->getMessage();
             }
         }
-        [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
-        $movements = q(
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($businessDate, $cid);
+        $movements = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT DISTINCT m.id,m.movement_type,m.status,m.amount_cents,m.from_location_id,m.to_location_id,m.cash_session_id,m.source_entity,m.source_id FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status='confirmed' AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?) ORDER BY m.id",
             [$cid, $dayStart, $dayEnd, $businessDate],
         )->fetchAll();
@@ -128,19 +128,19 @@ final class FinancialRuntimeOperations05
                 $type = (string) ($movement["movement_type"] ?? "");
                 $from = (int) ($movement["from_location_id"] ?? 0) ?: null;
                 $to = (int) ($movement["to_location_id"] ?? 0) ?: null;
-                financial_assert_amount_cents(
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_amount_cents(
                     (int) ($movement["amount_cents"] ?? 0),
                 );
-                financial_validate_movement_topology($type, $from, $to);
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_validate_movement_topology($type, $from, $to);
                 $sessionId = (int) ($movement["cash_session_id"] ?? 0);
                 if ($sessionId > 0) {
-                    $session = one(
+                    $session = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT location_id FROM pi_cash_sessions WHERE id=? AND clinic_id=? LIMIT 1",
                         [$sessionId, $cid],
                     );
                     if (
                         !$session ||
-                        financial_movement_delta_for_location(
+                        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_movement_delta_for_location(
                             (int) $movement["amount_cents"],
                             $from,
                             $to,
@@ -160,8 +160,8 @@ final class FinancialRuntimeOperations05
                     $error->getMessage();
             }
         }
-        $metrics = financial_daily_metrics($cid, $businessDate);
-        $position = financial_global_position($cid);
+        $metrics = \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_metrics($cid, $businessDate);
+        $position = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_global_position($cid);
         foreach (
             [
                 "drawer_cents" => (int) ($position["pos_cents"] ?? 0),
@@ -171,7 +171,7 @@ final class FinancialRuntimeOperations05
             ] as $label => $value
         ) {
             try {
-                financial_assert_balance_cents($value, $label);
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents($value, $label);
             } catch (Throwable $error) {
                 $issues[] = $error->getMessage();
             }
@@ -211,21 +211,21 @@ final class FinancialRuntimeOperations05
     ): array 
     {
     
-        financial_operational_schema_ready();
-        financial_daily_closing_ensure_schema();
-        $businessDate = $businessDate ?: financial_today($cid);
-        [$dayStart, $dayEnd] = app_local_day_utc_range($businessDate, $cid);
-        $closure = financial_daily_drawer_closure_state($cid, $businessDate);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        \Prontoo\Infrastructure\Financial\FinancialInfrastructureOperations01::financial_daily_closing_ensure_schema();
+        $businessDate = $businessDate ?: \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($businessDate, $cid);
+        $closure = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_daily_drawer_closure_state($cid, $businessDate);
         $pendingOpen = (int) ($closure["blocking_count"] ?? 0);
-        $pendingReview = (int) (val(
+        $pendingReview = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND status IN ('closed_pending_review','rejected','opening_pending_review','opening_rejected')",
             [$cid, $businessDate],
         ) ?? 0);
-        $pendingMovements = (int) (val(
+        $pendingMovements = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(DISTINCT m.id) FROM pi_financial_movements m LEFT JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND m.status IN ('pending_review','rejected') AND ((m.created_at>=? AND m.created_at<?) OR s.business_date=?)",
             [$cid, $dayStart, $dayEnd, $businessDate],
         ) ?? 0);
-        $consolidated = financial_day_is_consolidated($cid, $businessDate);
+        $consolidated = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_day_is_consolidated($cid, $businessDate);
         $reconciliation = [
             "ok" => false,
             "issues" => [],
@@ -237,7 +237,7 @@ final class FinancialRuntimeOperations05
             $pendingMovements === 0 &&
             !$consolidated
         ) {
-            $reconciliation = financial_daily_reconciliation(
+            $reconciliation = \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_reconciliation(
                 $cid,
                 $businessDate,
             );
@@ -298,7 +298,7 @@ final class FinancialRuntimeOperations05
         if ($patientId <= 0) {
             return 0;
         }
-        return (int) safe_val(
+        return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
             "SELECT COUNT(*) FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.patient_link_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.appointment_id IS NOT NULL AND a.status NOT IN ('cancelado','nao_compareceu','reagendado')",
             [$cid, $patientId],
             0,
@@ -316,7 +316,7 @@ final class FinancialRuntimeOperations05
         if ($revenueId <= 0 || $patientId <= 0) {
             return false;
         }
-        return (int) (val(
+        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT r.id FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.id=? AND r.clinic_id=? AND r.patient_link_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.appointment_id IS NOT NULL AND a.status NOT IN ('cancelado','nao_compareceu','reagendado') LIMIT 1",
             [$revenueId, $cid, $patientId],
         ) ?:
@@ -335,29 +335,29 @@ final class FinancialRuntimeOperations05
         if ($cid <= 0 || $appointmentId <= 0) {
             return;
         }
-        financial_operational_schema_ready();
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $reason =
             trim($reason) ?:
             "Atendimento cancelado ou ausência registrada; cobrança prevista cancelada pela regra operacional.";
         try {
-            db_tx(function () use ($cid, $appointmentId, $uid, $reason): void {
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $appointmentId, $uid, $reason): void {
     
-                $rev = one(
+                $rev = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,status FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=? FOR UPDATE",
                     [$cid, $appointmentId],
                 );
                 if (!$rev || (string) ($rev["status"] ?? "") !== "prevista") {
                     return;
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_financial_revenues SET status='cancelada', updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND status='prevista'",
                     [$uid, (int) $rev["id"], $cid],
                 );
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_financial_movements SET status='cancelled', confirmed_by=NULL, confirmed_at=NULL, reviewed_at=NOW(), notes=CONCAT(COALESCE(notes,''), IF(COALESCE(notes,'')='', '', ' | '), ?) WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' AND status<>'confirmed'",
                     [$reason, $cid, $appointmentId],
                 );
-                audit(
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "receita_prevista_cancelada",
                     "financeiro",
                     (int) $rev["id"],
@@ -385,17 +385,17 @@ final class FinancialRuntimeOperations05
     ): int 
     {
     
-        financial_operational_schema_ready();
-        $method = normalize_payment_method($method);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $method = \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method($method);
         if ($method === "") {
             throw new RuntimeException("Informe a forma de recebimento.");
         }
-        if (!financial_admin_location_belongs($cid, $destinationLocationId)) {
+        if (!\Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_admin_location_belongs($cid, $destinationLocationId)) {
             throw new RuntimeException(
                 "Recebimento pelo Administrador deve entrar em Cofre ou Banco do Consultório. Gaveta pertence ao fluxo da Recepção.",
             );
         }
-        return (int) db_tx(function () use (
+        return (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
             $cid,
             $uid,
             $revenueId,
@@ -404,7 +404,7 @@ final class FinancialRuntimeOperations05
             $notes,
         ): int {
     
-            $rev = one(
+            $rev = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT r.*,a.status appointment_status,a.start_at,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.id=? AND r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu','reagendado') FOR UPDATE",
                 [$revenueId, $cid],
             );
@@ -415,7 +415,7 @@ final class FinancialRuntimeOperations05
             }
             $amount = (int) $rev["amount_cents"];
             $appointmentId = (int) $rev["appointment_id"];
-            $dest = one(
+            $dest = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,account_id,location_type,name FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') LIMIT 1",
                 [$destinationLocationId, $cid],
             );
@@ -437,12 +437,12 @@ final class FinancialRuntimeOperations05
             $movementNotes =
                 "Administrador recebeu pendência de agendamento em Cofre/Banco; não movimenta Gaveta." .
                 (trim($notes) !== "" ? " " . trim($notes) : "");
-            $existing = one(
+            $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' ORDER BY id DESC LIMIT 1 FOR UPDATE",
                 [$cid, $appointmentId],
             );
             if ($existing) {
-                financial_update_existing_movement(
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
                     $cid,
                     (int) $existing["id"],
                     "receipt",
@@ -458,7 +458,7 @@ final class FinancialRuntimeOperations05
                 );
                 $movementId = (int) $existing["id"];
             } else {
-                $movementId = financial_create_movement(
+                $movementId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
                     $cid,
                     "receipt",
                     $amount,
@@ -474,15 +474,15 @@ final class FinancialRuntimeOperations05
                     $appointmentId,
                 );
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_financial_revenues SET status='efetivada', payment_method=?, account_id=?, received_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$method, $accountId, $uid, $revenueId, $cid],
             );
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_appointments SET payment_status='efetivada', payment_method=?, payment_amount_cents=?, payment_confirmed_at=NOW(), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$method, $amount, $revenueId, $appointmentId, $cid],
             );
-            audit(
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                 "recebimento_administrativo_pendencia_agendamento",
                 "financeiro",
                 $revenueId,
@@ -510,7 +510,7 @@ final class FinancialRuntimeOperations05
         $cid = (int) ($session["clinic_id"] ?? 0);
         $sessionId = (int) ($session["id"] ?? 0);
         $locationId = (int) ($session["location_id"] ?? 0);
-        $balance = financial_assert_balance_cents(
+        $balance = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             (int) ($session["opening_balance_cents"] ?? 0),
             "Saldo inicial da Gaveta",
         );
@@ -522,10 +522,10 @@ final class FinancialRuntimeOperations05
             $params[] = $excludeMovementId;
         }
         $sql .= " ORDER BY id";
-        foreach (q($sql, $params)->fetchAll() as $movement) {
-            $balance = financial_checked_add(
+        foreach (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params)->fetchAll() as $movement) {
+            $balance = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
                 $balance,
-                financial_movement_delta_for_location(
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_movement_delta_for_location(
                     (int) ($movement["amount_cents"] ?? 0),
                     (int) ($movement["from_location_id"] ?? 0) ?: null,
                     (int) ($movement["to_location_id"] ?? 0) ?: null,

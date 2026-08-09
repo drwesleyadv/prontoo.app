@@ -47,7 +47,7 @@ final class UsersPermissionsRuntimeOperations03
         }
         $allowed = [];
         foreach (
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT action_key,allowed FROM pi_permissions WHERE clinic_id=? AND role_code=?",
                 [$cid, $role],
             )->fetchAll()
@@ -55,20 +55,20 @@ final class UsersPermissionsRuntimeOperations03
         ) {
             $allowed[(string) $r["action_key"]] = (int) $r["allowed"] === 1;
         }
-        $defs = permission_module_defs();
-        $actions = actions();
+        $defs = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
+        $actions = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions();
         $out = [];
         foreach ($defs as $key => $m) {
             $roleCanSee = in_array($role, $actions[$key]["roles"] ?? [], true);
             $can =
                 (!empty($allowed[$key]) && $roleCanSee) ||
                 ($role === "gerente" && $roleCanSee);
-            $defaults = permission_default_ops_for_role($role, $key);
+            $defaults = \Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_default_ops_for_role($role, $key);
             $row = ["key" => $key, "label" => $m["label"], "icon" => $m["icon"]];
-            foreach (permission_operations() as $op => $label) {
+            foreach (\Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations() as $op => $label) {
                 $row[$op] =
                     $can &&
-                    permission_operation_supported($key, $op) &&
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($key, $op) &&
                     !empty($defaults[$op]);
             }
             $out[] = $row;
@@ -82,14 +82,14 @@ final class UsersPermissionsRuntimeOperations03
     
     {
     
-        $rules = permission_rules_for_role($role, $cid);
-        $defs = permission_module_defs();
+        $rules = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_rules_for_role($role, $cid);
+        $defs = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
         $out = [];
         foreach ($defs as $key => $m) {
             $row = ["key" => $key, "label" => $m["label"], "icon" => $m["icon"]];
-            foreach (permission_operations() as $op => $label) {
+            foreach (\Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations() as $op => $label) {
                 $row[$op] =
-                    permission_operation_supported($key, $op) &&
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($key, $op) &&
                     !empty($rules[$key][$op]);
             }
             $out[] = $row;
@@ -102,7 +102,7 @@ final class UsersPermissionsRuntimeOperations03
     
     {
     
-        return collaborator_permission_summary([$role], $cid);
+        return \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations03::collaborator_permission_summary([$role], $cid);
     
     }
 
@@ -116,11 +116,11 @@ final class UsersPermissionsRuntimeOperations03
         if (!$roles) {
             return '<div class="empty">Nenhum cargo ativo para calcular permissões.</div>';
         }
-        $ops = permission_operations();
-        $defs = permission_module_defs();
+        $ops = \Prontoo\Domain\UsersPermissions\UsersPermissionsDomainOperations01::permission_operations();
+        $defs = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_module_defs();
         $sources = [];
         foreach ($roles as $role) {
-            foreach (collaborator_permission_matrix($role, $cid) as $row) {
+            foreach (\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations03::collaborator_permission_matrix($role, $cid) as $row) {
                 foreach ($ops as $op => $label) {
                     if (!empty($row[$op])) {
                         $sources[$row["key"]][$op][] = $role;
@@ -130,12 +130,12 @@ final class UsersPermissionsRuntimeOperations03
         }
         $h =
             '<div class="collab-permission-summary compact-permission-summary"><div class="permission-source-note compact"><strong>Permissões efetivas</strong><span>' .
-            e(implode(", ", role_labels_from_codes($roles, $cid))) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(implode(", ", \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::role_labels_from_codes($roles, $cid))) .
             '</span></div><div class="permission-module-grid compact">';
         foreach ($defs as $module => $meta) {
             $chips = "";
             foreach ($ops as $op => $label) {
-                if (!permission_operation_supported($module, $op)) {
+                if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_operation_supported($module, $op)) {
                     continue;
                 }
                 $grants = $sources[$module][$op] ?? [];
@@ -144,9 +144,9 @@ final class UsersPermissionsRuntimeOperations03
                 }
                 $chips .=
                     '<span class="permission-chip yes" title="Liberado por ' .
-                    e(implode(", ", role_labels_from_codes($grants, $cid))) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(implode(", ", \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::role_labels_from_codes($grants, $cid))) .
                     '">' .
-                    e($label) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</span>";
             }
             if ($chips === "") {
@@ -154,9 +154,9 @@ final class UsersPermissionsRuntimeOperations03
             }
             $h .=
                 '<article class="permission-module-card compact"><header>' .
-                icon($meta["icon"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($meta["icon"]) .
                 "<strong>" .
-                e($meta["label"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($meta["label"]) .
                 '</strong></header><div class="permission-chip-list">' .
                 $chips .
                 "</div></article>";

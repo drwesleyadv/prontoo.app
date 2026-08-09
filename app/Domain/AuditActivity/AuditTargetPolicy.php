@@ -62,7 +62,7 @@ final class AuditTargetPolicy
     
     {
     
-        return "o prontuário de " . audit_patient_name($ctx, $entityId);
+        return "o prontuário de " . \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_patient_name($ctx, $entityId);
     
     }
 
@@ -113,7 +113,7 @@ final class AuditTargetPolicy
     
     {
     
-        $s = audit_ctx_pick($ctx, ["status", "novo_status", "stage", "active"]);
+        $s = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["status", "novo_status", "stage", "active"]);
         if ($s === "") {
             return "";
         }
@@ -131,18 +131,18 @@ final class AuditTargetPolicy
     
     {
     
-        $dest = audit_ctx_pick($ctx, ["destino", "target_scope"]);
+        $dest = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["destino", "target_scope"]);
         if ($dest === "clinic") {
             return "toda a clínica";
         }
         if ($dest === "role") {
-            $cargo = audit_ctx_pick($ctx, ["cargo", "target_role"]);
+            $cargo = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["cargo", "target_role"]);
             return $cargo !== ""
                 ? "todos do cargo " . $cargo
                 : "um cargo específico";
         }
         if ($dest === "user") {
-            $name = audit_ctx_pick($ctx, [
+            $name = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, [
                 "assigned_name",
                 "target_name",
                 "pessoa_nome",
@@ -158,8 +158,8 @@ final class AuditTargetPolicy
     
     {
     
-        $base = audit_ctx_pick($ctx, ["base", "base_metric"]);
-        return $base !== "" ? financial_goal_base_label($base) : "";
+        $base = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["base", "base_metric"]);
+        return $base !== "" ? \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_goal_base_label($base) : "";
     
     }
 
@@ -167,7 +167,7 @@ final class AuditTargetPolicy
     
     {
     
-        return audit_ctx_pick($ctx, [
+        return \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, [
             "account_name",
             "conta",
             "name",
@@ -181,7 +181,7 @@ final class AuditTargetPolicy
     
     {
     
-        return audit_ctx_pick($ctx, [
+        return \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, [
             "counterparty_name",
             "credor",
             "target_name",
@@ -195,7 +195,7 @@ final class AuditTargetPolicy
     
     {
     
-        return audit_ctx_pick($ctx, ["titulo", "title", "name", "descricao"]);
+        return \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["titulo", "title", "name", "descricao"]);
     
     }
 

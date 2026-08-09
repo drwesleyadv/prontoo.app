@@ -31,7 +31,7 @@ final class SecurityAccessRuntimeOperations03
     {
     
         $uid = (int) ($_SESSION["uid"] ?? 0);
-        security_retire_persistent_devices_for_user($uid);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
     
     }
 
@@ -66,23 +66,23 @@ final class SecurityAccessRuntimeOperations03
             "";
         $payload = [
             "v" => 2,
-            "reason" => scope_violation_safe_reason($detail),
+            "reason" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_safe_reason($detail),
             "method" => mb_substr($method, 0, 8),
             "action" => mb_substr($action, 0, 48),
             "operation" => mb_substr($operation, 0, 10),
             "table" => mb_substr($table, 0, 64),
-            "sql_shape" => scope_violation_sql_shape($sql),
+            "sql_shape" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_sql_shape($sql),
         ];
         $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (!is_string($encoded)) {
-            return scope_violation_safe_reason($detail);
+            return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_safe_reason($detail);
         }
         if (strlen($encoded) > 580) {
             $payload["sql_shape"] = mb_substr((string) $payload["sql_shape"], 0, 100);
             $payload["reason"] = mb_substr((string) $payload["reason"], 0, 100);
             $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
-        return is_string($encoded) ? $encoded : scope_violation_safe_reason($detail);
+        return is_string($encoded) ? $encoded : \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_safe_reason($detail);
     
     }
 
@@ -93,12 +93,12 @@ final class SecurityAccessRuntimeOperations03
     ): void 
     {
     
-        $cid = scope_guard_active_clinic_id();
+        $cid = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_active_clinic_id();
         if ($cid <= 0) {
             return;
         }
-        $fingerprint = sql_fingerprint($sql);
-        $requestRoute = route();
+        $fingerprint = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::sql_fingerprint($sql);
+        $requestRoute = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
         $dedupKey = hash(
             "sha256",
             $cid . "|" . $key . "|" . $fingerprint . "|" . $requestRoute . "|" . (string) ($_POST["act"] ?? ""),
@@ -114,11 +114,11 @@ final class SecurityAccessRuntimeOperations03
             $params = [
                 $cid,
                 $_SESSION["uid"] ?? null,
-                session_clinic_role_code(),
+                \Prontoo\Runtime\Tenant\SessionTenantAccess::roleCode(),
                 $requestRoute,
                 $key,
                 $fingerprint,
-                scope_violation_evidence_payload($sql, $detail),
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::scope_violation_evidence_payload($sql, $detail),
             ];
             if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
                 [
@@ -129,7 +129,7 @@ final class SecurityAccessRuntimeOperations03
                     $params,
                 );
             }
-            $st = pdo()->prepare($ins);
+            $st = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($ins);
             $st->execute($params);
         } catch (Throwable $e) {
             error_log(
@@ -169,11 +169,11 @@ final class SecurityAccessRuntimeOperations03
                     "|" .
                     (string) ($_SESSION["clinic_id"] ?? "") .
                     "|" .
-                    scope_guard_expected_clinic_id() .
+                    \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id() .
                     "|" .
                     (string) ($_POST["act"] ?? "") .
                     "|" .
-                    route(),
+                    \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
             )
             : "";
         static $ok = [];
@@ -199,23 +199,23 @@ final class SecurityAccessRuntimeOperations03
     ): array 
     {
     
-        $table = allowed_db_table($table);
-        if (!tenant_table_is_scoped($table)) {
+        $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table($table);
+        if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::tenant_table_is_scoped($table)) {
             throw new RuntimeException("Tabela sem escopo de consultório.");
         }
-        $cols = safe_db_columns($cols);
+        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         if ($cid <= 0 || $id <= 0) {
             throw new ProntooHttpError(
                 403,
                 "Registro não pertence ao consultório ativo.",
             );
         }
-        $row = one("SELECT $cols FROM $table WHERE id=? AND clinic_id=? LIMIT 1", [
+        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT $cols FROM $table WHERE id=? AND clinic_id=? LIMIT 1", [
             $id,
             $cid,
         ]);
         if (!$row) {
-            record_scope_violation(
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::record_scope_violation(
                 "entity_outside_clinic",
                 "SELECT $cols FROM $table WHERE id=? AND clinic_id=?",
                 "Registro " .
@@ -237,15 +237,15 @@ final class SecurityAccessRuntimeOperations03
     
     {
     
-        $all = actions();
+        $all = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions();
         if (isset($all["patients"])) {
             $all["patients"]["label"] = "Pessoas";
-            $all["patients"]["icon"] = prontoo_icon_for("people");
+            $all["patients"]["icon"] = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("people");
         }
         if ($role === "recepcionista" && isset($all["financial"])) {
             $all["financial"]["label"] = "Caixa";
-            $all["financial"]["icon"] = function_exists("reception_cash_state_icon")
-                ? reception_cash_state_icon()
+            $all["financial"]["icon"] = is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::class, 'reception_cash_state_icon'])
+                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::reception_cash_state_icon()
                 : "lock_clock";
         }
         $orders = [
@@ -322,15 +322,15 @@ final class SecurityAccessRuntimeOperations03
         ];
         $out = [];
         foreach ($roles as $role) {
-            foreach (role_actions($role) as $key => $a) {
+            foreach (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::role_actions($role) as $key => $a) {
                 if ($key === "notices") {
                     continue;
                 }
                 if ($key === "financial" && $role === "recepcionista") {
                     $a["label"] = "Caixa";
-                    $a["icon"] = function_exists("reception_cash_state_icon")
-                        ? reception_cash_state_icon()
-                        : prontoo_icon_for("cash", "lock_clock");
+                    $a["icon"] = is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::class, 'reception_cash_state_icon'])
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::reception_cash_state_icon()
+                        : \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("cash", "lock_clock");
                 }
                 $out[$key] = $a;
             }
@@ -361,11 +361,11 @@ final class SecurityAccessRuntimeOperations03
             return [];
         }
         if (in_array("gerente", $roles, true)) {
-            return array_keys(actions());
+            return array_keys(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions());
         }
         $ph = implode(",", array_fill(0, count($roles), "?"));
         try {
-            $allowed = q(
+            $allowed = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT DISTINCT action_key FROM pi_permissions WHERE clinic_id=? AND role_code IN ($ph) AND allowed=1",
                 array_merge([$cid], $roles),
             )->fetchAll(PDO::FETCH_COLUMN);
@@ -381,11 +381,11 @@ final class SecurityAccessRuntimeOperations03
     
     {
     
-        with_read_only_guard_disabled(function () use ($clinicId): void {
+        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_read_only_guard_disabled(function () use ($clinicId): void {
     
-            foreach (default_permissions() as $role => $keys) {
-                foreach (actions() as $key => $a) {
-                    q(
+            foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions() as $role => $keys) {
+                foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions() as $key => $a) {
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_permissions (clinic_id, role_code, action_key, allowed) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allowed=allowed",
                         [
                             $clinicId,
@@ -408,10 +408,10 @@ final class SecurityAccessRuntimeOperations03
         if (is_string($secret) && $secret !== "") {
             return $secret;
         }
-        $secret = (string) (val(
+        $secret = (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT meta_value FROM pi_meta WHERE meta_key='app_secret'",
         ) ??
-            (cfg()["secret"] ?? "prontoo"));
+            (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()["secret"] ?? "prontoo"));
         return $secret;
     
     }
@@ -420,23 +420,23 @@ final class SecurityAccessRuntimeOperations03
     
     {
     
-        $started = $clinic["trial_started_at"] ?: $clinic["created_at"] ?? now();
-        $startedTs = app_storage_timestamp($started);
+        $started = $clinic["trial_started_at"] ?: $clinic["created_at"] ?? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::now();
+        $startedTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($started);
         if ($startedTs <= 0) {
             $startedTs = time();
         }
         $trialEnd =
             $clinic["trial_ends_at"] ?:
-            (string) ($startedTs + default_trial_days() * 86400);
+            (string) ($startedTs + \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days() * 86400);
         $paidUntil = $clinic["paid_until"] ?? null;
         $status = (string) ($clinic["subscription_status"] ?? "trial");
         $price =
             (int) ($clinic["monthly_price_cents"] ??
-                default_monthly_price_cents()) ?:
-            default_monthly_price_cents();
-        $trialEndTs = app_storage_timestamp($trialEnd, true);
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents()) ?:
+            \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
+        $trialEndTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($trialEnd, true);
         $paidUntilTs = $paidUntil
-            ? app_date_only_end_timestamp(
+            ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_only_end_timestamp(
                 $paidUntil,
                 (int) ($clinic["id"] ?? ($clinic["clinic_id"] ?? 0)),
                 $clinic,
@@ -487,33 +487,33 @@ final class SecurityAccessRuntimeOperations03
         if (!$b || empty($b["read_only"])) {
             return "";
         }
-        $isAdmin = function_exists("has_effective_role")
-            ? has_effective_role($c, "gerente")
+        $isAdmin = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'has_effective_role'])
+            ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
             : (string) ($c["role"] ?? "") === "gerente";
         $clinicId = (int) ($c["clinic_id"] ?? 0);
-        $adminLabel = function_exists("role_label_for")
-            ? role_label_for("gerente", $clinicId)
+        $adminLabel = is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'role_label_for'])
+            ? \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("gerente", $clinicId)
             : PRONTOO_ROLES["gerente"] ?? "Administrador";
         $adminLabel = mb_trim((string) $adminLabel) ?: "Administrador";
         if (!$isAdmin) {
             return '<section class="billing-banner billing-readonly-banner ds-readonly-banner billing-user-readonly-banner" role="status" aria-label="Modo somente leitura"><span class="billing-readonly-icon">' .
-                icon("lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
                 '</span><span class="billing-readonly-copy"><span class="eyebrow">Modo somente leitura</span><b>Alterações bloqueadas</b><small>Aguarde até que ' .
-                e($adminLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($adminLabel) .
                 " desabilite este modo.</small></span></section>";
         }
-        $price = isset($b["price_cents"]) ? money_br((int) $b["price_cents"]) : "";
+        $price = isset($b["price_cents"]) ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $b["price_cents"]) : "";
         $link =
             '<a class="primary small billing-link" href="' .
-            e(href("settings", ["tab" => "assinatura"])) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("settings", ["tab" => "assinatura"])) .
             '">' .
-            icon("credit_card") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("credit_card") .
             "<span>Regularizar</span></a>";
         $support =
             '<a class="ghost small billing-support-link" href="' .
-            e(href("notices")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices")) .
             '">' .
-            icon("support_agent") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("support_agent") .
             "<span>Suporte</span></a>";
         $detail =
             $price !== ""
@@ -522,9 +522,9 @@ final class SecurityAccessRuntimeOperations03
                     ". Alterações temporariamente bloqueadas até a regularização."
                 : "Alterações temporariamente bloqueadas até a regularização.";
         return '<section class="billing-banner billing-readonly-banner ds-readonly-banner billing-admin-readonly-banner" role="status" aria-label="Assinatura pendente"><span class="billing-readonly-icon">' .
-            icon("credit_card") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("credit_card") .
             '</span><span class="billing-readonly-copy"><span class="eyebrow">Assinatura</span><b>Pagamento pendente</b><small>' .
-            e($detail) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($detail) .
             '</small></span><nav class="billing-readonly-actions" aria-label="Ações da assinatura">' .
             $link .
             $support .
@@ -542,21 +542,21 @@ final class SecurityAccessRuntimeOperations03
         if (($c["scope"] ?? "") !== "clinic") {
             return;
         }
-        if (read_only_post_allowed($route)) {
+        if (\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::read_only_post_allowed($route)) {
             return;
         }
         $b = $c["billing"] ?? [];
         if (empty($b["read_only"])) {
             return;
         }
-        audit(
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
             "somente_leitura_bloqueio",
             "assinatura",
             (string) ($c["clinic_id"] ?? ""),
             ["rota" => $route, "acao" => (string) ($_POST["act"] ?? "")],
         );
-        flash("Assinatura pendente: regularize para alterar dados.", "bad");
-        redirect($route);
+        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Assinatura pendente: regularize para alterar dados.", "bad");
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect($route);
     
     }
 }

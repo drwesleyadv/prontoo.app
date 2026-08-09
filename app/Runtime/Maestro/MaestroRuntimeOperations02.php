@@ -30,67 +30,67 @@ final class MaestroRuntimeOperations02
     
     {
     
-        $c = require_can("maestro");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("maestro");
         if (
             ($c["scope"] ?? "") !== "clinic" ||
-            !has_effective_role($c, "gerente")
+            !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
         ) {
             throw new ProntooHttpError(
                 403,
                 "Rotinas são exclusivas do administrador do consultório.",
             );
         }
-        maestro_ensure_schema();
+        \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "save_rule");
             if ($act === "save_rule") {
-                maestro_save_rule($c);
-                flash("Rotina salva.");
-                redirect("maestro");
+                \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_save_rule($c);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Rotina salva.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("maestro");
             }
             $id = max(0, (int) ($_POST["id"] ?? 0));
             if ($act === "toggle_rule" && $id > 0) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_maestro_rules SET active=IF(active=1,0,1), next_run_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [$uid, $id, $cid],
                 );
-                audit("maestro_regra_status", "maestro", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_status", "maestro", $id, [
                     "audit_body" => "Status da rotina alterado.",
                 ]);
-                flash("Rotina atualizada.");
-                redirect("maestro");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Rotina atualizada.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("maestro");
             }
             if ($act === "delete_rule" && $id > 0) {
-                q("DELETE FROM pi_maestro_rules WHERE id=? AND clinic_id=?", [
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_maestro_rules WHERE id=? AND clinic_id=?", [
                     $id,
                     $cid,
                 ]);
-                audit("maestro_regra_excluida", "maestro", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_excluida", "maestro", $id, [
                     "audit_body" =>
                         "Rotina excluída pelo administrador do consultório.",
                 ]);
-                flash("Rotina excluída.");
-                redirect("maestro");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Rotina excluída.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("maestro");
             }
         }
         $isNew = (string) ($_GET["new"] ?? "") === "1";
-        $catalog = maestro_trigger_catalog();
-        $moduleOpts = maestro_module_options($catalog);
+        $catalog = \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_trigger_catalog();
+        $moduleOpts = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_module_options($catalog);
         $firstModule = array_key_first($moduleOpts) ?: "appointments";
-        $rules = q(
+        $rules = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT * FROM pi_maestro_rules WHERE clinic_id=? ORDER BY active DESC, priority DESC, id DESC LIMIT 300",
             [$cid],
         )->fetchAll();
-        $lastRun = one(
+        $lastRun = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT started_at,finished_at,duration_ms,actions_created,rules_run,deferred_count FROM pi_maestro_job_runs ORDER BY id DESC LIMIT 1",
         );
         $lastRunValue = $lastRun
-            ? dt_br((string) ($lastRun["finished_at"] ?: $lastRun["started_at"]))
+            ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) ($lastRun["finished_at"] ?: $lastRun["started_at"]))
             : "Nunca";
         $avgDuration24Ms = (int) round(
-            (float) (val(
+            (float) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT AVG(duration_ms) FROM pi_maestro_job_runs WHERE finished_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
             ) ?? 0),
         0, \RoundingMode::HalfAwayFromZero);
@@ -99,14 +99,14 @@ final class MaestroRuntimeOperations02
         }
         $tempoGastoValue =
             $avgDuration24Ms > 0
-                ? maestro_duration_label($avgDuration24Ms)
+                ? \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_duration_label($avgDuration24Ms)
                 : "Nunca";
-        $created = (int) val(
+        $created = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_maestro_executions WHERE clinic_id=? AND status='created' AND executed_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
             [$cid],
         );
-        $roles = clinic_role_options($cid, true);
-        $users = q(
+        $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, true);
+        $users = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 GROUP BY u.id,u.name ORDER BY u.name LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -114,20 +114,20 @@ final class MaestroRuntimeOperations02
         foreach ($users as $u) {
             $userOpts[(string) $u["id"]] = $u["name"];
         }
-        $moduleSelect = select_label(
+        $moduleSelect = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
             "Onde a rotina deve observar?",
             "trigger_module",
             $moduleOpts,
             $firstModule,
             "required data-maestro-module",
         );
-        $triggerSelect = form_row(
+        $triggerSelect = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
             "Qual movimento inicia a rotina?",
-            maestro_trigger_option_html($catalog),
+            \Prontoo\Presentation\Maestro\MaestroPresentationOperations01::maestro_trigger_option_html($catalog),
         );
         $roleRow =
             '<label class="field" data-maestro-target-role-row><span>Naipe/setor</span>' .
-            select_html(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_html(
                 "target_role",
                 $roles,
                 "recepcionista",
@@ -136,23 +136,23 @@ final class MaestroRuntimeOperations02
             "</label>";
         $userRow =
             '<label class="field" data-maestro-target-user-row><span>Pessoa específica</span>' .
-            select_html("target_user_id", $userOpts, "0", "data-maestro-user") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_html("target_user_id", $userOpts, "0", "data-maestro-user") .
             "</label>";
         $form =
             '<form method="post" class="maestro-form maestro-simple-form" data-maestro-form>' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="save_rule"><input type="hidden" name="name" value="" data-maestro-name><input type="hidden" name="task_title" value="" data-maestro-title><input type="hidden" name="task_description" value="" data-maestro-description><input type="hidden" name="due_offset_days" value="0"><div class="two">' .
             $moduleSelect .
             $triggerSelect .
             '</div><div class="two">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "A rotina deve",
                 "action_type",
-                maestro_action_types(),
+                \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_action_types(),
                 "create_task",
                 "required data-maestro-action",
             ) .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Para quem a rotina distribui?",
                 "target_scope",
                 [
@@ -167,18 +167,18 @@ final class MaestroRuntimeOperations02
             $roleRow .
             $userRow .
             '</div><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Prioridade",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "priority",
                     "number",
                     "85",
                     'min="1" max="100" data-maestro-priority',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Prazo",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "trigger_amount",
                     "number",
                     "3",
@@ -186,14 +186,14 @@ final class MaestroRuntimeOperations02
                 ),
             ) .
             '</div><small class="maestro-amount-help" data-maestro-amount-help>Informe o compasso da condição selecionada.</small><label class="checkline"><input type="checkbox" name="active" value="1" checked><span>Manter esta rotina ativa</span></label><div class="form-actions"><button type="submit" class="primary">' .
-            icon("save") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
             "<span>Salvar rotina</span></button></div></form>";
         $execStats = [];
         if ($rules) {
             $ruleIds = array_map( fn($rr) => (int) $rr["id"], $rules);
             $ph = implode(",", array_fill(0, count($ruleIds), "?"));
             foreach (
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT rule_id, SUM(CASE WHEN status='created' THEN 1 ELSE 0 END) AS created_count, MAX(executed_at) AS last_at FROM pi_maestro_executions WHERE clinic_id=? AND rule_id IN ($ph) GROUP BY rule_id",
                     array_merge([$cid], $ruleIds),
                 )->fetchAll()
@@ -208,26 +208,26 @@ final class MaestroRuntimeOperations02
                 '<div class="empty-state maestro-empty"><span class="material-symbols-rounded" aria-hidden="true">event_repeat</span><b>Nenhuma rotina cadastrada.</b><small>Use o botão Nova rotina para criar automações de tarefas ou avisos quando o fluxo do consultório pedir atenção.</small></div>';
         } else {
             foreach ($rules as $r) {
-                $cond = maestro_decode_json($r["condition_json"] ?? "");
-                $act = maestro_decode_json($r["action_json"] ?? "");
+                $cond = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_decode_json($r["condition_json"] ?? "");
+                $act = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_decode_json($r["action_json"] ?? "");
                 $item = $catalog[(string) $r["trigger_event"]] ?? null;
                 $label = $item["label"] ?? (string) $r["trigger_event"];
                 $module = (string) $r["trigger_module"];
-                $moduleLabel = maestro_module_label($module);
+                $moduleLabel = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_module_label($module);
                 $unit = (string) ($cond["unit"] ?? ($item["unit"] ?? "days"));
                 $amount = (int) ($cond["amount"] ?? ($cond["days"] ?? 0));
-                $amountLabel = $amount . " " . maestro_unit_label($unit, $amount);
-                $destLabel = maestro_target_label($act, $cid);
+                $amountLabel = $amount . " " . \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_unit_label($unit, $amount);
+                $destLabel = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_target_label($act, $cid);
                 $actionLabel =
-                    maestro_action_types()[(string) $r["action_type"]] ??
+                    \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_action_types()[(string) $r["action_type"]] ??
                     (string) $r["action_type"];
                 $createdCount =
                     (int) ($execStats[(int) $r["id"]]["created_count"] ?? 0);
-                $lastLabel = maestro_last_label(
+                $lastLabel = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_last_label(
                     $r["last_run_at"] ??
                         ($execStats[(int) $r["id"]]["last_at"] ?? null),
                 );
-                $nextLabel = maestro_next_label($r["next_run_at"] ?? null);
+                $nextLabel = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_next_label($r["next_run_at"] ?? null);
                 $status = (int) $r["active"] ? "Ativa" : "Pausada";
                 $statusClass = (int) $r["active"] ? "ok" : "muted";
                 $list .=
@@ -236,61 +236,61 @@ final class MaestroRuntimeOperations02
                     '">' .
                     '<summary class="maestro-rule-summary">' .
                     '<span class="maestro-rule-icon">' .
-                    icon(maestro_module_icon($module)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_module_icon($module)) .
                     "</span>" .
                     '<span class="maestro-rule-titleline"><b>' .
-                    e((string) $r["name"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["name"]) .
                     "</b><small>" .
-                    e($moduleLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($moduleLabel) .
                     " · " .
                     $status .
                     "</small></span>" .
                     '<span class="maestro-rule-open"><span>Abrir</span>' .
-                    icon("unfold_more") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("unfold_more") .
                     "</span>" .
                     "</summary>" .
                     '<div class="maestro-rule-details">' .
                     '<div class="maestro-rule-chips">' .
                     "<span>" .
-                    icon("schedule") .
-                    e($amountLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($amountLabel) .
                     "</span>" .
                     "<span>" .
-                    icon(maestro_action_icon((string) $r["action_type"])) .
-                    e($actionLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_action_icon((string) $r["action_type"])) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($actionLabel) .
                     "</span>" .
                     "<span>" .
-                    icon("groups") .
-                    e($destLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($destLabel) .
                     "</span>" .
                     "<span>" .
-                    icon("flag") .
-                    e("Prioridade " . (int) $r["priority"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("flag") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e("Prioridade " . (int) $r["priority"]) .
                     "</span>" .
                     "</div>" .
                     '<div class="maestro-rule-meta">' .
                     "<span><small>Última afinação</small><b>" .
-                    e($lastLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($lastLabel) .
                     "</b></span>" .
                     "<span><small>Próximo compasso</small><b>" .
-                    e($nextLabel) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($nextLabel) .
                     "</b></span>" .
                     "<span><small>Distribuídas</small><b>" .
                     (int) $createdCount .
                     "</b></span>" .
                     "</div>" .
                     '<form method="post" class="maestro-rule-actions">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '">' .
                     '<button name="act" value="toggle_rule" class="ghost small" type="submit">' .
-                    icon((int) $r["active"] ? "pause" : "play_arrow") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((int) $r["active"] ? "pause" : "play_arrow") .
                     "<span>" .
                     ((int) $r["active"] ? "Pausar" : "Ativar") .
                     "</span></button>" .
                     '<button name="act" value="delete_rule" class="ghost small danger" type="submit">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Excluir</span></button>" .
                     "</form>" .
                     "</div>" .
@@ -299,10 +299,10 @@ final class MaestroRuntimeOperations02
         }
         $stats =
             '<div class="stats-grid">' .
-            stat_card("Rotinas", count($rules), "event_repeat") .
-            stat_card("Última execução", $lastRunValue, "event_repeat") .
-            stat_card("Tempo gasto", $tempoGastoValue, "timer") .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Rotinas", count($rules), "event_repeat") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Última execução", $lastRunValue, "event_repeat") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Tempo gasto", $tempoGastoValue, "timer") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Atividades distribuídas (30 dias)",
                 $created,
                 "assignment_turned_in",
@@ -311,11 +311,11 @@ final class MaestroRuntimeOperations02
         if ($isNew) {
             $pageAction =
                 '<a class="ghost small" href="' .
-                href("maestro") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("maestro") .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Rotinas</span></a>";
-            $html = card(
+            $html = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2>Nova rotina</h2><p class="muted">Escolha onde a rotina deve observar o fluxo, qual movimento dispara a automação e para quem a atividade será distribuída.</p>' .
                     $form,
                 "maestro-card maestro-new-card",
@@ -323,13 +323,13 @@ final class MaestroRuntimeOperations02
         } else {
             $pageAction =
                 '<a class="primary small" href="' .
-                href("maestro", ["new" => 1]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("maestro", ["new" => 1]) .
                 '">' .
-                icon("event_repeat") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_repeat") .
                 "<span>Nova rotina</span></a>";
-            $html = $stats . card("<h2>Rotinas</h2>" . $list, "maestro-list-card");
+            $html = $stats . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card("<h2>Rotinas</h2>" . $list, "maestro-list-card");
         }
-        page("Rotinas", page_head("Rotinas", "", $pageAction) . $html);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Rotinas", \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Rotinas", "", $pageAction) . $html);
     
     }
 }

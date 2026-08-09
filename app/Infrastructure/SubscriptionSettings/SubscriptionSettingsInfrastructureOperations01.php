@@ -50,7 +50,7 @@ final class SubscriptionSettingsInfrastructureOperations01
             throw new RuntimeException("Consultório inválido para o comprovante.");
         }
         $relativeRoot = $image ? "ssd/img/payment-proofs" : "ssd/payment-proofs";
-        $root = $image ? storage_path("img/payment-proofs") : storage_path("payment-proofs");
+        $root = $image ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("img/payment-proofs") : \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("payment-proofs");
         $directory = $root . "/clinic-" . $cid;
         foreach ([$root, $directory] as $path) {
             if (is_link($path)) {
@@ -83,9 +83,9 @@ final class SubscriptionSettingsInfrastructureOperations01
             return null;
         }
         $roots = [
-            "ssd/img/payment-proofs/" => storage_path("img/payment-proofs"),
-            "ssd/payment-proofs/" => storage_path("payment-proofs"),
-            "storage/payment-proofs/" => storage_path("payment-proofs"),
+            "ssd/img/payment-proofs/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("img/payment-proofs"),
+            "ssd/payment-proofs/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("payment-proofs"),
+            "storage/payment-proofs/" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("payment-proofs"),
         ];
         $matchedPrefix = null;
         $rootPath = null;
@@ -117,7 +117,7 @@ final class SubscriptionSettingsInfrastructureOperations01
     
     {
     
-        $full = subscription_payment_proof_absolute_path($proofPath);
+        $full = \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_absolute_path($proofPath);
         if ($full === null) {
             return true;
         }

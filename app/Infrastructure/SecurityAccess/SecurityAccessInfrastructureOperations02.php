@@ -44,22 +44,22 @@ final class SecurityAccessInfrastructureOperations02
         );
         $cases = [];
         try {
-            $cases["explicit_clinic_is_active"] = with_scope_guard_clinic(
+            $cases["explicit_clinic_is_active"] = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
                 17,
-                static  fn(): bool => scope_guard_expected_clinic_id() === 17,
+                static  fn(): bool => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id() === 17,
             );
-            $cases["same_clinic_can_nest"] = with_scope_guard_clinic(
+            $cases["same_clinic_can_nest"] = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
                 17,
-                static  fn(): bool => with_scope_guard_clinic(
+                static  fn(): bool => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
                     17,
-                    static  fn(): bool => scope_guard_expected_clinic_id() === 17,
+                    static  fn(): bool => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id() === 17,
                 ),
             );
             $clinicSwitchBlocked = false;
             try {
-                with_scope_guard_clinic(
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
                     17,
-                    static  fn() => with_scope_guard_clinic(18, static  fn() => true),
+                    static  fn() => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(18, static  fn() => true),
                 );
             } catch (LogicException $expected) {
                 $clinicSwitchBlocked = true;
@@ -67,9 +67,9 @@ final class SecurityAccessInfrastructureOperations02
             $cases["clinic_switch_is_blocked"] = $clinicSwitchBlocked;
             $systemInsideClinicBlocked = false;
             try {
-                with_scope_guard_clinic(
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(
                     17,
-                    static  fn() => with_scope_guard_disabled(static  fn() => true),
+                    static  fn() => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_disabled(static  fn() => true),
                 );
             } catch (LogicException $expected) {
                 $systemInsideClinicBlocked = true;
@@ -78,8 +78,8 @@ final class SecurityAccessInfrastructureOperations02
                 $systemInsideClinicBlocked;
             $clinicInsideSystemBlocked = false;
             try {
-                with_scope_guard_disabled(
-                    static  fn() => with_scope_guard_clinic(17, static  fn() => true),
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_disabled(
+                    static  fn() => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_clinic(17, static  fn() => true),
                 );
             } catch (LogicException $expected) {
                 $clinicInsideSystemBlocked = true;
@@ -244,7 +244,7 @@ final class SecurityAccessInfrastructureOperations02
         if ($key === "") {
             return $fallback;
         }
-        $m = prontoo_icon_matrix();
+        $m = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_matrix();
         foreach (["context", "operation", "label"] as $group) {
             if (isset($m[$group][$key])) {
                 return (string) $m[$group][$key];
@@ -265,57 +265,57 @@ final class SecurityAccessInfrastructureOperations02
         $route = trim($route);
         $labelKey = mb_strtolower(trim($label));
         if ($route === "financial" && $labelKey === "caixa") {
-            return prontoo_icon_for("cash", $fallback);
+            return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("cash", $fallback);
         }
         if ($route === "patients" && $labelKey === "pessoas") {
-            return prontoo_icon_for("people", $fallback);
+            return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("people", $fallback);
         }
         if ($route === "appointments") {
             $view = (string) ($params["view"] ?? "");
             if ($view === "resumo") {
-                return prontoo_icon_for("summary", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("summary", $fallback);
             }
             if ($view === "diario") {
-                return prontoo_icon_for("daily", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("daily", $fallback);
             }
             if ($view === "semanal") {
-                return prontoo_icon_for("weekly", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("weekly", $fallback);
             }
             if ($view === "mensal") {
-                return prontoo_icon_for("monthly", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("monthly", $fallback);
             }
         }
         if ($route === "settings") {
             $tab = (string) ($params["tab"] ?? "");
             if ($tab === "visual") {
-                return prontoo_icon_for("aparência", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("aparência", $fallback);
             }
             if ($tab === "assinatura") {
-                return prontoo_icon_for("assinatura", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("assinatura", $fallback);
             }
             if ($tab === "setores") {
-                return prontoo_icon_for("departamentos", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("departamentos", $fallback);
             }
             if ($tab === "perfil") {
-                return prontoo_icon_for("dados", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("dados", $fallback);
             }
         }
         if ($route === "admin_alerts") {
             if (!empty($params["compose"])) {
-                return prontoo_icon_for("new_notice", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("new_notice", $fallback);
             }
             $view = (string) ($params["view"] ?? "");
             if ($view === "sent") {
-                return prontoo_icon_for("sent", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("sent", $fallback);
             }
             if ($view === "received") {
-                return prontoo_icon_for("received", $fallback);
+                return \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("received", $fallback);
             }
         }
-        if ($labelKey !== "" && ($ico = prontoo_icon_for($labelKey, "")) !== "") {
+        if ($labelKey !== "" && ($ico = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for($labelKey, "")) !== "") {
             return $ico;
         }
-        if ($route !== "" && ($ico = prontoo_icon_for($route, "")) !== "") {
+        if ($route !== "" && ($ico = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for($route, "")) !== "") {
             return $ico;
         }
         return $fallback;
@@ -329,82 +329,82 @@ final class SecurityAccessInfrastructureOperations02
         return [
             "painel" => [
                 "label" => "Painel",
-                "icon" => prontoo_icon_for("painel"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("painel"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "operations" => [
                 "label" => "Fluxo",
-                "icon" => prontoo_icon_for("operations"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("operations"),
                 "roles" => ["gerente"],
             ],
             "maestro" => [
                 "label" => "Rotinas",
-                "icon" => prontoo_icon_for("maestro"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("maestro"),
                 "roles" => ["gerente"],
             ],
             "leads" => [
                 "label" => "Interessados",
-                "icon" => prontoo_icon_for("leads"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("leads"),
                 "roles" => ["recepcionista", "gerente"],
             ],
             "patients" => [
                 "label" => "Pacientes",
-                "icon" => prontoo_icon_for("patients"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("patients"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "creditors" => [
                 "label" => "Credores",
-                "icon" => prontoo_icon_for("creditors"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("creditors"),
                 "roles" => ["gerente"],
             ],
             "appointments" => [
                 "label" => "Agenda",
-                "icon" => prontoo_icon_for("appointments"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("appointments"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "financial" => [
                 "label" => "Financeiro",
-                "icon" => prontoo_icon_for("financial"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("financial"),
                 "roles" => ["recepcionista", "gerente"],
             ],
             "procedures" => [
                 "label" => "Procedimentos",
-                "icon" => prontoo_icon_for("procedures"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("procedures"),
                 "roles" => ["gerente"],
             ],
             "documents" => [
                 "label" => "Documentos",
-                "icon" => prontoo_icon_for("documents"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("documents"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "tasks" => [
                 "label" => "Tarefas",
-                "icon" => prontoo_icon_for("tasks"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("tasks"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "notices" => [
                 "label" => "Avisos",
-                "icon" => prontoo_icon_for("notices"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("notices"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "users" => [
                 "label" => "Colaboradores",
-                "icon" => prontoo_icon_for("users"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("users"),
                 "roles" => ["gerente"],
             ],
             "permissions" => [
                 "label" => "Permissões",
-                "icon" => prontoo_icon_for("permissions"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("permissions"),
                 "roles" => ["gerente"],
             ],
             "audit" => [
                 "label" => "Atividades",
-                "icon" => prontoo_icon_for("audit"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("audit"),
                 "roles" => ["recepcionista", "assistente", "medico", "gerente"],
             ],
             "settings" => [
                 "label" => "Consultório",
-                "icon" => prontoo_icon_for("settings"),
+                "icon" => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for("settings"),
                 "roles" => ["medico", "gerente"],
             ],
         ];
@@ -430,7 +430,7 @@ final class SecurityAccessInfrastructureOperations02
     {
     
         $roles = array_values(array_unique(array_map("strval", $roles)));
-        usort($roles, static  fn($a, $b) => role_rank($b) <=> role_rank($a));
+        usort($roles, static  fn($a, $b) => \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::role_rank($b) <=> \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::role_rank($a));
         return $roles[0] ?? "";
     
     }
@@ -484,7 +484,7 @@ final class SecurityAccessInfrastructureOperations02
                 "notices",
                 "audit",
             ],
-            "gerente" => array_keys(actions()),
+            "gerente" => array_keys(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions()),
         ];
     
     }

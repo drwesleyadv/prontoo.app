@@ -36,7 +36,7 @@ Prontoo é uma aplicação web monolítica modular para consultórios e clínica
 | `tools` | contratos executáveis, auditorias e utilitários de release/manutenção |
 | `docs` | documentação arquitetural, domínio, segurança, operação, banco, testes e performance |
 
-A classificação efetiva é definida por `app/Core/Architecture/LayerMap.php` e verificada por `tools/architecture-check.php`. O alvo é **100% dos arquivos PHP versionados classificados**, com pelo menos **278 unidades nativas** e no máximo **51 fronteiras transitórias/compatíveis** na baseline atual.
+A classificação efetiva é definida por `app/Core/Architecture/LayerMap.php` e verificada por `tools/architecture-check.php`. O alvo é **100% dos arquivos PHP versionados classificados**, com pelo menos **278 unidades nativas** e no máximo **51 entrypoints e ferramentas procedurais não classificados como unidades nativas** na baseline atual.
 
 ## Regra de dependências
 

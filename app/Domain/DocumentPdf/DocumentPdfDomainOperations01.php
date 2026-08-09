@@ -30,7 +30,7 @@ final class DocumentPdfDomainOperations01
     
     {
     
-        $code = document_identifier_display($doc["document_identifier"] ?? "");
+        $code = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display($doc["document_identifier"] ?? "");
         if ($code === "") {
             $code = "DOCUMENTO" . max(0, (int) ($doc["id"] ?? 0));
         }
@@ -53,7 +53,7 @@ final class DocumentPdfDomainOperations01
                 ? "_C" . max(0, $clinicId) . "D" . $docId
                 : "";
         $nonce = strtoupper(bin2hex(random_bytes(6)));
-        return document_pdf_safe_code($doc) .
+        return \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_safe_code($doc) .
             $scope .
             "_" .
             $ts .
@@ -121,7 +121,7 @@ final class DocumentPdfDomainOperations01
     
     {
     
-        return document_pdf_row_timestamp($row) + document_pdf_ttl_seconds() <
+        return \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_row_timestamp($row) + \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_ttl_seconds() <
             time();
     
     }
@@ -288,14 +288,14 @@ final class DocumentPdfDomainOperations01
                     continue;
                 }
                 $candidate = $line === "" ? $word : $line . " " . $word;
-                if (document_pdf_text_width($candidate, $fontSize) <= $maxWidth) {
+                if (\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_text_width($candidate, $fontSize) <= $maxWidth) {
                     $line = $candidate;
                     continue;
                 }
                 if ($line !== "") {
                     $lines[] = $line;
                 }
-                if (document_pdf_text_width($word, $fontSize) <= $maxWidth) {
+                if (\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_text_width($word, $fontSize) <= $maxWidth) {
                     $line = $word;
                     continue;
                 }
@@ -305,7 +305,7 @@ final class DocumentPdfDomainOperations01
                     $cand = $piece . $ch;
                     if (
                         $piece !== "" &&
-                        document_pdf_text_width($cand, $fontSize) > $maxWidth
+                        \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_text_width($cand, $fontSize) > $maxWidth
                     ) {
                         $lines[] = $piece;
                         $piece = $ch;
@@ -348,12 +348,12 @@ final class DocumentPdfDomainOperations01
     ): string 
     {
     
-        $id = document_identifier_display($identifier);
+        $id = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display($identifier);
         if ($id === "") {
             return "";
         }
         $fontSize = 7.25;
-        $textW = document_pdf_text_width($id, $fontSize);
+        $textW = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_text_width($id, $fontSize);
         $x = max($marginLeft, $pageW - $marginRight - $textW);
         $y = max(18.0, $marginBottom / 2.0 - 1.0);
         return sprintf(
@@ -362,7 +362,7 @@ final class DocumentPdfDomainOperations01
             $fontSize,
             $x,
             $y,
-            document_pdf_escape($id),
+            \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_escape($id),
         );
     
     }
@@ -379,7 +379,7 @@ final class DocumentPdfDomainOperations01
         $marginLeft = 56.693;
         $fontSize = 12.0;
         $lineHeight = 18.0;
-        $footerIdentifier = document_identifier_display(
+        $footerIdentifier = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display(
             $meta["document_identifier"] ?? null,
         );
         $maxW = $pageW - $marginLeft - $marginRight;
@@ -388,7 +388,7 @@ final class DocumentPdfDomainOperations01
         $pages = [];
         $cur = [];
         $y = $yStart;
-        foreach (document_pdf_html_blocks($html) as $block) {
+        foreach (\Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_html_blocks($html) as $block) {
             $align = (string) ($block["align"] ?? "left");
             $indent = (int) ($block["indent"] ?? 0);
             $blockFontSize = (float) ($block["size"] ?? $fontSize);
@@ -399,7 +399,7 @@ final class DocumentPdfDomainOperations01
             $blockSpace = max(0.0, (float) ($block["space_after"] ?? 6.0));
             $indentPt = max(0, min(4, $indent)) * 28.346;
             $available = max(72.0, $maxW - $indentPt);
-            $lines = document_pdf_wrap_text(
+            $lines = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_wrap_text(
                 (string) ($block["text"] ?? ""),
                 $available,
                 $blockFontSize,
@@ -410,7 +410,7 @@ final class DocumentPdfDomainOperations01
                     $cur = [];
                     $y = $yStart;
                 }
-                $w = document_pdf_text_width($line, $blockFontSize);
+                $w = \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_text_width($line, $blockFontSize);
                 $x = $marginLeft + $indentPt;
                 if ($align === "center") {
                     $x = $marginLeft + $indentPt + max(0, ($available - $w) / 2);
@@ -447,7 +447,7 @@ final class DocumentPdfDomainOperations01
         foreach ($pages as $pageLines) {
             $stream = "";
             if ($footerIdentifier !== "") {
-                $stream .= document_pdf_identifier_footer_stream(
+                $stream .= \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_identifier_footer_stream(
                     $footerIdentifier,
                     $pageW,
                     $marginLeft,
@@ -470,7 +470,7 @@ final class DocumentPdfDomainOperations01
                     (float) ($ln["size"] ?? $fontSize),
                     $ln["x"],
                     $ln["y"],
-                    document_pdf_escape($ln["text"]),
+                    \Prontoo\Domain\DocumentPdf\DocumentPdfDomainOperations01::document_pdf_escape($ln["text"]),
                 );
                 if (!empty($ln["underline"])) {
                     $stream .= sprintf(

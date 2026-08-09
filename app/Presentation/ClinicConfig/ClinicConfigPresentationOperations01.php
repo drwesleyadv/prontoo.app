@@ -30,7 +30,7 @@ final class ClinicConfigPresentationOperations01
     
     {
     
-        $fill = e($fill);
+        $fill = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fill);
         return match ($icon) {
             "stethoscope"
                 => '<path d="M17.5 2a1.5 1.5 0 0 1 1.5 1.5v4.9a5.5 5.5 0 0 1-11 0V3.5A1.5 1.5 0 0 1 9.5 2H11v2H10v4.4a3.5 3.5 0 0 0 7 0V4h-1V2h1.5Z" fill="' .
@@ -116,13 +116,13 @@ final class ClinicConfigPresentationOperations01
     
     {
     
-        $icon = normalize_clinic_icon($icon);
-        $color = normalize_accent_color($color);
+        $icon = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_clinic_icon($icon);
+        $color = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color($color);
         $fill = "#ffffff";
-        $shape = clinic_favicon_symbol_svg($icon, $fill);
+        $shape = \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_favicon_symbol_svg($icon, $fill);
         $svg =
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ícone do consultório"><rect width="64" height="64" rx="10" fill="' .
-            e($color) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($color) .
             '"/><g transform="scale(2)">' .
             $shape .
             "</g></svg>";
@@ -137,15 +137,15 @@ final class ClinicConfigPresentationOperations01
     ): array 
     {
     
-        $profession = normalize_profession((string) ($profession ?: "Médico(a)"));
-        $icon = normalize_clinic_icon(
-            $icon ?: profession_default_icon($profession),
+        $profession = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession((string) ($profession ?: "Médico(a)"));
+        $icon = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_clinic_icon(
+            $icon ?: \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::profession_default_icon($profession),
         );
-        $color = normalize_accent_color(
-            $color ?: profession_default_color($profession),
+        $color = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color(
+            $color ?: \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::profession_default_color($profession),
         );
-        $palette = clinic_accent_options()[$color] ?? [];
-        $tokens = clinic_theme_tokens($color, $palette);
+        $palette = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_accent_options()[$color] ?? [];
+        $tokens = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_theme_tokens($color, $palette);
         return [
             "icon" => $icon,
             "brand" => $tokens["brand"],
@@ -153,7 +153,7 @@ final class ClinicConfigPresentationOperations01
             "brand_soft" => $tokens["brand_soft"],
             "brand_soft_2" => $tokens["brand_soft_2"],
             "on_brand" => $tokens["on_brand"],
-            "favicon" => clinic_favicon_href($icon, $tokens["brand"]),
+            "favicon" => \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_favicon_href($icon, $tokens["brand"]),
             "css_vars" => $tokens["css_vars"],
         ];
     
@@ -163,23 +163,23 @@ final class ClinicConfigPresentationOperations01
     
     {
     
-        $current = normalize_clinic_icon($current);
+        $current = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_clinic_icon($current);
         $html =
             '<div class="visual-option-grid clinic-icon-grid clinic-icon-grid-symbols" role="radiogroup" aria-label="Ícone do consultório">';
-        foreach (clinic_icon_options() as $key => $meta) {
+        foreach (\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_icon_options() as $key => $meta) {
             $checked = $key === $current ? " checked" : "";
             $label = (string) ($meta["label"] ?? "Ícone");
             $html .=
                 '<label class="visual-option clinic-icon-option icon-only-option" title="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '"><input type="radio" name="clinic_icon" value="' .
-                e($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($key) .
                 '"' .
                 $checked .
                 '><span class="visual-option-mark clinic-icon-option-mark">' .
-                icon($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($key) .
                 "</span></label>";
         }
         return $html . "</div>";
@@ -190,10 +190,10 @@ final class ClinicConfigPresentationOperations01
     
     {
     
-        $current = normalize_accent_color($current);
+        $current = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color($current);
         $html =
             '<div class="color-swatch-grid clinic-color-grid clinic-color-grid-tones" role="radiogroup" aria-label="Cor de destaque">';
-        foreach (clinic_accent_options() as $key => $meta) {
+        foreach (\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_accent_options() as $key => $meta) {
             $checked = $key === $current ? " checked" : "";
             $label = (string) ($meta["label"] ?? "Cor de destaque");
             $dark = (string) ($meta["dark"] ?? $key);
@@ -201,21 +201,21 @@ final class ClinicConfigPresentationOperations01
             $soft2 = (string) ($meta["soft2"] ?? $soft);
             $html .=
                 '<label class="color-swatch-option clinic-color-option tone-only-option" title="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '"><input type="radio" name="accent_color" value="' .
-                e($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($key) .
                 '"' .
                 $checked .
                 '><span class="clinic-color-preview" aria-hidden="true"><i style="background:' .
-                e($dark) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dark) .
                 '"></i><i style="background:' .
-                e($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($key) .
                 '"></i><i style="background:' .
-                e($soft) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($soft) .
                 '"></i><i style="background:' .
-                e($soft2) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($soft2) .
                 '"></i></span></label>';
         }
         return $html . "</div>";
@@ -229,8 +229,8 @@ final class ClinicConfigPresentationOperations01
     ): string 
     {
     
-        $opts = role_icon_options($role ?: null);
-        $current = isset($opts[$current]) ? $current : default_role_icon($role);
+        $opts = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::role_icon_options($role ?: null);
+        $current = isset($opts[$current]) ? $current : \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
         if (!isset($opts[$current])) {
             $current = array_key_first($opts) ?: "groups";
         }
@@ -240,17 +240,17 @@ final class ClinicConfigPresentationOperations01
             $checked = $key === $current ? " checked" : "";
             $html .=
                 '<label class="sector-icon-choice sector-option-card icon-only-option" title="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '"><input type="radio" name="' .
-                e($field) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($field) .
                 '" value="' .
-                e($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($key) .
                 '"' .
                 $checked .
                 '><span class="sector-option-symbol">' .
-                icon($key) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($key) .
                 "</span></label>";
         }
         return $html . "</div>";
@@ -261,13 +261,13 @@ final class ClinicConfigPresentationOperations01
     
     {
     
-        $current = normalize_profession(
+        $current = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession(
             (string) ($cl["responsible_profession"] ?? "Médico(a)"),
         );
-        return select_label(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
             "Qual sua profissão?",
             "responsible_profession",
-            clinical_profession_options(),
+            \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinical_profession_options(),
             $current,
             "required",
         );
@@ -281,22 +281,22 @@ final class ClinicConfigPresentationOperations01
         $uf = (string) ($cl["address_state"] ?? "MT");
         $city = (string) ($cl["address_city"] ?? "");
         $cityIbge = (string) ($cl["address_city_ibge"] ?? "");
-        $tz = (string) ($cl["timezone"] ?? timezone_from_location($uf, $city));
+        $tz = (string) ($cl["timezone"] ?? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::timezone_from_location($uf, $city));
         $line = (string) ($cl["address_line"] ?? "");
         $cityOptions =
             $city !== ""
                 ? '<option value="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '" data-ibge="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" selected>' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     "</option>"
                 : '<option value="">Escolha primeiro o estado</option>';
-        $states = ["" => "Escolha o estado"] + br_states();
-        return form_row(
+        $states = ["" => "Escolha o estado"] + \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states();
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
             "Endereço",
-            input(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                 "address_line",
                 "text",
                 $line,
@@ -304,23 +304,23 @@ final class ClinicConfigPresentationOperations01
             ),
         ) .
             '<div class="two">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Estado de atuação",
                 "address_state",
                 $states,
                 $uf,
                 "required data-br-state",
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Cidade de atuação",
                 '<select name="address_city" required data-br-city data-selected-city="' .
-                    e($city) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($city) .
                     '">' .
                     $cityOptions .
                     '</select><input type="hidden" name="address_city_ibge" value="' .
-                    e($cityIbge) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cityIbge) .
                     '" data-br-city-ibge><input type="hidden" name="timezone" value="' .
-                    e($tz) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($tz) .
                     '" data-br-timezone>',
             ) .
             "</div>";
@@ -336,15 +336,15 @@ final class ClinicConfigPresentationOperations01
     {
     
         return '<span class="usage-cell" title="' .
-            e($label . " nos últimos 30 dias: " . $value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . " nos últimos 30 dias: " . $value) .
             '" aria-label="' .
-            e($label . " nos últimos 30 dias: " . $value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . " nos últimos 30 dias: " . $value) .
             '">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<b>" .
-            e((string) $value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $value) .
             "</b><small>" .
-            e($short) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($short) .
             "</small></span>";
     
     }

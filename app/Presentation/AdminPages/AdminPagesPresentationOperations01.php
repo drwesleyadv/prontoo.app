@@ -352,7 +352,7 @@ final class AdminPagesPresentationOperations01
     {
     
         if ($mode === "ms") {
-            return admin_metric_duration_label($value, false);
+            return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_duration_label($value, false);
         }
         return number_format($value, 0, ",", ".");
     
@@ -362,7 +362,7 @@ final class AdminPagesPresentationOperations01
     
     {
         if ($mode === "ms") {
-            return admin_metric_duration_label($value, true);
+            return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_duration_label($value, true);
         }
         return number_format($value, $value === floor($value) ? 0 : 1, ",", ".");
     

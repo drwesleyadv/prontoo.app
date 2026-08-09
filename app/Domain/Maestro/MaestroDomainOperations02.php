@@ -145,7 +145,7 @@ final class MaestroDomainOperations02
         foreach ($catalog as $it) {
             $module = (string) ($it["module"] ?? "");
             if ($module !== "" && !isset($out[$module])) {
-                $out[$module] = maestro_module_label($module);
+                $out[$module] = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_module_label($module);
             }
         }
         return $out;

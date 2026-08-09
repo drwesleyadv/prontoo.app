@@ -30,11 +30,11 @@ final class AdminPagesRuntimeOperations04
     
     {
     
-        require_can("admin_diagnostics");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_diagnostics");
         $dbOk = false;
         $dbMsg = "indisponível";
         try {
-            $dbOk = (string) val("SELECT 1") === "1";
+            $dbOk = (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT 1") === "1";
             $dbMsg = "conexão operacional";
         } catch (Throwable $e) {
             $dbMsg = $e->getMessage();
@@ -50,7 +50,7 @@ final class AdminPagesRuntimeOperations04
             [
                 "icon" => "database",
                 "time" => "Banco",
-                "title" => bool_status(
+                "title" => \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::bool_status(
                     $dbOk,
                     "Banco acessível",
                     "Banco indisponível",
@@ -61,24 +61,24 @@ final class AdminPagesRuntimeOperations04
             [
                 "icon" => "folder_managed",
                 "time" => "Storage",
-                "title" => bool_status(
-                    is_writable(app_root() . "/ssd"),
+                "title" => \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::bool_status(
+                    is_writable(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd"),
                     "Diretório gravável",
                     "Sem escrita em /ssd",
                 ),
-                "body" => app_root() . "/ssd",
+                "body" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd",
                 "meta" =>
                     "Espaço livre: " .
                     (function_exists("disk_free_space")
-                        ? human_bytes(
-                            (float) @disk_free_space(app_root() . "/ssd"),
+                        ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::human_bytes(
+                            (float) @disk_free_space(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd"),
                         )
                         : "não informado"),
             ],
             [
                 "icon" => "lock",
                 "time" => "Instalação",
-                "title" => is_file(app_root() . "/storage/install.lock")
+                "title" => is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/storage/install.lock")
                     ? "Instalação bloqueada"
                     : "Instalação aberta",
                 "body" => "Arquivo install.lock",
@@ -95,7 +95,7 @@ final class AdminPagesRuntimeOperations04
             [
                 "icon" => "security",
                 "time" => "Debug",
-                "title" => app_debug() ? "Debug ativo" : "Debug inativo",
+                "title" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_debug() ? "Debug ativo" : "Debug inativo",
                 "body" => "Configuração atual do app",
                 "meta" => "Em produção, manter inativo",
             ],
@@ -116,12 +116,12 @@ final class AdminPagesRuntimeOperations04
                 "meta" => "Demais escritas clínicas seguem bloqueadas",
             ],
         ];
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Diagnóstico",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Diagnóstico",
                 "Verificações rápidas do ambiente sem varrer metadados do MySQL.",
-            ) . card(timeline($checks)),
+            ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($checks)),
         );
     
     }
@@ -130,7 +130,7 @@ final class AdminPagesRuntimeOperations04
     
     {
     
-        require_can("admin_errors");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_errors");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
             if ($act !== "resolve_incident") {
@@ -138,32 +138,32 @@ final class AdminPagesRuntimeOperations04
             }
             $id = (int) ($_POST["id"] ?? 0);
             if ($id <= 0) {
-                flash("Incidente não informado.", "bad");
-                redirect("admin_errors");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Incidente não informado.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_errors");
             }
             $note = mb_trim((string) ($_POST["notes"] ?? ""));
-            $updated = q(
+            $updated = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_error_events SET resolved_at=NOW(), notes=? WHERE id=? AND resolved_at IS NULL",
                 [$note, $id],
             )->rowCount();
             if ($updated < 1) {
-                flash("Incidente não encontrado ou já resolvido.", "bad");
-                redirect("admin_errors");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Incidente não encontrado ou já resolvido.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_errors");
             }
-            audit("erro_marcado_resolvido", "erro", $id);
-            flash("Erro marcado como resolvido.");
-            redirect("admin_errors");
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("erro_marcado_resolvido", "erro", $id);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Erro marcado como resolvido.");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_errors");
         }
-        $open = (int) val(
+        $open = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
         );
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,route,method,http_status,message,file,line,user_id,clinic_id,notes,resolved_at,created_at FROM pi_error_events WHERE resolved_at IS NULL ORDER BY id DESC LIMIT 80",
         )->fetchAll();
         if (count($rows) < 120) {
             $rows = array_merge(
                 $rows,
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT id,route,method,http_status,message,file,line,user_id,clinic_id,notes,resolved_at,created_at FROM pi_error_events WHERE resolved_at IS NOT NULL ORDER BY id DESC LIMIT " .
                         (120 - count($rows)),
                 )->fetchAll(),
@@ -174,22 +174,22 @@ final class AdminPagesRuntimeOperations04
             $btn = $r["resolved_at"]
                 ? ""
                 : '<details class="inline"><summary class="ghost small cmdlike">' .
-                    action_summary_label("Resolver", "task_alt") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Resolver", "task_alt") .
                     '</summary><form method="post" class="compact">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="resolve_incident">' .
                     '<input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '">' .
-                    form_row("Nota", textarea("notes")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Nota", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea("notes")) .
                     '<div class="form-actions"><button type="button" class="ghost small" data-close-panel>' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     '<span>Cancelar</span></button><button type="submit" class="small">' .
-                    icon("task_alt") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("task_alt") .
                     "<span>Marcar resolvido</span></button></div></form></details>";
             $items[] = [
                 "icon" => $r["resolved_at"] ? "bug_report" : "report",
-                "time" => dt_br($r["created_at"]),
+                "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["created_at"]),
                 "title" =>
                     "#" .
                     $r["id"] .
@@ -203,18 +203,18 @@ final class AdminPagesRuntimeOperations04
                     ":" .
                     ($r["line"] ?: "—") .
                     ($r["resolved_at"]
-                        ? " · resolvido em " . dt_br($r["resolved_at"])
+                        ? " · resolvido em " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["resolved_at"])
                         : ""),
                 "html" => $btn,
             ];
         }
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Central de Instabilidades",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Central de Instabilidades",
                 $open .
                     " erro(s) aberto(s) registrados pelo Prontoo. Clique em cada item para identificar rota, arquivo, linha e mensagem.",
-            ) . card(timeline($items, "Nenhum erro registrado.")),
+            ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items, "Nenhum erro registrado.")),
         );
     
     }
@@ -223,7 +223,7 @@ final class AdminPagesRuntimeOperations04
     
     {
     
-        redirect("admin_clinics");
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
     
     }
 
@@ -231,39 +231,39 @@ final class AdminPagesRuntimeOperations04
     
     {
     
-        require_can("admin_integrity");
-        $modelAuditWhere = admin_model_clinic_exclude_where("a.clinic_id");
-        $modelScoped = admin_model_clinic_exclude_sql("clinic_id");
-        $modelClinic = admin_model_clinic_exclude_sql("id");
-        $recent = audit_rows_light($modelAuditWhere, [], 120);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_integrity");
+        $modelAuditWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where("a.clinic_id");
+        $modelScoped = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id");
+        $modelClinic = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
+        $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($modelAuditWhere, [], 120);
         $bad = 0;
         foreach ($recent as $r) {
-            if (!verify_audit_row($r)) {
+            if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($r)) {
                 $bad++;
             }
         }
-        $chainStatus = audit_chain_integrity_status(240);
+        $chainStatus = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_chain_integrity_status(240);
         if (empty($chainStatus["ok"])) {
             $bad++;
         }
-        $scopeViolations = (int) cached_val(
-            "integrity_scope_actionable_7d_v2_model_" . admin_model_clinic_id(),
+        $scopeViolations = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+            "integrity_scope_actionable_7d_v2_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             120,
             "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 7 DAY) AND violation_key<>'write_in_read_only' $modelScoped",
         );
-        $crossClinic = (int) cached_val(
-            "integrity_cross_clinic_links_model_" . admin_model_clinic_id(),
+        $crossClinic = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+            "integrity_cross_clinic_links_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             300,
             "SELECT (SELECT COUNT(*) FROM pi_appointments a JOIN pi_patients p ON p.id=a.patient_link_id WHERE a.patient_link_id IS NOT NULL AND a.clinic_id<>p.clinic_id " .
-                admin_model_clinic_exclude_sql("a.clinic_id") .
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("a.clinic_id") .
                 ") + (SELECT COUNT(*) FROM pi_documents d JOIN pi_patients p ON p.id=d.patient_link_id WHERE d.patient_link_id IS NOT NULL AND d.clinic_id<>p.clinic_id " .
-                admin_model_clinic_exclude_sql("d.clinic_id") .
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("d.clinic_id") .
                 ") + (SELECT COUNT(*) FROM pi_care c JOIN pi_patients p ON p.id=c.patient_link_id WHERE c.clinic_id<>p.clinic_id " .
-                admin_model_clinic_exclude_sql("c.clinic_id") .
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("c.clinic_id") .
                 ") + (SELECT COUNT(*) FROM pi_task_details td JOIN pi_tasks t ON t.id=td.task_id WHERE td.clinic_id<>t.clinic_id " .
-                admin_model_clinic_exclude_sql("td.clinic_id") .
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("td.clinic_id") .
                 ") + (SELECT COUNT(*) FROM pi_task_comments tc JOIN pi_tasks t ON t.id=tc.task_id WHERE tc.clinic_id<>t.clinic_id " .
-                admin_model_clinic_exclude_sql("tc.clinic_id") .
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("tc.clinic_id") .
                 ")",
         );
         $issues = [
@@ -276,7 +276,7 @@ final class AdminPagesRuntimeOperations04
                 "body" =>
                     "A contagem exclui bloqueios de assinatura e não significa que dados tenham atravessado consultórios.",
                 "meta" =>
-                    admin_model_clinic_count_note() .
+                    \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_count_note() .
                     " · detalhes técnicos em Segurança",
             ],
             [
@@ -303,7 +303,7 @@ final class AdminPagesRuntimeOperations04
                 "icon" => "person_off",
                 "time" => "Colaboradores",
                 "title" =>
-                    (int) cached_val(
+                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                         "people_unlinked_blocked",
                         PRONTOO_ADMIN_CACHE_TTL,
                         "SELECT COUNT(*) FROM pi_users u WHERE u.is_global_admin=0 AND u.active=0 AND NOT EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.active=1 LIMIT 1)",
@@ -316,9 +316,9 @@ final class AdminPagesRuntimeOperations04
                 "icon" => "home_health",
                 "time" => "Consultórios",
                 "title" =>
-                    (int) cached_val(
+                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                         "integrity_clinics_no_manager_model_" .
-                            admin_model_clinic_id(),
+                            \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
                         300,
                         "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (manager_user_id IS NULL OR manager_user_id=0) $modelClinic",
                     ) . " consultório(s) ativos sem gerente definido",
@@ -329,9 +329,9 @@ final class AdminPagesRuntimeOperations04
                 "icon" => "clinical_notes",
                 "time" => "Agenda",
                 "title" =>
-                    (int) cached_val(
+                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                         "integrity_appt_no_patient_model_" .
-                            admin_model_clinic_id(),
+                            \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
                         300,
                         "SELECT COUNT(*) FROM pi_appointments WHERE patient_link_id IS NULL AND start_at>=DATE_SUB(NOW(), INTERVAL 30 DAY) $modelScoped",
                     ) . " agendamento(s) recente(s) sem paciente vinculado",
@@ -342,8 +342,8 @@ final class AdminPagesRuntimeOperations04
                 "icon" => "task_alt",
                 "time" => "Tarefas",
                 "title" =>
-                    (int) cached_val(
-                        "integrity_tasks_late_model_" . admin_model_clinic_id(),
+                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+                        "integrity_tasks_late_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
                         300,
                         "SELECT COUNT(*) FROM pi_tasks WHERE status='aberta' AND due_at IS NOT NULL AND due_at<NOW() $modelScoped",
                     ) . " tarefa(s) atrasada(s)",
@@ -351,12 +351,12 @@ final class AdminPagesRuntimeOperations04
                 "meta" => "Qualidade de uso",
             ],
         ];
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Integridade",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Integridade",
                 "Sinais de consistência dos dados e da operação.",
-            ) . card(timeline($issues)),
+            ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($issues)),
         );
     
     }

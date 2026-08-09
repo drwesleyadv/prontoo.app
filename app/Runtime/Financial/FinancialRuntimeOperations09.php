@@ -56,13 +56,13 @@ final class FinancialRuntimeOperations09
             foreach ($missing as $locationId) {
                 $known[$locationId] = 0;
             }
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT location_id,COALESCE(SUM(delta_cents),0) balance_cents FROM (SELECT to_location_id location_id,amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND to_location_id IN ($ph) AND status='confirmed' UNION ALL SELECT from_location_id location_id,-amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND from_location_id IN ($ph) AND status='confirmed') movement_totals GROUP BY location_id",
                 array_merge([$cid], $missing, [$cid], $missing),
             )->fetchAll();
             foreach ($rows as $row) {
                 $known[(int) $row["location_id"]] =
-                    financial_assert_balance_cents(
+                    \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
                         (int) $row["balance_cents"],
                         "Saldo do local financeiro",
                     );
@@ -77,8 +77,8 @@ final class FinancialRuntimeOperations09
     
     {
     
-        $loc = financial_cashier_location_for_user($cid, $uid);
-        return $loc > 0 ? financial_drawer_balance($cid, $loc) : 0;
+        $loc = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
+        return $loc > 0 ? \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_balance($cid, $loc) : 0;
     
     }
 
@@ -86,16 +86,16 @@ final class FinancialRuntimeOperations09
     
     {
     
-        financial_operational_schema_ready();
-        $safe = financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
-        $safeBalance = financial_location_movement_balance($cid, $safe);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $safe = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
+        $safeBalance = \Prontoo\Runtime\Financial\FinancialRuntimeOperations08::financial_location_movement_balance($cid, $safe);
         $pending =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT COALESCE(SUM(transfer_to_safe_cents),0) FROM pi_cash_sessions WHERE clinic_id=? AND status='closed_pending_review'",
                 [$cid],
             ) ?:
             0);
-        $posRows = q(
+        $posRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT l.id,l.user_id,l.name FROM pi_financial_locations l WHERE l.clinic_id=? AND l.location_type='pos' AND l.active=1 ORDER BY l.name,l.id",
             [$cid],
         )->fetchAll();
@@ -103,14 +103,14 @@ final class FinancialRuntimeOperations09
             static  fn(array $row): int => (int) $row["id"],
             $posRows,
         );
-        $posSnapshot = financial_drawer_balance_snapshot($cid, $posIds);
+        $posSnapshot = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_balance_snapshot($cid, $posIds);
         $posBalances = (array) ($posSnapshot["balances"] ?? []);
         $posOpen = (array) ($posSnapshot["open"] ?? []);
         $linkedByLocation = [];
         if ($posIds) {
             $posPh = implode(",", array_fill(0, count($posIds), "?"));
             foreach (
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT location_id,COUNT(*) total FROM pi_financial_location_users WHERE clinic_id=? AND location_id IN ($posPh) AND active=1 GROUP BY location_id",
                     array_merge([$cid], $posIds),
                 )->fetchAll()
@@ -130,18 +130,18 @@ final class FinancialRuntimeOperations09
             $r["balance_cents"] = $bal;
             $r["open_user_name"] = $open ? (string) ($open["user_name"] ?? "") : "";
             $r["linked_users"] = $links;
-            $posTotal = financial_checked_add(
+            $posTotal = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
                 $posTotal,
                 $bal,
                 "Total das Gavetas",
             );
             $pos[] = $r;
         }
-        $bankRows = q(
+        $bankRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT l.id,l.name,l.account_id,a.bank_name,a.account_type FROM pi_financial_locations l LEFT JOIN pi_financial_accounts a ON a.id=l.account_id AND a.clinic_id=l.clinic_id WHERE l.clinic_id=? AND l.location_type='bank_account' AND l.active=1 ORDER BY l.name",
             [$cid],
         )->fetchAll();
-        $bankBalances = financial_location_movement_balances(
+        $bankBalances = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_location_movement_balances(
             $cid,
             array_map(static  fn(array $row): int => (int) $row["id"], $bankRows),
         );
@@ -150,7 +150,7 @@ final class FinancialRuntimeOperations09
         foreach ($bankRows as $r) {
             $bal = (int) ($bankBalances[(int) $r["id"]] ?? 0);
             $r["balance_cents"] = $bal;
-            $bankTotal = financial_checked_add(
+            $bankTotal = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
                 $bankTotal,
                 $bal,
                 "Total dos Bancos",
@@ -165,8 +165,8 @@ final class FinancialRuntimeOperations09
             "pos_cents" => $posTotal,
             "bank_rows" => $banks,
             "bank_cents" => $bankTotal,
-            "total_cents" => financial_checked_add(
-                financial_checked_add(
+            "total_cents" => \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
                     $safeBalance,
                     $posTotal,
                     "Posição financeira global",
@@ -182,21 +182,21 @@ final class FinancialRuntimeOperations09
     
     {
     
-        if (!financial_is_cashier($c)) {
+        if (!\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_is_cashier($c)) {
             return false;
         }
-        if (clinic_read_only_db((int) $c["clinic_id"])) {
+        if (\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db((int) $c["clinic_id"])) {
             return false;
         }
         try {
-            financial_operational_schema_ready();
+            \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
             $cid = (int) $c["clinic_id"];
             $uid = (int) $c["user"]["id"];
-            $today = financial_today($cid);
-            if (financial_cashier_location_for_user($cid, $uid) <= 0) {
+            $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
+            if (\Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid) <= 0) {
                 return false;
             }
-            return (bool) financial_unclosed_previous_session($cid, $uid, $today);
+            return (bool) \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_unclosed_previous_session($cid, $uid, $today);
         } catch (Throwable $e) {
             error_log("[Prontoo financeiro caixa atenção] " . $e->getMessage());
             return false;
@@ -216,14 +216,14 @@ final class FinancialRuntimeOperations09
     ): void 
     {
     
-        financial_operational_schema_ready();
-        $existing = one(
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,status FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' ORDER BY id DESC LIMIT 1",
             [$cid, $appointmentId],
         );
         if (!$paid) {
             if ($existing) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_financial_movements SET status='cancelled', confirmed_by=NULL, confirmed_at=NULL, notes=CONCAT(COALESCE(notes,''), IF(COALESCE(notes,'')='', '', ' | '), 'Pagamento desmarcado no agendamento.'), reviewed_at=NOW() WHERE id=? AND clinic_id=?",
                     [(int) $existing["id"], $cid],
                 );
@@ -233,7 +233,7 @@ final class FinancialRuntimeOperations09
         if ($amount <= 0) {
             return;
         }
-        $method = normalize_payment_method($method);
+        $method = \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method($method);
         if ($method === "") {
             throw new RuntimeException("Selecione a forma de pagamento.");
         }
@@ -241,7 +241,7 @@ final class FinancialRuntimeOperations09
         $sessionId = null;
         $movementNotes = "Recebimento vinculado ao agendamento.";
         if ($method === "dinheiro") {
-            $s = financial_require_open_session($cid, $userId);
+            $s = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_require_open_session($cid, $userId);
             $sessionId = (int) $s["id"];
             $to = (int) $s["location_id"];
             $movementNotes =
@@ -251,12 +251,12 @@ final class FinancialRuntimeOperations09
                 throw new RuntimeException("Selecione o destino do recebimento.");
             }
             if (
-                function_exists("financial_office_destination_belongs")
-                    ? !financial_office_destination_belongs(
+                is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::class, 'financial_office_destination_belongs'])
+                    ? !\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_office_destination_belongs(
                         $cid,
                         $paymentDestinationLocationId,
                     )
-                    : !financial_location_belongs(
+                    : !\Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_location_belongs(
                         $cid,
                         $paymentDestinationLocationId,
                     )
@@ -275,7 +275,7 @@ final class FinancialRuntimeOperations09
             );
         }
         if ($existing) {
-            financial_update_existing_movement(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
                 $cid,
                 (int) $existing["id"],
                 "receipt",
@@ -290,7 +290,7 @@ final class FinancialRuntimeOperations09
                 "confirmed",
             );
         } else {
-            financial_create_movement(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
                 $cid,
                 "receipt",
                 $amount,
@@ -319,9 +319,9 @@ final class FinancialRuntimeOperations09
         if ($cid <= 0 || $appointmentId <= 0) {
             return 0;
         }
-        financial_operational_schema_ready();
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $rid =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=? LIMIT 1",
                 [$cid, $appointmentId],
             ) ?:
@@ -330,11 +330,11 @@ final class FinancialRuntimeOperations09
             return $rid;
         }
         try {
-            financial_sync_appointment($cid, $appointmentId, $uid);
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment($cid, $appointmentId, $uid);
         } catch (Throwable $e) {
             error_log("[Prontoo financial revenue sync link] " . $e->getMessage());
         }
-        return (int) (val(
+        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT id FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=? LIMIT 1",
             [$cid, $appointmentId],
         ) ?:
@@ -349,30 +349,30 @@ final class FinancialRuntimeOperations09
     ): string 
     {
     
-        $st = financial_appointment_payment_state($a);
+        $st = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_appointment_payment_state($a);
         $amount = (int) ($st["amount"] ?? 0);
-        $title = $amount > 0 ? money_br($amount) : "Sem valor financeiro";
+        $title = $amount > 0 ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($amount) : "Sem valor financeiro";
         $method = (string) ($st["method"] ?? "");
         $methodLabel =
-            $method !== "" ? payment_methods_options()[$method] ?? $method : "";
+            $method !== "" ? \Prontoo\Domain\Financial\FinancialDomainOperations01::payment_methods_options()[$method] ?? $method : "";
         $chip =
             '<span class="finance-appointment-chip finance-appointment-chip-' .
-            e((string) $st["code"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $st["code"]) .
             " pill " .
-            e((string) $st["class"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $st["class"]) .
             '" title="' .
-            e($title . ($methodLabel !== "" ? " · " . $methodLabel : "")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title . ($methodLabel !== "" ? " · " . $methodLabel : "")) .
             '">' .
-            icon((string) $st["icon"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) $st["icon"]) .
             "<span>" .
-            e((string) $st["label"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $st["label"]) .
             "</span>" .
-            ($amount > 0 ? "<b>" . e(money_br($amount)) . "</b>" : "") .
+            ($amount > 0 ? "<b>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($amount)) . "</b>" : "") .
             "</span>";
         $canReceive =
-            function_exists("appointment_journey_role_matches") &&
-            (appointment_journey_role_matches($role, "recepcionista") ||
-                appointment_journey_role_matches($role, "gerente"));
+            is_callable([\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::class, 'appointment_journey_role_matches']) &&
+            (\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "recepcionista") ||
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "gerente"));
         if (
             $canReceive &&
             (string) $st["code"] === "aguardando_pagamento" &&
@@ -380,12 +380,12 @@ final class FinancialRuntimeOperations09
         ) {
             $chip .=
                 '<a class="finance-appointment-receive small primary" href="' .
-                href("financial", [
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", [
                     "op" => "receber",
                     "appointment_id" => (int) $a["id"],
                 ]) .
                 '">' .
-                icon("point_of_sale") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("point_of_sale") .
                 "<span>Receber</span></a>";
         }
         return '<span class="finance-appointment-inline">' . $chip . "</span>";
@@ -398,10 +398,10 @@ final class FinancialRuntimeOperations09
     ): array 
     {
     
-        financial_operational_schema_ready();
-        $businessDate = $businessDate ?: financial_today($cid);
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $businessDate = $businessDate ?: \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         $expected = [];
-        $linked = q(
+        $linked = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT l.id location_id,COALESCE(l.name,'Gaveta') drawer_name,u.id user_id,COALESCE(u.name,'Colaborador') user_name FROM pi_financial_locations l JOIN pi_financial_location_users lu ON lu.location_id=l.id AND lu.clinic_id=l.clinic_id AND lu.active=1 JOIN pi_users u ON u.id=lu.user_id AND u.active=1 WHERE l.clinic_id=? AND l.location_type='pos' AND l.active=1 ORDER BY l.name,u.name",
             [$cid],
         )->fetchAll();
@@ -409,7 +409,7 @@ final class FinancialRuntimeOperations09
             $key = (int) $r["location_id"] . ":" . (int) $r["user_id"];
             $expected[$key] = $r;
         }
-        $sessions = q(
+        $sessions = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT s.id,s.status,s.opened_at,s.closed_at,s.business_date,s.location_id,s.user_id,s.opening_balance_cents,s.expected_closing_cents,s.declared_closing_cents,s.keep_in_drawer_cents,s.transfer_to_safe_cents,s.difference_cents,COALESCE(l.name,'Gaveta') drawer_name,COALESCE(u.name,'Colaborador') user_name FROM pi_cash_sessions s LEFT JOIN pi_financial_locations l ON l.id=s.location_id AND l.clinic_id=s.clinic_id LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.business_date=? ORDER BY COALESCE(l.name,''),COALESCE(u.name,''),s.id",
             [$cid, $businessDate],
         )->fetchAll();
@@ -463,65 +463,65 @@ final class FinancialRuntimeOperations09
     
     {
     
-        financial_operational_schema_ready();
-        $today = financial_today($cid);
-        [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
-        $expected = (int) safe_val(
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($today, $cid);
+        $expected = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND amount_cents>0 AND expected_at>=? AND expected_at<?",
             [$cid, $dayStart, $dayEnd],
             0,
         );
-        $received = (int) safe_val(
+        $received = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
             [$cid, $dayStart, $dayEnd],
             0,
         );
-        $pending = (int) safe_val(
+        $pending = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND amount_cents>0 AND expected_at<?",
             [$cid, $dayEnd],
             0,
         );
-        $state = financial_daily_consolidation_state($cid, $today);
+        $state = \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_consolidation_state($cid, $today);
         $openDrawers = (int) ($state["pending_open_drawers"] ?? 0);
-        $pos = financial_global_position($cid);
+        $pos = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_global_position($cid);
         $cards =
             '<div class="finance-consolidation-kpis"><article>' .
-            icon("event_available") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
             "<b>" .
-            money_br($expected) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected) .
             "</b><span>Previsto hoje</span></article><article>" .
-            icon("task_alt") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("task_alt") .
             "<b>" .
-            money_br($received) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($received) .
             "</b><span>Recebido hoje</span></article><article>" .
-            icon("pending_actions") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("pending_actions") .
             "<b>" .
-            money_br($pending) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($pending) .
             "</b><span>Pendente</span></article><article>" .
-            icon("point_of_sale") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("point_of_sale") .
             "<b>" .
-            money_br((int) $pos["pos_cents"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["pos_cents"]) .
             "</b><span>Em gavetas</span></article></div>";
         if (!empty($state["consolidated"])) {
             $footer =
                 '<footer class="finance-consolidation-footer"><button class="ghost small" type="button" disabled aria-disabled="true">' .
-                icon("verified") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("verified") .
                 "<span>Dia consolidado</span></button></footer>";
         } elseif ($openDrawers > 0) {
             $footer =
                 '<footer class="finance-consolidation-footer"><button class="ghost small" type="button" disabled aria-disabled="true">' .
-                icon("point_of_sale") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("point_of_sale") .
                 "<span>Aguardando fechamentos</span></button></footer>";
         } else {
             $footer =
                 '<footer class="finance-consolidation-footer"><a class="primary small" href="' .
-                href("financial", ["tab" => "consolidacao"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", ["tab" => "consolidacao"]) .
                 '">' .
-                icon("fact_check") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("fact_check") .
                 "<span>Conferência liberada</span></a></footer>";
         }
         return '<section class="finance-consolidation-panel"><header><span>' .
-            icon("monitoring") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitoring") .
             "</span><div><h2>Consolidação do dia</h2></div></header>" .
             $cards .
             $footer .
@@ -533,10 +533,10 @@ final class FinancialRuntimeOperations09
     
     {
     
-        financial_operational_schema_ready();
-        $today = financial_today($cid);
-        [$dayStart, $dayEnd] = app_local_day_utc_range($today, $cid);
-        $rows = q(
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($today, $cid);
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT r.id,r.amount_cents,r.title,a.id appointment_id,a.start_at,a.status,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.clinic_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.expected_at<? AND a.status NOT IN ('cancelado','nao_compareceu') ORDER BY COALESCE(a.start_at,r.expected_at,NOW()) ASC,r.id ASC LIMIT 8",
             [$cid, $dayEnd],
         )->fetchAll();
@@ -555,18 +555,18 @@ final class FinancialRuntimeOperations09
                 "Procedimento";
             $h .=
                 '<a href="' .
-                href("financial", [
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", [
                     "op" => "receber",
                     "revenue_id" => (int) $r["id"],
                 ]) .
                 '"><span>' .
-                icon("payments") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
                 "<b>" .
-                e($patient) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($patient) .
                 "</b></span><small>" .
-                e(app_time_br((string) $r["start_at"]) . " · " . $proc) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["start_at"]) . " · " . $proc) .
                 "</small><em>" .
-                e(money_br((int) $r["amount_cents"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["amount_cents"])) .
                 "</em></a>";
         }
         return $h . "</div>";

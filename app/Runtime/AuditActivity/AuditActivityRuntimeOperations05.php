@@ -30,29 +30,29 @@ final class AuditActivityRuntimeOperations05
     
     {
     
-        $c = require_can("audit");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("audit");
         $cid = (int) $c["clinic_id"];
         $member = (int) ($_GET["member"] ?? 0);
         $period = (string) ($_GET["period"] ?? "today");
         $selectedDate = (string) ($_GET["date"] ?? "");
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate)) {
-            $selectedDate = app_today_in_timezone($cid, $c);
+            $selectedDate = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c);
         }
-        if (!isset(audit_period_options($cid, $c)[$period])) {
+        if (!isset(\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_options($cid, $c)[$period])) {
             $period = "today";
         }
         $limit = 10;
         $offset = max(0, (int) ($_GET["offset"] ?? 0));
         $where = "a.clinic_id=?";
         $p = [$cid];
-        audit_visibility_filter($c, $where, $p);
-        $where .= audit_period_clause($period, $p, $cid, $c, $selectedDate);
-        $team = audit_team_filter_options($cid);
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_visibility_filter($c, $where, $p);
+        $where .= \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_clause($period, $p, $cid, $c, $selectedDate);
+        $team = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_team_filter_options($cid);
         if ($member > 0 && isset($team[$member])) {
             $where .= " AND a.user_id=?";
             $p[] = $member;
         }
-        $rows = audit_rows_light($where, $p, $limit, $offset);
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($where, $p, $limit, $offset);
         if ((string) ($_GET["ajax"] ?? "") === "1") {
             if (!headers_sent()) {
                 header("Content-Type: application/json; charset=utf-8");
@@ -63,8 +63,8 @@ final class AuditActivityRuntimeOperations05
             echo json_encode(
                 [
                     "ok" => true,
-                    "html" => timeline(
-                        audit_items($rows),
+                    "html" => \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline(
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows),
                         "Nenhuma atividade encontrada.",
                     ),
                     "next_offset" => $offset + count($rows),
@@ -93,43 +93,43 @@ final class AuditActivityRuntimeOperations05
             '<nav class="activity-filter-chips" aria-label="Filtrar por membro da equipe"><a class="activity-filter-chip ' .
             ($member <= 0 ? "active" : "") .
             '" href="' .
-            href("audit", $baseFor(["period" => $period])) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["period" => $period])) .
             '">' .
-            icon("groups") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
             "<span>Todos</span></a>";
         foreach ($team as $id => $first) {
             $memberChips .=
                 '<a class="activity-filter-chip ' .
                 ($member === $id ? "active" : "") .
                 '" href="' .
-                href("audit", $baseFor(["member" => $id, "period" => $period])) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["member" => $id, "period" => $period])) .
                 '">' .
-                icon("person") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person") .
                 "<span>" .
-                e($first) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($first) .
                 "</span></a>";
         }
         $memberChips .= "</nav>";
         $periodChips =
             '<nav class="activity-period-filter" aria-label="Selecionar data das atividades">';
-        foreach (audit_period_options($cid, $c) as $value => $label) {
+        foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_options($cid, $c) as $value => $label) {
             if ($value === "date") {
                 $periodChips .=
                     '<button type="button" class="activity-period-chip ' .
                     ($period === "date" ? "active" : "") .
                     '" data-open-activity-date>' .
-                    icon("calendar_month") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
                     "<span>" .
-                    e($label) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</span></button>";
             } else {
                 $periodChips .=
                     '<a class="activity-period-chip ' .
                     ($period === $value ? "active" : "") .
                     '" href="' .
-                    href("audit", $baseFor(["period" => $value])) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["period" => $value])) .
                     '">' .
-                    icon(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(
                         $value === "today"
                             ? "today"
                             : ($value === "yesterday"
@@ -137,7 +137,7 @@ final class AuditActivityRuntimeOperations05
                                 : "event"),
                     ) .
                     "<span>" .
-                    e($label) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</span></a>";
             }
         }
@@ -150,11 +150,11 @@ final class AuditActivityRuntimeOperations05
                     '">'
                 : "") .
             '<input type="hidden" name="period" value="date"><header><strong>Escolher data</strong><button type="button" class="ghost small" data-close-activity-date>' .
-            icon("close") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
             '<span>Fechar</span></button></header><input type="date" name="date" value="' .
-            e($selectedDate) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($selectedDate) .
             '" required><div class="form-actions"><button class="primary" type="submit">' .
-            icon("check") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check") .
             "<span>Aplicar</span></button></div></form></dialog>";
         $filters =
             '<section class="activity-filter-panel ds-activity-filter-panel" aria-label="Filtros de atividades">' .
@@ -162,7 +162,7 @@ final class AuditActivityRuntimeOperations05
             $periodChips .
             $dateDialog .
             "</section>";
-        $initial = timeline(audit_items($rows), "Nenhuma atividade encontrada.");
+        $initial = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline(\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows), "Nenhuma atividade encontrada.");
         $ajaxParams = ["ajax" => "1", "member" => $member, "period" => $period];
         if ($period === "date") {
             $ajaxParams["date"] = $selectedDate;
@@ -173,21 +173,21 @@ final class AuditActivityRuntimeOperations05
             '" data-activity-limit="' .
             $limit .
             '" data-activity-url="' .
-            e(href("audit", $ajaxParams)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $ajaxParams)) .
             '">' .
             $initial .
             '</div><div class="activity-load-sentinel" data-activity-sentinel aria-hidden="true"></div>';
         $sectionHead =
             '<header class="ds-section-head activity-section-head"><span class="notice-minimal-icon">' .
-            icon("history") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("history") .
             "</span><div><strong>Registro de atividades</strong><span>Filtros e linha do tempo em leitura compacta.</span></div></header>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Atividades",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Atividades",
                 "Histórico direto das ações realizadas no consultório.",
             ) .
-                card(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     $sectionHead . $filters . $list,
                     "activity-screen-card patient-list-card ds-filter-list-block",
                 ),

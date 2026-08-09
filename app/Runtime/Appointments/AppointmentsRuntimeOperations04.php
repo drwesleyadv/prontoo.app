@@ -36,37 +36,37 @@ final class AppointmentsRuntimeOperations04
     
         $activeRole = (string) ($c["role"] ?? "");
         $activeRoleLabel =
-            $activeRole !== "" ? role_label_for($activeRole, $cid) : "meu cargo";
+            $activeRole !== "" ? \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($activeRole, $cid) : "meu cargo";
         $scopeOptions = ["my_role" => "Meu Cargo", "clinic" => "Toda Clínica"];
-        $roleOptions = $roleOptions ?: clinic_role_options($cid, false);
-        $back = href("appointments", ["d" => $day]);
+        $roleOptions = $roleOptions ?: \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, false);
+        $back = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", ["d" => $day]);
         $returnHidden =
             '<input type="hidden" name="return_day" value="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '"><input type="hidden" name="return_doctor" value="' .
             (int) ($_GET["doctor"] ?? 0) .
             '">';
         $hero =
             '<div class="agenda-quick-hero agenda-note-hero"><span class="agenda-quick-hero-icon" aria-hidden="true">' .
-            icon("sticky_note_2") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
             '</span><div class="agenda-quick-hero-copy"><h2>Nova Anotação</h2><p>Registre uma orientação discreta para a data escolhida na Agenda.</p></div><a class="ghost small agenda-quick-back" href="' .
             $back .
             '">' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             "<span>Agenda</span></a></div>";
         $summary =
             '<div class="agenda-quick-summary agenda-note-summary" aria-label="Resumo da anotação"><span>' .
-            icon("calendar_month") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
             "<b>" .
-            e(date_br($day)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($day)) .
             "</b><small>Data da Agenda</small></span><span>" .
-            icon("visibility") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
             "<b>Acesso controlado</b><small>Rodapé da anotação</small></span></div>";
         $visibility =
             '<footer class="agenda-note-visibility"><div class="agenda-note-visibility-title">' .
-            icon("visibility") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
             '<span>Quem pode ver</span></div><div class="agenda-note-visibility-grid agenda-note-visibility-grid--simple">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Visibilidade",
                 "visibility_scope",
                 $scopeOptions,
@@ -78,15 +78,15 @@ final class AppointmentsRuntimeOperations04
             $hero .
             $summary .
             '<form method="post" class="compact agenda-note-form agenda-structured-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             $returnHidden .
             '<input type="hidden" name="act" value="agenda_note"><fieldset class="agenda-quick-section agenda-note-content"><legend>' .
-            icon("sticky_note_2") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
             "<span>Conteúdo</span></legend>" .
-            form_row("Data", input("note_date", "date", $day, "required")) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Data", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("note_date", "date", $day, "required")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Conteúdo",
-                textarea(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
                     "content",
                     "",
                     'required maxlength="4000" rows="8" placeholder="Escreva a anotação para esta data."',
@@ -96,9 +96,9 @@ final class AppointmentsRuntimeOperations04
             '</fieldset><div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
             $back .
             '">' .
-            icon("close") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
             '<span>Desistir</span></a><button type="submit" class="primary">' .
-            icon("save") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
             "<span>Salvar anotação</span></button></div></form></section>";
     
     }

@@ -32,14 +32,14 @@ final class DatabaseSchemaRuntimeOperations01
     
     {
     
-        db_reject_runtime_ddl($sql);
-        $connection = pdo();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_reject_runtime_ddl($sql);
+        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $autoIntegrityTransaction =
             !$connection->inTransaction() &&
             preg_match("/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i", $sql) === 1 &&
             class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity") &&
-            function_exists("has_cfg") &&
-            has_cfg();
+            is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) &&
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg();
         $attempts = $connection->inTransaction() ? 1 : 3;
         $lastError = null;
     
@@ -53,11 +53,11 @@ final class DatabaseSchemaRuntimeOperations01
             $GLOBALS["PRONTOO_INSTALL_LAST_PARAM_COUNT"] = count($params);
     
             try {
-                if (function_exists("sql_write_scope_guard")) {
-                    sql_write_scope_guard($sql, $params);
+                if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::class, 'sql_write_scope_guard'])) {
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::sql_write_scope_guard($sql, $params);
                 }
                 if ($autoIntegrityTransaction) {
-                    db_begin_transaction();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
                 }
                 FinancialGuardRuntimeOperations01::financial_movement_write_guard($sql, $params);
                 if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
@@ -98,7 +98,7 @@ final class DatabaseSchemaRuntimeOperations01
                 }
                 $queryCompleted = true;
                 if ($autoIntegrityTransaction) {
-                    db_commit();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 }
                 return $statement;
             } catch (Throwable $error) {
@@ -119,13 +119,13 @@ final class DatabaseSchemaRuntimeOperations01
                     }
                 }
                 if ($autoIntegrityTransaction && $connection->inTransaction()) {
-                    db_rollback();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
-                if ($attempt + 1 < $attempts && db_retryable_conflict($error)) {
-                    usleep(db_retry_delay_us($attempt));
+                if ($attempt + 1 < $attempts && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_retryable_conflict($error)) {
+                    usleep(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_retry_delay_us($attempt));
                     continue;
                 }
-                db_log_query_failure($error, $runtimeSql);
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_log_query_failure($error, $runtimeSql);
                 throw $error;
             }
         }
@@ -138,7 +138,7 @@ final class DatabaseSchemaRuntimeOperations01
     
     {
     
-        $statement = q($sql, $params);
+        $statement = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params);
         $row = $statement->fetch();
         $statement->closeCursor();
         return is_array($row) ? $row : null;
@@ -149,7 +149,7 @@ final class DatabaseSchemaRuntimeOperations01
     
     {
     
-        $statement = q($sql, $params);
+        $statement = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params);
         $value = $statement->fetchColumn();
         $statement->closeCursor();
         return $value === false ? null : $value;
@@ -161,19 +161,19 @@ final class DatabaseSchemaRuntimeOperations01
     {
     
         static $validated = false;
-        if ($validated || !has_cfg()) {
+        if ($validated || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
     
-        schema_apply_pending_release_migrations();
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_apply_pending_release_migrations();
     
         $expectedRevision = defined("PRONTOO_SCHEMA_REV")
             ? PRONTOO_SCHEMA_REV
             : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
-        $revision = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
+        $revision = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
             "schema_revision",
         ]);
-        $contract = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
+        $contract = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
             "schema_contract_hash",
         ]);
         if (!hash_equals($expectedRevision, (string) $revision)) {
@@ -181,18 +181,18 @@ final class DatabaseSchemaRuntimeOperations01
                 "Revisão do banco incompatível com a aplicação.",
             );
         }
-        if (!hash_equals(prontoo_schema_contract_hash(), (string) $contract)) {
+        if (!hash_equals(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(), (string) $contract)) {
             throw new RuntimeException(
                 "Contrato do banco incompatível com a aplicação.",
             );
         }
     
-        $ready = json_decode((string) prontoo_fs_read(schema_lock_file()), true);
+        $ready = json_decode((string) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_read(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file()), true);
         if (
             !is_array($ready) ||
             !hash_equals($expectedRevision, (string) ($ready["revision"] ?? "")) ||
             !hash_equals(
-                prontoo_schema_contract_hash(),
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(),
                 (string) ($ready["contract"] ?? ""),
             )
         ) {

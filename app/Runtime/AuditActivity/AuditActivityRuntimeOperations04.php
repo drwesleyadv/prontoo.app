@@ -35,11 +35,11 @@ final class AuditActivityRuntimeOperations04
     ): bool 
     {
     
-        if (!has_cfg() || !audit_should_write($event)) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() || !\Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_should_write($event)) {
             return false;
         }
         try {
-            db_tx(function () use (
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
                 $event,
                 $entity,
                 $entityId,
@@ -47,7 +47,7 @@ final class AuditActivityRuntimeOperations04
                 $trustedOrigin,
             ): void {
     
-                $origin = audit_trusted_origin_resolve(
+                $origin = \Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_trusted_origin_resolve(
                     $context,
                     $trustedOrigin,
                 );
@@ -63,10 +63,10 @@ final class AuditActivityRuntimeOperations04
                 $forcedUserAgent = (string) $origin["user_agent"];
                 $forcedCreatedAt = (string) $origin["created_at"];
                 $forcedProofContext = $origin["proof_context"];
-                $c = $skipRuntimeContext ? [] : ctx();
+                $c = $skipRuntimeContext ? [] : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
                 if ($forcedProofContext === null) {
                     $forcedProofContext = [
-                        "route" => function_exists("route") ? (string) route() : "",
+                        "route" => is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) ? (string) \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() : "",
                         "method" => (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
                         "scope" => (string) ($c["scope"] ?? ""),
                         "clinic_id" => $c["clinic_id"] ?? null,
@@ -86,16 +86,16 @@ final class AuditActivityRuntimeOperations04
                     if (
                         empty($context["environment_label"]) &&
                         !empty($c["role"]) &&
-                        function_exists("role_label_for")
+                        is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'role_label_for'])
                     ) {
-                        $context["environment_label"] = role_label_for(
+                        $context["environment_label"] = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for(
                             (string) $c["role"],
                             $cid ? (int) $cid : null,
                         );
                     }
                 }
                 if (!$skipContextEnrichment) {
-                    $context = audit_enrich_context(
+                    $context = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_enrich_context(
                         $event,
                         $entity,
                         $entityId,
@@ -104,7 +104,7 @@ final class AuditActivityRuntimeOperations04
                     );
                 }
                 if (mb_trim((string) ($context["audit_body"] ?? "")) === "") {
-                    $context["audit_body"] = audit_body_for_event(
+                    $context["audit_body"] = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_body_for_event(
                         $event,
                         $entity,
                         $entityId,
@@ -112,12 +112,12 @@ final class AuditActivityRuntimeOperations04
                     );
                 }
                 $friendly = mb_substr(
-                    audit_friendly($event, $entity, $entityId, $context, $uid),
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_friendly($event, $entity, $entityId, $context, $uid),
                     0,
                     255,
                 );
                 $json = json_encode(
-                    mask($context),
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($context),
                     JSON_UNESCAPED_UNICODE |
                         JSON_HEX_TAG |
                         JSON_HEX_APOS |
@@ -127,9 +127,9 @@ final class AuditActivityRuntimeOperations04
                 if ($json === false) {
                     $json = "{}";
                 }
-                $eventLabel = event_label($event);
-                $eventIcon = event_icon($event);
-                $entityLabel = $entity !== null && $entity !== "" ? entity_label($entity) : null;
+                $eventLabel = \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::event_label($event);
+                $eventIcon = \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::event_icon($event);
+                $entityLabel = $entity !== null && $entity !== "" ? \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::entity_label($entity) : null;
                 $ip = substr((string) ($_SERVER["REMOTE_ADDR"] ?? ""), 0, 45);
                 $ipHash = $hasForcedIpHash
                     ? ($forcedIpHash !== "" ? $forcedIpHash : null)
@@ -151,10 +151,10 @@ final class AuditActivityRuntimeOperations04
                 ];
                 $proof = \Prontoo\Infrastructure\Audit\AuditChain::build(
                     $row,
-                    secret_key(),
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
                     $forcedProofContext,
                 );
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_audit (clinic_id,user_id,event_key,event_label,event_icon,entity_key,entity_label,entity_id,friendly_text,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_hash,user_agent,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,COALESCE(?,NOW()))",
                     [
                         $cid,
@@ -192,7 +192,7 @@ final class AuditActivityRuntimeOperations04
     {
     
         $actor = mb_trim((string) ($ctx["actor_name"] ?? ""));
-        return $actor !== "" ? first_name($actor) : user_name_by_id($uid);
+        return $actor !== "" ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($actor) : \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::user_name_by_id($uid);
     
     }
 
@@ -205,7 +205,7 @@ final class AuditActivityRuntimeOperations04
     ): string 
     {
     
-        return activity_direct_title($event, $entity, $entityId, $ctx, $uid);
+        return \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::activity_direct_title($event, $entity, $entityId, $ctx, $uid);
     
     }
 
@@ -223,7 +223,7 @@ final class AuditActivityRuntimeOperations04
             $ids = array_unique(
                 array_merge(
                     [$uid],
-                    team_user_ids_for_roles($cid, ["assistente", "recepcionista"]),
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["assistente", "recepcionista"]),
                 ),
             );
             $ph = implode(",", array_fill(0, count($ids), "?"));
@@ -235,7 +235,7 @@ final class AuditActivityRuntimeOperations04
             $ids = array_unique(
                 array_merge(
                     [$uid],
-                    team_user_ids_for_roles($cid, ["recepcionista"]),
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["recepcionista"]),
                 ),
             );
             $ph = implode(",", array_fill(0, count($ids), "?"));
@@ -247,7 +247,7 @@ final class AuditActivityRuntimeOperations04
             $ids = array_unique(
                 array_merge(
                     [$uid],
-                    team_user_ids_for_roles($cid, ["recepcionista"]),
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["recepcionista"]),
                 ),
             );
             $ph = implode(",", array_fill(0, count($ids), "?"));
@@ -262,8 +262,8 @@ final class AuditActivityRuntimeOperations04
     
     {
     
-        $rows = audit_rows_light("clinic_id=?", [$cid], 12);
-        return audit_items($rows);
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light("clinic_id=?", [$cid], 12);
+        return \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows);
     
     }
 
@@ -271,26 +271,26 @@ final class AuditActivityRuntimeOperations04
     
     {
     
-        $rows = audit_rows_light(
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(
             "clinic_id=? AND entity_key=? AND entity_id=?",
             [$cid, "consulta", (string) $appointmentId],
             3,
         );
-        $items = audit_items($rows);
+        $items = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows);
         if (!$items) {
             return '<div class="audit-mini compact-empty">' .
-                icon("info") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("info") .
                 "<span>Nenhum evento de atividade vinculado.</span></div>";
         }
         $h = '<div class="audit-mini compact-audit">';
         foreach ($items as $it) {
             $h .=
                 "<div><span>" .
-                icon($it["icon"] ?? "radio_button_checked") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($it["icon"] ?? "radio_button_checked") .
                 "</span><p><b>" .
-                e((string) ($it["title"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["title"] ?? "")) .
                 "</b><small>" .
-                e((string) ($it["body"] ?? "")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($it["body"] ?? "")) .
                 "</small></p></div>";
         }
         return $h . "</div>";
@@ -307,7 +307,7 @@ final class AuditActivityRuntimeOperations04
         $loader = static function () use ($cid): array {
     
             try {
-                $rows = q(
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT DISTINCT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 ORDER BY u.name ASC",
                     [$cid],
                 )->fetchAll();
@@ -326,11 +326,11 @@ final class AuditActivityRuntimeOperations04
             }
             return $out;
         };
-        if (function_exists("server_json_cache_remember") && server_json_cache_read_allowed()) {
-            return (array) server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) && \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()) {
+            return (array) \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "lookup",
-                server_json_cache_safe_key("audit_team", $cid),
-                server_json_cache_ttl("lookup"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("audit_team", $cid),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("lookup"),
                 $loader,
                 ["table:pi_users", "table:pi_user_roles", "scope:" . $cid],
             );
@@ -356,7 +356,7 @@ final class AuditActivityRuntimeOperations04
             "Sábado",
         ];
         try {
-            $zone = new DateTimeZone(app_context_timezone($c, $cid));
+            $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($c, $cid));
             $dt = new DateTimeImmutable($day . " 12:00:00", $zone);
             return $labels[(int) $dt->format("w")] ?? "Dia";
         } catch (Throwable $e) {
@@ -370,12 +370,12 @@ final class AuditActivityRuntimeOperations04
     
     {
     
-        $today = app_today_in_timezone($cid, $c);
+        $today = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c);
         $before = date("Y-m-d", strtotime($today . " -2 days"));
         return [
             "today" => "Hoje",
             "yesterday" => "Ontem",
-            "before_yesterday" => audit_activity_day_name($before, $cid, $c),
+            "before_yesterday" => \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_activity_day_name($before, $cid, $c),
             "date" => "Escolher data",
         ];
     
@@ -390,11 +390,11 @@ final class AuditActivityRuntimeOperations04
     ): string 
     {
     
-        $opts = audit_period_options($cid, $c);
+        $opts = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_options($cid, $c);
         if (!isset($opts[$period])) {
             $period = "today";
         }
-        $today = app_today_in_timezone($cid, $c);
+        $today = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c);
         if ($period === "yesterday") {
             $day = date("Y-m-d", strtotime($today . " -1 day"));
         } elseif ($period === "before_yesterday") {
@@ -408,7 +408,7 @@ final class AuditActivityRuntimeOperations04
         } else {
             $day = $today;
         }
-        [$start, $end] = app_local_day_utc_range($day, $cid, $c);
+        [$start, $end] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid, $c);
         $params[] = gmdate("Y-m-d H:i:s", (int) $start);
         $params[] = gmdate("Y-m-d H:i:s", (int) $end);
         return " AND a.created_at>=? AND a.created_at<?";
@@ -425,7 +425,7 @@ final class AuditActivityRuntimeOperations04
                 $base[$k] = (string) $_GET[$k];
             }
         }
-        return href("audit", array_merge($base, $extra));
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", array_merge($base, $extra));
     
     }
 }

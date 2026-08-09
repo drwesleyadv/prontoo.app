@@ -33,15 +33,15 @@ final class AdminPagesRuntimeOperations02
     
         $qInt = function (string $sql, array $p = []): int {
     
-            return (int) safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
         };
         $qCents = function (string $sql, array $p = []): int {
     
-            return (int) safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
         };
         $since = "DATE_SUB(NOW(), INTERVAL 30 DAY)";
-        $modelClinicWhere = admin_model_clinic_exclude_sql("id");
-        $modelScopedWhere = admin_model_clinic_exclude_sql("clinic_id");
+        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
+        $modelScopedWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id");
         $activeClinics = $qInt(
             "SELECT COUNT(DISTINCT clinic_id) FROM pi_audit WHERE clinic_id IS NOT NULL AND created_at>=$since $modelScopedWhere",
         );
@@ -107,115 +107,115 @@ final class AdminPagesRuntimeOperations02
         $result30 = $revenue30 - $expenses30;
         $note = "Ativas";
         return '<div class="global-compact-summary"><div class="global-pill-section"><div class="global-pill-title">' .
-            icon("account_tree") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_tree") .
             '<b>Operação · últimos 30 dias</b></div><div class="global-pill-list">' .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "novos consultórios",
                 (string) $newClinics,
                 "domain",
                 "Últimos 30 dias",
                 "admin_clinics",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "consultórios ativos",
                 (string) $activeClinics,
                 "verified",
                 $note,
                 "admin_clinics",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "isentos",
                 (string) $exemptClinics,
                 "workspace_premium",
                 "fora da cobrança",
                 "admin_clinics",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "somente leitura",
                 (string) $readOnly,
                 "lock",
                 "status atual",
                 "admin_clinics",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "colaboradores",
                 (string) $linkedUsers,
                 "group",
                 "com vínculo",
                 "admin_people",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "interessados",
                 (string) $activeLeads,
                 "person",
                 "ativos criados",
                 "admin_integrity",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "pacientes",
                 (string) $patients30,
                 "person",
                 "Últimos 30 dias",
                 "admin_integrity",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "agendamentos",
                 (string) $appointments30,
                 "calendar_month",
                 $appointmentsFuture . " próximos",
                 "admin_integrity",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "documentos",
                 (string) $documents30,
                 "description",
                 "Últimos 30 dias",
                 "admin_integrity",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "tarefas",
                 (string) $tasks30,
                 "task_alt",
                 $overdueTasks . " vencidas",
                 "admin_integrity",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "avisos",
                 (string) $notices30,
                 "campaign",
                 "inclui globais",
                 "admin_global_notices",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "rotinas",
                 (string) $maestroRegencies,
                 "event_repeat",
                 "cadastradas",
             ) .
             '</div></div><div class="global-pill-section"><div class="global-pill-title">' .
-            icon("payments") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
             '<b>Financeiro · últimos 30 dias</b></div><div class="global-pill-list">' .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "receita efetivada",
-                money_br($revenue30),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($revenue30),
                 "payments",
                 "Últimos 30 dias",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "receita prevista",
-                money_br($expected30),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected30),
                 "payments",
                 "Últimos 30 dias",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "despesas pagas",
-                money_br($expenses30),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expenses30),
                 "receipt",
                 "Últimos 30 dias",
             ) .
-            admin_global_compact_pill(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "resultado",
-                money_br($result30),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($result30),
                 "account_balance",
                 "efetivado",
             ) .
@@ -233,7 +233,7 @@ final class AdminPagesRuntimeOperations02
             true,
         ) ? $metric : "duration";
         if (!is_array($series)) {
-            $tz = telemetry_cuiaba_tz();
+            $tz = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
             $nowUnixUs = (int) floor(microtime(true) * 1000000);
             $startUnixUs = $nowUnixUs - 24 * 3600 * 1000000;
             $startTs = intdiv($startUnixUs, 1000000);
@@ -253,7 +253,7 @@ final class AdminPagesRuntimeOperations02
                 $series["landing_duration"][$i] = $baseRow;
                 $series["requests"][$i] = $baseRow;
             }
-            foreach (telemetry_read_events($nowUnixUs) as $event) {
+            foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
                 $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
                 if ($finishedUs < $startUnixUs || $finishedUs >= $nowUnixUs) {
                     continue;
@@ -299,7 +299,7 @@ final class AdminPagesRuntimeOperations02
     
     {
     
-        $tz = telemetry_cuiaba_tz();
+        $tz = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $today = new DateTimeImmutable("today", $tz);
         $days = [];
         $select = [];
@@ -310,7 +310,7 @@ final class AdminPagesRuntimeOperations02
             $key = $day->format("Y-m-d");
             $days[$key] = [
                 "key" => $key,
-                "label" => telemetry_day_axis_label($day),
+                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
                 "tooltip" => $day->format("d/m/Y"),
                 "value" => 0,
             ];
@@ -322,8 +322,8 @@ final class AdminPagesRuntimeOperations02
         }
         try {
             if (
-                function_exists("db_table_exists") &&
-                !db_table_exists("pi_action_ledger")
+                is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) &&
+                !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_action_ledger")
             ) {
                 return array_values($days);
             }
@@ -340,7 +340,7 @@ final class AdminPagesRuntimeOperations02
             $params[] = new DateTimeImmutable($last . " 00:00:00", $tz)
                 ->modify("+1 day")
                 ->getTimestamp();
-            $row = q($sql, $params)->fetch() ?: [];
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params)->fetch() ?: [];
             $idx = 0;
             foreach ($days as $key => &$day) {
                 $day["value"] = (int) ($row["d" . $idx] ?? 0);
@@ -364,8 +364,8 @@ final class AdminPagesRuntimeOperations02
         }
         $context = null;
         try {
-            if (function_exists("ctx")) {
-                $context = ctx();
+            if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'ctx'])) {
+                $context = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
             }
         } catch (Throwable $e) {
             $context = null;
@@ -374,8 +374,8 @@ final class AdminPagesRuntimeOperations02
             is_array($context) && ($context["scope"] ?? "") === "clinic"
                 ? (int) ($context["clinic_id"] ?? 0)
                 : 0;
-        if (function_exists("app_db_utc_to_local")) {
-            $dt = app_db_utc_to_local(
+        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_db_utc_to_local'])) {
+            $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local(
                 $value,
                 $clinicId,
                 is_array($context) ? $context : null,
@@ -396,19 +396,19 @@ final class AdminPagesRuntimeOperations02
         $ok = false;
         $label = "Rotinas sem execução registrada";
         try {
-            if (has_cfg()) {
+            if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
                 $schemaReady = true;
                 if ($allowSchemaEnsure) {
-                    maestro_ensure_schema();
-                } elseif (function_exists("db_table_exists")) {
-                    $schemaReady = db_table_exists("pi_maestro_job_runs");
+                    \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
+                } elseif (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists'])) {
+                    $schemaReady = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_maestro_job_runs");
                 }
                 if ($schemaReady) {
-                    $hasSuccess = db_column_exists("pi_maestro_job_runs", "success");
+                    $hasSuccess = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_maestro_job_runs", "success");
                 $cols = $hasSuccess
                     ? "started_at,finished_at,duration_ms,note,success,errors_count"
                     : "started_at,finished_at,duration_ms,note";
-                $latest = q(
+                $latest = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT $cols FROM pi_maestro_job_runs ORDER BY id DESC LIMIT 1",
                 )->fetch();
                 if ($latest) {
@@ -435,7 +435,7 @@ final class AdminPagesRuntimeOperations02
                         : ($finished !== ""
                             ? $finished
                             : $started);
-                    $timeLabel = admin_maestro_health_time_label($base);
+                    $timeLabel = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_maestro_health_time_label($base);
                     $label = $ok
                         ? "Rotinas em dia às " . $timeLabel
                         : "Rotinas com atenção desde " . $timeLabel;
@@ -450,9 +450,9 @@ final class AdminPagesRuntimeOperations02
         return '<span class="maestro-health-pill ' .
             $class .
             '">' .
-            icon($ico) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
             "<b>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</b></span>";
     
     }
@@ -460,12 +460,12 @@ final class AdminPagesRuntimeOperations02
     public static function admin_global_perf_charts_html(): string
     
     {
-        $duration = admin_global_metric_series_24h("duration");
-        $landingDuration = admin_global_metric_series_24h("landing_duration");
-        $requests = telemetry_route_requests_series_20d();
-        $records = admin_global_sequence_series_20d();
+        $duration = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("duration");
+        $landingDuration = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("landing_duration");
+        $requests = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_requests_series_20d();
+        $records = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
         return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
-            admin_metric_dual_area_chart(
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Velocidade",
                 $duration,
                 $landingDuration,
@@ -480,7 +480,7 @@ final class AdminPagesRuntimeOperations02
                     "summary_lead" => "dados de duração de rotas e da Landing Page.",
                 ],
             ) .
-            admin_metric_dual_area_chart(
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Leitura e gravação",
                 $requests,
                 $records,
@@ -505,17 +505,17 @@ final class AdminPagesRuntimeOperations02
     
     {
         return '<div class="section-head admin-performance-head"><h2>Telemetria das últimas 24 horas</h2>' .
-            admin_maestro_health_pill_html(!$public) .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_maestro_health_pill_html(!$public) .
             "</div>" .
-            admin_global_perf_charts_html();
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_perf_charts_html();
     
     }
 
     public static function admin_performance_card_html(bool $public = false): string
     
     {
-        return card(
-            admin_performance_card_content_html($public),
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_content_html($public),
             "admin-performance-card",
         );
     

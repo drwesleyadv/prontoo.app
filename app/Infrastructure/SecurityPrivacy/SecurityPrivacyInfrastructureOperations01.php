@@ -55,7 +55,7 @@ final class SecurityPrivacyInfrastructureOperations01
     {
     
         ini_set("log_errors", "1");
-        if (PHP_SAPI !== "cli" && has_cfg()) {
+        if (PHP_SAPI !== "cli" && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             ini_set("display_errors", "0");
             ini_set("display_startup_errors", "0");
             ini_set("html_errors", "0");

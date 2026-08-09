@@ -29,7 +29,7 @@ final class AdminPagesRuntimeOperations03
     public static function admin_telemetry_kpi_cards_html(bool $linked = false): string
     
     {
-        $summary = telemetry_comparative_summary();
+        $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparative_summary();
         $current = (array) ($summary["current"] ?? []);
         $variations = (array) ($summary["variations"] ?? []);
         $card = static function (
@@ -39,17 +39,17 @@ final class AdminPagesRuntimeOperations03
             string $note,
         ) use ($linked): string {
             return $linked
-                ? stat_link_card(
+                ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
                     $label,
                     $value,
                     $iconName,
                     $note,
                     "admin_performance",
                 )
-                : stat_card($label, $value, $iconName, $note);
+                : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card($label, $value, $iconName, $note);
         };
         $averageMs = isset($current["average_ms"])
-            ? admin_performance_format_ms((float) $current["average_ms"])
+            ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms((float) $current["average_ms"])
             : "—";
         $landingRequests = max(
             0,
@@ -59,7 +59,7 @@ final class AdminPagesRuntimeOperations03
             "Requisições",
             max(0, (int) ($current["requests"] ?? 0)),
             "route",
-            admin_telemetry_variation_note(
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
                 isset($variations["requests_pct"])
                     ? (float) $variations["requests_pct"]
                     : null,
@@ -69,7 +69,7 @@ final class AdminPagesRuntimeOperations03
                 "Tempo médio das rotas",
                 $averageMs,
                 "speed",
-                admin_telemetry_variation_note(
+                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
                     isset($variations["average_ms_pct"])
                         ? (float) $variations["average_ms_pct"]
                         : null,
@@ -79,7 +79,7 @@ final class AdminPagesRuntimeOperations03
                 "Execuções da Landing Page",
                 $landingRequests,
                 "web",
-                admin_telemetry_variation_note(
+                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
                     isset($variations["landing_requests_pct"])
                         ? (float) $variations["landing_requests_pct"]
                         : null,
@@ -102,15 +102,15 @@ final class AdminPagesRuntimeOperations03
         $assetRevision = defined("PRONTOO_ASSET_REV")
             ? (string) PRONTOO_ASSET_REV
             : (string) PRONTOO_VERSION;
-    $overviewCards = admin_telemetry_kpi_cards_html();
+    $overviewCards = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html();
     $statusHeader =
         '<header class="status-page-header">' .
-        '<span class="status-page-icon" aria-hidden="true">' . icon("monitor_heart") . "</span>" .
+        '<span class="status-page-icon" aria-hidden="true">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitor_heart") . "</span>" .
         '<div><h1>Status do Prontoo</h1><p>Comparação entre períodos móveis de 10 dias</p></div>' .
         "</header>";
-    $card = $statusHeader . $overviewCards . admin_performance_card_html(true);
+    $card = $statusHeader . $overviewCards . \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html(true);
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
-            e(PRONTOO_VERSION) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
             '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" href="/public/assets/favicon-' .
             rawurlencode($assetRevision) .
             '.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap" rel="stylesheet"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
@@ -122,7 +122,7 @@ final class AdminPagesRuntimeOperations03
             '&release=' .
             rawurlencode(PRONTOO_VERSION) .
             '"></script></head><body class="public scope-global status-public" style="--clinic-accent:#238763;--clinic-accent-dark:#105e44;--clinic-accent-soft:#dff3ea;--clinic-on-accent:#ffffff;" data-route="status" data-app-version="' .
-            e(PRONTOO_VERSION) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
             '"><main id="conteudo" tabindex="-1" aria-label="Status operacional do Prontoo">' .
             $card .
             "</main></body></html>";
@@ -133,15 +133,15 @@ final class AdminPagesRuntimeOperations03
     
     {
     
-        require_can("admin_operations");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_operations");
         $body =
-            page_head("Painel operacional", "") .
-            card(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Painel operacional", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<div class="section-head admin-performance-head"><h2>Operação e financeiro</h2><p>Indicadores dos últimos 30 dias, organizados por operação e caixa da plataforma.</p></div>' .
-                    admin_global_ops_finance_html(),
+                    \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_ops_finance_html(),
                 "admin-ops-finance-card",
             );
-        page("Painel operacional", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Painel operacional", $body);
     
     }
 
@@ -149,21 +149,21 @@ final class AdminPagesRuntimeOperations03
     
     {
     
-        require_can("admin_health");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
             $id = (int) ($_POST["id"] ?? 0);
             if ($id <= 0) {
-                flash("Registro não informado.", "bad");
-                redirect("admin_deleted");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Registro não informado.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
             if ($act === "restore_patient") {
-                $pat = one(
+                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,person_id,clinic_id FROM pi_patients WHERE id=? AND deleted_at IS NOT NULL",
                     [$id],
                 );
                 if ($pat) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_patients SET active=1,registration_needs_update=1,deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
                         [
                             (int) ($_SESSION["uid"] ?? 0),
@@ -171,24 +171,24 @@ final class AdminPagesRuntimeOperations03
                             (int) $pat["clinic_id"],
                         ],
                     );
-                    audit("paciente_recuperado", "paciente", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_recuperado", "paciente", $id, [
                         "campos" => ["Restauração administrativa"],
                         "audit_body" =>
                             "Paciente excluído foi restaurado pelo Desenvolvedor. Atualização cadastral deve ser conferida pela clínica.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Paciente restaurado. A clínica deverá revisar o cadastro.",
                     );
                 }
-                redirect("admin_deleted");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
             if ($act === "restore_care") {
-                $care = one(
+                $care = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,clinic_id FROM pi_care WHERE id=? AND deleted_at IS NOT NULL",
                     [$id],
                 );
                 if ($care) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_care SET deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=? WHERE id=? AND clinic_id=?",
                         [
                             (int) ($_SESSION["uid"] ?? 0),
@@ -196,7 +196,7 @@ final class AdminPagesRuntimeOperations03
                             (int) $care["clinic_id"],
                         ],
                     );
-                    audit(
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                         "prontuario_alterado",
                         "paciente",
                         (int) $care["patient_link_id"],
@@ -206,25 +206,25 @@ final class AdminPagesRuntimeOperations03
                                 "Anotação excluída foi restaurada pelo Desenvolvedor.",
                         ],
                     );
-                    flash("Anotação restaurada.");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação restaurada.");
                 }
-                redirect("admin_deleted");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
         }
-        $patients = q(
+        $patients = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,person_id,clinic_id,deleted_at,deleted_by FROM pi_patients WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
         )->fetchAll();
-        $persons = fetch_map(
+        $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_persons",
-            int_ids($patients, "person_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "person_id"),
             "id,full_name,cpf,birth_date",
         );
-        $clinics = fetch_map(
+        $clinics = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_clinics",
-            int_ids($patients, "clinic_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "clinic_id"),
             "id,display_name",
         );
-        $users = fetch_map("pi_users", int_ids($patients, "deleted_by"), "id,name");
+        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "deleted_by"), "id,name");
         $pitems = [];
         foreach ($patients as $r) {
             $ps = $persons[(int) $r["person_id"]] ?? [];
@@ -232,28 +232,28 @@ final class AdminPagesRuntimeOperations03
             $by = $users[(int) ($r["deleted_by"] ?? 0)] ?? [];
             $form =
                 '<form method="post" class="inline">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="restore_patient"><input type="hidden" name="id" value="' .
                 (int) $r["id"] .
                 '"><button type="submit" class="small primary">Restaurar</button></form>';
             $pitems[] = [
                 "icon" => "restore_from_trash",
-                "time" => dt_br($r["deleted_at"]),
+                "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["deleted_at"]),
                 "title" => $ps["full_name"] ?? "Paciente #" . $r["id"],
                 "body" =>
                     ($cl["display_name"] ?? "Consultório") .
                     " · CPF " .
-                    mask((string) ($ps["cpf"] ?? "")),
-                "meta" => "Excluído por " . first_name($by["name"] ?? ""),
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($ps["cpf"] ?? "")),
+                "meta" => "Excluído por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($by["name"] ?? ""),
                 "html" => $form,
             ];
         }
-        $care = q(
+        $care = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,patient_link_id,record_type,title,deleted_at,deleted_by FROM pi_care WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
         )->fetchAll();
-        $patientsMap = fetch_map(
+        $patientsMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_patients",
-            int_ids($care, "patient_link_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($care, "patient_link_id"),
             "id,person_id,clinic_id",
         );
         $personIds = [];
@@ -266,17 +266,17 @@ final class AdminPagesRuntimeOperations03
                 $clinicIds[] = (int) $pm["clinic_id"];
             }
         }
-        $personMap = fetch_map(
+        $personMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_persons",
             array_values(array_unique($personIds)),
             "id,full_name",
         );
-        $clinicMap = fetch_map(
+        $clinicMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_clinics",
             array_values(array_unique($clinicIds)),
             "id,display_name",
         );
-        $users2 = fetch_map("pi_users", int_ids($care, "deleted_by"), "id,name");
+        $users2 = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($care, "deleted_by"), "id,name");
         $citems = [];
         foreach ($care as $r) {
             $pm = $patientsMap[(int) $r["patient_link_id"]] ?? [];
@@ -285,33 +285,33 @@ final class AdminPagesRuntimeOperations03
             $by = $users2[(int) ($r["deleted_by"] ?? 0)] ?? [];
             $form =
                 '<form method="post" class="inline">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="restore_care"><input type="hidden" name="id" value="' .
                 (int) $r["id"] .
                 '"><button type="submit" class="small primary">Restaurar</button></form>';
             $citems[] = [
                 "icon" => "clinical_notes",
-                "time" => dt_br($r["deleted_at"]),
+                "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["deleted_at"]),
                 "title" => $r["title"] ?: ucfirst((string) $r["record_type"]),
                 "body" =>
                     "Prontuário de " .
                     ($ps["full_name"] ?? "paciente #" . $r["patient_link_id"]) .
                     " · " .
                     ($cl["display_name"] ?? "Consultório"),
-                "meta" => "Excluída por " . first_name($by["name"] ?? ""),
+                "meta" => "Excluída por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($by["name"] ?? ""),
                 "html" => $form,
             ];
         }
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Registros excluídos",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Registros excluídos",
                 "Restauração administrativa de dados preservados por integridade.",
             ) .
                 '<div class="two"><section class="card"><h2>Pacientes excluídos</h2>' .
-                timeline($pitems, "Nenhum paciente excluído.") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($pitems, "Nenhum paciente excluído.") .
                 '</section><section class="card"><h2>Anotações excluídas</h2>' .
-                timeline($citems, "Nenhuma anotação excluída.") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($citems, "Nenhuma anotação excluída.") .
                 "</section></div>",
         );
     
@@ -321,54 +321,54 @@ final class AdminPagesRuntimeOperations03
     
     {
     
-        require_can("admin_health");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
         $dbOk = false;
         try {
-            $dbOk = (string) val("SELECT 1") === "1";
+            $dbOk = (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT 1") === "1";
         } catch (Throwable $e) {
             $dbOk = false;
         }
-        $modelClinicWhere = admin_model_clinic_exclude_sql("id");
-        $modelAuditWhere = admin_model_clinic_exclude_where("a.clinic_id");
-        $openErrors = (int) cached_val(
+        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
+        $modelAuditWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where("a.clinic_id");
+        $openErrors = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
             "kpi_errors_open",
             120,
             "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
         );
-        $errors24h = (int) cached_val(
+        $errors24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
             "kpi_errors_24h",
             120,
             "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
         );
-        $locks = (int) cached_val(
+        $locks = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
             "kpi_locks",
             60,
             "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
         );
-        $scope24h = (int) cached_val(
-            "kpi_scope_actionable_24h_v2_" . admin_model_clinic_id(),
+        $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+            "kpi_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             120,
             "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' " .
-                admin_model_clinic_exclude_sql("clinic_id"),
+                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id"),
         );
-        $trialing = (int) cached_val(
-            "kpi_trialing_model_" . admin_model_clinic_id(),
+        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+            "kpi_trialing_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             PRONTOO_ADMIN_CACHE_TTL,
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND trial_ends_at>=NOW() $modelClinicWhere",
         );
-        $readonly = (int) cached_val(
-            "kpi_readonly_model_" . admin_model_clinic_id(),
+        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+            "kpi_readonly_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             PRONTOO_ADMIN_CACHE_TTL,
             "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='read_only' $modelClinicWhere",
         );
-        $recent = audit_rows_light($modelAuditWhere, [], 80);
+        $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($modelAuditWhere, [], 80);
         $bad = 0;
         foreach ($recent as $r) {
-            if (!verify_audit_row($r)) {
+            if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($r)) {
                 $bad++;
             }
         }
-        $chainStatus = audit_chain_integrity_status(240);
+        $chainStatus = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_chain_integrity_status(240);
         if (empty($chainStatus["ok"])) {
             $bad++;
         }
@@ -378,34 +378,34 @@ final class AdminPagesRuntimeOperations03
                 : "Estável";
         $summary =
             '<div class="stats-grid admin-health-compact-kpis">' .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Estado",
                 $severity,
                 $severity === "Estável" ? "verified" : "crisis_alert",
                 $dbOk ? "banco responde" : "banco indisponível",
             ) .
-            stat_link_card(
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
                 "Erros abertos",
                 $openErrors,
                 "bug_report",
                 $errors24h . " nas últimas 24h",
                 "admin_errors",
             ) .
-            stat_card("Bloqueios", $locks, "lock_clock", "login ativo") .
-            stat_link_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Bloqueios", $locks, "lock_clock", "login ativo") .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
                 "Escopo 24h",
                 $scope24h,
                 "policy",
                 "operações bloqueadas",
                 "admin_security",
             ) .
-            stat_card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Integridade",
                 $bad,
                 "verified_user",
                 "amostra de auditoria",
             ) .
-            stat_card("Somente leitura", $readonly, "lock", "consultórios") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Somente leitura", $readonly, "lock", "consultórios") .
             "</div>";
         $items = [
             [
@@ -425,9 +425,9 @@ final class AdminPagesRuntimeOperations03
                     "Abra a central de erros apenas quando precisar investigar arquivo, linha e rota.",
                 "html" =>
                     '<a class="ghost small" href="' .
-                    href("admin_errors") .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_errors") .
                     '">' .
-                    action_summary_label("Ver erros", "bug_report") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver erros", "bug_report") .
                     "</a>",
             ],
             [
@@ -436,12 +436,12 @@ final class AdminPagesRuntimeOperations03
                 "title" => $bad . " anotação(ões) recentes com assinatura alterada",
                 "body" =>
                     "Amostra de atividades recentes, descontando consultórios isentos do Desenvolvedor.",
-                "meta" => admin_model_clinic_count_note(),
+                "meta" => \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_count_note(),
                 "html" =>
                     '<a class="ghost small" href="' .
-                    href("admin_integrity") .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") .
                     '">' .
-                    action_summary_label("Ver integridade", "verified_user") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver integridade", "verified_user") .
                     "</a>",
             ],
             [
@@ -454,9 +454,9 @@ final class AdminPagesRuntimeOperations03
                     "Use a tela dedicada só para liberar ou auditar tentativas.",
                 "html" =>
                     '<a class="ghost small" href="' .
-                    href("admin_security") .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") .
                     '">' .
-                    action_summary_label("Ver segurança", "security") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver segurança", "security") .
                     "</a>",
             ],
             [
@@ -472,20 +472,20 @@ final class AdminPagesRuntimeOperations03
                     "Acompanhamento financeiro e operacional sem nova tela de incidente.",
                 "html" =>
                     '<a class="ghost small" href="' .
-                    href("admin_clinics") .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics") .
                     '">' .
-                    action_summary_label("Ver consultórios", "home_health") .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver consultórios", "home_health") .
                     "</a>",
             ],
         ];
         $body =
-            page_head("Incidentes", "") .
-            card($summary, "admin-health-compact-card") .
-            card(
-                "<h2>Sinais principais</h2>" . timeline($items),
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Incidentes", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($summary, "admin-health-compact-card") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                "<h2>Sinais principais</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items),
                 "admin-health-events-card",
             );
-        page("Incidentes", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Incidentes", $body);
     
     }
 }

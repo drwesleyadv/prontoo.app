@@ -37,7 +37,7 @@ final class FinancialRuntimeOperations02
         $display = "";
         $id = (int) $hiddenValue;
         if ($id > 0) {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.id=? AND fc.clinic_id=? AND fc.active=1 LIMIT 1",
                 [$id, $cid],
             );
@@ -45,19 +45,19 @@ final class FinancialRuntimeOperations02
                 $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
                 $display =
                     (string) $r["full_name"] .
-                    ($doc !== "" ? " · " . mask($doc) : "");
+                    ($doc !== "" ? " · " . \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($doc) : "");
             }
         }
         return '<input type="hidden" name="' .
-            e($hiddenName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hiddenName) .
             '" value="' .
-            e($hiddenValue) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hiddenValue) .
             '" data-counterparty-id-target><input type="search" name="' .
-            e($inputName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($inputName) .
             '" value="' .
-            e($display) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($display) .
             '" list="prontoo_counterparty_suggestions" placeholder="Digite nome, CPF ou CNPJ" autocomplete="off" spellcheck="false" required data-ds-lookup="counterparty" aria-label="Buscar pessoa, fornecedor ou credor" data-counterparty-document-suggest data-counterparty-suggest-url="' .
-            e(href("counterparty_suggest")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("counterparty_suggest")) .
             '" aria-autocomplete="list">';
     
     }
@@ -70,7 +70,7 @@ final class FinancialRuntimeOperations02
     {
     
         if ($postedId > 0) {
-            $ok = (int) val(
+            $ok = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_counterparties WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
                 [$postedId, $cid],
             );
@@ -83,8 +83,8 @@ final class FinancialRuntimeOperations02
             return 0;
         }
         $clean = mb_strtolower($search, "UTF-8");
-        $digits = only_digits($search);
-        $rows = q(
+        $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search);
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name ASC LIMIT 1000",
             [$cid],
         )->fetchAll();
@@ -93,13 +93,13 @@ final class FinancialRuntimeOperations02
         $starts = [];
         foreach ($rows as $r) {
             $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
-            $masked = mask($doc);
+            $masked = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($doc);
             $display = mb_strtolower(
                 (string) $r["full_name"] . ($masked !== "" ? " · " . $masked : ""),
                 "UTF-8",
             );
             $name = mb_strtolower((string) $r["full_name"], "UTF-8");
-            $docDigits = only_digits($doc);
+            $docDigits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($doc);
             if (
                 $display === $clean ||
                 ($digits !== "" && $docDigits !== "" && $digits === $docDigits)
@@ -130,16 +130,16 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $c = require_can("financial");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("financial");
         $cid = (int) $c["clinic_id"];
-        $doc = only_digits((string) ($_GET["doc"] ?? ($_GET["cpf"] ?? "")));
+        $doc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_GET["doc"] ?? ($_GET["cpf"] ?? "")));
         if (!headers_sent()) {
             header("Content-Type: application/json; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
         if (
-            security_rate_limit(
-                security_client_bucket("counterparty_lookup_" . $cid),
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("counterparty_lookup_" . $cid),
                 40,
                 300,
             )
@@ -158,8 +158,8 @@ final class FinancialRuntimeOperations02
         $isCpf = strlen($doc) === 11;
         $isCnpj = strlen($doc) === 14;
         if (
-            ($isCpf && !valid_cpf($doc)) ||
-            ($isCnpj && !valid_cnpj($doc)) ||
+            ($isCpf && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($doc)) ||
+            ($isCnpj && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cnpj($doc)) ||
             (!$isCpf && !$isCnpj)
         ) {
             echo json_encode(
@@ -173,11 +173,11 @@ final class FinancialRuntimeOperations02
             return;
         }
         $p = $isCpf
-            ? one(
+            ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,full_name,cpf,birth_date,legal_document FROM pi_persons WHERE cpf=? LIMIT 1",
                 [$doc],
             )
-            : one(
+            : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,full_name,cpf,birth_date,legal_document FROM pi_persons WHERE legal_document=? LIMIT 1",
                 [$doc],
             );
@@ -192,7 +192,7 @@ final class FinancialRuntimeOperations02
             );
             return;
         }
-        $link = one(
+        $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' AND active=1 LIMIT 1",
             [$cid, (int) $p["id"]],
         );
@@ -216,10 +216,10 @@ final class FinancialRuntimeOperations02
                 "message" =>
                     "Este credor já está cadastrado. Os dados foram recuperados.",
                 "name" => (string) ($p["full_name"] ?? ""),
-                "document" => mask(
+                "document" => \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask(
                     (string) ($p["cpf"] ?? "" ?: $p["legal_document"] ?? ""),
                 ),
-                "birth_date" => app_date_input_from_storage($p["birth_date"] ?? ""),
+                "birth_date" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($p["birth_date"] ?? ""),
             ],
             JSON_UNESCAPED_UNICODE,
         );
@@ -230,7 +230,7 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $c = require_can("financial");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("financial");
         $cid = (int) $c["clinic_id"];
         $q = mb_trim((string) ($_GET["q"] ?? ""));
         if (!headers_sent()) {
@@ -242,7 +242,7 @@ final class FinancialRuntimeOperations02
             return;
         }
         $limit = max(1, min(80, (int) ($_GET["limit"] ?? 12)));
-        $digits = only_digits($q);
+        $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($q);
         $params = [$cid];
         $where = "fc.clinic_id=? AND fc.active=1";
         if ($digits !== "" && mb_strlen($q, "UTF-8") >= 2) {
@@ -255,7 +255,7 @@ final class FinancialRuntimeOperations02
             $where .= " AND p.full_name LIKE ?";
             $params[] = $q . "%";
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE $where ORDER BY p.full_name ASC, fc.id DESC LIMIT " .
                 (int) $limit,
             $params,
@@ -263,7 +263,7 @@ final class FinancialRuntimeOperations02
         $items = [];
         foreach ($rows as $r) {
             $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
-            $masked = mask($doc);
+            $masked = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($doc);
             $items[] = [
                 "id" => (int) $r["id"],
                 "name" => (string) $r["full_name"],
@@ -282,7 +282,7 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT fc.id,p.full_name FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name LIMIT 300",
             [$cid],
         )->fetchAll();
@@ -298,7 +298,7 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY name LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -316,7 +316,7 @@ final class FinancialRuntimeOperations02
     ): array 
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -332,20 +332,20 @@ final class FinancialRuntimeOperations02
     
     {
     
-        if ($cid <= 0 || clinic_read_only_db($cid)) {
+        if ($cid <= 0 || \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($cid)) {
             return;
         }
         try {
-            financial_operational_schema_ready();
-            financial_ensure_admin_safe($cid, $uid);
+            \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, $uid);
             $cashId =
-                (int) (val(
+                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND account_type='caixa_interno' AND LOWER(name)=LOWER('Cofre do Consultório') LIMIT 1",
                     [$cid],
                 ) ?:
                 0);
             if ($cashId <= 0) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_financial_accounts (clinic_id,name,bank_name,account_type,opening_balance_cents,active,created_by,created_at) VALUES (?,?,?,?,?,1,?,NOW())",
                     [
                         $cid,
@@ -368,7 +368,7 @@ final class FinancialRuntimeOperations02
     {
     
         return $accountId > 0 &&
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_accounts WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
                 [$accountId, $cid],
             ) ?:
@@ -386,46 +386,46 @@ final class FinancialRuntimeOperations02
     {
     
         $name = trim(preg_split("/\s+·\s+/", trim($name), 2)[0] ?? $name);
-        $doc = only_digits($doc);
+        $doc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($doc);
         if ($name === "") {
             return 0;
         }
         $pid = 0;
         if ($doc !== "" && in_array(strlen($doc), [11, 14], true)) {
             try {
-                $pid = save_person_by_document($name, $doc, null);
+                $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::save_person_by_document($name, $doc, null);
             } catch (Throwable $e) {
                 $pid = 0;
             }
         }
         if ($pid <= 0) {
             $pid =
-                (int) (val(
+                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT p.id FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND LOWER(p.full_name)=LOWER(?) AND p.cpf IS NULL AND p.legal_document IS NULL ORDER BY fc.id ASC LIMIT 1",
                     [$cid, $name],
                 ) ?:
                 0);
             if ($pid > 0) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
                     [$name, $pid],
                 );
             } else {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,NULL,NULL,NOW())",
                     [$name],
                 );
-                $pid = db_last_insert_id();
+                $pid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
             }
         }
         if ($pid <= 0) {
             return 0;
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_financial_counterparties (clinic_id,person_id,kind,notes,created_by,created_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE notes=COALESCE(NULLIF(VALUES(notes),''),notes), active=1, updated_at=NOW()",
             [$cid, $pid, "credor", $notes, $uid],
         );
-        return (int) (val(
+        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
             "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' LIMIT 1",
             [$cid, $pid],
         ) ?:
@@ -437,18 +437,18 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $id = resolve_counterparty_lookup_id(
+        $id = \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::resolve_counterparty_lookup_id(
             $cid,
             (int) ($_POST["counterparty_id"] ?? 0),
-            posted_counterparty_search_value(),
+            \Prontoo\Presentation\Financial\FinancialPresentationOperations01::posted_counterparty_search_value(),
         );
         if ($id > 0) {
             return $id;
         }
-        return financial_counterparty_light(
+        return \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::financial_counterparty_light(
             $cid,
             $uid,
-            posted_counterparty_search_value(),
+            \Prontoo\Presentation\Financial\FinancialPresentationOperations01::posted_counterparty_search_value(),
             (string) ($_POST["counterparty_doc"] ?? ""),
             (string) ($_POST["counterparty_notes"] ?? ""),
         );
@@ -459,8 +459,8 @@ final class FinancialRuntimeOperations02
     
     {
     
-        ensure_financial_operational_schema();
-        $rows = q(
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_financial_operational_schema();
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name,account_type,bank_name,opening_balance_cents,active FROM pi_financial_accounts WHERE clinic_id=? ORDER BY active DESC, FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -471,7 +471,7 @@ final class FinancialRuntimeOperations02
         $map = function (string $sql) use ($cid): array {
     
             $out = [];
-            foreach (q($sql, [$cid])->fetchAll() as $r) {
+            foreach (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, [$cid])->fetchAll() as $r) {
                 $out[(int) $r["account_id"]] = (int) $r["total"];
             }
             return $out;
@@ -516,9 +516,9 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $today = app_today_in_timezone($cid);
-        [$todayStart, $todayEnd] = app_local_day_utc_range($today, $cid);
-        $zone = new DateTimeZone(app_context_timezone(null, $cid));
+        $today = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid);
+        [$todayStart, $todayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($today, $cid);
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $cid));
         $baseDay = new DateTimeImmutable($today . " 00:00:00", $zone);
         $d7End = (string) $baseDay
             ->modify("+8 days")
@@ -528,15 +528,15 @@ final class FinancialRuntimeOperations02
             ->modify("+31 days")
             ->setTimezone(new DateTimeZone("UTC"))
             ->getTimestamp();
-        $bal = financial_account_balances($cid);
+        $bal = \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::financial_account_balances($cid);
         $rev =
-            one(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT COALESCE(SUM(CASE WHEN status='prevista' AND expected_at IS NOT NULL AND expected_at<? THEN amount_cents ELSE 0 END),0) receive30, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at IS NOT NULL AND expected_at<? THEN amount_cents ELSE 0 END),0) receive7, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at>=? AND expected_at<? THEN amount_cents ELSE 0 END),0) receiveToday, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at<? THEN amount_cents ELSE 0 END),0) overRec FROM pi_financial_revenues WHERE clinic_id=?",
                 [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid],
             ) ?:
             [];
         $exp =
-            one(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT COALESCE(SUM(CASE WHEN status='prevista' AND due_at IS NOT NULL AND due_at<? THEN amount_cents ELSE 0 END),0) pay30, COALESCE(SUM(CASE WHEN status='prevista' AND due_at IS NOT NULL AND due_at<? THEN amount_cents ELSE 0 END),0) pay7, COALESCE(SUM(CASE WHEN status='prevista' AND due_at>=? AND due_at<? THEN amount_cents ELSE 0 END),0) payToday, COALESCE(SUM(CASE WHEN status='prevista' AND due_at<? THEN amount_cents ELSE 0 END),0) overPay FROM pi_financial_expenses WHERE clinic_id=?",
                 [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid],
             ) ?:

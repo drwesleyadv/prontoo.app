@@ -186,7 +186,7 @@ final class DocumentTypePolicy
     {
     
         $out = [];
-        foreach (document_system_field_groups() as $group) {
+        foreach (\Prontoo\Domain\Documents\DocumentTypePolicy::document_system_field_groups() as $group) {
             foreach ($group["fields"] ?? [] as $key => $label) {
                 $out[$key] = $label;
             }
@@ -245,8 +245,8 @@ final class DocumentTypePolicy
     
     {
     
-        $all = document_type_options();
-        $allowed = array_flip(document_allowed_types_for_role($role));
+        $all = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
+        $allowed = array_flip(\Prontoo\Domain\Documents\DocumentTypePolicy::document_allowed_types_for_role($role));
         return array_intersect_key($all, $allowed);
     
     }

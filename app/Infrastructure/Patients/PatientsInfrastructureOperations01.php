@@ -34,7 +34,7 @@ final class PatientsInfrastructureOperations01
         if ($validated) {
             return;
         }
-        if (!db_table_exists("pi_patient_tabs")) {
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_patient_tabs")) {
             throw new RuntimeException(
                 "Schema incompleto: abas do paciente indisponíveis.",
             );
@@ -51,7 +51,7 @@ final class PatientsInfrastructureOperations01
         if ($validated) {
             return;
         }
-        if (!db_table_exists("pi_patient_guardians")) {
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_patient_guardians")) {
             throw new RuntimeException(
                 "Schema incompleto: responsáveis do paciente indisponíveis.",
             );

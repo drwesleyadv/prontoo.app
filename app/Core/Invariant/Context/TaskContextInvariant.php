@@ -122,8 +122,8 @@ final class TaskContextInvariant
     private static function deny(string $key, string $sql): never
     {
 
-        if (function_exists("record_scope_violation")) {
-            \record_scope_violation(
+        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
+            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', 
                 "task_context_" . $key,
                 $sql,
                 "Valor estrutural de Tarefas/Avisos recusado pelo contrato especializado.",

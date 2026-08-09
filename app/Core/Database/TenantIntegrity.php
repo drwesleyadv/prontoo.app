@@ -20,11 +20,11 @@ final class TenantIntegrity
         bool $strict = false,
     ): void {
 
-        if (!function_exists("pdo")) {
+        if (!\Prontoo\Core\Architecture\OperationGateway::has('pdo')) {
             return;
         }
         try {
-            $stmt = \pdo()->query(
+            $stmt = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->query(
                 "SELECT TABLE_NAME AS tenant_table_name, COLUMN_NAME AS tenant_column_name " .
                     "FROM information_schema.columns " .
                     "WHERE table_schema=DATABASE() " .
@@ -101,7 +101,7 @@ final class TenantIntegrity
         array $unknown,
     ): void {
 
-        if (!function_exists("storage_path")) {
+        if (!\Prontoo\Core\Architecture\OperationGateway::has('storage_path')) {
             return;
         }
         $payload = [
@@ -118,7 +118,7 @@ final class TenantIntegrity
                 array_diff($registered, $schemaTables),
             ),
         ];
-        $file = \storage_path("tenant_integrity.json");
+        $file = \Prontoo\Core\Architecture\OperationGateway::invoke('storage_path', "tenant_integrity.json");
         @file_put_contents(
             $file,
             json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),

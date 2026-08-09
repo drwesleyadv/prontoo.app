@@ -12,11 +12,11 @@ final class SchemaHardening
     public static function run(): void
     {
 
-        if (!\function_exists("schema_validate_complete")) {
+        if (!\Prontoo\Core\Architecture\OperationGateway::has('schema_validate_complete')) {
             throw new \RuntimeException(
                 "Validador do schema não foi carregado.",
             );
         }
-        \schema_validate_complete();
+        \Prontoo\Core\Architecture\OperationGateway::invoke('schema_validate_complete', );
     }
 }

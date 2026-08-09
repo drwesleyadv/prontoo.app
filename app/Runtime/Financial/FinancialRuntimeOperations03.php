@@ -32,7 +32,7 @@ final class FinancialRuntimeOperations03
     
         $from = date("Y-m-d H:i:s", strtotime("-7 days"));
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT kind,title,amount_cents,happened_at,account_name,extra_name FROM (
      SELECT 'revenue' kind, r.title title, r.amount_cents amount_cents, r.received_at happened_at, COALESCE(a.name,'sem conta') account_name, NULL extra_name
      FROM pi_financial_revenues r LEFT JOIN pi_financial_accounts a ON a.id=r.account_id AND a.clinic_id=r.clinic_id
@@ -55,13 +55,13 @@ final class FinancialRuntimeOperations03
         $items = [];
         foreach ($rows as $r) {
             $kind = (string) $r["kind"];
-            $amount = money_br((int) $r["amount_cents"]);
+            $amount = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["amount_cents"]);
             $account = (string) ($r["account_name"] ?? "");
             $extra = (string) ($r["extra_name"] ?? "");
             if ($kind === "revenue") {
                 $items[] = [
                     "icon" => "add_card",
-                    "time" => dt_br($r["happened_at"]),
+                    "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["happened_at"]),
                     "title" => "Receita recebida",
                     "body" => (string) $r["title"],
                     "meta" => $amount . " · " . $account,
@@ -70,7 +70,7 @@ final class FinancialRuntimeOperations03
             } elseif ($kind === "expense") {
                 $items[] = [
                     "icon" => "receipt_long",
-                    "time" => dt_br($r["happened_at"]),
+                    "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["happened_at"]),
                     "title" => "Despesa paga",
                     "body" => (string) $r["title"],
                     "meta" => $amount . " · " . $extra . " · " . $account,
@@ -79,7 +79,7 @@ final class FinancialRuntimeOperations03
             } else {
                 $items[] = [
                     "icon" => "sync_alt",
-                    "time" => dt_br($r["happened_at"]),
+                    "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["happened_at"]),
                     "title" => "Transferência de saldo",
                     "body" => $account . " → " . $extra,
                     "meta" => $amount . " · não altera receita nem despesa",
@@ -87,7 +87,7 @@ final class FinancialRuntimeOperations03
                 ];
             }
         }
-        return timeline($items, "Nenhuma operação efetivada nos últimos 7 dias.");
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items, "Nenhuma operação efetivada nos últimos 7 dias.");
     
     }
 
@@ -95,7 +95,7 @@ final class FinancialRuntimeOperations03
     
     {
     
-        return app_today_in_timezone($cid);
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid);
     
     }
 
@@ -106,9 +106,9 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0) {
             return 0;
         }
-        financial_operational_schema_ready();
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $id =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND location_type='admin_safe' AND active=1 ORDER BY id ASC LIMIT 1",
                 [$cid],
             ) ?:
@@ -116,14 +116,14 @@ final class FinancialRuntimeOperations03
         if ($id > 0) {
             return $id;
         }
-        if (clinic_read_only_db($cid)) {
+        if (\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($cid)) {
             return 0;
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_financial_locations (clinic_id,location_type,name,user_id,account_id,active,created_by,created_at) VALUES (?,?,?,?,?,1,?,NOW())",
             [$cid, "admin_safe", "Cofre do Consultório", null, null, $uid ?: null],
         );
-        return db_last_insert_id();
+        return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
     
     }
 
@@ -131,7 +131,7 @@ final class FinancialRuntimeOperations03
     
     {
     
-        return financial_cashier_location_for_user($cid, $uid);
+        return \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
     
     }
 
@@ -145,9 +145,9 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0 || $accountId <= 0) {
             return 0;
         }
-        financial_operational_schema_ready();
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $id =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND location_type='bank_account' AND account_id=? AND active=1 ORDER BY id ASC LIMIT 1",
                 [$cid, $accountId],
             ) ?:
@@ -155,14 +155,14 @@ final class FinancialRuntimeOperations03
         if ($id > 0) {
             return $id;
         }
-        $acc = one(
+        $acc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,name FROM pi_financial_accounts WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
             [$accountId, $cid],
         );
         if (!$acc) {
             return 0;
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_financial_locations (clinic_id,location_type,name,user_id,account_id,active,created_by,created_at) VALUES (?,?,?,?,?,1,?,NOW())",
             [
                 $cid,
@@ -173,7 +173,7 @@ final class FinancialRuntimeOperations03
                 $uid ?: null,
             ],
         );
-        return db_last_insert_id();
+        return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
     
     }
 
@@ -185,7 +185,7 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0) {
             return $out;
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT DISTINCT u.id,u.name FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id AND u.active=1 WHERE ur.clinic_id=? AND ur.active=1 AND ur.role_code IN ('recepcionista') ORDER BY u.name LIMIT 300",
             [$cid],
         )->fetchAll();
@@ -206,7 +206,7 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0) {
             return $out;
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND active=1 ORDER BY name,id LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -224,14 +224,14 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0 || $uid <= 0) {
             return [];
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT l.id,l.name FROM pi_financial_locations l JOIN pi_financial_location_users lu ON lu.location_id=l.id AND lu.clinic_id=l.clinic_id AND lu.user_id=? AND lu.active=1 WHERE l.clinic_id=? AND l.location_type='pos' AND l.active=1 ORDER BY l.name,l.id LIMIT 20",
             [$uid, $cid],
         )->fetchAll();
         if ($rows) {
             return $rows;
         }
-        return q(
+        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND user_id=? AND active=1 ORDER BY id ASC LIMIT 20",
             [$cid, $uid],
         )->fetchAll();
@@ -242,7 +242,7 @@ final class FinancialRuntimeOperations03
     
     {
     
-        $rows = financial_cashier_assigned_locations($cid, $uid);
+        $rows = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_assigned_locations($cid, $uid);
         return $rows ? (int) $rows[0]["id"] : 0;
     
     }
@@ -251,7 +251,7 @@ final class FinancialRuntimeOperations03
     
     {
     
-        $rows = financial_cashier_assigned_locations($cid, $uid);
+        $rows = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_assigned_locations($cid, $uid);
         return $rows ? (string) $rows[0]["name"] : "";
     
     }
@@ -271,7 +271,7 @@ final class FinancialRuntimeOperations03
             $name = mb_substr($name, 0, 120);
         }
         $exists =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND name=? AND active=1 LIMIT 1",
                 [$cid, $name],
             ) ?:
@@ -279,12 +279,12 @@ final class FinancialRuntimeOperations03
         if ($exists > 0) {
             return $exists;
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_financial_locations (clinic_id,location_type,name,user_id,account_id,active,created_by,created_at) VALUES (?,?,?,?,?,1,?,NOW())",
             [$cid, "pos", $name, null, null, $uid ?: null],
         );
-        $id = db_last_insert_id();
-        audit("gaveta_criada", "financeiro", $id, [
+        $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_criada", "financeiro", $id, [
             "nome" => $name,
             "audit_body" =>
                 "Administrativo criou Gaveta para uso do Caixa do Atendimento.",
@@ -311,7 +311,7 @@ final class FinancialRuntimeOperations03
         if (mb_strlen($name) > 120) {
             $name = mb_substr($name, 0, 120);
         }
-        $drawer = one(
+        $drawer = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,name FROM pi_financial_locations WHERE id=? AND clinic_id=? AND location_type='pos' AND active=1 LIMIT 1",
             [$drawerId, $cid],
         );
@@ -319,7 +319,7 @@ final class FinancialRuntimeOperations03
             throw new RuntimeException("Gaveta não encontrada.");
         }
         $duplicate =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND active=1 AND name=? AND id<>? LIMIT 1",
                 [$cid, $name, $drawerId],
             ) ?:
@@ -330,11 +330,11 @@ final class FinancialRuntimeOperations03
         if ($name === (string) $drawer["name"]) {
             return;
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_financial_locations SET name=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND location_type='pos'",
             [$name, $drawerId, $cid],
         );
-        audit("gaveta_renomeada", "financeiro", $drawerId, [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_renomeada", "financeiro", $drawerId, [
             "nome_anterior" => (string) $drawer["name"],
             "nome_novo" => $name,
             "audit_body" =>
@@ -356,33 +356,33 @@ final class FinancialRuntimeOperations03
                 "Escolha a Gaveta e o colaborador do Atendimento.",
             );
         }
-        if (!financial_location_belongs($cid, $drawerId)) {
+        if (!\Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_location_belongs($cid, $drawerId)) {
             throw new RuntimeException("Gaveta inválida.");
         }
-        $loc = one(
+        $loc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,location_type,name FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
             [$drawerId, $cid],
         );
         if (!$loc || (string) $loc["location_type"] !== "pos") {
             throw new RuntimeException("Escolha uma Gaveta válida.");
         }
-        if (!clinic_user_exists($cid, $cashierUid, financial_cashier_roles())) {
+        if (!\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $cashierUid, \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_cashier_roles())) {
             throw new RuntimeException(
                 "Escolha um colaborador ativo do Atendimento.",
             );
         }
-        db_tx(function () use ($cid, $drawerId, $cashierUid, $adminUid): void {
+        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $drawerId, $cashierUid, $adminUid): void {
     
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_financial_location_users SET active=0, updated_at=NOW() WHERE clinic_id=? AND user_id=? AND active=1",
                 [$cid, $cashierUid],
             );
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_financial_location_users (clinic_id,location_id,user_id,active,created_by,created_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE active=1, updated_at=NOW(), created_by=VALUES(created_by)",
                 [$cid, $drawerId, $cashierUid, 1, $adminUid ?: null],
             );
         });
-        audit("gaveta_vinculada", "financeiro", $drawerId, [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_vinculada", "financeiro", $drawerId, [
             "colaborador" => $cashierUid,
             "audit_body" =>
                 "Administrativo vinculou colaborador do Atendimento à Gaveta.",
@@ -400,18 +400,18 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0 || $linkId <= 0) {
             throw new RuntimeException("Vínculo inválido.");
         }
-        $link = one(
+        $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT * FROM pi_financial_location_users WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
             [$linkId, $cid],
         );
         if (!$link) {
             throw new RuntimeException("Vínculo não encontrado.");
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_financial_location_users SET active=0, updated_at=NOW() WHERE id=? AND clinic_id=?",
             [$linkId, $cid],
         );
-        audit("gaveta_desvinculada", "financeiro", (int) $link["location_id"], [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_desvinculada", "financeiro", (int) $link["location_id"], [
             "colaborador" => (int) $link["user_id"],
             "audit_body" =>
                 "Administrativo removeu vínculo de colaborador com Gaveta.",
@@ -429,26 +429,26 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0 || $drawerId <= 0) {
             throw new RuntimeException("Gaveta inválida.");
         }
-        $open = one(
+        $open = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT s.id,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id=? AND s.status='open' LIMIT 1",
             [$cid, $drawerId],
         );
         if ($open) {
             throw new RuntimeException(
                 "Esta Gaveta está aberta por " .
-                    first_name((string) ($open["user_name"] ?? "Atendimento")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($open["user_name"] ?? "Atendimento")) .
                     ". Feche o caixa antes de desativar.",
             );
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_financial_locations SET active=0, updated_at=NOW() WHERE id=? AND clinic_id=? AND location_type='pos'",
             [$drawerId, $cid],
         );
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_financial_location_users SET active=0, updated_at=NOW() WHERE clinic_id=? AND location_id=?",
             [$cid, $drawerId],
         );
-        audit("gaveta_desativada", "financeiro", $drawerId, [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_desativada", "financeiro", $drawerId, [
             "audit_body" => "Administrativo desativou Gaveta do Atendimento.",
         ]);
     
@@ -461,7 +461,7 @@ final class FinancialRuntimeOperations03
         if ($cid <= 0 || $drawerId <= 0) {
             return null;
         }
-        return one(
+        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT * FROM pi_financial_locations WHERE id=? AND clinic_id=? AND location_type='pos' AND active=1 LIMIT 1",
             [$drawerId, $cid],
         );
@@ -472,11 +472,11 @@ final class FinancialRuntimeOperations03
     
     {
     
-        $d = financial_drawer_row($cid, $drawerId);
+        $d = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_row($cid, $drawerId);
         if (!$d) {
             return null;
         }
-        return financial_drawer_auto_unlock_row_if_due($cid, $d);
+        return \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_auto_unlock_row_if_due($cid, $d);
     
     }
 
@@ -491,20 +491,20 @@ final class FinancialRuntimeOperations03
         $status = (string) ($d["drawer_lock_status"] ?? "unlocked");
         $unlockAt = mb_trim((string) ($d["drawer_unlock_at"] ?? ""));
         if ($status === "locked" && $unlockAt !== "") {
-            $unlock = app_parse_db_utc($unlockAt);
-            $now = app_now_utc();
+            $unlock = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_parse_db_utc($unlockAt);
+            $now = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_now_utc();
             $lockedDay = (string) ($d["drawer_locked_business_date"] ?? "");
-            $today = financial_today($cid);
+            $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
             if (
                 $unlock &&
                 $unlock <= $now &&
                 ($lockedDay === "" || $today > $lockedDay)
             ) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_financial_locations SET drawer_lock_status='unlocked', drawer_unlocked_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=? AND location_type='pos'",
                     [$drawerId, $cid],
                 );
-                audit(
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "gaveta_destrancada_automaticamente",
                     "financeiro",
                     $drawerId,
@@ -516,7 +516,7 @@ final class FinancialRuntimeOperations03
                     ],
                 );
                 $d["drawer_lock_status"] = "unlocked";
-                $d["drawer_unlocked_at"] = app_now_utc()->format(
+                $d["drawer_unlocked_at"] = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_now_utc()->format(
                     "Y-m-d H:i:s",
                 );
             }
@@ -535,7 +535,7 @@ final class FinancialRuntimeOperations03
         }
         $unlock = mb_trim((string) ($drawer["drawer_unlock_at"] ?? ""));
         if ($unlock !== "") {
-            return "Trancada até " . dt_br($unlock);
+            return "Trancada até " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($unlock);
         }
         return "Trancada para conferência";
     
@@ -545,7 +545,7 @@ final class FinancialRuntimeOperations03
     
     {
     
-        $d = financial_drawer_auto_unlock_if_due($cid, $drawerId);
+        $d = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_auto_unlock_if_due($cid, $drawerId);
         if (!$d) {
             throw new RuntimeException("Gaveta inválida.");
         }
@@ -555,7 +555,7 @@ final class FinancialRuntimeOperations03
             if ($unlock !== "") {
                 throw new RuntimeException(
                     "Esta Gaveta está trancada para conferência da Gerência até " .
-                        dt_br($unlock) .
+                        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($unlock) .
                         ". Somente depois deste horário ela poderá ser aberta novamente.",
                 );
             }
@@ -575,9 +575,9 @@ final class FinancialRuntimeOperations03
     {
     
         try {
-            $drawer = financial_drawer_row($cid, $drawerId);
+            $drawer = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_row($cid, $drawerId);
             $name = $drawer ? (string) $drawer["name"] : "Gaveta";
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
@@ -592,11 +592,11 @@ final class FinancialRuntimeOperations03
                     $uid ?: null,
                 ],
             );
-            if (function_exists("counter_inc")) {
-                counter_inc("notices_total");
+            if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'counter_inc'])) {
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
             }
-            if (function_exists("clinic_metric_inc")) {
-                clinic_metric_inc($cid, "notices");
+            if (is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'clinic_metric_inc'])) {
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
             }
         } catch (Throwable $e) {
             error_log("[Prontoo gaveta aviso] " . $e->getMessage());

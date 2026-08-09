@@ -33,12 +33,12 @@ final class MaestroRuntimeOperations01
         if (array_key_exists("PRONTOO_MAESTRO_RUNTIME_ACCESS_READY", $GLOBALS)) {
             return (bool) $GLOBALS["PRONTOO_MAESTRO_RUNTIME_ACCESS_READY"];
         }
-        if (!has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return false;
         }
         try {
             $ready =
-                (string) (val(
+                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT meta_value FROM pi_meta WHERE meta_key='schema_maestro_runtime_access_v2' LIMIT 1",
                 ) ?? "") === "1";
         } catch (Throwable $e) {
@@ -54,22 +54,22 @@ final class MaestroRuntimeOperations01
     {
     
         static $validated = false;
-        if (!has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         if (!$validated) {
-            maestro_global_physical_rollback();
+            \Prontoo\Infrastructure\Maestro\MaestroInfrastructureOperations01::maestro_global_physical_rollback();
             foreach (["success", "errors_count", "deferred_count"] as $column) {
-                if (!db_column_exists("pi_maestro_job_runs", $column)) {
+                if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_maestro_job_runs", $column)) {
                     throw new RuntimeException(
                         "Schema incompleto: pi_maestro_job_runs.{$column} ausente.",
                     );
                 }
             }
-            if (!maestro_runtime_access_marker_ready()) {
-                maestro_grant_runtime_access();
+            if (!\Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_runtime_access_marker_ready()) {
+                \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_grant_runtime_access();
             }
-            $validated = maestro_runtime_access_marker_ready();
+            $validated = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_runtime_access_marker_ready();
         }
     
     }
@@ -78,28 +78,28 @@ final class MaestroRuntimeOperations01
     
     {
     
-        if (!has_cfg() || maestro_runtime_access_marker_ready()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() || \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_runtime_access_marker_ready()) {
             return;
         }
         try {
-            with_scope_guard_disabled(static function (): void {
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_disabled(static function (): void {
     
-                db_tx(static function (): void {
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(static function (): void {
     
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','maestro',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
                     );
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','operations',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
                     );
                     foreach (["view", "add", "edit", "delete"] as $op) {
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "INSERT INTO pi_permission_rules (clinic_id,role_code,action_key,operation_key,allowed) SELECT id,'gerente','maestro','" .
                                 $op .
                                 "',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
                         );
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_meta (meta_key, meta_value) VALUES ('schema_maestro_runtime_access_v2','1') ON DUPLICATE KEY UPDATE meta_value='1', updated_at=NOW()",
                     );
                 });
@@ -115,11 +115,11 @@ final class MaestroRuntimeOperations01
     
     {
     
-        if (!has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         try {
-            maestro_ensure_schema();
+            \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
         } catch (Throwable $e) {
             error_log("[Prontoo maestro upgrade] " . $e->getMessage());
         }
@@ -131,7 +131,7 @@ final class MaestroRuntimeOperations01
     {
         $offsetDays = max(-365, min(365, $offsetDays));
         $modifier = ($offsetDays >= 0 ? "+" : "") . $offsetDays . " days";
-        return app_now_in_timezone($clinicId)
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_now_in_timezone($clinicId)
             ->setTime(0, 0, 0)
             ->modify($modifier)
             ->format("Y-m-d");
@@ -141,7 +141,7 @@ final class MaestroRuntimeOperations01
     public static function maestro_local_day_utc_range(int $clinicId, string $day): array
     
     {
-        [$start, $end] = app_local_day_utc_range($day, $clinicId);
+        [$start, $end] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $clinicId);
         return [
             gmdate("Y-m-d H:i:s", (int) $start),
             gmdate("Y-m-d H:i:s", (int) $end),
@@ -157,8 +157,8 @@ final class MaestroRuntimeOperations01
             return gmdate("Y-m-d 17:00:00", strtotime("+" . $offsetDays . " days UTC"));
         }
         $local = new DateTimeImmutable(
-            maestro_local_day($clinicId, $offsetDays) . " 17:00:00",
-            new DateTimeZone(app_context_timezone(null, $clinicId)),
+            \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_local_day($clinicId, $offsetDays) . " 17:00:00",
+            new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $clinicId)),
         );
         return $local
             ->setTimezone(new DateTimeZone("UTC"))
@@ -172,8 +172,8 @@ final class MaestroRuntimeOperations01
     
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
-        $catalog = maestro_trigger_catalog();
-        $actions = maestro_action_types();
+        $catalog = \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_trigger_catalog();
+        $actions = \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_action_types();
         $id = max(0, (int) ($_POST["id"] ?? 0));
         $trigger = (string) ($_POST["trigger_event"] ?? "");
         if (!isset($catalog[$trigger])) {
@@ -189,16 +189,16 @@ final class MaestroRuntimeOperations01
         if (!isset($actions[$action])) {
             throw new RuntimeException("Ação da rotina inválida.");
         }
-        $name = maestro_text((string) ($_POST["name"] ?? ""), 160);
+        $name = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_text((string) ($_POST["name"] ?? ""), 160);
         if ($name === "") {
             $name = (string) ($item["default_name"] ?? $item["label"]);
         }
-        $amount = maestro_amount(
+        $amount = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_amount(
             $_POST["trigger_amount"] ?? ($_POST["trigger_days"] ?? $defaultAmount),
             $defaultAmount,
             $unit,
         );
-        $priority = maestro_priority(
+        $priority = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_priority(
             $_POST["priority"] ?? ($item["default_priority"] ?? 50),
         );
         $minInterval = max(
@@ -216,12 +216,12 @@ final class MaestroRuntimeOperations01
         $targetRole =
             (string) ($_POST["target_role"] ??
                 ($item["default_target_role"] ?? "recepcionista"));
-        $roleOpts = clinic_role_options($cid, true);
+        $roleOpts = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, true);
         if ($targetScope === "role" && !isset($roleOpts[$targetRole])) {
             throw new RuntimeException("Cargo destinatário inválido para o consultório.");
         }
         $targetUserId = max(0, (int) ($_POST["target_user_id"] ?? 0));
-        if ($targetScope === "user" && !clinic_user_exists($cid, $targetUserId)) {
+        if ($targetScope === "user" && !\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $targetUserId)) {
             throw new RuntimeException("Pessoa destinatária inválida para o consultório.");
         }
         if ($targetScope !== "role") {
@@ -230,13 +230,13 @@ final class MaestroRuntimeOperations01
         if ($targetScope !== "user") {
             $targetUserId = null;
         }
-        $title = maestro_text((string) ($_POST["task_title"] ?? ""), 180);
+        $title = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_text((string) ($_POST["task_title"] ?? ""), 180);
         if ($title === "") {
             $title =
                 (string) ($item["default_title"] ??
                     "Ação da rotina para {{origem}}");
         }
-        $description = maestro_template(
+        $description = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_template(
             (string) ($_POST["task_description"] ?? ""),
             1200,
         );
@@ -249,7 +249,7 @@ final class MaestroRuntimeOperations01
             "amount" => $amount,
             "days" => $amount,
             "unit" => $unit,
-            "status" => maestro_text((string) ($_POST["trigger_status"] ?? ""), 60),
+            "status" => \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_text((string) ($_POST["trigger_status"] ?? ""), 60),
         ];
         $act = [
             "target_scope" => $targetScope,
@@ -257,21 +257,21 @@ final class MaestroRuntimeOperations01
             "target_user_id" => $targetUserId,
             "title" => $title,
             "description" => $description,
-            "due_offset_days" => maestro_days($_POST["due_offset_days"] ?? 0, 0),
+            "due_offset_days" => \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_days($_POST["due_offset_days"] ?? 0, 0),
         ];
         $active = empty($_POST["active"]) ? 0 : 1;
         $module = (string) $item["module"];
         if ($id > 0) {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_maestro_rules SET name=?,active=?,trigger_module=?,trigger_event=?,condition_json=?,action_type=?,action_json=?,priority=?,min_interval_minutes=?,next_run_at=NOW(),updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [
                     $name,
                     $active,
                     $module,
                     $trigger,
-                    maestro_json($cond),
+                    \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_json($cond),
                     $action,
-                    maestro_json($act),
+                    \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_json($act),
                     $priority,
                     $minInterval,
                     $uid,
@@ -279,14 +279,14 @@ final class MaestroRuntimeOperations01
                     $cid,
                 ],
             );
-            audit("maestro_regra_atualizada", "maestro", $id, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_atualizada", "maestro", $id, [
                 "nome" => $name,
                 "condicao" => $trigger,
                 "audit_body" =>
                     "Rotina atualizada pelo administrador do consultório.",
             ]);
         } else {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_maestro_rules (clinic_id,name,active,trigger_module,trigger_event,condition_json,action_type,action_json,priority,min_interval_minutes,next_run_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),?,NOW())",
                 [
                     $cid,
@@ -294,16 +294,16 @@ final class MaestroRuntimeOperations01
                     $active,
                     $module,
                     $trigger,
-                    maestro_json($cond),
+                    \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_json($cond),
                     $action,
-                    maestro_json($act),
+                    \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_json($act),
                     $priority,
                     $minInterval,
                     $uid,
                 ],
             );
-            $id = db_last_insert_id();
-            audit("maestro_regra_criada", "maestro", $id, [
+            $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_criada", "maestro", $id, [
                 "nome" => $name,
                 "condicao" => $trigger,
                 "audit_body" => "Rotina criada pelo administrador do consultório.",
@@ -319,13 +319,13 @@ final class MaestroRuntimeOperations01
         $dest = (string) ($act["target_scope"] ?? "clinic");
         if ($dest === "role") {
             return "Naipe: " .
-                role_label_for((string) ($act["target_role"] ?? ""), $cid);
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) ($act["target_role"] ?? ""), $cid);
         }
         if ($dest === "user") {
             $uid = (int) ($act["target_user_id"] ?? 0);
             $name =
                 $uid > 0
-                    ? (string) (val(
+                    ? (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1",
                         [$uid, $cid],
                     ) ?:
@@ -342,7 +342,7 @@ final class MaestroRuntimeOperations01
     {
     
         $value = mb_trim((string) $value);
-        return $value !== "" ? dt_br($value) : "Ainda não afinada";
+        return $value !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($value) : "Ainda não afinada";
     
     }
 
@@ -358,7 +358,7 @@ final class MaestroRuntimeOperations01
         if (!$ts) {
             return "No próximo ciclo";
         }
-        return $ts <= time() ? "No próximo ciclo" : dt_br($value);
+        return $ts <= time() ? "No próximo ciclo" : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($value);
     
     }
 }

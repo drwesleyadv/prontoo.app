@@ -35,13 +35,13 @@ final class UiComponentsInfrastructureOperations01
             return $ready;
         }
         if (
-            !function_exists("has_cfg") ||
-            !has_cfg() ||
-            !function_exists("db_table_exists")
+            !is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) ||
+            !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ||
+            !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists'])
         ) {
             return $ready = false;
         }
-        return $ready = db_table_exists("pi_user_cmdbar_access");
+        return $ready = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_user_cmdbar_access");
     
     }
 }

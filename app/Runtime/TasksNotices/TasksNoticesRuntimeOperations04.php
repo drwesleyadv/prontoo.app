@@ -30,13 +30,13 @@ final class TasksNoticesRuntimeOperations04
     
     {
     
-        $c = require_can("tasks");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("tasks");
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
         $role = (string) ($c["role"] ?? "");
         $activeStatuses = "'aberta','em_andamento','aguardando'";
-        $roleOptions = clinic_role_options($cid, true);
-        $users = team_options($cid);
+        $roleOptions = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, true);
+        $users = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::team_options($cid);
         $canStartTask = function (array $task) use ($uid, $role): bool {
     
             if (
@@ -77,7 +77,7 @@ final class TasksNoticesRuntimeOperations04
     
             $assigned = mb_trim((string) ($task["assigned_name"] ?? ""));
             if ($assigned !== "") {
-                return "Responsável: " . first_name($assigned);
+                return "Responsável: " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($assigned);
             }
             $scope = (string) ($task["target_scope"] ?? "clinic");
             if ($scope === "" || $scope === "all") {
@@ -85,7 +85,7 @@ final class TasksNoticesRuntimeOperations04
             }
             if ($scope === "role") {
                 return "Disponível para " .
-                    role_label_for((string) ($task["target_role"] ?? ""), $cid);
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) ($task["target_role"] ?? ""), $cid);
             }
             if ($scope === "user") {
                 $u = (int) ($task["target_user_id"] ?? 0);
@@ -97,38 +97,38 @@ final class TasksNoticesRuntimeOperations04
             $act = $_POST["act"] ?? "create";
             if ($act === "start") {
                 $tid = (int) ($_POST["id"] ?? 0);
-                $task = one(
+                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT t.id,t.clinic_id,t.title,t.status,t.assigned_to,t.target_scope,t.target_role,t.target_user_id,t.started_at,td.patient_link_id,td.appointment_id,td.source_event,td.source_entity,td.source_entity_id FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
                     [$tid, $cid],
                 );
                 if (!$task) {
-                    flash("Tarefa não encontrada.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if (!$canStartTask($task)) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Esta tarefa não está disponível para ser iniciada por esta credencial.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 $wasAssigned = (int) ($task["assigned_to"] ?? 0);
                 if ($wasAssigned > 0) {
-                    $st = q(
+                    $st = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks SET started_by=?, started_at=NOW(), status='em_andamento', updated_at=NOW() WHERE id=? AND clinic_id=? AND assigned_to=? AND status IN ('aberta','aguardando') AND started_at IS NULL",
                         [$uid, $tid, $cid, $wasAssigned],
                     );
                 } else {
-                    $st = q(
+                    $st = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks SET assigned_to=?, started_by=?, started_at=NOW(), status='em_andamento', updated_at=NOW() WHERE id=? AND clinic_id=? AND assigned_to IS NULL AND status IN ('aberta','aguardando') AND started_at IS NULL",
                         [$uid, $uid, $tid, $cid],
                     );
                 }
                 if ($st->rowCount() < 1) {
-                    flash("Outra pessoa já começou esta tarefa.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Outra pessoa já começou esta tarefa.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
                     "iniciada",
@@ -139,46 +139,46 @@ final class TasksNoticesRuntimeOperations04
                         ? "Tarefa marcada como iniciada."
                         : "Tarefa assumida individualmente.",
                 );
-                workflow_on_task_started($task, $uid, $role);
-                audit("tarefa_iniciada", "tarefa", $tid, [
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::workflow_on_task_started($task, $uid, $role);
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("tarefa_iniciada", "tarefa", $tid, [
                     "titulo" => (string) $task["title"],
                     "audit_body" =>
                         $wasAssigned > 0
                             ? "A tarefa foi marcada como iniciada."
                             : "A tarefa foi assumida individualmente pelo usuário.",
                 ]);
-                flash("Tarefa iniciada. Ela agora aparece em Iniciadas.");
-                redirect("tasks", ["view" => "progress"]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa iniciada. Ela agora aparece em Iniciadas.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks", ["view" => "progress"]);
             }
             if ($act === "release") {
                 $tid = (int) ($_POST["id"] ?? 0);
                 if ($role !== "gerente") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Apenas o Administrativo pode devolver tarefa para a fila.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $task = one(
+                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,title,target_scope,assigned_to FROM pi_tasks WHERE id=? AND clinic_id=?",
                     [$tid, $cid],
                 );
                 if (!$task) {
-                    flash("Tarefa não encontrada.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if ((string) ($task["target_scope"] ?? "clinic") === "user") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Tarefa destinada a pessoa específica deve ser reatribuída, não devolvida à fila.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_tasks SET assigned_to=NULL, started_by=NULL, started_at=NULL, status='aberta', updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [$tid, $cid],
                 );
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
                     "devolvida_fila",
@@ -187,40 +187,40 @@ final class TasksNoticesRuntimeOperations04
                     "aberta",
                     "Tarefa devolvida para a fila coletiva.",
                 );
-                audit("tarefa_devolvida_fila", "tarefa", $tid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("tarefa_devolvida_fila", "tarefa", $tid, [
                     "titulo" => (string) $task["title"],
                     "audit_body" =>
                         "A tarefa foi devolvida para sua fila coletiva de origem.",
                 ]);
-                flash("Tarefa devolvida para a fila coletiva.");
-                redirect("tasks");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa devolvida para a fila coletiva.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             if ($act === "done") {
                 $tid = (int) ($_POST["id"] ?? 0);
-                $task = one(
+                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT t.id,t.clinic_id,t.title,t.assigned_to,td.patient_link_id,td.appointment_id,td.source_event,td.source_entity,td.source_entity_id,t.status FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
                     [$tid, $cid],
                 );
                 if (!$task) {
-                    flash("Tarefa não encontrada.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if (empty($task["assigned_to"])) {
-                    flash("Comece a tarefa antes de concluí-la.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comece a tarefa antes de concluí-la.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if ((int) $task["assigned_to"] !== $uid && $role !== "gerente") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Esta tarefa está com outra pessoa. Apenas o responsável ou o Administrativo pode concluí-la.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_tasks SET status='concluida', completed_by=?, completed_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [$uid, $tid, $cid],
                 );
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
                     "concluida",
@@ -229,39 +229,39 @@ final class TasksNoticesRuntimeOperations04
                     "concluida",
                     "Tarefa concluída.",
                 );
-                workflow_on_task_completed($task, $uid, $role);
-                clinic_metric_inc($cid, "tasks_completed");
-                audit("tarefa_concluida", "tarefa", $tid);
-                flash("Tarefa concluída.");
-                redirect("tasks");
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::workflow_on_task_completed($task, $uid, $role);
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "tasks_completed");
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("tarefa_concluida", "tarefa", $tid);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa concluída.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             if ($act === "comment_edit") {
                 $commentId = (int) ($_POST["comment_id"] ?? 0);
                 $body = mb_trim((string) ($_POST["comment"] ?? ""));
                 if ($body === "") {
-                    flash("Informe o novo texto do comentário.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o novo texto do comentário.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $cm = one(
+                $cm = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT tc.id,tc.task_id,tc.user_id FROM pi_task_comments tc INNER JOIN pi_tasks t ON t.id=tc.task_id AND t.clinic_id=tc.clinic_id WHERE tc.id=? AND tc.clinic_id=? AND tc.deleted_at IS NULL",
                     [$commentId, $cid],
                 );
                 if (!$cm) {
-                    flash("Comentário não encontrado.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário não encontrado.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if ((int) $cm["user_id"] !== $uid && $role !== "gerente") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Apenas quem escreveu o comentário ou a Gestão pode editá-lo.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_task_comments SET body=?, edited_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
                     [$body, $uid, $commentId, $cid],
                 );
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     (int) $cm["task_id"],
                     "comentario_editado",
@@ -270,34 +270,34 @@ final class TasksNoticesRuntimeOperations04
                     null,
                     "Comentário interno editado.",
                 );
-                audit("comentario_tarefa_editado", "tarefa", (int) $cm["task_id"], [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("comentario_tarefa_editado", "tarefa", (int) $cm["task_id"], [
                     "comentario_id" => $commentId,
                 ]);
-                flash("Comentário atualizado.");
-                redirect("tasks");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário atualizado.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             if ($act === "comment_delete") {
                 $commentId = (int) ($_POST["comment_id"] ?? 0);
-                $cm = one(
+                $cm = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT tc.id,tc.task_id,tc.user_id FROM pi_task_comments tc INNER JOIN pi_tasks t ON t.id=tc.task_id AND t.clinic_id=tc.clinic_id WHERE tc.id=? AND tc.clinic_id=? AND tc.deleted_at IS NULL",
                     [$commentId, $cid],
                 );
                 if (!$cm) {
-                    flash("Comentário não encontrado.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário não encontrado.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 if ((int) $cm["user_id"] !== $uid && $role !== "gerente") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Apenas quem escreveu o comentário ou a Gestão pode excluí-lo.",
                         "bad",
                     );
-                    redirect("tasks");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_task_comments SET deleted_at=NOW(), deleted_by=? WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
                     [$uid, $commentId, $cid],
                 );
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     (int) $cm["task_id"],
                     "comentario_excluido",
@@ -306,35 +306,35 @@ final class TasksNoticesRuntimeOperations04
                     null,
                     "Comentário interno excluído.",
                 );
-                audit(
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "comentario_tarefa_excluido",
                     "tarefa",
                     (int) $cm["task_id"],
                     ["comentario_id" => $commentId],
                 );
-                flash("Comentário excluído.");
-                redirect("tasks");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário excluído.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             if ($act === "comment") {
                 $tid = (int) ($_POST["id"] ?? 0);
                 $body = mb_trim((string) ($_POST["comment"] ?? ""));
                 if ($body === "") {
-                    flash("Informe o comentário da tarefa.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o comentário da tarefa.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $task = one("SELECT id FROM pi_tasks WHERE id=? AND clinic_id=?", [
+                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id FROM pi_tasks WHERE id=? AND clinic_id=?", [
                     $tid,
                     $cid,
                 ]);
                 if (!$task) {
-                    flash("Tarefa não encontrada.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_task_comments (clinic_id,task_id,user_id,body,created_at) VALUES (?,?,?,?,NOW())",
                     [$cid, $tid, $uid, $body],
                 );
-                task_event(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
                     "comentario_criado",
@@ -343,16 +343,16 @@ final class TasksNoticesRuntimeOperations04
                     null,
                     "Comentário interno registrado.",
                 );
-                audit("comentario_tarefa_criado", "tarefa", $tid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("comentario_tarefa_criado", "tarefa", $tid, [
                     "comentario" => $body,
                 ]);
-                flash("Comentário registrado.");
-                redirect("tasks");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário registrado.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             $title = mb_trim((string) ($_POST["title"] ?? ""));
             if ($title === "") {
-                flash("Informe o título da tarefa.", "bad");
-                redirect("tasks");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o título da tarefa.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
             }
             $targetScope = (string) ($_POST["target_scope"] ?? "clinic");
             if (!in_array($targetScope, ["clinic", "role", "user"], true)) {
@@ -364,24 +364,24 @@ final class TasksNoticesRuntimeOperations04
             if ($targetScope === "role") {
                 $targetRole = (string) ($_POST["target_role"] ?? "");
                 if (!array_key_exists($targetRole, $roleOptions)) {
-                    flash("Escolha um cargo válido da clínica.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Escolha um cargo válido da clínica.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
             } elseif ($targetScope === "user") {
                 $targetUserId = (int) ($_POST["target_user_id"] ?? 0);
                 if (
                     $targetUserId <= 0 ||
-                    !clinic_user_exists($cid, $targetUserId)
+                    !\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $targetUserId)
                 ) {
-                    flash("Escolha uma pessoa vinculada à clínica atual.", "bad");
-                    redirect("tasks");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Escolha uma pessoa vinculada à clínica atual.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
                 $assigned = $targetUserId;
             }
             $taskDescription = mb_trim((string) ($_POST["description"] ?? ""));
             $dueAt = mb_trim((string) ($_POST["due_at"] ?? ""));
-            $dueAt = $dueAt !== "" ? app_local_to_db_utc($dueAt, $cid, $c) : null;
-            q(
+            $dueAt = $dueAt !== "" ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_to_db_utc($dueAt, $cid, $c) : null;
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,due_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
@@ -394,12 +394,12 @@ final class TasksNoticesRuntimeOperations04
                     $uid,
                 ],
             );
-            $taskId = db_last_insert_id();
-            q(
+            $taskId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_task_details (task_id,clinic_id,description) VALUES (?,?,?)",
                 [$taskId, $cid, $taskDescription],
             );
-            task_event(
+            \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                 $cid,
                 $taskId,
                 "criada",
@@ -408,10 +408,10 @@ final class TasksNoticesRuntimeOperations04
                 "aberta",
                 "Tarefa criada manualmente.",
             );
-            counter_inc("tasks_total");
-            clinic_metric_inc($cid, "tasks");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("tasks_total");
+            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "tasks");
             if ($targetScope === "user" && $targetUserId) {
-                notify_task_personal_assignment(
+                \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::notify_task_personal_assignment(
                     $cid,
                     $taskId,
                     $title,
@@ -421,14 +421,14 @@ final class TasksNoticesRuntimeOperations04
                     "manual",
                 );
             }
-            audit("tarefa_criada", "tarefa", $taskId, [
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("tarefa_criada", "tarefa", $taskId, [
                 "titulo" => $title,
                 "destino" => $targetScope,
                 "cargo" => $targetRole,
                 "pessoa" => $targetUserId,
             ]);
-            flash("Tarefa criada.");
-            redirect("tasks");
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa criada.");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
         }
         $targetOptions = [
             "" => "Escolha o destinatário",
@@ -438,7 +438,7 @@ final class TasksNoticesRuntimeOperations04
         ];
         $roleField =
             '<div data-task-target-field="role" hidden>' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Cargo específico",
                 "target_role",
                 ["" => "Selecionar cargo"] + $roleOptions,
@@ -447,7 +447,7 @@ final class TasksNoticesRuntimeOperations04
             "</div>";
         $userField =
             '<div data-task-target-field="user" hidden>' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Pessoa específica",
                 "target_user_id",
                 ["" => "Selecionar pessoa"] + $users,
@@ -455,10 +455,10 @@ final class TasksNoticesRuntimeOperations04
             ) .
             "</div>";
         $taskCreateFields =
-            csrf_field() .
-            form_row("Título", input("title", "text", "", "required")) .
-            form_row("Descrição", textarea("description")) .
-            select_label(
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Título", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("title", "text", "", "required")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Descrição", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea("description")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Destinatário da tarefa",
                 "target_scope",
                 $targetOptions,
@@ -467,24 +467,24 @@ final class TasksNoticesRuntimeOperations04
             ) .
             $roleField .
             $userField .
-            form_row("Prazo", input("due_at", "datetime-local")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Prazo", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("due_at", "datetime-local")) .
             '<small class="field-help">Escolha primeiro o destinatário. Tarefas para toda a clínica ou para um cargo ficam em fila coletiva até alguém clicar em Começar.</small>' .
-            form_actions("Salvar tarefa");
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Salvar tarefa");
         if (($_GET["new"] ?? "") === "1") {
             $back =
                 '<a class="ghost small" href="' .
-                href("tasks") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks") .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Voltar</span></a>";
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Nova tarefa",
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     "Nova tarefa",
                     "Cadastre uma demanda da rotina em uma tela própria, mantendo a listagem apenas para consulta e acompanhamento.",
                     $back,
                 ) .
-                    card(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                         '<form method="post" class="compact task-create-form ds-entity-form ds-standalone-form" data-task-create-form>' .
                             $taskCreateFields .
                             "</form>",
@@ -495,9 +495,9 @@ final class TasksNoticesRuntimeOperations04
         }
         $form =
             '<a class="primary small cmdlike" href="' .
-            href("tasks", ["new" => 1]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["new" => 1]) .
             '">' .
-            action_summary_label("Nova tarefa", "add_task") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Nova tarefa", "add_task") .
             "</a>";
         $view = preg_replace("/[^a-z_]/", "", (string) ($_GET["view"] ?? "mine"));
         if ($view === "") {
@@ -526,8 +526,8 @@ final class TasksNoticesRuntimeOperations04
             } elseif ($view === "overdue") {
                 $where[] = $active . " AND t.due_at IS NOT NULL AND t.due_at<NOW()";
             } elseif ($view === "today") {
-                [$taskTodayStart, $taskTodayEnd] = app_local_day_utc_range(
-                    app_today_in_timezone($cid, $c),
+                [$taskTodayStart, $taskTodayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
                     $cid,
                     $c,
                 );
@@ -577,8 +577,8 @@ final class TasksNoticesRuntimeOperations04
                 "(t.title LIKE ? OR td.description LIKE ? OR p.full_name LIKE ? OR u.name LIKE ? OR DATE_FORMAT(t.due_at,'%d/%m/%Y') LIKE ? OR DATE_FORMAT(t.created_at,'%d/%m/%Y') LIKE ?)";
             array_push($params, $like, $like, $like, $like, $like, $like);
         }
-        [$taskOrderTodayStart, $taskOrderTodayEnd] = app_local_day_utc_range(
-            app_today_in_timezone($cid, $c),
+        [$taskOrderTodayStart, $taskOrderTodayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
             $cid,
             $c,
         );
@@ -601,9 +601,9 @@ final class TasksNoticesRuntimeOperations04
      WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.assigned_to IS NOT NULL THEN 3
      WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.due_at IS NOT NULL AND t.due_at<NOW() THEN 4
      WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.due_at>=" .
-            pdo()->quote($taskOrderTodayStart) .
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->quote($taskOrderTodayStart) .
             " AND t.due_at<" .
-            pdo()->quote($taskOrderTodayEnd) .
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->quote($taskOrderTodayEnd) .
             " THEN 5
      WHEN t.status NOT IN ('aberta','em_andamento','aguardando') THEN 6
      ELSE 7
@@ -612,12 +612,12 @@ final class TasksNoticesRuntimeOperations04
      t.due_at ASC,
      t.id DESC
      LIMIT 160";
-        $rows = q($sql, array_merge($params, [$uid]))->fetchAll();
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, array_merge($params, [$uid]))->fetchAll();
         $commentsByTask = [];
-        $taskIds = int_ids($rows, "id");
+        $taskIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         if ($taskIds) {
             $ph = implode(",", array_fill(0, count($taskIds), "?"));
-            $commentRows = q(
+            $commentRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT tc.id,tc.task_id,tc.user_id,tc.body,tc.created_at,tc.updated_at,u.name AS user_name FROM pi_task_comments tc LEFT JOIN pi_users u ON u.id=tc.user_id WHERE tc.clinic_id=? AND tc.deleted_at IS NULL AND tc.task_id IN ($ph) ORDER BY tc.created_at ASC",
                 array_merge([$cid], $taskIds),
             )->fetchAll();
@@ -625,7 +625,7 @@ final class TasksNoticesRuntimeOperations04
                 $commentsByTask[(int) $cr["task_id"]][] = $cr;
             }
         }
-        $counts = task_nav_counts($c);
+        $counts = \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::task_nav_counts($c);
         $activeClass = function (string $v) use ($view, $qTerm): string {
     
             return $qTerm === "" && $v === $view ? " active" : "";
@@ -637,7 +637,7 @@ final class TasksNoticesRuntimeOperations04
         $taskFoundChip =
             $qTerm !== ""
                 ? '<span class="task-filter active is-active patient-filter-found" aria-current="page" data-ds-filter-chip>' .
-                    icon("manage_search") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("manage_search") .
                     "<span>Encontrados</span><small>" .
                     number_format(count($rows), 0, ",", ".") .
                     "</small></span>"
@@ -648,27 +648,27 @@ final class TasksNoticesRuntimeOperations04
             '<a class="task-filter' .
             $activeClass("mine") .
             '" href="' .
-            href("tasks", $qs("mine")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("mine")) .
             '">' .
-            icon("person_check") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person_check") .
             "<span>Minhas</span>" .
             ($counts["mine"] > 0 ? "<b>" . (int) $counts["mine"] . "</b>" : "") .
             "</a>" .
             '<a class="task-filter' .
             $activeClass("role") .
             '" href="' .
-            href("tasks", $qs("role")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("role")) .
             '">' .
-            icon("groups") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
             "<span>Do meu cargo</span>" .
             ($counts["role"] > 0 ? "<b>" . (int) $counts["role"] . "</b>" : "") .
             "</a>" .
             '<a class="task-filter' .
             $activeClass("clinic") .
             '" href="' .
-            href("tasks", $qs("clinic")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("clinic")) .
             '">' .
-            icon("home_health") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
             "<span>Da Clínica</span>" .
             ($counts["clinic"] > 0
                 ? "<b>" . (int) $counts["clinic"] . "</b>"
@@ -677,9 +677,9 @@ final class TasksNoticesRuntimeOperations04
             '<a class="task-filter' .
             $activeClass("progress") .
             '" href="' .
-            href("tasks", $qs("progress")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("progress")) .
             '">' .
-            icon("pending") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("pending") .
             "<span>Iniciadas</span>" .
             ($counts["progress"] > 0
                 ? "<b>" . (int) $counts["progress"] . "</b>"
@@ -688,9 +688,9 @@ final class TasksNoticesRuntimeOperations04
             '<a class="task-filter' .
             $activeClass("overdue") .
             '" href="' .
-            href("tasks", $qs("overdue")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("overdue")) .
             '">' .
-            icon("priority_high") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("priority_high") .
             "<span>Atrasadas</span>" .
             ($counts["overdue"] > 0
                 ? "<b>" . (int) $counts["overdue"] . "</b>"
@@ -699,40 +699,40 @@ final class TasksNoticesRuntimeOperations04
             '<a class="task-filter' .
             $activeClass("today") .
             '" href="' .
-            href("tasks", $qs("today")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("today")) .
             '">' .
-            icon("today") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("today") .
             "<span>Hoje</span>" .
             ($counts["today"] > 0 ? "<b>" . (int) $counts["today"] . "</b>" : "") .
             "</a>" .
             '<a class="task-filter' .
             $activeClass("done") .
             '" href="' .
-            href("tasks", $qs("done")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("done")) .
             '">' .
-            icon("task_alt") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("task_alt") .
             "<span>Concluídas</span></a>" .
             '<a class="task-filter' .
             $activeClass("all") .
             '" href="' .
-            href("tasks", $qs("all")) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", $qs("all")) .
             '">' .
-            icon("view_list") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("view_list") .
             "<span>Todas</span></a>" .
             "</div>";
         $search =
             '<section class="task-directory-search ds-search-block"><form method="get" class="task-search patient-search-bar" role="search"><input type="hidden" name="r" value="tasks"><input type="hidden" name="view" value="' .
-            e($view) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($view) .
             '"><label class="search-field"><input name="q" type="search" value="' .
-            e($qTerm) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($qTerm) .
             '" placeholder="Paciente, responsável, descrição ou data" autocomplete="off" aria-label="Buscar tarefa por paciente, responsável, descrição ou data"></label><button class="primary small icon-only" type="submit" aria-label="Buscar" title="Buscar">' .
-            icon("search") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("search") .
             '<span class="sr-only">Buscar</span></button>' .
             ($qTerm !== ""
                 ? '<a class="ghost small" href="' .
-                    href("tasks", ["view" => $view]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["view" => $view]) .
                     '">' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     "<span>Limpar</span></a>"
                 : "") .
             "</form></section>";
@@ -804,7 +804,7 @@ final class TasksNoticesRuntimeOperations04
                 !in_array($status, ["aberta", "em_andamento", "aguardando"], true)
             ) {
                 return [
-                    "Concluída em " . dt_br($r["completed_at"] ?: $r["created_at"]),
+                    "Concluída em " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["completed_at"] ?: $r["created_at"]),
                     "done",
                     "task_alt",
                 ];
@@ -832,7 +832,7 @@ final class TasksNoticesRuntimeOperations04
             if (date("Y-m-d", $ts) === date("Y-m-d", strtotime("+1 day"))) {
                 return ["Amanhã às " . date("H\hi", $ts), "soon", "event_upcoming"];
             }
-            return ["Prazo: " . dt_br($due), "neutral", "event"];
+            return ["Prazo: " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($due), "neutral", "event"];
         };
         $priorityLabel = function (array $r) use ($now, $today): array {
     
@@ -890,21 +890,21 @@ final class TasksNoticesRuntimeOperations04
             if ($canStart) {
                 $actions .=
                     '<form method="post" class="inline task-start-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="start"><input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '"><button type="submit" class="small primary">' .
-                    icon("play_arrow") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("play_arrow") .
                     "<span>Começar</span></button></form>";
             }
             if ($canDone) {
                 $actions .=
                     '<form method="post" class="inline task-done-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="done"><input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '"><button type="submit" class="small primary">' .
-                    icon("check") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check") .
                     "<span>Concluir</span></button></form>";
             }
             if (
@@ -915,19 +915,19 @@ final class TasksNoticesRuntimeOperations04
             ) {
                 $actions .=
                     '<form method="post" class="inline task-release-form" onsubmit="return confirm(\'Devolver esta tarefa para a fila coletiva?\')">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="release"><input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '"><button type="submit" class="small ghost">' .
-                    icon("keyboard_return") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("keyboard_return") .
                     "<span>Devolver</span></button></form>";
             }
             if (!empty($r["patient_link_id"])) {
                 $actions .=
                     '<a class="ghost small" href="' .
-                    href("patient", ["id" => (int) $r["patient_link_id"]]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $r["patient_link_id"]]) .
                     '">' .
-                    icon("folder_open") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("folder_open") .
                     "<span>Abrir paciente</span></a>";
             }
             $origin =
@@ -954,60 +954,60 @@ final class TasksNoticesRuntimeOperations04
             $html .= '<div class="task-main">';
             $html .=
                 '<div class="task-marker">' .
-                icon($canStart ? "play_circle" : $dueIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($canStart ? "play_circle" : $dueIcon) .
                 "</div>";
             $html .=
                 '<div class="task-copy"><h3>' .
-                e((string) $r["title"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["title"]) .
                 "</h3><p>" .
-                e($context) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($context) .
                 '</p><div class="task-meta"><span class="task-chip ' .
                 $dueClass .
                 '">' .
-                icon($dueIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($dueIcon) .
                 "<span>" .
-                e($dueTxt) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dueTxt) .
                 '</span></span><span class="task-chip ' .
                 $prioClass .
                 '">' .
-                icon("flag") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("flag") .
                 "<span>" .
-                e($prioTxt) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($prioTxt) .
                 '</span></span><span class="task-chip responsibility">' .
-                icon($canStart ? "groups" : "person") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($canStart ? "groups" : "person") .
                 "<span>" .
-                e($dest) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dest) .
                 "</span></span></div></div>";
             $html .= '<div class="task-actions">' . $actions . "</div></div>";
             $html .=
                 '<details class="task-details"><summary>' .
-                icon("expand_more") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("expand_more") .
                 '<span>Ver detalhes</span></summary><div class="task-detail-grid">' .
                 "<div><b>Descrição</b><p>" .
-                e($desc !== "" ? $desc : "Sem descrição registrada.") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($desc !== "" ? $desc : "Sem descrição registrada.") .
                 "</p></div>" .
                 "<div><b>Destino</b><p>" .
-                e($dest) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dest) .
                 "</p></div>" .
                 "<div><b>Origem</b><p>" .
-                e($origin) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($origin) .
                 "</p></div>" .
                 "<div><b>Criada em</b><p>" .
-                e(dt_br($r["created_at"] ?? null)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["created_at"] ?? null)) .
                 "</p></div>" .
                 "<div><b>Status</b><p>" .
-                e($status === "em_andamento" ? "em andamento" : $status) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status === "em_andamento" ? "em andamento" : $status) .
                 "</p></div>";
             if (!empty($r["started_at"])) {
                 $html .=
                     "<div><b>Iniciada em</b><p>" .
-                    e(dt_br($r["started_at"])) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["started_at"])) .
                     "</p></div>";
             }
             if (!empty($r["completed_at"])) {
                 $html .=
                     "<div><b>Concluída em</b><p>" .
-                    e(dt_br($r["completed_at"])) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($r["completed_at"])) .
                     "</p></div>";
             }
             if (!empty($r["appointment_id"])) {
@@ -1028,32 +1028,32 @@ final class TasksNoticesRuntimeOperations04
                         ($role === "gerente" || $commentUser === $uid);
                     $edited = !empty($cm["updated_at"]);
                     $meta =
-                        e(first_name($cm["user_name"] ?? "Equipe")) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($cm["user_name"] ?? "Equipe")) .
                         " · " .
-                        e(dt_br($cm["created_at"] ?? null)) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($cm["created_at"] ?? null)) .
                         ($edited ? " · editado" : "");
                     $html .=
                         '<article class="task-comment-item"><div><span>' .
                         $meta .
                         "</span><p>" .
-                        e((string) $cm["body"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $cm["body"]) .
                         "</p></div>";
                     if ($canManageComment) {
                         $html .=
                             '<div class="task-comment-actions"><details><summary>Editar</summary><form method="post" class="task-comment-form">' .
-                            csrf_field() .
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                             '<input type="hidden" name="act" value="comment_edit"><input type="hidden" name="comment_id" value="' .
                             $commentId .
                             '"><input name="comment" type="text" value="' .
-                            e((string) $cm["body"]) .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $cm["body"]) .
                             '" required><button class="ghost small" type="submit">' .
-                            icon("save") .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
                             '<span>Salvar</span></button></form></details><form method="post" onsubmit="return confirm(&quot;Excluir este comentário interno?&quot;)">' .
-                            csrf_field() .
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                             '<input type="hidden" name="act" value="comment_delete"><input type="hidden" name="comment_id" value="' .
                             $commentId .
                             '"><button class="ghost small" type="submit">' .
-                            icon("delete") .
+                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                             "<span>Excluir</span></button></form></div>";
                     }
                     $html .= "</article>";
@@ -1065,11 +1065,11 @@ final class TasksNoticesRuntimeOperations04
             if ($active) {
                 $html .=
                     '<form method="post" class="task-comment-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="comment"><input type="hidden" name="id" value="' .
                     (int) $r["id"] .
                     '"><input name="comment" type="text" placeholder="Registrar observação interna" required><button class="ghost small" type="submit">' .
-                    icon("add_comment") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add_comment") .
                     "<span>Comentar</span></button></form>";
             }
             $html .= "</div></details></article>";
@@ -1086,9 +1086,9 @@ final class TasksNoticesRuntimeOperations04
                 '<section class="task-group task-group-' .
                 $key .
                 '"><header><div><h2>' .
-                e($g["title"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["title"]) .
                 "</h2><p>" .
-                e($g["hint"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["hint"]) .
                 "</p></div><span>" .
                 count($g["rows"]) .
                 '</span></header><div class="task-list">';
@@ -1104,36 +1104,36 @@ final class TasksNoticesRuntimeOperations04
                     : "Nenhuma tarefa neste filtro.";
             $board .=
                 '<div class="empty task-empty">' .
-                e($msg) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($msg) .
                 "<small></small></div>";
         }
         $board .= "</section>";
         $summary =
             '<section class="task-overview task-overview-wide kpis kpi-info-strip" aria-label="Resumo de tarefas"><div class="kpi-card">' .
-            icon("person") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person") .
             "<p><b>" .
             (int) $counts["mine"] .
             '</b><span>Minhas</span></p></div><div class="kpi-card">' .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             "<p><b>" .
             (int) $counts["role"] .
             '</b><span>Do meu Cargo</span></p></div><div class="kpi-card">' .
-            icon("home_health") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
             "<p><b>" .
             (int) $counts["clinic"] .
             '</b><span>Da Clínica</span></p></div><div class="kpi-card ' .
             ($counts["overdue"] > 0 ? "warn" : "") .
             '">' .
-            icon("warning") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("warning") .
             "<p><b>" .
             (int) $counts["overdue"] .
             "</b><span>Atrasadas</span></p></div></section>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Tarefas",
-            page_head("Tarefas", "Pendências da rotina.", $form) .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Tarefas", "Pendências da rotina.", $form) .
                 $summary .
-                card($search, "task-search-card ds-search-card") .
-                card($filters . $board, "task-center ds-filter-list-block"),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($search, "task-search-card ds-search-card") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($filters . $board, "task-center ds-filter-list-block"),
         );
     
     }

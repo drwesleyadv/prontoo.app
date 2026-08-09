@@ -128,7 +128,7 @@ final class AuditActivityDomainOperations03
     ): string 
     {
     
-        $task = audit_task_name($ctx);
+        $task = \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::audit_task_name($ctx);
         $txt = $who . " " . $verb . " tarefa " . $task;
         $patient = mb_trim((string) ($ctx["patient_name"] ?? ""));
         if (
@@ -237,7 +237,7 @@ final class AuditActivityDomainOperations03
     
     {
     
-        $cl = audit_clinic_target($ctx);
+        $cl = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_clinic_target($ctx);
         $status = trim(
             (string) ($ctx["subscription_status"] ?? ($ctx["status"] ?? "")),
         );

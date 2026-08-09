@@ -35,7 +35,7 @@ final class DocumentsRuntimeOperations03
     {
     
         $cid = (int) ($c["clinic_id"] ?? 0);
-        [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
+        [$patientId, $appointmentId, $appt] = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_resolve_patient_appointment(
             $cid,
             $patientId,
             $appointmentId,
@@ -48,31 +48,31 @@ final class DocumentsRuntimeOperations03
         $guardianCpf = "";
         $guardianRel = "";
         if ($patientId > 0) {
-            $pat = one(
+            $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT p.full_name,p.cpf,p.birth_date,pl.phone,pl.email,pl.address,pl.address_number,pl.address_neighborhood,pl.address_city,pl.address_state,pl.address_zip FROM pi_patients pl JOIN pi_persons p ON p.id=pl.person_id WHERE pl.id=? AND pl.clinic_id=? AND pl.active=1",
                 [$patientId, $cid],
             );
             if ($pat) {
                 $patientName = (string) ($pat["full_name"] ?? "");
-                $patientCpf = cpf_br((string) ($pat["cpf"] ?? ""));
-                $patientBirth = date_br($pat["birth_date"] ?? null);
-                $patientCity = city_state_label(
+                $patientCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cpf_br((string) ($pat["cpf"] ?? ""));
+                $patientBirth = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($pat["birth_date"] ?? null);
+                $patientCity = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::city_state_label(
                     $pat["address_city"] ?? "",
                     $pat["address_state"] ?? "",
                 );
             }
-            $guardian = patient_primary_legal_guardian($cid, $patientId);
+            $guardian = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_primary_legal_guardian($cid, $patientId);
             if ($guardian) {
-                $relOpts = patient_guardian_relationship_options();
+                $relOpts = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_guardian_relationship_options();
                 $guardianName = (string) ($guardian["full_name"] ?? "");
-                $guardianCpf = cpf_br((string) ($guardian["cpf"] ?? ""));
+                $guardianCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cpf_br((string) ($guardian["cpf"] ?? ""));
                 $guardianRel =
                     $relOpts[(string) ($guardian["relationship"] ?? "")] ??
                     "Responsável Legal";
             }
         }
         $cl =
-            one(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT display_name,legal_name,address_city,address_state,address_line FROM pi_clinics WHERE id=?",
                 [$cid],
             ) ?:
@@ -82,8 +82,8 @@ final class DocumentsRuntimeOperations03
         $realStart = (string) ($appt["consultation_started_at"] ?? "");
         $realEnd = (string) ($appt["consultation_finished_at"] ?? "");
         $scheduledRange = trim(
-            ($apptStart !== "" ? document_time_br($apptStart) : "") .
-                ($apptEnd !== "" ? " a " . document_time_br($apptEnd) : ""),
+            ($apptStart !== "" ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($apptStart) : "") .
+                ($apptEnd !== "" ? " a " . \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($apptEnd) : ""),
         );
         $realDuration = "";
         if (
@@ -91,19 +91,19 @@ final class DocumentsRuntimeOperations03
             $realEnd !== "" &&
             strtotime($realEnd) > strtotime($realStart)
         ) {
-            $realDuration = format_minutes(
+            $realDuration = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::format_minutes(
                 (int) floor((strtotime($realEnd) - strtotime($realStart)) / 60),
             );
         }
-        $ctx = document_context_json_decode($context);
+        $ctx = \Prontoo\Domain\Documents\DocumentHtmlPolicy::document_context_json_decode($context);
         $collaboratorName = (string) ($c["user"]["name"] ?? "Colaborador");
         $collaboratorEmail = "";
         $collaboratorRole = "";
         $professional = (string) ($c["user"]["name"] ?? "Profissional");
-        $professionalRole = role_label_for((string) ($c["role"] ?? ""), $cid);
+        $professionalRole = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) ($c["role"] ?? ""), $cid);
         $collabId = (int) ($ctx["collaborator_user_id"] ?? 0);
-        if ($collabId > 0 && clinic_user_exists($cid, $collabId)) {
-            $u = one(
+        if ($collabId > 0 && \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $collabId)) {
+            $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT u.id,u.name,u.email,GROUP_CONCAT(DISTINCT ur.role_code ORDER BY ur.role_code SEPARATOR ',') AS role_codes,GROUP_CONCAT(DISTINCT cr.label ORDER BY cr.sort_order SEPARATOR ', ') AS role_labels FROM pi_users u JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE u.id=? GROUP BY u.id,u.name,u.email",
                 [$cid, $collabId],
             );
@@ -136,7 +136,7 @@ final class DocumentsRuntimeOperations03
                         : ""),
             ),
             "bairro_paciente" => (string) ($pat["address_neighborhood"] ?? ""),
-            "cep_paciente" => mask_cep((string) ($pat["address_zip"] ?? "")),
+            "cep_paciente" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::mask_cep((string) ($pat["address_zip"] ?? "")),
             "cidade_paciente" => $patientCity,
             "responsavel_legal" => $guardianName,
             "cpf_responsavel_legal" => $guardianCpf,
@@ -153,39 +153,39 @@ final class DocumentsRuntimeOperations03
                 $cl["legal_name"] ?? "Consultório"),
             "data" => date("d/m/Y"),
             "data_abreviada" => date("d/m/Y"),
-            "data_extenso" => date_extenso_br(now()),
-            "cidade" => city_state_label(
+            "data_extenso" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_extenso_br(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::now()),
+            "cidade" => \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::city_state_label(
                 $cl["address_city"] ?? "",
                 $cl["address_state"] ?? "",
             ),
             "endereco" => (string) ($cl["address_line"] ?? ""),
             "agendamento_data" =>
-                $apptStart !== "" ? date_extenso_br($apptStart) : "",
-            "agendamento_hora" => document_time_br($apptStart),
+                $apptStart !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_extenso_br($apptStart) : "",
+            "agendamento_hora" => \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($apptStart),
             "agendamento_horario" => $scheduledRange,
             "horario_agendamento" => $scheduledRange,
-            "agendamento_inicio" => $apptStart !== "" ? dt_br($apptStart) : "",
-            "agendamento_fim" => $apptEnd !== "" ? dt_br($apptEnd) : "",
+            "agendamento_inicio" => $apptStart !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($apptStart) : "",
+            "agendamento_fim" => $apptEnd !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($apptEnd) : "",
             "agendamento_profissional" => (string) ($appt["doctor_name"] ?? ""),
             "agendamento_procedimento" => (string) ($appt["procedure_title"] ?? ""),
             "agendamento_motivo" => (string) ($appt["reason"] ?? ""),
             "agendamento_observacoes" => (string) ($appt["notes"] ?? ""),
-            "agendamento_status" => document_status_label(
+            "agendamento_status" => \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label(
                 (string) ($appt["status"] ?? ""),
             ),
             "atendimento_inicio_real" =>
-                $realStart !== "" ? document_time_br($realStart) : "",
+                $realStart !== "" ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($realStart) : "",
             "horario_real_inicio_consulta" =>
-                $realStart !== "" ? document_time_br($realStart) : "",
+                $realStart !== "" ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($realStart) : "",
             "atendimento_fim_real" =>
-                $realEnd !== "" ? document_time_br($realEnd) : "",
+                $realEnd !== "" ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($realEnd) : "",
             "horario_real_fim_atendimento" =>
-                $realEnd !== "" ? document_time_br($realEnd) : "",
+                $realEnd !== "" ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_time_br($realEnd) : "",
             "atendimento_duracao_real" => $realDuration,
         ];
         $leadId = (int) ($ctx["lead_id"] ?? 0);
         if ($leadId > 0) {
-            $l = one(
+            $l = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT name,phone,source,interest,stage,next_action_at,notes FROM pi_leads WHERE id=? AND clinic_id=?",
                 [$leadId, $cid],
             );
@@ -197,7 +197,7 @@ final class DocumentsRuntimeOperations03
                     "interessado_interesse" => (string) ($l["interest"] ?? ""),
                     "interessado_etapa" => (string) ($l["stage"] ?? ""),
                     "interessado_proximo_contato" => !empty($l["next_action_at"])
-                        ? dt_br((string) $l["next_action_at"])
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) $l["next_action_at"])
                         : "",
                     "interessado_observacoes" => (string) ($l["notes"] ?? ""),
                 ];
@@ -205,7 +205,7 @@ final class DocumentsRuntimeOperations03
         }
         $procId = (int) ($ctx["procedure_id"] ?? 0);
         if ($procId > 0) {
-            $pr = one(
+            $pr = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care FROM pi_procedures WHERE id=? AND clinic_id=?",
                 [$procId, $cid],
             );
@@ -214,12 +214,12 @@ final class DocumentsRuntimeOperations03
                     "procedimento" => (string) ($pr["title"] ?? ""),
                     "procedimento_categoria" => (string) ($pr["category"] ?? ""),
                     "procedimento_descricao" => (string) ($pr["description"] ?? ""),
-                    "procedimento_duracao" => format_minutes(
+                    "procedimento_duracao" => \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::format_minutes(
                         (int) ($pr["duration_minutes"] ?? 0),
                     ),
                     "procedimento_valor" =>
                         (int) ($pr["price_cents"] ?? 0) > 0
-                            ? money_br((int) $pr["price_cents"])
+                            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pr["price_cents"])
                             : "",
                     "procedimento_formas_pagamento" =>
                         (string) ($pr["payment_methods"] ?? ""),
@@ -232,18 +232,18 @@ final class DocumentsRuntimeOperations03
         }
         $taskId = (int) ($ctx["task_id"] ?? 0);
         if ($taskId > 0) {
-            $t = one(
+            $t = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT t.title,t.status,t.due_at,td.description,u.name AS assigned_name FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id LEFT JOIN pi_users u ON u.id=COALESCE(t.assigned_to,t.target_user_id) WHERE t.id=? AND t.clinic_id=?",
                 [$taskId, $cid],
             );
             if ($t) {
                 $vars += [
                     "tarefa" => (string) ($t["title"] ?? ""),
-                    "tarefa_status" => document_status_label(
+                    "tarefa_status" => \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label(
                         (string) ($t["status"] ?? ""),
                     ),
                     "tarefa_prazo" => !empty($t["due_at"])
-                        ? dt_br((string) $t["due_at"])
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) $t["due_at"])
                         : "",
                     "tarefa_responsavel" => (string) ($t["assigned_name"] ?? ""),
                     "tarefa_descricao" => (string) ($t["description"] ?? ""),
@@ -252,20 +252,20 @@ final class DocumentsRuntimeOperations03
         }
         $careId = (int) ($ctx["care_id"] ?? 0);
         if ($careId > 0) {
-            $a = one(
+            $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT c.title,c.record_type,c.created_at,cc.content,p.full_name AS patient_name FROM pi_care c LEFT JOIN pi_care_content cc ON cc.care_id=c.id AND cc.clinic_id=c.clinic_id JOIN pi_patients pl ON pl.id=c.patient_link_id AND pl.clinic_id=c.clinic_id JOIN pi_persons p ON p.id=pl.person_id WHERE c.id=? AND c.clinic_id=? AND c.deleted_at IS NULL",
                 [$careId, $cid],
             );
             if ($a) {
                 $vars += [
                     "atividade" => (string) ($a["title"] ?? "" ?: "Atividade"),
-                    "atividade_tipo" => patient_record_type_label(
+                    "atividade_tipo" => \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_record_type_label(
                         (string) ($a["record_type"] ?? ""),
                     ),
                     "atividade_data" => !empty($a["created_at"])
-                        ? dt_br((string) $a["created_at"])
+                        ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) $a["created_at"])
                         : "",
-                    "atividade_conteudo" => patient_summary_excerpt(
+                    "atividade_conteudo" => \Prontoo\Domain\Documents\DocumentsDomainOperations02::patient_summary_excerpt(
                         (string) ($a["content"] ?? ""),
                         800,
                     ),
@@ -273,7 +273,7 @@ final class DocumentsRuntimeOperations03
                 ];
             }
         }
-        foreach (document_system_fields() as $key => $label) {
+        foreach (\Prontoo\Domain\Documents\DocumentTypePolicy::document_system_fields() as $key => $label) {
             if (!array_key_exists($key, $vars)) {
                 $vars[$key] = "";
             }
@@ -294,12 +294,12 @@ final class DocumentsRuntimeOperations03
         }
         $loader = function () use ($c, $cid): array {
     
-            [$where, $params] = document_template_visible_where($c, "dt");
-            $rows = q(
+            [$where, $params] = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visible_where($c, "dt");
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT dt.id,dt.title,dt.type_key FROM pi_document_templates dt WHERE dt.clinic_id=? AND dt.status='approved' AND $where ORDER BY dt.title ASC, dt.id DESC",
                 array_merge([$cid], $params),
             )->fetchAll();
-            $types = document_type_options();
+            $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
             $options = [];
             foreach ($rows as $row) {
                 $options[(int) $row["id"]] =
@@ -309,11 +309,11 @@ final class DocumentsRuntimeOperations03
             }
             return $options;
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "templates",
-                server_json_cache_safe_key("approved_options", [$cid, $uid, $role]),
-                server_json_cache_ttl("templates"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("approved_options", [$cid, $uid, $role]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("templates"),
                 $loader,
                 ["clinic:" . $cid, "user:" . $uid, "role:" . $role],
             );
@@ -330,9 +330,9 @@ final class DocumentsRuntimeOperations03
     {
     
         $cid = (int) ($c["clinic_id"] ?? 0);
-        $types = document_type_options();
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
         $limit = max(1, min(200, $limit));
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT d.id,d.title,d.type_key,d.issued_at,u.name AS issued_name FROM pi_documents d LEFT JOIN pi_users u ON u.id=d.issued_by WHERE d.clinic_id=? AND d.patient_link_id=? ORDER BY d.issued_at DESC,d.id DESC LIMIT $limit",
             [$cid, $patientId],
         )->fetchAll();
@@ -340,7 +340,7 @@ final class DocumentsRuntimeOperations03
         foreach ($rows as $d) {
             $docId = (int) $d["id"];
             $items[] = [
-                "time" => dt_br($d["issued_at"]),
+                "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($d["issued_at"]),
                 "icon" => "description",
                 "title" => $d["title"],
                 "body" =>
@@ -349,11 +349,11 @@ final class DocumentsRuntimeOperations03
                     ($d["issued_name"] ?? "colaborador"),
                 "html" =>
                     '<a class="ghost small" href="' .
-                    href("document_view", ["id" => $docId]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_view", ["id" => $docId]) .
                     '">Visualizar</a><a class="primary small" target="_blank" rel="noopener" href="' .
-                    href("document_print", ["id" => $docId]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_print", ["id" => $docId]) .
                     '">Imprimir</a>' .
-                    document_pdf_link($docId),
+                    \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_link($docId),
             ];
         }
         return $items;
@@ -373,11 +373,11 @@ final class DocumentsRuntimeOperations03
         ) {
             return false;
         }
-        if (!can("documents")) {
+        if (!\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("documents")) {
             return false;
         }
         $patientId = (int) ($doc["patient_link_id"] ?? 0);
-        if ($patientId > 0 && !clinic_patient_exists($cid, $patientId, true)) {
+        if ($patientId > 0 && !\Prontoo\Runtime\Patients\PatientsRuntimeOperations02::clinic_patient_exists($cid, $patientId, true)) {
             return false;
         }
         if ($role === "gerente") {
@@ -404,11 +404,11 @@ final class DocumentsRuntimeOperations03
         if ($docId <= 0) {
             return null;
         }
-        $doc = one(
+        $doc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT d.*,dt.owner_user_id,dt.owner_role,u.name AS issued_name,p.full_name AS patient_name,p.cpf AS patient_cpf,p.birth_date AS patient_birth_date FROM pi_documents d LEFT JOIN pi_document_templates dt ON dt.id=d.template_id AND dt.clinic_id=d.clinic_id LEFT JOIN pi_users u ON u.id=d.issued_by LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id AND pl.clinic_id=d.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=? AND d.clinic_id=? LIMIT 1",
             [$docId, (int) ($c["clinic_id"] ?? 0)],
         );
-        return $doc && document_can_access($c, $doc) ? $doc : null;
+        return $doc && \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::document_can_access($c, $doc) ? $doc : null;
     
     }
 
@@ -416,24 +416,24 @@ final class DocumentsRuntimeOperations03
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             throw new ProntooHttpError(
                 403,
                 "Documento disponível apenas no contexto do consultório.",
             );
         }
-        $doc = fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
         if (!$doc) {
             http_response_code(404);
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Documento",
                 '<div class="empty">Documento não encontrado para esta credencial.</div>',
             );
             return;
         }
-        $types = document_type_options();
-        audit("documento_visualizado", "documento", (int) $doc["id"], [
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_visualizado", "documento", (int) $doc["id"], [
             "titulo" => $doc["title"] ?? "",
             "document_type" => (string) ($doc["type_key"] ?? ""),
             "document_type_label" =>
@@ -444,28 +444,28 @@ final class DocumentsRuntimeOperations03
         ]);
         $back =
             (int) ($doc["patient_link_id"] ?? 0) > 0
-                ? href("patient", ["id" => (int) $doc["patient_link_id"]])
-                : href("documents", ["doc" => (int) $doc["id"]]);
+                ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $doc["patient_link_id"]])
+                : \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["doc" => (int) $doc["id"]]);
         $actions =
             '<a class="ghost small" href="' .
             $back .
             '">Voltar</a><a class="primary small" target="_blank" rel="noopener" href="' .
-            href("document_print", ["id" => (int) $doc["id"]]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_print", ["id" => (int) $doc["id"]]) .
             '">' .
-            icon("print") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("print") .
             " Imprimir</a>" .
-            document_pdf_link((int) $doc["id"]);
+            \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_link((int) $doc["id"]);
         $body =
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Documento emitido",
                 "Visualização do conteúdo gerado a partir do modelo aprovado.",
                 $actions,
             ) .
             '<section class="card doc-print-card"><div class="section-head"><div><h2>' .
-            e($doc["title"] ?? "Documento") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($doc["title"] ?? "Documento") .
             "</h2><p>" .
-            e(
-                document_issue_meta_sentence(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_issue_meta_sentence(
                     $doc["issued_name"] ?? null,
                     $doc["patient_name"] ?? null,
                     $doc["issued_at"],
@@ -473,12 +473,12 @@ final class DocumentsRuntimeOperations03
                 ),
             ) .
             "</p></div></div>" .
-            document_preview_page_html(
-                document_body_to_html((string) $doc["content"]),
+            \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_preview_page_html(
+                \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_body_to_html((string) $doc["content"]),
                 $doc["document_identifier"] ?? null,
             ) .
             "</section>";
-        page("Documento", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Documento", $body);
     
     }
 
@@ -486,21 +486,21 @@ final class DocumentsRuntimeOperations03
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             throw new ProntooHttpError(
                 403,
                 "Documento disponível apenas no contexto do consultório.",
             );
         }
-        $doc = fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, (int) ($_GET["id"] ?? 0));
         if (!$doc) {
             http_response_code(404);
             echo '<!doctype html><meta charset="utf-8"><title>Documento não encontrado</title><p>Documento não encontrado.</p>';
             return;
         }
-        $types = document_type_options();
-        audit("documento_impresso", "documento", (int) $doc["id"], [
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_impresso", "documento", (int) $doc["id"], [
             "titulo" => $doc["title"] ?? "",
             "document_type" => (string) ($doc["type_key"] ?? ""),
             "document_type_label" =>
@@ -513,8 +513,8 @@ final class DocumentsRuntimeOperations03
             header("Content-Type: text/html; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
-        $content = document_body_to_html((string) $doc["content"]);
-        echo document_print_document_shell_html($doc, true, "print");
+        $content = \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_body_to_html((string) $doc["content"]);
+        echo \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_print_document_shell_html($doc, true, "print");
     
     }
 
@@ -522,27 +522,27 @@ final class DocumentsRuntimeOperations03
     
     {
     
-        $emit = href("documents", ["emit" => 1]);
-        $models = href("documents", ["models" => 1]);
-        $newModel = href("documents", ["new_model" => 1]);
+        $emit = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["emit" => 1]);
+        $models = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["models" => 1]);
+        $newModel = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["new_model" => 1]);
         if ($stage === "models") {
             return '<span class="doc-page-actions"><a class="primary small" href="' .
                 $newModel .
                 '">' .
-                icon("add_circle") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add_circle") .
                 "<span>Novo modelo</span></a></span>";
         }
         if ($stage === "new_model" || $stage === "edit_model") {
             return '<span class="doc-page-actions"><a class="ghost small" href="' .
                 $models .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Modelos</span></a></span>";
         }
         return '<span class="doc-page-actions"><a class="primary small" href="' .
             $emit .
             '">' .
-            icon("post_add") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("post_add") .
             "<span>Criar documento</span></a></span>";
     
     }

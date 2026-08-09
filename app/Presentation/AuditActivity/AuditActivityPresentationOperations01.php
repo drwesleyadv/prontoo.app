@@ -42,7 +42,7 @@ final class AuditActivityPresentationOperations01
                 is_float($v) ||
                 (is_string($v) && preg_match('/^-?\\d+$/', (string) $v))
             ) {
-                return money_br((int) $v);
+                return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $v);
             }
             $text = mb_trim((string) $v);
             if ($text !== "") {
@@ -62,7 +62,7 @@ final class AuditActivityPresentationOperations01
             as $k
         ) {
             if (array_key_exists($k, $ctx) && is_numeric($ctx[$k])) {
-                return money_br((int) $ctx[$k]);
+                return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $ctx[$k]);
             }
         }
         return "";

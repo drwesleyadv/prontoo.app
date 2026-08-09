@@ -30,19 +30,19 @@ final class AppointmentsRuntimeOperations05
     
     {
     
-        $c = require_can("appointments");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("appointments");
         $cid = (int) $c["clinic_id"];
-        agenda_notes_ensure_schema($cid);
-        $docs = doctors($cid);
-        $pats = patient_options($cid);
+        \Prontoo\Infrastructure\Appointments\AppointmentsInfrastructureOperations01::agenda_notes_ensure_schema($cid);
+        $docs = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::doctors($cid);
+        $pats = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_options($cid);
         $prePatientId = (int) ($_GET["patient_id"] ?? 0);
         if ($prePatientId > 0 && !isset($pats[$prePatientId])) {
             $prePatientId = 0;
         }
-        $procedures = procedure_options($cid, true);
-        $day = (string) ($_GET["d"] ?? app_today_in_timezone($cid, $c));
+        $procedures = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_options($cid, true);
+        $day = (string) ($_GET["d"] ?? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c));
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
-            $day = app_today_in_timezone($cid, $c);
+            $day = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c);
         }
         $viewDoctor = (int) ($_GET["doctor"] ?? 0);
         if (count($docs) === 1) {
@@ -74,13 +74,13 @@ final class AppointmentsRuntimeOperations05
             ?int $targetDoctor = null,
         ) use ($returnParams): void {
     
-            redirect("appointments", $returnParams($targetDay, $targetDoctor));
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments", $returnParams($targetDay, $targetDoctor));
         };
         $role = (string) ($c["role"] ?? "");
         $uid = (int) ($c["user"]["id"] ?? 0);
         $returnHidden =
             '<input type="hidden" name="return_day" value="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '"><input type="hidden" name="return_doctor" value="' .
             (int) $viewDoctor .
             '">';
@@ -106,31 +106,31 @@ final class AppointmentsRuntimeOperations05
                 $noteId = (int) ($_POST["id"] ?? 0);
                 $note =
                     $noteId > 0
-                        ? one(
+                        ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                             "SELECT id,note_date,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1",
                             [$noteId, $cid],
                         )
                         : null;
                 if (!$note) {
-                    flash("Anotação não encontrada ou já excluída.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação não encontrada ou já excluída.", "bad");
                     $postRedirect();
                 }
                 $noteDay = (string) ($note["note_date"] ?? $postDay);
                 $creator = (int) ($note["created_by"] ?? 0);
                 if ($creator <= 0 || $creator !== $uid) {
-                    flash("Somente quem criou a anotação pode excluí-la.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Somente quem criou a anotação pode excluí-la.", "bad");
                     $redirectBack($noteDay, $postDoctor);
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_agenda_notes SET deleted_at=NOW(), deleted_by=?, updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL AND created_by=?",
                     [$uid, $uid, $noteId, $cid, $uid],
                 );
-                audit("agenda_anotacao_excluida", "agenda_note", $noteId, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("agenda_anotacao_excluida", "agenda_note", $noteId, [
                     "note_date" => $noteDay,
                     "audit_body" =>
                         "Anotação da Agenda excluída logicamente pelo usuário que a criou.",
                 ]);
-                flash("Anotação excluída.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação excluída.");
                 $redirectBack($noteDay, $postDoctor);
             }
             if ($act === "agenda_note") {
@@ -140,12 +140,12 @@ final class AppointmentsRuntimeOperations05
                 }
                 $content = mb_trim((string) ($_POST["content"] ?? ""));
                 if ($content === "") {
-                    flash("Informe o conteúdo da anotação.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o conteúdo da anotação.", "bad");
                     $postRedirect();
                 }
                 $content = mb_substr($content, 0, 4000);
                 $visibility = (string) ($_POST["visibility_scope"] ?? "my_role");
-                $roleOptions = clinic_role_options($cid, false);
+                $roleOptions = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, false);
                 $targetScope = "clinic";
                 $targetRole = null;
                 if ($visibility === "clinic") {
@@ -155,14 +155,14 @@ final class AppointmentsRuntimeOperations05
                     $targetScope = "role";
                     $targetRole = (string) ($c["role"] ?? "");
                     if ($targetRole === "" || !isset($roleOptions[$targetRole])) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Não foi possível identificar seu cargo para restringir a anotação.",
                             "bad",
                         );
                         $postRedirect();
                     }
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,NOW(),NOW())",
                     [
                         $cid,
@@ -174,27 +174,27 @@ final class AppointmentsRuntimeOperations05
                         (int) $c["user"]["id"],
                     ],
                 );
-                audit(
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "agenda_anotacao_criada",
                     "agenda_note",
-                    db_last_insert_id(),
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id(),
                     [
                         "note_date" => $noteDate,
                         "target_scope" => $targetScope,
                         "target_role" => $targetRole,
                     ],
                 );
-                flash("Anotação registrada para a data escolhida.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação registrada para a data escolhida.");
                 $redirectBack($noteDate, $postDoctor);
             }
             if ($act === "confirm") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 $guard = $a
-                    ? appointment_journey_hard_guard_message(
+                    ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "confirm",
                         $role,
@@ -202,38 +202,38 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($guard === "") {
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='confirmado', updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                         [$id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    audit("consulta_confirmada", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_confirmada", "consulta", $id, [
                         "patient_link_id" => (int) ($a["patient_link_id"] ?? 0),
                         "audit_body" =>
                             "Presença do paciente confirmada pela Recepção. Próxima medida: registrar chegada quando ele estiver no consultório.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Presença confirmada. Próxima medida: registrar chegada no horário.",
                     );
                 } else {
-                    flash($guard, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                 }
                 $postRedirect();
             }
             if ($act === "arrived") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 $guard = $a
-                    ? appointment_journey_hard_guard_message(
+                    ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "arrived",
                         $role,
@@ -241,57 +241,57 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($guard === "") {
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='chegou', arrived_at=COALESCE(arrived_at,NOW()), updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                         [$id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    workflow_on_patient_arrived(
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::workflow_on_patient_arrived(
                         $cid,
                         $id,
                         (int) ($a["patient_link_id"] ?? 0),
                     );
-                    audit("paciente_chegou", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_chegou", "consulta", $id, [
                         "patient_link_id" => (int) ($a["patient_link_id"] ?? 0),
                         "audit_body" =>
                             "Paciente chegou ao consultório. A equipe de triagem recebeu tarefa automática para preparar o atendimento.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Chegada registrada. Próxima medida: Assistente inicia preparo/triagem.",
                     );
                 } else {
-                    flash($guard, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                 }
                 $postRedirect();
             }
             if ($act === "no_show") {
                 $id = (int) ($_POST["id"] ?? 0);
                 $reason = mb_trim((string) ($_POST["no_show_reason"] ?? ""));
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 if (!$a) {
-                    flash("Agendamento não encontrado.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
                 }
-                $guard = appointment_journey_hard_guard_message(
+                $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                     $a,
                     "no_show",
                     $role,
                     $uid,
                 );
                 if ($guard !== "") {
-                    flash($guard, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                     $postRedirect();
                 }
-                $stmt = q(
+                $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_appointments SET status='nao_compareceu', cancel_reason=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                     [
                         $reason !== ""
@@ -302,14 +302,14 @@ final class AppointmentsRuntimeOperations05
                     ],
                 );
                 if ($stmt->rowCount() <= 0) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                if (function_exists("financial_cancel_appointment_revenue")) {
-                    financial_cancel_appointment_revenue(
+                if (is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations05::class, 'financial_cancel_appointment_revenue'])) {
+                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_cancel_appointment_revenue(
                         $cid,
                         $id,
                         $uid,
@@ -318,13 +318,13 @@ final class AppointmentsRuntimeOperations05
                             : "Paciente não compareceu no horário agendado.",
                     );
                 }
-                audit("paciente_nao_compareceu", "consulta", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_nao_compareceu", "consulta", $id, [
                     "patient_link_id" => (int) ($a["patient_link_id"] ?? 0),
                     "motivo" => $reason,
                     "audit_body" =>
                         "Ausência registrada. Próxima medida: Recepção decide contato, orientação ou remarcação.",
                 ]);
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Não comparecimento registrado. Próxima medida: orientar contato ou remarcação.",
                 );
                 $postRedirect();
@@ -343,90 +343,90 @@ final class AppointmentsRuntimeOperations05
                 )
             ) {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,payment_status,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 if (!$a) {
-                    flash("Agendamento não encontrado.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
                 }
-                $code = appointment_status_code($a);
+                $code = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a);
                 $patientId = (int) ($a["patient_link_id"] ?? 0);
                 $uidNow = (int) ($c["user"]["id"] ?? 0);
                 if ($act === "start_prepare") {
-                    $guard = appointment_journey_hard_guard_message(
+                    $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "start_prepare",
                         $role,
                         $uidNow,
                     );
                     if ($guard !== "") {
-                        flash($guard, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='em_preparo', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='chegou' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                         [$id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='em_andamento', t.started_by=COALESCE(t.started_by,?), t.started_at=COALESCE(t.started_at,NOW()), t.assigned_to=COALESCE(t.assigned_to,?), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='paciente_chegou' AND t.status IN ('aberta','aguardando')",
                         [$uidNow, $uidNow, $cid, $id],
                     );
-                    audit("preparo_iniciado_atalho", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("preparo_iniciado_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
                             "Assistente iniciou o preparo/triagem pelo atalho visual da jornada.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Preparo iniciado. Próxima medida: concluir preparo e liberar ao profissional.",
                     );
                     $postRedirect();
                 }
                 if ($act === "finish_prepare") {
-                    $guard = appointment_journey_hard_guard_message(
+                    $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "finish_prepare",
                         $role,
                         $uidNow,
                     );
                     if ($guard !== "") {
-                        flash($guard, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='pronto_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='em_preparo' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                         [$id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='paciente_chegou' AND t.status IN ('aberta','em_andamento','aguardando')",
                         [$uidNow, $cid, $id],
                     );
-                    if (function_exists("create_workflow_task")) {
+                    if (is_callable([\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::class, 'create_workflow_task'])) {
                         $name = $patientId
-                            ? patient_display_name($patientId, $cid)
+                            ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::patient_display_name($patientId, $cid)
                             : "paciente";
                         $doctor =
-                            (int) (val(
+                            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                                 "SELECT doctor_user_id FROM pi_appointments WHERE id=? AND clinic_id=?",
                                 [$id, $cid],
                             ) ?:
                             0);
-                        create_workflow_task(
+                        \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::create_workflow_task(
                             $cid,
                             "Atender " . $name,
                             "Preparativos concluídos. O paciente está pronto para iniciar o atendimento.",
@@ -441,52 +441,52 @@ final class AppointmentsRuntimeOperations05
                             $doctor ? null : "medico",
                         );
                     }
-                    audit("preparo_concluido_atalho", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("preparo_concluido_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
                             "Assistente liberou o paciente para atendimento pelo atalho visual da jornada.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Paciente liberado. Próxima medida: Profissional inicia atendimento.",
                     );
                     $postRedirect();
                 }
                 if ($act === "start_consultation") {
-                    $guard = appointment_journey_hard_guard_message(
+                    $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "start_consultation",
                         $role,
                         $uidNow,
                     );
                     if ($guard !== "") {
-                        flash($guard, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), status='em_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='pronto_atendimento' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL AND (doctor_user_id IS NULL OR doctor_user_id=?)",
                         [$id, $cid, $uidNow],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='em_andamento', t.started_by=COALESCE(t.started_by,?), t.started_at=COALESCE(t.started_at,NOW()), t.assigned_to=COALESCE(t.assigned_to,?), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='preparo_concluido' AND t.status IN ('aberta','aguardando')",
                         [$uidNow, $uidNow, $cid, $id],
                     );
-                    audit("consulta_iniciada_atalho", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_iniciada_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
                             "Profissional iniciou o atendimento pelo atalho visual da jornada.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Atendimento iniciado. A Ficha do Paciente ficará aberta durante o atendimento.",
                     );
                     if ($patientId > 0) {
-                        redirect("patient", [
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", [
                             "id" => $patientId,
                             "appointment_id" => $id,
                             "from_appointments" => 1,
@@ -497,18 +497,18 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 if ($act === "finish_consultation") {
-                    $guard = appointment_journey_hard_guard_message(
+                    $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "finish_consultation",
                         $role,
                         $uidNow,
                     );
                     if ($guard !== "") {
-                        flash($guard, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    if (function_exists("workflow_on_appointment_finished")) {
-                        workflow_on_appointment_finished(
+                    if (is_callable([\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::class, 'workflow_on_appointment_finished'])) {
+                        \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
                             $cid,
                             $id,
                             $patientId,
@@ -516,25 +516,25 @@ final class AppointmentsRuntimeOperations05
                             "atalho_jornada",
                         );
                     } else {
-                        $stmt = q(
+                        $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), consultation_finished_at=COALESCE(consultation_finished_at,NOW()), status='atendimento_concluido', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='em_atendimento' AND consultation_finished_at IS NULL",
                             [$id, $cid],
                         );
                         if ($stmt->rowCount() <= 0) {
-                            flash(
+                            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                                 "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                                 "bad",
                             );
                             $postRedirect();
                         }
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='preparo_concluido' AND t.status IN ('aberta','em_andamento','aguardando')",
                         [$uidNow, $cid, $id],
                     );
                     try {
-                        if (function_exists("financial_sync_appointment")) {
-                            financial_sync_appointment($cid, $id, $uidNow);
+                        if (is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class, 'financial_sync_appointment'])) {
+                            \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment($cid, $id, $uidNow);
                         }
                     } catch (Throwable $e) {
                         error_log(
@@ -542,12 +542,12 @@ final class AppointmentsRuntimeOperations05
                                 $e->getMessage(),
                         );
                     }
-                    audit("consulta_concluida_atalho", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_concluida_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
                             "Profissional concluiu o atendimento pelo atalho visual da jornada.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         (int) ($a["payment_amount_cents"] ?? 0) > 0 &&
                         !in_array(
                             mb_strtolower(
@@ -569,37 +569,37 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 if ($act === "finish_checkout") {
-                    $guard = appointment_journey_hard_guard_message(
+                    $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "finish_checkout",
                         $role,
                         $uidNow,
                     );
                     if ($guard !== "") {
-                        flash($guard, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='finalizado', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='atendimento_concluido' AND consultation_finished_at IS NOT NULL",
                         [$id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='atendimento_finalizado' AND t.status IN ('aberta','em_andamento','aguardando')",
                         [$uidNow, $cid, $id],
                     );
-                    audit("saida_finalizada_atalho", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("saida_finalizada_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
                             "Recepção finalizou a saída do paciente pelo atalho visual da jornada.",
                     ]);
-                    flash("Jornada finalizada.");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Jornada finalizada.");
                     $postRedirect();
                 }
             }
@@ -613,14 +613,14 @@ final class AppointmentsRuntimeOperations05
                         ? (int) $rawDoctor
                         : null;
                 if ($blockDoctor !== null && !isset($docs[$blockDoctor])) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Selecione um profissional válido para o bloqueio ou use bloqueio do consultório inteiro.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                if ($blockDoctor === null && !has_effective_role($c, "gerente")) {
-                    flash(
+                if ($blockDoctor === null && !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Bloqueio de todo o consultório exige ambiente Administrativo. Bloqueie apenas a agenda de um profissional ou acione o Administrativo.",
                         "bad",
                     );
@@ -632,19 +632,19 @@ final class AppointmentsRuntimeOperations05
                     strtotime($endAt) <= strtotime($startAt) ||
                     $reason === ""
                 ) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Informe início, fim posterior ao início e motivo do bloqueio.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                $startAt = normalize_db_datetime($startAt);
-                $endAt = normalize_db_datetime($endAt);
+                $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
+                $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
                 $blockId = 0;
                 try {
-                    db_begin_transaction();
-                    q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $conflict = agenda_conflict_message(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
                         $cid,
                         $blockDoctor,
                         $startAt,
@@ -652,11 +652,11 @@ final class AppointmentsRuntimeOperations05
                         "bloqueio",
                     );
                     if ($conflict) {
-                        db_rollback();
-                        flash($conflict, "bad");
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_blocks (clinic_id,doctor_user_id,start_at,end_at,reason,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
                         [
                             $cid,
@@ -667,32 +667,32 @@ final class AppointmentsRuntimeOperations05
                             (int) $c["user"]["id"],
                         ],
                     );
-                    $blockId = db_last_insert_id();
-                    db_commit();
+                    $blockId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 } catch (Throwable $e) {
-                    if (pdo()->inTransaction()) {
-                        db_rollback();
+                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                     }
                     error_log("[Prontoo agenda block] " . $e->getMessage());
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Não foi possível registrar o bloqueio. Revise os horários e tente novamente.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                clinic_metric_inc($cid, "agenda_blocks");
-                audit("agenda_bloqueada", "bloqueio", $blockId, $_POST);
-                flash("Horário bloqueado.");
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "agenda_blocks");
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("agenda_bloqueada", "bloqueio", $blockId, $_POST);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Horário bloqueado.");
                 $postRedirect();
             }
             if ($act === "update_block") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $b = one("SELECT id FROM pi_blocks WHERE id=? AND clinic_id=?", [
+                $b = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id FROM pi_blocks WHERE id=? AND clinic_id=?", [
                     $id,
                     $cid,
                 ]);
                 if (!$b) {
-                    flash("Bloqueio não encontrado.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado.", "bad");
                     $postRedirect();
                 }
                 $startAt = (string) ($_POST["start_at"] ?? "");
@@ -704,14 +704,14 @@ final class AppointmentsRuntimeOperations05
                         ? (int) $rawDoctor
                         : null;
                 if ($blockDoctor !== null && !isset($docs[$blockDoctor])) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Selecione um profissional válido para o bloqueio ou use bloqueio do consultório inteiro.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                if ($blockDoctor === null && !has_effective_role($c, "gerente")) {
-                    flash(
+                if ($blockDoctor === null && !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Bloqueio de todo o consultório exige ambiente Administrativo. Bloqueie apenas a agenda de um profissional ou acione o Administrativo.",
                         "bad",
                     );
@@ -723,17 +723,17 @@ final class AppointmentsRuntimeOperations05
                     strtotime($endAt) <= strtotime($startAt) ||
                     $reason === ""
                 ) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Informe início, fim posterior ao início e motivo do bloqueio.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                $startAt = normalize_db_datetime($startAt);
-                $endAt = normalize_db_datetime($endAt);
+                $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
+                $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
                 $hoursMessage =
                     $blockDoctor !== null
-                        ? doctor_work_hours_conflict_message(
+                        ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_hours_conflict_message(
                             $cid,
                             $blockDoctor,
                             $startAt,
@@ -741,13 +741,13 @@ final class AppointmentsRuntimeOperations05
                         )
                         : "";
                 if ($hoursMessage !== "") {
-                    flash($hoursMessage, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($hoursMessage, "bad");
                     $postRedirect();
                 }
                 try {
-                    db_begin_transaction();
-                    q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $conflict = agenda_conflict_message(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
                         $cid,
                         $blockDoctor,
                         $startAt,
@@ -757,73 +757,73 @@ final class AppointmentsRuntimeOperations05
                         $id,
                     );
                     if ($conflict) {
-                        db_rollback();
-                        flash($conflict, "bad");
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_blocks SET doctor_user_id=?, start_at=?, end_at=?, reason=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                         [$blockDoctor, $startAt, $endAt, $reason, $id, $cid],
                     );
-                    db_commit();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 } catch (Throwable $e) {
-                    if (pdo()->inTransaction()) {
-                        db_rollback();
+                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                     }
                     error_log("[Prontoo agenda block update] " . $e->getMessage());
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Não foi possível alterar o bloqueio. Revise os dados e tente novamente.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                audit("bloqueio_alterado", "bloqueio", $id, $_POST);
-                flash("Bloqueio alterado.");
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_alterado", "bloqueio", $id, $_POST);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio alterado.");
                 $postRedirect();
             }
             if ($act === "delete_block" || $act === "unblock") {
                 $id = (int) ($_POST["id"] ?? 0);
                 $cancelReason = mb_trim((string) ($_POST["cancel_reason"] ?? ""));
                 if ($cancelReason === "") {
-                    flash("Informe o motivo da exclusão do bloqueio.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o motivo da exclusão do bloqueio.", "bad");
                     $postRedirect();
                 }
-                $b = one(
+                $b = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id FROM pi_blocks WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
                     [$id, $cid],
                 );
                 if ($b) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_blocks SET deleted_at=NOW(),deleted_by=?,cancel_reason=?,updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
                         [(int) $c["user"]["id"], $cancelReason, $id, $cid],
                     );
-                    audit("bloqueio_removido", "bloqueio", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_removido", "bloqueio", $id, [
                         "motivo" => $cancelReason,
                     ]);
-                    flash("Bloqueio excluído da agenda e preservado no histórico.");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio excluído da agenda e preservado no histórico.");
                 } else {
-                    flash("Bloqueio não encontrado.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado.", "bad");
                 }
                 $postRedirect();
             }
             if ($act === "update_appointment") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 if (!$a) {
-                    flash("Agendamento não encontrado.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
                 }
-                $guard = appointment_journey_hard_guard_message(
+                $guard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                     $a,
                     "update_appointment",
                     $role,
                     $uid,
                 );
                 if ($guard !== "") {
-                    flash($guard, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                     $postRedirect();
                 }
                 $did = (int) ($_POST["doctor_user_id"] ?? 0);
@@ -831,7 +831,7 @@ final class AppointmentsRuntimeOperations05
                 $endAt = (string) ($_POST["end_at"] ?? "");
                 $patient = (int) ($_POST["patient_link_id"] ?? 0);
                 if (!isset($docs[$did])) {
-                    flash("Selecione um profissional válido.", "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Selecione um profissional válido.", "bad");
                     $postRedirect();
                 }
                 if (
@@ -841,53 +841,53 @@ final class AppointmentsRuntimeOperations05
                     $endAt === "" ||
                     strtotime($endAt) <= strtotime($startAt)
                 ) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Informe paciente da clínica atual, início e fim posterior ao início.",
                         "bad",
                     );
                     $postRedirect();
                 }
                 if (
-                    $blockReason = patient_appointment_registration_block_reason(
+                    $blockReason = \Prontoo\Runtime\Patients\PatientComposition::registrationBlockReason(
                         $cid,
                         $patient,
                     )
                 ) {
-                    flash($blockReason, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($blockReason, "bad");
                     $postRedirect();
                 }
-                $startAt = normalize_db_datetime($startAt);
-                $endAt = normalize_db_datetime($endAt);
-                $hoursMessage = doctor_work_hours_conflict_message(
+                $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
+                $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
+                $hoursMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_hours_conflict_message(
                     $cid,
                     $did,
                     $startAt,
                     $endAt,
                 );
                 if ($hoursMessage !== "") {
-                    flash($hoursMessage, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($hoursMessage, "bad");
                     $postRedirect();
                 }
-                $procId = appointment_procedure_id_from_post($cid);
-                $durationMessage = appointment_min_duration_message(
+                $procId = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_id_from_post($cid);
+                $durationMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_min_duration_message(
                     $cid,
                     $procId,
                     $startAt,
                     $endAt,
                 );
                 if ($durationMessage) {
-                    flash($durationMessage, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($durationMessage, "bad");
                     $postRedirect();
                 }
                 try {
-                    db_begin_transaction();
-                    q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $locked = one(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+                    $locked = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=? FOR UPDATE",
                         [$id, $cid],
                     );
                     $lockedGuard = $locked
-                        ? appointment_journey_hard_guard_message(
+                        ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                             $locked,
                             "update_appointment",
                             $role,
@@ -895,11 +895,11 @@ final class AppointmentsRuntimeOperations05
                         )
                         : "Agendamento não encontrado.";
                     if ($lockedGuard !== "") {
-                        db_rollback();
-                        flash($lockedGuard, "bad");
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($lockedGuard, "bad");
                         $postRedirect();
                     }
-                    $conflict = agenda_conflict_message(
+                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
                         $cid,
                         $did,
                         $startAt,
@@ -909,8 +909,8 @@ final class AppointmentsRuntimeOperations05
                         0,
                     );
                     if ($conflict) {
-                        db_rollback();
-                        flash($conflict, "bad");
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
                         $postRedirect();
                     }
                     [
@@ -919,7 +919,7 @@ final class AppointmentsRuntimeOperations05
                         $amount,
                         $paymentDestination,
                         $paymentError,
-                    ] = appointment_payment_post_context(
+                    ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
                         $cid,
                         $procId,
                         (int) ($a["procedure_id"] ?? 0) === (int) $procId
@@ -927,10 +927,10 @@ final class AppointmentsRuntimeOperations05
                     : 0,
                     );
                     if ($paymentError) {
-                        flash($paymentError, "bad");
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($paymentError, "bad");
                         $postRedirect();
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET patient_link_id=?, doctor_user_id=?, start_at=?, end_at=?, procedure_id=?, reason=?, notes=?, change_reason=?, payment_amount_cents=?, payment_method=?, payment_status=?, payment_confirmed_at=IF(?,COALESCE(payment_confirmed_at,NOW()),NULL), updated_at=NOW() WHERE id=? AND clinic_id=?",
                         [
                             $patient,
@@ -938,7 +938,7 @@ final class AppointmentsRuntimeOperations05
                             $startAt,
                             $endAt,
                             $procId,
-                            procedure_reason_from_post($cid),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_reason_from_post($cid),
                             mb_trim((string) ($_POST["notes"] ?? "")),
                             mb_trim((string) ($_POST["change_reason"] ?? "")),
                             $amount,
@@ -949,19 +949,19 @@ final class AppointmentsRuntimeOperations05
                             $cid,
                         ],
                     );
-                    financial_sync_appointment(
+                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
                         $cid,
                         $id,
                         (int) $c["user"]["id"],
                         $paymentDestination,
                     );
-                    db_commit();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                 } catch (Throwable $e) {
-                    if (pdo()->inTransaction()) {
-                        db_rollback();
+                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                     }
                     error_log("[Prontoo appointment update] " . $e->getMessage());
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         $e instanceof RuntimeException &&
                         trim($e->getMessage()) !== ""
                             ? $e->getMessage()
@@ -970,26 +970,26 @@ final class AppointmentsRuntimeOperations05
                     );
                     $postRedirect();
                 }
-                audit("consulta_alterada", "consulta", $id, $_POST);
-                flash("Agendamento alterado.");
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_alterada", "consulta", $id, $_POST);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento alterado.");
                 $postRedirect();
             }
             if ($act === "delete_appointment") {
                 $id = (int) ($_POST["id"] ?? 0);
                 $cancelReason = mb_trim((string) ($_POST["cancel_reason"] ?? ""));
                 if ($cancelReason === "") {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Informe o motivo da exclusão/cancelamento do agendamento.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                $a = one(
+                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 $guard = $a
-                    ? appointment_journey_hard_guard_message(
+                    ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
                         "delete_appointment",
                         $role,
@@ -997,33 +997,33 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($a && $guard === "") {
-                    $stmt = q(
+                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_appointments SET status='cancelado', cancel_reason=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
                         [$cancelReason, $id, $cid],
                     );
                     if ($stmt->rowCount() <= 0) {
-                        flash(
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
                             "bad",
                         );
                         $postRedirect();
                     }
-                    if (function_exists("financial_cancel_appointment_revenue")) {
-                        financial_cancel_appointment_revenue(
+                    if (is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations05::class, 'financial_cancel_appointment_revenue'])) {
+                        \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_cancel_appointment_revenue(
                             $cid,
                             $id,
                             $uid,
                             $cancelReason,
                         );
                     }
-                    audit("consulta_excluida", "consulta", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_excluida", "consulta", $id, [
                         "motivo" => $cancelReason,
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Agendamento excluído da agenda e preservado como cancelado no histórico.",
                     );
                 } else {
-                    flash($guard, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                 }
                 $postRedirect();
             }
@@ -1032,7 +1032,7 @@ final class AppointmentsRuntimeOperations05
             $endAt = (string) ($_POST["end_at"] ?? "");
             $patient = (int) ($_POST["patient_link_id"] ?? 0);
             if (!isset($docs[$did])) {
-                flash("Selecione um profissional válido.", "bad");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Selecione um profissional válido.", "bad");
                 $postRedirect();
             }
             if (
@@ -1042,37 +1042,37 @@ final class AppointmentsRuntimeOperations05
                 $endAt === "" ||
                 strtotime($endAt) <= strtotime($startAt)
             ) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Informe paciente da clínica atual, início e fim posterior ao início.",
                     "bad",
                 );
                 $postRedirect();
             }
             if (
-                $blockReason = patient_appointment_registration_block_reason(
+                $blockReason = \Prontoo\Runtime\Patients\PatientComposition::registrationBlockReason(
                     $cid,
                     $patient,
                 )
             ) {
-                flash($blockReason, "bad");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($blockReason, "bad");
                 $postRedirect();
             }
-            $startAt = normalize_db_datetime($startAt);
-            $endAt = normalize_db_datetime($endAt);
-            $hoursMessage = doctor_work_hours_conflict_message(
+            $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
+            $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
+            $hoursMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_hours_conflict_message(
                 $cid,
                 $did,
                 $startAt,
                 $endAt,
             );
             if ($hoursMessage !== "") {
-                flash($hoursMessage, "bad");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($hoursMessage, "bad");
                 $postRedirect();
             }
-            $procId = appointment_procedure_id_from_post($cid);
+            $procId = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_id_from_post($cid);
             if ($act === "create" && !$procId) {
-                flash(
-                    procedure_options($cid, true) === []
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_options($cid, true) === []
                         ? "Cadastre Procedimentos primeiro."
                         : "Selecione um procedimento cadastrado.",
                     "bad",
@@ -1081,32 +1081,32 @@ final class AppointmentsRuntimeOperations05
             }
             $appointmentId = 0;
             try {
-                db_begin_transaction();
-                q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                $lockedProcedure = one(
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+                $lockedProcedure = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,title,duration_minutes FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                     [$procId, $cid],
                 );
                 if (!$lockedProcedure) {
-                    db_rollback();
-                    flash(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.",
                         "bad",
                     );
                     $postRedirect();
                 }
-                $durationMessage = appointment_min_duration_message(
+                $durationMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_min_duration_message(
                     $cid,
                     $procId,
                     $startAt,
                     $endAt,
                 );
                 if ($durationMessage) {
-                    db_rollback();
-                    flash($durationMessage, "bad");
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($durationMessage, "bad");
                     $postRedirect();
                 }
-                $conflict = agenda_conflict_message(
+                $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
                     $cid,
                     $did,
                     $startAt,
@@ -1114,8 +1114,8 @@ final class AppointmentsRuntimeOperations05
                     "agendamento",
                 );
                 if ($conflict) {
-                    db_rollback();
-                    flash($conflict, "bad");
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
                     $postRedirect();
                 }
                 [
@@ -1124,12 +1124,12 @@ final class AppointmentsRuntimeOperations05
                     $amount,
                     $paymentDestination,
                     $paymentError,
-                ] = appointment_payment_post_context($cid, $procId, 0);
+                ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context($cid, $procId, 0);
                 if ($paymentError) {
-                    flash($paymentError, "bad");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($paymentError, "bad");
                     $postRedirect();
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_appointments (clinic_id,patient_link_id,doctor_user_id,start_at,end_at,status,procedure_id,reason,notes,payment_amount_cents,payment_method,payment_status,payment_confirmed_at,created_by,created_at) VALUES (?,?,?,?,?,'agendado',?,?,?,?,?,?,IF(?,NOW(),NULL),?,NOW())",
                     [
                         $cid,
@@ -1147,20 +1147,20 @@ final class AppointmentsRuntimeOperations05
                         (int) $c["user"]["id"],
                     ],
                 );
-                $appointmentId = db_last_insert_id();
-                financial_sync_appointment(
+                $appointmentId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
                     $cid,
                     $appointmentId,
                     (int) $c["user"]["id"],
                     $paymentDestination,
                 );
-                db_commit();
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
             } catch (Throwable $e) {
-                if (pdo()->inTransaction()) {
-                    db_rollback();
+                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 error_log("[Prontoo appointment create] " . $e->getMessage());
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $e instanceof RuntimeException && trim($e->getMessage()) !== ""
                         ? $e->getMessage()
                         : "Não foi possível agendar a consulta. Revise os horários e tente novamente.",
@@ -1168,10 +1168,10 @@ final class AppointmentsRuntimeOperations05
                 );
                 $postRedirect();
             }
-            counter_inc("appointments_total");
-            clinic_metric_inc($cid, "appointments");
-            audit("consulta_agendada", "consulta", $appointmentId, $_POST);
-            flash("Consulta agendada.");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("appointments_total");
+            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "appointments");
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_agendada", "consulta", $appointmentId, $_POST);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consulta agendada.");
             $postRedirect();
         }
         $agendaDoctor = $viewDoctor;
@@ -1208,7 +1208,7 @@ final class AppointmentsRuntimeOperations05
         };
         $returnHidden =
             '<input type="hidden" name="return_day" value="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '"><input type="hidden" name="return_doctor" value="' .
             (int) $agendaDoctor .
             '">';
@@ -1225,19 +1225,19 @@ final class AppointmentsRuntimeOperations05
         $operationMode = (string) ($_GET["mode"] ?? "");
         if ($operationMode === "create") {
             if (!in_array($role, ["recepcionista", "gerente"], true)) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Seu cargo não possui operação de Agendamento Rápido.",
                     "bad",
                 );
-                redirect("appointments", $buildParams());
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments", $buildParams());
             }
-            $initialStart = agenda_normalize_local_input(
+            $initialStart = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_normalize_local_input(
                 (string) ($_GET["start"] ?? ""),
                 $day,
                 "08:00",
             );
-            $initialDay = agenda_safe_day_from_local_input($initialStart, $day);
-            $initialEnd = agenda_local_input_add_minutes($initialStart, 30);
+            $initialDay = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_safe_day_from_local_input($initialStart, $day);
+            $initialEnd = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_local_input_add_minutes($initialStart, 30);
             $initialDoctor =
                 (int) ($_GET["doctor_user_id"] ??
                     ($_GET["doctor"] ?? ($selected ?: 0)));
@@ -1253,62 +1253,62 @@ final class AppointmentsRuntimeOperations05
             $doctorHint =
                 $initialDoctor > 0
                     ? (string) ($formDoctorOptions[$initialDoctor] ??
-                        role_label_for("medico", $cid))
-                    : role_label_for("medico", $cid);
+                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid))
+                    : \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid);
             $returnHiddenOperation =
                 '<input type="hidden" name="return_day" value="' .
-                e($initialDay) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialDay) .
                 '"><input type="hidden" name="return_doctor" value="' .
                 (int) $initialDoctor .
                 '">';
             $quickHeader =
                 '<div class="agenda-quick-hero"><span class="agenda-quick-hero-icon" aria-hidden="true">' .
-                icon("event_available") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
                 '</span><div class="agenda-quick-hero-copy"><h2>' .
-                e($createTitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createTitle) .
                 "</h2><p>" .
-                e($createSubtitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createSubtitle) .
                 '</p></div><a class="ghost small agenda-quick-back" href="' .
-                href("appointments", $cancelParams) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Agenda</span></a></div>";
             $quickSummary =
                 '<div class="agenda-quick-summary" aria-label="Resumo do horário inferido"><span>' .
-                icon("calendar_month") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
                 "<b>" .
-                e(date_br($initialDay)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($initialDay)) .
                 "</b><small>Data</small></span><span>" .
-                icon("schedule") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                 "<b>" .
-                e($initialHour . "–" . $initialEndHour) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialHour . "–" . $initialEndHour) .
                 "</b><small>Horário</small></span><span>" .
-                icon("stethoscope") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
                 "<b>" .
-                e($doctorHint) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($doctorHint) .
                 "</b><small>Profissional</small></span></div>";
             $form =
                 '<section class="form-panel agenda-route-form agenda-quick-form-panel">' .
                 $quickHeader .
                 $quickSummary .
                 '<form method="post" class="compact agenda-create-form agenda-quick-form" data-appointment-create-form>' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 $returnHiddenOperation .
                 '<input type="hidden" name="act" value="create"><fieldset class="agenda-quick-section agenda-quick-time"><legend>' .
-                icon("schedule") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                 '<span>Horário</span></legend><div class="agenda-quick-time-grid">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Início",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "start_at",
                         "datetime-local",
                         $initialStart,
                         "required data-appointment-start",
                     ),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Fim",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "end_at",
                         "datetime-local",
                         $initialEnd,
@@ -1316,50 +1316,50 @@ final class AppointmentsRuntimeOperations05
                     ),
                 ) .
                 '</div></fieldset><fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
-                icon("edit_calendar") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
                 '<span>Dados do agendamento</span></legend><div class="agenda-quick-grid">' .
-                select_label(
-                    role_label_for("medico", $cid),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),
                     "doctor_user_id",
                     $formDoctorOptions,
                     $initialDoctor ?: null,
                     "required",
                 ) .
-                select_label(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                     "Paciente",
                     "patient_link_id",
                     $pats,
                     $prePatientId ?: null,
                     "required",
                 ) .
-                procedure_select_html($cid, "reason", "", true) .
+                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
                 "</div></fieldset>" .
-                appointment_payment_form_html($cid) .
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .
                 '<fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
-                icon("notes") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notes") .
                 "<span>Observações</span></legend>" .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Observações importantes",
-                    input("notes", "text", "", 'placeholder="Opcional"'),
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("notes", "text", "", 'placeholder="Opcional"'),
                 ) .
                 '</fieldset><div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
-                href("appointments", $cancelParams) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                 '">' .
-                icon("close") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                 '<span>Desistir</span></a><button type="submit" class="primary">' .
-                icon("event_available") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
                 "<span>Confirmar</span></button></div></form></section>";
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 $createTitle,
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $createTitle,
                     $createSubtitle,
                     '<a class="ghost small cmdlike" href="' .
-                        href("appointments", $cancelParams) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
-                        icon("calendar_view_day") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
                         "<span>Agenda</span></a>",
-                ) . card($form, "agenda-route-card agenda-quick-route-card"),
+                ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form, "agenda-route-card agenda-quick-route-card"),
             );
             return;
         }
@@ -1369,40 +1369,40 @@ final class AppointmentsRuntimeOperations05
                 $noteDay = $day;
             }
             $cancelParams = $buildParams($noteDay, $agendaDoctor);
-            $roleOptions = clinic_role_options($cid, false);
+            $roleOptions = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, false);
             $noteTitle = "Nova Anotação";
             $noteSubtitle =
                 "Registre uma anotação para a data escolhida na Agenda, com visibilidade controlada.";
-            $form = agenda_note_form_html($cid, $noteDay, $c, $roleOptions);
-            page(
+            $form = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations04::agenda_note_form_html($cid, $noteDay, $c, $roleOptions);
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 $noteTitle,
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $noteTitle,
                     $noteSubtitle,
                     '<a class="ghost small cmdlike" href="' .
-                        href("appointments", $cancelParams) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
-                        icon("calendar_view_day") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
                         "<span>Agenda</span></a>",
-                ) . card($form, "agenda-route-card agenda-note-route-card"),
+                ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form, "agenda-route-card agenda-note-route-card"),
             );
             return;
         }
         if ($operationMode === "block") {
             if (!in_array($role, ["recepcionista", "medico", "gerente"], true)) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Seu cargo não possui operação de bloqueio de horário.",
                     "bad",
                 );
-                redirect("appointments", $buildParams());
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments", $buildParams());
             }
-            $initialStart = agenda_normalize_local_input(
+            $initialStart = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_normalize_local_input(
                 (string) ($_GET["start"] ?? ""),
                 $day,
                 "08:00",
             );
-            $initialDay = agenda_safe_day_from_local_input($initialStart, $day);
-            $initialEnd = agenda_local_input_add_minutes($initialStart, 30);
+            $initialDay = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_safe_day_from_local_input($initialStart, $day);
+            $initialEnd = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_local_input_add_minutes($initialStart, 30);
             $initialDoctor =
                 (int) ($_GET["doctor_user_id"] ??
                     ($_GET["doctor"] ?? ($selected ?: 0)));
@@ -1417,7 +1417,7 @@ final class AppointmentsRuntimeOperations05
             $cancelParams = $buildParams($initialDay, $initialDoctor);
             $returnHiddenOperation =
                 '<input type="hidden" name="return_day" value="' .
-                e($initialDay) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialDay) .
                 '"><input type="hidden" name="return_doctor" value="' .
                 (int) $initialDoctor .
                 '">';
@@ -1429,67 +1429,67 @@ final class AppointmentsRuntimeOperations05
             $blockDoctorHint =
                 $initialDoctor > 0
                     ? (string) ($formDoctorOptions[$initialDoctor] ??
-                        role_label_for("medico", $cid))
+                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid))
                     : "Todo consultório";
             $blockHeader =
                 '<div class="agenda-quick-hero agenda-block-hero"><span class="agenda-quick-hero-icon" aria-hidden="true">' .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 '</span><div class="agenda-quick-hero-copy"><h2>' .
-                e($blockTitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($blockTitle) .
                 "</h2><p>" .
-                e($blockSubtitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($blockSubtitle) .
                 '</p></div><a class="ghost small agenda-quick-back" href="' .
-                href("appointments", $cancelParams) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Agenda</span></a></div>";
             $blockSummary =
                 '<div class="agenda-quick-summary agenda-block-summary" aria-label="Resumo do bloqueio"><span>' .
-                icon("calendar_month") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
                 "<b>" .
-                e(date_br($initialDay)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($initialDay)) .
                 "</b><small>Data</small></span><span>" .
-                icon("schedule") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                 "<b>" .
-                e($initialHour . "–" . $initialEndHour) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialHour . "–" . $initialEndHour) .
                 "</b><small>Horário</small></span><span>" .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "<b>" .
-                e($blockDoctorHint) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($blockDoctorHint) .
                 "</b><small>Escopo</small></span></div>";
             $form =
                 '<section class="form-panel agenda-route-form agenda-block-form-panel">' .
                 $blockHeader .
                 $blockSummary .
                 '<form method="post" class="compact agenda-block-form agenda-quick-form agenda-structured-form">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 $returnHiddenOperation .
                 '<input type="hidden" name="act" value="block"><fieldset class="agenda-quick-section agenda-block-scope"><legend>' .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "<span>Escopo</span></legend>" .
-                select_label(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                     "Agenda bloqueada",
                     "doctor_user_id",
                     $blockOptions,
                     $blockDefault,
                 ) .
                 '</fieldset><fieldset class="agenda-quick-section agenda-quick-time"><legend>' .
-                icon("schedule") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                 '<span>Horário</span></legend><div class="agenda-quick-time-grid">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Início",
-                    input("start_at", "datetime-local", $initialStart, "required"),
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("start_at", "datetime-local", $initialStart, "required"),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Fim",
-                    input("end_at", "datetime-local", $initialEnd, "required"),
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("end_at", "datetime-local", $initialEnd, "required"),
                 ) .
                 '</div></fieldset><fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
-                icon("notes") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notes") .
                 "<span>Motivo</span></legend>" .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Motivo do bloqueio",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "reason",
                         "text",
                         "",
@@ -1497,23 +1497,23 @@ final class AppointmentsRuntimeOperations05
                     ),
                 ) .
                 '</fieldset><div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
-                href("appointments", $cancelParams) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                 '">' .
-                icon("close") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                 '<span>Desistir</span></a><button type="submit" class="primary">' .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "<span>Salvar bloqueio</span></button></div></form></section>";
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 $blockTitle,
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $blockTitle,
                     $blockSubtitle,
                     '<a class="ghost small cmdlike" href="' .
-                        href("appointments", $cancelParams) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
-                        icon("calendar_view_day") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
                         "<span>Agenda</span></a>",
-                ) . card($form, "agenda-route-card agenda-block-route-card"),
+                ) . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form, "agenda-route-card agenda-block-route-card"),
             );
             return;
         }
@@ -1521,39 +1521,39 @@ final class AppointmentsRuntimeOperations05
         if (in_array($role, ["recepcionista", "gerente"], true)) {
             $headActions .=
                 '<a class="primary small cmdlike" href="' .
-                href("appointments", $buildParams() + ["mode" => "create"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $buildParams() + ["mode" => "create"]) .
                 '">' .
-                icon("event_available") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
                 "<span>Agendar consulta</span></a>";
         }
         if (in_array($role, ["recepcionista", "medico", "gerente"], true)) {
             $headActions .=
                 '<a class="ghost small cmdlike" href="' .
-                href("appointments", $buildParams() + ["mode" => "block"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $buildParams() + ["mode" => "block"]) .
                 '">' .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "<span>Bloquear horário</span></a>";
         }
         $headActions .=
             '<a class="ghost small cmdlike" href="' .
-            href(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
                 $buildParams() + ["mode" => "note", "note_date" => $day],
             ) .
             '">' .
-            icon("sticky_note_2") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
             "<span>Anotação</span></a>";
         if ($role === "assistente") {
             $headActions .=
                 '<a class="ghost small" href="' .
-                href("tasks") .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks") .
                 '">' .
-                icon("task_alt") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("task_alt") .
                 "<span>Tarefas da triagem</span></a>";
         }
         $prev = date("Y-m-d", strtotime($day . " -1 day"));
         $next = date("Y-m-d", strtotime($day . " +1 day"));
-        [$dayStart, $dayEnd] = app_local_day_utc_range($day, $cid, $c);
+        [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid, $c);
         $rowSql =
             "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,notes,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_status,payment_method,payment_amount_cents,payment_confirmed_at,revenue_id FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
         $rowParams = [$cid, $dayStart, $dayEnd];
@@ -1562,7 +1562,7 @@ final class AppointmentsRuntimeOperations05
             $rowParams[] = $agendaDoctor;
         }
         $rowSql .= " ORDER BY start_at ASC LIMIT 180";
-        $rows = q($rowSql, $rowParams)->fetchAll();
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($rowSql, $rowParams)->fetchAll();
         $blockSql =
             "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at<? AND end_at>?";
         $blockParams = [$cid, $dayEnd, $dayStart];
@@ -1571,59 +1571,59 @@ final class AppointmentsRuntimeOperations05
             $blockParams[] = $agendaDoctor;
         }
         $blockSql .= " ORDER BY start_at ASC LIMIT 100";
-        $blocks = q($blockSql, $blockParams)->fetchAll();
-        $patientLinks = scoped_patient_map(
+        $blocks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($blockSql, $blockParams)->fetchAll();
+        $patientLinks = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map(
             $cid,
-            int_ids($rows, "patient_link_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "patient_link_id"),
             "id,person_id",
         );
-        $persons = fetch_map(
+        $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "pi_persons",
-            int_ids(array_values($patientLinks), "person_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids(array_values($patientLinks), "person_id"),
             "id,full_name",
         );
         $doctorIds = array_values(
             array_unique(
                 array_merge(
-                    int_ids($rows, "doctor_user_id"),
-                    int_ids($blocks, "doctor_user_id"),
+                    \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "doctor_user_id"),
+                    \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($blocks, "doctor_user_id"),
                 ),
             ),
         );
-        $doctorMap = scoped_user_map($cid, $doctorIds, "id,name");
-        $creators = scoped_user_map(
+        $doctorMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map($cid, $doctorIds, "id,name");
+        $creators = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
             $cid,
-            int_ids($blocks, "created_by"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($blocks, "created_by"),
             "id,name",
         );
         $nowTs = time();
         $isDone = function (array $a): bool {
     
             return in_array(
-                appointment_status_code($a),
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a),
                 ["atendimento_concluido", "finalizado"],
                 true,
             );
         };
         $isStarted = function (array $a) use ($isDone): bool {
     
-            return !$isDone($a) && appointment_status_code($a) === "em_atendimento";
+            return !$isDone($a) && \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a) === "em_atendimento";
         };
         $isArrived = function (array $a) use ($isDone, $isStarted): bool {
     
             return !$isDone($a) &&
                 !$isStarted($a) &&
                 in_array(
-                    appointment_status_code($a),
+                    \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a),
                     ["chegou", "em_preparo", "pronto_atendimento"],
                     true,
                 );
         };
         $isLate = function (array $a) use ($nowTs): bool {
     
-            $start = app_storage_timestamp($a["start_at"] ?? "") ?: 0;
+            $start = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($a["start_at"] ?? "") ?: 0;
             return in_array(
-                appointment_status_code($a),
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_status_code($a),
                 ["agendado", "confirmado"],
                 true,
             ) &&
@@ -1632,7 +1632,7 @@ final class AppointmentsRuntimeOperations05
         };
         $statusMeta = function (array $a) use ($role): array {
     
-            $m = appointment_journey_meta($a, $role);
+            $m = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_meta($a, $role);
             return [$m["label"], $m["class"], $m["icon"]];
         };
         $patientName = function (array $a) use ($patientLinks, $persons): string {
@@ -1657,7 +1657,7 @@ final class AppointmentsRuntimeOperations05
     
             $pid = (int) ($r["patient_link_id"] ?? 0);
             $id = (int) ($r["id"] ?? 0);
-            $journeyActions = appointment_journey_role_actions(
+            $journeyActions = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_role_actions(
                 $r,
                 $role,
                 null,
@@ -1681,42 +1681,42 @@ final class AppointmentsRuntimeOperations05
                         '<form method="post" class="agenda-row-action-form"' .
                         $confirm .
                         ">" .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         $returnHidden .
                         '<input type="hidden" name="act" value="' .
-                        e($realAct) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($realAct) .
                         '"><input type="hidden" name="id" value="' .
                         $id .
                         '">' .
                         $extra .
                         '<button type="submit" class="' .
-                        e($class) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
                         ' small">' .
-                        icon((string) $act["icon"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) $act["icon"]) .
                         "<span>" .
-                        e((string) $act["label"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $act["label"]) .
                         "</span></button></form>";
                 }
             }
             if ($mode === "quick") {
                 if ($quickItems === "") {
                     return '<button type="button" class="ghost small cmdlike agenda-row-actions-disabled" data-agenda-row-actions disabled aria-disabled="true">' .
-                        icon("bolt") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bolt") .
                         "<span>Ações</span></button>";
                 }
                 $modalId = "agenda-actions-modal-" . $id;
                 return '<span class="agenda-row-actions-wrap" data-agenda-row-actions><button type="button" class="ghost small cmdlike agenda-row-actions-open" data-agenda-actions-open="' .
-                    e($modalId) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modalId) .
                     '" aria-haspopup="dialog" aria-controls="' .
-                    e($modalId) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modalId) .
                     '">' .
-                    icon("bolt") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bolt") .
                     '<span>Ações</span></button><dialog class="agenda-actions-modal" id="' .
-                    e($modalId) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modalId) .
                     '" data-agenda-actions-modal aria-label="Ações do atendimento"><div class="agenda-actions-modal-card"><header class="agenda-actions-modal-head"><span>' .
-                    icon("bolt") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bolt") .
                     '<b>Ações</b></span><button type="button" class="icon-btn" data-agenda-actions-close aria-label="Fechar ações">' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     '</button></header><div class="agenda-actions-modal-list">' .
                     $quickItems .
                     "</div></div></dialog></span>";
@@ -1742,32 +1742,32 @@ final class AppointmentsRuntimeOperations05
                         '<form method="post" class="agenda-action-item agenda-action-item-form"' .
                         $confirm .
                         ">" .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         $returnHidden .
                         '<input type="hidden" name="act" value="' .
-                        e($realAct) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($realAct) .
                         '"><input type="hidden" name="id" value="' .
                         $id .
                         '">' .
                         $extra .
                         '<button type="submit" class="' .
-                        e($class) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
                         ' small">' .
-                        icon((string) $act["icon"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon((string) $act["icon"]) .
                         "<span>" .
-                        e((string) $act["label"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $act["label"]) .
                         "</span></button><small>" .
-                        e($title) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                         "</small></form>";
                 }
                 $journeyHtml .= "</div></div>";
             } else {
-                $vm = appointment_journey_view_model($r, $role);
+                $vm = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations02::appointment_journey_view_model($r, $role);
                 $journeyHtml =
                     '<div class="agenda-action-section agenda-action-section-journey"><span class="agenda-action-section-title">Jornada do paciente</span><div class="agenda-action-empty">' .
-                    icon("info") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("info") .
                     "<span>" .
-                    e(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                         (string) ($vm["action"] ??
                             "Nenhuma ação da jornada para este cargo agora."),
                     ) .
@@ -1778,18 +1778,18 @@ final class AppointmentsRuntimeOperations05
             if ($pid > 0) {
                 $secondaryItems .=
                     '<a class="agenda-action-item agenda-action-link" href="' .
-                    href("patient", ["id" => $pid]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => $pid]) .
                     '">' .
-                    icon("folder_open") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("folder_open") .
                     "<span>Abrir ficha</span></a>";
             }
-            $editGuard = appointment_journey_hard_guard_message(
+            $editGuard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                 $r,
                 "edit",
                 $role,
                 $uid,
             );
-            $cancelGuard = appointment_journey_hard_guard_message(
+            $cancelGuard = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                 $r,
                 "cancel",
                 $role,
@@ -1798,63 +1798,63 @@ final class AppointmentsRuntimeOperations05
             if ($editGuard === "") {
                 $editForm =
                     '<form method="post" class="agenda-edit-form agenda-edit-form-nested">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     $returnHidden .
                     '<input type="hidden" name="act" value="update_appointment"><input type="hidden" name="id" value="' .
                     $id .
                     '">' .
-                    select_label(
-                        role_label_for("medico", $cid),
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
+                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),
                         "doctor_user_id",
                         $docs,
                         (int) $r["doctor_user_id"],
                         "required",
                     ) .
-                    select_label(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                         "Paciente",
                         "patient_link_id",
                         $pats,
                         (int) $r["patient_link_id"],
                         "required",
                     ) .
-                    procedure_select_html(
+                    \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html(
                         $cid,
                         "reason",
                         (string) ($r["reason"] ?? ""),
                     ) .
                     '<div class="two">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Início",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "start_at",
                             "datetime-local",
-                            datetime_local_value((string) $r["start_at"]),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::datetime_local_value((string) $r["start_at"]),
                             "required",
                         ),
                     ) .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Fim",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "end_at",
                             "datetime-local",
-                            datetime_local_value((string) $r["end_at"]),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::datetime_local_value((string) $r["end_at"]),
                             "required",
                         ),
                     ) .
                     "</div>" .
-                    appointment_payment_form_html($cid, $r) .
-                    form_row(
+                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid, $r) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Motivo da alteração",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "change_reason",
                             "text",
                             "",
                             'placeholder="Ex.: remarcação solicitada, ajuste administrativo"',
                         ),
                     ) .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Notas",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "notes",
                             "text",
                             (string) ($r["notes"] ?? ""),
@@ -1862,18 +1862,18 @@ final class AppointmentsRuntimeOperations05
                         ),
                     ) .
                     '<div class="form-actions"><button type="submit" class="primary small">' .
-                    icon("edit_calendar") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
                     "<span>Salvar edição</span></button></div></form>";
                 $deleteForm =
                     '<form method="post" class="agenda-delete-form compact agenda-delete-form-nested">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     $returnHidden .
                     '<input type="hidden" name="act" value="delete_appointment"><input type="hidden" name="id" value="' .
                     $id .
                     '">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Motivo da exclusão",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "cancel_reason",
                             "text",
                             "",
@@ -1881,36 +1881,36 @@ final class AppointmentsRuntimeOperations05
                         ),
                     ) .
                     '<button type="submit" class="danger small">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Cancelar</span></button></form>";
                 $secondaryItems .=
                     '<details class="agenda-action-disclosure"><summary class="agenda-action-item agenda-action-link">' .
-                    icon("edit_calendar") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
                     "<span>Editar</span></summary>" .
                     $editForm .
                     "</details>";
             } elseif (
-                appointment_journey_role_matches($role, "recepcionista") ||
-                appointment_journey_role_matches($role, "gerente")
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "recepcionista") ||
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "gerente")
             ) {
                 $secondaryItems .=
                     '<span class="agenda-action-item agenda-action-disabled" title="' .
-                    e($editGuard) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($editGuard) .
                     '">' .
-                    icon("edit_calendar") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
                     "<span>Editar bloqueado</span></span>";
             }
             if ($cancelGuard === "") {
                 $deleteForm =
                     '<form method="post" class="agenda-delete-form compact agenda-delete-form-nested">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     $returnHidden .
                     '<input type="hidden" name="act" value="delete_appointment"><input type="hidden" name="id" value="' .
                     $id .
                     '">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Motivo da exclusão",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "cancel_reason",
                             "text",
                             "",
@@ -1918,23 +1918,23 @@ final class AppointmentsRuntimeOperations05
                         ),
                     ) .
                     '<button type="submit" class="danger small">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Cancelar</span></button></form>";
                 $secondaryItems .=
                     '<details class="agenda-action-disclosure"><summary class="agenda-action-item agenda-action-link danger-link">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Cancelar</span></summary>" .
                     $deleteForm .
                     "</details>";
             } elseif (
-                appointment_journey_role_matches($role, "recepcionista") ||
-                appointment_journey_role_matches($role, "gerente")
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "recepcionista") ||
+                \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::appointment_journey_role_matches($role, "gerente")
             ) {
                 $secondaryItems .=
                     '<span class="agenda-action-item agenda-action-disabled" title="' .
-                    e($cancelGuard) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($cancelGuard) .
                     '">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Cancelar bloqueado</span></span>";
             }
             if ($secondaryItems !== "") {
@@ -1960,7 +1960,7 @@ final class AppointmentsRuntimeOperations05
                     "</div>";
             }
             return '<details class="agenda-item-actions compact-actions agenda-journey-actions"><summary class="ghost small cmdlike">' .
-                icon("more_horiz") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("more_horiz") .
                 '<span>Ações</span></summary><div class="agenda-action-panel agenda-action-panel-journey">' .
                 $panel .
                 "</div></details>";
@@ -1975,20 +1975,20 @@ final class AppointmentsRuntimeOperations05
             $cid,
         ): string {
     
-            $startTs = app_storage_timestamp($r["start_at"]);
-            $endTs = app_storage_timestamp($r["end_at"]);
+            $startTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($r["start_at"]);
+            $endTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($r["end_at"]);
             [$label, $class, $ico] = $statusMeta($r);
             $doctor = $doctorMap[(int) ($r["doctor_user_id"] ?? 0)]["name"] ?? "";
             $patient = $patientName($r);
             $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
             $period =
-                app_time_br((string) $r["start_at"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["start_at"]) .
                 "–" .
-                app_time_br((string) $r["end_at"]);
-            $timeLabel = app_time_br((string) $r["start_at"]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["end_at"]);
+            $timeLabel = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["start_at"]);
             $meta = trim(
                 ($doctor !== ""
-                    ? first_name($doctor)
+                    ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($doctor)
                     : "Profissional não definido") .
                     " · " .
                     $reason,
@@ -1999,30 +1999,30 @@ final class AppointmentsRuntimeOperations05
             $financialHtml = function_exists(
                 "financial_appointment_operational_chip_html",
             )
-                ? financial_appointment_operational_chip_html($cid, $r, $role)
+                ? \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_appointment_operational_chip_html($cid, $r, $role)
                 : "";
             return '<article class="agenda-profile-row agenda-profile-row-' .
                 $class .
                 ' journey-row agenda-row-toggle" data-agenda-row><div class="agenda-row-summary" data-agenda-row-summary role="button" tabindex="0" aria-expanded="false" title="Abrir jornada"><span class="agenda-profile-time" title="' .
-                e($period) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
                 '">' .
-                e($timeLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($timeLabel) .
                 '</span><span class="agenda-profile-main agenda-profile-main-compact"><strong>' .
-                e($patient) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($patient) .
                 "</strong><small>" .
-                e($meta) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($meta) .
                 '</small></span><span class="pill ' .
                 $class .
                 '">' .
-                icon($ico) .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span>" .
                 $financialHtml .
                 $quickActions .
                 '<button type="button" class="agenda-row-chevron" data-agenda-row-toggle aria-label="Expandir ou recolher agendamento">' .
-                icon("expand_more") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("expand_more") .
                 '</button></div><div class="agenda-row-expanded" data-agenda-row-expanded hidden>' .
-                appointment_journey_measure_html($r, $role, "") .
+                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::appointment_journey_measure_html($r, $role, "") .
                 $secondaryActions .
                 "</div></article>";
         };
@@ -2036,24 +2036,24 @@ final class AppointmentsRuntimeOperations05
             $cid,
         ): string {
     
-            $startTs = app_storage_timestamp($b["start_at"]);
-            $endTs = app_storage_timestamp($b["end_at"]);
+            $startTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($b["start_at"]);
+            $endTs = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($b["end_at"]);
             $blockDoctor = !empty($b["doctor_user_id"])
                 ? (int) $b["doctor_user_id"]
                 : null;
             $doctorLabel = $blockDoctor
                 ? "Agenda de " .
-                    first_name(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
                         $doctorMap[$blockDoctor]["name"] ??
-                            agenda_doctor_name($cid, $blockDoctor),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_doctor_name($cid, $blockDoctor),
                     )
                 : "Todo consultório";
             $creator = $creators[(int) ($b["created_by"] ?? 0)]["name"] ?? "";
             $period =
-                app_time_br((string) $b["start_at"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["start_at"]) .
                 "–" .
-                app_time_br((string) $b["end_at"]);
-            $timeLabel = app_time_br((string) $b["start_at"]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["end_at"]);
+            $timeLabel = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["start_at"]);
             $canManage =
                 $role === "gerente" || (int) ($b["created_by"] ?? 0) === $uid;
             $actions = "";
@@ -2064,56 +2064,56 @@ final class AppointmentsRuntimeOperations05
                         : $docs;
                 $editForm =
                     '<form method="post" class="agenda-edit-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     $returnHidden .
                     '<input type="hidden" name="act" value="update_block"><input type="hidden" name="id" value="' .
                     (int) $b["id"] .
                     '">' .
-                    select_label(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                         "Agenda bloqueada",
                         "doctor_user_id",
                         $blockOptions,
                         $blockDoctor,
                     ) .
                     '<div class="two">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Início",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "start_at",
                             "datetime-local",
-                            datetime_local_value((string) $b["start_at"]),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::datetime_local_value((string) $b["start_at"]),
                             "required",
                         ),
                     ) .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Fim",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "end_at",
                             "datetime-local",
-                            datetime_local_value((string) $b["end_at"]),
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::datetime_local_value((string) $b["end_at"]),
                             "required",
                         ),
                     ) .
                     "</div>" .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Motivo",
-                        input("reason", "text", (string) $b["reason"], "required"),
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("reason", "text", (string) $b["reason"], "required"),
                     ) .
                     '<div class="form-actions"><button type="button" class="ghost small" data-close-panel>' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     '<span>Fechar</span></button><button type="submit" class="primary small">' .
-                    icon("edit_calendar") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
                     "<span>Alterar</span></button></div></form>";
                 $deleteForm =
                     '<form method="post" class="agenda-delete-form compact">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     $returnHidden .
                     '<input type="hidden" name="act" value="delete_block"><input type="hidden" name="id" value="' .
                     (int) $b["id"] .
                     '">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Motivo da exclusão",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "cancel_reason",
                             "text",
                             "",
@@ -2121,34 +2121,34 @@ final class AppointmentsRuntimeOperations05
                         ),
                     ) .
                     '<button type="submit" class="danger small">' .
-                    icon("delete") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Remover bloqueio</span></button></form>";
                 $actions =
                     '<details class="agenda-item-actions compact-actions"><summary class="ghost small cmdlike">' .
-                    icon("more_horiz") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("more_horiz") .
                     '<span>Ações</span></summary><div class="agenda-action-panel"><div class="agenda-action-title">Ações do bloqueio</div>' .
                     $editForm .
                     $deleteForm .
                     "</div></details>";
             }
             return '<article class="agenda-profile-row agenda-profile-row-block"><span class="agenda-profile-time" title="' .
-                e($period) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
                 '">' .
-                e($timeLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($timeLabel) .
                 '</span><span class="agenda-profile-main"><strong>Horário bloqueado</strong><small>' .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     trim(
                         $doctorLabel .
                             " · " .
                             (string) $b["reason"] .
                             ($creator !== ""
-                                ? " · por " . first_name($creator)
+                                ? " · por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($creator)
                                 : ""),
                         " ·",
                     ),
                 ) .
                 '</small></span><span class="pill bad">' .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "Bloqueio</span>" .
                 $actions .
                 "</article>";
@@ -2161,7 +2161,7 @@ final class AppointmentsRuntimeOperations05
         $upcoming = 0;
         $nextAppt = null;
         foreach ($rows as $a) {
-            $start = app_storage_timestamp($a["start_at"]) ?: 0;
+            $start = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($a["start_at"]) ?: 0;
             if ($isDone($a)) {
                 $done++;
             } elseif ($isStarted($a)) {
@@ -2181,18 +2181,18 @@ final class AppointmentsRuntimeOperations05
         $freeSlots = [];
         $workRanges = [];
         if ($agendaDoctor > 0) {
-            $workRanges = doctor_work_ranges_for_day($cid, $agendaDoctor, $day);
+            $workRanges = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $agendaDoctor, $day);
             $busy = [];
             foreach ($rows as $a) {
                 $busy[] = [
-                    app_storage_timestamp($a["start_at"]) ?: 0,
-                    app_storage_timestamp($a["end_at"]) ?: 0,
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($a["start_at"]) ?: 0,
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($a["end_at"]) ?: 0,
                 ];
             }
             foreach ($blocks as $b) {
                 $busy[] = [
-                    app_storage_timestamp($b["start_at"]) ?: 0,
-                    app_storage_timestamp($b["end_at"]) ?: 0,
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($b["start_at"]) ?: 0,
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp($b["end_at"]) ?: 0,
                 ];
             }
             foreach ($workRanges as $range) {
@@ -2216,15 +2216,15 @@ final class AppointmentsRuntimeOperations05
         }
         $localTs = function (string $dt) use ($cid): int {
     
-            $d = app_db_utc_to_local($dt, $cid);
+            $d = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($dt, $cid);
             return $d ? $d->getTimestamp() : (strtotime($dt) ?: 0);
         };
-        $nextLabel = $nextAppt ? app_time_br((string) $nextAppt["start_at"]) : "—";
+        $nextLabel = $nextAppt ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $nextAppt["start_at"]) : "—";
         $workRanges =
             $agendaDoctor > 0
-                ? doctor_work_ranges_for_day($cid, $agendaDoctor, $day)
+                ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $agendaDoctor, $day)
                 : [];
-        $zone = new DateTimeZone(app_context_timezone(null, $cid));
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $cid));
         $fmtLocal = function (int $ts) use ($zone): string {
     
             return new DateTimeImmutable("@" . $ts)
@@ -2302,17 +2302,17 @@ final class AppointmentsRuntimeOperations05
         ): string {
     
             return '<article class="agenda-floating-card agenda-floating-card-' .
-                e($kind) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($kind) .
                 '" aria-label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 ": " .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '"><span class="agenda-floating-icon" aria-hidden="true">' .
-                icon($icon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
                 '</span><div class="agenda-floating-copy"><b>' .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '</b><span class="agenda-floating-label">' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span></div></article>";
         };
         $floating =
@@ -2339,28 +2339,28 @@ final class AppointmentsRuntimeOperations05
                 $slotParams["start"] = $slotStart;
                 $slotRows .=
                     '<a class="' .
-                    e($slotClass) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotClass) .
                     '" href="' .
-                    href("appointments", $slotParams) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $slotParams) .
                     '" style="--slot-index:' .
                     $i .
                     '" data-agenda-slot="1" data-start="' .
-                    e($slotStart) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotStart) .
                     '" aria-label="Cadastrar agendamento às ' .
-                    e($fmtLocal($ts)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                     '"><span>' .
-                    e($fmtLocal($ts)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                     "</span></a>";
             } else {
                 $slotRows .=
                     '<div class="' .
-                    e($slotClass) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotClass) .
                     '" style="--slot-index:' .
                     $i .
                     '" data-agenda-slot="1" data-start="' .
-                    e($slotStart) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotStart) .
                     '"><span>' .
-                    e($fmtLocal($ts)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                     "</span></div>";
             }
         }
@@ -2383,9 +2383,9 @@ final class AppointmentsRuntimeOperations05
             $doctor = $doctorMap[(int) ($r["doctor_user_id"] ?? 0)]["name"] ?? "";
             $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
             $period =
-                app_time_br((string) $r["start_at"]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["start_at"]) .
                 "–" .
-                app_time_br((string) $r["end_at"]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["end_at"]);
             $eventHtml .=
                 '<article class="agenda-day-event agenda-day-event-' .
                 $class .
@@ -2394,24 +2394,24 @@ final class AppointmentsRuntimeOperations05
                 ";--event-height:" .
                 $height .
                 '" title="' .
-                e($period . " · " . $patient) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period . " · " . $patient) .
                 '">' .
                 '<span class="agenda-day-event-time">' .
-                e($period) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
                 "</span><strong>" .
-                e($patient) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($patient) .
                 "</strong><small>" .
-                e(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                     trim(
-                        ($doctor !== "" ? first_name($doctor) : "Profissional") .
+                        ($doctor !== "" ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($doctor) : "Profissional") .
                             " · " .
                             $reason,
                         " ·",
                     ),
                 ) .
                 "</small><em>" .
-                icon($ico) .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</em></article>";
         }
         foreach ($blocks as $b) {
@@ -2433,24 +2433,24 @@ final class AppointmentsRuntimeOperations05
                 ";--event-height:" .
                 $height .
                 '" title="' .
-                e((string) $b["reason"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b["reason"]) .
                 '">' .
                 '<span class="agenda-day-event-time">' .
-                e(
-                    app_time_br((string) $b["start_at"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["start_at"]) .
                         "–" .
-                        app_time_br((string) $b["end_at"]),
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["end_at"]),
                 ) .
                 "</span><strong>Bloqueado</strong><small>" .
-                e((string) $b["reason"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b["reason"]) .
                 "</small><em>" .
-                icon("event_busy") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "Bloqueio</em></article>";
         }
         if ($eventHtml === "") {
             $eventHtml =
                 '<div class="agenda-day-empty agenda-day-empty-icon" role="img" aria-label="Sem agendamentos no expediente" title="Sem agendamentos no expediente">' .
-                icon("no_sim") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("no_sim") .
                 "</div>";
         }
         $doctorFilter = "";
@@ -2468,53 +2468,53 @@ final class AppointmentsRuntimeOperations05
             if ($role === "medico" && (int) $id !== $uid) {
                 continue;
             }
-            $label = agenda_crown_label_for_view($agendaView, $day, (string) $name);
+            $label = \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::agenda_crown_label_for_view($agendaView, $day, (string) $name);
             $navDoctorOptions .=
                 '<option value="' .
                 (int) $id .
                 '" ' .
                 ((int) $id === $agendaDoctor ? "selected" : "") .
                 ">" .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</option>";
         }
         $navDay =
             '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
             '<input type="hidden" name="r" value="appointments">' .
             '<input type="hidden" name="d" value="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '">' .
             ($agendaView !== "diario"
-                ? '<input type="hidden" name="view" value="' . e($agendaView) . '">'
+                ? '<input type="hidden" name="view" value="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($agendaView) . '">'
                 : "") .
             '<a class="agenda-crown-arrow" href="' .
-            href(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
                 $buildParams($navPrev, $agendaDoctor, $agendaView),
             ) .
             '" aria-label="Voltar">' .
-            icon("chevron_left") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("chevron_left") .
             "</a>" .
             '<select name="doctor" onchange="this.form.submit()" aria-label="Dia e profissional">' .
             $navDoctorOptions .
             "</select>" .
             '<a class="agenda-crown-arrow" href="' .
-            href(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
                 $buildParams($navNext, $agendaDoctor, $agendaView),
             ) .
             '" aria-label="Avançar">' .
-            icon("chevron_right") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("chevron_right") .
             "</a>" .
             "</form>";
         $title = "Agenda";
         $subtitle = "";
-        $agendaCreateUrl = href(
+        $agendaCreateUrl = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
             "appointments",
             $buildParams($day, $agendaDoctor, "diario") + ["mode" => "create"],
         );
-        $agendaDayNote = agenda_note_card_html(
-            agenda_note_visible_for_day($cid, $day, $c),
+        $agendaDayNote = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_note_card_html(
+            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_note_visible_for_day($cid, $day, $c),
             $c,
         );
         $agendaDay =
@@ -2522,15 +2522,15 @@ final class AppointmentsRuntimeOperations05
             '<section class="agenda-day-shell agenda-crown-shell" style="--agenda-slots:' .
             $slotCount .
             ';--agenda-day-date:\'' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '\'" data-agenda-day="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '" data-slot-minutes="' .
             $slotMinutes .
             '" data-work-start="' .
-            e($fmtLocal($workStartTs)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($workStartTs)) .
             '" data-work-end="' .
-            e($fmtLocal($workEndTs)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($workEndTs)) .
             '">' .
             $floating .
             '<div class="agenda-day-scale" aria-hidden="true">' .
@@ -2538,11 +2538,11 @@ final class AppointmentsRuntimeOperations05
             '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .
             $slotMinutes .
             '" data-day="' .
-            e($day) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
             '" data-work-start="' .
-            e($fmtLocal($workStartTs)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($workStartTs)) .
             '" data-agenda-create-url="' .
-            e($agendaCreateUrl) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($agendaCreateUrl) .
             '">' .
             $eventHtml .
             "</div></section>";
@@ -2557,21 +2557,21 @@ final class AppointmentsRuntimeOperations05
             '<section class="agenda-summary-view">' .
             $floating .
             '<div class="agenda-summary-grid"><article class="agenda-summary-card">' .
-            icon("event_available") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
             "<b>" .
-            n($total) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($total) .
             '</b><span>consultas no dia</span></article><article class="agenda-summary-card">' .
-            icon("how_to_reg") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("how_to_reg") .
             "<b>" .
-            n($arrived) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($arrived) .
             '</b><span>chegaram</span></article><article class="agenda-summary-card">' .
-            icon("stethoscope") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
             "<b>" .
-            n($started) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($started) .
             '</b><span>em atendimento</span></article><article class="agenda-summary-card">' .
-            icon("task_alt") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("task_alt") .
             "<b>" .
-            n($done) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($done) .
             '</b><span>finalizadas</span></article></div><div class="agenda-summary-list agenda-day-vertical-timeline">' .
             ($renderRows !== ""
                 ? $renderRows
@@ -2597,9 +2597,9 @@ final class AppointmentsRuntimeOperations05
     
             $ranges =
                 $agendaDoctor > 0
-                    ? doctor_work_ranges_for_day($cid, $agendaDoctor, $renderDay)
+                    ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $agendaDoctor, $renderDay)
                     : [];
-            $zone = new DateTimeZone(app_context_timezone(null, $cid));
+            $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone(null, $cid));
             if (!$ranges) {
                 $fallbackStart = new DateTimeImmutable(
                     $renderDay . " 08:00:00",
@@ -2627,28 +2627,28 @@ final class AppointmentsRuntimeOperations05
                     $slotParams["start"] = $slotStart;
                     $slotRows .=
                         '<a class="' .
-                        e($slotClass) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotClass) .
                         '" href="' .
-                        href("appointments", $slotParams) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $slotParams) .
                         '" style="--slot-index:' .
                         $i .
                         '" data-agenda-slot="1" data-start="' .
-                        e($slotStart) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotStart) .
                         '" aria-label="Cadastrar agendamento às ' .
-                        e($fmtLocal($ts)) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                         '"><span>' .
-                        e($fmtLocal($ts)) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                         "</span></a>";
                 } else {
                     $slotRows .=
                         '<div class="' .
-                        e($slotClass) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotClass) .
                         '" style="--slot-index:' .
                         $i .
                         '" data-agenda-slot="1" data-start="' .
-                        e($slotStart) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($slotStart) .
                         '"><span>' .
-                        e($fmtLocal($ts)) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($ts)) .
                         "</span></div>";
                 }
             }
@@ -2681,9 +2681,9 @@ final class AppointmentsRuntimeOperations05
                     "";
                 $reason = mb_trim((string) ($r["reason"] ?? "")) ?: "Consulta";
                 $period =
-                    app_time_br((string) $r["start_at"]) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["start_at"]) .
                     "–" .
-                    app_time_br((string) $r["end_at"]);
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $r["end_at"]);
                 $eventHtml .=
                     '<article class="agenda-day-event agenda-day-event-' .
                     $class .
@@ -2692,17 +2692,17 @@ final class AppointmentsRuntimeOperations05
                     ";--event-height:" .
                     $height .
                     '" title="' .
-                    e($period . " · " . $patient) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period . " · " . $patient) .
                     '">' .
                     '<span class="agenda-day-event-time">' .
-                    e($period) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
                     "</span><strong>" .
-                    e($patient) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($patient) .
                     "</strong><small>" .
-                    e(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                         trim(
                             ($doctor !== ""
-                                ? first_name($doctor)
+                                ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($doctor)
                                 : "Profissional") .
                                 " · " .
                                 $reason,
@@ -2710,8 +2710,8 @@ final class AppointmentsRuntimeOperations05
                         ),
                     ) .
                     "</small><em>" .
-                    icon($ico) .
-                    e($label) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</em></article>";
             }
             foreach ($dayBlocks as $b) {
@@ -2731,27 +2731,27 @@ final class AppointmentsRuntimeOperations05
                     ";--event-height:" .
                     $height .
                     '" title="' .
-                    e((string) $b["reason"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b["reason"]) .
                     '">' .
                     '<span class="agenda-day-event-time">' .
-                    e(
-                        app_time_br((string) $b["start_at"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["start_at"]) .
                             "–" .
-                            app_time_br((string) $b["end_at"]),
+                            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $b["end_at"]),
                     ) .
                     "</span><strong>Bloqueado</strong><small>" .
-                    e((string) $b["reason"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b["reason"]) .
                     "</small><em>" .
-                    icon("event_busy") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                     "Bloqueio</em></article>";
             }
             if ($eventHtml === "") {
                 $eventHtml =
                     '<div class="agenda-day-empty agenda-day-empty-icon" role="img" aria-label="Sem agendamentos no expediente" title="Sem agendamentos no expediente">' .
-                    icon("no_sim") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("no_sim") .
                     "</div>";
             }
-            $createUrl = href(
+            $createUrl = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
                 $buildParams($renderDay, $agendaDoctor, "diario") + [
                     "mode" => "create",
@@ -2761,25 +2761,25 @@ final class AppointmentsRuntimeOperations05
             return '<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell" style="--agenda-slots:' .
                 $slotCount .
                 ';--agenda-day-date:\'' .
-                e($renderDay) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($renderDay) .
                 '\'" data-agenda-day="' .
-                e($renderDay) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($renderDay) .
                 '" data-slot-minutes="' .
                 $slotMinutes .
                 '" data-work-start="' .
-                e($fmtLocal($startTs)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($startTs)) .
                 '" data-work-end="' .
-                e($fmtLocal($endTs)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($endTs)) .
                 '"><div class="agenda-day-scale" aria-hidden="true">' .
                 $slotRows .
                 '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .
                 $slotMinutes .
                 '" data-day="' .
-                e($renderDay) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($renderDay) .
                 '" data-work-start="' .
-                e($fmtLocal($startTs)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($startTs)) .
                 '" data-agenda-create-url="' .
-                e($createUrl) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createUrl) .
                 '">' .
                 $eventHtml .
                 "</div></section>";
@@ -2788,7 +2788,7 @@ final class AppointmentsRuntimeOperations05
     
             $out = [];
             foreach ($items as $it) {
-                $dt = app_db_utc_to_local((string) ($it["start_at"] ?? ""), $cid);
+                $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local((string) ($it["start_at"] ?? ""), $cid);
                 $key = $dt
                     ? $dt->format("Y-m-d")
                     : substr((string) ($it["start_at"] ?? ""), 0, 10);
@@ -2813,8 +2813,8 @@ final class AppointmentsRuntimeOperations05
                     strtotime($weekStart . " +" . $i . " days"),
                 );
             }
-            [$weekRangeStart] = app_local_day_utc_range($weekDays[0], $cid, $c);
-            [, $weekRangeEnd] = app_local_day_utc_range($weekDays[6], $cid, $c);
+            [$weekRangeStart] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($weekDays[0], $cid, $c);
+            [, $weekRangeEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($weekDays[6], $cid, $c);
             $weekSql =
                 "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,notes,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_status,payment_method,payment_amount_cents,payment_confirmed_at,revenue_id FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
             $weekParams = [$cid, $weekRangeStart, $weekRangeEnd];
@@ -2823,7 +2823,7 @@ final class AppointmentsRuntimeOperations05
                 $weekParams[] = $agendaDoctor;
             }
             $weekSql .= " ORDER BY start_at ASC LIMIT 600";
-            $weekRows = q($weekSql, $weekParams)->fetchAll();
+            $weekRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($weekSql, $weekParams)->fetchAll();
             $weekBlockSql =
                 "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at<? AND end_at>?";
             $weekBlockParams = [$cid, $weekRangeEnd, $weekRangeStart];
@@ -2833,26 +2833,26 @@ final class AppointmentsRuntimeOperations05
                 $weekBlockParams[] = $agendaDoctor;
             }
             $weekBlockSql .= " ORDER BY start_at ASC LIMIT 300";
-            $weekBlocks = q($weekBlockSql, $weekBlockParams)->fetchAll();
+            $weekBlocks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($weekBlockSql, $weekBlockParams)->fetchAll();
             $weekGroupedRows = $groupByDay($weekRows);
             $weekGroupedBlocks = $groupByDay($weekBlocks);
-            $weekPatientLinks = scoped_patient_map(
+            $weekPatientLinks = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map(
                 $cid,
-                int_ids($weekRows, "patient_link_id"),
+                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($weekRows, "patient_link_id"),
                 "id,person_id",
             );
-            $weekPersons = fetch_map(
+            $weekPersons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
                 "pi_persons",
-                int_ids(array_values($weekPatientLinks), "person_id"),
+                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids(array_values($weekPatientLinks), "person_id"),
                 "id,full_name",
             );
-            $weekDoctorMap = scoped_user_map(
+            $weekDoctorMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
                 $cid,
                 array_values(
                     array_unique(
                         array_merge(
-                            int_ids($weekRows, "doctor_user_id"),
-                            int_ids($weekBlocks, "doctor_user_id"),
+                            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($weekRows, "doctor_user_id"),
+                            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($weekBlocks, "doctor_user_id"),
                         ),
                     ),
                 ),
@@ -2865,9 +2865,9 @@ final class AppointmentsRuntimeOperations05
             foreach ($weekDays as $i => $wd) {
                 $agendaWeek .=
                     '<article class="agenda-week-column"><header><b>' .
-                    e($weekLabels[$i]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($weekLabels[$i]) .
                     "</b><span>" .
-                    e(date("d/m", strtotime($wd))) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(date("d/m", strtotime($wd))) .
                     "</span></header>" .
                     $renderAgendaCanvas(
                         $wd,
@@ -2885,8 +2885,8 @@ final class AppointmentsRuntimeOperations05
         if ($agendaView === "mensal") {
             $monthFirst = date("Y-m-01", strtotime($day));
             $monthLast = date("Y-m-t", strtotime($day));
-            [$monthRangeStart] = app_local_day_utc_range($monthFirst, $cid, $c);
-            [, $monthRangeEnd] = app_local_day_utc_range($monthLast, $cid, $c);
+            [$monthRangeStart] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($monthFirst, $cid, $c);
+            [, $monthRangeEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($monthLast, $cid, $c);
             $monthSql =
                 "SELECT id,doctor_user_id,start_at,end_at,status FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
             $monthParams = [$cid, $monthRangeStart, $monthRangeEnd];
@@ -2895,14 +2895,14 @@ final class AppointmentsRuntimeOperations05
                 $monthParams[] = $agendaDoctor;
             }
             $monthSql .= " ORDER BY start_at ASC LIMIT 1500";
-            $monthRows = q($monthSql, $monthParams)->fetchAll();
+            $monthRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($monthSql, $monthParams)->fetchAll();
             $monthGrouped = $groupByDay($monthRows);
             $daysInMonth = (int) date("t", strtotime($monthFirst));
             $firstW = ((int) date("w", strtotime($monthFirst)) + 6) % 7;
             $agendaMonth =
                 '<section class="agenda-month-view" aria-label="Agenda mensal"><div class="agenda-month-weekdays">';
             foreach ($monthLabels as $lab) {
-                $agendaMonth .= "<span>" . e($lab) . "</span>";
+                $agendaMonth .= "<span>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($lab) . "</span>";
             }
             $agendaMonth .= '</div><div class="agenda-month-grid">';
             for ($i = 0; $i < $firstW; $i++) {
@@ -2916,7 +2916,7 @@ final class AppointmentsRuntimeOperations05
                 );
                 $ranges =
                     $agendaDoctor > 0
-                        ? doctor_work_ranges_for_day($cid, $agendaDoctor, $dstr)
+                        ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day($cid, $agendaDoctor, $dstr)
                         : [];
                 if (!$ranges) {
                     $totalM = 9 * 60;
@@ -2942,25 +2942,25 @@ final class AppointmentsRuntimeOperations05
                     max(0, (int) round(($busyM / max(1, $totalM)) * 100, 0, \RoundingMode::HalfAwayFromZero)),
                 );
                 $fillPct = min(100, max(0, $pct));
-                $isToday = $dstr === app_today_in_timezone($cid, $c);
+                $isToday = $dstr === \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c);
                 $agendaMonth .=
                     '<a class="agenda-month-day' .
                     ($isToday ? " is-today" : "") .
                     '" href="' .
-                    href(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                         "appointments",
                         $buildParams($dstr, $agendaDoctor, "diario"),
                     ) .
                     '" style="--agenda-month-fill:' .
-                    e((string) $fillPct) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $fillPct) .
                     '%" data-occupancy="' .
-                    e((string) $pct) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $pct) .
                     '" aria-label="' .
-                    e(date_br($dstr) . " · " . $pct . "% de ocupação") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($dstr) . " · " . $pct . "% de ocupação") .
                     '"><span class="agenda-month-number">' .
-                    e((string) $dnum) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $dnum) .
                     '</span><span class="agenda-month-occupancy-value">' .
-                    e($pct . "%") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pct . "%") .
                     "</span></a>";
             }
             $agendaMonth .= "</div></section>";
@@ -2973,15 +2973,15 @@ final class AppointmentsRuntimeOperations05
         };
         $body =
             '<div class="agenda-profile agenda-day-first agenda-crown-page agenda-view-' .
-            e($agendaView) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($agendaView) .
             '">' .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 $doctorFilter . $navDay,
                 "agenda-card agenda-nav-card agenda-crown-nav-card",
             ) .
             $agendaContent .
             "</div>";
-        page("Agenda", page_head($title, $subtitle, $headActions) . $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Agenda", \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head($title, $subtitle, $headActions) . $body);
     
     }
 }

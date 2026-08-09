@@ -30,13 +30,13 @@ final class DocumentsRuntimeOperations06
     
     {
     
-        $c = require_can("procedures");
-        if (!has_effective_role($c, "gerente")) {
-            audit("acesso_negado", "rota", "procedures", [
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("procedures");
+        if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")) {
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("acesso_negado", "rota", "procedures", [
                 "janela" => "procedures",
             ]);
             http_response_code(403);
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Acesso restrito",
                 '<div class="empty">Apenas a Gestão cadastra procedimentos.</div>',
             );
@@ -49,49 +49,49 @@ final class DocumentsRuntimeOperations06
             $id = (int) ($_POST["id"] ?? 0);
             $backParams = $id > 0 ? ["edit" => $id] : ["new" => "1"];
             if ($act === "toggle") {
-                $p = one(
+                $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,active FROM pi_procedures WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 if ($p) {
                     $active = (int) $p["active"] === 1 ? 0 : 1;
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_procedures SET active=?,updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
                         [$active, $uid, $id, $cid],
                     );
-                    audit("procedimento_status", "procedimento", $id, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_status", "procedimento", $id, [
                         "active" => $active,
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         $active
                             ? "Procedimento reativado."
                             : "Procedimento desativado.",
                     );
                 }
-                redirect("procedures");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
             }
             $title = mb_trim((string) ($_POST["title"] ?? ""));
             if ($title === "") {
-                flash("Informe o nome do procedimento.", "bad");
-                redirect("procedures", $backParams);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o nome do procedimento.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures", $backParams);
             }
             $duration = max(5, min(600, (int) ($_POST["duration_minutes"] ?? 30)));
-            $price = parse_money_cents((string) ($_POST["price"] ?? "0"));
+            $price = \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["price"] ?? "0"));
             $category = mb_trim((string) ($_POST["category"] ?? ""));
             $description = mb_trim((string) ($_POST["description"] ?? ""));
             $payments = mb_trim((string) ($_POST["payment_methods"] ?? ""));
             $pre = mb_trim((string) ($_POST["pre_instructions"] ?? ""));
             $post = mb_trim((string) ($_POST["post_care"] ?? ""));
             if ($id > 0) {
-                $p = one(
+                $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id FROM pi_procedures WHERE id=? AND clinic_id=?",
                     [$id, $cid],
                 );
                 if (!$p) {
-                    flash("Procedimento não encontrado.", "bad");
-                    redirect("procedures");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento não encontrado.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_procedures SET title=?,category=?,description=?,duration_minutes=?,price_cents=?,payment_methods=?,pre_instructions=?,post_care=?,updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
                     [
                         $title,
@@ -107,10 +107,10 @@ final class DocumentsRuntimeOperations06
                         $cid,
                     ],
                 );
-                audit("procedimento_atualizado", "procedimento", $id, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_atualizado", "procedimento", $id, [
                     "titulo" => $title,
                 ]);
-                flash("Procedimento atualizado.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento atualizado.");
             } else {
                 $submissionToken = trim(
                     (string) ($_POST["procedure_submission_token"] ?? ""),
@@ -129,13 +129,13 @@ final class DocumentsRuntimeOperations06
                         $submissionTokens;
                 }
                 if (!$submissionAccepted) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Este cadastro já foi enviado. Confira a lista antes de tentar novamente.",
                         "bad",
                     );
-                    redirect("procedures");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_procedures (clinic_id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW())",
                     [
                         $cid,
@@ -150,13 +150,13 @@ final class DocumentsRuntimeOperations06
                         $uid,
                     ],
                 );
-                $id = db_last_insert_id();
-                audit("procedimento_criado", "procedimento", $id, [
+                $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_criado", "procedimento", $id, [
                     "titulo" => $title,
                 ]);
-                flash("Procedimento cadastrado.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento cadastrado.");
             }
-            redirect("procedures");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
         }
         $isCreate =
             isset($_GET["new"]) || (string) ($_GET["mode"] ?? "") === "create";
@@ -175,13 +175,13 @@ final class DocumentsRuntimeOperations06
                 "active" => 1,
             ];
             if ($editId > 0) {
-                $found = one(
+                $found = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,active FROM pi_procedures WHERE id=? AND clinic_id=?",
                     [$editId, $cid],
                 );
                 if (!$found) {
-                    flash("Procedimento não encontrado.", "bad");
-                    redirect("procedures");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento não encontrado.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
                 }
                 $row = $found;
             }
@@ -216,36 +216,36 @@ final class DocumentsRuntimeOperations06
             $subtitle = $isEdit
                 ? "Revise duração, valor, formas de pagamento e orientações usadas pela Agenda."
                 : "Cadastre um atendimento para ser usado em agendamentos, orientações e financeiro.";
-            $cancel = href("procedures");
+            $cancel = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("procedures");
             $priceValue =
                 (int) ($row["price_cents"] ?? 0) > 0
-                    ? money_br((int) $row["price_cents"])
+                    ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $row["price_cents"])
                     : "";
             $summary =
                 '<div class="agenda-quick-summary procedure-route-summary" aria-label="Resumo do procedimento"><span>' .
-                icon($isEdit ? "edit_note" : "playlist_add") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($isEdit ? "edit_note" : "playlist_add") .
                 "<b>" .
-                e($isEdit ? "Edição" : "Cadastro") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($isEdit ? "Edição" : "Cadastro") .
                 "</b><small>Modo</small></span><span>" .
-                icon("timer") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
                 "<b>" .
-                e((string) ($row["duration_minutes"] ?? 30)) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($row["duration_minutes"] ?? 30)) .
                 " min</b><small>Duração</small></span><span>" .
-                icon("payments") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
                 "<b>" .
-                e($priceValue !== "" ? $priceValue : "Sem valor") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($priceValue !== "" ? $priceValue : "Sem valor") .
                 "</b><small>Valor</small></span></div>";
             $hero =
                 '<div class="agenda-quick-hero procedure-route-hero"><span class="agenda-quick-hero-icon" aria-hidden="true">' .
-                icon("medical_services") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("medical_services") .
                 '</span><div class="agenda-quick-hero-copy"><h2>' .
-                e($title) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                 "</h2><p>" .
-                e($subtitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($subtitle) .
                 '</p></div><a class="ghost small agenda-quick-back" href="' .
                 $cancel .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Procedimentos</span></a></div>";
             $form =
                 '<section class="form-panel agenda-route-form agenda-quick-form-panel procedure-route-form-panel">' .
@@ -254,30 +254,30 @@ final class DocumentsRuntimeOperations06
                 '<form method="post" class="compact agenda-create-form agenda-quick-form procedure-route-form"' .
                 (!$isEdit ? " data-submit-once" : "") .
                 ">" .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="save"><input type="hidden" name="id" value="' .
                 (int) ($row["id"] ?? 0) .
                 '">' .
                 (!$isEdit
                     ? '<input type="hidden" name="procedure_submission_token" value="' .
-                        e($submissionToken) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($submissionToken) .
                         '">'
                     : "") .
                 '<fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
-                icon("edit_note") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_note") .
                 '<span>Identificação</span></legend><div class="agenda-quick-grid">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Nome do procedimento",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "title",
                         "text",
                         $row["title"] ?? "",
                         'required maxlength="160" placeholder="Ex.: Consulta inicial, retorno, exame..." autocomplete="off"',
                     ),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Categoria",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "category",
                         "text",
                         $row["category"] ?? "",
@@ -285,20 +285,20 @@ final class DocumentsRuntimeOperations06
                     ),
                 ) .
                 '</div></fieldset><fieldset class="agenda-quick-section agenda-quick-time"><legend>' .
-                icon("timer") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
                 '<span>Duração e valor</span></legend><div class="agenda-quick-time-grid">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Duração média",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "duration_minutes",
                         "number",
                         (string) ($row["duration_minutes"] ?? 30),
                         'required min="5" max="600" step="5" inputmode="numeric"',
                     ),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Valor",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "price",
                         "text",
                         $priceValue,
@@ -306,9 +306,9 @@ final class DocumentsRuntimeOperations06
                     ),
                 ) .
                 "</div>" .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Formas de pagamento disponíveis",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "payment_methods",
                         "text",
                         $row["payment_methods"] ?? "",
@@ -316,27 +316,27 @@ final class DocumentsRuntimeOperations06
                     ),
                 ) .
                 '</fieldset><fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
-                icon("notes") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notes") .
                 "<span>Orientações</span></legend>" .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "O que será feito",
-                    textarea(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
                         "description",
                         $row["description"] ?? "",
                         'rows="3" placeholder="Resumo claro para orientar recepção, profissional e financeiro"',
                     ),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Pré-preparativos",
-                    textarea(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
                         "pre_instructions",
                         $row["pre_instructions"] ?? "",
                         'rows="3" placeholder="Orientações antes do atendimento"',
                     ),
                 ) .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Cuidados pós-procedimento",
-                    textarea(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
                         "post_care",
                         $row["post_care"] ?? "",
                         'rows="3" placeholder="Orientações após o procedimento"',
@@ -345,29 +345,29 @@ final class DocumentsRuntimeOperations06
                 '</fieldset><div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
                 $cancel .
                 '">' .
-                icon("close") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                 '<span>Desistir</span></a><button type="submit" class="primary">' .
-                icon("save") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
                 "<span>Salvar procedimento</span></button></div></form></section>";
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 $title,
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $title,
                     $subtitle,
                     '<a class="ghost small" href="' .
                         $cancel .
                         '">' .
-                        icon("calendar_view_day") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
                         "<span>Lista</span></a>",
                 ) .
-                    card(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                         $form,
                         "agenda-route-card agenda-quick-route-card procedure-route-card",
                     ),
             );
             return;
         }
-        $allRows = procedure_options($cid, false);
+        $allRows = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_options($cid, false);
         $search = mb_trim((string) ($_GET["q"] ?? ""));
         $rows = $allRows;
         if ($search !== "") {
@@ -411,34 +411,34 @@ final class DocumentsRuntimeOperations06
             $durationCount > 0 ? (int) round($durationSum / $durationCount, 0, \RoundingMode::HalfAwayFromZero) : 0;
         $stats =
             '<div class="kpis procedure-kpis procedure-kpis-refined procedure-ds-kpis"><div>' .
-            icon("event_available") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
             "<p><b>" .
             (int) $active .
             "</b><span>ativos na Agenda</span></p></div><div>" .
-            icon("inventory_2") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inventory_2") .
             "<p><b>" .
             (int) count($allRows) .
             "</b><span>cadastrados</span></p></div><div>" .
-            icon("payments") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
             "<p><b>" .
             (int) $priced .
             "</b><span>com valor</span></p></div><div>" .
-            icon("timer") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
             "<p><b>" .
             ($avgDuration > 0 ? (int) $avgDuration . " min" : "—") .
             "</b><span>duração média</span></p></div></div>";
-        $clearHref = href("procedures");
+        $clearHref = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("procedures");
         $searchCard =
             '<section class="card patient-search-card ds-search-card procedures-search-card"><form method="get" class="patient-search-bar procedure-search-bar" role="search"><input type="hidden" name="r" value="procedures"><label class="search-field"><input type="search" name="q" value="' .
-            e($search) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($search) .
             '" placeholder="Buscar por nome, categoria ou forma de pagamento" aria-label="Buscar procedimentos"></label><button class="primary small" type="submit">' .
-            icon("search") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("search") .
             "<span>Busca rápida</span></button>" .
             ($search !== ""
                 ? '<a class="ghost small" href="' .
                     $clearHref .
                     '">' .
-                    icon("close") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                     "<span>Limpar</span></a>"
                 : "") .
             "</form></section>";
@@ -451,7 +451,7 @@ final class DocumentsRuntimeOperations06
             $payments = mb_trim((string) ($r["payment_methods"] ?? ""));
             $priceLabel =
                 (int) $r["price_cents"] > 0
-                    ? money_br((int) $r["price_cents"])
+                    ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["price_cents"])
                     : "Sem valor";
             $durationLabel = ((int) $r["duration_minutes"]) . " min";
             $categoryLabel = $category !== "" ? $category : "Sem categoria";
@@ -459,19 +459,19 @@ final class DocumentsRuntimeOperations06
             $statusClass = $isActive ? "ok" : "warn";
             $edit =
                 '<a class="ghost small procedure-edit-link" href="' .
-                href("procedures", ["edit" => $id]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("procedures", ["edit" => $id]) .
                 '">' .
-                icon("edit") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit") .
                 "<span>Editar</span></a>";
             $toggle =
                 '<form method="post" class="inline procedure-toggle">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="toggle"><input type="hidden" name="id" value="' .
                 $id .
                 '"><button class="ghost small" type="submit" aria-label="' .
                 ($isActive ? "Desativar procedimento" : "Ativar procedimento") .
                 '">' .
-                icon($isActive ? "toggle_on" : "toggle_off") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($isActive ? "toggle_on" : "toggle_off") .
                 "<span>" .
                 ($isActive ? "Desativar" : "Ativar") .
                 "</span></button></form>";
@@ -479,27 +479,27 @@ final class DocumentsRuntimeOperations06
                 '<article class="procedure-row ds-person-row ' .
                 ($isActive ? "patient-status-ok" : "patient-status-warn") .
                 '"><span class="ds-person-avatar" aria-hidden="true">' .
-                icon("medical_services") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("medical_services") .
                 '</span><div class="ds-person-main"><div class="ds-person-title"><strong>' .
-                e($r["title"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($r["title"]) .
                 '</strong><span class="ds-status-pill ' .
                 $statusClass .
                 '">' .
-                e($status) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) .
                 '</span><span class="procedure-category-chip">' .
-                e($categoryLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($categoryLabel) .
                 '</span></div><div class="ds-person-meta procedure-row-meta"><span>' .
-                icon("timer") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("timer") .
                 "<b>" .
-                e($durationLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($durationLabel) .
                 "</b></span><span>" .
-                icon("payments") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
                 "<b>" .
-                e($priceLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($priceLabel) .
                 "</b></span><span>" .
-                icon("credit_card") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("credit_card") .
                 "<b>" .
-                e($paymentLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($paymentLabel) .
                 '</b></span></div></div><div class="ds-person-actions procedure-card-actions">' .
                 $edit .
                 $toggle .
@@ -516,22 +516,22 @@ final class DocumentsRuntimeOperations06
                     : "Cadastre os tipos de atendimento para orientar a Agenda, estimar duração e padronizar orientações.";
             $cards =
                 '<div class="empty procedure-empty"><span>' .
-                icon("medical_services") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("medical_services") .
                 "</span><strong>" .
-                e($emptyText) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyText) .
                 "</strong><small>" .
-                e($emptyHelp) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyHelp) .
                 "</small>" .
                 ($search !== ""
                     ? '<a class="ghost small" href="' .
                         $clearHref .
                         '">' .
-                        icon("close") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                         "<span>Limpar busca</span></a>"
                     : '<a class="primary small" href="' .
-                        href("procedures", ["new" => "1"]) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("procedures", ["new" => "1"]) .
                         '">' .
-                        icon("add") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add") .
                         "<span>Novo procedimento</span></a>") .
                 "</div>";
         }
@@ -549,13 +549,13 @@ final class DocumentsRuntimeOperations06
             "</div>";
         $action =
             '<a class="primary small" href="' .
-            href("procedures", ["new" => "1"]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("procedures", ["new" => "1"]) .
             '">' .
-            icon("add") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add") .
             "<span>Novo procedimento</span></a>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Procedimentos",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Procedimentos",
                 "Tipos de atendimento, consultas e eventos usados pela Recepção ao agendar.",
                 $action,
@@ -563,7 +563,7 @@ final class DocumentsRuntimeOperations06
                 '<div class="procedures-ds-screen patient-directory-screen procedure-directory-screen">' .
                 $stats .
                 $searchCard .
-                card(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     $listHead .
                         '<div class="procedure-list ds-person-list">' .
                         $cards .

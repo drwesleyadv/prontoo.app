@@ -35,19 +35,6 @@ final class RuntimeContract
     {
 
         return [
-            'csrf',
-            'csrf_field',
-            'ctx',
-            'q',
-            'one',
-            'val',
-            'sql_write_scope_guard',
-            'tenant_scoped_tables',
-            'read_only_write_allowed_for_sql',
-            'page',
-            'route',
-            'redirect',
-            'app_fail',
         ];
     }
 
@@ -244,10 +231,10 @@ final class RuntimeContract
             }
         }
         $updateValidation = (string) getenv('PRONTOO_UPDATE_VALIDATION') === '1';
-        if (!$updateValidation && \function_exists('has_cfg') && \has_cfg()) {
+        if (!$updateValidation && \is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             $strict = is_file($root . '/ssd/install.lock');
-            \ensure_runtime_schema_minimum();
-            SeqContract::assert(\pdo());
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
+            SeqContract::assert(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo());
             \Prontoo\Core\Database\TenantIntegrity::assertRegistryMatchesSchema($strict);
         }
     }

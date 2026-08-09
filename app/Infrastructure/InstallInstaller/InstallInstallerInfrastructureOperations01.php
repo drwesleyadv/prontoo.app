@@ -30,8 +30,8 @@ final class InstallInstallerInfrastructureOperations01
     
     {
     
-        $cfg = has_cfg();
-        $lock = is_file(storage_path("install.lock"));
+        $cfg = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg();
+        $lock = is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("install.lock"));
         if ($cfg && $lock) {
             return "installed";
         }
@@ -49,7 +49,7 @@ final class InstallInstallerInfrastructureOperations01
     
     {
     
-        $perms = prontoo_fs_fileperms($path);
+        $perms = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_fileperms($path);
         return $perms === false ? "n/d" : substr(sprintf("%o", $perms), -4);
     
     }
@@ -67,11 +67,11 @@ final class InstallInstallerInfrastructureOperations01
             "is_dir" => is_dir($path),
             "is_file" => is_file($path),
             "writable" => is_writable($path),
-            "mode" => file_exists($path) ? install_path_mode($path) : "n/d",
+            "mode" => file_exists($path) ? \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_path_mode($path) : "n/d",
             "parent" => $parent,
             "parent_exists" => is_dir($parent),
             "parent_writable" => is_writable($parent),
-            "parent_mode" => is_dir($parent) ? install_path_mode($parent) : "n/d",
+            "parent_mode" => is_dir($parent) ? \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_path_mode($parent) : "n/d",
         ];
     
     }
@@ -80,9 +80,9 @@ final class InstallInstallerInfrastructureOperations01
     
     {
     
-        $file = storage_path("install-error-" . gmdate("Ymd-His") . ".log");
-        prontoo_fs_write($file, $report . "\n");
-        prontoo_fs_chmod($file, 0640);
+        $file = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("install-error-" . gmdate("Ymd-His") . ".log");
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_write($file, $report . "\n");
+        \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_chmod($file, 0640);
     
     }
 }

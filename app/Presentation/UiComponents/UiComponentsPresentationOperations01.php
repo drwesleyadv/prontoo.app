@@ -71,7 +71,7 @@ final class UiComponentsPresentationOperations01
         ];
         $name = $aliases[$name] ?? $name;
         return '<span class="material-symbols-rounded pt-icon-glyph" aria-hidden="true">' .
-            e($name) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
             "</span>";
     
     }
@@ -180,8 +180,8 @@ final class UiComponentsPresentationOperations01
     ): string 
     {
     
-        if ($global && function_exists("admin_nav_parent")) {
-            $parent = admin_nav_parent($route);
+        if ($global && is_callable([\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::class, 'admin_nav_parent'])) {
+            $parent = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($route);
             if (isset($actions[$parent])) {
                 return $parent;
             }
@@ -240,7 +240,7 @@ final class UiComponentsPresentationOperations01
     ): string 
     {
     
-        return $active ? "<span>" . e($label) . "</span>" . $extra : "";
+        return $active ? "<span>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) . "</span>" . $extra : "";
     
     }
 
@@ -249,8 +249,8 @@ final class UiComponentsPresentationOperations01
     {
     
         if (($c["scope"] ?? "") === "global") {
-            if (function_exists("admin_nav_parent")) {
-                return admin_nav_parent($route);
+            if (is_callable([\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::class, 'admin_nav_parent'])) {
+                return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($route);
             }
             $map = [
                 "admin_stats" => "admin_painel",
@@ -399,7 +399,7 @@ final class UiComponentsPresentationOperations01
     
     {
     
-        return ds_class("card", $additionalClass);
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::ds_class("card", $additionalClass);
     
     }
 
@@ -407,7 +407,7 @@ final class UiComponentsPresentationOperations01
     
     {
     
-        return ds_class("ds-search-card", $additionalClass);
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::ds_class("ds-search-card", $additionalClass);
     
     }
 
@@ -415,7 +415,7 @@ final class UiComponentsPresentationOperations01
     
     {
     
-        return ds_class("ds-filter-list-block", $additionalClass);
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::ds_class("ds-filter-list-block", $additionalClass);
     
     }
 
@@ -425,7 +425,7 @@ final class UiComponentsPresentationOperations01
     ): string 
     {
     
-        return ds_class(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::ds_class(
             "ds-filter-chip",
             $additionalClass,
             $active ? "is-active" : "",
@@ -442,13 +442,13 @@ final class UiComponentsPresentationOperations01
     {
     
         return '<article class="stat-card">' .
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<div><b>" .
-            n($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
             "</b><span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
-            ($note ? "<small>" . e($note) . "</small>" : "") .
+            ($note ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) . "</small>" : "") .
             "</div></article>";
     
     }
@@ -458,7 +458,7 @@ final class UiComponentsPresentationOperations01
     {
     
         return '<label class="field"><span>' .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
             $input .
             "</label>";
@@ -495,11 +495,11 @@ final class UiComponentsPresentationOperations01
             }
         }
         return '<input name="' .
-            e($name) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
             '" type="' .
-            e($type) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($type) .
             '" value="' .
-            e((string) $value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $value) .
             '" ' .
             $extra .
             ">";
@@ -511,11 +511,11 @@ final class UiComponentsPresentationOperations01
     {
     
         return '<textarea name="' .
-            e($name) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
             '" ' .
             $extra .
             ">" .
-            e((string) $value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $value) .
             "</textarea>";
     
     }
@@ -528,15 +528,15 @@ final class UiComponentsPresentationOperations01
     ): string 
     {
     
-        $h = '<select name="' . e($name) . '" ' . $extra . ">";
+        $h = '<select name="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) . '" ' . $extra . ">";
         foreach ($options as $k => $v) {
             $h .=
                 '<option value="' .
-                e((string) $k) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $k) .
                 '" ' .
                 ((string) $k === (string) $selected ? "selected" : "") .
                 ">" .
-                e($v) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($v) .
                 "</option>";
         }
         return $h . "</select>";
@@ -552,7 +552,7 @@ final class UiComponentsPresentationOperations01
     ): string 
     {
     
-        return form_row($label, select_html($name, $opts, $sel, $extra));
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row($label, \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_html($name, $opts, $sel, $extra));
     
     }
 
@@ -561,9 +561,9 @@ final class UiComponentsPresentationOperations01
     {
     
         return '<button type="button" class="ghost" data-close-panel>' .
-            icon("close") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
             "<span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span></button>";
     
     }
@@ -573,7 +573,7 @@ final class UiComponentsPresentationOperations01
     {
     
         if (!$items) {
-            return '<div class="empty">' . e($empty) . "</div>";
+            return '<div class="empty">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($empty) . "</div>";
         }
         $h = '<div class="timeline">';
         foreach ($items as $it) {
@@ -582,10 +582,10 @@ final class UiComponentsPresentationOperations01
             }
             $dot = !empty($it["badge"])
                 ? '<span class="dot time-dot">' .
-                    e((string) $it["badge"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $it["badge"]) .
                     "</span>"
                 : '<span class="dot">' .
-                    icon($it["icon"] ?? "radio_button_checked") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($it["icon"] ?? "radio_button_checked") .
                     "</span>";
             $class =
                 "titem" .
@@ -601,13 +601,13 @@ final class UiComponentsPresentationOperations01
                 "<div><time>" .
                 (!empty($it["time_html"])
                     ? (string) $it["time_html"]
-                    : e($it["time"] ?? "")) .
+                    : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($it["time"] ?? "")) .
                 "</time><h3>" .
-                e($it["title"] ?? "") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($it["title"] ?? "") .
                 "</h3>" .
-                (!empty($it["body"]) ? "<p>" . e($it["body"]) . "</p>" : "") .
+                (!empty($it["body"]) ? "<p>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($it["body"]) . "</p>" : "") .
                 (!empty($it["meta"])
-                    ? "<small>" . e($it["meta"]) . "</small>"
+                    ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($it["meta"]) . "</small>"
                     : "") .
                 (!empty($it["html"])
                     ? '<div class="t-actions">' . $it["html"] . "</div>"
@@ -615,7 +615,7 @@ final class UiComponentsPresentationOperations01
                 "</div></article>";
         }
         return $h === '<div class="timeline">'
-            ? '<div class="empty">' . e($empty) . "</div>"
+            ? '<div class="empty">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($empty) . "</div>"
             : $h . "</div>";
     
     }

@@ -50,7 +50,7 @@ final class ActivityValuePolicy
     
     {
     
-        $s = activity_text_value(
+        $s = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
             $ctx["status"] ?? ($ctx["novo_status"] ?? ($ctx["active"] ?? "")),
         );
         if ($s === "") {

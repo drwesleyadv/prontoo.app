@@ -30,7 +30,7 @@ final class MaestroInfrastructureOperations01
     
     {
     
-        if (!has_cfg()) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
         foreach (
@@ -42,7 +42,7 @@ final class MaestroInfrastructureOperations01
             ]
             as $table
         ) {
-            if (!db_table_exists($table)) {
+            if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists($table)) {
                 throw new RuntimeException("Schema incompleto: {$table} ausente.");
             }
         }

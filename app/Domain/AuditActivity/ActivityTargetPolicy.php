@@ -30,7 +30,7 @@ final class ActivityTargetPolicy
     
     {
     
-        return activity_clean_name(audit_patient_name($ctx, $entityId), "paciente");
+        return \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_clean_name(\Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_patient_name($ctx, $entityId), "paciente");
     
     }
 
@@ -40,8 +40,8 @@ final class ActivityTargetPolicy
     ): string 
     {
     
-        return activity_clean_name(
-            activity_text_value(
+        return \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_clean_name(
+            \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
                 $ctx["titulo"] ??
                     ($ctx["title"] ?? ($ctx["name"] ?? ($ctx["descricao"] ?? ""))),
             ),
@@ -56,13 +56,13 @@ final class ActivityTargetPolicy
     ): string 
     {
     
-        $n = activity_text_value(
+        $n = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
             $ctx["target_name"] ?? ($ctx["nome"] ?? ($ctx["name"] ?? "")),
         );
         if ($n === "") {
-            $n = trim(audit_person_target("", $ctx));
+            $n = trim(\Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_person_target("", $ctx));
         }
-        return activity_clean_name($n, $fallback);
+        return \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_clean_name($n, $fallback);
     
     }
 
@@ -70,17 +70,17 @@ final class ActivityTargetPolicy
     
     {
     
-        $scope = activity_text_value(
+        $scope = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
             $ctx["destino"] ?? ($ctx["target_scope"] ?? ""),
         );
         if ($scope === "role") {
-            $cargo = activity_text_value(
+            $cargo = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
                 $ctx["cargo"] ?? ($ctx["target_role"] ?? ""),
             );
             return $cargo !== "" ? "para o setor " . $cargo : "para um setor";
         }
         if ($scope === "user") {
-            $name = activity_text_value(
+            $name = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
                 $ctx["assigned_name"] ?? ($ctx["target_name"] ?? ""),
             );
             return $name !== "" ? "para " . $name : "para uma pessoa da equipe";
@@ -96,11 +96,11 @@ final class ActivityTargetPolicy
     
     {
     
-        $title = activity_title_from_ctx($ctx, "");
+        $title = \Prontoo\Domain\AuditActivity\ActivityTargetPolicy::activity_title_from_ctx($ctx, "");
         if ($title !== "") {
             return $title;
         }
-        $cp = activity_clean_name(audit_counterparty_name($ctx), "");
+        $cp = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_clean_name(\Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_counterparty_name($ctx), "");
         return $cp !== "" ? $cp : $fallback;
     
     }
@@ -109,7 +109,7 @@ final class ActivityTargetPolicy
     
     {
     
-        [$axis] = activity_axis_for_event($event);
+        [$axis] = \Prontoo\Domain\AuditActivity\ActivityTaxonomy::activity_axis_for_event($event);
         return [
             "Criar" => "cadastrou",
             "Modificar" => "alterou",
@@ -127,14 +127,14 @@ final class ActivityTargetPolicy
     ): string 
     {
     
-        $patient = activity_patient_name($ctx, $entityId);
-        $title = activity_title_from_ctx($ctx, "");
+        $patient = \Prontoo\Domain\AuditActivity\ActivityTargetPolicy::activity_patient_name($ctx, $entityId);
+        $title = \Prontoo\Domain\AuditActivity\ActivityTargetPolicy::activity_title_from_ctx($ctx, "");
         if ($event === "janela_aberta") {
             return $entity === "paciente" ||
                 mb_trim((string) ($ctx["patient_name"] ?? "")) !== ""
                 ? "a ficha do paciente " . $patient
                 : "a tela " .
-                        (activity_text_value($ctx["janela"] ?? $title) ?:
+                        (\Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value($ctx["janela"] ?? $title) ?:
                             "do sistema");
         }
         if ($entity === "paciente") {
@@ -144,18 +144,18 @@ final class ActivityTargetPolicy
             return "a consulta de " . $patient;
         }
         if ($entity === "documento") {
-            return "o documento " . audit_document_type_text($ctx);
+            return "o documento " . \Prontoo\Domain\AuditActivity\AuditDocumentPolicy::audit_document_type_text($ctx);
         }
         if ($entity === "tarefa") {
-            return "a tarefa " . audit_task_name($ctx);
+            return "a tarefa " . \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::audit_task_name($ctx);
         }
         if ($entity === "usuario") {
-            return "o colaborador " . activity_person_from_ctx($ctx);
+            return "o colaborador " . \Prontoo\Domain\AuditActivity\ActivityTargetPolicy::activity_person_from_ctx($ctx);
         }
         if ($entity === "financeiro") {
             return "o financeiro";
         }
-        $label = entity_label($entity);
+        $label = \Prontoo\Domain\AuditActivity\AuditActivityDomainOperations03::entity_label($entity);
         $article = in_array(
             $label,
             [

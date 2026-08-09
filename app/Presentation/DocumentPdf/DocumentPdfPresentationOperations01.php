@@ -33,7 +33,7 @@ final class DocumentPdfPresentationOperations01
     ): string 
     {
     
-        $url = (base_path() ?: "") . "/pdfs/" . rawurlencode(basename($fileName));
+        $url = (\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::base_path() ?: "") . "/pdfs/" . rawurlencode(basename($fileName));
         $qs = [];
         if ($expires !== null && $expires > 0) {
             $qs["exp"] = (string) $expires;

@@ -33,12 +33,12 @@ final class DashboardsRuntimeOperations03
     {
     
         $cid = (int) $c["clinic_id"];
-        $month = app_month_in_timezone($cid, $c);
-        [$monthStart, $nextMonth] = app_local_month_utc_range($month, $cid, $c);
-        $localNow = app_now_in_timezone($cid, $c);
+        $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $c);
+        [$monthStart, $nextMonth] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_month_utc_range($month, $cid, $c);
+        $localNow = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_now_in_timezone($cid, $c);
         $monthEnd = $localNow->format("Y-m-t");
-        [$todayStart, $todayEnd] = app_local_day_utc_range(
-            app_today_in_timezone($cid, $c),
+        [$todayStart, $todayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
             $cid,
             $c,
         );
@@ -50,7 +50,7 @@ final class DashboardsRuntimeOperations03
         $todayArrived = (int) ($today["arrived"] ?? 0);
         $todayFinished = (int) ($today["finished"] ?? 0);
         $todayCanceled = (int) ($today["canceled"] ?? 0);
-        $doctorCount = max(1, count(doctors($cid)));
+        $doctorCount = max(1, count(\Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::doctors($cid)));
         $estimatedCapacity = max(1, $doctorCount * 8);
         $estimatedOcc = (float) round(
             min(100, ($todayTotal / $estimatedCapacity) * 100),
@@ -105,7 +105,7 @@ final class DashboardsRuntimeOperations03
             "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE clinic_id=? AND status='paga' AND paid_at>=? AND paid_at<?",
             [$cid, $monthStart, $nextMonth],
         );
-        $goal = monthly_goal_status($cid);
+        $goal = \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::monthly_goal_status($cid);
         $target = (int) $goal["target_cents"];
         $done = (int) $goal["done_cents"];
         $goalPct = (float) $goal["percent"];
@@ -138,7 +138,7 @@ final class DashboardsRuntimeOperations03
             $finishedMonth > 0 ? (int) round($receivedRevenue / $finishedMonth, 0, \RoundingMode::HalfAwayFromZero) : 0;
         $procedureRows = [];
         try {
-            $procedureRows = q(
+            $procedureRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT COALESCE(p.title,'Sem procedimento vinculado') title, COALESCE(SUM(fr.amount_cents),0) total FROM pi_financial_revenues fr LEFT JOIN pi_procedures p ON p.id=fr.procedure_id AND p.clinic_id=fr.clinic_id WHERE fr.clinic_id=? AND fr.status='efetivada' AND fr.received_at>=? AND fr.received_at<? GROUP BY COALESCE(p.title,'Sem procedimento vinculado') ORDER BY total DESC LIMIT 5",
                 [$cid, $monthStart, $nextMonth],
             )->fetchAll();
@@ -193,23 +193,23 @@ final class DashboardsRuntimeOperations03
             "</div>";
         $goalHtml =
             '<section class="card manager-goal"><header><div><h2>Meta mensal</h2><p>' .
-            e($goalState . " · base: " . $goalBaseLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($goalState . " · base: " . $goalBaseLabel) .
             '</p></div><a class="ghost small" href="' .
-            href("financial", ["tab" => "meta"]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial", ["tab" => "meta"]) .
             '">' .
-            icon("flag") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("flag") .
             '<span>Ajustar meta</span></a></header><div class="manager-goal-bar"><i style="width:' .
             $goalBar .
             '%"></i></div><div class="manager-goal-grid"><span><b>' .
-            money_br($done) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($done) .
             "</b><small>realizado na base da meta</small></span><span><b>" .
-            ($target > 0 ? money_br($target) : "—") .
+            ($target > 0 ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($target) : "—") .
             "</b><small>meta</small></span><span><b>" .
-            money_br($missing) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($missing) .
             "</b><small>faltante</small></span><span><b>" .
-            money_br($dailyNeeded) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($dailyNeeded) .
             '</b><small>necessário por dia útil</small></span></div><p class="manager-goal-note">' .
-            e(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                 $target > 0
                     ? "O ritmo esperado para hoje é " .
                         DashboardsPresentationOperations01::manager_percent_label($expectedPct) .
@@ -221,17 +221,17 @@ final class DashboardsRuntimeOperations03
             "</p></section>";
         $finance =
             '<section class="card manager-finance-card"><h2>Indicadores financeiros</h2><div class="manager-mini-grid"><span><b>' .
-            money_br($plannedRevenue) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($plannedRevenue) .
             "</b><small>receita prevista no mês</small></span><span><b>" .
-            money_br($receivedRevenue) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($receivedRevenue) .
             "</b><small>receita efetivada</small></span><span><b>" .
-            money_br($pendingRevenue) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($pendingRevenue) .
             "</b><small>a receber</small></span><span><b>" .
-            money_br($paidExpenses) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($paidExpenses) .
             "</b><small>despesas pagas</small></span><span><b>" .
-            money_br($result) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($result) .
             "</b><small>resultado parcial</small></span><span><b>" .
-            ($ticket > 0 ? money_br($ticket) : "—") .
+            ($ticket > 0 ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($ticket) : "—") .
             "</b><small>ticket médio efetivado</small></span></div></section>";
         $actions = [];
         $paymentRejected = DashboardsRuntimeOperations02::manager_metric_val(
@@ -299,7 +299,7 @@ final class DashboardsRuntimeOperations03
                 "account_balance_wallet",
                 "Receitas previstas vencidas",
                 "Há " .
-                    money_br($overdueRevenue) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($overdueRevenue) .
                     " em receitas previstas com data vencida.",
                 "financial",
                 "Conferir",
@@ -328,9 +328,9 @@ final class DashboardsRuntimeOperations03
             foreach ($procedureRows as $r) {
                 $procedureHtml .=
                     "<span><b>" .
-                    e((string) $r["title"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["title"]) .
                     "</b><small>" .
-                    money_br((int) $r["total"]) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $r["total"]) .
                     "</small></span>";
             }
             $procedureHtml .= "</div>";
@@ -342,9 +342,9 @@ final class DashboardsRuntimeOperations03
             '<section class="card manager-procedures"><h2>Receita por procedimento</h2>' .
             $procedureHtml .
             "</section>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Painel",
-            page_head(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Painel",
                 "Indicadores operacionais, meta mensal, financeiro e ações prioritárias.",
             ) .
@@ -361,11 +361,11 @@ final class DashboardsRuntimeOperations03
     
     {
     
-        $c = require_can("painel");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("painel");
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
-        if (has_effective_role($c, "gerente")) {
-            redirect("appointments");
+        if (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")) {
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
         }
         if (($c["role"] ?? "") === "medico") {
             DashboardsRuntimeOperations01::page_medico_painel($c);
@@ -379,18 +379,18 @@ final class DashboardsRuntimeOperations03
             DashboardsRuntimeOperations02::page_triagem_painel($c);
             return;
         }
-        [$todayStart, $todayEnd] = app_local_day_utc_range(
-            app_today_in_timezone($cid, $c),
+        [$todayStart, $todayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
             $cid,
             $c,
         );
         $today =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT COUNT(*) FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<?",
                 [$cid, $todayStart, $todayEnd],
             ) ?? 0);
         $lateTasks =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status='aberta' AND due_at IS NOT NULL AND due_at<NOW() AND (assigned_to IS NULL OR assigned_to=?)",
                 [$cid, $uid],
             ) ?? 0);
@@ -400,13 +400,13 @@ final class DashboardsRuntimeOperations03
             "</b><span>consultas hoje</span></div><div><b>" .
             $lateTasks .
             "</b><span>Tarefas Atrasadas</span></div><div><b>—</b><span>Atraso médio do dia</span></div></div>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Painel",
-            page_head("Painel", "O que você precisa saber agora.") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Painel", "O que você precisa saber agora.") .
                 $cards .
-                card(
-                    timeline(
-                        recent_events($cid, $uid, $c["role"]),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline(
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::recent_events($cid, $uid, $c["role"]),
                         "Nenhum evento relevante.",
                     ),
                 ),

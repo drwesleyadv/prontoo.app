@@ -45,7 +45,7 @@ final class ServerJsonCacheInfrastructureOperations01
         if (is_string($resolved)) {
             return $resolved;
         }
-        $resolved = storage_path("cache/server-json");
+        $resolved = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/server-json");
         if (!is_dir($resolved) && !@mkdir($resolved, 0750, true) && !is_dir($resolved)) {
             return $resolved;
         }
@@ -70,7 +70,7 @@ final class ServerJsonCacheInfrastructureOperations01
         if (isset($resolved[$category])) {
             return $resolved[$category];
         }
-        $dir = server_json_cache_root() . "/" . $category;
+        $dir = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_root() . "/" . $category;
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             return $resolved[$category] = $dir;
         }
@@ -85,7 +85,7 @@ final class ServerJsonCacheInfrastructureOperations01
     
     {
     
-        return server_json_cache_category_dir($category) . "/generation.txt";
+        return \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_category_dir($category) . "/generation.txt";
     
     }
 
@@ -98,7 +98,7 @@ final class ServerJsonCacheInfrastructureOperations01
         if (is_array($generations) && isset($generations[$category])) {
             return max(1, (int) $generations[$category]);
         }
-        $raw = @file_get_contents(server_json_cache_generation_file($category));
+        $raw = @file_get_contents(\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_generation_file($category));
         $generation = max(1, (int) trim(is_string($raw) ? $raw : "1"));
         if (!isset($GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"]) ||
             !is_array($GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"])) {
@@ -114,11 +114,11 @@ final class ServerJsonCacheInfrastructureOperations01
     {
     
         $category = preg_replace("/[^a-z0-9_\-]/i", "_", $category) ?: "general";
-        $dir = server_json_cache_category_dir($category);
-        $file = server_json_cache_generation_file($category);
+        $dir = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_category_dir($category);
+        $file = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_generation_file($category);
         $handle = @fopen($file, "c+");
         if (!is_resource($handle)) {
-            server_json_cache_rrmdir($dir);
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_rrmdir($dir);
             @mkdir($dir, 0750, true);
             @file_put_contents($file, "1\n", LOCK_EX);
             $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
@@ -142,7 +142,7 @@ final class ServerJsonCacheInfrastructureOperations01
         } catch (Throwable $error) {
             @flock($handle, LOCK_UN);
             @fclose($handle);
-            server_json_cache_rrmdir($dir);
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_rrmdir($dir);
             @mkdir($dir, 0750, true);
             @file_put_contents($file, "1\n", LOCK_EX);
             $GLOBALS["PRONTOO_SERVER_JSON_CACHE_GENERATIONS"][$category] = 1;
@@ -198,11 +198,11 @@ final class ServerJsonCacheInfrastructureOperations01
     {
     
         $key = preg_replace("/[^a-z0-9_\-\.]/i", "_", $key) ?: "cache";
-        $categoryDir = server_json_cache_category_dir($category);
+        $categoryDir = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_category_dir($category);
         $generationDir =
             $categoryDir .
             "/generation-" .
-            sprintf("%020d", server_json_cache_generation($category));
+            sprintf("%020d", \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_generation($category));
         if (!is_dir($generationDir) &&
             !@mkdir($generationDir, 0750, true) &&
             !is_dir($generationDir)) {
@@ -274,7 +274,7 @@ final class ServerJsonCacheInfrastructureOperations01
             }
             $path = $dir . "/" . $item;
             if (is_dir($path)) {
-                server_json_cache_rrmdir($path);
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_rrmdir($path);
             } else {
                 @unlink($path);
             }
@@ -288,9 +288,9 @@ final class ServerJsonCacheInfrastructureOperations01
     
         $categories = array_values(array_unique(array_map("strval", $categories)));
         foreach ($categories as $category) {
-            $dir = server_json_cache_category_dir($category);
-            server_json_cache_bump_generation($category);
-            server_json_cache_memory_forget_prefix($dir . "/");
+            $dir = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_category_dir($category);
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_bump_generation($category);
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_memory_forget_prefix($dir . "/");
         }
     
     }
@@ -312,7 +312,7 @@ final class ServerJsonCacheInfrastructureOperations01
     
     {
     
-        server_json_cache_clear_categories(server_json_cache_all_categories());
+        \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories(\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_all_categories());
     
     }
 
@@ -320,7 +320,7 @@ final class ServerJsonCacheInfrastructureOperations01
     
     {
     
-        $root = storage_path("cache");
+        $root = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache");
         if (!is_dir($root)) {
             $GLOBALS["PRONTOO_SERVER_JSON_CACHE_MEMORY"] = [];
             return 0;
@@ -419,8 +419,8 @@ final class ServerJsonCacheInfrastructureOperations01
     ): void 
     {
     
-        server_json_cache_clear_categories(
-            server_json_cache_write_categories($route, $act),
+        \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories(
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_write_categories($route, $act),
         );
     
     }
@@ -437,7 +437,7 @@ final class ServerJsonCacheInfrastructureOperations01
     
             $pending = $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] ?? [];
             if (is_array($pending) && $pending) {
-                server_json_cache_clear_categories($pending);
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories($pending);
             }
             $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] = [];
         });
@@ -450,12 +450,12 @@ final class ServerJsonCacheInfrastructureOperations01
     ): void 
     {
     
-        $categories = server_json_cache_write_categories($route, $act);
+        $categories = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_write_categories($route, $act);
         $pending = $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] ?? [];
         $GLOBALS["PRONTOO_CACHE_INVALIDATE_AFTER_WRITE"] = array_values(
             array_unique(array_merge(is_array($pending) ? $pending : [], $categories)),
         );
-        server_json_cache_register_deferred_invalidation();
+        \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_register_deferred_invalidation();
     
     }
 

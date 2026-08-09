@@ -27,24 +27,24 @@ final class Runner
     public static function run(bool $installMode = false): void
     {
         try {
-            \boot_security();
-            \guard_request();
-            $route = \route();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::boot_security();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::guard_request();
+            $route = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
             \Prontoo\Infrastructure\Integrity\PiIntegrity::configureRuntimeContext([
                 'route' => $route,
                 'clinic_id' => (int) ($_SESSION['clinic_id'] ?? 0),
                 'user_id' => (int) ($_SESSION['uid'] ?? 0),
                 'role' => (string) ($_SESSION['role_code'] ?? ''),
             ]);
-            \telemetry_route_identify($route);
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_identify($route);
             $publicTelemetry = $route === 'login_telemetry_wave';
             $publicStatus = $route === 'status' || $publicTelemetry;
             $publicHome = false;
-            \headers_secure($publicStatus);
-            if (!\has_cfg() && !$installMode && !$publicHome) {
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);
+            if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && !$installMode && !$publicHome) {
                 throw new \ProntooHttpError(
                     503,
-                    is_file(\storage_path('install.lock'))
+                    is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('install.lock'))
                         ? 'Instalação existente detectada, mas app/config.php não foi encontrado. O instalador está bloqueado: restaure o arquivo de configuração da instalação atual.'
                         : 'Configuração ausente. A instalação desta publicação está encerrada e não pode ser iniciada por HTTP; restaure app/config.php a partir do ambiente comissionado.',
                 );
@@ -58,38 +58,38 @@ final class Runner
             $isPost = $method === 'POST';
             if ($isPost) {
                 if ($route !== 'login_autotest') {
-                    \check_csrf();
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::check_csrf();
                 } elseif (empty($_SESSION['csrf'])) {
-                    \csrf();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf();
                 }
             }
             if ($route === 'onboarding' &&
                 (int) ($_SESSION['clinic_id'] ?? 0) > 0 &&
-                function_exists('ensure_clinic_trial_active')) {
-                \ensure_clinic_trial_active((int) $_SESSION['clinic_id'], true);
+                is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
+                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active((int) $_SESSION['clinic_id'], true);
             }
-            $context = $publicStatus || $publicHome || $route === 'logout' ? [] : \ctx();
+            $context = $publicStatus || $publicHome || $route === 'logout' ? [] : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
             if (!$publicTelemetry) {
-                \enforce_read_only($context, $route);
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::enforce_read_only($context, $route);
             }
             if ($route !== 'logout' && !$publicTelemetry) {
                 LayeredKernel::enforceAction($route, $method, $_POST, $context);
             }
             if ($isPost) {
-                if (function_exists('server_json_cache_schedule_invalidation_for_write')) {
-                    \server_json_cache_schedule_invalidation_for_write(
+                if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_schedule_invalidation_for_write'])) {
+                    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_schedule_invalidation_for_write(
                         $route,
                         (string) ($_POST['act'] ?? ''),
                     );
                 }
                 if ((string) ($_POST['act'] ?? '') === 'onboarding_tip_dismiss') {
-                    \onboarding_tip_dismiss();
+                    \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_dismiss();
                 }
             }
             if (!$publicStatus &&
                 !$publicHome &&
-                function_exists('maintenance_active') &&
-                \maintenance_active() &&
+                is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'maintenance_active']) &&
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::maintenance_active() &&
                 (!$context || ($context['scope'] ?? '') !== 'global') &&
                 !in_array($route, ['login', 'login_autotest', 'mfa', 'logout'], true)) {
                 if (RouteCatalog::wantsJson($route, (string) ($_SERVER['HTTP_ACCEPT'] ?? ''))) {
@@ -101,13 +101,13 @@ final class Runner
                     return;
                 }
                 RuntimeModuleComposition::loader()->loadRouteModules('admin_health');
-                \page_maintenance_notice();
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::page_maintenance_notice();
                 return;
             }
             if ($context &&
                 ($context['scope'] ?? '') === 'clinic' &&
-                function_exists('onboarding_pending') &&
-                \onboarding_pending($context) &&
+                is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'onboarding_pending']) &&
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::onboarding_pending($context) &&
                 !in_array($route, ['onboarding', 'logout', 'switch', 'settings'], true)) {
                 if (RouteCatalog::wantsJson($route, (string) ($_SERVER['HTTP_ACCEPT'] ?? ''))) {
                     JsonResponder::send([
@@ -117,7 +117,7 @@ final class Runner
                     ], 409);
                     return;
                 }
-                \redirect('onboarding');
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect('onboarding');
             }
             if ($context &&
                 ($context['scope'] ?? '') === 'clinic' &&
@@ -131,7 +131,7 @@ final class Runner
                     ], 409);
                     return;
                 }
-                \redirect('financial');
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect('financial');
             }
             RuntimeModuleComposition::loader()->loadRouteModules($route);
             if ($route !== 'logout' && !$publicStatus) {
@@ -139,20 +139,16 @@ final class Runner
             }
             $effectiveRoute = in_array($route, RouteCatalog::all(), true) ? $route : 'home';
             if (!PageDispatcher::dispatch($effectiveRoute)) {
-                $page = 'page_' . $effectiveRoute;
-                if (!function_exists($page)) {
-                    throw new \RuntimeException('Rota sem função de página: ' . $page);
-                }
-                $page();
+                throw new \RuntimeException('Rota sem handler nativo: ' . $effectiveRoute);
             }
         } catch (Throwable $error) {
-            if (function_exists('financial_cash_debug_request_active') &&
-                \financial_cash_debug_request_active() &&
-                function_exists('financial_cash_debug_failure_page')) {
-                \financial_cash_debug_failure_page($error);
+            if (is_callable([\Prontoo\Presentation\Financial\FinancialPresentationOperations01::class, 'financial_cash_debug_request_active']) &&
+                \Prontoo\Presentation\Financial\FinancialPresentationOperations01::financial_cash_debug_request_active() &&
+                is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::class, 'financial_cash_debug_failure_page'])) {
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cash_debug_failure_page($error);
             }
             $status = $error instanceof \ProntooHttpError ? (int) $error->status : 500;
-            $routeForError = function_exists('route') ? \route() : '';
+            $routeForError = is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) ? \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() : '';
             if (RouteCatalog::wantsJson($routeForError, (string) ($_SERVER['HTTP_ACCEPT'] ?? ''))) {
                 error_log(
                     '[Prontoo json route failure] ' . $routeForError . ' | ' .
@@ -165,7 +161,7 @@ final class Runner
                 ], $status);
                 return;
             }
-            \app_fail($error);
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_fail($error);
         }
     }
 }

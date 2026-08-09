@@ -54,7 +54,7 @@ final class ClinicConfigDomainOperations01
         if ($profession === "") {
             return "Médico(a)";
         }
-        foreach (clinical_profession_options() as $key => $label) {
+        foreach (\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinical_profession_options() as $key => $label) {
             if (
                 mb_strtolower($profession, "UTF-8") ===
                     mb_strtolower((string) $key, "UTF-8") ||
@@ -140,8 +140,8 @@ final class ClinicConfigDomainOperations01
                 "profession" => "",
             ],
         ];
-        $health = function_exists("patient_health_icon_options")
-            ? patient_health_icon_options()
+        $health = is_callable([\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::class, 'patient_health_icon_options'])
+            ? \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::patient_health_icon_options()
             : [];
         foreach ($health as $icon => $label) {
             if (!isset($base[$icon])) {
@@ -488,7 +488,7 @@ final class ClinicConfigDomainOperations01
     {
     
         $icon = preg_replace("/[^a-z0-9_]+/i", "", (string) $icon) ?: "";
-        return array_key_exists($icon, clinic_icon_options())
+        return array_key_exists($icon, \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_icon_options())
             ? $icon
             : "medical_services";
     
@@ -499,7 +499,7 @@ final class ClinicConfigDomainOperations01
     {
     
         $color = strtolower(mb_trim((string) $color));
-        if (array_key_exists($color, clinic_accent_options())) {
+        if (array_key_exists($color, \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_accent_options())) {
             return $color;
         }
         if (preg_match('/^#[0-9a-f]{6}$/', $color)) {
@@ -513,7 +513,7 @@ final class ClinicConfigDomainOperations01
     
     {
     
-        foreach (clinic_icon_options() as $icon => $meta) {
+        foreach (\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_icon_options() as $icon => $meta) {
             if (($meta["profession"] ?? "") === $profession) {
                 return $icon;
             }
@@ -566,10 +566,10 @@ final class ClinicConfigDomainOperations01
     
     {
     
-        $ra = clinic_hex_rgb($a);
-        $rb = clinic_hex_rgb($b);
+        $ra = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_hex_rgb($a);
+        $rb = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_hex_rgb($b);
         $w = max(0, min(1, $aWeight));
-        return clinic_rgb_hex([
+        return \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_rgb_hex([
             $ra[0] * $w + $rb[0] * (1 - $w),
             $ra[1] * $w + $rb[1] * (1 - $w),
             $ra[2] * $w + $rb[2] * (1 - $w),

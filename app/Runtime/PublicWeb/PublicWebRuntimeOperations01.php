@@ -30,7 +30,7 @@ final class PublicWebRuntimeOperations01
     
     {
     
-        redirect("login", ["source" => "mobile_web"]);
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login", ["source" => "mobile_web"]);
     
     }
 }

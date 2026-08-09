@@ -29,11 +29,11 @@ final class SupportTelemetryRuntimeOperations01
     public static function telemetry_page_request_candidate(string $route): bool
     
     {
-        $route = telemetry_route_safe($route);
+        $route = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe($route);
         if (
             $route === "unknown" ||
             str_starts_with($route, "landing_") ||
-            in_array($route, telemetry_page_internal_routes(), true)
+            in_array($route, \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true)
         ) {
             return false;
         }
@@ -85,12 +85,12 @@ final class SupportTelemetryRuntimeOperations01
         if (
             PHP_SAPI === "cli" ||
             !empty($GLOBALS["PRONTOO_TELEMETRY_REGISTERED"]) ||
-            !telemetry_page_request_candidate($route)
+            !\Prontoo\Runtime\SupportTelemetry\SupportTelemetryRuntimeOperations01::telemetry_page_request_candidate($route)
         ) {
             return;
         }
         $GLOBALS["PRONTOO_TELEMETRY_REGISTERED"] = true;
-        $GLOBALS["PRONTOO_ROUTE_NAME"] = telemetry_route_safe($route);
+        $GLOBALS["PRONTOO_ROUTE_NAME"] = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe($route);
         $GLOBALS["PRONTOO_ROUTE_STARTED_MONOTONIC_NS"] =
             $startedMonotonicNs ?? hrtime(true);
         $GLOBALS["PRONTOO_ROUTE_STARTED_UNIX_US"] =
@@ -103,7 +103,7 @@ final class SupportTelemetryRuntimeOperations01
             is_string($path) && str_starts_with($path, "/") ? $path : "/";
         register_shutdown_function(
             static function (): void {
-                telemetry_route_finish_marker(true);
+                \Prontoo\Runtime\SupportTelemetry\SupportTelemetryRuntimeOperations01::telemetry_route_finish_marker(true);
             },
         );
     
@@ -130,11 +130,11 @@ final class SupportTelemetryRuntimeOperations01
                 return;
             }
             $statusCode = (int) http_response_code();
-            if (!telemetry_page_response_candidate($statusCode)) {
+            if (!\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_response_candidate($statusCode)) {
                 return;
             }
-            $fatalError = telemetry_fatal_error(error_get_last());
-            $event = telemetry_build_event(
+            $fatalError = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_fatal_error(error_get_last());
+            $event = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_build_event(
                 (string) ($GLOBALS["PRONTOO_ROUTE_NAME"] ?? "unknown"),
                 $startedMonotonicNs,
                 $finishedMonotonicNs,
@@ -149,10 +149,10 @@ final class SupportTelemetryRuntimeOperations01
                     ? "shutdown_fallback"
                     : "front_controller_last_useful_line",
             );
-            if (!telemetry_append_event($event)) {
+            if (!\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_append_event($event)) {
                 error_log("[Prontoo telemetria] Carregamento de página não persistido.");
             }
-            telemetry_prune($finishedUnixUs);
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prune($finishedUnixUs);
         } catch (Throwable $error) {
             error_log("[Prontoo telemetria] " . $error->getMessage());
         }
@@ -162,7 +162,7 @@ final class SupportTelemetryRuntimeOperations01
     public static function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
     
     {
-        $timezone = telemetry_cuiaba_tz();
+        $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $today = $nowUnix === null
             ? new DateTimeImmutable("today", $timezone)
             : (new DateTimeImmutable("@" . max(0, $nowUnix)))
@@ -177,7 +177,7 @@ final class SupportTelemetryRuntimeOperations01
             $key = $day->format("Y-m-d");
             $days[$key] = [
       "key" => $key,
-      "label" => telemetry_day_axis_label($day),
+      "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
       "tooltip" => $day->format("d/m/Y"),
       "value" => 0,
             ];
@@ -188,10 +188,10 @@ final class SupportTelemetryRuntimeOperations01
             $params[] = $next->getTimestamp();
         }
         if (
-            !function_exists("has_cfg") ||
-            !has_cfg() ||
-            !function_exists("db_table_exists") ||
-            !db_table_exists("pi_action_ledger")
+            !is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) ||
+            !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ||
+            !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) ||
+            !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_action_ledger")
         ) {
             return array_values($days);
         }
@@ -212,7 +212,7 @@ final class SupportTelemetryRuntimeOperations01
             ))
       ->modify("+1 day")
       ->getTimestamp();
-            $row = q($sql, $params)->fetch() ?: [];
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params)->fetch() ?: [];
             $index = 0;
             foreach ($days as &$day) {
       $day["value"] = max(0, (int) ($row["d" . $index] ?? 0));

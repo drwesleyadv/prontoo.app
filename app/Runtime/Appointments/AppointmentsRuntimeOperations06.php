@@ -35,7 +35,7 @@ final class AppointmentsRuntimeOperations06
         $v = mb_trim((string) ($_POST[$field] ?? ""));
         if (str_starts_with($v, "procedure:")) {
             $id = (int) substr($v, 10);
-            $p = one(
+            $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
                 [$id, $cid],
             );
@@ -62,7 +62,7 @@ final class AppointmentsRuntimeOperations06
             return 0;
         }
         $price =
-            (int) (val(
+            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT price_cents FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
                 [$procedureId, $cid],
             ) ?:
@@ -78,7 +78,7 @@ final class AppointmentsRuntimeOperations06
     ): array 
     {
     
-        $amount = appointment_procedure_price_cents(
+        $amount = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_price_cents(
             $cid,
             $procedureId,
             $fallbackAmount,
@@ -96,7 +96,7 @@ final class AppointmentsRuntimeOperations06
                 "Selecione um Procedimento para registrar pagamento.",
             ];
         }
-        $method = normalize_payment_method(
+        $method = \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method(
             (string) ($_POST["payment_method"] ?? ""),
         );
         if ($method === "") {
@@ -115,9 +115,9 @@ final class AppointmentsRuntimeOperations06
                 ];
             }
             if (
-                function_exists("financial_office_destination_belongs")
-                    ? !financial_office_destination_belongs($cid, $destination)
-                    : !financial_location_belongs($cid, $destination)
+                is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::class, 'financial_office_destination_belongs'])
+                    ? !\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_office_destination_belongs($cid, $destination)
+                    : !\Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_location_belongs($cid, $destination)
             ) {
                 return [
                     true,
@@ -143,7 +143,7 @@ final class AppointmentsRuntimeOperations06
         if (!$procedureId) {
             return null;
         }
-        $p = one(
+        $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT title,duration_minutes FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
             [$procedureId, $cid],
         );

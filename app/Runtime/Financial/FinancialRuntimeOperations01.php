@@ -35,7 +35,7 @@ final class FinancialRuntimeOperations01
         }
         try {
             $count =
-                (int) (val(
+                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT COUNT(*) FROM pi_financial_payment_methods WHERE clinic_id=?",
                     [$cid],
                 ) ?? 0);
@@ -54,7 +54,7 @@ final class FinancialRuntimeOperations01
                 ]
                 as $m
             ) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_financial_payment_methods (clinic_id,name,method_type,settlement_days,active,created_by,created_at) VALUES (?,?,?,?,1,?,NOW()) ON DUPLICATE KEY UPDATE active=VALUES(active)",
                     [$cid, $m[0], $m[1], $m[2], $uid ?: null],
                 );
@@ -71,10 +71,10 @@ final class FinancialRuntimeOperations01
     ): array 
     {
     
-        financial_seed_payment_methods($cid);
+        \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_seed_payment_methods($cid);
         $out = $withEmpty ? ["" => "Não informada"] : [];
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id,name,method_type FROM pi_financial_payment_methods WHERE clinic_id=? AND active=1 ORDER BY FIELD(method_type,'pix','dinheiro','cartao_debito','cartao_credito','transferencia','boleto','cheque','outro'), name",
                 [$cid],
             )->fetchAll();
@@ -82,7 +82,7 @@ final class FinancialRuntimeOperations01
                 $out[(int) $r["id"]] = $r["name"];
             }
         } catch (Throwable $e) {
-            foreach (payment_methods_options() as $k => $v) {
+            foreach (\Prontoo\Domain\Financial\FinancialDomainOperations01::payment_methods_options() as $k => $v) {
                 $out[$k] = $v;
             }
         }
@@ -96,7 +96,7 @@ final class FinancialRuntimeOperations01
     
         $id = (int) ($_POST["payment_method_id"] ?? 0);
         if ($id > 0) {
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,name,method_type FROM pi_financial_payment_methods WHERE id=? AND clinic_id=? AND active=1",
                 [$id, $cid],
             );
@@ -122,15 +122,15 @@ final class FinancialRuntimeOperations01
         if ($cid <= 0) {
             return $out;
         }
-        financial_operational_schema_ready();
-        financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
+        \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
+        \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, (int) ($_SESSION["uid"] ?? 0));
         try {
-            $accounts = q(
+            $accounts = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND active=1 AND account_type IN ('conta_corrente','conta_poupanca','conta_pagamento','investimento') ORDER BY id LIMIT 80",
                 [$cid],
             )->fetchAll();
             foreach ($accounts as $acc) {
-                financial_ensure_bank_location(
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_bank_location(
                     $cid,
                     (int) $acc["id"],
                     (int) ($_SESSION["uid"] ?? 0),
@@ -140,7 +140,7 @@ final class FinancialRuntimeOperations01
             error_log("[Prontoo appointment destinations] " . $e->getMessage());
         }
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id,name,location_type FROM pi_financial_locations WHERE clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') ORDER BY FIELD(location_type,'admin_safe','bank_account'), name,id",
                 [$cid],
             )->fetchAll();
@@ -167,7 +167,7 @@ final class FinancialRuntimeOperations01
             return 0;
         }
         try {
-            return (int) (val(
+            return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT to_location_id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' AND status='confirmed' ORDER BY id DESC LIMIT 1",
                 [$cid, $appointmentId],
             ) ?:
@@ -186,7 +186,7 @@ final class FinancialRuntimeOperations01
         if ($amount <= 0 && !empty($appt["procedure_id"])) {
             try {
                 $amount =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT price_cents FROM pi_procedures WHERE id=? AND clinic_id=?",
                         [(int) $appt["procedure_id"], $cid],
                     ) ?:
@@ -199,41 +199,41 @@ final class FinancialRuntimeOperations01
             !empty($appt["payment_confirmed_at"]) ||
             ($appt["payment_status"] ?? "") === "efetivada";
         $method = (string) ($appt["payment_method"] ?? "");
-        $dest = appointment_payment_existing_destination($cid, $appt);
+        $dest = \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_existing_destination($cid, $appt);
         $detailsAttr = $paid ? "" : " hidden";
         $destAttr =
             $paid && $method !== "" && $method !== "dinheiro" ? "" : " hidden";
-        $amountText = $amount > 0 ? money_br($amount) : 'R$ 0,00';
+        $amountText = $amount > 0 ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($amount) : 'R$ 0,00';
         $fields =
             '<section class="agenda-payment-fields" data-appointment-payment><h4>' .
-            icon("payments") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
             '<span>Pagamento</span></h4><label class="checkline"><input type="checkbox" name="payment_confirmed" value="1" data-appointment-paid-toggle ' .
             ($paid ? "checked" : "") .
             '><span>Paciente Pagou</span></label><div class="agenda-payment-details" data-appointment-payment-details' .
             $detailsAttr .
             ">" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Valor fixado no agendamento",
                 '<input type="text" value="' .
-                    e($amountText) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($amountText) .
                     '" readonly aria-readonly="true" data-appointment-payment-amount-display><input type="hidden" name="payment_amount" value="' .
-                    e($amountText) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($amountText) .
                     '" data-appointment-payment-amount-hidden>',
             ) .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Forma de pagamento",
                 "payment_method",
-                ["" => "Selecione"] + payment_methods_options(),
+                ["" => "Selecione"] + \Prontoo\Domain\Financial\FinancialDomainOperations01::payment_methods_options(),
                 $method,
                 "data-appointment-payment-method",
             ) .
             "<div data-appointment-payment-destination" .
             $destAttr .
             ">" .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Destino do recebimento",
                 "payment_destination_location_id",
-                appointment_payment_destination_options($cid),
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_destination_options($cid),
                 $dest,
             ) .
             "</div></div></section>";
@@ -249,7 +249,7 @@ final class FinancialRuntimeOperations01
     ): void 
     {
     
-        $a = one(
+        $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id,patient_link_id,procedure_id,start_at,reason,payment_amount_cents,payment_method,payment_status,payment_confirmed_at,revenue_id FROM pi_appointments WHERE id=? AND clinic_id=?",
             [$appointmentId, $cid],
         );
@@ -259,13 +259,13 @@ final class FinancialRuntimeOperations01
         $amount = (int) ($a["payment_amount_cents"] ?? 0);
         $procId = (int) ($a["procedure_id"] ?? 0);
         if ($amount <= 0 && $procId > 0) {
-            $pr = one(
+            $pr = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT price_cents FROM pi_procedures WHERE id=? AND clinic_id=?",
                 [$procId, $cid],
             );
             $amount = (int) ($pr["price_cents"] ?? 0);
             if ($amount > 0) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_appointments SET payment_amount_cents=? WHERE id=? AND clinic_id=?",
                     [$amount, $appointmentId, $cid],
                 );
@@ -282,15 +282,15 @@ final class FinancialRuntimeOperations01
         if ($title === "") {
             $title = "Atendimento agendado";
         }
-        $received = $paid ? ($a["payment_confirmed_at"] ?: now()) : null;
+        $received = $paid ? ($a["payment_confirmed_at"] ?: \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::now()) : null;
         $method =
-            normalize_payment_method((string) ($a["payment_method"] ?? "")) ?: null;
-        $existing = one(
+            \Prontoo\Domain\Financial\FinancialDomainOperations01::normalize_payment_method((string) ($a["payment_method"] ?? "")) ?: null;
+        $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT id FROM pi_financial_revenues WHERE clinic_id=? AND appointment_id=?",
             [$cid, $appointmentId],
         );
         if ($existing) {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_financial_revenues SET procedure_id=?, patient_link_id=?, title=?, amount_cents=?, status=?, payment_method=?, expected_at=?, received_at=?, updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [
                     $procId ?: null,
@@ -306,12 +306,12 @@ final class FinancialRuntimeOperations01
                     $cid,
                 ],
             );
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_appointments SET revenue_id=? WHERE id=? AND clinic_id=?",
                 [(int) $existing["id"], $appointmentId, $cid],
             );
         } else {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_financial_revenues (clinic_id,appointment_id,procedure_id,patient_link_id,title,amount_cents,status,payment_method,expected_at,received_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
@@ -327,14 +327,14 @@ final class FinancialRuntimeOperations01
                     $userId,
                 ],
             );
-            $rid = db_last_insert_id();
-            q(
+            $rid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_appointments SET revenue_id=? WHERE id=? AND clinic_id=?",
                 [$rid, $appointmentId, $cid],
             );
         }
         try {
-            financial_register_appointment_payment_movement(
+            \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_register_appointment_payment_movement(
                 $cid,
                 $appointmentId,
                 $userId,
@@ -355,11 +355,11 @@ final class FinancialRuntimeOperations01
     
     {
     
-        $month = app_month_in_timezone($cid);
+        $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid);
         $loader = static function () use ($cid, $month): array {
     
-            [$start, $next] = app_local_month_utc_range($month, $cid);
-            $goal = one(
+            [$start, $next] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_month_utc_range($month, $cid);
+            $goal = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT target_cents,base_metric,share_with_team FROM pi_financial_goals WHERE clinic_id=? AND month_key=?",
                 [$cid, $month],
             ) ?: [
@@ -374,13 +374,13 @@ final class FinancialRuntimeOperations01
             }
             if ($base === "prevista") {
                 $done =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
                         [$cid, $start, $next],
                     ) ?? 0);
             } else {
                 $done =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
                         [$cid, $start, $next],
                     ) ?? 0);
@@ -395,14 +395,14 @@ final class FinancialRuntimeOperations01
                 "percent" => $pct,
                 "share" => (int) ($goal["share_with_team"] ?? 0) === 1,
                 "base_metric" => $base,
-                "base_label" => financial_goal_base_label($base),
-                "values" => money_br($done) . " de " . money_br($target),
+                "base_label" => \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_goal_base_label($base),
+                "values" => \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($done) . " de " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($target),
             ];
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "financial",
-                server_json_cache_safe_key("monthly_goal_status", [$cid, $month]),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("monthly_goal_status", [$cid, $month]),
                 20,
                 $loader,
                 ["clinic:" . $cid, "goal:" . $month],
@@ -423,7 +423,7 @@ final class FinancialRuntimeOperations01
         if ($cid <= 0) {
             return "";
         }
-        $st = monthly_goal_status($cid);
+        $st = \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::monthly_goal_status($cid);
         if (!$st["share"] || $st["target_cents"] <= 0) {
             return "";
         }
@@ -434,11 +434,11 @@ final class FinancialRuntimeOperations01
         return '<section class="goal-card' .
             $cls .
             '" data-monthly-goal-card aria-label="Meta mensal: ' .
-            e($pctLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pctLabel) .
             '"><span class="material-symbols-rounded goal-mini-icon" aria-hidden="true">flag</span><span class="sr-only">Meta mensal</span><div class="goal-bar" aria-hidden="true"><i data-goal-bar style="width:' .
             $bar .
             '%"></i></div><b data-goal-percent>' .
-            e($pctLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pctLabel) .
             "</b></section>";
     
     }
@@ -447,14 +447,14 @@ final class FinancialRuntimeOperations01
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             http_response_code(403);
             exit();
         }
         header("Content-Type: application/json; charset=utf-8");
         header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-        $st = monthly_goal_status((int) $c["clinic_id"]);
+        $st = \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::monthly_goal_status((int) $c["clinic_id"]);
         $shared = (bool) ($st["share"] ?? false);
         $percent = $shared ? (float) ($st["percent"] ?? 0) : 0.0;
         echo json_encode(
@@ -474,7 +474,7 @@ final class FinancialRuntimeOperations01
     
     {
     
-        $c = require_can("operations");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("operations");
         $items = [
             [
                 "leads",
@@ -510,21 +510,21 @@ final class FinancialRuntimeOperations01
         ];
         $html = '<div class="admin-grid operations-grid">';
         foreach ($items as [$route, $title, $ico, $desc]) {
-            if (can($route)) {
+            if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can($route)) {
                 $html .=
                     '<a class="admin-tile" href="' .
-                    href($route) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route) .
                     '">' .
-                    icon($ico) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
                     "<b>" .
-                    e($title) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                     "</b><span>" .
-                    e($desc) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($desc) .
                     "</span></a>";
             }
         }
         $html .= "</div>";
-        page("Fluxo", page_head("Fluxo", "") . card($html, "operations-card"));
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Fluxo", \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Fluxo", "") . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($html, "operations-card"));
     
     }
 
@@ -534,31 +534,31 @@ final class FinancialRuntimeOperations01
     ): string 
     {
     
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name ASC LIMIT 800",
             [$cid],
         )->fetchAll();
-        $h = '<datalist id="' . e($id) . '">';
+        $h = '<datalist id="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($id) . '">';
         foreach ($rows as $r) {
             $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
-            $masked = mask($doc);
+            $masked = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($doc);
             $value =
                 (string) $r["full_name"] . ($masked !== "" ? " · " . $masked : "");
             $label =
                 $masked !== "" ? "CPF/CNPJ " . $masked : "Documento não informado";
             $h .=
                 '<option value="' .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '" label="' .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 '" data-counterparty-id="' .
                 (int) $r["id"] .
                 '" data-counterparty-name="' .
-                e((string) $r["full_name"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $r["full_name"]) .
                 '" data-counterparty-doc="' .
-                e($masked) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($masked) .
                 '" data-counterparty-doc-raw="' .
-                e($doc) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($doc) .
                 '"></option>';
         }
         return $h . "</datalist>";

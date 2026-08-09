@@ -46,7 +46,7 @@ final class SupportRuntimeInfrastructureOperations01
         }
         return (int) $match[1] === 8 &&
             (int) $match[2] === 4 &&
-            version_compare($version, prontoo_min_php_version(), ">=");
+            version_compare($version, \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_min_php_version(), ">=");
     
     }
 
@@ -59,7 +59,7 @@ final class SupportRuntimeInfrastructureOperations01
             $version .
             " detectado; o Prontoo exige exclusivamente a família PHP 8.4, " .
             "a partir de " .
-            prontoo_min_php_version() .
+            \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_min_php_version() .
             ".";
     
     }
@@ -104,7 +104,7 @@ final class SupportRuntimeInfrastructureOperations01
     ): bool 
     {
     
-        $bytes = prontoo_ini_size_to_bytes($memoryLimit ?? ini_get("memory_limit"));
+        $bytes = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_ini_size_to_bytes($memoryLimit ?? ini_get("memory_limit"));
         return $bytes === null || $bytes >= $minimumBytes;
     
     }
@@ -162,7 +162,7 @@ final class SupportRuntimeInfrastructureOperations01
         if (is_dir($directory)) {
             return true;
         }
-        return (bool) prontoo_runtime_attempt(
+        return (bool) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): bool => mkdir($directory, $mode, $recursive),
             false,
             "criação de diretório {$directory}",
@@ -180,7 +180,7 @@ final class SupportRuntimeInfrastructureOperations01
         if (!is_file($path)) {
             return null;
         }
-        $value = prontoo_runtime_attempt(
+        $value = \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): string|false => file_get_contents($path),
             false,
             "leitura de {$path}",
@@ -198,7 +198,7 @@ final class SupportRuntimeInfrastructureOperations01
     ): int|false 
     {
     
-        return prontoo_runtime_attempt(
+        return \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): int|false => file_put_contents($path, $contents, $flags),
             false,
             "gravação de {$path}",
@@ -214,7 +214,7 @@ final class SupportRuntimeInfrastructureOperations01
         if (!file_exists($path) && !is_link($path)) {
             return true;
         }
-        return (bool) prontoo_runtime_attempt(
+        return (bool) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): bool => unlink($path),
             false,
             "exclusão de {$path}",
@@ -233,7 +233,7 @@ final class SupportRuntimeInfrastructureOperations01
         if (!file_exists($path)) {
             return false;
         }
-        return (bool) prontoo_runtime_attempt(
+        return (bool) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): bool => chmod($path, $mode),
             false,
             "permissão de {$path}",
@@ -249,7 +249,7 @@ final class SupportRuntimeInfrastructureOperations01
     ): bool 
     {
     
-        return (bool) prontoo_runtime_attempt(
+        return (bool) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): bool => rename($source, $destination),
             false,
             "renomeação de {$source} para {$destination}",
@@ -264,7 +264,7 @@ final class SupportRuntimeInfrastructureOperations01
     ): int|false 
     {
     
-        return prontoo_runtime_attempt(
+        return \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): int|false => fileperms($path),
             false,
             "leitura de permissões de {$path}",
@@ -280,7 +280,7 @@ final class SupportRuntimeInfrastructureOperations01
     ): bool 
     {
     
-        return (bool) prontoo_runtime_attempt(
+        return (bool) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_runtime_attempt(
             static  fn(): bool => move_uploaded_file($source, $destination),
             false,
             "movimentação de upload para {$destination}",

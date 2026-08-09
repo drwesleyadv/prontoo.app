@@ -35,7 +35,7 @@ final class SupportFoundationRuntimeOperations02
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         }
         if (
-            security_rate_limit(security_client_bucket("login_autotest"), 90, 300)
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_autotest"), 90, 300)
         ) {
             http_response_code(429);
             echo json_encode(
@@ -50,15 +50,15 @@ final class SupportFoundationRuntimeOperations02
             );
             exit();
         }
-        $checks = prontoo_login_selftest_light();
+        $checks = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::prontoo_login_selftest_light();
         $auto = false;
         $redirect = "";
-        security_clear_legacy_device_cookie();
-        if (function_exists("platform_login_loaded_audit")) {
-            platform_login_loaded_audit($checks, $auto);
-        } elseif (function_exists("audit")) {
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
+        if (is_callable([\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::class, 'platform_login_loaded_audit'])) {
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_login_loaded_audit($checks, $auto);
+        } elseif (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
             try {
-                audit("login_autoteste_leve", "login", null, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("login_autoteste_leve", "login", null, [
                     "ok" => !empty($checks["ok"]) ? 1 : 0,
                     "maintenance_deferred" => 1,
                     "audit_body" =>
@@ -91,12 +91,12 @@ final class SupportFoundationRuntimeOperations02
     {
     
         $base =
-            only_digits($identity) .
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($identity) .
             "|" .
             mb_strtolower(trim($name), "UTF-8") .
             "|" .
             mb_trim((string) $date);
-        return hash_hmac("sha256", $base, secret_key());
+        return hash_hmac("sha256", $base, \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key());
     
     }
 
@@ -108,7 +108,7 @@ final class SupportFoundationRuntimeOperations02
             return;
         }
         try {
-            $person = one(
+            $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,full_name,cpf,birth_date,assinatura FROM pi_persons WHERE id=?",
                 [$personId],
             );
@@ -118,20 +118,20 @@ final class SupportFoundationRuntimeOperations02
                 }
                 return;
             }
-            $expected = person_signature_value(
+            $expected = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value(
                 (string) ($person["cpf"] ?? ""),
                 (string) ($person["full_name"] ?? ""),
                 (string) ($person["birth_date"] ?? ""),
             );
             $current = mb_trim((string) ($person["assinatura"] ?? ""));
             if ($current === "" || !hash_equals($expected, $current)) {
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_persons SET assinatura=?, updated_at=COALESCE(updated_at,NOW()) WHERE id=?",
                     [$expected, $personId],
                 );
             }
             if ($verify) {
-                $stored = mb_trim((string) val(
+                $stored = mb_trim((string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT assinatura FROM pi_persons WHERE id=?",
                     [$personId],
                 ));
@@ -154,7 +154,7 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        person_signature_sync($personId, false);
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_sync($personId, false);
     
     }
 
@@ -162,7 +162,7 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        person_signature_sync($personId, true);
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_sync($personId, true);
     
     }
 
@@ -176,16 +176,16 @@ final class SupportFoundationRuntimeOperations02
     
         $current =
             $personId > 0
-                ? (one("SELECT cpf,birth_date FROM pi_persons WHERE id=?", [
+                ? (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT cpf,birth_date FROM pi_persons WHERE id=?", [
                     $personId,
                 ]) ?:
                 [])
                 : [];
-        $currentCpf = only_digits((string) ($current["cpf"] ?? ""));
+        $currentCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($current["cpf"] ?? ""));
         $currentBirthRaw = mb_trim((string) ($current["birth_date"] ?? ""));
-        $currentBirth = app_date_input_from_storage($currentBirthRaw);
-        $newCpf = only_digits((string) ($cpfInput ?? ""));
-        $newBirth = app_date_input_from_storage(mb_trim((string) ($birthInput ?? "")));
+        $currentBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($currentBirthRaw);
+        $newCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($cpfInput ?? ""));
+        $newBirth = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(mb_trim((string) ($birthInput ?? "")));
         if ($currentCpf !== "") {
             if ($newCpf !== "" && $newCpf !== $currentCpf) {
                 throw new RuntimeException(
@@ -194,7 +194,7 @@ final class SupportFoundationRuntimeOperations02
             }
             $newCpf = $currentCpf;
         } else {
-            if ($newCpf !== "" && !valid_cpf($newCpf)) {
+            if ($newCpf !== "" && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($newCpf)) {
                 throw new RuntimeException("Este CPF não existe.");
             }
             if ($requireMissing && $newCpf === "") {
@@ -209,7 +209,7 @@ final class SupportFoundationRuntimeOperations02
             }
             $newBirth = $currentBirthRaw !== "" ? $currentBirthRaw : $currentBirth;
         } else {
-            if ($newBirth !== "" && !valid_birth_date($newBirth)) {
+            if ($newBirth !== "" && !\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date($newBirth)) {
                 throw new RuntimeException("Nascimento inválido.");
             }
             if ($requireMissing && $newBirth === "") {
@@ -229,7 +229,7 @@ final class SupportFoundationRuntimeOperations02
     {
     
         try {
-            return (int) cached_val("counter_" . $counter, max(0, $ttl), $sql, $p);
+            return (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("counter_" . $counter, max(0, $ttl), $sql, $p);
         } catch (Throwable $e) {
             error_log(
                 "[Prontoo realtime counter] " . $counter . " " . $e->getMessage(),
@@ -246,18 +246,18 @@ final class SupportFoundationRuntimeOperations02
         $loader = function () use ($key, $default): mixed {
     
             try {
-                $value = val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [$key]);
+                $value = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [$key]);
                 return $value === null ? $default : $value;
             } catch (Throwable $e) {
                 error_log("[Prontoo meta_get] " . $e->getMessage());
                 return $default;
             }
         };
-        if (function_exists("server_json_cache_remember")) {
-            return server_json_cache_remember(
+        if (is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])) {
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "meta",
-                server_json_cache_safe_key("meta", [$key]),
-                meta_cache_ttl($key),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("meta", [$key]),
+                \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::meta_cache_ttl($key),
                 $loader,
                 ["meta:" . $key],
             );
@@ -270,11 +270,11 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value), updated_at=NOW()",
             [$key, (string) $value],
         );
-        if (function_exists("server_json_cache_clear_categories")) {
+        if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_clear_categories'])) {
             $categories = ["meta"];
             if (
                 $key === "auth_generation" ||
@@ -287,7 +287,7 @@ final class SupportFoundationRuntimeOperations02
                 $categories[] = "context";
                 $categories[] = "clinic";
             }
-            server_json_cache_clear_categories($categories);
+            \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories($categories);
         }
     
     }
@@ -296,10 +296,10 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        if (!function_exists("has_cfg") || !has_cfg()) {
+        if (!is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return false;
         }
-        return (string) meta_get("signup_clinics_blocked", "0") === "1";
+        return (string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("signup_clinics_blocked", "0") === "1";
     
     }
 
@@ -313,7 +313,7 @@ final class SupportFoundationRuntimeOperations02
         $file = function_exists("privacy_log_file_label")
             ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
             : basename($e->getFile());
-        $dir = storage_path("logs");
+        $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
@@ -324,7 +324,7 @@ final class SupportFoundationRuntimeOperations02
             "[" .
             date("c") .
             "] " .
-            route() .
+            \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() .
             " " .
             $status .
             " " .
@@ -337,13 +337,13 @@ final class SupportFoundationRuntimeOperations02
     ";
         @file_put_contents($dir . "/runtime.log", $line, FILE_APPEND | LOCK_EX);
         @chmod($dir . "/runtime.log", 0640);
-        if (!has_cfg() || db_temp_space_error($e)) {
+        if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() || \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_temp_space_error($e)) {
             return;
         }
         try {
             $hash = hash(
                 "sha256",
-                route() .
+                \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() .
                     "|" .
                     $status .
                     "|" .
@@ -353,22 +353,22 @@ final class SupportFoundationRuntimeOperations02
                     "|" .
                     $e->getLine(),
             );
-            $throttle = cache_get("err_" . $hash, 60);
+            $throttle = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_get("err_" . $hash, 60);
             if ($throttle) {
                 return;
             }
-            cache_set("err_" . $hash, 1);
-            q(
+            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set("err_" . $hash, 1);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_error_events (route,method,http_status,message,file,line,user_id,clinic_id,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
                 [
-                    route(),
+                    \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
                     (string) ($_SERVER["REQUEST_METHOD"] ?? "GET"),
                     $status,
                     $message,
                     mb_substr($file, 0, 255),
                     $e->getLine(),
                     $_SESSION["uid"] ?? null,
-                    session_clinic_scope_id() ?: null,
+                    \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId() ?: null,
                 ],
             );
         } catch (Throwable $ignored) {
@@ -386,7 +386,7 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        ensure_runtime_schema_minimum();
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
     
     }
 
@@ -400,7 +400,7 @@ final class SupportFoundationRuntimeOperations02
     
             return mb_trim((string) ($data[$prefix . $name] ?? ""));
         };
-        $doc = only_digits($k("legal_document"));
+        $doc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($k("legal_document"));
         $type = $k("legal_type");
         if ($type === "" && $doc !== "") {
             $type = strlen($doc) === 14 ? "cnpj" : "cpf";
@@ -409,7 +409,7 @@ final class SupportFoundationRuntimeOperations02
             $type = null;
         }
         $email = $k("email");
-        $phone = phone_br($k("phone"));
+        $phone = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br($k("phone"));
         $uf = strtoupper($k("address_state"));
         $city = $k("address_city");
         $cityIbge = (int) ($data[$prefix . "address_city_ibge"] ?? 0);
@@ -418,7 +418,7 @@ final class SupportFoundationRuntimeOperations02
             "legal_document" => $doc !== "" ? $doc : null,
             "phone" => $phone !== "" ? $phone : null,
             "email" => $email !== "" ? $email : null,
-            "address_zip" => only_digits($k("address_zip")) ?: null,
+            "address_zip" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($k("address_zip")) ?: null,
             "address" => $k("address") ?: null,
             "address_number" => $k("address_number") ?: null,
             "address_neighborhood" => $k("address_neighborhood") ?: null,
@@ -437,7 +437,7 @@ final class SupportFoundationRuntimeOperations02
         if ($personId <= 0) {
             return;
         }
-        person_common_profile_schema_ready();
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_schema_ready();
         $allowed = [
             "legal_type",
             "legal_document",
@@ -476,7 +476,7 @@ final class SupportFoundationRuntimeOperations02
         $sets[] = "updated_at=NOW()";
         $vals[] = $personId;
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_persons SET " . implode(",", $sets) . " WHERE id=?",
                 $vals,
             );

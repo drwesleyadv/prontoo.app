@@ -28,11 +28,11 @@ final class SessionTenantContext
     public static function mutationContext(): array
     {
         $uid = (int) ($_SESSION['uid'] ?? 0);
-        $route = function_exists('route') ? (string) \route() : '';
+        $route = is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) ? (string) \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() : '';
         $isGlobalAdmin = false;
-        if ($uid > 0 && function_exists('user_is_global_admin')) {
+        if ($uid > 0 && is_callable([\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::class, 'user_is_global_admin'])) {
             try {
-                $isGlobalAdmin = (bool) \user_is_global_admin($uid);
+                $isGlobalAdmin = (bool) \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::user_is_global_admin($uid);
             } catch (\Throwable $error) {
                 error_log('[Prontoo mutation context] ' . $error->getMessage());
             }

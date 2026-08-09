@@ -31,16 +31,16 @@ final class SupportFoundationRuntimeOperations01
     {
     
         $userId = $userId > 0 ? $userId : (int) ($_SESSION["uid"] ?? 0);
-        if ($userId > 0 && has_cfg() && function_exists("val")) {
+        if ($userId > 0 && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val'])) {
             try {
                 $tz =
-                    (string) (val(
+                    (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
                         ["global_admin_timezone_user_" . $userId],
                     ) ?:
                     "");
                 if ($tz !== "") {
-                    return app_timezone_safe($tz);
+                    return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
                 }
             } catch (Throwable $e) {
                 error_log(
@@ -48,16 +48,16 @@ final class SupportFoundationRuntimeOperations01
                 );
             }
         }
-        if (has_cfg() && function_exists("val")) {
+        if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val'])) {
             try {
                 $tz =
-                    (string) (val(
+                    (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
                         ["global_admin_timezone_default"],
                     ) ?:
                     "");
                 if ($tz !== "") {
-                    return app_timezone_safe($tz);
+                    return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
                 }
             } catch (Throwable $e) {
                 error_log(
@@ -65,7 +65,7 @@ final class SupportFoundationRuntimeOperations01
                 );
             }
         }
-        return app_timezone_safe(
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe(
             (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? "America/Cuiaba"),
         );
     
@@ -79,30 +79,30 @@ final class SupportFoundationRuntimeOperations01
             is_array($context) &&
             mb_trim((string) ($context["timezone"] ?? "")) !== ""
         ) {
-            return app_timezone_safe((string) $context["timezone"]);
+            return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe((string) $context["timezone"]);
         }
-        if ($clinicId > 0 && function_exists("val") && has_cfg()) {
+        if ($clinicId > 0 && is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             static $cache = [];
             if (isset($cache[$clinicId])) {
                 return $cache[$clinicId];
             }
             try {
                 $tz =
-                    (string) (val(
+                    (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT timezone FROM pi_clinics WHERE id=? LIMIT 1",
                         [$clinicId],
                     ) ?:
                     "America/Cuiaba");
-                return $cache[$clinicId] = app_timezone_safe($tz);
+                return $cache[$clinicId] = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
             } catch (Throwable $e) {
                 error_log("[Prontoo clinic timezone] " . $e->getMessage());
             }
         }
-        if (function_exists("ctx")) {
+        if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'ctx'])) {
             try {
-                $c = ctx();
+                $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
                 if (($c["scope"] ?? "") === "clinic") {
-                    return app_timezone_safe(
+                    return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe(
                         (string) ($c["timezone"] ?? "America/Cuiaba"),
                     );
                 }
@@ -115,7 +115,7 @@ final class SupportFoundationRuntimeOperations01
                 );
             }
         }
-        return app_timezone_safe(
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe(
             (string) ($GLOBALS["PRONTOO_DISPLAY_TIMEZONE"] ?? "America/Cuiaba"),
         );
     
@@ -127,8 +127,8 @@ final class SupportFoundationRuntimeOperations01
     ): DateTimeImmutable 
     {
     
-        return app_now_utc()->setTimezone(
-            new DateTimeZone(app_context_timezone($context, $clinicId)),
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_now_utc()->setTimezone(
+            new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId)),
         );
     
     }
@@ -139,7 +139,7 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        return app_now_in_timezone($clinicId, $context)->format("Y-m-d");
+        return \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_now_in_timezone($clinicId, $context)->format("Y-m-d");
     
     }
 
@@ -150,10 +150,10 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        $nowUtc ??= app_now_utc();
+        $nowUtc ??= \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_now_utc();
         return $nowUtc
             ->setTimezone(
-                new DateTimeZone(app_context_timezone($context, $clinicId)),
+                new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId)),
             )
             ->format("Y-m");
     
@@ -170,9 +170,9 @@ final class SupportFoundationRuntimeOperations01
             preg_match('/^(\d{4})-(\d{2})$/', $month, $parts) !== 1 ||
             !checkdate((int) $parts[2], 1, (int) $parts[1])
         ) {
-            $month = app_month_in_timezone($clinicId, $context);
+            $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($clinicId, $context);
         }
-        $zone = new DateTimeZone(app_context_timezone($context, $clinicId));
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId));
         $start = new DateTimeImmutable($month . "-01 00:00:00", $zone);
         $end = $start->modify("+1 month");
         $utc = new DateTimeZone("UTC");
@@ -190,12 +190,12 @@ final class SupportFoundationRuntimeOperations01
     ): ?DateTimeImmutable 
     {
     
-        $dt = app_parse_db_utc($value);
+        $dt = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_parse_db_utc($value);
         if (!$dt) {
             return null;
         }
         return $dt->setTimezone(
-            new DateTimeZone(app_context_timezone($context, $clinicId)),
+            new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId)),
         );
     
     }
@@ -220,7 +220,7 @@ final class SupportFoundationRuntimeOperations01
         try {
             $dt = new DateTimeImmutable(
                 $value,
-                new DateTimeZone(app_context_timezone($context, $clinicId)),
+                new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId)),
             );
             return (string) $dt
                 ->setTimezone(new DateTimeZone("UTC"))
@@ -238,7 +238,7 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        $dt = app_db_utc_to_local($value, $clinicId, $context);
+        $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($value, $clinicId, $context);
         return $dt ? $dt->format("Y-m-d\TH:i") : "";
     
     }
@@ -251,9 +251,9 @@ final class SupportFoundationRuntimeOperations01
     {
     
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
-            $day = app_today_in_timezone($clinicId, $context);
+            $day = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($clinicId, $context);
         }
-        $zone = new DateTimeZone(app_context_timezone($context, $clinicId));
+        $zone = new DateTimeZone(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_context_timezone($context, $clinicId));
         $start = new DateTimeImmutable($day . " 00:00:00", $zone);
         $end = $start->modify("+1 day");
         return [
@@ -270,14 +270,14 @@ final class SupportFoundationRuntimeOperations01
     ): int 
     {
     
-        $ymd = app_date_input_from_storage($value);
+        $ymd = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage($value);
         if ($ymd === "" || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) {
             return 0;
         }
         if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
             return 0;
         }
-        [, $end] = app_local_day_utc_range($ymd, $clinicId, $context);
+        [, $end] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($ymd, $clinicId, $context);
         return max(0, (int) $end - 1);
     
     }
@@ -289,7 +289,7 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        $dt = app_db_utc_to_local($value, $clinicId, $context);
+        $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($value, $clinicId, $context);
         return $dt ? $dt->format("H:i") : "--:--";
     
     }
@@ -301,7 +301,7 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        $dt = app_db_utc_to_local($value, $clinicId, $context);
+        $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($value, $clinicId, $context);
         return $dt ? $dt->format("d/m/Y") : "—";
     
     }
@@ -313,13 +313,13 @@ final class SupportFoundationRuntimeOperations01
     ): string 
     {
     
-        $dt = app_db_utc_to_local($value, $clinicId, $context);
+        $dt = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($value, $clinicId, $context);
         if (!$dt) {
             return mb_trim((string) ($value ?? "")) ?: "—";
         }
-        $m = prontoo_months_br();
+        $m = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::prontoo_months_br();
         $year = (int) $dt->format("Y");
-        $current = (int) app_now_in_timezone($clinicId, $context)->format("Y");
+        $current = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_now_in_timezone($clinicId, $context)->format("Y");
         $date =
             $dt->format("d") .
             " de " .
@@ -334,8 +334,8 @@ final class SupportFoundationRuntimeOperations01
     {
     
         try {
-            if (function_exists("audit_patient_name_by_link")) {
-                $name = mb_trim((string) audit_patient_name_by_link($patientLinkId, $cid));
+            if (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::class, 'audit_patient_name_by_link'])) {
+                $name = mb_trim((string) \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations03::audit_patient_name_by_link($patientLinkId, $cid));
                 if ($name !== "") {
                     return $name;
                 }
@@ -346,7 +346,7 @@ final class SupportFoundationRuntimeOperations01
                 $where .= " AND pp.clinic_id=?";
                 $params[] = $cid;
             }
-            $name = mb_trim((string) (val(
+            $name = mb_trim((string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT p.full_name FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE $where LIMIT 1",
                 $params,
             ) ?: ""));
@@ -362,7 +362,7 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        return has_cfg() && function_exists("meta_get") && meta_get("maintenance_active", "0") === "1";
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'meta_get']) && \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("maintenance_active", "0") === "1";
     
     }
 
@@ -370,18 +370,18 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        $message = function_exists("meta_get")
-            ? meta_get(
+        $message = is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'meta_get'])
+            ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get(
                 "maintenance_message",
                 "Estamos fazendo uma manutenção rápida para melhorar o serviço. Tente novamente em instantes.",
             )
             : "Estamos fazendo uma manutenção rápida para melhorar o serviço. Tente novamente em instantes.";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Manutenção programada",
             '<section class="auth widebox"><h1>Prontoo em manutenção</h1><p>' .
-                e($message) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($message) .
                 '</p><p><a class="ghost" href="' .
-                e(href("login")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login")) .
                 '">Voltar ao início</a></p></section>',
             ["public" => true, "robots" => "noindex,nofollow"],
         );
@@ -392,14 +392,14 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        if (PHP_SAPI === "cli" || !app_is_production()) {
+        if (PHP_SAPI === "cli" || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_is_production()) {
             return;
         }
-        $canonical = app_canonical_host();
+        $canonical = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_canonical_host();
         if ($canonical === "") {
             return;
         }
-        $raw = strtolower(preg_replace('/:\d+$/', "", request_host_raw()) ?: "");
+        $raw = strtolower(preg_replace('/:\d+$/', "", \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::request_host_raw()) ?: "");
         if (
             $raw === "" ||
             in_array($raw, ["localhost", "127.0.0.1", "::1"], true)
@@ -431,11 +431,11 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        $canonical = app_is_production() ? app_canonical_host() : "";
+        $canonical = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_is_production() ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_canonical_host() : "";
         if ($canonical !== "") {
             return $canonical;
         }
-        return request_host_raw();
+        return \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::request_host_raw();
     
     }
 
@@ -443,9 +443,9 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        return (is_https() ? "https://" : "http://") .
-            request_host() .
-            base_path() .
+        return (\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::is_https() ? "https://" : "http://") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::request_host() .
+            \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::base_path() .
             "/" .
             ltrim($suffix, "/");
     
@@ -455,7 +455,7 @@ final class SupportFoundationRuntimeOperations01
     
     {
     
-        return (base_path() ?: "") .
+        return (\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::base_path() ?: "") .
             "/?" .
             http_build_query(["r" => $route] + $params);
     
@@ -466,7 +466,7 @@ final class SupportFoundationRuntimeOperations01
     {
     
         if (!headers_sent()) {
-            header("Location: " . href($route, $params));
+            header("Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params));
         }
         exit();
     
@@ -491,7 +491,7 @@ final class SupportFoundationRuntimeOperations01
                     ":" .
                     $e->getLine(),
             );
-            log_runtime_error($e, $status);
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::log_runtime_error($e, $status);
         }
         if (!headers_sent()) {
             http_response_code($status);
@@ -504,18 +504,18 @@ final class SupportFoundationRuntimeOperations01
         $message = $http
             ? $e->getMessage()
             : "O Prontoo registrou uma instabilidade e evitou continuar em estado inconsistente. Tente novamente em alguns instantes.";
-        $detail = app_debug()
+        $detail = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_debug()
             ? "<pre>" .
-                e($e->getMessage()) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($e->getMessage()) .
                 "
     " .
-                e($e->getFile() . ":" . $e->getLine()) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($e->getFile() . ":" . $e->getLine()) .
                 "</pre>"
             : "";
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/"><title>Prontoo — instabilidade temporária</title><meta name="theme-color" content="#334155"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
-            e(PRONTOO_VERSION) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
             '"><meta name="csrf-token" content="' .
-            e(csrf()) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf()) .
             '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/public/assets/favicon-' .
             rawurlencode(PRONTOO_ASSET_REV) .
             '.png" type="image/png"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
@@ -523,13 +523,13 @@ final class SupportFoundationRuntimeOperations01
                 defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,
             ) .
             '"></head><body class="public"><main><section class="auth widebox"><h1>' .
-            e($title) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             "</h1><p>" .
-            e($message) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($message) .
             "</p>" .
             $detail .
             '<p><a class="primary" href="' .
-            e(href("login")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login")) .
             '">Voltar ao início</a></p></section></main></body></html>';
         exit();
     
@@ -541,7 +541,7 @@ final class SupportFoundationRuntimeOperations01
     
         $ttl = max(0, $ttl);
         if ($ttl <= 0) {
-            return val($sql, $p);
+            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val($sql, $p);
         }
         $ck =
             "sql_" .
@@ -557,22 +557,22 @@ final class SupportFoundationRuntimeOperations01
                     ),
             );
         if (
-            function_exists("server_json_cache_remember") &&
-            server_json_cache_read_allowed()
+            is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) &&
+            \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()
         ) {
-            return server_json_cache_remember(
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "warm",
                 $ck,
                 $ttl,
-                 fn() => val($sql, $p),
+                 fn() => \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val($sql, $p),
                 ["sql"],
             );
         }
-        $cached = cache_get($ck, $ttl);
+        $cached = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_get($ck, $ttl);
         if ($cached !== null) {
             return $cached;
         }
-        return cache_set($ck, val($sql, $p));
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set($ck, \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val($sql, $p));
     
     }
 
@@ -581,9 +581,9 @@ final class SupportFoundationRuntimeOperations01
     {
     
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_platform_counters (counter_key,counter_value,updated_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE counter_value=counter_value+VALUES(counter_value), updated_at=NOW()",
-                [counter_key($name), $by],
+                [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name), $by],
             );
         } catch (Throwable $e) {
             error_log("[Prontoo counter_inc] " . $e->getMessage());
@@ -596,9 +596,9 @@ final class SupportFoundationRuntimeOperations01
     {
     
         try {
-            return (int) (val(
+            return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                 "SELECT counter_value FROM pi_platform_counters WHERE counter_key=?",
-                [counter_key($name)],
+                [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name)],
             ) ?? $fallback);
         } catch (Throwable $e) {
             error_log("[Prontoo counter_get] " . $e->getMessage());

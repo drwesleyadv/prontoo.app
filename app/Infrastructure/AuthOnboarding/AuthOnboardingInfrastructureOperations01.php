@@ -31,10 +31,10 @@ final class AuthOnboardingInfrastructureOperations01
     {
     
         static $validated = false;
-        if ($validated || !has_cfg()) {
+        if ($validated || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
-        if (!db_table_exists("pi_user_onboarding_tips")) {
+        if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_user_onboarding_tips")) {
             throw new RuntimeException(
                 "Schema incompleto: onboarding de usuário indisponível.",
             );

@@ -61,7 +61,7 @@ final class FinancialPresentationOperations01
             $label = $type === "expense" ? "Vencida" : "Atrasada";
             $cls .= " bad";
         }
-        return '<span class="' . $cls . '">' . e($label) . "</span>";
+        return '<span class="' . $cls . '">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) . "</span>";
     
     }
 
@@ -70,9 +70,9 @@ final class FinancialPresentationOperations01
     {
     
         return '<article class="finance-row mini"><span>' .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span><b>" .
-            money_br($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($value) .
             "</b></article>";
     
     }
@@ -84,7 +84,7 @@ final class FinancialPresentationOperations01
     ): string 
     {
     
-        return input($name, "text", $value, 'inputmode="decimal" ' . $extra);
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input($name, "text", $value, 'inputmode="decimal" ' . $extra);
     
     }
 
@@ -100,9 +100,9 @@ final class FinancialPresentationOperations01
         foreach ($blockers as $b) {
             $h .=
                 "<div><b>" .
-                icon("lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
                 "<span>Pendente</span></b><span>" .
-                e((string) $b) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $b) .
                 "</span></div>";
         }
         return $h . "</div>";
@@ -123,14 +123,14 @@ final class FinancialPresentationOperations01
             $label =
                 $status === "not_started"
                     ? "Aguardando abertura/fechamento"
-                    : financial_human_session_status($status);
+                    : \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_session_status($status);
             $h .=
                 "<div><b>" .
-                e((string) ($r["drawer_name"] ?? "Gaveta")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($r["drawer_name"] ?? "Gaveta")) .
                 "</b><span>" .
-                e((string) ($r["user_name"] ?? "Colaborador")) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($r["user_name"] ?? "Colaborador")) .
                 " · " .
-                e($label) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span></div>";
         }
         return $h . "</div>";
@@ -147,7 +147,7 @@ final class FinancialPresentationOperations01
         $lines = [];
         $lines[] = "PRONTOO_CAIXA_DEBUG";
         $lines[] = "timestamp_utc=" . gmdate("c");
-        $lines[] = "route=" . (function_exists("route") ? route() : "indefinida");
+        $lines[] = "route=" . (is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) ? \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() : "indefinida");
         $lines[] = "http_method=" . (string) ($_SERVER["REQUEST_METHOD"] ?? "");
         $lines[] =
             "action=" . ($act !== "" ? $act : (string) ($_POST["act"] ?? ""));
@@ -194,7 +194,7 @@ final class FinancialPresentationOperations01
     ): void 
     {
     
-        $debug = financial_cash_exception_debug($e, $c, $act);
+        $debug = \Prontoo\Presentation\Financial\FinancialPresentationOperations01::financial_cash_exception_debug($e, $c, $act);
         $_SESSION["financial_cash_debug_error"] = $debug;
         $_SESSION["financial_cash_error_at"] = gmdate("d/m/Y H:i:s") . " UTC";
         error_log(
@@ -210,7 +210,7 @@ final class FinancialPresentationOperations01
         if ((string) ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
             return false;
         }
-        if (function_exists("route") && route() !== "financial") {
+        if (is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) && \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() !== "financial") {
             return false;
         }
         $act = (string) ($_POST["act"] ?? "");
@@ -233,21 +233,21 @@ final class FinancialPresentationOperations01
     {
     
         return '<div class="kpis finance-kpis finance-balance-kpis" aria-label="Saldos financeiros do consultório"><article class="finance-balance-card finance-balance-total">' .
-            icon("savings") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("savings") .
             "<p><b>" .
-            money_br((int) $pos["total_cents"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["total_cents"]) .
             '</b><span>Total disponível</span></p></article><article class="finance-balance-card finance-balance-drawers">' .
-            icon("point_of_sale") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("point_of_sale") .
             "<p><b>" .
-            money_br((int) $pos["pos_cents"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["pos_cents"]) .
             '</b><span>Gavetas</span></p></article><article class="finance-balance-card finance-balance-safes">' .
-            icon("account_balance_wallet") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_balance_wallet") .
             "<p><b>" .
-            money_br((int) $pos["safe_cents"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["safe_cents"]) .
             '</b><span>Cofre</span></p></article><article class="finance-balance-card finance-balance-banks">' .
-            icon("account_balance") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_balance") .
             "<p><b>" .
-            money_br((int) $pos["bank_cents"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $pos["bank_cents"]) .
             "</b><span>Bancos</span></p></article></div>";
     
     }

@@ -30,7 +30,7 @@ final class TasksNoticesRuntimeOperations06
     
     {
     
-        $c = require_can("notices");
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("notices");
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
         $readOnly = !empty(($c["billing"] ?? [])["read_only"]);
@@ -46,14 +46,14 @@ final class TasksNoticesRuntimeOperations06
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = $_POST["act"] ?? "create";
             if ($readOnly && $act === "support_message") {
-                readonly_support_alerts_ensure_schema();
+                \Prontoo\Infrastructure\TasksNotices\TasksNoticesInfrastructureOperations01::readonly_support_alerts_ensure_schema();
                 $title = mb_trim((string) ($_POST["title"] ?? ""));
                 $body = mb_trim((string) ($_POST["body"] ?? ""));
                 if ($title === "" || $body === "") {
-                    flash("Informe assunto e mensagem para o suporte.", "bad");
-                    redirect("notices");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe assunto e mensagem para o suporte.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices");
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_admin_alerts (sender_user_id,sender_clinic_id,source_scope,recipient_user_id,title,body,severity,created_at) VALUES (?,?,?,?,?,?,?,NOW())",
                     [
                         $uid,
@@ -65,65 +65,65 @@ final class TasksNoticesRuntimeOperations06
                         "warning",
                     ],
                 );
-                $id = db_last_insert_id();
-                audit("aviso_suporte_assinatura", "aviso_admin", $id, [
+                $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("aviso_suporte_assinatura", "aviso_admin", $id, [
                     "clinic_id" => $cid,
                     "audit_body" =>
                         "Usuário em modo somente leitura enviou mensagem ao Desenvolvedor pelo contexto Avisos.",
                 ]);
-                flash("Mensagem enviada ao suporte.");
-                redirect("notices", ["view" => "sent"]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Mensagem enviada ao suporte.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => "sent"]);
             }
             if ($readOnly && !in_array($act, ["ack", "hide", "unhide"], true)) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "No modo somente leitura, Avisos fica restrito ao contato com o suporte.",
                     "bad",
                 );
-                redirect("notices");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices");
             }
             if ($act === "ack" || $act === "hide" || $act === "unhide") {
-                [$targetSql, $targetParams] = notice_target_sql($c, "n");
+                [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
                 $accessSql = "(" . $targetSql . " OR n.created_by=?)";
-                $notice = one(
+                $notice = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT n.id,n.created_by,n.requires_ack FROM pi_notices n WHERE n.id=? AND n.clinic_id=? AND $accessSql",
                     array_merge([(int) ($_POST["id"] ?? 0), $cid], $targetParams, [
                         $uid,
                     ]),
                 );
                 if (!$notice) {
-                    flash("Aviso não encontrado para este colaborador.", "bad");
-                    redirect("notices", ["view" => $view]);
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso não encontrado para este colaborador.", "bad");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => $view]);
                 }
                 if ($act === "ack") {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=COALESCE(read_at,NOW()), ack_at=COALESCE(ack_at,NOW())",
                         [(int) $notice["id"], $uid],
                     );
-                    clinic_metric_inc($cid, "notice_reads");
-                    audit("leitura_confirmada", "comunicado", (int) $notice["id"]);
-                    flash("Leitura registrada.");
-                    redirect("notices", [
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notice_reads");
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("leitura_confirmada", "comunicado", (int) $notice["id"]);
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Leitura registrada.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", [
                         "view" => $view,
                         "notice" => (int) $notice["id"],
                     ]);
                 }
                 if ($act === "unhide") {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_notice_reads SET hidden_at=NULL WHERE notice_id=? AND user_id=?",
                         [(int) $notice["id"], $uid],
                     );
-                    flash("Aviso restaurado.");
-                    redirect("notices", [
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso restaurado.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", [
                         "view" => "received",
                         "notice" => (int) $notice["id"],
                     ]);
                 }
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_notice_reads (notice_id,user_id,hidden_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE hidden_at=NOW()",
                     [(int) $notice["id"], $uid],
                 );
-                flash("Aviso arquivado.");
-                redirect("notices", ["view" => "archived"]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso arquivado.");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => "archived"]);
             }
             $title = mb_trim((string) ($_POST["title"] ?? ""));
             $body = mb_trim((string) ($_POST["body"] ?? ""));
@@ -138,20 +138,20 @@ final class TasksNoticesRuntimeOperations06
             }
             if ($scope === "user") {
                 $targetUser = (int) ($_POST["target_user_id"] ?? 0);
-                $team = team_options($cid);
+                $team = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::team_options($cid);
                 if ($targetUser < 1 || !isset($team[$targetUser])) {
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Escolha um colaborador válido para receber o aviso.",
                         "bad",
                     );
-                    redirect("notices", ["view" => $view]);
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => $view]);
                 }
             }
             if ($title === "" || $body === "") {
-                flash("Informe título e mensagem do aviso.", "bad");
-                redirect("notices", ["view" => $view]);
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe título e mensagem do aviso.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => $view]);
             }
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
                 [
                     $cid,
@@ -164,14 +164,14 @@ final class TasksNoticesRuntimeOperations06
                     $uid,
                 ],
             );
-            $noticeId = db_last_insert_id();
-            q(
+            $noticeId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=NOW(), ack_at=NOW(), hidden_at=NULL",
                 [$noticeId, $uid],
             );
-            counter_inc("notices_total");
-            clinic_metric_inc($cid, "notices");
-            audit(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
+            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                 "comunicado_criado",
                 "comunicado",
                 $noticeId,
@@ -181,25 +181,25 @@ final class TasksNoticesRuntimeOperations06
                     "target_user_id" => $targetUser,
                 ]),
             );
-            flash("Aviso publicado.");
-            redirect("notices", ["view" => "sent", "notice" => $noticeId]);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso publicado.");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => "sent", "notice" => $noticeId]);
         }
         $openId = (int) ($_GET["notice"] ?? 0);
-        $team = team_options($cid);
+        $team = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::team_options($cid);
         $userOpts = '<option value="">Selecione</option>';
         foreach ($team as $id => $name) {
             $userOpts .=
-                '<option value="' . (int) $id . '">' . e($name) . "</option>";
+                '<option value="' . (int) $id . '">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) . "</option>";
         }
         $noticeCreateForm =
             '<form method="post" class="compact notice-form notice-form-refined ds-entity-form ds-standalone-form" data-notice-form>' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="view" value="' .
-            e($view) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($view) .
             '"><div class="notice-form-grid">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Título",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "title",
                     "text",
                     "",
@@ -207,7 +207,7 @@ final class TasksNoticesRuntimeOperations06
                 ),
             ) .
             '<label class="field notice-target-scope"><span>Destinatários</span><select name="target_scope" data-notice-target-scope><option value="all">Toda a clínica</option><option value="role">Colaboradores do meu cargo</option><option value="user">Colaborador específico</option></select></label><label class="field notice-message-field"><span>Mensagem</span>' .
-            textarea(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
                 "body",
                 "",
                 'required rows="5" placeholder="Escreva a orientação que precisa ser lida pela equipe."',
@@ -215,27 +215,27 @@ final class TasksNoticesRuntimeOperations06
             '</label><label class="field notice-target-user" data-notice-target-user><span>Colaborador específico</span><select name="target_user_id" data-notice-target-user-select>' .
             $userOpts .
             '</select></label><label class="check notice-ack-field"><input type="checkbox" name="requires_ack" checked> Exigir confirmação de leitura</label></div><div class="form-actions notice-form-actions"><a class="ghost" href="' .
-            href("notices", ["view" => $view]) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view]) .
             '">' .
-            icon("close") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
             '<span>Cancelar</span></a><button type="submit" class="primary">' .
-            icon("campaign") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
             "<span>Publicar</span></button></div></form>";
         if (!$readOnly && ($_GET["new"] ?? "") === "1") {
             $back =
                 '<a class="ghost small" href="' .
-                href("notices", ["view" => $view]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view]) .
                 '">' .
-                icon("arrow_back") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                 "<span>Voltar</span></a>";
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Novo aviso",
-                page_head(
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     "Novo aviso",
                     "Publique uma orientação em tela própria, mantendo a lista de Avisos limpa para leitura e acompanhamento.",
                     $back,
                 ) .
-                    card(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                         $noticeCreateForm,
                         "notice-card-shell notice-create-shell ds-form-shell",
                     ),
@@ -245,23 +245,23 @@ final class TasksNoticesRuntimeOperations06
         $form = $readOnly
             ? ""
             : '<a class="primary small cmdlike" href="' .
-                href("notices", ["view" => $view, "new" => 1]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view, "new" => 1]) .
                 '">' .
-                action_summary_label("Novo aviso", "notifications") .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo aviso", "notifications") .
                 "</a>";
-        [$targetSql, $targetParams] = notice_target_sql($c, "n");
+        [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
         $accessSql = "(" . $targetSql . " OR n.created_by=?)";
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at FROM pi_notices n WHERE n.clinic_id=? AND $accessSql ORDER BY n.id DESC LIMIT 160",
             array_merge([$cid], $targetParams, [$uid]),
         )->fetchAll();
         $reads = [];
         if ($rows) {
-            $ids = int_ids($rows, "id");
+            $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
             $ph = implode(",", array_fill(0, count($ids), "?"));
             $params = array_merge([$uid], $ids);
             foreach (
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT notice_id,read_at,ack_at,hidden_at FROM pi_notice_reads WHERE user_id=? AND notice_id IN ($ph)",
                     $params,
                 )->fetchAll()
@@ -270,10 +270,10 @@ final class TasksNoticesRuntimeOperations06
                 $reads[(int) $r["notice_id"]] = $r;
             }
         }
-        $authors = fetch_map("pi_users", int_ids($rows, "created_by"), "id,name");
-        $targetUsers = scoped_user_map(
+        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"), "id,name");
+        $targetUsers = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
             $cid,
-            int_ids($rows, "target_user_id"),
+            \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "target_user_id"),
             "id,name",
         );
         $receivedCount = 0;
@@ -301,21 +301,21 @@ final class TasksNoticesRuntimeOperations06
             '<a class="lead-chip ds-filter-chip ' .
             ($view === "received" ? "active" : "") .
             '" href="' .
-            e(href("notices", ["view" => "received"])) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "received"])) .
             '"><span class="material-symbols-rounded">inbox</span><span class="lead-chip-label">Recebidas</span><em>' .
             (int) $receivedCount .
             "</em></a>" .
             '<a class="lead-chip ds-filter-chip ' .
             ($view === "sent" ? "active" : "") .
             '" href="' .
-            e(href("notices", ["view" => "sent"])) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "sent"])) .
             '"><span class="material-symbols-rounded">send</span><span class="lead-chip-label">Enviadas</span><em>' .
             (int) $sentCount .
             "</em></a>" .
             '<a class="lead-chip ds-filter-chip ' .
             ($view === "archived" ? "active" : "") .
             '" href="' .
-            e(href("notices", ["view" => "archived"])) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "archived"])) .
             '"><span class="material-symbols-rounded">archive</span><span class="lead-chip-label">Arquivadas</span><em>' .
             (int) $hiddenCount .
             "</em></a>" .
@@ -333,18 +333,18 @@ final class TasksNoticesRuntimeOperations06
                 $isMine = (int) ($openRow["created_by"] ?? 0) === $uid;
                 $read = $reads[$openId] ?? [];
                 if (!$isMine && empty($read["ack_at"])) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=COALESCE(read_at,NOW()), ack_at=COALESCE(ack_at,NOW())",
                         [$openId, $uid],
                     );
-                    clinic_metric_inc($cid, "notice_reads");
-                    audit("leitura_registrada", "comunicado", $openId);
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notice_reads");
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("leitura_registrada", "comunicado", $openId);
                     $read["read_at"] = $read["read_at"] ?? date("Y-m-d H:i:s");
                     $read["ack_at"] = $read["ack_at"] ?? date("Y-m-d H:i:s");
                     $reads[$openId] = $read;
                 }
                 $author = $authors[(int) ($openRow["created_by"] ?? 0)] ?? [];
-                $authorFirst = first_name((string) ($author["name"] ?? "Sistema"));
+                $authorFirst = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($author["name"] ?? "Sistema"));
                 $archived = !empty($read["hidden_at"]);
                 $detailView = $archived
                     ? "archived"
@@ -363,45 +363,45 @@ final class TasksNoticesRuntimeOperations06
                         : "mark_email_read");
                 $direction = $isMine
                     ? '<span class="notice-direction-pill is-sent">' .
-                        icon("north_east") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("north_east") .
                         " Enviada</span>" .
-                        notice_recipient_pills($cid, $openRow, $team)
+                        \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::notice_recipient_pills($cid, $openRow, $team)
                     : '<span class="notice-direction-pill is-received">' .
-                        icon("south_west") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("south_west") .
                         " " .
-                        e($authorFirst) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($authorFirst) .
                         "</span>" .
-                        notice_recipient_pills($cid, $openRow, $team);
+                        \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::notice_recipient_pills($cid, $openRow, $team);
                 $action = $archived
                     ? '<form method="post" class="inline">' .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="unhide"><input type="hidden" name="view" value="archived"><input type="hidden" name="id" value="' .
                         $openId .
                         '"><button type="submit" class="small ghost">Restaurar</button></form>'
                     : '<form method="post" class="inline">' .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="hide"><input type="hidden" name="view" value="' .
                         $detailView .
                         '"><input type="hidden" name="id" value="' .
                         $openId .
                         '"><button type="submit" class="small ghost">Arquivar</button></form>';
-                $detail = card(
+                $detail = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     '<article class="notice-reader notice-reader-' .
                         $detailView .
                         '"><header><a class="ghost small" href="' .
-                        e(href("notices", ["view" => $detailView])) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $detailView])) .
                         '">' .
-                        icon("arrow_back") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
                         '<span>Voltar</span></a><span class="notice-reader-state">' .
-                        icon($iconName) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
                         " " .
-                        e($status) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) .
                         "</span><time>" .
-                        e(dt_notice_br($openRow["created_at"])) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($openRow["created_at"])) .
                         "</time></header><h2>" .
-                        e($openRow["title"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($openRow["title"]) .
                         '</h2><div class="notice-reader-body">' .
-                        nl2br(e($openRow["body"])) .
+                        nl2br(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($openRow["body"])) .
                         "</div><footer>" .
                         $direction .
                         '<div class="notice-actions">' .
@@ -410,9 +410,9 @@ final class TasksNoticesRuntimeOperations06
                     "notice-card-shell notice-reader-shell",
                 );
             } else {
-                $detail = card(
+                $detail = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     '<div class="notice-empty">' .
-                        icon("campaign") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
                         "<strong>Aviso não encontrado.</strong><span>Ela pode ter sido removida ou não estar disponível para sua credencial.</span></div>",
                     "notice-card-shell",
                 );
@@ -433,7 +433,7 @@ final class TasksNoticesRuntimeOperations06
                 continue;
             }
             $author = $authors[(int) ($r["created_by"] ?? 0)] ?? [];
-            $authorFirst = first_name((string) ($author["name"] ?? "Sistema"));
+            $authorFirst = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($author["name"] ?? "Sistema"));
             $needsAck =
                 !$isMine &&
                 (int) $r["requires_ack"] === 1 &&
@@ -453,10 +453,10 @@ final class TasksNoticesRuntimeOperations06
                         ? "mail"
                         : "drafts"));
             $senderName = $isMine
-                ? notice_recipient_phrase($r, $targetUsers)
+                ? \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::notice_recipient_phrase($r, $targetUsers)
                 : $authorFirst;
-            $openUrl = e(
-                href("notices", ["view" => $view, "notice" => (int) $r["id"]]),
+            $openUrl = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view, "notice" => (int) $r["id"]]),
             );
             $cards .=
                 '<a class="notice-card notice-gmail-row ds-notice-row notice-minimal-row notice-card-' .
@@ -473,16 +473,16 @@ final class TasksNoticesRuntimeOperations06
                 $openUrl .
                 '">' .
                 '<span class="notice-minimal-icon" aria-hidden="true">' .
-                icon($rowIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($rowIcon) .
                 "</span>" .
                 '<span class="notice-minimal-sender">' .
-                e($senderName) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($senderName) .
                 "</span>" .
                 '<span class="notice-minimal-subject">' .
-                e($r["title"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($r["title"]) .
                 "</span>" .
                 '<time class="notice-minimal-time">' .
-                e(dt_notice_br($r["created_at"])) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($r["created_at"])) .
                 "</time>" .
                 "</a>";
         }
@@ -495,7 +495,7 @@ final class TasksNoticesRuntimeOperations06
                 "info" => ["Informativo", "info"],
             ];
             foreach (["critical", "warning", "info"] as $sev) {
-                $globals = q(
+                $globals = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT id,title,body,severity,created_at FROM pi_global_notices WHERE active=1 AND severity=? AND (starts_at IS NULL OR starts_at<=NOW()) AND (expires_at IS NULL OR expires_at>=NOW()) ORDER BY id DESC LIMIT 8",
                     [$sev],
                 )->fetchAll();
@@ -504,23 +504,23 @@ final class TasksNoticesRuntimeOperations06
                     $gm = $globalMeta[$sev] ?? $globalMeta["info"];
                     $globalCards .=
                         '<article class="notice-card global ds-notice-row notice-minimal-row severity-' .
-                        e($sev) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sev) .
                         '"><span class="notice-minimal-icon" aria-hidden="true">' .
-                        icon($gm[1]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($gm[1]) .
                         '</span><span class="notice-minimal-sender">Prontoo</span><span class="notice-minimal-subject">' .
-                        e($g["title"]) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["title"]) .
                         '</span><time class="notice-minimal-time">' .
-                        e(dt_notice_br($g["created_at"])) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($g["created_at"])) .
                         "</time></article>";
                 }
             }
         }
         if ($readOnly) {
-            page(
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Avisos",
-                page_head("Avisos") .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Avisos") .
                     '<section class="notice-screen admin-alert-screen readonly-support-screen">' .
-                    readonly_support_notice_screen($c, $view) .
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations05::readonly_support_notice_screen($c, $view) .
                     "</section>",
             );
             return;
@@ -551,16 +551,16 @@ final class TasksNoticesRuntimeOperations06
                         : "Nenhum aviso arquivado.");
             $cards =
                 '<div class="notice-empty">' .
-                icon($iconMap[$view] ?? "campaign") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconMap[$view] ?? "campaign") .
                 "<strong>" .
-                e($emptyMsg) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyMsg) .
                 "</strong></div>";
         }
-        $list = card(
+        $list = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="notice-section-head ds-section-head notice-section-' .
                 $view .
                 '"><h2>' .
-                e($sectionTitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sectionTitle) .
                 "</h2><span>" .
                 $sectionCount .
                 '</span></div><div class="notice-list ds-notice-list">' .
@@ -569,7 +569,7 @@ final class TasksNoticesRuntimeOperations06
             "notice-card-shell ds-notice-shell notice-card-shell-" . $view,
         );
         if ($globalCards !== "") {
-            $list .= card(
+            $list .= \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<div class="notice-section-head ds-section-head"><h2>Avisos do Prontoo</h2><span>' .
                     (int) $globalCount .
                     '</span></div><div class="notice-list ds-notice-list">' .
@@ -582,21 +582,21 @@ final class TasksNoticesRuntimeOperations06
             '<div class="notice-kpis notice-gmail-kpis ds-notice-kpis"><div class="notice-kpi ds-kpi ' .
             ($pendingCount ? "notice-kpi-pending" : "") .
             '">' .
-            icon("inbox") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inbox") .
             "<div><b>" .
             (int) $receivedCount .
             '</b><span>Recebidas</span></div></div><div class="notice-kpi ds-kpi notice-kpi-sent">' .
-            icon("send") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("send") .
             "<div><b>" .
             (int) $sentCount .
             '</b><span>Enviadas</span></div></div><div class="notice-kpi ds-kpi notice-kpi-archived">' .
-            icon("archive") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("archive") .
             "<div><b>" .
             (int) $hiddenCount .
             "</b><span>Arquivadas</span></div></div></div>";
-        page(
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Avisos",
-            page_head("Avisos", "", $form) .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Avisos", "", $form) .
                 '<section class="notice-screen notice-screen-' .
                 $view .
                 '">' .

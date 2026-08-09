@@ -73,15 +73,15 @@ final class PatientsPresentationOperations01
             );
             $h .=
                 '<span class="patient-reception-tag patient-reception-tag-' .
-                e($class) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
                 '" aria-label="' .
-                e($label . ": " . $value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . ": " . $value) .
                 '" title="' .
-                e($label . ": " . $value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label . ": " . $value) .
                 '">' .
-                icon($iconName) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
                 "<b>" .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 "</b></span>";
         }
         return $h !== ""
@@ -101,9 +101,9 @@ final class PatientsPresentationOperations01
             (int) $count .
             ' ocorrência(s)</span></div><div class="patient-reception-history">' .
             ($items
-                ? timeline($items, "")
+                ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items, "")
                 : '<div class="empty patient-empty-cta"><span class="empty-icon">' .
-                    icon("forum") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("forum") .
                     "</span><h3>Sem ocorrências registradas.</h3><p>Paciente cadastrado diretamente ou ainda sem contato registrado pela recepção. Quando o telefone aparecer em novo contato, a ficha será localizada automaticamente.</p></div>") .
             "</div></section>";
     

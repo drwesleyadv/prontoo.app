@@ -79,8 +79,8 @@ final class UiComponentsRuntimeOperations04
         if (str_contains($l, "confirmar")) {
             return "check_circle";
         }
-        if (function_exists("prontoo_icon_for_route_label")) {
-            $byLabel = prontoo_icon_for_route_label("", $label, [], "");
+        if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
+            $byLabel = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label("", $label, [], "");
             if ($byLabel !== "") {
                 return $byLabel;
             }
@@ -94,13 +94,13 @@ final class UiComponentsRuntimeOperations04
     {
     
         return '<div class="form-actions">' .
-            cancel_button() .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::cancel_button() .
             '<button type="submit" class="' .
-            e($class) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($class) .
             '">' .
-            icon(form_submit_icon($submitLabel)) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_submit_icon($submitLabel)) .
             "<span>" .
-            e($submitLabel) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($submitLabel) .
             "</span></button></div>";
     
     }
@@ -114,10 +114,10 @@ final class UiComponentsRuntimeOperations04
     {
     
         return '<details class="action-panel"><summary class="' .
-            e($variant) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($variant) .
             ' small cmdlike">' .
-            action_summary_label($label) .
-            ($hint !== "" ? "<small>" . e($hint) . "</small>" : "") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label) .
+            ($hint !== "" ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hint) . "</small>" : "") .
             "</summary>" .
             $formHtml .
             "</details>";

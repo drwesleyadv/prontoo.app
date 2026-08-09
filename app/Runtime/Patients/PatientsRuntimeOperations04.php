@@ -30,14 +30,14 @@ final class PatientsRuntimeOperations04
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") !== "clinic") {
             throw new ProntooHttpError(
                 403,
                 "Busca disponível apenas no consultório.",
             );
         }
-        if (!can("patients") && !can("documents")) {
+        if (!\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("patients") && !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("documents")) {
             throw new ProntooHttpError(403, "Sem permissão para buscar pacientes.");
         }
         $cid = (int) $c["clinic_id"];
@@ -51,7 +51,7 @@ final class PatientsRuntimeOperations04
             return;
         }
         $limit = max(1, min(80, (int) ($_GET["limit"] ?? 12)));
-        $digits = only_digits($q);
+        $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($q);
         $params = [$cid];
         $where = "pp.clinic_id=? AND pp.active=1 AND pp.deleted_at IS NULL";
         $like = "%" . $q . "%";
@@ -72,9 +72,9 @@ final class PatientsRuntimeOperations04
             $params[] = $like;
             $params[] = $dateLike;
         }
-        $metrics = patient_directory_select_metrics_sql($cid);
+        $metrics = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_directory_select_metrics_sql($cid);
         $order = "p.full_name ASC, pp.id DESC";
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT pp.id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,pp.created_at,pp.updated_at,pp.registration_needs_update,p.full_name,p.birth_date,p.cpf,(SELECT COUNT(*) FROM pi_patient_guardians pg WHERE pg.clinic_id=pp.clinic_id AND pg.patient_link_id=pp.id AND pg.active=1) guardian_count $metrics FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE $where ORDER BY $order LIMIT " .
                 (int) $limit,
             $params,
@@ -82,21 +82,21 @@ final class PatientsRuntimeOperations04
         $items = [];
         foreach ($rows as $r) {
             $birth = !empty($r["birth_date"])
-                ? date_br((string) $r["birth_date"])
+                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br((string) $r["birth_date"])
                 : "Nascimento não informado";
-            $age = patient_age_years((string) ($r["birth_date"] ?? ""));
-            [$level, $label, $message] = patient_directory_status($r);
+            $age = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_age_years((string) ($r["birth_date"] ?? ""));
+            [$level, $label, $message] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations03::patient_directory_status($r);
             $timeRaw = mb_trim((string) ($r["today_appointment_start_at"] ?? ""));
             $timeLabel =
                 $timeRaw !== "" && $timeRaw !== "0"
-                    ? app_time_br($timeRaw, $cid)
+                    ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br($timeRaw, $cid)
                     : "";
             $lastRaw = mb_trim((string) ($r["last_consultation_at"] ?? ""));
             $lastLabel =
                 $lastRaw !== "" && $lastRaw !== "0"
-                    ? (function_exists("app_date_br")
-                        ? app_date_br($lastRaw, $cid)
-                        : date_br($lastRaw))
+                    ? (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_date_br'])
+                        ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_date_br($lastRaw, $cid)
+                        : \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($lastRaw))
                     : "";
             if ($lastLabel === "—") {
                 $lastLabel = "";
@@ -107,15 +107,15 @@ final class PatientsRuntimeOperations04
                 "birth" => $birth,
                 "birth_raw" => (string) ($r["birth_date"] ?? ""),
                 "age" => $age !== null ? $age . " anos" : "Idade não informada",
-                "cpf" => mask((string) ($r["cpf"] ?? "")),
-                "phone" => phone_br((string) ($r["phone"] ?? "")) ?: "Sem telefone",
+                "cpf" => \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask((string) ($r["cpf"] ?? "")),
+                "phone" => \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) ($r["phone"] ?? "")) ?: "Sem telefone",
                 "status_level" => $level,
                 "status_label" => $label,
                 "status_message" => $message,
                 "today_appointment_time" => $timeLabel,
                 "last_consultation_date" => $lastLabel,
                 "value" => (string) $r["full_name"] . " · " . $birth,
-                "open_url" => href("patient", ["id" => (int) $r["id"]]),
+                "open_url" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patient", ["id" => (int) $r["id"]]),
             ];
         }
         echo json_encode(["ok" => true, "items" => $items], JSON_UNESCAPED_UNICODE);

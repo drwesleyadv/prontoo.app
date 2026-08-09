@@ -30,17 +30,17 @@ final class AuthOnboardingRuntimeOperations06
     
     {
     
-        $c = need_login();
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         $uid = (int) ($c["user"]["id"] ?? 0);
         if ($uid <= 0) {
-            redirect("login");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
-        $u = one(
+        $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT u.id,u.person_id,u.name,u.email,u.password_hash,u.is_global_admin,p.cpf,p.birth_date FROM pi_users u JOIN pi_persons p ON p.id=u.person_id WHERE u.id=? AND u.active=1 LIMIT 1",
             [$uid],
         );
         if (!$u) {
-            redirect("login");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
         $act = (string) ($_POST["act"] ?? "");
         $profileMfaIssuedAt = (int) (
@@ -90,7 +90,7 @@ final class AuthOnboardingRuntimeOperations06
                     $personId = (int) $u["person_id"];
                     if ($email !== "") {
                         $emailOwner =
-                            (int) (val(
+                            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                                 "SELECT id FROM pi_users WHERE email=? AND id<>? LIMIT 1",
                                 [$email, $uid],
                             ) ?:
@@ -101,26 +101,26 @@ final class AuthOnboardingRuntimeOperations06
                             );
                         }
                     }
-                    db_begin_transaction();
-                    q(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
                         [$name, $personId],
                     );
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_users SET name=?, email=?, updated_at=NOW() WHERE id=?",
                         [$name, $email !== "" ? $email : null, $uid],
                     );
-                    audit("usuario_proprio_atualizado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_proprio_atualizado", "usuario", $uid, [
                         "target_name" => $name,
                         "audit_body" =>
                             "O próprio usuário atualizou nome e e-mail cadastrais. CPF e nascimento permanecem imutáveis.",
                     ]);
-                    db_commit();
-                    flash("Dados do usuário atualizados.");
-                    redirect("profile");
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Dados do usuário atualizados.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_prepare") {
-                    $mfaState = mfa_enrollment_state($uid);
+                    $mfaState = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid);
                     if ($mfaState === "unavailable") {
                         throw new RuntimeException(
                             "Não foi possível consultar a verificação em duas etapas agora.",
@@ -131,7 +131,7 @@ final class AuthOnboardingRuntimeOperations06
                             "A verificação em duas etapas já está ativa.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "enrollment")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "enrollment")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
@@ -146,18 +146,18 @@ final class AuthOnboardingRuntimeOperations06
                         throw new RuntimeException("A senha atual não confere.");
                     }
                     $_SESSION["profile_mfa_enrollment_secret"] =
-                        mfa_totp_secret_generate();
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_secret_generate();
                     $_SESSION["profile_mfa_enrollment_issued_at"] = time();
                     $_SESSION["profile_mfa_password_verified_at"] = time();
                     $_SESSION["profile_mfa_enrollment_mode"] = "enable";
-                    audit("mfa_cadastro_iniciado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_cadastro_iniciado", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário confirmou a senha e iniciou o cadastro opcional de MFA em Minha conta.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Senha confirmada. Siga as duas etapas abaixo.",
                     );
-                    redirect("profile");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_cancel") {
                     unset(
@@ -166,11 +166,11 @@ final class AuthOnboardingRuntimeOperations06
                         $_SESSION["profile_mfa_password_verified_at"],
                         $_SESSION["profile_mfa_enrollment_mode"],
                     );
-                    flash("Configuração cancelada.", "warn");
-                    redirect("profile");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Configuração cancelada.", "warn");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_enable") {
-                    if (mfa_enrollment_state($uid) !== "inactive") {
+                    if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) !== "inactive") {
                         throw new RuntimeException(
                             "Não foi possível iniciar uma nova configuração.",
                         );
@@ -199,12 +199,12 @@ final class AuthOnboardingRuntimeOperations06
                             "A ativação expirou. Confirme novamente sua senha.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "enrollment")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "enrollment")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
                     }
-                    $codes = mfa_enroll_user(
+                    $codes = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enroll_user(
                         $uid,
                         $secret,
                         (string) ($_POST["code"] ?? ""),
@@ -219,33 +219,33 @@ final class AuthOnboardingRuntimeOperations06
                     );
                     $_SESSION["mfa_verified_at"] = time();
                     $_SESSION["user_auth_generation"] =
-                        user_auth_generation_rotate($uid);
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
                     session_regenerate_id(true);
                     $_SESSION["csrf"] = bin2hex(random_bytes(32));
-                    audit("mfa_cadastrado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_cadastrado", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário ativou MFA opcional em Minha conta; as demais sessões foram revogadas.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Verificação ativada. Guarde agora seus códigos de recuperação.",
                     );
-                    redirect("profile");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_recovery_ack") {
                     unset(
                         $_SESSION["profile_mfa_recovery_codes"],
                         $_SESSION["profile_mfa_recovery_codes_issued_at"],
                     );
-                    flash("Códigos de recuperação confirmados.");
-                    redirect("profile");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Códigos de recuperação confirmados.");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_recovery_regenerate") {
-                    if (mfa_enrollment_state($uid) !== "active") {
+                    if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) !== "active") {
                         throw new RuntimeException(
                             "A verificação em duas etapas não está disponível agora.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "management")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "management")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
@@ -259,7 +259,7 @@ final class AuthOnboardingRuntimeOperations06
                         usleep(random_int(250000, 450000));
                         throw new RuntimeException("A senha atual não confere.");
                     }
-                    $codes = mfa_recovery_codes_regenerate(
+                    $codes = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_recovery_codes_regenerate(
                         $uid,
                         (string) ($_POST["current_code"] ?? ""),
                     );
@@ -267,25 +267,25 @@ final class AuthOnboardingRuntimeOperations06
                     $_SESSION["profile_mfa_recovery_codes_issued_at"] = time();
                     $_SESSION["mfa_verified_at"] = time();
                     $_SESSION["user_auth_generation"] =
-                        user_auth_generation_rotate($uid);
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
                     session_regenerate_id(true);
                     $_SESSION["csrf"] = bin2hex(random_bytes(32));
-                    audit("mfa_recuperacao_regenerada", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_recuperacao_regenerada", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário regenerou os códigos de recuperação após confirmar senha e MFA; os códigos anteriores foram invalidados.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Novos códigos gerados. Guarde-os e confirme abaixo.",
                     );
-                    redirect("profile");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_replace_prepare") {
-                    if (mfa_enrollment_state($uid) !== "active") {
+                    if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) !== "active") {
                         throw new RuntimeException(
                             "A verificação em duas etapas não está disponível agora.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "management")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "management")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
@@ -300,21 +300,21 @@ final class AuthOnboardingRuntimeOperations06
                         throw new RuntimeException("A senha atual não confere.");
                     }
                     $_SESSION["profile_mfa_enrollment_secret"] =
-                        mfa_totp_secret_generate();
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_totp_secret_generate();
                     $_SESSION["profile_mfa_enrollment_issued_at"] = time();
                     $_SESSION["profile_mfa_password_verified_at"] = time();
                     $_SESSION["profile_mfa_enrollment_mode"] = "replace";
-                    audit("mfa_troca_iniciada", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_troca_iniciada", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário confirmou a senha e iniciou a troca reautenticada do aplicativo autenticador.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Senha confirmada. Siga as duas etapas abaixo para trocar o aplicativo.",
                     );
-                    redirect("profile");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_replace_enable") {
-                    if (mfa_enrollment_state($uid) !== "active") {
+                    if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) !== "active") {
                         throw new RuntimeException(
                             "A troca do aplicativo não está disponível agora.",
                         );
@@ -343,12 +343,12 @@ final class AuthOnboardingRuntimeOperations06
                             "A troca expirou. Confirme novamente sua senha.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "management")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "management")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
                     }
-                    $codes = mfa_replace_user(
+                    $codes = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_replace_user(
                         $uid,
                         (string) ($_POST["current_code"] ?? ""),
                         $secret,
@@ -364,17 +364,17 @@ final class AuthOnboardingRuntimeOperations06
                     );
                     $_SESSION["mfa_verified_at"] = time();
                     $_SESSION["user_auth_generation"] =
-                        user_auth_generation_rotate($uid);
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
                     session_regenerate_id(true);
                     $_SESSION["csrf"] = bin2hex(random_bytes(32));
-                    audit("mfa_autenticador_substituido", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_autenticador_substituido", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário substituiu o autenticador após confirmar senha, MFA atual e novo TOTP; sessões e recuperações anteriores foram revogadas.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Autenticador substituído. Guarde os novos códigos de recuperação.",
                     );
-                    redirect("profile");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_mfa_disable") {
                     if ((int) ($u["is_global_admin"] ?? 0) === 1) {
@@ -382,12 +382,12 @@ final class AuthOnboardingRuntimeOperations06
                             "A verificação em duas etapas é obrigatória para Desenvolvedor.",
                         );
                     }
-                    if (mfa_enrollment_state($uid) !== "active") {
+                    if (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid) !== "active") {
                         throw new RuntimeException(
                             "A verificação em duas etapas não está disponível agora.",
                         );
                     }
-                    if (mfa_attempt_limited($uid, "management")) {
+                    if (\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::mfa_attempt_limited($uid, "management")) {
                         throw new RuntimeException(
                             "Muitas tentativas. Aguarde alguns minutos.",
                         );
@@ -401,7 +401,7 @@ final class AuthOnboardingRuntimeOperations06
                         usleep(random_int(250000, 450000));
                         throw new RuntimeException("A senha atual não confere.");
                     }
-                    mfa_disable_user(
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_disable_user(
                         $uid,
                         (string) ($_POST["current_code"] ?? ""),
                     );
@@ -412,15 +412,15 @@ final class AuthOnboardingRuntimeOperations06
                         $_SESSION["profile_mfa_recovery_codes_issued_at"],
                     );
                     $_SESSION["user_auth_generation"] =
-                        user_auth_generation_rotate($uid);
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
                     session_regenerate_id(true);
                     $_SESSION["csrf"] = bin2hex(random_bytes(32));
-                    audit("mfa_desativado", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("mfa_desativado", "usuario", $uid, [
                         "audit_body" =>
                             "O próprio usuário regular desativou MFA após confirmar senha e segundo fator; as demais sessões foram revogadas.",
                     ]);
-                    flash("Verificação em duas etapas desativada.", "warn");
-                    redirect("profile");
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Verificação em duas etapas desativada.", "warn");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
                 if ($act === "profile_change_password") {
                     $current = (string) ($_POST["current_password"] ?? "");
@@ -434,7 +434,7 @@ final class AuthOnboardingRuntimeOperations06
                             "A confirmação da nova senha não confere.",
                         );
                     }
-                    if (!password_ok($new)) {
+                    if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_ok($new)) {
                         throw new RuntimeException(
                             "A nova senha precisa ter entre 8 e 128 caracteres e não pode ser uma senha comum.",
                         );
@@ -444,22 +444,22 @@ final class AuthOnboardingRuntimeOperations06
                             "A nova senha precisa ser diferente da senha atual.",
                         );
                     }
-                    db_begin_transaction();
-                    q(
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_users SET password_hash=?, updated_at=NOW() WHERE id=?",
-                        [password_hash_secure($new), $uid],
+                        [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($new), $uid],
                     );
-                    user_auth_generation_rotate($uid);
-                    security_retire_persistent_devices_for_user($uid);
-                    audit("senha_redefinida", "usuario", $uid, [
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("senha_redefinida", "usuario", $uid, [
                         "target_name" => (string) ($u["name"] ?? ""),
                         "audit_body" =>
                             "O próprio usuário alterou a senha; todas as sessões anteriores foram revogadas.",
                     ]);
-                    db_commit();
-                    secure_session_destroy();
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
                     header(
-                        "Location: " . href("login", ["relogin" => "1"]),
+                        "Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login", ["relogin" => "1"]),
                     );
                     exit();
                 }
@@ -471,13 +471,13 @@ final class AuthOnboardingRuntimeOperations06
                                 "Ambiente indisponível para este usuário.",
                             );
                         }
-                        redirect("global_reauth");
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("global_reauth");
                     }
                     if (!preg_match('/^role:(\d+)$/', $target, $m)) {
                         throw new RuntimeException("Escolha um ambiente válido.");
                     }
                     $roleId = (int) $m[1];
-                    $link = one(
+                    $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                         "SELECT ur.id,ur.clinic_id,ur.role_code,COALESCE(NULLIF(cr.label,''),ur.role_code) role_label FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE ur.id=? AND ur.user_id=? AND ur.active=1 LIMIT 1",
                         [$roleId, $uid],
                     );
@@ -494,45 +494,45 @@ final class AuthOnboardingRuntimeOperations06
                     $_SESSION["clinic_id"] = $cid;
                     $_SESSION["role_code"] = $role;
                     $_SESSION["effective_roles"] = [$role];
-                    audit("area_trabalho_alterada", "usuario", $uid, [
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("area_trabalho_alterada", "usuario", $uid, [
                         "clinic_id" => $cid,
                         "role_code" => $role,
-                        "role_label" => role_label_for($role, $cid),
+                        "role_label" => \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid),
                         "audit_body" => "Ambiente alterado na página do usuário.",
                     ]);
-                    flash(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Ambiente alterado para " .
-                            role_label_for($role, $cid) .
+                            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid) .
                             ".",
                     );
-                    redirect("appointments");
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
                 }
                 throw new RuntimeException("Ação de perfil inválida.");
             } catch (Throwable $e) {
-                if (function_exists("pdo") && pdo()->inTransaction()) {
-                    db_rollback();
+                if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 error_log("[Prontoo profile] " . $e->getMessage());
-                flash(
-                    app_public_error_message(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_public_error_message(
                         $e,
                         "Não foi possível alterar o perfil agora.",
                     ),
                     "bad",
                 );
-                redirect("profile");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
             }
         }
         $backRoute = ($c["scope"] ?? "") === "global" ? "admin_painel" : "painel";
         $back =
             '<a class="ghost small" href="' .
-            href($backRoute) .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($backRoute) .
             '">' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             "<span>Voltar</span></a>";
         $name = (string) ($u["name"] ?? "");
         $email = (string) ($u["email"] ?? "");
-        $cpfDigits = only_digits((string) ($u["cpf"] ?? ""));
+        $cpfDigits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($u["cpf"] ?? ""));
         $cpf =
             $cpfDigits !== ""
                 ? (strlen($cpfDigits) === 11
@@ -543,28 +543,28 @@ final class AuthOnboardingRuntimeOperations06
                     )
                     : $cpfDigits)
                 : "";
-        $birth = db_birth_date_input($u["birth_date"] ?? "");
+        $birth = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::db_birth_date_input($u["birth_date"] ?? "");
         $dataForm =
             '<form method="post" class="compact account-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="profile_update_user">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome completo",
-                input("name", "text", $name, 'required autocomplete="name"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("name", "text", $name, 'required autocomplete="name"'),
             ) .
             '<div class="two immutable-account-fields">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "cpf_display",
                     "text",
                     $cpf,
                     'disabled readonly aria-disabled="true" tabindex="-1"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nascimento",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "birth_date_display",
                     "date",
                     $birth,
@@ -572,20 +572,20 @@ final class AuthOnboardingRuntimeOperations06
                 ),
             ) .
             "</div>" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "E-mail",
-                input("email", "email", $email, 'autocomplete="email"'),
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("email", "email", $email, 'autocomplete="email"'),
             ) .
             '<div class="form-actions"><button type="submit" class="primary">' .
-            icon("save") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
             "<span>Salvar</span></button></div></form>";
         $passwordForm =
             '<form method="post" class="compact account-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="profile_change_password">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Senha atual",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "current_password",
                     "password",
                     "",
@@ -593,18 +593,18 @@ final class AuthOnboardingRuntimeOperations06
                 ),
             ) .
             '<div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nova senha",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "new_password",
                     "password",
                     "",
                     'required minlength="8" maxlength="128" autocomplete="new-password" data-password-strength',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Confirmar nova senha",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "new_password_confirm",
                     "password",
                     "",
@@ -612,9 +612,9 @@ final class AuthOnboardingRuntimeOperations06
                 ),
             ) .
             '</div><div class="form-actions"><button type="submit" class="primary">' .
-            icon("key") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("key") .
             "<span>Alterar senha</span></button></div></form>";
-        $mfaState = mfa_enrollment_state($uid);
+        $mfaState = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_enrollment_state($uid);
         $mfaEnrolled = $mfaState === "active";
         $profileMfaSecret = (string) (
             $_SESSION["profile_mfa_enrollment_secret"] ?? ""
@@ -625,18 +625,18 @@ final class AuthOnboardingRuntimeOperations06
         $profileRecoveryCodes = (array) (
             $_SESSION["profile_mfa_recovery_codes"] ?? []
         );
-        $managementPasswordField = form_row(
+        $managementPasswordField = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
             "Senha atual",
-            input(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                 "current_password",
                 "password",
                 "",
                 'required autocomplete="current-password"',
             ),
         );
-        $managementCodeField = form_row(
+        $managementCodeField = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
             "Código de verificação",
-            input(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                 "current_code",
                 "text",
                 "",
@@ -647,22 +647,22 @@ final class AuthOnboardingRuntimeOperations06
             $account =
                 mb_trim((string) ($u["email"] ?? "")) ?:
                 ((string) ($u["name"] ?? "Usuário") . " #" . $uid);
-            $uri = mfa_otpauth_uri($account, $profileMfaSecret);
+            $uri = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_otpauth_uri($account, $profileMfaSecret);
             $isReplacement = $profileMfaMode === "replace";
             $configurationFields = $isReplacement
                 ? $managementCodeField .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Código do novo aplicativo",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "new_code",
                             "text",
                             "",
                             'required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"',
                         ),
                     )
-                : form_row(
+                : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Código de verificação",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "code",
                         "text",
                         "",
@@ -671,7 +671,7 @@ final class AuthOnboardingRuntimeOperations06
                 );
             $mfaPanel =
                 '<section class="account-mfa-panel is-configuring" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-                icon("shield_lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("shield_lock") .
                 '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">' .
                 ($isReplacement
                     ? "Troque o aplicativo autenticador"
@@ -681,11 +681,11 @@ final class AuthOnboardingRuntimeOperations06
                     ? "Conecte o novo aplicativo e confirme um código do aplicativo atual e outro do novo."
                     : "Conecte seu aplicativo autenticador e confirme o primeiro código.") .
                 '</p></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">1</span><div class="mfa-step-content"><strong>Conecte o aplicativo</strong><small>Abra o aplicativo autenticador e adicione uma nova conta.</small><a class="ghost wide security-auth-launch" href="' .
-                e($uri) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($uri) .
                 '">' .
-                icon("open_in_new") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("open_in_new") .
                 '<span>Abrir aplicativo autenticador</span></a><details class="mfa-manual-setup"><summary>Configurar com uma chave manual</summary><div class="mfa-secret"><div><span>Chave de configuração</span><small>No aplicativo, escolha a opção de inserir uma chave.</small></div><code tabindex="0" aria-label="Chave manual do autenticador">' .
-                e($profileMfaSecret) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($profileMfaSecret) .
                 '</code></div></details></div></div><div class="mfa-setup-step"><span class="mfa-step-number" aria-hidden="true">2</span><div class="mfa-step-content"><strong>' .
                 ($isReplacement
                     ? "Confirme os dois aplicativos"
@@ -695,7 +695,7 @@ final class AuthOnboardingRuntimeOperations06
                     ? "Use um código do aplicativo atual e outro do novo."
                     : "Digite os seis dígitos exibidos pelo aplicativo.") .
                 '</small><form method="post" class="compact account-mfa-form">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="' .
                 ($isReplacement
                     ? "profile_mfa_replace_enable"
@@ -703,13 +703,13 @@ final class AuthOnboardingRuntimeOperations06
                 '">' .
                 $configurationFields .
                 '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
-                icon("check_circle") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
                 "<span>" .
                 ($isReplacement ? "Concluir troca" : "Ativar verificação") .
                 '</span></button></div></form></div></div><form method="post" class="account-mfa-cancel-form">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="profile_mfa_cancel"><button type="submit" class="ghost small">' .
-                icon("close") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                 "<span>Cancelar</span></button></form></section>";
         } elseif ($mfaEnrolled) {
             $recoveryHtml = "";
@@ -718,75 +718,75 @@ final class AuthOnboardingRuntimeOperations06
                 foreach ($profileRecoveryCodes as $code) {
                     $items .=
                         '<li><code tabindex="0">' .
-                        e((string) $code) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $code) .
                         "</code></li>";
                 }
                 $recoveryHtml =
                     '<div class="security-auth-notice" role="status"><span class="security-auth-notice-icon">' .
-                    icon("key") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("key") .
                     '</span><div><strong>Guarde seus novos códigos</strong><span>Use-os para entrar se perder o acesso ao aplicativo. Cada código funciona uma única vez.</span></div></div><ul class="recovery-code-list" aria-label="Códigos de recuperação">' .
                     $items .
                     '</ul><form method="post" class="account-mfa-cancel-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="profile_mfa_recovery_ack"><button type="submit" class="ghost small">' .
-                    icon("check") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check") .
                     "<span>Já guardei</span></button></form>";
             }
             $disableForm =
                 (int) ($u["is_global_admin"] ?? 0) === 1
                     ? '<div class="security-auth-notice security-auth-notice-soft"><span class="security-auth-notice-icon">' .
-                        icon("policy") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("policy") .
                         '</span><div><strong>Verificação obrigatória</strong><span>Esta proteção não pode ser desativada para Desenvolvedor.</span></div></div>'
                     : '<form method="post" class="compact account-mfa-form account-mfa-option is-critical"><header class="account-mfa-option-head"><span>' .
-                        icon("lock_open") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_open") .
                         '</span><div><strong>Desativar verificação</strong><small>Você voltará a entrar usando somente a senha.</small></div></header>' .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="profile_mfa_disable">' .
                         $managementPasswordField .
                         $managementCodeField .
                         '<div class="form-actions"><button type="submit" class="ghost">' .
-                        icon("lock_open") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_open") .
                         "<span>Desativar verificação</span></button></div></form>";
             $mfaPanel =
                 '<section class="account-mfa-panel is-active" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-                icon("verified_user") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("verified_user") .
                 '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas ativa</h3><p>Ao entrar, o código do aplicativo será pedido logo após a senha.</p></div></div>' .
                 $recoveryHtml .
                 '<details class="account-mfa-management"><summary>Gerenciar verificação em duas etapas</summary><div class="account-mfa-management-grid"><form method="post" class="compact account-mfa-form account-mfa-option"><header class="account-mfa-option-head"><span>' .
-                icon("key") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("key") .
                 '</span><div><strong>Códigos de recuperação</strong><small>Gere outros se perdeu ou já usou os atuais.</small></div></header>' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="profile_mfa_recovery_regenerate">' .
                 $managementPasswordField .
                 $managementCodeField .
                 '<div class="form-actions"><button type="submit" class="ghost">' .
-                icon("key") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("key") .
                 '<span>Gerar novos códigos</span></button></div></form><form method="post" class="compact account-mfa-form account-mfa-option"><header class="account-mfa-option-head"><span>' .
-                icon("sync_lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sync_lock") .
                 '</span><div><strong>Aplicativo autenticador</strong><small>Troque o aplicativo ou cadastre esta conta novamente.</small></div></header>' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="profile_mfa_replace_prepare">' .
                 $managementPasswordField .
                 '<div class="form-actions"><button type="submit" class="ghost">' .
-                icon("sync_lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sync_lock") .
                 "<span>Começar troca</span></button></div></form>" .
                 $disableForm .
                 "</div></details></section>";
         } elseif ($mfaState === "unavailable") {
             $mfaPanel =
                 '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-                icon("gpp_bad") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("gpp_bad") .
                 '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação temporariamente indisponível</h3><p>Não foi possível consultar esta proteção agora. Nenhuma alteração foi feita; tente novamente em instantes.</p></div></div></section>';
         } else {
             $mfaPanel =
                 '<section class="account-mfa-panel" aria-labelledby="account-mfa-title"><div class="account-mfa-head"><span class="account-mfa-icon">' .
-                icon("security_key") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("security_key") .
                 '</span><div><span class="eyebrow">Proteção Avançada</span><h3 id="account-mfa-title">Verificação em duas etapas</h3><p>Além da senha, você usará um código do aplicativo autenticador para entrar.</p></div></div><form method="post" class="compact account-mfa-form account-mfa-start">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="profile_mfa_prepare">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Para continuar, confirme sua senha",
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "current_password",
                         "password",
                         "",
@@ -794,7 +794,7 @@ final class AuthOnboardingRuntimeOperations06
                     ),
                 ) .
                 '<div class="form-actions account-mfa-actions"><button type="submit" class="primary">' .
-                icon("shield_lock") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("shield_lock") .
                 "<span>Começar configuração</span></button></div></form></section>";
         }
         $envCards = "";
@@ -812,27 +812,27 @@ final class AuthOnboardingRuntimeOperations06
     
             $state = $active
                 ? '<span class="account-env-status">' .
-                    icon("check_circle") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
                     "<span>Atual</span></span>"
                 : '<span class="account-env-enter" aria-hidden="true">' .
-                    icon("login") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("login") .
                     "</span>";
             return '<form method="post" class="account-env-item-form' .
                 ($active ? " is-active" : "") .
                 '">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="profile_switch_environment"><input type="hidden" name="environment" value="' .
-                e($value) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
                 '"><button type="submit" class="account-env-option' .
                 ($active ? " active" : "") .
                 '"' .
                 ($active ? ' disabled aria-disabled="true"' : "") .
                 '><span class="account-env-mark">' .
-                icon($iconName) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
                 '</span><span class="account-env-copy"><strong>' .
-                e($title) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
                 "</strong><small>" .
-                e($subtitle) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($subtitle) .
                 "</small></span>" .
                 $state .
                 "</button></form>";
@@ -861,7 +861,7 @@ final class AuthOnboardingRuntimeOperations06
                 $active,
             );
         }
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT ur.id,ur.clinic_id,ur.role_code,c.display_name clinic_name,COALESCE(NULLIF(cr.label,''),ur.role_code) role_label,COALESCE(NULLIF(cr.icon_name,''),'workspaces') icon_name FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE ur.user_id=? AND ur.active=1 ORDER BY c.display_name ASC, ur.is_owner DESC, FIELD(ur.role_code,'gerente','medico','assistente','recepcionista'), ur.id ASC",
             [$uid],
         )->fetchAll();
@@ -869,13 +869,13 @@ final class AuthOnboardingRuntimeOperations06
             $rid = (int) $r["id"];
             $role = (string) $r["role_code"];
             $cid = (int) $r["clinic_id"];
-            $label = (string) ($r["role_label"] ?: role_label_for($role, $cid));
+            $label = (string) ($r["role_label"] ?: \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid));
             $clinic = (string) ($r["clinic_name"] ?? "Consultório");
             $active = $currentScope === "clinic" && $currentUc === $rid;
             $envAppend(
                 $envButton(
                     "role:" . $rid,
-                    (string) ($r["icon_name"] ?: role_icon($role, $cid)),
+                    (string) ($r["icon_name"] ?: \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_icon($role, $cid)),
                     $label,
                     $clinic,
                     $active,
@@ -891,22 +891,22 @@ final class AuthOnboardingRuntimeOperations06
             $envCards = '<div class="account-env-grid">' . $envCards . "</div>";
         }
         $body =
-            page_head("Minha conta", "", $back) .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Minha conta", "", $back) .
             '<section class="account-profile-grid"><article class="card account-card" id="sobre-mim"><h2>' .
-            icon("person") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("person") .
             '<span>Sobre Mim</span></h2><p class="muted-copy">Atualize os dados básicos vinculados ao seu acesso.</p>' .
             $dataForm .
             '</article><article class="card account-card" id="alteracao-de-senha"><h2>' .
-            icon("key") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("key") .
             '<span>Alteração de Senha</span></h2><p class="muted-copy">Confirme a senha atual para cadastrar uma nova senha.</p>' .
             $passwordForm .
             $mfaPanel .
             '</article><article class="card account-card account-env-card" id="meus-ambientes"><div class="account-env-card-head"><span class="account-env-card-icon">' .
-            icon("workspaces") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("workspaces") .
             '</span><div><span class="eyebrow">Acesso</span><h2>Meus ambientes</h2><p class="muted-copy">Escolha em qual consultório ou área você deseja trabalhar nesta sessão.</p></div></div>' .
             $envCards .
             "</article></section>";
-        page("Minha conta", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Minha conta", $body);
     
     }
 }

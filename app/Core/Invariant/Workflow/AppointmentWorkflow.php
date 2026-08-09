@@ -111,7 +111,7 @@ final class AppointmentWorkflow
         }
         $ids = array_values(array_unique($ids));
         $placeholders = implode(",", array_fill(0, count($ids), "?"));
-        $statement = \pdo()->prepare(
+        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
             "SELECT id,status FROM pi_appointments WHERE clinic_id=? AND id IN ({$placeholders})",
         );
         $statement->execute(array_merge([$clinicId], $ids));
@@ -189,8 +189,8 @@ final class AppointmentWorkflow
     private static function deny(string $key, string $sql): never
     {
 
-        if (function_exists("record_scope_violation")) {
-            \record_scope_violation(
+        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
+            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', 
                 $key,
                 $sql,
                 "Transição da Jornada do Paciente recusada pelo autômato formal.",

@@ -29,8 +29,8 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_storage_dir(): string
     
     {
-        if (function_exists("storage_path")) {
-            return storage_path("telemetry");
+        if (is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])) {
+            return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("telemetry");
         }
         return dirname((dirname(__DIR__, 2) . '/Support'), 2) . "/ssd/telemetry";
     
@@ -39,7 +39,7 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_file(): string
     
     {
-        return telemetry_storage_dir() . "/page-loads.jsonl";
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/page-loads.jsonl";
     
     }
 
@@ -145,7 +145,7 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_prepare_storage(): bool
     
     {
-        $dir = telemetry_storage_dir();
+        $dir = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir();
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             return false;
         }
@@ -178,7 +178,7 @@ final class SupportTelemetryInfrastructureOperations01
     
     {
         if (!empty($GLOBALS["PRONTOO_TELEMETRY_REGISTERED"])) {
-            $GLOBALS["PRONTOO_ROUTE_NAME"] = telemetry_route_safe($route);
+            $GLOBALS["PRONTOO_ROUTE_NAME"] = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe($route);
         }
     
     }
@@ -216,7 +216,7 @@ final class SupportTelemetryInfrastructureOperations01
     {
         $durationNs = max(0, $finishedMonotonicNs - $startedMonotonicNs);
         $statusCode = $statusCode >= 100 && $statusCode <= 599 ? $statusCode : 200;
-        $route = telemetry_route_safe($route);
+        $route = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe($route);
         $method = strtoupper(mb_trim((string) ($method ?? "GET")));
         $method = in_array($method, ["GET", "POST"], true) ? $method : "GET";
         $path = mb_trim((string) ($path ?? "/"));
@@ -229,7 +229,7 @@ final class SupportTelemetryInfrastructureOperations01
             ? $finishMarker
             : "front_controller_last_useful_line";
         return [
-            "schema" => telemetry_schema(),
+            "schema" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_schema(),
             "tipo" => "page_load",
             "evento_id" => substr(
                 hash(
@@ -254,8 +254,8 @@ final class SupportTelemetryInfrastructureOperations01
             "caminho" => $path,
             "marco_inicial" => "front_controller_first_executable_line",
             "marco_final" => $finishMarker,
-            "inicio_utc" => telemetry_utc_from_unix_microseconds($startedUnixUs),
-            "fim_utc" => telemetry_utc_from_unix_microseconds($finishedUnixUs),
+            "inicio_utc" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_utc_from_unix_microseconds($startedUnixUs),
+            "fim_utc" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_utc_from_unix_microseconds($finishedUnixUs),
             "inicio_unix_us" => $startedUnixUs,
             "fim_unix_us" => $finishedUnixUs,
             "inicio_monotonico_ns" => $startedMonotonicNs,
@@ -285,12 +285,12 @@ final class SupportTelemetryInfrastructureOperations01
     
     {
         if (
-            (string) ($event["schema"] ?? "") !== telemetry_schema() ||
+            (string) ($event["schema"] ?? "") !== \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_schema() ||
             (string) ($event["tipo"] ?? "") !== "page_load"
         ) {
             return null;
         }
-        $route = telemetry_route_safe((string) ($event["rota"] ?? ""));
+        $route = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe((string) ($event["rota"] ?? ""));
         $startedNs = (int) ($event["inicio_monotonico_ns"] ?? -1);
         $finishedNs = (int) ($event["fim_monotonico_ns"] ?? -1);
         $startedUs = (int) ($event["inicio_unix_us"] ?? 0);
@@ -338,7 +338,7 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_json_line(array $event): ?string
     
     {
-        $event = telemetry_normalize_event($event);
+        $event = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($event);
         if ($event === null) {
             return null;
         }
@@ -355,11 +355,11 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_append_event(array $event): bool
     
     {
-        $line = telemetry_json_line($event);
-        if ($line === null || !telemetry_prepare_storage()) {
+        $line = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
+        if ($line === null || !\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prepare_storage()) {
             return false;
         }
-        $handle = @fopen(telemetry_file(), "ab");
+        $handle = @fopen(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file(), "ab");
         if (!is_resource($handle)) {
             return false;
         }
@@ -380,8 +380,8 @@ final class SupportTelemetryInfrastructureOperations01
     
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - telemetry_retention_microseconds();
-        $file = telemetry_file();
+        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
+        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
         if (!is_file($file)) {
             return [];
         }
@@ -396,7 +396,7 @@ final class SupportTelemetryInfrastructureOperations01
             }
             while (($line = fgets($handle)) !== false) {
                 $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? telemetry_normalize_event($decoded) : null;
+                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
                 $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
                 if ($event !== null && $finishedUs >= $minimumUnixUs) {
                     $events[] = $event;
@@ -414,8 +414,8 @@ final class SupportTelemetryInfrastructureOperations01
     
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - telemetry_retention_microseconds();
-        $file = telemetry_file();
+        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
+        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
         if (!is_file($file)) {
             return 0;
         }
@@ -432,7 +432,7 @@ final class SupportTelemetryInfrastructureOperations01
             rewind($handle);
             while (($line = fgets($handle)) !== false) {
                 $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? telemetry_normalize_event($decoded) : null;
+                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
                 if (
                     $event === null ||
                     (int) ($event["fim_unix_us"] ?? 0) < $minimumUnixUs
@@ -440,7 +440,7 @@ final class SupportTelemetryInfrastructureOperations01
                     $removed++;
                     continue;
                 }
-                $normalizedLine = telemetry_json_line($event);
+                $normalizedLine = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
                 if ($normalizedLine !== null) {
                     $kept[] = $normalizedLine;
                 }
@@ -481,7 +481,7 @@ final class SupportTelemetryInfrastructureOperations01
         if ($current === null || $previous === null) {
             return null;
         }
-        return telemetry_percentage_variation($current, $previous);
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation($current, $previous);
     
     }
 
@@ -518,12 +518,12 @@ final class SupportTelemetryInfrastructureOperations01
     
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $windowUs = telemetry_comparison_microseconds();
+        $windowUs = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparison_microseconds();
         $currentStartUs = $nowUnixUs - $windowUs;
         $previousStartUs = $currentStartUs - $windowUs;
-        $current = telemetry_empty_period();
-        $previous = telemetry_empty_period();
-        foreach (telemetry_read_events($nowUnixUs) as $event) {
+        $current = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
+        $previous = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
+        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
             if ($finishedUs < $previousStartUs || $finishedUs >= $nowUnixUs) {
                 continue;
@@ -545,8 +545,8 @@ final class SupportTelemetryInfrastructureOperations01
                 }
             }
         }
-        $current = telemetry_finalize_period($current);
-        $previous = telemetry_finalize_period($previous);
+        $current = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_finalize_period($current);
+        $previous = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_finalize_period($previous);
         return [
             "generated_at_unix_us" => $nowUnixUs,
             "current_start_unix_us" => $currentStartUs,
@@ -554,11 +554,11 @@ final class SupportTelemetryInfrastructureOperations01
             "current" => $current,
             "previous" => $previous,
             "variations" => [
-                "requests_pct" => telemetry_percentage_variation(
+                "requests_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
                     $current["requests"],
                     $previous["requests"],
                 ),
-                "average_ms_pct" => telemetry_nullable_percentage_variation(
+                "average_ms_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(
                     isset($current["average_ms"])
                         ? (float) $current["average_ms"]
                         : null,
@@ -566,11 +566,11 @@ final class SupportTelemetryInfrastructureOperations01
                         ? (float) $previous["average_ms"]
                         : null,
                 ),
-                "landing_requests_pct" => telemetry_percentage_variation(
+                "landing_requests_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
                     $current["landing_requests"],
                     $previous["landing_requests"],
                 ),
-                "landing_average_ms_pct" => telemetry_nullable_percentage_variation(
+                "landing_average_ms_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(
                     isset($current["landing_average_ms"])
                         ? (float) $current["landing_average_ms"]
                         : null,

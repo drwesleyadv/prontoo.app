@@ -46,9 +46,9 @@ final class AdminPagesRuntimeOperations01
             ",",
             array_map(static  fn($key) => "'" . $key . "'", $objectiveKeys),
         );
-        $modelWhere = admin_model_clinic_exclude_sql("sv.clinic_id");
+        $modelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sv.clinic_id");
         try {
-            $row = one(
+            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT COUNT(*) AS total," .
                     "SUM(sv.violation_key='write_in_read_only') AS policy_total," .
                     "SUM(sv.violation_key<>'write_in_read_only') AS actionable_total," .
@@ -88,12 +88,12 @@ final class AdminPagesRuntimeOperations01
     
         $hours = max(1, min(24 * 30, $hours));
         $limit = max(1, min(80, $limit));
-        $modelWhere = admin_model_clinic_exclude_sql("sv.clinic_id");
+        $modelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sv.clinic_id");
         $policyWhere = $includePolicy
             ? ""
             : " AND sv.violation_key<>'write_in_read_only'";
         try {
-            return q(
+            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT sv.violation_key,sv.sql_fingerprint,sv.route,sv.clinic_id,sv.user_id,sv.role_code,sv.details,c.display_name AS clinic_name,u.name AS user_name,COUNT(*) AS occurrences,MIN(sv.created_at) AS first_at,MAX(sv.created_at) AS last_at " .
                     "FROM pi_scope_violations sv " .
                     "LEFT JOIN pi_clinics c ON c.id=sv.clinic_id " .
@@ -114,16 +114,16 @@ final class AdminPagesRuntimeOperations01
     {
     
         $key = (string) ($row["violation_key"] ?? "");
-        $definition = admin_scope_guard_definition($key);
-        $payload = function_exists("scope_violation_detail_decode")
-            ? scope_violation_detail_decode($row["details"] ?? "")
+        $definition = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_scope_guard_definition($key);
+        $payload = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::class, 'scope_violation_detail_decode'])
+            ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_violation_detail_decode($row["details"] ?? "")
             : ["reason" => (string) ($row["details"] ?? "")];
         $clinic = mb_trim((string) ($row["clinic_name"] ?? ""));
         if ($clinic === "") {
             $clinic = "Consultório #" . (int) ($row["clinic_id"] ?? 0);
         }
         $actor = mb_trim((string) ($row["user_name"] ?? ""));
-        $actor = $actor !== "" ? first_name($actor) : "usuário não identificado";
+        $actor = $actor !== "" ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($actor) : "usuário não identificado";
         $context = array_values(
             array_filter([
                 mb_trim((string) ($payload["method"] ?? "")),
@@ -140,33 +140,33 @@ final class AdminPagesRuntimeOperations01
             '<details class="scope-evidence"><summary>' .
             ($compact ? "Como e por que foi bloqueado" : "Ver prova técnica e contexto seguro") .
             '</summary><div class="scope-evidence-grid"><div><b>Como foi detectado</b><span>' .
-            e((string) $definition["detection"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $definition["detection"]) .
             '</span></div><div><b>Por que exige atenção</b><span>' .
-            e((string) $definition["risk"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $definition["risk"]) .
             '</span></div><div><b>Resultado observado</b><span>Bloqueado antes da execução SQL; este registro não confirma acesso cruzado.</span></div><div><b>Próximo passo</b><span>' .
-            e((string) $definition["next"]) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $definition["next"]) .
             "</span></div></div>";
         if ($recordedReason !== "") {
             $html .= '<p class="scope-recorded-reason"><b>Motivo registrado:</b> ' .
-                e($recordedReason) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recordedReason) .
                 "</p>";
         }
         $html .=
             '<div class="scope-evidence-meta"><span>' .
-            e($clinic) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($clinic) .
             '</span><span>' .
-            e($actor . " · " . ((string) ($row["role_code"] ?? "cargo não informado"))) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($actor . " · " . ((string) ($row["role_code"] ?? "cargo não informado"))) .
             '</span><span>' .
-            e($context ? implode(" · ", $context) : "contexto legado reduzido") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($context ? implode(" · ", $context) : "contexto legado reduzido") .
             '</span><span>Fingerprint ' .
-            e($fingerprint !== "" ? $fingerprint : "indisponível") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fingerprint !== "" ? $fingerprint : "indisponível") .
             '</span><span>' .
             (int) ($row["occurrences"] ?? 1) .
             " ocorrência(s)</span></div>";
         if (!$compact && $shape !== "") {
             $html .=
                 '<div class="scope-sql-shape"><b>Forma sanitizada do SQL</b><code>' .
-                e($shape) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($shape) .
                 "</code></div>";
         }
         return $html . "</details>";
@@ -177,7 +177,7 @@ final class AdminPagesRuntimeOperations01
     
     {
     
-        $definition = admin_scope_guard_definition(
+        $definition = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_scope_guard_definition(
             (string) ($row["violation_key"] ?? ""),
         );
         $clinic = mb_trim((string) ($row["clinic_name"] ?? ""));
@@ -188,7 +188,7 @@ final class AdminPagesRuntimeOperations01
         $routeName = mb_trim((string) ($row["route"] ?? ""));
         return [
             "icon" => (string) $definition["icon"],
-            "time" => dt_br((string) ($row["last_at"] ?? "")),
+            "time" => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) ($row["last_at"] ?? "")),
             "title" =>
                 (string) $definition["label"] .
                 ($routeName !== "" ? " · " . $routeName : ""),
@@ -200,10 +200,10 @@ final class AdminPagesRuntimeOperations01
                 " · " .
                 $occurrences .
                 " ocorrência(s) entre " .
-                dt_br((string) ($row["first_at"] ?? "")) .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) ($row["first_at"] ?? "")) .
                 " e " .
-                dt_br((string) ($row["last_at"] ?? "")),
-            "html" => admin_scope_evidence_html($row),
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) ($row["last_at"] ?? "")),
+            "html" => \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_evidence_html($row),
             "class" => "scope-event scope-" . (string) $definition["tier"],
         ];
     
@@ -216,36 +216,36 @@ final class AdminPagesRuntimeOperations01
         $checks = [];
         $ok = true;
         try {
-            $dbOk = (string) val("SELECT 1") === "1";
+            $dbOk = (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT 1") === "1";
         } catch (Throwable $e) {
             $dbOk = false;
         }
         $checks["database"] = $dbOk;
         $ok = $ok && $dbOk;
-        $storage = platform_storage_status();
+        $storage = \Prontoo\Infrastructure\AdminPages\AdminPagesInfrastructureOperations01::platform_storage_status();
         $checks["storage"] = (bool) $storage["ok"];
         $checks["storage_free_bytes"] = $storage["free_bytes"];
         $ok = $ok && (bool) $storage["ok"];
-        $scopeModelWhere = admin_model_clinic_exclude_sql("clinic_id");
-        $auditModelWhere = admin_model_clinic_exclude_where("a.clinic_id");
+        $scopeModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id");
+        $auditModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where("a.clinic_id");
         $checks["open_errors"] = array_key_exists("open_errors", $preloaded)
             ? (int) $preloaded["open_errors"]
-            : (int) cached_val(
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                 "platform_selftest_open_errors",
                 45,
                 "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
             );
         $checks["login_locks"] = array_key_exists("login_locks", $preloaded)
             ? (int) $preloaded["login_locks"]
-            : (int) cached_val(
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
                 "platform_selftest_login_locks",
                 45,
                 "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
             );
         $checks["scope_alerts_24h"] = array_key_exists("scope_alerts_24h", $preloaded)
             ? (int) $preloaded["scope_alerts_24h"]
-            : (int) cached_val(
-                "platform_selftest_scope_actionable_24h_v2_" . admin_model_clinic_id(),
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+                "platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
                 45,
                 "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' $scopeModelWhere",
             );
@@ -254,20 +254,20 @@ final class AdminPagesRuntimeOperations01
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["class_missing"]];
         $checks["scope_guard_logic"] = $scopeLogic;
         $ok = $ok && !empty($scopeLogic["ok"]);
-        $scopeContext = function_exists("scope_guard_context_selftest")
-            ? scope_guard_context_selftest()
+        $scopeContext = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'scope_guard_context_selftest'])
+            ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::scope_guard_context_selftest()
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["function_missing"]];
         $checks["scope_guard_context"] = $scopeContext;
         $ok = $ok && !empty($scopeContext["ok"]);
-        $checks["integrity_alerts"] = (int) cache_remember(
-            "platform_selftest_integrity_alerts_" . admin_model_clinic_id(),
+        $checks["integrity_alerts"] = (int) \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_remember(
+            "platform_selftest_integrity_alerts_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             60,
             static function () use ($auditModelWhere): int {
     
                 $alerts = 0;
                 try {
-                    foreach (audit_rows_light($auditModelWhere, [], 50) as $row) {
-                        if (!verify_audit_row($row)) {
+                    foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($auditModelWhere, [], 50) as $row) {
+                        if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($row)) {
                             $alerts++;
                         }
                     }
@@ -277,8 +277,8 @@ final class AdminPagesRuntimeOperations01
                 return $alerts;
             },
         );
-        $checks["audit_chain"] = function_exists("audit_chain_integrity_status")
-            ? audit_chain_integrity_status(240)
+        $checks["audit_chain"] = is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::class, 'audit_chain_integrity_status'])
+            ? \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_chain_integrity_status(240)
             : ["ok" => false, "sequence_ok" => false, "head_ok" => false, "checked" => 0];
         $ok = $ok && !empty($checks["audit_chain"]["ok"]);
         $versionContract = function_exists("prontoo_version_contract_status")
@@ -299,25 +299,25 @@ final class AdminPagesRuntimeOperations01
     {
     
         try {
-            $bucket = security_client_bucket("login_loaded_audit");
-            if (!security_rate_limit($bucket, 1, 300)) {
-                audit("login_carregado", "login", null, [
+            $bucket = \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_loaded_audit");
+            if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit($bucket, 1, 300)) {
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("login_carregado", "login", null, [
                     "autoteste_ok" => !empty($checks["ok"]),
                     "auto_login" => $autoLogin ? 1 : 0,
                     "audit_body" =>
                         "Página de login carregada com a inicialização concluída.",
                 ]);
             }
-            $actions = platform_autotest_actions($checks);
+            $actions = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::platform_autotest_actions($checks);
             if (
                 $actions &&
-                !security_rate_limit(
-                    security_client_bucket("login_autotest_alert"),
+                !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_autotest_alert"),
                     1,
                     300,
                 )
             ) {
-                audit("autoteste_aviso", "plataforma", null, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("autoteste_aviso", "plataforma", null, [
                     "acoes_recomendadas" => $actions,
                     "audit_body" =>
                         "A inicialização encontrou sinais que devem aparecer como ações recomendadas para o Desenvolvedor.",
@@ -339,17 +339,17 @@ final class AdminPagesRuntimeOperations01
     {
     
         $inner =
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<div><b>" .
-            n($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
             "</b><span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
-            ($note ? "<small>" . e($note) . "</small>" : "") .
+            ($note ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) . "</small>" : "") .
             "</div>";
         return $route !== ""
             ? '<a class="stat-card stat-link" href="' .
-                    href($route) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route) .
                     '">' .
                     $inner .
                     "</a>"
@@ -403,13 +403,13 @@ final class AdminPagesRuntimeOperations01
         foreach ($links as $l) {
             $h .=
                 '<a class="admin-tile" href="' .
-                href($l[0]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($l[0]) .
                 '">' .
-                icon($l[3]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($l[3]) .
                 "<b>" .
-                e($l[1]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($l[1]) .
                 "</b><span>" .
-                e($l[2]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($l[2]) .
                 "</span></a>";
         }
         return $h . "</div>";
@@ -426,16 +426,16 @@ final class AdminPagesRuntimeOperations01
     {
     
         $inner =
-            icon($iconName) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
             "<b>" .
-            e($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($value) .
             "</b><span>" .
-            e($label) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
             "</span>" .
-            ($note !== "" ? "<small>" . e($note) . "</small>" : "");
+            ($note !== "" ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) . "</small>" : "");
         return $route !== ""
             ? '<a class="global-compact-pill" href="' .
-                    href($route) .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route) .
                     '">' .
                     $inner .
                     "</a>"

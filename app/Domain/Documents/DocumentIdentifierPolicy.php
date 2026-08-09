@@ -38,7 +38,7 @@ final class DocumentIdentifierPolicy
     
     {
     
-        return count(document_identifier_consonants());
+        return count(\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_consonants());
     
     }
 
@@ -46,7 +46,7 @@ final class DocumentIdentifierPolicy
     
     {
     
-        $letters = document_identifier_consonants();
+        $letters = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_consonants();
         shuffle($letters);
         return implode("", $letters);
     
@@ -58,10 +58,10 @@ final class DocumentIdentifierPolicy
     
         $alphabet = strtoupper(trim($alphabet));
         $letters = str_split($alphabet);
-        $allowed = document_identifier_consonants();
+        $allowed = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_consonants();
         sort($letters);
         sort($allowed);
-        return strlen($alphabet) === document_identifier_base() &&
+        return strlen($alphabet) === \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_base() &&
             $letters === $allowed;
     
     }
@@ -73,7 +73,7 @@ final class DocumentIdentifierPolicy
         if ($sequence <= 0) {
             throw new RuntimeException("Sequência documental inválida.");
         }
-        $base = document_identifier_base();
+        $base = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_base();
         $n = $sequence - 1;
         $digits = [];
         do {
@@ -96,7 +96,7 @@ final class DocumentIdentifierPolicy
             "",
             array_map(
                 static  fn($d) => (string) $d,
-                document_identifier_digits($sequence),
+                \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_digits($sequence),
             ),
         );
     
@@ -107,13 +107,13 @@ final class DocumentIdentifierPolicy
     {
     
         $alphabet = strtoupper($alphabet);
-        if (!document_identifier_valid_alphabet($alphabet)) {
+        if (!\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_valid_alphabet($alphabet)) {
             throw new RuntimeException(
                 "Mapa de identificação documental inválido.",
             );
         }
         $out = "";
-        foreach (document_identifier_digits($sequence) as $digit) {
+        foreach (\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_digits($sequence) as $digit) {
             $out .= $alphabet[(int) $digit];
         }
         return $out;
@@ -134,7 +134,7 @@ final class DocumentIdentifierPolicy
     {
     
         $length = max(1, $length);
-        return (int) (document_identifier_base() ** $length);
+        return (int) (\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_base() ** $length);
     
     }
 

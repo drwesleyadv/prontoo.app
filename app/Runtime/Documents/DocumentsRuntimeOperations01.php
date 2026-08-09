@@ -33,9 +33,9 @@ final class DocumentsRuntimeOperations01
         if ($cid <= 0 || $docId <= 0) {
             throw new RuntimeException("Documento inválido para identificação.");
         }
-        return db_tx(function () use ($cid, $docId) {
+        return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $docId) {
     
-            $doc = one(
+            $doc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,document_identifier FROM pi_documents WHERE id=? AND clinic_id=? LIMIT 1 FOR UPDATE",
                 [$docId, $cid],
             );
@@ -44,13 +44,13 @@ final class DocumentsRuntimeOperations01
                     "Documento não encontrado para identificação.",
                 );
             }
-            $current = document_identifier_display(
+            $current = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display(
                 $doc["document_identifier"] ?? "",
             );
             if ($current !== "") {
                 return $current;
             }
-            $clinic = one(
+            $clinic = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT id,document_code_alphabet,document_sequence FROM pi_clinics WHERE id=? LIMIT 1 FOR UPDATE",
                 [$cid],
             );
@@ -62,30 +62,30 @@ final class DocumentsRuntimeOperations01
             $alphabet = strtoupper(
                 mb_trim((string) ($clinic["document_code_alphabet"] ?? "")),
             );
-            if (!document_identifier_valid_alphabet($alphabet)) {
-                $alphabet = document_identifier_random_alphabet();
+            if (!\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_valid_alphabet($alphabet)) {
+                $alphabet = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_random_alphabet();
             }
             $seq =
                 max(
                     (int) ($clinic["document_sequence"] ?? 0),
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COALESCE(MAX(document_sequence),0) FROM pi_documents WHERE clinic_id=?",
                         [$cid],
                     ) ?? 0),
                 ) + 1;
             for ($tries = 0; $tries < 100; $tries++) {
-                $identifier = document_identifier_encode($seq, $alphabet);
+                $identifier = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_encode($seq, $alphabet);
                 $exists =
-                    (int) (val(
+                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                         "SELECT COUNT(*) FROM pi_documents WHERE clinic_id=? AND document_identifier=? AND id<>?",
                         [$cid, $identifier, $docId],
                     ) ?? 0);
                 if ($exists === 0) {
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_clinics SET document_code_alphabet=?, document_sequence=? WHERE id=?",
                         [$alphabet, $seq, $cid],
                     );
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "UPDATE pi_documents SET document_sequence=?, document_identifier=? WHERE id=? AND clinic_id=?",
                         [$seq, $identifier, $docId, $cid],
                     );
@@ -109,15 +109,15 @@ final class DocumentsRuntimeOperations01
     ): int 
     {
     
-        $cid = clinic_id_required($c);
+        $cid = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_id_required($c);
         $uid = (int) ($c["user"]["id"] ?? 0);
-        [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
+        [$patientId, $appointmentId, $appt] = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_resolve_patient_appointment(
             $cid,
             $patientId,
             $appointmentId,
         );
         if ($patientId > 0) {
-            $block = patient_sensitive_block_reason($cid, $patientId);
+            $block = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_sensitive_block_reason($cid, $patientId);
             if ($block !== null) {
                 throw new RuntimeException($block);
             }
@@ -125,8 +125,8 @@ final class DocumentsRuntimeOperations01
         if ($templateId <= 0) {
             throw new RuntimeException("Escolha um modelo aprovado.");
         }
-        [$where, $params] = document_template_visible_where($c, "dt");
-        $tpl = one(
+        [$where, $params] = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visible_where($c, "dt");
+        $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT dt.id,dt.owner_user_id,dt.owner_role,dt.type_key,dt.title,dt.body,dt.status FROM pi_document_templates dt WHERE dt.id=? AND dt.clinic_id=? AND $where",
             array_merge([$templateId, $cid], $params),
         );
@@ -138,15 +138,15 @@ final class DocumentsRuntimeOperations01
         if ((string) $tpl["status"] !== "approved") {
             throw new RuntimeException("Este modelo ainda não está aprovado.");
         }
-        if (!document_can_issue_template($c, $tpl)) {
+        if (!\Prontoo\Domain\Documents\DocumentTemplatePolicy::document_can_issue_template($c, $tpl)) {
             throw new RuntimeException(
                 "Este modelo não pode ser usado por este cargo.",
             );
         }
-        $contextJson = document_context_json_encode($context);
-        $vars = document_issue_context($c, $patientId, $appointmentId, $context);
-        $content = render_document_body((string) $tpl["body"], $vars);
-        q(
+        $contextJson = \Prontoo\Domain\Documents\DocumentsDomainOperations02::document_context_json_encode($context);
+        $vars = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::document_issue_context($c, $patientId, $appointmentId, $context);
+        $content = \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::render_document_body((string) $tpl["body"], $vars);
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "INSERT INTO pi_documents (clinic_id,template_id,patient_link_id,appointment_id,context_json,issued_by,type_key,title,content,document_status,issued_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?, 'preparado',NOW(),NOW())",
             [
                 $cid,
@@ -160,13 +160,13 @@ final class DocumentsRuntimeOperations01
                 $content,
             ],
         );
-        $docId = db_last_insert_id();
-        audit("documento_previsualizacao_criada", "documento", $docId, [
+        $docId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_previsualizacao_criada", "documento", $docId, [
             "titulo" => $tpl["title"] ?? "",
             "document_type" => (string) $tpl["type_key"],
             "patient_link_id" => $patientId > 0 ? $patientId : null,
             "appointment_id" => $appointmentId > 0 ? $appointmentId : null,
-            "contexto_documental" => document_context_json_decode($contextJson),
+            "contexto_documental" => \Prontoo\Domain\Documents\DocumentHtmlPolicy::document_context_json_decode($contextJson),
             "patient_name" => $patientId > 0 ? $vars["paciente"] ?? "" : "",
             "audit_body" =>
                 "Pré-visualização criada a partir de modelo aprovado. Conteúdo livre não é editável antes da emissão.",
@@ -187,37 +187,37 @@ final class DocumentsRuntimeOperations01
     ): void 
     {
     
-        $doc = fetch_document_for_current_user($c, $docId);
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, $docId);
         if (!$doc) {
             throw new RuntimeException("Documento não encontrado.");
         }
         $current = (string) ($doc["document_status"] ?? "emitido");
-        if (!document_editable_status($current)) {
+        if (!\Prontoo\Domain\Documents\DocumentTypePolicy::document_editable_status($current)) {
             throw new RuntimeException(
                 "Documento já emitido não pode ser editado. Cancele ou substitua por uma nova versão.",
             );
         }
         if (
             (int) ($doc["issued_by"] ?? 0) !== (int) ($c["user"]["id"] ?? 0) &&
-            (string) !has_effective_role($c, "gerente")
+            (string) !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
         ) {
             throw new RuntimeException(
                 "Apenas o criador ou o Administrativo pode ajustar esta pré-visualização.",
             );
         }
         $cid = (int) $c["clinic_id"];
-        [$patientId, $appointmentId, $appt] = document_resolve_patient_appointment(
+        [$patientId, $appointmentId, $appt] = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations02::document_resolve_patient_appointment(
             $cid,
             $patientId,
             $appointmentId,
         );
         if ($patientId > 0) {
-            $block = patient_sensitive_block_reason($cid, $patientId);
+            $block = \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_sensitive_block_reason($cid, $patientId);
             if ($block !== null) {
                 throw new RuntimeException($block);
             }
         }
-        $tpl = one(
+        $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
             "SELECT dt.id,dt.title,dt.body,dt.type_key FROM pi_document_templates dt WHERE dt.id=? AND dt.clinic_id=? AND dt.status='approved'",
             [(int) ($doc["template_id"] ?? 0), $cid],
         );
@@ -226,15 +226,15 @@ final class DocumentsRuntimeOperations01
                 "Modelo original não está aprovado ou não foi encontrado.",
             );
         }
-        $contextJson = document_context_json_encode($context);
-        $vars = document_issue_context($c, $patientId, $appointmentId, $context);
-        $body = render_document_body((string) $tpl["body"], $vars);
-        if (document_body_is_empty($body)) {
+        $contextJson = \Prontoo\Domain\Documents\DocumentsDomainOperations02::document_context_json_encode($context);
+        $vars = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::document_issue_context($c, $patientId, $appointmentId, $context);
+        $body = \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::render_document_body((string) $tpl["body"], $vars);
+        if (\Prontoo\Domain\Documents\DocumentHtmlPolicy::document_body_is_empty($body)) {
             throw new RuntimeException(
                 "O modelo aprovado gerou conteúdo vazio. Revise o modelo antes de emitir.",
             );
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_documents SET title=?, patient_link_id=?, appointment_id=?, context_json=?, content=?, document_status='preparado', updated_at=NOW() WHERE id=? AND clinic_id=?",
             [
                 (string) $tpl["title"],
@@ -246,12 +246,12 @@ final class DocumentsRuntimeOperations01
                 $cid,
             ],
         );
-        audit("documento_vinculos_previsualizacao", "documento", $docId, [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_vinculos_previsualizacao", "documento", $docId, [
             "titulo" => $tpl["title"] ?? "",
-            "status" => document_status_label("preparado"),
+            "status" => \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label("preparado"),
             "patient_link_id" => $patientId > 0 ? $patientId : null,
             "appointment_id" => $appointmentId > 0 ? $appointmentId : null,
-            "contexto_documental" => document_context_json_decode($contextJson),
+            "contexto_documental" => \Prontoo\Domain\Documents\DocumentHtmlPolicy::document_context_json_decode($contextJson),
             "audit_body" =>
                 "Vínculos contextuais associados à pré-visualização do documento. O conteúdo permanece derivado exclusivamente do modelo aprovado.",
         ]);
@@ -262,29 +262,29 @@ final class DocumentsRuntimeOperations01
     
     {
     
-        $doc = fetch_document_for_current_user($c, $docId);
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, $docId);
         if (!$doc) {
             throw new RuntimeException("Documento não encontrado.");
         }
         $current = (string) ($doc["document_status"] ?? "emitido");
-        if (!document_editable_status($current)) {
+        if (!\Prontoo\Domain\Documents\DocumentTypePolicy::document_editable_status($current)) {
             throw new RuntimeException(
                 "Documento já emitido não pode ser descartado.",
             );
         }
         if (
             (int) ($doc["issued_by"] ?? 0) !== (int) ($c["user"]["id"] ?? 0) &&
-            (string) !has_effective_role($c, "gerente")
+            (string) !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
         ) {
             throw new RuntimeException(
                 "Apenas o criador ou o Administrativo pode descartar esta pré-visualização.",
             );
         }
-        q(
+        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "UPDATE pi_documents SET document_status='cancelado', updated_at=NOW() WHERE id=? AND clinic_id=?",
             [$docId, (int) $c["clinic_id"]],
         );
-        audit("documento_descartado", "documento", $docId, [
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_descartado", "documento", $docId, [
             "titulo" => $doc["title"] ?? "",
             "status" => "Cancelado",
             "audit_body" =>
@@ -297,7 +297,7 @@ final class DocumentsRuntimeOperations01
     
     {
     
-        $doc = fetch_document_for_current_user($c, $docId);
+        $doc = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::fetch_document_for_current_user($c, $docId);
         if (!$doc) {
             throw new RuntimeException("Documento não encontrado.");
         }
@@ -309,27 +309,27 @@ final class DocumentsRuntimeOperations01
         }
         if (
             (int) ($doc["issued_by"] ?? 0) !== (int) ($c["user"]["id"] ?? 0) &&
-            (string) !has_effective_role($c, "gerente")
+            (string) !\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::has_effective_role($c, "gerente")
         ) {
             throw new RuntimeException(
                 "Apenas o criador ou a Gestão pode confirmar este documento.",
             );
         }
-        if (document_body_is_empty((string) ($doc["content"] ?? ""))) {
+        if (\Prontoo\Domain\Documents\DocumentHtmlPolicy::document_body_is_empty((string) ($doc["content"] ?? ""))) {
             throw new RuntimeException(
                 "Conteúdo vazio. Revise o modelo antes de emitir.",
             );
         }
-        $identifier = db_tx(function () use ($c, $docId) {
+        $identifier = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($c, $docId) {
     
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_documents SET document_status='emitido', confirmed_at=NOW(), issued_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
                 [$docId, (int) $c["clinic_id"]],
             );
-            return document_assign_identifier((int) $c["clinic_id"], $docId);
+            return \Prontoo\Runtime\Documents\DocumentsRuntimeOperations01::document_assign_identifier((int) $c["clinic_id"], $docId);
         });
-        $types = document_type_options();
-        audit("documento_emitido", "documento", $docId, [
+        $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
+        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_emitido", "documento", $docId, [
             "titulo" => $doc["title"] ?? "",
             "document_identifier" => $identifier,
             "document_type" => (string) ($doc["type_key"] ?? ""),
@@ -349,7 +349,7 @@ final class DocumentsRuntimeOperations01
     
     {
     
-        $label = role_label_for($role, $cid);
+        $label = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid);
         $base = [
             "recepcionista" => [
                 "title" => "Documentos da Recepção",
@@ -409,28 +409,28 @@ final class DocumentsRuntimeOperations01
     {
     
         $st = (string) ($d["document_status"] ?? "emitido");
-        $idText = document_identifier_display($d["document_identifier"] ?? "");
+        $idText = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display($d["document_identifier"] ?? "");
         $patient = mb_trim((string) ($d["patient_name"] ?? ""));
         if ($patient === "") {
             $patient = "Paciente";
         }
         $actor = mb_trim((string) ($d["issued_name"] ?? ""));
-        $type = document_ds_type_label(
+        $type = \Prontoo\Domain\Documents\DocumentTypePolicy::document_ds_type_label(
             $typeOptions,
             (string) ($d["type_key"] ?? ""),
         );
-        $when = dt_br($d["updated_at"] ?: $d["issued_at"] ?? null);
+        $when = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($d["updated_at"] ?: $d["issued_at"] ?? null);
         $idHtml =
             $idText !== ""
                 ? '<span class="doc-ds-id">' .
-                    icon("fingerprint") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("fingerprint") .
                     "<span>" .
-                    e($idText) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($idText) .
                     "</span></span>"
                 : '<span class="doc-ds-id is-empty-id">' .
-                    icon("fingerprint") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("fingerprint") .
                     "<span>sem código</span></span>";
-        $issuerLabel = $actor !== "" ? first_name($actor) : "";
+        $issuerLabel = $actor !== "" ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($actor) : "";
         $summary = "";
         if ($issuerLabel !== "" && $patient !== "") {
             $summary = "Emitido por " . $issuerLabel . " para " . $patient . ".";
@@ -442,55 +442,55 @@ final class DocumentsRuntimeOperations01
         $summaryHtml =
             $summary !== ""
                 ? '<span class="doc-ds-row-summary">' .
-                    icon("assignment_ind") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("assignment_ind") .
                     "<span>" .
-                    e($summary) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($summary) .
                     "</span></span>"
                 : "";
         $chips = "";
         if ($when !== "" && $when !== "—") {
             $chips .=
                 '<span class="doc-ds-meta-chip">' .
-                icon("schedule") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
                 "<span>" .
-                e($when) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($when) .
                 "</span></span>";
         }
         $chips .=
             '<span class="doc-ds-meta-chip">' .
-            icon("category") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("category") .
             "<span>" .
-            e($type) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($type) .
             "</span></span>";
         $chips .=
             '<span class="doc-issued-state">' .
-            document_ds_status_chip($st) .
+            \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_ds_status_chip($st) .
             "</span>";
-        $action = document_editable_status($st)
+        $action = \Prontoo\Domain\Documents\DocumentTypePolicy::document_editable_status($st)
             ? '<a class="primary small" href="' .
-                href("documents", ["doc" => (int) $d["id"]]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", ["doc" => (int) $d["id"]]) .
                 '">' .
-                icon("preview") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("preview") .
                 "<span>Conferir</span></a>"
             : '<a class="ghost small" href="' .
-                href("document_view", ["id" => (int) $d["id"]]) .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_view", ["id" => (int) $d["id"]]) .
                 '">' .
-                icon("visibility") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
                 "<span>Visualizar</span></a>" .
                 ($st === "emitido"
                     ? '<a class="primary small" target="_blank" rel="noopener" href="' .
-                        href("document_print", ["id" => (int) $d["id"]]) .
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("document_print", ["id" => (int) $d["id"]]) .
                         '">' .
-                        icon("print") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("print") .
                         "<span>Imprimir</span></a>" .
-                        document_pdf_link((int) $d["id"])
+                        \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_link((int) $d["id"])
                     : "");
         return '<article class="doc-issued-row doc-ds-row doc-issued-row-compact" data-ds-row-kind="surface"><span class="doc-history-icon doc-issued-icon doc-ds-row-icon">' .
-            icon(document_editable_status($st) ? "preview" : "description") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon(\Prontoo\Domain\Documents\DocumentTypePolicy::document_editable_status($st) ? "preview" : "description") .
             '</span><span class="doc-issued-main doc-ds-row-main"><strong class="doc-issued-title doc-ds-row-title">' .
             $idHtml .
             "<span>" .
-            e($d["title"] ?? "Documento") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($d["title"] ?? "Documento") .
             "</span></strong>" .
             $summaryHtml .
             '<span class="doc-ds-row-meta">' .
@@ -506,17 +506,17 @@ final class DocumentsRuntimeOperations01
     {
     
         $kind = $typeOptions[(string) ($tpl["type_key"] ?? "")] ?? "Documento";
-        $owner = role_label_for((string) ($tpl["owner_role"] ?? ""), $cid);
-        $last = dt_br($tpl["last_used_at"] ?? null);
+        $owner = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) ($tpl["owner_role"] ?? ""), $cid);
+        $last = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($tpl["last_used_at"] ?? null);
         $lastMeta =
             $last !== "" && $last !== "—"
                 ? '<span class="doc-ds-meta-chip">' .
-                    icon("history") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("history") .
                     "<span>Usado em " .
-                    e($last) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($last) .
                     "</span></span>"
                 : '<span class="doc-ds-meta-chip">' .
-                    icon("fiber_new") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("fiber_new") .
                     "<span>Ainda não usado</span></span>";
         $patientHidden =
             (int) ($_GET["patient_id"] ?? 0) > 0
@@ -531,28 +531,28 @@ final class DocumentsRuntimeOperations01
                     '">'
                 : "";
         return '<article class="doc-model-row doc-ds-model-row doc-ds-row"><span class="doc-history-icon doc-model-icon doc-ds-row-icon">' .
-            icon("description") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("description") .
             '</span><span class="doc-model-copy doc-ds-row-main"><strong class="doc-ds-row-title">' .
-            e($tpl["title"] ?? "Modelo") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($tpl["title"] ?? "Modelo") .
             '</strong><span class="doc-ds-row-meta"><span class="doc-ds-meta-chip">' .
-            icon("category") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("category") .
             "<span>" .
-            e($kind) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($kind) .
             '</span></span><span class="doc-ds-meta-chip">' .
-            icon("badge") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
             "<span>" .
-            e($owner) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($owner) .
             "</span></span>" .
             $lastMeta .
             '</span><small>Abre pré-visualização antes da emissão definitiva.</small></span><form method="post" class="doc-model-create doc-ds-row-actions">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="create_document"><input type="hidden" name="template_id" value="' .
             (int) $tpl["id"] .
             '">' .
             $patientHidden .
             $appointmentHidden .
             '<button class="primary small" type="submit">' .
-            icon("preview") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("preview") .
             "<span>Pré-visualizar</span></button></form></article>";
     
     }
@@ -568,7 +568,7 @@ final class DocumentsRuntimeOperations01
         if ($editorRole !== "gerente") {
             return ["pending_approval", 1, null, null];
         }
-        return ["approved", 0, (int) $c["user"]["id"], now()];
+        return ["approved", 0, (int) $c["user"]["id"], \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::now()];
     
     }
 }

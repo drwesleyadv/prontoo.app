@@ -66,9 +66,9 @@ final class AuditCopyPolicy
             return "Nenhuma informação foi alterada.";
         }
         if (count($fields) === 1) {
-            return "O campo " . pt_list($fields) . " foi modificado.";
+            return "O campo " . \Prontoo\Domain\AuditActivity\AuditCopyPolicy::pt_list($fields) . " foi modificado.";
         }
-        return "Os campos " . pt_list($fields) . " foram modificados.";
+        return "Os campos " . \Prontoo\Domain\AuditActivity\AuditCopyPolicy::pt_list($fields) . " foram modificados.";
     
     }
 
@@ -96,7 +96,7 @@ final class AuditCopyPolicy
         foreach ($labels as $key => $label) {
             if (
                 array_key_exists((string) $key, $ctx) &&
-                audit_value_present($ctx[(string) $key])
+                \Prontoo\Domain\AuditActivity\AuditCopyPolicy::audit_value_present($ctx[(string) $key])
             ) {
                 $out[] = (string) $label;
             }
@@ -125,7 +125,7 @@ final class AuditCopyPolicy
         if (count($fields) === 1) {
             return "Foi registrado: " . $fields[0] . ".";
         }
-        return "Foram registrados: " . pt_list($fields) . ".";
+        return "Foram registrados: " . \Prontoo\Domain\AuditActivity\AuditCopyPolicy::pt_list($fields) . ".";
     
     }
 

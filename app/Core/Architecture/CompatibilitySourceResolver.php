@@ -16,6 +16,15 @@ final class CompatibilitySourceResolver
         $paths = [$relative => true];
         $file = $root . '/' . $relative;
         if (!is_file($file)) {
+            $versionFile = $root . '/version.json';
+            $version = is_file($versionFile) ? json_decode((string) file_get_contents($versionFile), true) : null;
+            $key = str_starts_with($relative, 'app/') ? $relative : 'app/' . $relative;
+            $targets = is_array($version) ? ($version['architecture_source_path_migrations'][$key] ?? []) : [];
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $target = mb_ltrim((string) $target, '/');
+                if ($target !== '' && is_file($root . '/' . $target)) $paths[$target] = true;
+            }
             return array_keys($paths);
         }
         $source = (string) file_get_contents($file);

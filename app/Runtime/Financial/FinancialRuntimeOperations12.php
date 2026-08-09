@@ -30,34 +30,34 @@ final class FinancialRuntimeOperations12
     
     {
     
-        $drawerOptions = financial_drawer_location_options($cid, true);
-        $cashierOptions = financial_cashier_user_options($cid, true);
+        $drawerOptions = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_location_options($cid, true);
+        $cashierOptions = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_user_options($cid, true);
         $create =
             '<form method="post" class="compact finance-lite-form finance-drawer-create-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="drawer_create"><div class="two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome da Gaveta",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "drawer_name",
                     "text",
                     "",
                     'required placeholder="Ex.: Gaveta Recepção 1"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Uso",
                 '<input type="text" value="Dinheiro do Caixa do Atendimento" readonly>',
             ) .
             "</div>" .
-            form_actions("Criar Gaveta") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Criar Gaveta") .
             "</form>";
         $assign =
             '<form method="post" class="compact finance-lite-form finance-drawer-assign-form">' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<input type="hidden" name="act" value="drawer_assign"><div class="two">' .
-            select_label("Gaveta", "drawer_id", $drawerOptions, "", "required") .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label("Gaveta", "drawer_id", $drawerOptions, "", "required") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Colaborador do Atendimento",
                 "cashier_user_id",
                 $cashierOptions,
@@ -65,9 +65,9 @@ final class FinancialRuntimeOperations12
                 "required",
             ) .
             '</div><p class="muted">Mais de um colaborador pode estar vinculado à mesma Gaveta, mas ela só pode ficar aberta por um colaborador por vez.</p>' .
-            form_actions("Vincular colaborador") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Vincular colaborador") .
             "</form>";
-        $today = financial_today($cid);
+        $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         try {
             $yesterday = new DateTimeImmutable($today)
                 ->modify("-1 day")
@@ -75,7 +75,7 @@ final class FinancialRuntimeOperations12
         } catch (Throwable $e) {
             $yesterday = date("Y-m-d", strtotime("-1 day"));
         }
-        $drawers = q(
+        $drawers = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT id,name,drawer_lock_status,drawer_locked_business_date,drawer_unlock_at FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND active=1 ORDER BY name,id LIMIT 200",
             [$cid],
         )->fetchAll();
@@ -90,7 +90,7 @@ final class FinancialRuntimeOperations12
         $linksByDrawer = [];
         if ($drawerIds) {
             $drawerPh = implode(",", array_fill(0, count($drawerIds), "?"));
-            $linkRows = q(
+            $linkRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT id,location_id,name FROM (SELECT lu.id,lu.location_id,u.name,ROW_NUMBER() OVER (PARTITION BY lu.location_id ORDER BY u.name,lu.id) row_rank FROM pi_financial_location_users lu JOIN pi_users u ON u.id=lu.user_id WHERE lu.clinic_id=? AND lu.location_id IN ($drawerPh) AND lu.active=1) ranked WHERE row_rank<=80 ORDER BY location_id,name,id",
                 array_merge([$cid], $drawerIds),
             )->fetchAll();
@@ -98,12 +98,12 @@ final class FinancialRuntimeOperations12
                 $linksByDrawer[(int) $link["location_id"]][] = $link;
             }
         }
-        $dailyTotals = financial_drawer_daily_totals_map(
+        $dailyTotals = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_daily_totals_map(
             $cid,
             $drawerIds,
             [$today, $yesterday],
         );
-        $balanceSnapshot = financial_drawer_balance_snapshot($cid, $drawerIds);
+        $balanceSnapshot = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_balance_snapshot($cid, $drawerIds);
         $balances = (array) ($balanceSnapshot["balances"] ?? []);
         $openByDrawer = (array) ($balanceSnapshot["open"] ?? []);
         $list = "";
@@ -117,18 +117,18 @@ final class FinancialRuntimeOperations12
                 if ((int) ($l["id"] ?? 0) > 0) {
                     $remove =
                         '<form method="post" class="inline finance-chip-action">' .
-                        csrf_field() .
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="drawer_unassign"><input type="hidden" name="link_id" value="' .
                         (int) $l["id"] .
                         '"><button class="ghost small icon-only" type="submit" title="Remover vínculo" aria-label="Remover vínculo">' .
-                        icon("close") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
                         "</button></form>";
                 }
                 $linkHtml .=
                     '<span class="pill finance-drawer-user-chip">' .
-                    icon("badge") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("badge") .
                     "<span>" .
-                    e(first_name((string) $l["name"])) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) $l["name"])) .
                     "</span>" .
                     $remove .
                     "</span>";
@@ -138,37 +138,37 @@ final class FinancialRuntimeOperations12
                     '<span class="pill warn">Sem colaborador vinculado</span>';
             }
             $open = $openByDrawer[$did] ?? null;
-            $drawerState = financial_drawer_auto_unlock_row_if_due($cid, $d);
+            $drawerState = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_auto_unlock_row_if_due($cid, $d);
             $locked =
                 (string) ($drawerState["drawer_lock_status"] ?? "unlocked") ===
                 "locked";
             if ($open) {
                 $status =
                     '<span class="pill warn">Aberta por ' .
-                    e(first_name((string) ($open["user_name"] ?? "Atendimento"))) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($open["user_name"] ?? "Atendimento"))) .
                     "</span>";
             } elseif ($locked) {
                 $unlock = mb_trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
                 $status =
                     '<span class="pill bad">' .
-                    icon("lock") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
                     " " .
                     ($unlock !== ""
-                        ? "Trancada até " . e(app_time_br($unlock, $cid))
+                        ? "Trancada até " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br($unlock, $cid))
                         : "Trancada") .
                     "</span>";
             } else {
                 $status =
                     '<span class="pill ok">' .
-                    icon("lock_open") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_open") .
                     " Destrancada</span>";
             }
             $todayTotals =
                 $dailyTotals[$did . "|" . $today] ??
-                financial_drawer_daily_totals_empty();
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_drawer_daily_totals_empty();
             $yTotals =
                 $dailyTotals[$did . "|" . $yesterday] ??
-                financial_drawer_daily_totals_empty();
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_drawer_daily_totals_empty();
             $balance = (int) ($balances[$did] ?? 0);
             $metrics =
                 '<div class="finance-drawer-metrics">' .
@@ -176,35 +176,35 @@ final class FinancialRuntimeOperations12
                 (int) $todayTotals["sessions"] .
                 "</b></span>" .
                 '<span class="finance-drawer-metric"><small>Recebi</small><b>' .
-                money_br((int) $todayTotals["receipts"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $todayTotals["receipts"]) .
                 "</b></span>" .
                 '<span class="finance-drawer-metric"><small>Paguei</small><b>' .
-                money_br((int) $todayTotals["payments"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $todayTotals["payments"]) .
                 "</b></span>" .
                 '<span class="finance-drawer-metric"><small>Retiradas</small><b>' .
-                money_br((int) $todayTotals["withdrawn"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $todayTotals["withdrawn"]) .
                 "</b></span>" .
                 '<span class="finance-drawer-metric"><small>Saldo atual</small><b>' .
-                money_br($balance) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($balance) .
                 "</b></span>" .
                 '<span class="finance-drawer-metric"><small>Ontem</small><b>' .
-                money_br((int) $yTotals["kept"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $yTotals["kept"]) .
                 "</b></span>" .
                 "</div>";
             $schedule = "";
             if ($locked) {
                 $schedule =
                     '<form method="post" class="compact finance-drawer-unlock-form">' .
-                    csrf_field() .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="drawer_schedule_unlock"><input type="hidden" name="drawer_id" value="' .
                     $did .
                     '">' .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Destravar em",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "drawer_unlock_at",
                             "datetime-local",
-                            financial_default_drawer_unlock_local(
+                            \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_default_drawer_unlock_local(
                                 $cid,
                                 $did,
                                 $drawerState,
@@ -212,9 +212,9 @@ final class FinancialRuntimeOperations12
                             "required",
                         ),
                     ) .
-                    form_row(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                         "Conferência / destino das retiradas",
-                        input(
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                             "notes",
                             "text",
                             "",
@@ -222,33 +222,33 @@ final class FinancialRuntimeOperations12
                         ),
                     ) .
                     '<button class="primary small" type="submit">' .
-                    icon("lock_clock") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock_clock") .
                     "<span>Agendar destravamento</span></button></form>";
             }
             $rename =
                 '<form method="post" class="compact finance-drawer-rename-form">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="drawer_rename"><input type="hidden" name="drawer_id" value="' .
                 $did .
                 '">' .
-                form_row(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Novo nome",
-                    input("drawer_name", "text", $name, 'required maxlength="120"'),
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("drawer_name", "text", $name, 'required maxlength="120"'),
                 ) .
                 '<button class="primary small" type="submit">' .
-                icon("save") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
                 "<span>Salvar nome</span></button></form>";
             $deactivate =
                 '<form method="post" class="compact finance-drawer-danger-form" onsubmit="return confirm(&quot;Desativar esta Gaveta? Os históricos serão preservados.&quot;)">' .
-                csrf_field() .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="drawer_deactivate"><input type="hidden" name="drawer_id" value="' .
                 $did .
                 '"><button class="danger small" type="submit">' .
-                icon("inventory_2") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inventory_2") .
                 "<span>Desativar Gaveta</span></button></form>";
             $actions =
                 '<details class="finance-drawer-actions"><summary class="ghost small">' .
-                icon("more_horiz") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("more_horiz") .
                 "<span>Ações</span></summary><div>" .
                 $schedule .
                 $rename .
@@ -259,23 +259,23 @@ final class FinancialRuntimeOperations12
                 $unlock = mb_trim((string) ($drawerState["drawer_unlock_at"] ?? ""));
                 $lockInfo =
                     " · trancada desde " .
-                    date_br(
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br(
                         (string) ($drawerState["drawer_locked_business_date"] ??
                             ""),
                     ) .
                     ($unlock !== ""
-                        ? " · destrava em " . dt_br($unlock)
+                        ? " · destrava em " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($unlock)
                         : " · aguardando conferência");
             }
             $list .=
                 '<article class="finance-drawer-admin-card' .
                 ($locked ? " drawer-locked" : "") .
                 '"><header><div class="finance-drawer-heading"><span class="finance-drawer-avatar">' .
-                icon($locked ? "lock" : "point_of_sale") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($locked ? "lock" : "point_of_sale") .
                 "</span><div><strong>" .
-                e($name) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
                 '</strong><small>Gaveta física do Caixa do Atendimento</small></div></div><div class="finance-drawer-card-actions"><b>' .
-                money_br($balance) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($balance) .
                 "</b>" .
                 $status .
                 $actions .
@@ -288,8 +288,8 @@ final class FinancialRuntimeOperations12
                 " · pendentes " .
                 (int) $yTotals["pending_count"] .
                 " · saldo final " .
-                money_br((int) $yTotals["kept"]) .
-                e($lockInfo) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $yTotals["kept"]) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($lockInfo) .
                 "</span></footer></article>";
         }
         if ($list === "") {
@@ -298,22 +298,22 @@ final class FinancialRuntimeOperations12
         }
         $setup =
             '<div class="finance-drawer-setup-grid">' .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2>Criar Gaveta</h2><p class="muted">Cadastre cada gaveta física usada para guardar dinheiro do Caixa do Atendimento.</p>' .
                     $create,
                 "finance-form finance-drawer-setup-card",
             ) .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>Vincular colaborador</h2>" . $assign,
                 "finance-form finance-drawer-setup-card",
             ) .
             "</div>";
-        return card(
+        return \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<h2>Gavetas do Atendimento</h2><p class="muted">Gerencie nomes, vínculos e status das Gavetas. Vínculos e histórico permanecem atrelados ao ID da Gaveta, mesmo após renomear.</p>',
             "finance-report-card finance-drawer-intro",
         ) .
             $setup .
-            card(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2>Controle das Gavetas</h2><div class="finance-drawer-admin-grid">' .
                     $list .
                     "</div>",
@@ -326,10 +326,10 @@ final class FinancialRuntimeOperations12
     
     {
     
-        $day = financial_today($cid);
-        [$startUtc, $endUtc] = app_local_day_utc_range($day, $cid);
+        $day = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
+        [$startUtc, $endUtc] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid);
         try {
-            $rows = q(
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "SELECT m.movement_type,m.status,m.payment_method,m.created_at,m.title,m.amount_cents,lf.name from_name,lt.name to_name,u.name user_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lf ON lf.id=m.from_location_id AND lf.clinic_id=m.clinic_id LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id LEFT JOIN pi_users u ON u.id=m.created_by WHERE m.clinic_id=? AND m.created_at>=? AND m.created_at<? AND m.status IN ('confirmed','pending_review') ORDER BY m.created_at ASC,m.id ASC LIMIT 240",
                 [$cid, $startUtc, $endUtc],
             )->fetchAll();
@@ -361,21 +361,21 @@ final class FinancialRuntimeOperations12
                 $kind = "transfer";
             }
             $method = mb_trim((string) ($r["payment_method"] ?? ""));
-            $user = first_name((string) ($r["user_name"] ?? ""));
+            $user = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($r["user_name"] ?? ""));
             $statusPill =
                 $status === "confirmed"
                     ? '<span class="pill icon-only ok" title="Confirmado" aria-label="Confirmado">' .
-                        icon("check_circle") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
                         "</span>"
                     : '<span class="pill warn">' .
-                        e(financial_human_movement_status($status)) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_status($status)) .
                         "</span>";
             $items[] = [
-                "icon" => financial_movement_icon($type),
+                "icon" => \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_movement_icon($type),
                 "class" => "finance-ledger-entry finance-ledger-" . $kind,
-                "time" => app_time_br((string) ($r["created_at"] ?? ""), $cid),
+                "time" => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) ($r["created_at"] ?? ""), $cid),
                 "title" =>
-                    financial_human_movement_type($type) .
+                    \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_type($type) .
                     " · " .
                     ((string) ($r["title"] ?? "Movimentação")),
                 "body" => $path,
@@ -386,14 +386,14 @@ final class FinancialRuntimeOperations12
                         : "Sem forma informada"),
                 "html" =>
                     '<div class="finance-ledger-activity-pills"><span class="pill">' .
-                    money_br((int) ($r["amount_cents"] ?? 0)) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) ($r["amount_cents"] ?? 0)) .
                     "</span>" .
                     $statusPill .
                     "</div>",
             ];
         }
         return '<div class="activity-timeline finance-ledger-activity">' .
-            timeline($items, "Nenhuma movimentação financeira registrada hoje.") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items, "Nenhuma movimentação financeira registrada hoje.") .
             "</div>";
     
     }

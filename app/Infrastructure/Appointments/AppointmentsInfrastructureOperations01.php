@@ -35,16 +35,16 @@ final class AppointmentsInfrastructureOperations01
             return $ready;
         }
         if (
-            !function_exists("has_cfg") ||
-            !has_cfg() ||
-            !function_exists("db_table_exists")
+            !is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) ||
+            !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ||
+            !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists'])
         ) {
             return $ready = false;
         }
         return $ready =
-            db_table_exists("pi_agenda_notes") &&
-            db_column_exists("pi_agenda_notes", "deleted_by") &&
-            db_column_exists("pi_agenda_notes", "deleted_at");
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_agenda_notes") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_by") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_at");
     
     }
 }

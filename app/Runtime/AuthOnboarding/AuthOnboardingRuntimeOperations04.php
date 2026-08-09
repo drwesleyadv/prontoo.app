@@ -31,9 +31,9 @@ final class AuthOnboardingRuntimeOperations04
     {
     
         try {
-            [$pair, $subject, $ip] = login_bucket_keys($cpf);
+            [$pair, $subject, $ip] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
             $now = time();
-            $r = one(
+            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                 "SELECT MAX(GREATEST(0,locked_until-?)) AS wait_seconds FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
                 [
                     $now,
@@ -51,7 +51,7 @@ final class AuthOnboardingRuntimeOperations04
             return max(0, (int) ($r["wait_seconds"] ?? 0));
         } catch (Throwable $e) {
             error_log("[Prontoo login_lock] " . $e->getMessage());
-            return login_session_wait();
+            return \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_session_wait();
         }
     
     }
@@ -62,8 +62,8 @@ final class AuthOnboardingRuntimeOperations04
         
         $seconds = 60;
         try {
-            [$pair, $subject, $ip] = login_bucket_keys($cpf);
-            q(
+            [$pair, $subject, $ip] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until,updated_at)
                  VALUES
                    (?,?,1,UNIX_TIMESTAMP()+2,NOW()),
@@ -108,7 +108,7 @@ final class AuthOnboardingRuntimeOperations04
                     $subject[1],
                 ],
             );
-            $seconds = max(1, login_lock($cpf));
+            $seconds = max(1, \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf));
         } catch (Throwable $e) {
             error_log("[Prontoo login_fail] " . $e->getMessage());
         }
@@ -121,8 +121,8 @@ final class AuthOnboardingRuntimeOperations04
     {
     
         try {
-            [$pair, $subject] = login_bucket_keys($cpf);
-            q(
+            [$pair, $subject] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "DELETE FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
                 [$pair[0], $pair[1], $subject[0], $subject[1]],
             );
@@ -137,7 +137,7 @@ final class AuthOnboardingRuntimeOperations04
     {
         
         try {
-            q(
+            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                 "UPDATE pi_users SET failed_login_count=0, locked_until=NULL, last_login_at=NOW() WHERE id=?",
                 [$uid],
             );
@@ -151,19 +151,19 @@ final class AuthOnboardingRuntimeOperations04
     
     {
     
-        $currentCtx = ctx();
+        $currentCtx = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
         if ($currentCtx) {
-            redirect(
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect(
                 ($currentCtx["scope"] ?? "") === "global"
                     ? "admin_painel"
                     : "painel",
             );
         }
-        if (function_exists("clinic_signup_blocked") && clinic_signup_blocked()) {
-            page(
+        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'clinic_signup_blocked']) && \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::clinic_signup_blocked()) {
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 "Cadastro pausado",
                 '<section class="auth widebox"><h1>A inauguração de consultórios foi pausada</h1><p>Atingimos nossa capacidade máxima de consultórios hoje. Tente novamente mais tarde.</p><p><a class="ghost" href="' .
-                    e(href("login")) .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login")) .
                     '">Tentarei mais tarde</a></p></section>',
                 ["public" => true, "robots" => "noindex,nofollow"],
             );
@@ -171,82 +171,82 @@ final class AuthOnboardingRuntimeOperations04
         }
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             if (empty($_POST["trial_accept"])) {
-                flash("Confirme que deseja experimentar sem custo.", "bad");
-                redirect("signup");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Confirme que deseja experimentar sem custo.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
             $pass = (string) $_POST["password"];
-            $cpf = only_digits((string) $_POST["cpf"]);
-            $doc = only_digits((string) $_POST["legal_document"]);
+            $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) $_POST["cpf"]);
+            $doc = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) $_POST["legal_document"]);
             if (
-                security_rate_limit(security_client_bucket("signup"), 5, 3600) ||
-                security_rate_limit(security_ip_bucket("signup"), 20, 3600) ||
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("signup"), 5, 3600) ||
+                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_ip_bucket("signup"), 20, 3600) ||
                 ($cpf !== "" &&
-                    security_rate_limit(
-                        security_value_bucket("signup_cpf", $cpf),
+                    \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_value_bucket("signup_cpf", $cpf),
                         3,
                         3600,
                     )) ||
                 ($doc !== "" &&
-                    security_rate_limit(
-                        security_value_bucket("signup_doc", $doc),
+                    \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_value_bucket("signup_doc", $doc),
                         4,
                         3600,
                     ))
             ) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Muitas tentativas de cadastro. Aguarde alguns instantes antes de tentar novamente.",
                     "bad",
                 );
-                redirect("signup");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
             $legalType = (string) ($_POST["legal_type"] ?? "");
-            $profession = normalize_profession(
+            $profession = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_profession(
                 (string) ($_POST["responsible_profession"] ?? ""),
             );
-            if (!valid_cpf($cpf)) {
-                flash("Este CPF não existe.", "bad");
-                redirect("signup");
+            if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Este CPF não existe.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
-            if (!valid_birth_date((string) $_POST["birth_date"])) {
-                flash(
+            if (!\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::valid_birth_date((string) $_POST["birth_date"])) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Informe uma data de nascimento válida para o responsável pelo consultório.",
                     "bad",
                 );
-                redirect("signup");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
             if (!in_array($legalType, ["cpf", "cnpj"], true)) {
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Escolha se o consultório será pessoa física ou jurídica.",
                     "bad",
                 );
-                redirect("signup");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
-            if ($legalType === "cpf" && !valid_cpf($doc)) {
-                flash("Este CPF não existe.", "bad");
-                redirect("signup");
+            if ($legalType === "cpf" && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($doc)) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Este CPF não existe.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
-            if ($legalType === "cnpj" && !valid_cnpj($doc)) {
-                flash("Informe CNPJ válido para o consultório.", "bad");
-                redirect("signup");
+            if ($legalType === "cnpj" && !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cnpj($doc)) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe CNPJ válido para o consultório.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
             $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
             $city = mb_trim((string) ($_POST["address_city"] ?? ""));
             $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
-            if (!isset(br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
-                flash("Escolha a cidade de atuação na lista do IBGE.", "bad");
-                redirect("signup");
+            if (!isset(\Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::br_states()[$uf]) || $city === "" || $cityIbge <= 0) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Escolha a cidade de atuação na lista do IBGE.", "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
-            $timezone = timezone_from_location($uf, $city);
+            $timezone = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::timezone_from_location($uf, $city);
             $accentColor = PRONTOO_DEFAULT_ACCENT_COLOR;
-            db_begin_transaction();
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
             try {
-                $pid = upsert_person(
+                $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person(
                     mb_trim((string) $_POST["doctor_name"]),
                     $cpf,
                     (string) $_POST["birth_date"],
                 );
-                lock_person_user_identity($pid);
-                $existing = one(
+                \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::lock_person_user_identity($pid);
+                $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
                     "SELECT id,password_hash,active,email FROM pi_users WHERE person_id=? LIMIT 1",
                     [$pid],
                 );
@@ -259,57 +259,57 @@ final class AuthOnboardingRuntimeOperations04
                     if (
                         !password_verify($pass, (string) $existing["password_hash"])
                     ) {
-                        db_rollback();
-                        flash(
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Não foi possível confirmar as credenciais informadas. Revise CPF, senha e dados do consultório.",
                             "bad",
                         );
-                        redirect("signup");
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
                     }
                     $uid = (int) $existing["id"];
                     $email = mb_trim((string) $_POST["email"]);
                     if ($email !== "" && empty($existing["email"])) {
-                        q(
+                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                             "UPDATE pi_users SET email=?,updated_at=NOW() WHERE id=?",
                             [$email, $uid],
                         );
                     }
                 } else {
-                    if (!password_ok($pass)) {
-                        db_rollback();
-                        flash(
+                    if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_ok($pass)) {
+                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Use senha com 8 a 128 caracteres que não seja uma senha comum.",
                             "bad",
                         );
-                        redirect("signup");
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
                     }
-                    q(
+                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                         "INSERT INTO pi_users (person_id,name,email,password_hash,active,created_at) VALUES (?,?,?,?,1,NOW())",
                         [
                             $pid,
                             mb_trim((string) $_POST["doctor_name"]),
                             mb_trim((string) $_POST["email"]) ?: null,
-                            password_hash_secure($pass),
+                            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($pass),
                         ],
                     );
-                    $uid = db_last_insert_id();
-                    counter_inc("users_total");
+                    $uid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("users_total");
                 }
                 $trialStart = time();
-                $trialEnd = function_exists("subscription_trial_end_from_start")
-                    ? subscription_trial_end_from_start(
+                $trialEnd = is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'subscription_trial_end_from_start'])
+                    ? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_end_from_start(
                         $trialStart,
-                        default_trial_days(),
+                        \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
-                    : $trialStart + max(1, default_trial_days()) * 86400;
-                q(
+                    : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
                     [
                         $legalType,
                         mb_trim((string) $_POST["legal_name"]),
                         $doc,
                         mb_trim((string) $_POST["display_name"]),
-                        phone_br((string) $_POST["phone"]),
+                        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
                         $profession,
                         $uid,
                         $uid,
@@ -322,24 +322,24 @@ final class AuthOnboardingRuntimeOperations04
                         $trialStart,
                         $trialStart,
                         $trialEnd,
-                        default_monthly_price_cents(),
+                        \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents(),
                         $trialStart,
                     ],
                 );
-                $cid = db_last_insert_id();
-                if (function_exists("ensure_clinic_trial_active")) {
-                    ensure_clinic_trial_active($cid, false);
+                $cid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
+                    \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($cid, false);
                 }
-                counter_inc("clinics_total");
-                q(
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("clinics_total");
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active) VALUES (?,?,?,1,1) ON DUPLICATE KEY UPDATE is_owner=1, active=1",
                     [$uid, $cid, "gerente"],
                 );
-                q(
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active) VALUES (?,?,?,1,1) ON DUPLICATE KEY UPDATE is_owner=1, active=1",
                     [$uid, $cid, "medico"],
                 );
-                $managerRoleId = (int) (val(
+                $managerRoleId = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
                     "SELECT id FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND role_code='gerente' AND active=1 LIMIT 1",
                     [$uid, $cid],
                 ) ?: 0);
@@ -348,7 +348,7 @@ final class AuthOnboardingRuntimeOperations04
                         "Não foi possível definir o ambiente Administrativo inicial.",
                     );
                 }
-                $ownerRoles = q(
+                $ownerRoles = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT role_code FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND active=1 AND role_code IN ('gerente','medico')",
                     [$uid, $cid],
                 )->fetchAll(PDO::FETCH_COLUMN);
@@ -361,13 +361,13 @@ final class AuthOnboardingRuntimeOperations04
                         "Não foi possível registrar os ambientes Administrativo e Profissional do responsável.",
                     );
                 }
-                seed_permissions($cid);
-                seed_clinic_roles($cid);
-                q(
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::seed_permissions($cid);
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
+                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "UPDATE pi_clinic_roles SET label=? WHERE clinic_id=? AND role_code='medico'",
                     [$profession, $cid],
                 );
-                audit("consultorio_criado", "consultorio", $cid, [
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_criado", "consultorio", $cid, [
                     "clinic_id" => $cid,
                     "nome" => $_POST["display_name"],
                     "owner_user_id" => $uid,
@@ -377,30 +377,30 @@ final class AuthOnboardingRuntimeOperations04
                     "accent_color" => $accentColor,
                     "onboarding_done" => 1,
                 ]);
-                db_commit();
-                login_last_credential_remember(
+                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_remember(
                     $uid,
                     "clinic",
                     $managerRoleId,
                 );
-                flash(
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Seu consultório foi inaugurado e configurado. Insira CPF e Senha para entrar como Administrativo.",
                 );
-                redirect("login");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             } catch (Throwable $e) {
-                if (pdo()->inTransaction()) {
-                    db_rollback();
+                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
+                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 error_log("[Prontoo signup] " . $e->getMessage());
                 $reason =
                     "Revise os dados informados, a senha atual do CPF ou o documento do consultório.";
-                flash("Não foi possível concluir o cadastro. " . $reason, "bad");
-                redirect("signup");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Não foi possível concluir o cadastro. " . $reason, "bad");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
             }
         }
-        $signupPrice = money_br(default_monthly_price_cents());
-        $signupTrialDays = default_trial_days();
-        $signupTrialLabel = trial_period_label($signupTrialDays);
+        $signupPrice = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br(\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents());
+        $signupTrialDays = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
+        $signupTrialLabel = \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::trial_period_label($signupTrialDays);
         $signupTrialCopy =
             $signupTrialDays > 0
                 ? "Use por " .
@@ -417,20 +417,20 @@ final class AuthOnboardingRuntimeOperations04
                 : "Quero começar sem fidelidade e sem compromisso.";
         $responsibleFields =
             '<div class="signup-ds-grid two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "cpf",
                     "text",
                     "",
                     'required inputmode="numeric" maxlength="14" autocomplete="username" placeholder="000.000.000-00" data-person-cpf-lookup="' .
-                        e(href("person_lookup")) .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("person_lookup")) .
                         '" data-person-lookup-context="signup" data-person-name-target="doctor_name" data-person-birth-target="birth_date"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome completo",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "doctor_name",
                     "text",
                     "",
@@ -438,10 +438,10 @@ final class AuthOnboardingRuntimeOperations04
                 ),
             ) .
             '</div><div class="signup-ds-grid two">' .
-            form_row("Nascimento", input("birth_date", "date", "", "required")) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Nascimento", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("birth_date", "date", "", "required")) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "E-mail",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "email",
                     "email",
                     "",
@@ -449,32 +449,32 @@ final class AuthOnboardingRuntimeOperations04
                 ),
             ) .
             "</div>" .
-            profession_select_fields() .
-            form_row(
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::profession_select_fields() .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Senha",
                 '<div class="password-field">' .
-                    input(
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                         "password",
                         "password",
                         "",
                         'required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Senha nova ou senha atual se o CPF já existir" data-password-strength data-password-toggle',
                     ) .
                     '<button type="button" class="password-toggle" data-password-toggle-button aria-label="Mostrar senha">' .
-                    icon("visibility") .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("visibility") .
                     "</button></div>",
             );
         $clinicFields =
             '<div class="signup-ds-grid two">' .
-            select_label(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
                 "Tipo de pessoa",
                 "legal_type",
                 ["cpf" => "Pessoa física", "cnpj" => "Pessoa jurídica"],
                 null,
                 "required",
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "CPF/CNPJ do consultório",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "legal_document",
                     "text",
                     "",
@@ -482,18 +482,18 @@ final class AuthOnboardingRuntimeOperations04
                 ),
             ) .
             '</div><div class="signup-ds-grid two">' .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome/Razão social",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "legal_name",
                     "text",
                     "",
                     'required placeholder="Nome jurídico do consultório"',
                 ),
             ) .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Nome fantasia",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "display_name",
                     "text",
                     "",
@@ -501,61 +501,61 @@ final class AuthOnboardingRuntimeOperations04
                 ),
             ) .
             "</div>" .
-            form_row(
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Telefone principal",
-                input(
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
                     "phone",
                     "text",
                     "",
                     'autocomplete="tel" inputmode="tel" placeholder="(00) 00000-0000"',
                 ),
             ) .
-            clinic_location_fields();
+            \Prontoo\Presentation\ClinicConfig\ClinicConfigPresentationOperations01::clinic_location_fields();
         $form =
             '<section class="auth widebox signup-card signup-steps-card signup-ds-shell signup-screen-flow"><header class="signup-ds-hero"><div class="signup-ds-hero-main"><span class="eyebrow signup-opening-label">' .
-            icon("home_health") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
             '<span>Novo consultório</span></span><h1>Criar consultório</h1><p>Configure o acesso inicial, identifique o responsável e registre o consultório em um fluxo simples e seguro. Cada etapa aparece em uma tela própria.</p></div><div class="auth-brandmark signup-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon app-brandmark-img" src="/public/assets/app-icon-' .
-            e(PRONTOO_ASSET_REV) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_ASSET_REV) .
             '.png" alt="" aria-hidden="true"></div></header><ol class="signup-ds-stepper" aria-label="Etapas para criar consultório"><li class="is-active" data-signup-indicator="0"><b>1</b><span><strong>Experimente</strong><small>Sem compromisso</small></span></li><li data-signup-indicator="1"><b>2</b><span><strong>Responsável</strong><small>CPF e acesso</small></span></li><li data-signup-indicator="2"><b>3</b><span><strong>Consultório</strong><small>Dados principais</small></span></li></ol><form method="post" class="compact signup-form signup-wizard signup-ds-form" data-signup-steps>' .
-            csrf_field() .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
             '<section class="signup-step signup-ds-step signup-screen-panel is-active" data-signup-step="0"><div class="signup-screen-kicker"><span>Etapa 1 de 3</span><strong>Experimente sem compromisso</strong></div><div class="signup-ds-layout"><article class="signup-ds-offer-card"><span class="signup-ds-icon">' .
-            icon("verified") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("verified") .
             '</span><div><span class="eyebrow">Teste inicial</span><h2>Comece com calma</h2><p>' .
-            e($signupTrialCopy) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($signupTrialCopy) .
             '</p></div></article><article class="signup-ds-price-card"><span class="eyebrow">Após o período inicial</span><strong>' .
-            e($signupPrice) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($signupPrice) .
             '<small>/mês</small></strong><p>Plano mensal, sem fidelidade, com cancelamento livre.</p></article></div><div class="signup-ds-feature-grid"><span>' .
-            icon("event_available") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
             "<b>Agenda</b><small>Consultas e bloqueios organizados.</small></span><span>" .
-            icon("patient_list") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("patient_list") .
             "<b>Pacientes</b><small>Dados clínicos acessíveis por perfil.</small></span><span>" .
-            icon("payments") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("payments") .
             '<b>Financeiro</b><small>Entradas, baixas e acompanhamento.</small></span></div><label class="checkline signup-consent signup-ds-consent"><input type="checkbox" name="trial_accept" value="1" required data-signup-trial-accept data-required-message="Confirme que deseja experimentar sem custo."><span>' .
-            e($signupConsent) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($signupConsent) .
             '</span></label><div class="signup-actions signup-step-actions signup-ds-actions"><a class="ghost" href="' .
-            href("login") .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login") .
             '">' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             '<span>Voltar para entrada</span></a><button type="button" class="primary" data-signup-next>' .
-            icon("arrow_forward") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .
             '<span>Continuar</span></button></div></section><section class="signup-step signup-ds-step signup-screen-panel" data-signup-step="1" hidden><div class="signup-screen-kicker"><span>Etapa 2 de 3</span><strong>Responsável e acesso</strong></div><fieldset class="signup-ds-fieldset"><legend><span class="signup-ds-icon small">' .
-            icon("account_circle") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("account_circle") .
             '</span><span><b>Responsável pelo consultório</b><small>Use CPF, dados pessoais e senha de acesso.</small></span></legend><p class="field-help">Se este CPF já existir, informe a senha atual para vincular o novo consultório ao mesmo acesso.</p>' .
             $responsibleFields .
             '</fieldset><div class="signup-actions signup-step-actions signup-ds-actions"><button type="button" class="ghost" data-signup-prev>' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             '<span>Voltar</span></button><button type="button" class="primary" data-signup-next>' .
-            icon("arrow_forward") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .
             '<span>Dados do consultório</span></button></div></section><section class="signup-step signup-ds-step signup-screen-panel" data-signup-step="2" hidden><div class="signup-screen-kicker"><span>Etapa 3 de 3</span><strong>Identificação do consultório</strong></div><fieldset class="signup-ds-fieldset"><legend><span class="signup-ds-icon small">' .
-            icon("domain_add") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("domain_add") .
             '</span><span><b>Identificação do consultório</b><small>Dados definitivos para abrir o ambiente inicial.</small></span></legend><p class="field-help">A cidade de atuação define automaticamente o fuso horário. Identidade visual, departamentos, equipe e permissões serão orientados dentro do consultório.</p>' .
             $clinicFields .
             '</fieldset><div class="signup-actions signup-step-actions signup-ds-actions"><button type="button" class="ghost" data-signup-prev>' .
-            icon("arrow_back") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
             '<span>Voltar</span></button><button type="submit" class="primary">' .
-            icon("check_circle") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
             "<span>Criar consultório</span></button></div></section></form></section>";
-        page("Criar consultório", $form, ["public" => true]);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Criar consultório", $form, ["public" => true]);
     
     }
 }

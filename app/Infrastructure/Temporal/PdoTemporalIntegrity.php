@@ -86,7 +86,7 @@ final class PdoTemporalIntegrity
             "columns" => [],
         ];
         try {
-            $pdo = $pdo ?: (function_exists("pdo") ? \pdo() : null);
+            $pdo = $pdo ?: (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) ? \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo() : null);
             if (!$pdo) {
                 return $out;
             }

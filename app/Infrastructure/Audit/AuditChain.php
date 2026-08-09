@@ -37,8 +37,8 @@ final class AuditChain
         if ($previous !== "" && preg_match('/^[a-f0-9]{64}$/', $previous) !== 1) {
             throw new \InvalidArgumentException("Hash anterior de auditoria inválido.");
         }
-        $base = function_exists("audit_integrity_base")
-            ? \audit_integrity_base($row)
+        $base = is_callable([\Prontoo\Domain\AuditActivity\AuditRecordPolicy::class, 'audit_integrity_base'])
+            ? \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_integrity_base($row)
             : json_encode($row, JSON_UNESCAPED_UNICODE);
         $integrity = hash_hmac("sha256", (string) $base, $secret);
         $proofContext["policy"] = self::POLICY_VERSION;
@@ -84,8 +84,8 @@ final class AuditChain
         ) {
             return false;
         }
-        $base = function_exists("audit_integrity_base")
-            ? \audit_integrity_base($row)
+        $base = is_callable([\Prontoo\Domain\AuditActivity\AuditRecordPolicy::class, 'audit_integrity_base'])
+            ? \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_integrity_base($row)
             : json_encode($row, JSON_UNESCAPED_UNICODE);
         if (
             !hash_equals(
@@ -158,11 +158,11 @@ final class AuditChain
     public static function storedHeadMatchesLatest(): bool
     {
 
-        $head = \one(
+        $head = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
             "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
             [self::META_KEY],
         );
-        $latest = \one(
+        $latest = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
             "SELECT chain_hash,policy_version FROM pi_audit ORDER BY id DESC LIMIT 1",
         );
         $stored = mb_trim((string) ($head["meta_value"] ?? ""));
@@ -196,22 +196,22 @@ final class AuditChain
     private static function ensureHead(): void
     {
 
-        \q(
+        \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
             "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,NULL,NOW()) ON DUPLICATE KEY UPDATE meta_key=VALUES(meta_key)",
             [self::META_KEY],
         );
-        $head = \one(
+        $head = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
         if (mb_trim((string) ($head["meta_value"] ?? "")) !== "") {
             return;
         }
-        $latest = \one(
+        $latest = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
             "SELECT chain_hash FROM pi_audit WHERE chain_hash IS NOT NULL AND chain_hash<>'' ORDER BY id DESC LIMIT 1",
         );
         $legacyHead = mb_trim((string) ($latest["chain_hash"] ?? ""));
-        \q(
+        \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
             "UPDATE pi_meta SET meta_value=?,updated_at=NOW() WHERE meta_key=?",
             [$legacyHead !== "" ? $legacyHead : null, self::META_KEY],
         );
@@ -220,7 +220,7 @@ final class AuditChain
     {
 
         self::ensureHead();
-        $row = \one(
+        $row = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
@@ -232,7 +232,7 @@ final class AuditChain
         if (preg_match('/^[a-f0-9]{64}$/', $hash) !== 1) {
             throw new \InvalidArgumentException("Novo hash de auditoria inválido.");
         }
-        $statement = \q(
+        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
             "UPDATE pi_meta SET meta_value=?,updated_at=NOW() WHERE meta_key=?",
             [$hash, self::META_KEY],
         );

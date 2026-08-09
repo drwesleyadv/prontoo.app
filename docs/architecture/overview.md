@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-O Prontoo é um **monólito modular PHP 8.4 em camadas com núcleo de invariantes**. A migração estrutural não depende mais apenas de grandes fachadas históricas: responsabilidades foram decompostas em unidades nativas de `Core`, `Domain`, `Application`, `Infrastructure`, `Presentation` e `Runtime/Composition`, enquanto compatibilidade remanescente permanece explicitamente classificada e limitada.
+O Prontoo é um **monólito modular PHP 8.4 em camadas com núcleo de invariantes**. A migração estrutural não depende mais apenas de grandes fachadas históricas: responsabilidades foram decompostas em unidades nativas de `Core`, `Domain`, `Application`, `Infrastructure`, `Presentation` e `Runtime/Composition`, enquanto não há fachadas globais de compatibilidade; apenas entrypoints e ferramentas procedurais permanecem fora da contagem de unidades nativas.
 
 A fonte executável de verdade para classificação e dependências é `app/Core/Architecture/LayerMap.php`; o manifesto arquitetural fixa cobertura de classificação em 100%, piso de unidades nativas e teto de fronteiras transitórias.
 

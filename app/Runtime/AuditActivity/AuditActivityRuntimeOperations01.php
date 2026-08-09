@@ -42,9 +42,9 @@ final class AuditActivityRuntimeOperations01
                         $kl,
                     )
                 ) {
-                    $o[$k] = mask_document_value($x);
+                    $o[$k] = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask_document_value($x);
                 } else {
-                    $o[$k] = mask($x);
+                    $o[$k] = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($x);
                 }
             }
             return $o;
@@ -67,14 +67,14 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $d = only_digits((string) $v);
+        $d = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) $v);
         if (strlen($d) === 11) {
             return substr($d, 0, 3) . ".***.***-" . substr($d, -2);
         }
         if (strlen($d) === 14) {
             return substr($d, 0, 2) . ".***.***/****-" . substr($d, -2);
         }
-        return $d !== "" ? "***" : mask($v);
+        return $d !== "" ? "***" : \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::mask($v);
     
     }
 
@@ -82,9 +82,9 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $patient = audit_patient_name($ctx, $ctx["patient_link_id"] ?? null);
+        $patient = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_patient_name($ctx, $ctx["patient_link_id"] ?? null);
         $start = mb_trim((string) ($ctx["start_at"] ?? ""));
-        $when = $start !== "" ? " em " . dt_br($start) : "";
+        $when = $start !== "" ? " em " . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($start) : "";
         return "consulta de " . $patient . $when;
     
     }
@@ -93,8 +93,8 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $v = audit_ctx_pick($ctx, ["due_at", "vencimento", "expected_at"]);
-        return $v !== "" ? dt_br($v) : "";
+        $v = \Prontoo\Domain\AuditActivity\AuditTargetPolicy::audit_ctx_pick($ctx, ["due_at", "vencimento", "expected_at"]);
+        return $v !== "" ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($v) : "";
     
     }
 
@@ -106,7 +106,7 @@ final class AuditActivityRuntimeOperations01
     ): string 
     {
     
-        return activity_direct_body($event, $entity, $entityId, $ctx);
+        return \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::activity_direct_body($event, $entity, $entityId, $ctx);
     
     }
 
@@ -119,12 +119,12 @@ final class AuditActivityRuntimeOperations01
             if (class_exists("\\Prontoo\\Infrastructure\\Audit\\AuditChain")) {
                 return \Prontoo\Infrastructure\Audit\AuditChain::verifyRow(
                     $r,
-                    secret_key(),
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
                 );
             }
             return $hash !== "" && hash_equals(
                 $hash,
-                hash_hmac("sha256", audit_integrity_base($r), secret_key()),
+                hash_hmac("sha256", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_integrity_base($r), \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key()),
             );
         } catch (Throwable $e) {
             return false;
@@ -138,12 +138,12 @@ final class AuditActivityRuntimeOperations01
     
         $limit = max(2, min(1000, $limit));
         try {
-            $rows = q(
-                audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit,
+            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
+                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit,
             )->fetchAll();
             $sequenceOk = \Prontoo\Infrastructure\Audit\AuditChain::verifySequence(
                 $rows,
-                secret_key(),
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
             );
             $headOk = \Prontoo\Infrastructure\Audit\AuditChain::storedHeadMatchesLatest();
             return [
@@ -168,24 +168,24 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $table = allowed_db_table($table);
-        $cols = safe_db_columns($cols);
+        $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table($table);
+        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if (!$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
-        $scopeCid = session_clinic_scope_id();
+        $scopeCid = \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId();
         $loader = function () use ($table, $ids, $cols, $scopeCid): array {
     
             $ph = implode(",", array_fill(0, count($ids), "?"));
-            if ($scopeCid > 0 && tenant_table_is_scoped($table)) {
-                $rows = q(
+            if ($scopeCid > 0 && \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::tenant_table_is_scoped($table)) {
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT $cols FROM $table WHERE clinic_id=? AND id IN ($ph)",
                     array_merge([$scopeCid], $ids),
                 )->fetchAll();
             } else {
-                $rows = q(
+                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
                     "SELECT $cols FROM $table WHERE id IN ($ph)",
                     $ids,
                 )->fetchAll();
@@ -199,20 +199,20 @@ final class AuditActivityRuntimeOperations01
             return $m;
         };
         if (
-            function_exists("server_json_cache_remember") &&
-            server_json_cache_read_allowed()
+            is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember']) &&
+            \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()
         ) {
-            $key = server_json_cache_safe_key("fetch_map", [
+            $key = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("fetch_map", [
                 $table,
                 $ids,
                 $cols,
                 $scopeCid,
                 defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : "",
             ]);
-            return server_json_cache_remember(
+            return \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                 "auxiliary",
                 $key,
-                server_json_cache_ttl("auxiliary"),
+                \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("auxiliary"),
                 $loader,
                 ["table:" . $table, "scope:" . $scopeCid],
             );
@@ -228,14 +228,14 @@ final class AuditActivityRuntimeOperations01
     ): array 
     {
     
-        $cols = safe_db_columns($cols);
+        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if ($cid <= 0 || !$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
         $ph = implode(",", array_fill(0, count($ids), "?"));
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT $cols FROM pi_patients WHERE clinic_id=? AND id IN ($ph)",
             array_merge([$cid], $ids),
         )->fetchAll();
@@ -253,14 +253,14 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $cols = safe_db_columns($cols);
+        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if ($cid <= 0 || !$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
         $ph = implode(",", array_fill(0, count($ids), "?"));
-        $rows = q(
+        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
             "SELECT $cols FROM pi_users u WHERE u.id IN ($ph) AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) ",
             array_merge($ids, [$cid]),
         )->fetchAll();
@@ -285,15 +285,15 @@ final class AuditActivityRuntimeOperations01
         $limit = max(1, min(120, $limit));
         $offset = max(0, $offset);
         try {
-            return q(
-                audit_select_sql() .
+            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
+                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() .
                     " WHERE " .
-                    audit_where_sql($where) .
+                    \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_where_sql($where) .
                     " AND a.event_key NOT IN ('login_clinica_pendente','login_credencial_pendente') ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
                 $p,
             )->fetchAll();
         } catch (Throwable $e) {
-            if (!db_schema_error_is_missing_table($e)) {
+            if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_schema_error_is_missing_table($e)) {
                 error_log("[Prontoo audit compact read] " . $e->getMessage());
             }
             return [];
@@ -312,13 +312,13 @@ final class AuditActivityRuntimeOperations01
         if ($raw === "") {
             return "—";
         }
-        if (function_exists("app_datetime_br")) {
-            $formatted = app_datetime_br($raw, $clinicId, $context);
+        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'app_datetime_br'])) {
+            $formatted = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_datetime_br($raw, $clinicId, $context);
             if (trim($formatted) !== "" && $formatted !== $raw) {
                 return $formatted;
             }
             if (preg_match('/^-?\d+$/', $raw)) {
-                $formatted = app_datetime_br((int) $raw, $clinicId, $context);
+                $formatted = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_datetime_br((int) $raw, $clinicId, $context);
                 if (trim($formatted) !== "" && $formatted !== $raw) {
                     return $formatted;
                 }
@@ -343,9 +343,9 @@ final class AuditActivityRuntimeOperations01
     {
     
         foreach ($keys as $k) {
-            $v = activity_text_value($ctx[$k] ?? "");
+            $v = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value($ctx[$k] ?? "");
             if ($v !== "") {
-                return dt_br($v);
+                return \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br($v);
             }
         }
         return "";
@@ -356,18 +356,18 @@ final class AuditActivityRuntimeOperations01
     
     {
     
-        $label = activity_text_value(
+        $label = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value(
             $ctx["environment_label"] ??
                 ($ctx["role_label"] ?? ($ctx["ambiente"] ?? "")),
         );
         if ($label !== "") {
             return $label;
         }
-        $role = activity_text_value($ctx["role_code"] ?? ($ctx["role"] ?? ""));
+        $role = \Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value($ctx["role_code"] ?? ($ctx["role"] ?? ""));
         $cid = (int) ($ctx["clinic_id"] ?? 0);
-        if ($role !== "" && function_exists("role_label_for")) {
+        if ($role !== "" && is_callable([\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::class, 'role_label_for'])) {
             try {
-                $resolved = role_label_for($role, $cid > 0 ? $cid : null);
+                $resolved = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for($role, $cid > 0 ? $cid : null);
                 if (mb_trim((string) $resolved) !== "") {
                     return mb_trim((string) $resolved);
                 }
@@ -387,7 +387,7 @@ final class AuditActivityRuntimeOperations01
         ) {
             return (string) PRONTOO_ROLES[$role];
         }
-        if (activity_text_value($ctx["scope"] ?? "") === "global") {
+        if (\Prontoo\Domain\AuditActivity\ActivityValuePolicy::activity_text_value($ctx["scope"] ?? "") === "global") {
             return "Desenvolvedor";
         }
         return "";
