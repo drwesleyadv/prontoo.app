@@ -14,6 +14,7 @@ require_once $root . '/app/Core/Database/SchemaMutationLock.php';
 
 use Prontoo\Core\Database\SchemaMutationLock;
 use Prontoo\Core\Install\InstallAccess;
+use Prontoo\Runtime\Routing\RouteRegistry;
 
 $errors = [];
 $originalServer = $_SERVER;
@@ -281,12 +282,27 @@ if (str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\Securit
     $errors[] = 'login_autotest_persistent_device_bypass';
 }
 
-$routeCatalogSource = (string) file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $authDefinitionSource = (string) file_get_contents(
     $root . '/app/Application/Authorization/Definitions/AuthActionDefinitions.php',
 );
-foreach (['mfa', 'global_reauth'] as $requiredRoute) {
-    if (!str_contains($routeCatalogSource, "'" . $requiredRoute . "'") ||
+$requiredMfaRoutes = [
+    'mfa' => [
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class,
+        'page_mfa',
+        true,
+    ],
+    'global_reauth' => [
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class,
+        'page_global_reauth',
+        false,
+    ],
+];
+foreach ($requiredMfaRoutes as $requiredRoute => [$handlerClass, $handlerMethod, $public]) {
+    $definition = RouteRegistry::definition($requiredRoute);
+    if ($definition === null ||
+        $definition->handlerClass !== $handlerClass ||
+        $definition->handlerMethod !== $handlerMethod ||
+        $definition->public !== $public ||
         !str_contains($authDefinitionSource, "'" . $requiredRoute . "'")) {
         $errors[] = 'mfa_route_contract:' . $requiredRoute;
     }

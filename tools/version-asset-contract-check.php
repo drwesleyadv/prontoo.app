@@ -46,25 +46,22 @@ foreach ([
 }
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
+$routeRegistry = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteRegistry.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $authRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
-$section = static function (string $source, string $start, string $end): string {
-    $from = strpos($source, $start);
-    $to = $from === false ? false : strpos($source, $end, $from + strlen($start));
-    if ($from === false || $to === false || $to <= $from) {
-        throw new RuntimeException('Seção de contrato ausente: ' . $start);
-    }
-    return substr($source, $from, $to - $from);
-};
 foreach ([
-    'mapa executável' => $section($routeCatalog, 'private const ROUTES = [', 'private const PUBLIC_ROUTES = ['),
-    'mapa público' => $section($routeCatalog, 'private const PUBLIC_ROUTES = [', 'private const JSON_ROUTES = ['),
-    'mapa JSON' => $section($routeCatalog, 'private const JSON_ROUTES = [', 'private function __construct()'),
-    'boot público leve' => $section($routeCatalog, 'public static function isPublicLight(', "\n    }\n}"),
-] as $label => $source) {
-    if (!str_contains($source, "'login_telemetry_wave'")) {
-        throw new RuntimeException('Rota das faixas ausente em ' . $label . '.');
+    'RouteRegistry::names()',
+    'RouteRegistry::publicNames()',
+    'RouteRegistry::jsonNames()',
+    'RouteRegistry::definition($route)?->isPublicLight($method)',
+] as $contract) {
+    if (!str_contains($routeCatalog, $contract)) {
+        throw new RuntimeException('RouteCatalog não deriva do registry unificado: ' . $contract);
     }
+}
+$telemetrySpec = "'login_telemetry_wave' => [\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations07::class, 'page_login_telemetry_wave', true, true, ['*'], []]";
+if (!str_contains($routeRegistry, $telemetrySpec)) {
+    throw new RuntimeException('Rota das faixas diverge do registry unificado.');
 }
 foreach ([
     "\$publicTelemetry = \$route === 'login_telemetry_wave';",
@@ -79,8 +76,8 @@ foreach ([
         throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
     }
 }
-if (!str_contains($moduleCatalog, "'login_telemetry_wave' => []")) {
-    throw new RuntimeException('Catálogo modular não reconhece a rota das faixas.');
+if (!str_contains($moduleCatalog, 'RouteRegistry::definition($route)')) {
+    throw new RuntimeException('Catálogo modular não deriva da definição unificada de rota.');
 }
 if (is_file($root . '/app/Support/ModuleLoader.php')) {
     throw new RuntimeException('Fachada global de composição ainda está presente.');
