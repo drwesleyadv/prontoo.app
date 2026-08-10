@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace Prontoo\Runtime\FinancialGuard;
 
-use Prontoo\Application\Financial\FinancialCashierAttentionService;
 use Prontoo\Domain\Financial\FinancialMovementMutationPolicy;
-use Prontoo\Infrastructure\Financial\PdoFinancialCashierAttentionRepository;
 use RuntimeException;
 use Throwable;
 
@@ -91,8 +89,7 @@ final class FinancialGuardRuntimeOperations01
             return false;
         }
         try {
-            $service = new FinancialCashierAttentionService(new PdoFinancialCashierAttentionRepository());
-            return $service->requiresAttention(
+            return \Prontoo\Runtime\Financial\FinancialComposition::cashierAttentionService()->requiresAttention(
                 $c,
                 \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($cid),
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid),
