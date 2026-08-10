@@ -119,6 +119,7 @@ $lint();
 $canonical();
 $run('version-asset-contract', 'tools/version-asset-contract-check.php');
 $run('php84-runtime-contract', 'tools/php84-runtime-contract-check');
+$run('release-version-contract', 'tools/release-version');
 $run('release-contract', 'tools/release-contract-reconcile', ['--check']);
 $run('documentation-contract', 'tools/documentation-check.php');
 $run('code-comment-contract', 'tools/code-comment-check.php');
