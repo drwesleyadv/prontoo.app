@@ -52,9 +52,9 @@ putenv('GITHUB_ACTIONS=true');
 putenv('CI=true');
 putenv('PRONTOO_SCHEMA_TEST_MODE=1');
 putenv('PRONTOO_INSTALLER_CLI_MODE=1');
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 require_once $root . '/app/Core/Install/InstallAccess.php';
 require_once $root . '/app/Core/Database/SchemaMutationLock.php';
-require_once $root . '/app/Database/DatabaseSchema.php';
 
 preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
 $blocks = [];
