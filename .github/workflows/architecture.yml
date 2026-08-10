@@ -57,6 +57,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/test-fast
+      - name: Composition root boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/composition-root-check
       - name: Operation gateway debt budget
         shell: bash
         run: |
