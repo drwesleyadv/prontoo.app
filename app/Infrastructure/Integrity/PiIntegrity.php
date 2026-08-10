@@ -616,4 +616,32 @@ final class PiIntegrity
             return 'prontoo-integrity';
         }
     }
+
+    private static function logOnce(string $stage, \Throwable $error): void
+    {
+        static $logged = [];
+        $key = $stage . '|' . $error->getMessage();
+        if (isset($logged[$key])) {
+            return;
+        }
+        $logged[$key] = true;
+        error_log('[Prontoo integrity ' . $stage . '] ' . $error->getMessage());
+    }
+
+    private static function requestId(): string
+    {
+        if (self::$requestId !== null) {
+            return self::$requestId;
+        }
+        try {
+            return self::$requestId = bin2hex(random_bytes(16));
+        } catch (\Throwable) {
+            return self::$requestId = md5(uniqid('prontoo', true));
+        }
+    }
+
+    private static function cleanToken(string $value, string $fallback): string
+    {
+        return preg_replace('/[^a-z0-9_-]+/i', '_', trim($value)) ?: $fallback;
+    }
 }
