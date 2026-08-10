@@ -107,10 +107,10 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             throw $error;
         }
     }
+
     private function one(string $sql, array $params = []): ?array
     {
-        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
-        $statement->execute($params);
+        $statement = $this->statement($sql, $params);
         $row = $statement->fetch(\PDO::FETCH_ASSOC);
         $statement->closeCursor();
         return is_array($row) ? $row : null;
@@ -118,8 +118,7 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
 
     private function val(string $sql, array $params = []): mixed
     {
-        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
-        $statement->execute($params);
+        $statement = $this->statement($sql, $params);
         $value = $statement->fetchColumn();
         $statement->closeCursor();
         return $value === false ? null : $value;
@@ -127,9 +126,14 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
 
     private function q(string $sql, array $params = []): \PDOStatement
     {
-        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
-        $statement->execute($params);
-        return $statement;
+        return $this->statement($sql, $params);
     }
 
+    private function statement(string $sql, array $params = []): \PDOStatement
+    {
+        [$runtimeSql, $runtimeParams] = \Prontoo\Core\Temporal\PiTime::prepareRuntimeQuery($sql, $params);
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($runtimeSql);
+        $statement->execute($runtimeParams);
+        return $statement;
+    }
 }
