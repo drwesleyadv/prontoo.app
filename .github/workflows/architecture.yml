@@ -62,6 +62,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/composition-root-check
+      - name: Performance budget contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/performance-budget-check
       - name: Operation gateway debt budget
         shell: bash
         run: |

@@ -1,0 +1,177 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+foreach ([
+    'app/Core/Performance/PerformanceBudget.php',
+    'app/Runtime/Routing/RouteDefinition.php',
+    'app/Runtime/Routing/RouteRegistry.php',
+    'app/Runtime/Modules/RuntimeModuleCatalog.php',
+] as $file) {
+    require_once $root . '/' . $file;
+}
+
+use Prontoo\Core\Performance\PerformanceBudget;
+use Prontoo\Runtime\Modules\RuntimeModuleCatalog;
+use Prontoo\Runtime\Routing\RouteRegistry;
+
+$contract = json_decode(
+    (string) file_get_contents($root . '/app/performance.budgets.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+if (!is_array($contract)) {
+    throw new RuntimeException('Contrato de performance inválido.');
+}
+
+$metricKeys = [
+    'max_elapsed_ms',
+    'max_query_ms',
+    'max_queries',
+    'max_wide_selects',
+    'max_module_files',
+    'max_module_bytes',
+];
+$ceilings = [
+    'defaults' => [2500, 900, 120, 4, 40, 2500000],
+    'login' => [1200, 350, 35, 1, 24, 1400000],
+    'home' => [1800, 650, 85, 2, 38, 2300000],
+    'appointments' => [2200, 800, 110, 2, 40, 2500000],
+    'patients' => [1800, 600, 80, 2, 36, 2200000],
+    'patient' => [2400, 900, 120, 3, 42, 2700000],
+    'financial' => [2500, 950, 125, 3, 42, 2700000],
+];
+$failures = [];
+$assert = static function (bool $condition, string $name) use (&$failures): void {
+    if (!$condition) {
+        $failures[] = $name;
+    }
+};
+
+$assert(($contract['schema'] ?? '') === 'prontoo-performance-budgets-v1', 'schema');
+$assert(is_array($contract['defaults'] ?? null), 'defaults');
+$assert(is_array($contract['routes'] ?? null), 'routes');
+$criticalRoutes = array_keys(array_diff_key($ceilings, ['defaults' => true]));
+foreach ($criticalRoutes as $route) {
+    $assert(isset($contract['routes'][$route]) && is_array($contract['routes'][$route]), 'critical_route_budget:' . $route);
+}
+
+foreach ($ceilings as $scope => $limits) {
+    $budget = $scope === 'defaults'
+        ? PerformanceBudget::normalize((array) ($contract['defaults'] ?? []))
+        : PerformanceBudget::resolve($contract, $scope);
+    foreach ($metricKeys as $index => $metric) {
+        $assert(
+            (float) ($budget[$metric] ?? INF) <= (float) $limits[$index],
+            'budget_weakened:' . $scope . ':' . $metric,
+        );
+    }
+}
+
+$coreModules = RuntimeModuleCatalog::coreModules();
+$fullModules = RuntimeModuleCatalog::fullModules();
+$moduleGroups = static function (string $route): array {
+    $files = [];
+    foreach (RuntimeModuleCatalog::routeModuleGroups($route) as $groupFiles) {
+        foreach ($groupFiles as $file) {
+            $files[] = (string) $file;
+        }
+    }
+    return $files;
+};
+$footprint = static function (array $modules) use ($root, $assert): array {
+    $modules = array_values(array_unique(array_map('strval', $modules)));
+    $bytes = 0;
+    foreach ($modules as $module) {
+        $path = $root . '/app/' . ltrim($module, '/');
+        $assert(is_file($path), 'module_missing:' . $module);
+        if (is_file($path)) {
+            $bytes += (int) filesize($path);
+        }
+    }
+    return ['files' => count($modules), 'bytes' => $bytes];
+};
+
+$routeFootprints = [];
+foreach (RouteRegistry::names() as $route) {
+    $definition = RouteRegistry::definition($route);
+    if ($definition === null) {
+        $failures[] = 'route_definition_missing:' . $route;
+        continue;
+    }
+    $groups = $moduleGroups($route);
+    $candidates = [];
+    foreach (['GET', 'POST'] as $method) {
+        $base = $definition->isPublicLight($method) ? $coreModules : $fullModules;
+        $candidates[$method] = $footprint(array_merge($base, $groups));
+    }
+    $actual = [
+        'files' => max($candidates['GET']['files'], $candidates['POST']['files']),
+        'bytes' => max($candidates['GET']['bytes'], $candidates['POST']['bytes']),
+    ];
+    $budget = PerformanceBudget::resolve($contract, $route);
+    $assert($actual['files'] <= $budget['max_module_files'], 'module_files:' . $route);
+    $assert($actual['bytes'] <= $budget['max_module_bytes'], 'module_bytes:' . $route);
+    $routeFootprints[$route] = $actual;
+
+    $atLimit = [
+        'elapsed_ms' => $budget['max_elapsed_ms'],
+        'query_ms' => $budget['max_query_ms'],
+        'queries' => $budget['max_queries'],
+        'wide_selects' => $budget['max_wide_selects'],
+        'module_files' => $budget['max_module_files'],
+        'module_bytes' => $budget['max_module_bytes'],
+    ];
+    $assert(PerformanceBudget::evaluate($contract, $route, $atLimit)['ok'] === true, 'evaluate_at_limit:' . $route);
+}
+
+$probeRoute = 'patient';
+$probeBudget = PerformanceBudget::resolve($contract, $probeRoute);
+$eventKeys = [
+    'max_elapsed_ms' => 'elapsed_ms',
+    'max_query_ms' => 'query_ms',
+    'max_queries' => 'queries',
+    'max_wide_selects' => 'wide_selects',
+    'max_module_files' => 'module_files',
+    'max_module_bytes' => 'module_bytes',
+];
+foreach ($eventKeys as $limitKey => $eventKey) {
+    $event = [
+        'elapsed_ms' => 0,
+        'query_ms' => 0,
+        'queries' => 0,
+        'wide_selects' => 0,
+        'module_files' => 0,
+        'module_bytes' => 0,
+    ];
+    $event[$eventKey] = $probeBudget[$limitKey] + 1;
+    $evaluation = PerformanceBudget::evaluate($contract, $probeRoute, $event);
+    $assert($evaluation['ok'] === false && isset($evaluation['breaches'][$eventKey]), 'breach_detection:' . $eventKey);
+}
+
+$defaultBudget = PerformanceBudget::normalize((array) $contract['defaults']);
+$fullFootprint = $footprint($fullModules);
+$assert($fullFootprint['files'] <= $defaultBudget['max_module_files'], 'default_full_module_files');
+$assert($fullFootprint['bytes'] <= $defaultBudget['max_module_bytes'], 'default_full_module_bytes');
+
+$failures = array_values(array_unique($failures));
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'deterministic-performance-budget-gate-v1',
+    'routes_checked' => count($routeFootprints),
+    'critical_route_budgets' => count($criticalRoutes),
+    'full_module_footprint' => $fullFootprint,
+    'max_full_module_budget' => [
+        'files' => $defaultBudget['max_module_files'],
+        'bytes' => $defaultBudget['max_module_bytes'],
+    ],
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
