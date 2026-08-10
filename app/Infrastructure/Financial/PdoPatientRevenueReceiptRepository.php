@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Infrastructure\Financial;
 
-use PDO;
 use Prontoo\Application\Financial\PatientRevenueReceiptPort;
 use RuntimeException;
 use Throwable;
@@ -23,16 +22,14 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             $pdo->beginTransaction();
         }
         try {
-            $patient = self::one(
-                $pdo,
+            $patient = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                 [$patientId, $clinicId],
             );
             if (!$patient) {
                 throw new RuntimeException('Paciente não encontrado no consultório atual.');
             }
-            $revenue = self::one(
-                $pdo,
+            $revenue = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
                 "SELECT id,appointment_id,amount_cents,title,payment_method,status FROM pi_financial_revenues WHERE id=? AND clinic_id=? AND patient_link_id=? LIMIT 1 FOR UPDATE",
                 [$revenueId, $clinicId, $patientId],
             );
@@ -48,8 +45,7 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
                     'title' => '',
                 ];
             }
-            $existingMovementId = (int) (self::value(
-                $pdo,
+            $existingMovementId = (int) (\Prontoo\Core\Architecture\OperationGateway::invoke('val', 
                 "SELECT id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='patient_revenue' AND source_id=? AND movement_type='receipt' AND status='confirmed' ORDER BY id DESC LIMIT 1 FOR UPDATE",
                 [$clinicId, $revenueId],
             ) ?: 0);
@@ -63,8 +59,7 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
                 } else {
                     $destinationId = \Prontoo\Core\Architecture\OperationGateway::invoke('financial_ensure_admin_safe', $clinicId, $userId);
                 }
-                $existingMovementId = \Prontoo\Core\Architecture\OperationGateway::invoke(
-                    'financial_create_movement',
+                $existingMovementId = \Prontoo\Core\Architecture\OperationGateway::invoke('financial_create_movement', 
                     $clinicId,
                     'receipt',
                     (int) $revenue['amount_cents'],
@@ -80,14 +75,12 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
                     $revenueId,
                 );
             }
-            self::execute(
-                $pdo,
+            \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
                 "UPDATE pi_financial_revenues SET status='efetivada', account_id=NULL, received_at=COALESCE(received_at,NOW()), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=? AND status='prevista'",
                 [$userId, $revenueId, $clinicId, $patientId],
             );
             if (!empty($revenue['appointment_id'])) {
-                self::execute(
-                    $pdo,
+                \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
                     "UPDATE pi_appointments SET payment_status='efetivada', payment_confirmed_at=COALESCE(payment_confirmed_at,NOW()), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
                     [$revenueId, (int) $revenue['appointment_id'], $clinicId, $patientId],
                 );
@@ -108,27 +101,5 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             }
             throw $error;
         }
-    }
-
-    private static function one(PDO $pdo, string $sql, array $params): ?array
-    {
-        $statement = $pdo->prepare($sql);
-        $statement->execute($params);
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
-        return is_array($row) ? $row : null;
-    }
-
-    private static function value(PDO $pdo, string $sql, array $params): mixed
-    {
-        $statement = $pdo->prepare($sql);
-        $statement->execute($params);
-        $value = $statement->fetchColumn();
-        return $value === false ? null : $value;
-    }
-
-    private static function execute(PDO $pdo, string $sql, array $params): void
-    {
-        $statement = $pdo->prepare($sql);
-        $statement->execute($params);
     }
 }
