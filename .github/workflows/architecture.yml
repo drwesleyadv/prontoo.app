@@ -153,3 +153,8 @@ jobs:
         run: |
           set -euo pipefail
           php tools/critical-runtime-smoke-check
+      - name: HTTP front-controller smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/http-runtime-smoke-check
