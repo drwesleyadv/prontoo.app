@@ -19,6 +19,20 @@ if (!defined('PRONTOO_MIN_MYSQL_VERSION')) {
 }
 $GLOBALS['PRONTOO_SCHEMA_CHECK_CFG'] = [];
 $GLOBALS['PRONTOO_SCHEMA_CHECK_STORAGE'] = sys_get_temp_dir() . '/prontoo-schema-check-' . getmypid();
+$schemaCheckConfigPath = sys_get_temp_dir() . '/prontoo-schema-check-config-' . getmypid() . '.php';
+$schemaCheckConfig = [
+    'db_host' => (string) (getenv('DB_HOST') ?: '127.0.0.1'),
+    'db_name' => (string) (getenv('DB_DATABASE') ?: 'prontoo_schema'),
+    'db_user' => (string) (getenv('DB_USERNAME') ?: 'root'),
+    'db_pass' => (string) (getenv('DB_PASSWORD') ?: ''),
+    'app_env' => 'development',
+];
+file_put_contents(
+    $schemaCheckConfigPath,
+    "<?php\nreturn " . var_export($schemaCheckConfig, true) . ";\n",
+    LOCK_EX,
+);
+putenv('PRONTOO_CONFIG_PATH=' . $schemaCheckConfigPath);
 if (!is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'cfg'])) {
     function cfg(): array
     {
@@ -52,9 +66,9 @@ putenv('GITHUB_ACTIONS=true');
 putenv('CI=true');
 putenv('PRONTOO_SCHEMA_TEST_MODE=1');
 putenv('PRONTOO_INSTALLER_CLI_MODE=1');
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 require_once $root . '/app/Core/Install/InstallAccess.php';
 require_once $root . '/app/Core/Database/SchemaMutationLock.php';
-require_once $root . '/app/Database/DatabaseSchema.php';
 
 preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/s', $schema, $matches, PREG_SET_ORDER);
 $blocks = [];
@@ -299,6 +313,7 @@ if ($dsn !== '') {
     ];
 }
 
+@unlink($schemaCheckConfigPath);
 $errors = array_values(array_unique($errors));
 $result = [
     'ok' => $errors === [],

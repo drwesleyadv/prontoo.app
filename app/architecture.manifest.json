@@ -1,12 +1,12 @@
 {
-    "version": "1.8.7.8",
+    "version": "1.8.9.1",
     "policy": "php-layered-invariants-v2",
     "architecture": "layered_php_with_invariant_core",
     "coverage_scope": "all_versioned_php_files_excluding_ssd_vendor_node_modules_and_git",
     "classification_coverage_target_percent": 100,
     "native_files_min": 278,
     "transitional_files_max": 21,
-    "native_migration_policy": "effective_native_unit_count_must_not_decrease_after_consolidation_1_8_7_1_and_compatibility_boundary_ceiling_51_must_not_increase",
+    "native_migration_policy": "effective_native_unit_count_must_not_decrease_and_current_non_native_ceiling_must_not_increase",
     "layers": {
         "core": "pure canonical decisions, mutation invariants, tenant isolation, workflows and integrity",
         "domain": "business contracts independent from HTTP and persistence",
@@ -125,7 +125,7 @@
     "function_documentation_closures": 0,
     "function_documentation_arrows": 0,
     "function_documentation_ci": ".github/workflows/architecture.yml",
-    "logic_changes": true,
+    "logic_changes": false,
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
     "commissioned_installation_lockdown": {
@@ -144,8 +144,8 @@
     "procedure_creation_policy": "single_use_session_token_consumed_before_insert_with_client_submit_lock",
     "audit_origin_policy": "public_context_cannot_override_actor_time_ip_agent_or_proof_only_revalidated_signed_deferred_envelope_uses_trusted_origin_argument",
     "maestro_budget_policy": "server_only_supervised_parent_cycle_with_read_only_preflight_reserved_rule_budget_and_independent_stage_health",
-    "generated_at": "2026-08-07T22:15:00+00:00",
-    "updated_at": "2026-08-07T22:15:00+00:00",
+    "generated_at": "2026-08-09T23:15:00+00:00",
+    "updated_at": "2026-08-09T23:15:00+00:00",
     "baseline_source": "1.7.31.2",
     "full_baseline_rewrite": false,
     "code_comment_policy": "no_inline_code_comments",
@@ -192,13 +192,18 @@
     "server_evolution_phase_one_check": "tools/architecture-check.php",
     "server_evolution_phase_two_policy": "cache_invalidations_switch_generation_without_recursive_request_path_deletion",
     "server_evolution_phase_two_components": [
-        "app/Support/ServerJsonCache.php",
-        "app/Support/Telemetry.php"
+        "app/Infrastructure/ServerJsonCache/ServerJsonCacheInfrastructureOperations01.php",
+        "app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php",
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+        "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
     ],
     "server_evolution_phase_two_check": "tools/architecture-check.php",
     "server_evolution_phase_three_policy": "every_completed_http_route_is_measured_by_monotonic_markers_and_persisted_as_one_canonical_json_line_with_exact_twenty_day_retention",
     "server_evolution_phase_three_components": [
-        "app/Support/Telemetry.php"
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+        "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
     ],
     "server_evolution_phase_three_check": "tools/architecture-check.php",
     "route_telemetry_source_policy": "ssd_telemetry_telemetria_json_is_the_only_source_and_legacy_json_files_are_ignored",
@@ -226,13 +231,17 @@
     "contract_consistency_check": "tools/architecture-check.php",
     "developer_dashboard_observability_policy": "developer_and_public_status_share_three_exact_ten_day_comparative_kpis_and_canonical_route_telemetry_sources_velocity_and_request_series",
     "developer_dashboard_observability_components": [
-        "app/Admin/AdminPages.php",
-        "public/assets/design-system.css",
-        "app/Support/Telemetry.php"
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php",
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php",
+        "app/Presentation/AdminPages/AdminPagesPresentationOperations03.php",
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
+        "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+        "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php",
+        "public/assets/design-system.css"
     ],
     "developer_dashboard_observability_check": "tools/architecture-check.php",
-    "release": "1.8.7.8",
-    "build": "1.8.7.8-login-availability-hotfix",
+    "release": "1.8.9.1",
+    "build": "1.8.9.1-consolidation-audit",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",
@@ -242,8 +251,8 @@
     "clean_install_schema": true,
     "requires_empty_database": true,
     "installer_locked": false,
-    "previous_version": "1.8.7.7",
-    "deployment_sync_id": "github-prontoo-1.8.7.8-login-availability-hotfix",
+    "previous_version": "1.8.7.8",
+    "deployment_sync_id": "github-prontoo-1.8.9.1-consolidation-audit",
     "notes": "Conformidade PHP 8.4 preservada para a baseline 1.8.6.1 e validação dinâmica integral para arquivos PHP novos.",
     "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",

@@ -23,8 +23,10 @@ Toda alteração deve ser mínima, rastreável, testável e compatível com as i
 - `Infrastructure` implementa portas e detalhes externos.
 - `Presentation` converte HTTP/UI em comandos/resultados e não depende de `Infrastructure`.
 - `Composition/Runtime` é o único ponto autorizado a conectar todas as camadas.
-- `Legacy` indica compatibilidade dentro de uma camada, não uma exceção à regra de dependências.
-- fronteiras transitórias devem ficar mais finas; o teto arquitetural não pode aumentar.
+- não introduza fachadas globais de compatibilidade, namespaces `/Legacy/` ou bridges procedurais para código nativo;
+- referências a paths históricos são permitidas apenas em mapas explícitos de migração, auditorias e contratos de baseline;
+- `compatibility_boundaries` deve permanecer vazio;
+- o teto corrente de entrypoints/ferramentas procedurais não nativos não pode aumentar;
 - o número efetivo de unidades nativas não pode regredir.
 
 ## Runtime
@@ -37,7 +39,7 @@ Mudanças em autenticação, autorização, sessão, auditoria, financeiro, isol
 
 ## Banco de dados
 
-Não execute DDL no runtime comum. Mudanças estruturais exigem decisão formal, contrato de schema, instalação limpa validada e estratégia de compatibilidade. Nunca elimine dados existentes como mecanismo de atualização.
+Não execute DDL no runtime comum. Mudanças estruturais exigem decisão formal, contrato de schema, instalação limpa validada e estratégia de compatibilidade de dados quando necessária. Nunca elimine dados existentes como mecanismo de atualização.
 
 ## Runtime suportado
 
@@ -55,4 +57,4 @@ Código PHP versionado deve ser compatível com a família **PHP 8.4 exclusivame
 
 ## Definição de pronto
 
-Uma alteração está pronta quando lint, contratos arquiteturais, segurança, SOLID, schema e testes relevantes passam; documentação reflete a árvore atual; não há segredo/dado pessoal/arquivo temporário no diff; e versão/manifestos permanecem deterministicamente consistentes.
+Uma alteração está pronta quando lint, contratos arquiteturais, segurança, SOLID, schema e testes relevantes passam; documentação reflete a árvore atual; componentes ativos apontam somente para paths existentes; não há segredo/dado pessoal/arquivo temporário no diff; e versão/manifestos permanecem deterministicamente consistentes.

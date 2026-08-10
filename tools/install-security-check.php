@@ -8,9 +8,9 @@ if (PHP_SAPI !== "cli") {
 }
 
 $root = dirname(__DIR__);
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 require_once $root . '/app/Core/Install/InstallAccess.php';
 require_once $root . '/app/Core/Database/SchemaMutationLock.php';
-require_once $root . '/app/Database/DatabaseSchema.php';
 
 use Prontoo\Core\Database\SchemaMutationLock;
 use Prontoo\Core\Install\InstallAccess;
@@ -222,10 +222,16 @@ if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
     !str_contains($authSecuritySource, '\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_locks_cleanup_maybe();')) {
     $errors[] = 'atomic_login_limit_policy';
 }
-if (!preg_match('/function\\s+password_ok\\(string\\s+\\$s\\):\\s*bool\\s*\\{.*?return\\s+\\$length\\s*>=\\s*8\\s*&&\\s*\\$length\\s*<=\\s*128\\s*&&\\s*!password_common_rejected\\(\\$s\\);/s', $securityAccessSource) ||
+$nativeSecurityAccessSource = (string) file_get_contents(
+    $root . '/app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations01.php',
+);
+if (!str_contains($nativeSecurityAccessSource, 'public static function password_ok(string $s): bool') ||
+    !str_contains($nativeSecurityAccessSource, '$length >= 8 &&') ||
+    !str_contains($nativeSecurityAccessSource, '$length <= 128 &&') ||
+    !str_contains($nativeSecurityAccessSource, '::password_common_rejected($s);') ||
     substr_count($authSecuritySource, 'minlength="8" maxlength="128"') < 5 ||
     str_contains($authSecuritySource, 'minlength="15"') ||
-    str_contains($securityAccessSource, '$length >= 15')) {
+    str_contains($nativeSecurityAccessSource, '$length >= 15')) {
     $errors[] = 'password_minimum_8_policy';
 }
 $prontooSecuritySource = (string) file_get_contents($root . '/app/prontoo.php');

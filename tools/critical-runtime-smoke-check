@@ -43,11 +43,11 @@ try {
 
 require $root . '/app/prontoo.php';
 \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
-    install_fresh_schema();
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
 });
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 
-$pdo = pdo();
+$pdo = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo');
 $now = time();
 $insertPerson = $pdo->prepare('INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,?,?,?)');
 $insertPerson->execute(['Runtime Manager', '52998224725', 631152000, $now]);
@@ -80,11 +80,11 @@ $pdo->prepare('INSERT INTO pi_clinic_roles (clinic_id,role_code,label,enabled,so
 $pdo->prepare('INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) VALUES (?,?,\'gerente\',1,1,?)')
     ->execute([$userId, $clinicId, $now]);
 
-$choices = active_clinic_roles_for_user($userId);
+$choices = \Prontoo\Core\Architecture\OperationGateway::invoke('active_clinic_roles_for_user', $userId);
 if (count($choices) !== 1 || (int) ($choices[0]['clinic_id'] ?? 0) !== $clinicId || (string) ($choices[0]['role_code'] ?? '') !== 'gerente') {
     throw new RuntimeException('Resolução de vínculo clínico não preservou o papel ativo esperado.');
 }
-$credential = login_resolve_user_credential($userId, false, $choices);
+$credential = \Prontoo\Core\Architecture\OperationGateway::invoke('login_resolve_user_credential', $userId, false, $choices);
 if (
     !is_array($credential) ||
     (string) ($credential['scope'] ?? '') !== 'clinic' ||
@@ -94,26 +94,26 @@ if (
     throw new RuntimeException('Resolução de credencial clínica falhou no smoke test.');
 }
 
-$generationA = user_auth_generation_ensure($userId);
-$generationB = user_auth_generation_rotate($userId);
-if ($generationA === '' || $generationA === '0' || $generationB === $generationA || user_auth_generation_current($userId) !== $generationB) {
+$generationA = \Prontoo\Core\Architecture\OperationGateway::invoke('user_auth_generation_ensure', $userId);
+$generationB = \Prontoo\Core\Architecture\OperationGateway::invoke('user_auth_generation_rotate', $userId);
+if ($generationA === '' || $generationA === '0' || $generationB === $generationA || \Prontoo\Core\Architecture\OperationGateway::invoke('user_auth_generation_current', $userId) !== $generationB) {
     throw new RuntimeException('Geração de autenticação não foi persistida ou rotacionada corretamente.');
 }
 
-$mfaSecret = mfa_totp_secret_generate();
-mfa_record_save($userId, [
+$mfaSecret = \Prontoo\Core\Architecture\OperationGateway::invoke('mfa_totp_secret_generate', );
+\Prontoo\Core\Architecture\OperationGateway::invoke('mfa_record_save', $userId, [
     'v' => 1,
-    'secret' => mfa_secret_encrypt($mfaSecret),
+    'secret' => \Prontoo\Core\Architecture\OperationGateway::invoke('mfa_secret_encrypt', $mfaSecret),
     'recovery' => [],
     'last_counter' => -1,
     'enrolled_at' => $now,
     'updated_at' => $now,
 ]);
-if (mfa_enrollment_state($userId) !== 'active') {
+if (\Prontoo\Core\Architecture\OperationGateway::invoke('mfa_enrollment_state', $userId) !== 'active') {
     throw new RuntimeException('Persistência MFA real não retornou estado ativo.');
 }
-$mfaRecord = mfa_record_load($userId);
-if (!is_array($mfaRecord) || !hash_equals($mfaSecret, mfa_secret_decrypt((string) ($mfaRecord['secret'] ?? '')))) {
+$mfaRecord = \Prontoo\Core\Architecture\OperationGateway::invoke('mfa_record_load', $userId);
+if (!is_array($mfaRecord) || !hash_equals($mfaSecret, \Prontoo\Core\Architecture\OperationGateway::invoke('mfa_secret_decrypt', (string) ($mfaRecord['secret'] ?? '')))) {
     throw new RuntimeException('Registro MFA não preservou o segredo criptografado.');
 }
 
@@ -164,8 +164,8 @@ if ($wrongClinicReason !== 'Paciente não encontrado no consultório atual.') {
 
 $pdo->prepare('INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,created_by,created_at) VALUES (?,?,?,?,?,?)')
     ->execute([$clinicId, $now, 'Nota de runtime', 'clinic', $userId, $now]);
-$agendaOwn = (int) val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=? AND note_date>=CURDATE()', [$clinicId]);
-$agendaOther = (int) val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=?', [$clinicId + 999]);
+$agendaOwn = (int) \Prontoo\Core\Architecture\OperationGateway::invoke('val', 'SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=? AND note_date>=CURDATE()', [$clinicId]);
+$agendaOther = (int) \Prontoo\Core\Architecture\OperationGateway::invoke('val', 'SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=?', [$clinicId + 999]);
 if ($agendaOwn !== 1 || $agendaOther !== 0) {
     throw new RuntimeException('Leitura temporal/tenant da Agenda não preservou isolamento.');
 }
@@ -187,10 +187,10 @@ try {
 if ((string) ($receipt['status'] ?? '') !== 'received' || (int) ($receipt['movement_id'] ?? 0) <= 0 || (int) ($receipt['amount_cents'] ?? 0) !== 12345) {
     throw new RuntimeException('Recebimento financeiro transacional não concluiu com o resultado esperado.');
 }
-if ((string) val('SELECT status FROM pi_financial_revenues WHERE id=? AND clinic_id=?', [$revenueId, $clinicId]) !== 'efetivada') {
+if ((string) \Prontoo\Core\Architecture\OperationGateway::invoke('val', 'SELECT status FROM pi_financial_revenues WHERE id=? AND clinic_id=?', [$revenueId, $clinicId]) !== 'efetivada') {
     throw new RuntimeException('Receita financeira não foi efetivada após o comando transacional.');
 }
-if ((int) val("SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND source_entity='patient_revenue' AND source_id=? AND status='confirmed'", [$clinicId, $revenueId]) !== 1) {
+if ((int) \Prontoo\Core\Architecture\OperationGateway::invoke('val', "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND source_entity='patient_revenue' AND source_id=? AND status='confirmed'", [$clinicId, $revenueId]) !== 1) {
     throw new RuntimeException('Movimento financeiro canônico não foi persistido exatamente uma vez.');
 }
 

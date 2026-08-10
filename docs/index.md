@@ -73,7 +73,8 @@ Os documentos abaixo registram etapas concluídas. Para localização atual de c
 - [Read model do histórico da recepção](performance/patient-reception-read-model.md)
 - [Comando de contato do paciente](architecture/patient-contact-command.md)
 - [View de contato do paciente](architecture/patient-contact-view.md)
+- [Auditoria de consolidação pós-zero-legacy](architecture/CONSOLIDATION-AUDIT-1.8.9.1.md)
 
 ## Contratos executáveis
 
-A documentação é complementada por `app/architecture.manifest.json`, `app/update.manifest.json`, `app/version.json`, `tools/architecture-check.php`, `tools/solid-audit`, `tools/documentation-check.php`, `tools/release-contract-reconcile` e pelos workflows de CI. Em divergência entre texto histórico e contrato atual, corrija a documentação; não contorne o contrato silenciosamente.
+A documentação é complementada por `app/architecture.manifest.json`, `app/update.manifest.json`, `version.json`, `tools/architecture-check.php`, `tools/solid-audit`, `tools/documentation-check.php`, `tools/release-contract-reconcile` e pelos workflows de CI. Em divergência entre texto histórico e contrato atual, corrija a documentação; não contorne o contrato silenciosamente.

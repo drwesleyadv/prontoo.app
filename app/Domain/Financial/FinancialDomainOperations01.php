@@ -22,6 +22,8 @@ use \Throwable;
 
 final class FinancialDomainOperations01
 {
+    private const FINANCIAL_MAX_CENTS = 2147483647;
+
     private function __construct()
     {
     }
@@ -59,7 +61,7 @@ final class FinancialDomainOperations01
         $whole = ltrim($whole, "0");
         $whole = $whole === "" ? "0" : $whole;
         $fraction = str_pad($fraction, 2, "0");
-        $maxWhole = (string) intdiv(PRONTOO_FINANCIAL_MAX_CENTS, 100);
+        $maxWhole = (string) intdiv(self::FINANCIAL_MAX_CENTS, 100);
         if (
             strlen($whole) > strlen($maxWhole) ||
             (strlen($whole) === strlen($maxWhole) && strcmp($whole, $maxWhole) > 0)
@@ -79,7 +81,7 @@ final class FinancialDomainOperations01
     ): int 
     {
     
-        if ($value < 0 || $value > PRONTOO_FINANCIAL_MAX_CENTS) {
+        if ($value < 0 || $value > self::FINANCIAL_MAX_CENTS) {
             throw new RuntimeException(
                 $label . " ultrapassa o domínio monetário seguro.",
             );
@@ -95,8 +97,8 @@ final class FinancialDomainOperations01
     {
     
         if (
-            $value < -PRONTOO_FINANCIAL_MAX_CENTS ||
-            $value > PRONTOO_FINANCIAL_MAX_CENTS
+            $value < -self::FINANCIAL_MAX_CENTS ||
+            $value > self::FINANCIAL_MAX_CENTS
         ) {
             throw new RuntimeException(
                 $label . " ultrapassa o domínio monetário seguro.",

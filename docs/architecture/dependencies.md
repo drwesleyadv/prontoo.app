@@ -25,22 +25,23 @@ A direção é de dependências para dentro. `Infrastructure` implementa portas 
 - `Presentation` executando SQL ou dependendo de `Infrastructure`;
 - `Infrastructure` decidindo política de autorização;
 - adaptadores externos criando regras alternativas às invariantes;
-- unidades `Legacy` usando sua origem histórica como exceção às regras da camada.
+- qualquer path histórico removido sendo reintroduzido como exceção à matriz de dependências.
 
 ## Exceções de classificação
 
 Alguns arquivos físicos possuem classificação especial porque são composition roots ou contratos de bootstrap. Essas exceções estão enumeradas no `LayerMap`, não devem ser inferidas por convenção e não podem ser ampliadas silenciosamente.
 
-## Compatibilidade
+## Estado pós-zero-legacy
 
-Fronteiras históricas remanescentes podem delegar para componentes nativos, sempre de forma fina. A antiga fachada global `app/Support/ModuleLoader.php` foi removida; catálogo, loading state, dispatch e composição são consumidos pelas unidades nativas correspondentes.
+Não existem fronteiras globais de compatibilidade executável nem namespaces ativos `/Legacy/`. Referências a origens históricas são permitidas somente em mapas explícitos de migração, listas de removidos, auditorias históricas e contratos que resolvem uma origem removida para seus destinos nativos.
 
-`Legacy` é um namespace de compatibilidade dentro de uma camada real. A regra de dependências da camada continua integralmente aplicável.
+Listas arquiteturais de componentes ativos devem apontar apenas para arquivos existentes e não podem apontar para `removed_legacy_files`. `tools/architecture-check.php` verifica essa condição.
 
 ## Política de evolução
 
 - cobertura de classificação: 100%;
-- unidades nativas: não podem diminuir abaixo da baseline consolidada;
-- fronteiras transitórias: não podem ultrapassar o teto consolidado;
-- remoção/movimentação de símbolos internos deve passar pelo contrato de resolução;
+- unidades nativas: não podem diminuir abaixo da baseline consolidada de 278;
+- entrypoints/ferramentas procedurais não nativos: não podem ultrapassar o teto corrente de 21;
+- `compatibility_boundaries`: deve permanecer vazio;
+- remoção/movimentação de símbolos internos deve manter rastreabilidade pelos contratos de resolução quando necessário;
 - mudança da matriz de dependências exige ADR e atualização dos contratos executáveis.
