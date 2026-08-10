@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 429,
-    "total_uncompressed_bytes": 6012448,
+    "total_uncompressed_bytes": 6012516,
     "files": {
         ".github/workflows/architecture.yml": "ce811e19818915ad17975f26dd3baa32abe1b6fde4246e6b0d51d668f20bc665",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -69,7 +69,7 @@
         "app/Application/Patients/PatientTabCommandService.php": "89b21ea40e39b479c6ca7e2d68e01aba63f86f63e2ce70d6c2454edb222b385d",
         "app/Core/Architecture/ArchitectureVerifier.php": "684b27dd6f9637f22dc0e7fe66fa126d1f174da8a5973f47d0641c24ced23676",
         "app/Core/Architecture/CompatibilitySourceResolver.php": "898ae5e3ba2ee03e3b4e3638f2dc9c948e7710e63812fbf98087ecfda2a94cb0",
-        "app/Core/Architecture/LayerMap.php": "925b0788c2d127c4abfea0958cbeb54f42d096c17078d5c6e209f25024c76c12",
+        "app/Core/Architecture/LayerMap.php": "52664f27e5f54ca4abf8f17cb7b01d499c603801363da2eb2cd9fa7dbee1f6dd",
         "app/Core/Architecture/OperationGateway.php": "3d5bdb4667003eb413017bbe9c487b616251c890d4802a576e249d02f70ea6dc",
         "app/Core/Database/SchemaHardening.php": "c0d345e38cd752d9ba269517712df103a45a9fa8fdc307cde1f4eac5c4e1a5d0",
         "app/Core/Database/SchemaMutationLock.php": "cfe446e66d38654d496ca16334bb59b9c5e405df2cf5271803709e0ec4b63e29",
