@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -52,6 +53,23 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Finalize deterministic branch contract
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git show origin/prontoo:.github/workflows/architecture.yml > .github/workflows/architecture.yml
+          php tools/release-contract-reconcile --write
+          git add .github/workflows/architecture.yml .github/workflows/documentation.yml app/prontoo.php br/index.php CHANGELOG.md app/architecture.manifest.json app/update.manifest.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "prontoo-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "chore: reconcile phase 3 release contract"
+          git push origin HEAD:"${HEAD_BRANCH}"
       - name: PHP syntax and deprecations
         shell: bash
         run: |
