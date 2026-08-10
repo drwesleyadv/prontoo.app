@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 420,
-    "total_uncompressed_bytes": 5992925,
+    "total_uncompressed_bytes": 5993557,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -445,7 +445,7 @@
         "tools/php84-runtime-contract-check": "6fc183a581f146b2e6fd9e2ff30c53564f06ddd4399f9b67c5b1055b7c513d53",
         "tools/release-contract-reconcile": "d4e48bb955c71e67fad2f0abb78abb161d8fa60a58a66e477837a9ecce278928",
         "tools/runtime-symbol-contract-check": "99ab92e4ce191f1a7cdba1403b694908177ef33531de683d3efd90a28c8fb655",
-        "tools/schema-check.php": "c575c1fe33e7bb732365c4152c948a6f7a8ce129caa897ce16a65053e36a1539",
+        "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
         "tools/security-regression-check.php": "34f212acf5350301d4ae5da7099bc2a0e00bba757534301c6a78232c9ebfc2f9",
         "tools/solid-audit": "7b29c95bec72bf23f1b830ad3ff8798524c4d874f9c6b44c60a4d01247c60f1f",
         "tools/version-asset-contract-check.php": "6b9df8a9ca949f1a3c257017c5f02e1b146e0fe467f203e2cd35ddf37ed17eb7",
