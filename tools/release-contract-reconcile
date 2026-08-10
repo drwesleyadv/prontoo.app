@@ -124,8 +124,10 @@ $architectureWorkflowPath = $root . '/.github/workflows/architecture.yml';
 $architectureWorkflow = (string) file_get_contents($architectureWorkflowPath);
 $architectureNeedle = "          php tools/version-asset-contract-check.php\n          php tools/php84-runtime-contract-check\n";
 $architectureCheck = "          php tools/release-contract-reconcile --check\n";
+$qualityGateCheck = "          php tools/quality-gate\n";
 $architectureCheckCount = substr_count($architectureWorkflow, $architectureCheck);
-if ($architectureCheckCount === 0) {
+$qualityGateCheckCount = substr_count($architectureWorkflow, $qualityGateCheck);
+if ($architectureCheckCount === 0 && $qualityGateCheckCount === 0) {
     $needleCount = substr_count($architectureWorkflow, $architectureNeedle);
     if ($needleCount !== 1) {
         throw new RuntimeException('Ponto canônico do release contract não foi localizado no Architecture Contract.');
@@ -135,8 +137,8 @@ if ($architectureCheckCount === 0) {
         $architectureNeedle . $architectureCheck,
         $architectureWorkflow,
     );
-} elseif ($architectureCheckCount !== 1) {
-    throw new RuntimeException('Architecture Contract contém release check duplicado.');
+} elseif ($architectureCheckCount > 1 || $qualityGateCheckCount > 1 || ($architectureCheckCount === 1 && $qualityGateCheckCount === 1)) {
+    throw new RuntimeException('Architecture Contract contém release check canônico duplicado.');
 }
 
 $versionPath = $root . '/version.json';
@@ -221,95 +223,109 @@ foreach ([
         $manifest[$key] = $version[$key];
     }
 }
-if (array_key_exists('installer_access_policy', $version)) {
-    $manifest['installer_policy'] = $version['installer_access_policy'];
-}
-$manifest['updated_at'] = (string) $version['updated_at'];
+$manifest['release'] = $release;
+$manifest['version'] = $release;
+$manifest['installer'] = array_replace(
+    (array) ($manifest['installer'] ?? []),
+    [
+        'locked' => (bool) ($version['installer_locked'] ?? true),
+        'access_policy' => (string) ($version['installer_access_policy'] ?? 'disabled_by_default'),
+        'post_window_policy' => (string) ($version['post_window_policy'] ?? 'locked_after_installation'),
+    ],
+);
+$manifest['architecture'] = array_replace(
+    (array) ($manifest['architecture'] ?? []),
+    [
+        'policy' => (string) ($version['architecture_policy'] ?? ''),
+        'native_files_min' => (int) ($version['architecture_native_files_min'] ?? 0),
+        'transitional_files_max' => (int) ($version['architecture_transitional_files_max'] ?? 0),
+        'runtime_readiness_policy' => (string) ($version['runtime_readiness_policy'] ?? ''),
+        'release_reconciliation_policy' => (string) ($version['release_reconciliation_policy'] ?? ''),
+    ],
+);
 
-$canonicalOverrides = [
-    '.github/workflows/architecture.yml' => $architectureWorkflow,
-    '.github/workflows/documentation.yml' => $documentationWorkflow,
-    'app/prontoo.php' => $prontoo,
-    'br/index.php' => $landing,
-    'CHANGELOG.md' => $changelog,
-    'app/architecture.manifest.json' => $architectureContent,
-];
-$files = [];
-$total = 0;
+$manifestFiles = [];
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
 );
+$rootPrefix = rtrim(str_replace('\\', '/', $root), '/') . '/';
 foreach ($iterator as $file) {
-    if (!$file->isFile() || $file->isLink()) {
+    if (!$file instanceof SplFileInfo || !$file->isFile()) {
         continue;
     }
-    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
-    if ($relative === 'app/update.manifest.json' ||
-        str_starts_with($relative, '.git/') ||
-        str_starts_with($relative, 'ssd/') ||
-        str_starts_with($relative, 'vendor/') ||
-        str_starts_with($relative, 'node_modules/')) {
+    $absolute = str_replace('\\', '/', $file->getPathname());
+    $relative = str_starts_with($absolute, $rootPrefix)
+        ? substr($absolute, strlen($rootPrefix))
+        : $absolute;
+    if ($relative === '' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
         continue;
     }
-    $content = array_key_exists($relative, $canonicalOverrides)
-        ? $canonicalOverrides[$relative]
-        : (string) file_get_contents($file->getPathname());
-    $files[$relative] = hash('sha256', $content);
-    $total += strlen($content);
+    if ($relative === 'app/update.manifest.json') {
+        continue;
+    }
+    $manifestFiles[$relative] = hash_file('sha256', $absolute);
 }
-ksort($files, SORT_STRING);
-$manifest['files'] = $files;
-$manifest['file_count'] = count($files);
-$manifest['total_uncompressed_bytes'] = $total;
+ksort($manifestFiles, SORT_STRING);
+$manifest['files'] = $manifestFiles;
 $manifestContent = $encodeJson($manifest);
 
 $expected = [
-    '.github/workflows/architecture.yml' => $architectureWorkflow,
-    '.github/workflows/documentation.yml' => $documentationWorkflow,
-    'app/prontoo.php' => $prontoo,
-    'br/index.php' => $landing,
-    'CHANGELOG.md' => $changelog,
-    'app/architecture.manifest.json' => $architectureContent,
-    'app/update.manifest.json' => $manifestContent,
+    $architectureWorkflowPath => $architectureWorkflow,
+    $root . '/.github/workflows/documentation.yml' => $documentationWorkflow,
+    $prontooPath => $prontoo,
+    $landingPath => $landing,
+    $changelogPath => $changelog,
+    $architecturePath => $architectureContent,
+    $manifestPath => $manifestContent,
 ];
 
 if ($mode === '--write') {
-    foreach ($expected as $relative => $content) {
-        if (file_put_contents($root . '/' . $relative, $content) === false) {
-            throw new RuntimeException('Falha ao gravar contrato canônico: ' . $relative);
+    foreach ($expected as $path => $content) {
+        if ((string) @file_get_contents($path) !== $content) {
+            file_put_contents($path, $content);
         }
     }
-    echo json_encode([
+    fwrite(STDOUT, json_encode([
         'ok' => true,
         'mode' => 'write',
         'policy' => 'deterministic-release-contract-v1',
         'release' => $release,
-        'outputs' => array_keys($expected),
-        'file_count' => count($files),
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
+        'outputs' => array_map(
+            static fn(string $path): string => str_replace($rootPrefix, '', str_replace('\\', '/', $path)),
+            array_keys($expected),
+        ),
+        'file_count' => count($manifestFiles),
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
     exit(0);
 }
 
-$divergent = [];
-foreach ($expected as $relative => $content) {
-    $actual = (string) file_get_contents($root . '/' . $relative);
-    if (!hash_equals(hash('sha256', $content), hash('sha256', $actual))) {
-        $divergent[] = $relative;
+$failures = [];
+foreach ($expected as $path => $content) {
+    if ((string) @file_get_contents($path) !== $content) {
+        $relative = str_replace($rootPrefix, '', str_replace('\\', '/', $path));
+        $failures[] = $relative;
     }
 }
-if ($divergent !== []) {
-    foreach ($divergent as $relative) {
-        fwrite(STDERR, 'release_contract_divergent: ' . $relative . PHP_EOL);
-    }
-    throw new RuntimeException('Contrato de release divergente; execute o reconciliador antes do commit.');
+if ($failures !== []) {
+    fwrite(STDERR, json_encode([
+        'ok' => false,
+        'mode' => 'check',
+        'policy' => 'deterministic-release-contract-v1',
+        'release' => $release,
+        'drift' => $failures,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(1);
 }
 
-echo json_encode([
+fwrite(STDOUT, json_encode([
     'ok' => true,
     'mode' => 'check',
     'policy' => 'deterministic-release-contract-v1',
     'release' => $release,
-    'outputs' => array_keys($expected),
-    'file_count' => count($files),
-    'deterministic_updated_at' => (string) $version['updated_at'],
-], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
+    'outputs' => array_map(
+        static fn(string $path): string => str_replace($rootPrefix, '', str_replace('\\', '/', $path)),
+        array_keys($expected),
+    ),
+    'file_count' => count($manifestFiles),
+    'deterministic_updated_at' => (string) ($version['updated_at'] ?? ''),
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
