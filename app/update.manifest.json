@@ -30,12 +30,12 @@
     "file_count": 432,
     "total_uncompressed_bytes": 6030472,
     "files": {
-        ".github/workflows/architecture.yml": "b89fa3942f2b27105fabd8b5cdde58bc5ad477e69fcd179b67dd021b960d68d2",
+        ".github/workflows/architecture.yml": "354d44bf3e978f929372d775985d3b720c855af726f149ffa632c5704f886679",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
         ".github/workflows/documentation.yml": "76b63728a95ddad2f851b8e0cc5151598a0c2585ec3a0d1797d72414f09279d5",
         ".gitignore": "4f409e9d6519b9e9bc3d20c915e4b1f0923917beb536f285e58fcfdf9b716346",
         ".htaccess": "3b406014a70fcc0f0c0f9d909a0b2d0bbf47fbb8bba5d5f23fe43d4845c1fb1a",
-        "CHANGELOG.md": "eee066582c08bd166a9639dfccf24879579041ee11257bb430b1985fee4b192c",
+        "CHANGELOG.md": "c86d0afb3a104dd2cba695013b095065c5d1844553587dede88c0a00da53ed9e",
         "CONTRIBUTING.md": "7358c5b690b43e9692b07cf36c206180c3a3ed8d506b10e7c16dbc20e1883a3a",
         "README.md": "ddcb12ef80e57af69f13ecd45d1d1604c8dc6a79673ba3e0a8ba4eaf148fb1d8",
         "SECURITY.md": "8b736679cf820b30bdbcf4de567eb2ed3b72599cd66c07e6f36c4638c7534d77",
@@ -467,7 +467,7 @@
         "tools/quality-gate": "c40ab4c1801c06eb60d63422649253c1beebb22fe317a5598c7482a107d9f676",
         "tools/query-budget-contract-check": "be11ec0ad0f69ad2b28eb0f665913a674f05f14963e02f59505e65eef7574c1c",
         "tools/release-contract-reconcile": "fd1cef3795e39c88c16a27a3c6a4db33a58fc816bc84512ac847d1ea3cc5ffcf",
-        "tools/release-version": "a14f999087435b36e6b29767124d43da69350877398e1c4f1c368ddbbf6b94ee",
+        "tools/release-version": "79563b4f20a81ea6fd78b8a5b55c76bd8b55c48d16a0173331613a6e778c3a99",
         "tools/runtime-symbol-contract-check": "99ab92e4ce191f1a7cdba1403b694908177ef33531de683d3efd90a28c8fb655",
         "tools/runtime-thinning-check": "b7e4116743a85cb4664a52407726234abfab2c19f5bb67dcc100173fa525acc8",
         "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
@@ -475,7 +475,7 @@
         "tools/solid-audit": "7b29c95bec72bf23f1b830ad3ff8798524c4d874f9c6b44c60a4d01247c60f1f",
         "tools/test-fast": "1e2ff73ec2290b1bdd6c8064cc6b8b2a181e56d09b3576041f9a37a25f719680",
         "tools/version-asset-contract-check.php": "bee39fb8e3d8d462514ecd75c8514e6274c8c80cf687e93caa086362c7d0abea",
-        "version.json": "3a34c5c9cc4abef7563d28decf466909374730b1e17e17a007775731d64d6e0f"
+        "version.json": "ccde57aac6136d49ab2615bf5c4e6aca6c4816eb7937f85e2721bf5b4f87e652"
     },
     "removed_files": [
         "ARCHITECTURE.md",
