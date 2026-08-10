@@ -1,0 +1,54 @@
+name: Consolidation Login Fixture Temporary
+
+on:
+  pull_request:
+    branches: [prontoo]
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.event.pull_request.head.ref == 'agent/consolidation-audit-20260809'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/consolidation-audit-20260809
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Migrate login fixture and reconcile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('tools/login-post-password-runtime-check')
+          s = p.read_text()
+          replacements = {
+              '$pdo = pdo();': '$pdo = \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations01::pdo();',
+              'prontoo_fs_unlink($marker, false);': '\\Prontoo\\Infrastructure\\SupportRuntime\\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($marker, false);',
+              "$lockDir = storage_path('cache/locks');": "$lockDir = \\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::storage_path('cache/locks');",
+              'prontoo_fs_mkdir($lockDir)': '\\Prontoo\\Infrastructure\\SupportRuntime\\SupportRuntimeInfrastructureOperations01::prontoo_fs_mkdir($lockDir)',
+              'prontoo_fs_unlink($lockFile, false);': '\\Prontoo\\Infrastructure\\SupportRuntime\\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($lockFile, false);',
+              'prontoo_fs_unlink($readinessMarker, false);': '\\Prontoo\\Infrastructure\\SupportRuntime\\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink($readinessMarker, false);',
+          }
+          for old, new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'login fixture token not found: {old}')
+              s = s.replace(old, new)
+          p.write_text(s)
+          PY
+          php -l tools/login-post-password-runtime-check
+          php tools/release-contract-reconcile --write
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/login-post-password-runtime-check app/update.manifest.json app/architecture.manifest.json version.json app/prontoo.php br/index.php CHANGELOG.md .github/workflows/architecture.yml .github/workflows/documentation.yml
+          git commit -m 'test: migrate login runtime fixture to native operations'
+          git push origin HEAD:agent/consolidation-audit-20260809
