@@ -33,6 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/re.subn(pattern, repl, s, count=count, flags=flags)/re.subn(pattern, lambda m: repl, s, count=count, flags=flags)/' tools/phase11-apply.py
           python3 tools/phase11-apply.py
           git rm tools/phase11-apply.py .github/workflows/phase11-apply.yml
           php tools/release-contract-reconcile --write
