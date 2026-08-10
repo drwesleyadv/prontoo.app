@@ -67,9 +67,25 @@ jobs:
           python3 -c "from pathlib import Path; p=Path('.github/workflows/architecture.yml'); s=p.read_text(); n='      - name: Schema contract\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/schema-check.php\\n'; a=n+'      - name: MySQL query budget\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/mysql-query-budget-check\\n'; assert s.count(n)==1; p.write_text(s.replace(n,a,1))"
           php tools/release-contract-reconcile --write
           git add -A
-          echo '===PHASE14_UPDATE_MANIFEST_BEGIN==='
-          cat app/update.manifest.json
-          echo '===PHASE14_UPDATE_MANIFEST_END==='
+      - name: Export canonical phase 14 candidate
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-14-query-budget'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase14-canonical-candidate
+          if-no-files-found: error
+          include-hidden-files: true
+          path: |
+            .github/workflows/architecture.yml
+            .github/workflows/documentation.yml
+            CHANGELOG.md
+            app/architecture.manifest.json
+            app/prontoo.php
+            app/query.budgets.json
+            app/update.manifest.json
+            br/index.php
+            tools/mysql-query-budget-check
+            tools/quality-gate
+            tools/query-budget-contract-check
       - name: Engineering quality gate
         shell: bash
         run: |
