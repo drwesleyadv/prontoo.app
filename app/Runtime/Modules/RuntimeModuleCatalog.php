@@ -156,7 +156,7 @@ final class RuntimeModuleCatalog
     {
         $failures = [];
         $map = [];
-        $previous = set_error_handler(
+        set_error_handler(
             static function (int $severity, string $message, string $file, int $line): never {
                 throw new ErrorException($message, 0, $severity, $file, $line);
             },
@@ -190,9 +190,6 @@ final class RuntimeModuleCatalog
             $failures[] = 'runtime_error:' . $error::class . ':' . $error->getMessage();
         } finally {
             restore_error_handler();
-            if ($previous !== null) {
-                set_error_handler($previous);
-            }
         }
 
         $declared = array_map('strval', array_keys($map));
