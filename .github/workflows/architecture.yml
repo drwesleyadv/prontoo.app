@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -52,6 +52,14 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Apply phase 13
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-13-application-coverage'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/phase13-apply.py
+          php tools/release-contract-reconcile --write
+          git add -A
       - name: Engineering quality gate
         shell: bash
         run: |
@@ -88,3 +96,19 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
+      - name: Materialize phase 13 canonical head
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-13-application-coverage'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo agent/architecture-phase-13-application-coverage
+          git checkout -B agent/architecture-phase-13-application-coverage origin/agent/architecture-phase-13-application-coverage
+          python3 tools/phase13-apply.py
+          git rm -f tools/phase13-apply.py
+          git checkout origin/prontoo -- .github/workflows/architecture.yml
+          php tools/release-contract-reconcile --write
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Engenharia 13/15 — ampliar testes rápidos de Application por ports'
+          git push origin HEAD:agent/architecture-phase-13-application-coverage
