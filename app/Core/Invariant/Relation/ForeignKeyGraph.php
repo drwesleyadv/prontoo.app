@@ -129,75 +129,22 @@ final class ForeignKeyGraph
 
     private static function relationsFor(string $table): array
     {
-
         $table = self::identifier($table);
-        if ($table === "") {
+        if ($table === '') {
             return [];
         }
         if (array_key_exists($table, self::$relations)) {
             return self::$relations[$table];
         }
-        if (!\Prontoo\Core\Architecture\OperationGateway::has('pdo')) {
+        $port = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($port === null) {
             return self::$relations[$table] = [];
         }
-        $loader = static  fn(): array => self::loadRelations($table);
-        $revision = defined("PRONTOO_SCHEMA_REV")
-            ? (string) PRONTOO_SCHEMA_REV
-            : "schema";
-        if (\Prontoo\Core\Architecture\OperationGateway::has('cache_remember')) {
-            try {
-                $cached = \Prontoo\Core\Architecture\OperationGateway::invoke('cache_remember', 
-                    "invariant_fk_" . hash("sha256", $revision . "|" . $table),
-                    86400,
-                    $loader,
-                );
-                if (is_array($cached)) {
-                    return self::$relations[$table] = $cached;
-                }
-            } catch (\Throwable $error) {
-                error_log(
-                    "[Prontoo invariant relation cache] " . $error->getMessage(),
-                );
-            }
-        }
-        return self::$relations[$table] = $loader();
-    }
-
-    private static function loadRelations(string $table): array
-    {
-
         try {
-            $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
-                "SELECT CONSTRAINT_NAME,COLUMN_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME " .
-                    "FROM information_schema.KEY_COLUMN_USAGE " .
-                    "WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? " .
-                    "AND REFERENCED_TABLE_NAME IS NOT NULL " .
-                    "ORDER BY CONSTRAINT_NAME,ORDINAL_POSITION",
-            );
-            $statement->execute([$table]);
-            $rows = $statement->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-            $out = [];
-            foreach ($rows as $row) {
-                $sourceColumn = self::identifier((string) ($row["COLUMN_NAME"] ?? ""));
-                $targetTable = self::identifier((string) ($row["REFERENCED_TABLE_NAME"] ?? ""));
-                $targetColumn = self::identifier((string) ($row["REFERENCED_COLUMN_NAME"] ?? ""));
-                if ($sourceColumn === "" || $targetTable === "" || $targetColumn === "") {
-                    continue;
-                }
-                $out[] = [
-                    "constraint" => (string) ($row["CONSTRAINT_NAME"] ?? ""),
-                    "source_column" => $sourceColumn,
-                    "target_table" => $targetTable,
-                    "target_column" => $targetColumn,
-                ];
-            }
-            return $out;
+            return self::$relations[$table] = $port->foreignKeyRelations($table);
         } catch (\Throwable $error) {
-            error_log(
-                "[Prontoo invariant relation graph] metadados indisponíveis para {$table}: " .
-                    $error->getMessage(),
-            );
-            return [];
+            error_log('[Prontoo invariant relation graph] metadados indisponíveis para ' . $table . ': ' . $error->getMessage());
+            return self::$relations[$table] = [];
         }
     }
 
@@ -207,28 +154,15 @@ final class ForeignKeyGraph
         mixed $value,
         int $clinicId,
     ): ?int {
-
         $table = self::identifier($table);
         $column = self::identifier($column);
         $scopeColumn = TenantRegistry::scopeColumn($table);
-        $scopeColumn = is_string($scopeColumn) ? self::identifier($scopeColumn) : "";
-        if ($table === "" || $column === "" || $scopeColumn === "") {
+        $scopeColumn = is_string($scopeColumn) ? self::identifier($scopeColumn) : '';
+        $port = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($table === '' || $column === '' || $scopeColumn === '' || $port === null) {
             return null;
         }
-        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
-            "SELECT `{$scopeColumn}` FROM `{$table}` WHERE `{$column}`=? AND `{$scopeColumn}`=? LIMIT 1",
-        );
-        $statement->execute([$value, $clinicId]);
-        $found = $statement->fetchColumn();
-        if ($found !== false && $found !== null) {
-            return (int) $found;
-        }
-        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
-            "SELECT `{$scopeColumn}` FROM `{$table}` WHERE `{$column}`=? LIMIT 1",
-        );
-        $statement->execute([$value]);
-        $found = $statement->fetchColumn();
-        return $found === false || $found === null ? null : (int) $found;
+        return $port->foreignKeyTargetClinicId($table, $column, $value, $scopeColumn, $clinicId);
     }
 
     private static function identifier(string $value): string
@@ -240,13 +174,13 @@ final class ForeignKeyGraph
 
     private static function deny(string $key, string $sql, string $detail): never
     {
-
-        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
-            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', $key, $sql, $detail);
+        $port = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($port !== null) {
+            $port->recordScopeViolation($key, $sql, $detail);
         } else {
             error_log(
-                "[Prontoo invariant relation violation] {$key} | " .
-                    hash("sha256", preg_replace('/\s+/', ' ', trim($sql)) ?? $sql),
+                '[Prontoo invariant relation violation] ' . $key . ' | ' .
+                    hash('sha256', preg_replace('/\\s+/', ' ', trim($sql)) ?? $sql),
             );
         }
         throw new \ProntooHttpError(

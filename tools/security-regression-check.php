@@ -2,16 +2,24 @@
 declare(strict_types=1);
 require_once __DIR__ . '/compatibility-source.php';
 require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
-\Prontoo\Runtime\Architecture\OperationRegistry::register();
-\Prontoo\Core\Architecture\OperationGateway::override('has_cfg', static function (): bool {
-    return (bool) $GLOBALS['prontoo_test_has_cfg'];
-});
-\Prontoo\Core\Architecture\OperationGateway::override('val', static function (string $sql, array $params = []): mixed {
-    return val($sql, $params);
-});
-\Prontoo\Core\Architecture\OperationGateway::override('secret_key', static function (): string {
-    return str_repeat('s', 48);
-});
+\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configure(
+    new class implements \Prontoo\Application\SecurityAccess\SecurityAccessPersistencePort {
+        public function hasConfig(): bool
+        {
+            return (bool) $GLOBALS['prontoo_test_has_cfg'];
+        }
+
+        public function value(string $sql, array $params = []): mixed
+        {
+            return val($sql, $params);
+        }
+
+        public function secretKey(): string
+        {
+            return str_repeat('s', 48);
+        }
+    },
+);
 
 $testStorageRoot =
     sys_get_temp_dir() .

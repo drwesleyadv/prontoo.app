@@ -21,7 +21,9 @@ if (!defined("PRONTOO_ROOT")) {
     define("PRONTOO_ROOT", dirname(__DIR__));
 }
 require_once __DIR__ . "/Runtime/Autoload/ProntooAutoloader.php";
-\Prontoo\Runtime\Architecture\OperationRegistry::register();
+\Prontoo\Core\Invariant\InvariantRuntimeBinding::configure(
+    new \Prontoo\Runtime\Invariant\InvariantRuntimeAdapter(),
+);
 if (PHP_SAPI !== "cli") {
     
     $prontooRequestSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();

@@ -4,11 +4,16 @@ declare(strict_types=1);
 namespace Prontoo\Infrastructure\Financial;
 
 use Prontoo\Application\Financial\PatientRevenueReceiptPort;
+use Prontoo\Application\Financial\PatientRevenueSettlementPort;
 use RuntimeException;
 use Throwable;
 
 final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptPort
 {
+    public function __construct(private PatientRevenueSettlementPort $settlement)
+    {
+    }
+
     public function receive(
         int $clinicId,
         int $patientId,
@@ -22,14 +27,14 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             $pdo->beginTransaction();
         }
         try {
-            $patient = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+            $patient = $this->one(
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                 [$patientId, $clinicId],
             );
             if (!$patient) {
                 throw new RuntimeException('Paciente não encontrado no consultório atual.');
             }
-            $revenue = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+            $revenue = $this->one(
                 "SELECT id,appointment_id,amount_cents,title,payment_method,status FROM pi_financial_revenues WHERE id=? AND clinic_id=? AND patient_link_id=? LIMIT 1 FOR UPDATE",
                 [$revenueId, $clinicId, $patientId],
             );
@@ -45,7 +50,7 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
                     'title' => '',
                 ];
             }
-            $existingMovementId = (int) (\Prontoo\Core\Architecture\OperationGateway::invoke('val', 
+            $existingMovementId = (int) ($this->val(
                 "SELECT id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='patient_revenue' AND source_id=? AND movement_type='receipt' AND status='confirmed' ORDER BY id DESC LIMIT 1 FOR UPDATE",
                 [$clinicId, $revenueId],
             ) ?: 0);
@@ -53,13 +58,13 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             $destinationId = 0;
             if ($existingMovementId <= 0) {
                 if ($role === 'recepcionista') {
-                    $session = \Prontoo\Core\Architecture\OperationGateway::invoke('financial_require_open_session', $clinicId, $userId);
+                    $session = $this->settlement->requireOpenSession($clinicId, $userId);
                     $destinationId = (int) ($session['location_id'] ?? 0);
                     $sessionId = (int) ($session['id'] ?? 0);
                 } else {
-                    $destinationId = \Prontoo\Core\Architecture\OperationGateway::invoke('financial_ensure_admin_safe', $clinicId, $userId);
+                    $destinationId = $this->settlement->ensureAdminSafe($clinicId, $userId);
                 }
-                $existingMovementId = \Prontoo\Core\Architecture\OperationGateway::invoke('financial_create_movement', 
+                $existingMovementId = $this->settlement->createMovement(
                     $clinicId,
                     'receipt',
                     (int) $revenue['amount_cents'],
@@ -75,12 +80,12 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
                     $revenueId,
                 );
             }
-            \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+            $this->q(
                 "UPDATE pi_financial_revenues SET status='efetivada', account_id=NULL, received_at=COALESCE(received_at,NOW()), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=? AND status='prevista'",
                 [$userId, $revenueId, $clinicId, $patientId],
             );
             if (!empty($revenue['appointment_id'])) {
-                \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+                $this->q(
                     "UPDATE pi_appointments SET payment_status='efetivada', payment_confirmed_at=COALESCE(payment_confirmed_at,NOW()), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
                     [$revenueId, (int) $revenue['appointment_id'], $clinicId, $patientId],
                 );
@@ -102,4 +107,29 @@ final class PdoPatientRevenueReceiptRepository implements PatientRevenueReceiptP
             throw $error;
         }
     }
+    private function one(string $sql, array $params = []): ?array
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $row = $statement->fetch(\PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+        return is_array($row) ? $row : null;
+    }
+
+    private function val(string $sql, array $params = []): mixed
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $value = $statement->fetchColumn();
+        $statement->closeCursor();
+        return $value === false ? null : $value;
+    }
+
+    private function q(string $sql, array $params = []): \PDOStatement
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        return $statement;
+    }
+
 }

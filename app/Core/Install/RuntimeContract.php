@@ -235,7 +235,7 @@ final class RuntimeContract
             $strict = is_file($root . '/ssd/install.lock');
             \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
             SeqContract::assert(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo());
-            \Prontoo\Core\Database\TenantIntegrity::assertRegistryMatchesSchema($strict);
+            \Prontoo\Infrastructure\Database\TenantIntegrityInspector::assertRegistryMatchesSchema($strict);
         }
     }
 }

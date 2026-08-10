@@ -20,7 +20,7 @@ final class FinancialComposition
     public static function patientRevenueService(): PatientRevenueReceiptService
     {
         return self::$patientRevenue ??= new PatientRevenueReceiptService(
-            new PdoPatientRevenueReceiptRepository(),
+            new PdoPatientRevenueReceiptRepository(new PatientRevenueSettlementAdapter()),
         );
     }
 

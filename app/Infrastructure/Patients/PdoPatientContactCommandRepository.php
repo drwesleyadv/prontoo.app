@@ -21,14 +21,14 @@ final class PdoPatientContactCommandRepository implements PatientContactCommandP
             $pdo->beginTransaction();
         }
         try {
-            $patient = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+            $patient = self::one(
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                 [$patientId, $clinicId],
             );
             if (!$patient) {
                 throw new RuntimeException('Paciente não encontrado no consultório atual.');
             }
-            \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+            self::q(
                 "UPDATE pi_patients SET phone=?,email=?,address=?,address_zip=?,address_number=?,address_neighborhood=?,address_complement=?,address_state=?,address_city=?,address_city_ibge=?,registration_needs_update=0,updated_at=NOW() WHERE id=? AND clinic_id=? AND active=1",
                 [
                     $contact['phone'],
@@ -56,4 +56,20 @@ final class PdoPatientContactCommandRepository implements PatientContactCommandP
             throw $error;
         }
     }
+    private static function one(string $sql, array $params = []): ?array
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $row = $statement->fetch(\PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+        return is_array($row) ? $row : null;
+    }
+
+    private static function q(string $sql, array $params = []): \PDOStatement
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        return $statement;
+    }
+
 }

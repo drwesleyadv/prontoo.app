@@ -22,14 +22,14 @@ final class PdoPatientTabCommandRepository implements PatientTabCommandPort
             $pdo->beginTransaction();
         }
         try {
-            $patient = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+            $patient = self::one(
                 "SELECT id FROM pi_patients WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
                 [$patientId, $clinicId],
             );
             if (!$patient) {
                 throw new RuntimeException('Paciente não encontrado no consultório atual.');
             }
-            $existing = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+            $existing = self::one(
                 "SELECT id,sort_order FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? AND label=? AND active=1 LIMIT 1 FOR UPDATE",
                 [$clinicId, $patientId, $label],
             );
@@ -43,7 +43,7 @@ final class PdoPatientTabCommandRepository implements PatientTabCommandPort
                     'sort_order' => (int) ($existing['sort_order'] ?? 0),
                 ];
             }
-            $rows = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+            $rows = self::q(
                 "SELECT sort_order FROM pi_patient_tabs WHERE clinic_id=? AND patient_link_id=? FOR UPDATE",
                 [$clinicId, $patientId],
             )->fetchAll();
@@ -52,7 +52,7 @@ final class PdoPatientTabCommandRepository implements PatientTabCommandPort
                 $maxSortOrder = max($maxSortOrder, (int) ($row['sort_order'] ?? 0));
             }
             $nextSortOrder = $maxSortOrder + 10;
-            \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+            self::q(
                 "INSERT INTO pi_patient_tabs (clinic_id,patient_link_id,label,icon_name,sort_order,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
                 [$clinicId, $patientId, $label, $iconName, $nextSortOrder, $userId],
             );
@@ -72,4 +72,20 @@ final class PdoPatientTabCommandRepository implements PatientTabCommandPort
             throw $error;
         }
     }
+    private static function one(string $sql, array $params = []): ?array
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $row = $statement->fetch(\PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+        return is_array($row) ? $row : null;
+    }
+
+    private static function q(string $sql, array $params = []): \PDOStatement
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        return $statement;
+    }
+
 }

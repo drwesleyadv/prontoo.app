@@ -81,7 +81,7 @@ require $root . '/app/prontoo.php';
     \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
 });
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
-$pdo = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo');
+$pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
 $now = time();
 
 $person = $pdo->prepare('INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,?,?,?)');
