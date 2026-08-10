@@ -40,7 +40,7 @@ jobs:
           python3 tools/phase11-apply.py
           python3 - <<'PY'
           from pathlib import Path
-          import subprocess
+          import subprocess, json
           root = Path('.')
           names = subprocess.check_output(['git','diff','--name-only','--','*.php']).decode().splitlines()
           for name in names:
@@ -53,6 +53,18 @@ jobs:
                   s = s.replace('\\\\' + token, '\\' + token)
               s = s.replace("'/\\\\\\\\s+/'", "'/\\\\s+/'")
               p.write_text(s)
+          inspector = root / 'app/Infrastructure/Database/TenantIntegrityInspector.php'
+          s = inspector.read_text().replace('strtolower(trim((string)', 'strtolower(mb_trim((string)')
+          inspector.write_text(s)
+          version_path = root / 'version.json'
+          version = json.loads(version_path.read_text())
+          migrations = version.setdefault('php84_baseline_path_migrations', {})
+          migrations['app/Core/Database/SchemaHardening.php'] = 'app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php'
+          migrations['app/Core/Database/TenantIntegrity.php'] = 'app/Infrastructure/Database/TenantIntegrityInspector.php'
+          source_migrations = version.setdefault('architecture_source_path_migrations', {})
+          source_migrations['app/Core/Database/SchemaHardening.php'] = 'app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php'
+          source_migrations['app/Core/Database/TenantIntegrity.php'] = 'app/Infrastructure/Database/TenantIntegrityInspector.php'
+          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
           PY
           git rm -f tools/phase11-apply.py .github/workflows/phase11-apply.yml
           php tools/release-contract-reconcile --write
