@@ -30,7 +30,7 @@
     "file_count": 432,
     "total_uncompressed_bytes": 6030472,
     "files": {
-        ".github/workflows/architecture.yml": "4a26220e38856fb3a8789073f9b817bbcdce936f2d97f1ef8d208784c12af238",
+        ".github/workflows/architecture.yml": "8dd5de4266130b314b080ea9aa8b1fef7944d32e85602b8ccf8f6c14da1560be",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
         ".github/workflows/documentation.yml": "76b63728a95ddad2f851b8e0cc5151598a0c2585ec3a0d1797d72414f09279d5",
         ".gitignore": "4f409e9d6519b9e9bc3d20c915e4b1f0923917beb536f285e58fcfdf9b716346",
