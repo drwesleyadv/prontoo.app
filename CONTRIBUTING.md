@@ -11,9 +11,18 @@ Toda alteração deve ser mínima, rastreável, testável e compatível com as i
 3. Identifique a camada pelo `app/Core/Architecture/LayerMap.php` antes de editar.
 4. Implemente a menor mudança capaz de resolver o problema.
 5. Atualize testes, contratos e documentação afetados.
-6. Execute os gates locais relevantes, incluindo `release-contract-reconcile --check` quando houver artefatos versionados.
-7. Abra pull request explicando contexto, decisão, impacto e riscos.
-8. Faça merge apenas após CI e autorização.
+6. Durante a implementação, execute `php tools/quality-gate --fast` para validar a camada rápida sem banco ou HTTP.
+7. Antes de abrir o pull request, execute `php tools/quality-gate`; esse é o gate estático canônico local e deve permanecer equivalente ao início da CI.
+8. Abra pull request explicando contexto, decisão, impacto e riscos.
+9. Faça merge apenas após o quality gate, os testes de integração com MySQL/HTTP e a autorização estarem verdes.
+
+## Quality gate canônico
+
+`php tools/quality-gate --fast` executa os contratos de feedback imediato: suíte rápida, composition roots, performance budgets e teto do `OperationGateway`.
+
+`php tools/quality-gate` acrescenta lint PHP 8.4, consistência de versão/manifestos, documentação, segurança, arquitetura, unidades nativas, símbolos de runtime e auditoria SOLID. Schema, instalador, login pós-senha, Maestro, runtime crítico e HTTP permanecem gates de integração porque dependem do ambiente MySQL/HTTP da CI.
+
+Não duplique um novo contrato estático diretamente no workflow sem integrá-lo também ao `tools/quality-gate`. O objetivo é manter uma única entrada reproduzível entre desenvolvimento local e CI.
 
 ## Regras arquiteturais
 
@@ -57,4 +66,4 @@ Código PHP versionado deve ser compatível com a família **PHP 8.4 exclusivame
 
 ## Definição de pronto
 
-Uma alteração está pronta quando lint, contratos arquiteturais, segurança, SOLID, schema e testes relevantes passam; documentação reflete a árvore atual; componentes ativos apontam somente para paths existentes; não há segredo/dado pessoal/arquivo temporário no diff; e versão/manifestos permanecem deterministicamente consistentes.
+Uma alteração está pronta quando `php tools/quality-gate` passa localmente, os gates de integração canônicos passam na CI, documentação reflete a árvore atual, componentes ativos apontam somente para paths existentes, não há segredo/dado pessoal/arquivo temporário no diff e versão/manifestos permanecem deterministicamente consistentes.

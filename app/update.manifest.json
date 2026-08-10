@@ -30,13 +30,13 @@
     "file_count": 432,
     "total_uncompressed_bytes": 6030472,
     "files": {
-        ".github/workflows/architecture.yml": "9217d5965af0853b7c32da21a49002e4dec40341eeb00b179c78f8f5665fb1d8",
+        ".github/workflows/architecture.yml": "8dd5de4266130b314b080ea9aa8b1fef7944d32e85602b8ccf8f6c14da1560be",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
         ".github/workflows/documentation.yml": "76b63728a95ddad2f851b8e0cc5151598a0c2585ec3a0d1797d72414f09279d5",
         ".gitignore": "4f409e9d6519b9e9bc3d20c915e4b1f0923917beb536f285e58fcfdf9b716346",
         ".htaccess": "3b406014a70fcc0f0c0f9d909a0b2d0bbf47fbb8bba5d5f23fe43d4845c1fb1a",
         "CHANGELOG.md": "4999d7976eab24608f41a1787e1d9d5e68d18bceb78b03d5ad838c7668703418",
-        "CONTRIBUTING.md": "fe999e3e88746b2a532c2be5b141d94f9f78d0775eac0731b97bf3a97e92b550",
+        "CONTRIBUTING.md": "7358c5b690b43e9692b07cf36c206180c3a3ed8d506b10e7c16dbc20e1883a3a",
         "README.md": "ddcb12ef80e57af69f13ecd45d1d1604c8dc6a79673ba3e0a8ba4eaf148fb1d8",
         "SECURITY.md": "8b736679cf820b30bdbcf4de567eb2ed3b72599cd66c07e6f36c4638c7534d77",
         "app/.htaccess": "f19e0a6ec4db41ce29fa249819d1121707608a25e2f697f023d94788f9751a0b",
@@ -453,8 +453,9 @@
         "tools/operation-gateway-budget-check": "6d158eec01856a8a7ce207540c7c04d10a033e29d96e146cee7bd1d6b68b6ad0",
         "tools/page-load-telemetry-contract-check": "2c74a8a4d14000de5f831661669a102d892d1eb45ebb675b821879bb17a965fb",
         "tools/performance-budget-check": "b2f6872129edda63e83dfbf60db3fceb2910b42cf8e4557b63b43ca0f4f8f806",
-        "tools/php84-runtime-contract-check": "6fc183a581f146b2e6fd9e2ff30c53564f06ddd4399f9b67c5b1055b7c513d53",
-        "tools/release-contract-reconcile": "d4e48bb955c71e67fad2f0abb78abb161d8fa60a58a66e477837a9ecce278928",
+        "tools/php84-runtime-contract-check": "24d285baf7deeb91d3e95822611e9ddd0f720071978442c7fb17883c320b352d",
+        "tools/quality-gate": "d1c2113d3dc4d876795210bebdc84017d45565b3d4a0e377de8f3e863fe5d7f7",
+        "tools/release-contract-reconcile": "fd1cef3795e39c88c16a27a3c6a4db33a58fc816bc84512ac847d1ea3cc5ffcf",
         "tools/runtime-symbol-contract-check": "99ab92e4ce191f1a7cdba1403b694908177ef33531de683d3efd90a28c8fb655",
         "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
         "tools/security-regression-check.php": "34f212acf5350301d4ae5da7099bc2a0e00bba757534301c6a78232c9ebfc2f9",
@@ -516,5 +517,17 @@
     "post_window_policy": "automatic_404_without_manual_intervention",
     "asset_version": "1.7.15.11",
     "required_php_family": "8.4",
-    "release_date": "2026-08-09"
+    "release_date": "2026-08-09",
+    "installer": {
+        "locked": false,
+        "access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
+        "post_window_policy": "automatic_404_without_manual_intervention"
+    },
+    "architecture": {
+        "policy": "php-layered-invariants-v2",
+        "native_files_min": 278,
+        "transitional_files_max": 21,
+        "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_with_uncached_fallback_when_readiness_lock_cache_is_unavailable",
+        "release_reconciliation_policy": "version_json_canonical_deterministic_outputs_ci_read_only_exact_validated_sha_equals_merge_candidate"
+    }
 }

@@ -1,0 +1,142 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+$fast = in_array('--fast', $argv, true);
+$passed = [];
+
+$abort = static function (string $name, string $message = ''): never {
+    fwrite(STDERR, '[quality-gate] FAIL ' . $name . ($message !== '' ? ': ' . $message : '') . PHP_EOL);
+    exit(1);
+};
+
+$run = static function (string $name, string $tool, array $args = []) use ($root, &$passed, $abort): void {
+    fwrite(STDOUT, '[quality-gate] RUN  ' . $name . PHP_EOL);
+    $command = array_merge([PHP_BINARY, $root . '/' . ltrim($tool, '/')], $args);
+    $escaped = implode(' ', array_map('escapeshellarg', $command));
+    passthru($escaped, $exitCode);
+    if ($exitCode !== 0) {
+        $abort($name, 'exit=' . $exitCode);
+    }
+    $passed[] = $name;
+    fwrite(STDOUT, '[quality-gate] PASS ' . $name . PHP_EOL);
+};
+
+$lint = static function () use ($root, &$passed, $abort): void {
+    fwrite(STDOUT, '[quality-gate] RUN  php84-lint' . PHP_EOL);
+    $files = [];
+    exec('git -C ' . escapeshellarg($root) . " ls-files '*.php'", $files, $gitExit);
+    if ($gitExit !== 0 || $files === []) {
+        $abort('php84-lint', 'tracked PHP files unavailable');
+    }
+    $count = 0;
+    foreach ($files as $relative) {
+        $relative = trim((string) $relative);
+        if ($relative === '') {
+            continue;
+        }
+        $output = [];
+        $command = escapeshellarg(PHP_BINARY) .
+            ' -d error_reporting=32767 -d display_errors=1 -d log_errors=0 -l ' .
+            escapeshellarg($root . '/' . $relative) . ' 2>&1';
+        exec($command, $output, $exitCode);
+        $text = implode("\n", $output);
+        if ($exitCode !== 0) {
+            $abort('php84-lint', $relative . ': ' . $text);
+        }
+        if (stripos($text, 'deprecated') !== false) {
+            $abort('php84-lint', 'deprecation: ' . $relative);
+        }
+        $count++;
+    }
+    $passed[] = 'php84-lint:' . $count;
+    fwrite(STDOUT, '[quality-gate] PASS php84-lint files=' . $count . PHP_EOL);
+};
+
+$canonical = static function () use ($root, &$passed, $abort): void {
+    fwrite(STDOUT, '[quality-gate] RUN  canonical-json' . PHP_EOL);
+    try {
+        $contracts = [];
+        foreach (['version.json', 'app/update.manifest.json', 'app/architecture.manifest.json'] as $file) {
+            $contracts[$file] = json_decode(
+                (string) file_get_contents($root . '/' . $file),
+                true,
+                512,
+                JSON_THROW_ON_ERROR,
+            );
+            if (!is_array($contracts[$file])) {
+                throw new RuntimeException('Contrato JSON inválido: ' . $file);
+            }
+        }
+        $version = trim((string) ($contracts['version.json']['version'] ?? ''));
+        if ($version === '' ||
+            trim((string) ($contracts['version.json']['release'] ?? '')) !== $version ||
+            trim((string) ($contracts['app/update.manifest.json']['version'] ?? '')) !== $version ||
+            trim((string) ($contracts['app/update.manifest.json']['release'] ?? '')) !== $version ||
+            trim((string) ($contracts['app/architecture.manifest.json']['version'] ?? '')) !== $version) {
+            throw new RuntimeException('Contrato canônico de versão divergente.');
+        }
+        foreach ([
+            'app/prontoo.php' => 'PRONTOO_VERSION_FALLBACK',
+            'br/index.php' => 'BR_LANDING_VERSION_FALLBACK',
+        ] as $file => $constant) {
+            $source = (string) file_get_contents($root . '/' . $file);
+            $pattern = '/const\s+' . preg_quote($constant, '/') . '\s*=\s*["\x27]([^"\x27]+)["\x27]\s*;/';
+            if (!preg_match($pattern, $source, $match) || trim((string) ($match[1] ?? '')) !== $version) {
+                throw new RuntimeException('Fallback de versão divergente: ' . $file);
+            }
+        }
+    } catch (Throwable $error) {
+        $abort('canonical-json', $error->getMessage());
+    }
+    $passed[] = 'canonical-json';
+    fwrite(STDOUT, '[quality-gate] PASS canonical-json' . PHP_EOL);
+};
+
+$run('fast-unit-suite', 'tools/test-fast');
+$run('composition-root-boundary', 'tools/composition-root-check');
+$run('performance-budget-contract', 'tools/performance-budget-check');
+$run('operation-gateway-budget', 'tools/operation-gateway-budget-check');
+
+if ($fast) {
+    fwrite(STDOUT, json_encode([
+        'ok' => true,
+        'policy' => 'canonical-engineering-quality-gate-v1',
+        'mode' => 'fast',
+        'gates_passed' => $passed,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(0);
+}
+
+$lint();
+$canonical();
+$run('version-asset-contract', 'tools/version-asset-contract-check.php');
+$run('php84-runtime-contract', 'tools/php84-runtime-contract-check');
+$run('release-contract', 'tools/release-contract-reconcile', ['--check']);
+$run('documentation-contract', 'tools/documentation-check.php');
+$run('code-comment-contract', 'tools/code-comment-check.php');
+$run('security-regressions', 'tools/security-regression-check.php');
+$run('architecture-invariants', 'tools/architecture-check.php');
+$run('native-unit-contract', 'tools/native-unit-check');
+$run('runtime-symbol-contract', 'tools/runtime-symbol-contract-check');
+$run('solid-structural-audit', 'tools/solid-audit', ['--strict']);
+
+fwrite(STDOUT, json_encode([
+    'ok' => true,
+    'policy' => 'canonical-engineering-quality-gate-v1',
+    'mode' => 'static',
+    'gates_passed' => $passed,
+    'integration_gates_deferred' => [
+        'schema',
+        'installer',
+        'login-post-password',
+        'maestro-runtime',
+        'critical-runtime-smoke',
+        'http-front-controller-smoke',
+    ],
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
