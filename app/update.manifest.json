@@ -324,7 +324,7 @@
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php": "26b0df62780e98e168a1138555134a117bf3756e79b04a88d218eac8e70d0767",
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": "19413864057f9f69ed40e4719854142fbf6d853164139893dfa340f716075ab8",
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": "700748a24a8967629bceec6a46719c72dfbb0fd551c960f3bae6588bee9b2505",
-        "app/architecture.gateway-budget.json": "8e2e51b95efc677df6f2665be826e137dfcbebfd40ae4079242dbc735cd805f1",
+        "app/architecture.gateway-budget.json": "5284ffc31e682d5f717977b7fe02108a10d0bbbc37b6bd8d679bce080a5b689b",
         "app/architecture.manifest.json": "65553c23572f829e266de8298715f20c68ecc8f047c2c49f21db3f034652075f",
         "app/bootstrap_architecture.php": "f728d6c11455b7fd4de58b75324dda122649cdde6c308392da2c02f1906181c0",
         "app/performance.budgets.json": "43f1c93ab75389cad1e5041c8a0458e3fab14a43e3282bb3e184996bf1e1d8e5",
