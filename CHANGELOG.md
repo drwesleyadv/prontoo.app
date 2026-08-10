@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.10.1 — Engenharia arquitetural 11–15 e governança de release
+
+- elimina o OperationGateway e fixa em zero o budget de invocações globais.
+- move o salvamento de metas financeiras para Application, Port e Infrastructure, mantendo o Runtime como orquestração fina.
+- amplia a suíte rápida para sete casos de uso e ports de Application, com 57 assertivas.
+- adiciona budget real de consultas MySQL com tetos de 1 e 3 SELECTs nos cenários críticos de leitura de pacientes.
+- introduz gerador explícito de versão por data, valida a cadeia previous_version e publica a conclusão das fases 11–15 como 1.8.10.1.
+
 ## 1.8.9.1 — Auditoria de consolidação pós-zero-legacy
 
 - alinha componentes arquiteturais ativos aos paths nativos após a remoção das fachadas globais.
