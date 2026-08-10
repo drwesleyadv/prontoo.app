@@ -1,0 +1,92 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+foreach ([
+    'app/Domain/Identity/IdentityDocumentValidator.php',
+    'app/Domain/Financial/FinancialMovementMutationPolicy.php',
+    'app/Core/Invariant/Workflow/StateMachine.php',
+    'app/Runtime/Routing/RouteDefinition.php',
+    'app/Runtime/Routing/RouteRegistry.php',
+] as $file) {
+    require_once $root . '/' . $file;
+}
+
+use Prontoo\Core\Invariant\Workflow\StateMachine;
+use Prontoo\Domain\Financial\FinancialMovementMutationPolicy;
+use Prontoo\Domain\Identity\IdentityDocumentValidator;
+use Prontoo\Runtime\Routing\RouteRegistry;
+
+$passed = 0;
+$failures = [];
+$assert = static function (bool $condition, string $name) use (&$passed, &$failures): void {
+    if ($condition) {
+        $passed++;
+        return;
+    }
+    $failures[] = $name;
+};
+$same = static function (mixed $expected, mixed $actual, string $name) use ($assert): void {
+    $assert($expected === $actual, $name);
+};
+
+$assert(IdentityDocumentValidator::cpf('52998224725'), 'identity.cpf.valid');
+$assert(!IdentityDocumentValidator::cpf('52998224724'), 'identity.cpf.invalid_check_digit');
+$assert(!IdentityDocumentValidator::cpf('11111111111'), 'identity.cpf.repeated_digits');
+$assert(IdentityDocumentValidator::cnpj('11222333000181'), 'identity.cnpj.valid');
+$assert(!IdentityDocumentValidator::cnpj('11222333000180'), 'identity.cnpj.invalid_check_digit');
+$assert(!IdentityDocumentValidator::birthDate('2999-01-01'), 'identity.birth_date.future');
+$assert(IdentityDocumentValidator::birthDate('2000-01-01'), 'identity.birth_date.valid');
+
+$same(null, FinancialMovementMutationPolicy::target('SELECT * FROM pi_financial_movements', []), 'financial.unrelated_sql');
+$target = FinancialMovementMutationPolicy::target(
+    'UPDATE pi_financial_movements SET status=?, updated_at=? WHERE clinic_id=? AND id=?',
+    ['ok', '2026-08-10 00:00:00', 7, 91],
+);
+$same('clinic_id=? AND id=?', $target['where'] ?? null, 'financial.update_where');
+$same([7, 91], $target['params'] ?? null, 'financial.update_where_params');
+$target = FinancialMovementMutationPolicy::target(
+    'DELETE FROM pi_financial_movements WHERE clinic_id=? AND id=?',
+    [7, 91],
+);
+$same('clinic_id=? AND id=?', $target['where'] ?? null, 'financial.delete_where');
+$same([7, 91], $target['params'] ?? null, 'financial.delete_where_params');
+
+$machine = new StateMachine(
+    ['novo' => ['ativo'], 'ativo' => ['finalizado'], 'finalizado' => []],
+    ['new' => 'novo', 'done' => 'finalizado'],
+    ['novo'],
+);
+$same('novo', $machine->normalize(' NEW '), 'state.normalize_alias');
+$assert($machine->acceptsInitial('new'), 'state.initial_alias');
+$assert($machine->canTransition('novo', 'ativo'), 'state.allowed_transition');
+$assert(!$machine->canTransition('novo', 'finalizado'), 'state.blocked_transition');
+$assert($machine->canTransition('done', 'finalizado'), 'state.same_known_state');
+$same(['finalizado'], $machine->allowedFrom('ativo'), 'state.allowed_from');
+
+$routeTest = RouteRegistry::logicSelfTest();
+$assert(($routeTest['ok'] ?? false) === true, 'routes.logic_self_test');
+$same(63, $routeTest['routes'] ?? null, 'routes.count');
+$same(8, $routeTest['public_routes'] ?? null, 'routes.public_count');
+$same(9, $routeTest['json_routes'] ?? null, 'routes.json_count');
+$login = RouteRegistry::definition('login');
+$assert($login !== null && $login->public && $login->isPublicLight('POST'), 'routes.login_public_light');
+$reauth = RouteRegistry::definition('global_reauth');
+$assert($reauth !== null && !$reauth->public && $reauth->handlerMethod === 'page_global_reauth', 'routes.reauth_protected');
+$patient = RouteRegistry::definition('patient');
+$same(['patients', 'financial'], $patient?->moduleGroups, 'routes.patient_module_groups');
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'fast-unit-suite-v1',
+    'assertions_passed' => $passed,
+    'assertions_failed' => count($failures),
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
