@@ -111,7 +111,8 @@ foreach ($workflowPaths as $path) {
 }
 
 $architectureWorkflow = $read(".github/workflows/architecture.yml");
-if (!str_contains($architectureWorkflow, "php tools/php84-runtime-contract-check")) {
+if (!str_contains($architectureWorkflow, "php tools/php84-runtime-contract-check") &&
+    !str_contains($architectureWorkflow, "php tools/quality-gate")) {
     $failures[] = "A auditoria PHP 8.4 não está integrada ao contrato de arquitetura.";
 }
 $cronRunbook = $read("docs/operations/maestro-runbook.md");
