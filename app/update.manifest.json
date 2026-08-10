@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 420,
-    "total_uncompressed_bytes": 5995453,
+    "total_uncompressed_bytes": 5995498,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -129,7 +129,7 @@
         "app/Domain/Documents/DocumentTypePolicy.php": "e7a2d40a6a0722c837294a368a5935a8f56bdd6f03b87d709144d5b56b1d941a",
         "app/Domain/Documents/DocumentsCompatibilityOperations01.php": "8a82a5d61172204ecba21c9accb6aee3f9916a1a5a4ece1ae101a71f06c9eea7",
         "app/Domain/Documents/DocumentsDomainOperations02.php": "5cf9b3b438906e8d9711b189cc1353cf1a3e415c0c617a0e203f9091459efaa8",
-        "app/Domain/Financial/FinancialDomainOperations01.php": "ce66d514598067058819df65ebe264b62322e90f88a5a29ee0c7d0758509095b",
+        "app/Domain/Financial/FinancialDomainOperations01.php": "7d5975f33df35824a77a3f2d2386f2f6534750f8ba4463abf454b5c1588e4881",
         "app/Domain/Identity/IdentityDocumentValidator.php": "5e7b9ba901aa04f1c2180af430095dcb4862f2982c65c7e5380f6a2b1891d478",
         "app/Domain/Leads/LeadsDomainOperations01.php": "b679ebd2aa77b43cf3e5b7e4689afcb1528bd38c6db0bd7b3b8a4fefc40a4fe6",
         "app/Domain/Maestro/MaestroDomainOperations01.php": "3fab5d3a87604aa0d18909e340ff1df7d5a110cb25dac63a24e4a09e9558db9f",
