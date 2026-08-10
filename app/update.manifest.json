@@ -453,7 +453,7 @@
         "tools/operation-gateway-budget-check": "6d158eec01856a8a7ce207540c7c04d10a033e29d96e146cee7bd1d6b68b6ad0",
         "tools/page-load-telemetry-contract-check": "2c74a8a4d14000de5f831661669a102d892d1eb45ebb675b821879bb17a965fb",
         "tools/performance-budget-check": "b2f6872129edda63e83dfbf60db3fceb2910b42cf8e4557b63b43ca0f4f8f806",
-        "tools/php84-runtime-contract-check": "6fc183a581f146b2e6fd9e2ff30c53564f06ddd4399f9b67c5b1055b7c513d53",
+        "tools/php84-runtime-contract-check": "24d285baf7deeb91d3e95822611e9ddd0f720071978442c7fb17883c320b352d",
         "tools/quality-gate": "d1c2113d3dc4d876795210bebdc84017d45565b3d4a0e377de8f3e863fe5d7f7",
         "tools/release-contract-reconcile": "fd1cef3795e39c88c16a27a3c6a4db33a58fc816bc84512ac847d1ea3cc5ffcf",
         "tools/runtime-symbol-contract-check": "99ab92e4ce191f1a7cdba1403b694908177ef33531de683d3efd90a28c8fb655",
