@@ -52,6 +52,11 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Operation gateway debt budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/operation-gateway-budget-check
       - name: PHP syntax and deprecations
         shell: bash
         run: |
