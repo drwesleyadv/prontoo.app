@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -52,14 +52,6 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Apply phase 12
-        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-12-runtime-thinning'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/phase12-apply.py
-          php tools/release-contract-reconcile --write
-          git add -A
       - name: Engineering quality gate
         shell: bash
         run: |
@@ -96,19 +88,3 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
-      - name: Materialize phase 12 canonical head
-        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-12-runtime-thinning'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin prontoo agent/architecture-phase-12-runtime-thinning
-          git checkout -B agent/architecture-phase-12-runtime-thinning origin/agent/architecture-phase-12-runtime-thinning
-          python3 tools/phase12-apply.py
-          git rm -f tools/phase12-apply.py
-          git checkout origin/prontoo -- .github/workflows/architecture.yml
-          php tools/release-contract-reconcile --write
-          git add -A
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Engenharia 12/15 — afinar Runtime financeiro por Application port'
-          git push origin HEAD:agent/architecture-phase-12-runtime-thinning

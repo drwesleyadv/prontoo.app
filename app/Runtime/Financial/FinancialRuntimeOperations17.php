@@ -116,21 +116,18 @@ final class FinancialRuntimeOperations17
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("financial", ["tab" => "locais"]);
                 }
                 if ($act === "goal") {
-                    $target = \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["target"] ?? "0"));
-                    $share = isset($_POST["share_with_team"]) ? 1 : 0;
-                    $base = (string) ($_POST["base_metric"] ?? "efetivada");
-                    if (!in_array($base, ["prevista", "efetivada"], true)) {
-                        $base = "efetivada";
-                    }
-                    $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_financial_goals (clinic_id,month_key,target_cents,base_metric,share_with_team,updated_by) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE target_cents=VALUES(target_cents), base_metric=VALUES(base_metric), share_with_team=VALUES(share_with_team), updated_by=VALUES(updated_by), updated_at=NOW()",
-                        [$cid, $month, $target, $base, $share, $uid],
+                    $goal = \Prontoo\Runtime\Financial\FinancialComposition::financialGoalService()->save(
+                        $cid,
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid),
+                        \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["target"] ?? "0")),
+                        (string) ($_POST["base_metric"] ?? "efetivada"),
+                        isset($_POST["share_with_team"]),
+                        $uid,
                     );
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("meta_financeira_salva", "financeiro", $cid, [
-                        "valor" => $target,
-                        "base" => $base,
-                        "compartilhar" => $share,
+                        "valor" => $goal["target_cents"],
+                        "base" => $goal["base_metric"],
+                        "compartilhar" => $goal["share_with_team"],
                     ]);
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Meta mensal atualizada.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("financial", ["tab" => "meta"]);
