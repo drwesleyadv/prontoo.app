@@ -198,7 +198,7 @@ foreach (['app/prontoo.php', 'br/index.php'] as $httpsRuntimeFile) {
     $httpsRuntimeSource = (string) file_get_contents($root . '/' . $httpsRuntimeFile);
     if (!str_contains($httpsRuntimeSource, 'Location: https://prontoo.app') ||
         !str_contains($httpsRuntimeSource, 'true, 308') ||
-        !str_contains($httpsRuntimeSource, '\\Prontoo\\Runtime\\SecurityPrivacy\\SecurityPrivacyRuntimeOperations01::security_https_active()') ||
+        !str_contains($httpsRuntimeSource, '\Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()') ||
         str_contains($httpsRuntimeSource, 'HTTP_X_FORWARDED_PROTO')) {
         $errors[] = 'runtime_https_guard:' . $httpsRuntimeFile;
     }
@@ -211,7 +211,7 @@ foreach (['tools/architecture-check.php', 'tools/schema-check.php', 'tools/insta
 }
 
 $securityAccessSource = compatibility_source($root, 'app/Support/SecurityAccess.php');
-if (!str_contains($securityAccessSource, '\\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::storage_path("cache/rate-limits")') ||
+if (!str_contains($securityAccessSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/rate-limits")') ||
     !str_contains($securityAccessSource, 'flock($handle, LOCK_EX)')) {
     $errors[] = 'atomic_rate_limit_policy';
 }
@@ -220,7 +220,7 @@ if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
     !str_contains($authSecuritySource, 'fail_count=LEAST(100000,fail_count+1)') ||
     !str_contains($authSecuritySource, 'login|all-ip-addresses') ||
     !str_contains($authSecuritySource, 'login|all-subjects') ||
-    !str_contains($authSecuritySource, '\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations03::login_locks_cleanup_maybe();')) {
+    !str_contains($authSecuritySource, '\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_locks_cleanup_maybe();')) {
     $errors[] = 'atomic_login_limit_policy';
 }
 $nativeSecurityAccessSource = (string) file_get_contents(
@@ -241,10 +241,10 @@ if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600\s*;/', $pronto
     $errors[] = 'session_idle_or_policy_generation';
 }
 if (!preg_match('/function\s+device_session_auto_login\(\):\s*bool\s*\{.*?return\s+false\s*;\s*\}/s', $securityAccessSource) ||
-    !str_contains($securityAccessSource, 'setcookie(\\Prontoo\\Infrastructure\\SecurityAccess\\SecurityAccessInfrastructureOperations01::device_cookie_name(), "",') ||
+    !str_contains($securityAccessSource, 'setcookie(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name(), "",') ||
     !str_contains($securityAccessSource, 'security_retire_persistent_devices_for_user') ||
     !str_contains($securityAccessSource, 'user_auth_generation_rotate') ||
-    !str_contains($securityAccessSource, '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
+    !str_contains($securityAccessSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
     $errors[] = 'persistent_device_retirement_policy';
 }
 foreach ([
@@ -262,23 +262,23 @@ foreach ([
 foreach ([
     'function page_mfa(): void',
     'function page_global_reauth(): void',
-    '\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations01::mfa_begin_pending_login(',
+    '\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::mfa_begin_pending_login(',
     'password_verify($password',
-    '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::mfa_verify_user_code($uid, $code)',
+    '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::mfa_verify_user_code($uid, $code)',
     'CPF ou senha não conferem.',
-    '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);',
+    '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);',
 ] as $requiredAuthFlow) {
     if (!str_contains($authSecuritySource, $requiredAuthFlow)) {
         $errors[] = 'auth_flow_policy:' . $requiredAuthFlow;
     }
 }
-if (str_contains($authSecuritySource, '\\Prontoo\\Infrastructure\\SecurityAccess\\SecurityAccessInfrastructureOperations01::device_login_fields(') ||
-    str_contains($authSecuritySource, '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::device_session_auto_login()')) {
+if (str_contains($authSecuritySource, '\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_login_fields(') ||
+    str_contains($authSecuritySource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()')) {
     $errors[] = 'persistent_device_auth_surface';
 }
 $foundationAuthSource = compatibility_source($root, 'app/Support/Foundation.php');
-if (str_contains($foundationAuthSource, '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::device_session_auto_login()') ||
-    !str_contains($foundationAuthSource, '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
+if (str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()') ||
+    !str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
     $errors[] = 'login_autotest_persistent_device_bypass';
 }
 
@@ -287,12 +287,12 @@ $authDefinitionSource = (string) file_get_contents(
 );
 $requiredMfaRoutes = [
     'mfa' => [
-        \\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations02::class,
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class,
         'page_mfa',
         true,
     ],
     'global_reauth' => [
-        \\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations02::class,
+        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class,
         'page_global_reauth',
         false,
     ],
@@ -336,8 +336,8 @@ if (!str_contains($gitignore, '/ssd/') ||
     $errors[] = 'ssd_gitignore_policy';
 }
 $foundationSource = compatibility_source($root, 'app/Support/Foundation.php');
-if (!str_contains($foundationSource, '\\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::app_root() . "/ssd"') ||
-    str_contains($foundationSource, '\\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::app_root() . "/storage"')) {
+if (!str_contains($foundationSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd"') ||
+    str_contains($foundationSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/storage"')) {
     $errors[] = 'ssd_storage_path_policy';
 }
 $prontooSource = (string) file_get_contents($root . '/app/prontoo.php');
