@@ -37,6 +37,7 @@ final class LayerMap
         'app/Domain/Documents/DocumentsCompatibilityOperations01.php',
         'app/Domain/Documents/DocumentsDomainOperations02.php',
         'app/Domain/Financial/FinancialDomainOperations01.php',
+        'app/Domain/Financial/FinancialMovementMutationPolicy.php',
         'app/Domain/Leads/LeadsDomainOperations01.php',
         'app/Domain/Maestro/MaestroDomainOperations01.php',
         'app/Domain/Maestro/MaestroDomainOperations02.php',
