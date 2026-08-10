@@ -86,7 +86,27 @@ $config = [
 file_put_contents($configPath, '<?php return ' . var_export($config, true) . ';' . PHP_EOL, LOCK_EX);
 putenv('PRONTOO_CONFIG_PATH=' . $configPath);
 
+$dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $config['db_host'], $config['db_name']);
+$admin = PDO::connect($dsn, $config['db_user'], $config['db_pass'], [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$tables = $admin->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$admin->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $admin->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $admin->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
 require $root . '/app/prontoo.php';
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
+});
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
 $repository = new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository();
