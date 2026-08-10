@@ -115,6 +115,7 @@ jobs:
           set -euo pipefail
           git fetch origin prontoo agent/architecture-phase-14-query-budget
           git checkout -B agent/architecture-phase-14-query-budget origin/agent/architecture-phase-14-query-budget
+          git reset --hard origin/agent/architecture-phase-14-query-budget
           python3 tools/phase14-apply.py
           git rm -f tools/phase14-apply.py
           git checkout origin/prontoo -- .github/workflows/architecture.yml
