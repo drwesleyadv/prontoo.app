@@ -1,0 +1,199 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$versionPath = $root . '/version.json';
+
+$fail = static function (string $message): never {
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+};
+
+$argument = static function (string $name) use ($argv): ?string {
+    $prefix = '--' . $name . '=';
+    foreach ($argv as $value) {
+        $value = (string) $value;
+        if (str_starts_with($value, $prefix)) {
+            return substr($value, strlen($prefix));
+        }
+    }
+    return null;
+};
+
+$parseVersion = static function (string $version): array {
+    if (!preg_match('/^1\.(\d{1,2})\.(\d{1,2})\.(\d+)$/', $version, $match)) {
+        throw new RuntimeException('Formato de versão inválido: ' . $version);
+    }
+    $month = (int) $match[1];
+    $day = (int) $match[2];
+    $sequence = (int) $match[3];
+    if ($month < 1 || $month > 12 || $day < 1 || $day > 31 || $sequence < 1) {
+        throw new RuntimeException('Componentes de versão inválidos: ' . $version);
+    }
+    return [$month, $day, $sequence];
+};
+
+$nextVersion = static function (string $current, string $currentDate, string $targetDate) use ($parseVersion): string {
+    [$month, $day, $sequence] = $parseVersion($current);
+    $currentDay = DateTimeImmutable::createFromFormat('!Y-m-d', $currentDate);
+    $targetDay = DateTimeImmutable::createFromFormat('!Y-m-d', $targetDate);
+    if (!$currentDay instanceof DateTimeImmutable || $currentDay->format('Y-m-d') !== $currentDate) {
+        throw new RuntimeException('Data da versão atual inválida.');
+    }
+    if (!$targetDay instanceof DateTimeImmutable || $targetDay->format('Y-m-d') !== $targetDate) {
+        throw new RuntimeException('Data de publicação inválida.');
+    }
+    if ((int) $currentDay->format('n') !== $month || (int) $currentDay->format('j') !== $day) {
+        throw new RuntimeException('Versão atual não corresponde à release_date canônica.');
+    }
+    if ($targetDay < $currentDay) {
+        throw new RuntimeException('Regressão de data de publicação não permitida.');
+    }
+    if ($targetDay == $currentDay) {
+        return sprintf('1.%d.%d.%d', (int) $targetDay->format('n'), (int) $targetDay->format('j'), $sequence + 1);
+    }
+    return sprintf('1.%d.%d.1', (int) $targetDay->format('n'), (int) $targetDay->format('j'));
+};
+
+$selfTests = [
+    ['1.8.9.1', '2026-08-09', '2026-08-09', '1.8.9.2'],
+    ['1.8.9.1', '2026-08-09', '2026-08-10', '1.8.10.1'],
+    ['1.12.31.4', '2026-12-31', '2027-01-01', '1.1.1.1'],
+];
+foreach ($selfTests as [$current, $currentDate, $targetDate, $expected]) {
+    if ($nextVersion($current, $currentDate, $targetDate) !== $expected) {
+        $fail('Autoteste do gerador de versão falhou.');
+    }
+}
+try {
+    $nextVersion('1.8.10.1', '2026-08-10', '2026-08-09');
+    $fail('Autoteste de regressão de data falhou.');
+} catch (RuntimeException $expected) {
+}
+
+try {
+    $version = json_decode((string) file_get_contents($versionPath), true, 512, JSON_THROW_ON_ERROR);
+} catch (Throwable $error) {
+    $fail('Falha ao ler version.json: ' . $error->getMessage());
+}
+if (!is_array($version)) {
+    $fail('version.json inválido.');
+}
+
+$write = in_array('--write', $argv, true);
+if ($write) {
+    $targetDate = trim((string) ($argument('date') ?? ''));
+    $timestamp = trim((string) ($argument('timestamp') ?? ''));
+    $expectedCurrent = trim((string) ($argument('expected-current') ?? ''));
+    $current = trim((string) ($version['version'] ?? ''));
+    $currentRelease = trim((string) ($version['release'] ?? ''));
+    $currentDate = trim((string) ($version['release_date'] ?? ''));
+    if ($targetDate === '' || $timestamp === '' || $expectedCurrent === '') {
+        $fail('Use --write --date=YYYY-MM-DD --timestamp=ISO8601 --expected-current=x.y.z.n.');
+    }
+    if ($current !== $expectedCurrent || $currentRelease !== $current) {
+        $fail('Versão canônica mudou desde a preparação da publicação.');
+    }
+    $instant = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $timestamp);
+    if (!$instant instanceof DateTimeImmutable || $instant->format(DateTimeInterface::ATOM) !== $timestamp) {
+        $fail('Timestamp de publicação inválido.');
+    }
+    $next = $nextVersion($current, $currentDate, $targetDate);
+    $version['version'] = $next;
+    $version['release'] = $next;
+    $version['generated_at_unix'] = $instant->getTimestamp();
+    $version['generated_at'] = $timestamp;
+    $version['updated_at'] = $timestamp;
+    $version['build'] = $next . '-architecture-15';
+    $version['logic_changes'] = true;
+    $version['documentation_changes'] = true;
+    $version['functional_equivalence_policy'] = 'architecture_11_15_incremental_engineering_refinement';
+    $version['version_policy'] = 'version_json_is_unique_canonical_source_and_release_version_bump_is_explicit';
+    $version['version_format'] = '1.month.day.sequence';
+    $version['version_sequence_policy'] = 'sequence_starts_at_1_and_resets_each_publication_day';
+    $version['release_version_policy'] = 'explicit_date_sequence_generator_v1';
+    $version['release_version_generator'] = 'tools/release-version';
+    $version['release_version_last_transition'] = $current . '->' . $next;
+    $version['notes'] = 'Engenharia 11–15: dependências tipadas sem OperationGateway, thinning de Runtime, cobertura rápida ampliada de Application, budget real de consultas MySQL e governança explícita de versão.';
+    $version['previous_version'] = $current;
+    $version['deployment_sync_id'] = 'github-prontoo-' . $next . '-architecture-15';
+    $version['deployment_sync_requested_at'] = $timestamp;
+    $version['release_reconciliation_policy'] = 'version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only';
+    $version['release_date'] = $targetDate;
+    file_put_contents(
+        $versionPath,
+        json_encode($version, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL,
+        LOCK_EX,
+    );
+    fwrite(STDOUT, json_encode([
+        'ok' => true,
+        'mode' => 'write',
+        'previous_version' => $current,
+        'version' => $next,
+        'release_date' => $targetDate,
+        'policy' => 'explicit_date_sequence_generator_v1',
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(0);
+}
+
+$failures = [];
+$current = trim((string) ($version['version'] ?? ''));
+$release = trim((string) ($version['release'] ?? ''));
+$releaseDate = trim((string) ($version['release_date'] ?? ''));
+$previous = trim((string) ($version['previous_version'] ?? ''));
+try {
+    [$month, $day, $sequence] = $parseVersion($current);
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $releaseDate);
+    if (!$date instanceof DateTimeImmutable || $date->format('Y-m-d') !== $releaseDate) {
+        $failures[] = 'release_date';
+    } elseif ((int) $date->format('n') !== $month || (int) $date->format('j') !== $day) {
+        $failures[] = 'version_date_alignment';
+    }
+    if ($sequence < 1) {
+        $failures[] = 'sequence';
+    }
+    $parseVersion($previous);
+} catch (Throwable $error) {
+    $failures[] = 'format:' . $error->getMessage();
+}
+if ($release !== $current) {
+    $failures[] = 'release_mismatch';
+}
+if ($previous === '' || $previous === $current) {
+    $failures[] = 'previous_version';
+}
+if (($version['version_format'] ?? '') !== '1.month.day.sequence') {
+    $failures[] = 'version_format';
+}
+if (($version['version_sequence_policy'] ?? '') !== 'sequence_starts_at_1_and_resets_each_publication_day') {
+    $failures[] = 'sequence_policy';
+}
+if (($version['release_version_policy'] ?? '') !== 'explicit_date_sequence_generator_v1') {
+    $failures[] = 'release_version_policy';
+}
+if (($version['release_version_generator'] ?? '') !== 'tools/release-version') {
+    $failures[] = 'release_version_generator';
+}
+if (($version['release_reconciliation_policy'] ?? '') !== 'version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only') {
+    $failures[] = 'reconciliation_policy';
+}
+if (($version['logic_changes'] ?? null) !== true) {
+    $failures[] = 'logic_changes';
+}
+
+fwrite(STDOUT, json_encode([
+    'ok' => $failures === [],
+    'mode' => 'check',
+    'policy' => 'explicit_date_sequence_generator_v1',
+    'version' => $current,
+    'previous_version' => $previous,
+    'release_date' => $releaseDate,
+    'self_tests' => count($selfTests) + 1,
+    'failures' => $failures,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
