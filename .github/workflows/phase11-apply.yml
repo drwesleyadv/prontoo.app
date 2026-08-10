@@ -40,6 +40,7 @@ jobs:
           python3 tools/phase11-apply.py
           git rm -f tools/phase11-apply.py .github/workflows/phase11-apply.yml
           php tools/release-contract-reconcile --write
+          git add -A
           php tools/quality-gate --fast
           php tools/quality-gate
           if git grep -nE 'OperationGateway::|OperationRegistry::' -- '*.php' 'tools/*' 'cron/*' ':!docs/*' ':!tools/operation-gateway-budget-check'; then
