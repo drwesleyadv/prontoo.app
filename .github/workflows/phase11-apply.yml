@@ -56,6 +56,12 @@ jobs:
           inspector = root / 'app/Infrastructure/Database/TenantIntegrityInspector.php'
           s = inspector.read_text().replace('strtolower(trim((string)', 'strtolower(mb_trim((string)')
           inspector.write_text(s)
+          architecture_check = root / 'tools/architecture-check.php'
+          s = architecture_check.read_text().replace(
+              "'new PdoPatientRevenueReceiptRepository()'",
+              "'new PdoPatientRevenueReceiptRepository(new PatientRevenueSettlementAdapter())'",
+          )
+          architecture_check.write_text(s)
           version_path = root / 'version.json'
           version = json.loads(version_path.read_text())
           migrations = version.setdefault('php84_baseline_path_migrations', {})
