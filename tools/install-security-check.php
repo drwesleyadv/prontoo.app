@@ -8,9 +8,9 @@ if (PHP_SAPI !== "cli") {
 }
 
 $root = dirname(__DIR__);
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 require_once $root . '/app/Core/Install/InstallAccess.php';
 require_once $root . '/app/Core/Database/SchemaMutationLock.php';
-require_once $root . '/app/Database/DatabaseSchema.php';
 
 use Prontoo\Core\Database\SchemaMutationLock;
 use Prontoo\Core\Install\InstallAccess;
