@@ -4,14 +4,17 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Financial;
 
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Financial\FinancialGoalService;
 use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Infrastructure\Financial\PdoFinancialCashierAttentionRepository;
+use Prontoo\Infrastructure\Financial\PdoFinancialGoalRepository;
 use Prontoo\Infrastructure\Financial\PdoPatientRevenueReceiptRepository;
 
 final class FinancialComposition
 {
     private static ?PatientRevenueReceiptService $patientRevenue = null;
     private static ?FinancialCashierAttentionService $cashierAttention = null;
+    private static ?FinancialGoalService $financialGoal = null;
 
     private function __construct()
     {
@@ -28,6 +31,13 @@ final class FinancialComposition
     {
         return self::$cashierAttention ??= new FinancialCashierAttentionService(
             new PdoFinancialCashierAttentionRepository(),
+        );
+    }
+
+    public static function financialGoalService(): FinancialGoalService
+    {
+        return self::$financialGoal ??= new FinancialGoalService(
+            new PdoFinancialGoalRepository(),
         );
     }
 

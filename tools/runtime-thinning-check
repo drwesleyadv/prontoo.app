@@ -1,0 +1,29 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$runtime = (string) file_get_contents($root . '/app/Runtime/Financial/FinancialRuntimeOperations17.php');
+$composition = (string) file_get_contents($root . '/app/Runtime/Financial/FinancialComposition.php');
+$failures = [];
+if (str_contains($runtime, 'INSERT INTO pi_financial_goals')) {
+    $failures[] = 'financial_goal_sql_in_runtime';
+}
+if (!str_contains($runtime, 'FinancialComposition::financialGoalService()->save(')) {
+    $failures[] = 'financial_goal_application_delegation_missing';
+}
+if (!str_contains($composition, 'new PdoFinancialGoalRepository()')) {
+    $failures[] = 'financial_goal_composition_missing';
+}
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'runtime-controllers-delegate-business-persistence-v1',
+    'slice' => 'financial_goal_save',
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
