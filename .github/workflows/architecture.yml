@@ -7,11 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
-
-concurrency:
-  group: architecture-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -56,16 +52,6 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Prepare final phase 15 release candidate
-        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-15-release-governance'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git checkout origin/prontoo -- version.json .github/workflows/architecture.yml .github/workflows/documentation.yml
-          php tools/release-version --write --date=2026-08-10 --timestamp=2026-08-10T22:24:08+00:00 --expected-current=1.8.9.1
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --write
-          git add -A
       - name: Engineering quality gate
         shell: bash
         run: |
@@ -107,24 +93,3 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
-      - name: Materialize final phase 15 non-workflow files
-        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-15-release-governance'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin prontoo agent/architecture-phase-15-release-governance
-          git checkout -B agent/architecture-phase-15-release-governance origin/agent/architecture-phase-15-release-governance
-          git reset --hard origin/agent/architecture-phase-15-release-governance
-          git checkout origin/prontoo -- version.json .github/workflows/architecture.yml .github/workflows/documentation.yml
-          php tools/release-version --write --date=2026-08-10 --timestamp=2026-08-10T22:24:08+00:00 --expected-current=1.8.9.1
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --write
-          git checkout origin/agent/architecture-phase-15-release-governance -- .github/workflows/architecture.yml .github/workflows/documentation.yml
-          git add -A
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m 'Engenharia 15/15 — corrigir changelog canônico da versão 1.8.10.1'
-          git push origin HEAD:agent/architecture-phase-15-release-governance
