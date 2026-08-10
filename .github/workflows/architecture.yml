@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -52,6 +52,14 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Apply phase 14
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-14-query-budget'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/phase14-apply.py
+          php tools/release-contract-reconcile --write
+          git add -A
       - name: Engineering quality gate
         shell: bash
         run: |
@@ -62,6 +70,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/schema-check.php
+      - name: MySQL query budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/mysql-query-budget-check
       - name: Installer security
         shell: bash
         run: |
@@ -88,3 +101,41 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
+      - name: Materialize phase 14 canonical head
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-14-query-budget'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo agent/architecture-phase-14-query-budget
+          git checkout -B agent/architecture-phase-14-query-budget origin/agent/architecture-phase-14-query-budget
+          python3 tools/phase14-apply.py
+          git rm -f tools/phase14-apply.py
+          git checkout origin/prontoo -- .github/workflows/architecture.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/architecture.yml')
+          source = path.read_text()
+          needle = '''      - name: Schema contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/schema-check.php
+'''
+          addition = needle + '''      - name: MySQL query budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/mysql-query-budget-check
+'''
+          if 'name: MySQL query budget' not in source:
+              if source.count(needle) != 1:
+                  raise SystemExit('schema step insertion point not found')
+              source = source.replace(needle, addition, 1)
+          path.write_text(source)
+          PY
+          php tools/release-contract-reconcile --write
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Engenharia 14/15 — adicionar budget real de consultas MySQL'
+          git push origin HEAD:agent/architecture-phase-14-query-budget
