@@ -34,7 +34,11 @@ final class LayeredKernel
     {
 
         return self::$actions ??= new ActionMiddleware(
-            new AuthorizationService(new RuntimeCapabilityProvider()),
+            new AuthorizationService(new RuntimeCapabilityProvider(
+                null,
+                static fn(string $role, int $clinicId): array =>
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::permission_rules_for_role($role, $clinicId),
+            )),
             new PdoActionProofStore(),
         );
     }

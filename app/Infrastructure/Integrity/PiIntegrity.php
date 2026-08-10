@@ -47,7 +47,7 @@ final class PiIntegrity
     public static function rewriteSqlForRuntime(string $sql): string
     {
 
-        return class_exists('Prontoo\\Core\\Temporal\\PiTime')
+        return class_exists('Prontoo\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteTemporalFunctions($sql)
             : $sql;
     }
@@ -55,7 +55,7 @@ final class PiIntegrity
     public static function prepareRuntimeQuery(string $sql, array $params): array
     {
 
-        return class_exists('Prontoo\\Core\\Temporal\\PiTime')
+        return class_exists('Prontoo\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::prepareRuntimeQuery($sql, $params)
             : [$sql, $params];
     }
@@ -63,7 +63,7 @@ final class PiIntegrity
     public static function rewriteSchemaSql(string $sql): string
     {
 
-        return class_exists('Prontoo\\Core\\Temporal\\PiTime')
+        return class_exists('Prontoo\Core\\Temporal\\PiTime')
             ? \Prontoo\Core\Temporal\PiTime::rewriteSchemaSql($sql)
             : $sql;
     }
@@ -600,11 +600,18 @@ final class PiIntegrity
 
     private static function secret(): string
     {
-
         try {
-            return \Prontoo\Core\Architecture\OperationGateway::has('secret_key')
-                ? (string) \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key', )
-                : (string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()['secret'] ?? 'prontoo-integrity');
+            if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+                $statement = self::pdo()->query("SELECT meta_value FROM pi_meta WHERE meta_key='app_secret' LIMIT 1");
+                $value = $statement ? $statement->fetchColumn() : false;
+                if (is_string($value) && trim($value) !== '') {
+                    return $value;
+                }
+            }
+        } catch (\Throwable) {
+        }
+        try {
+            return (string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()['secret'] ?? 'prontoo-integrity');
         } catch (\Throwable) {
             return 'prontoo-integrity';
         }
@@ -612,7 +619,6 @@ final class PiIntegrity
 
     private static function logOnce(string $stage, \Throwable $error): void
     {
-
         static $logged = [];
         $key = $stage . '|' . $error->getMessage();
         if (isset($logged[$key])) {
@@ -624,7 +630,6 @@ final class PiIntegrity
 
     private static function requestId(): string
     {
-
         if (self::$requestId !== null) {
             return self::$requestId;
         }
@@ -637,7 +642,6 @@ final class PiIntegrity
 
     private static function cleanToken(string $value, string $fallback): string
     {
-
         return preg_replace('/[^a-z0-9_-]+/i', '_', trim($value)) ?: $fallback;
     }
 }

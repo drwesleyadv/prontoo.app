@@ -347,7 +347,7 @@ final class SecurityAccessRuntimeOperations01
     {
     
         try {
-            return \Prontoo\Core\Architecture\OperationGateway::invoke('val', $sql, $p) ?? $fallback;
+            return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value($sql, $p) ?? $fallback;
         } catch (Throwable $e) {
             error_log("[Prontoo safe_val] " . $e->getMessage());
             return $fallback;
@@ -386,7 +386,7 @@ final class SecurityAccessRuntimeOperations01
         return hash_hmac(
             "sha256",
             "prontoo-mfa-secret-v1",
-            \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key'),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->secretKey(),
             true,
         );
     
@@ -450,10 +450,10 @@ final class SecurityAccessRuntimeOperations01
     public static function mfa_record_load(int $uid): ?array
     
     {
-        if ($uid <= 0 || !\Prontoo\Core\Architecture\OperationGateway::invoke('has_cfg')) {
+        if ($uid <= 0 || !\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->hasConfig()) {
             return null;
         }
-        $raw = \Prontoo\Core\Architecture\OperationGateway::invoke('val', 
+        $raw = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value(
             "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
             [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid)],
         );
@@ -490,7 +490,7 @@ final class SecurityAccessRuntimeOperations01
     public static function mfa_enrollment_state(int $uid): string
     
     {
-        if ($uid <= 0 || !\Prontoo\Core\Architecture\OperationGateway::invoke('has_cfg')) {
+        if ($uid <= 0 || !\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->hasConfig()) {
             return "unavailable";
         }
         try {
@@ -523,7 +523,7 @@ final class SecurityAccessRuntimeOperations01
         return hash_hmac(
             "sha256",
             \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_code_normalize($code),
-            \Prontoo\Core\Architecture\OperationGateway::invoke('secret_key'),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->secretKey(),
         );
     
     }
@@ -537,7 +537,7 @@ final class SecurityAccessRuntimeOperations01
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) \Prontoo\Core\Architecture\OperationGateway::invoke('val', "SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value("SELECT GET_LOCK(?,5)", [$lock]) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger o cadastro MFA.",
@@ -565,7 +565,7 @@ final class SecurityAccessRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    \Prontoo\Core\Architecture\OperationGateway::invoke('val', "SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value("SELECT RELEASE_LOCK(?)", [$lock]);
                 } catch (Throwable $e) {
                     error_log("[Prontoo MFA enroll unlock] " . $e->getMessage());
                 }

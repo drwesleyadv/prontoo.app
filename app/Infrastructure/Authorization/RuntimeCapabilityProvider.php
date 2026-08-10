@@ -102,10 +102,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
 
         try {
             if ($scope === 'global') {
-                if (!\Prontoo\Core\Architecture\OperationGateway::has('one')) {
-                    throw new \RuntimeException('Leitura de credencial global indisponível.');
-                }
-                $row = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+                $row = self::one(
                     'SELECT id,is_global_admin FROM pi_users WHERE id=? AND active=1 LIMIT 1',
                     [$userId],
                 );
@@ -119,10 +116,10 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
                 ];
             }
 
-            if ($clinicId <= 0 || !\Prontoo\Core\Architecture\OperationGateway::has('q')) {
+            if ($clinicId <= 0) {
                 throw new \RuntimeException('Leitura de vínculo clínico indisponível.');
             }
-            $rows = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+            $rows = self::q(
                 'SELECT DISTINCT ur.role_code FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id AND u.active=1 JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 WHERE ur.user_id=? AND ur.clinic_id=? AND ur.active=1',
                 [$userId, $clinicId],
             )->fetchAll();
@@ -177,16 +174,7 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             $matrix = ($this->permissionResolver)($role, $clinicId);
             return $this->permissionCache[$key] = is_array($matrix) ? $matrix : [];
         }
-        if (!\Prontoo\Core\Architecture\OperationGateway::has('permission_rules_for_role')) {
-            return $this->permissionCache[$key] = [];
-        }
-        try {
-            $matrix = \Prontoo\Core\Architecture\OperationGateway::invoke('permission_rules_for_role', $role, $clinicId);
-            return $this->permissionCache[$key] = is_array($matrix) ? $matrix : [];
-        } catch (\Throwable $error) {
-            error_log('[Prontoo layered capability] falha ao resolver capacidade: ' . $error->getMessage());
-            return $this->permissionCache[$key] = [];
-        }
+        return $this->permissionCache[$key] = [];
     }
 
     private function cashierActionAllowed(ActionContract $contract): bool
@@ -371,4 +359,20 @@ final class RuntimeCapabilityProvider implements CapabilityProvider
             'failed' => $failed,
         ];
     }
+    private static function one(string $sql, array $params = []): ?array
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $row = $statement->fetch(\PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+        return is_array($row) ? $row : null;
+    }
+
+    private static function q(string $sql, array $params = []): \PDOStatement
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        return $statement;
+    }
+
 }

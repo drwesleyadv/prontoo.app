@@ -316,7 +316,9 @@
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php",
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php",
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php"
-        ]
+        ],
+        "app/Core/Database/SchemaHardening.php": "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php",
+        "app/Core/Database/TenantIntegrity.php": "app/Infrastructure/Database/TenantIntegrityInspector.php"
     },
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
@@ -559,6 +561,8 @@
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php",
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php",
             "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php"
-        ]
+        ],
+        "app/Core/Database/SchemaHardening.php": "app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php",
+        "app/Core/Database/TenantIntegrity.php": "app/Infrastructure/Database/TenantIntegrityInspector.php"
     }
 }

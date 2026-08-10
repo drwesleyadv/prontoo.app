@@ -106,7 +106,7 @@ final class RuntimeBootCoordinator
             return;
         }
         if ($publicLight && !$forceDeep) {
-            if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
+            if (class_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity')) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
             }
             return;
@@ -124,6 +124,14 @@ final class RuntimeBootCoordinator
         }
     }
 
+    private static function configureModelClinic(): void
+    {
+        $clinicId = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
+            "SELECT c.id FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.subscription_status='exempt' AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1) ORDER BY c.id ASC LIMIT 1",
+        ) ?: 0);
+        \Prontoo\Core\Tenant\TenantRegistry::configureModelClinicId($clinicId);
+    }
+
     private static function executeReadinessChecks(
         string $mode,
         int $uid,
@@ -134,6 +142,7 @@ final class RuntimeBootCoordinator
         $result = ['ok' => false, 'mode' => $mode, 'uid' => $uid, 'steps' => []];
         RuntimeModuleComposition::loader()->loadFullRuntime();
         \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
+        self::configureModelClinic();
         $result['steps'][] = 'schema_contract';
         if (class_exists('\Prontoo\Infrastructure\Integrity\PiIntegrity')) {
             \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexLightcheck();
@@ -233,12 +242,13 @@ final class RuntimeBootCoordinator
             }
             RuntimeModuleComposition::loader()->loadFullRuntime();
             \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
+            self::configureModelClinic();
             $result['steps'][] = 'schema_contract';
             if (is_callable([\Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::class, 'maestro_ensure_schema'])) {
                 \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
                 $result['steps'][] = 'maestro_contract';
             }
-            if (class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity')) {
+            if (class_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity')) {
                 \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexAutotest();
                 $result['steps'][] = 'integrity_autotest';
             }
@@ -319,8 +329,8 @@ final class RuntimeBootCoordinator
                 $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
                 if ($pdo instanceof PDO &&
                     !$pdo->inTransaction() &&
-                    class_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity') &&
-                    method_exists('\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity', 'flushFastEvents')) {
+                    class_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity') &&
+                    method_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity', 'flushFastEvents')) {
                     \Prontoo\Infrastructure\Integrity\PiIntegrity::flushFastEvents();
                 }
             }

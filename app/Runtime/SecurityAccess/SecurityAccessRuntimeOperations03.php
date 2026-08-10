@@ -95,6 +95,9 @@ final class SecurityAccessRuntimeOperations03
     
         $cid = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_active_clinic_id();
         if ($cid <= 0) {
+            $cid = \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId();
+        }
+        if ($cid <= 0) {
             return;
         }
         $fingerprint = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::sql_fingerprint($sql);
@@ -120,7 +123,7 @@ final class SecurityAccessRuntimeOperations03
                 $fingerprint,
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::scope_violation_evidence_payload($sql, $detail),
             ];
-            if (class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity")) {
+            if (class_exists("\Prontoo\Infrastructure\\Integrity\\PiIntegrity")) {
                 [
                     $ins,
                     $params,

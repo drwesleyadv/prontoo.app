@@ -110,12 +110,8 @@ final class AppointmentWorkflow
             self::deny("appointment_transition_target_unproved", $sql);
         }
         $ids = array_values(array_unique($ids));
-        $placeholders = implode(",", array_fill(0, count($ids), "?"));
-        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo', )->prepare(
-            "SELECT id,status FROM pi_appointments WHERE clinic_id=? AND id IN ({$placeholders})",
-        );
-        $statement->execute(array_merge([$clinicId], $ids));
-        $rows = $statement->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        $runtimePort = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        $rows = $runtimePort?->appointmentStatuses($clinicId, $ids) ?? [];
         foreach ($rows as $row) {
             $sourceState = $machine->normalize((string) ($row["status"] ?? ""));
             if (!isset($sourceStates[$sourceState])) {
@@ -189,11 +185,12 @@ final class AppointmentWorkflow
     private static function deny(string $key, string $sql): never
     {
 
-        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
-            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', 
+        $runtimePort = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($runtimePort !== null) {
+            $runtimePort->recordScopeViolation(
                 $key,
                 $sql,
-                "Transição da Jornada do Paciente recusada pelo autômato formal.",
+                'Transição da Jornada do Paciente recusada pelo autômato formal.',
             );
         }
         throw new \ProntooHttpError(

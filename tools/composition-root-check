@@ -12,6 +12,7 @@ $allowed = [
     'app/Runtime/LayeredKernel.php',
     'app/Runtime/Patients/PatientComposition.php',
     'app/Runtime/Financial/FinancialComposition.php',
+    'app/Runtime/SecurityAccess/SecurityAccessComposition.php',
 ];
 $violations = [];
 $instantiations = [];

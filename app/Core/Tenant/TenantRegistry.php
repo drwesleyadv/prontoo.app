@@ -92,24 +92,18 @@ final class TenantRegistry
         $column = Check::scopedColumn($column);
         return $column . " NOT IN (" . self::globalAdminExemptSubquery() . ")";
     }
+    public static function configureModelClinicId(int $clinicId): void
+    {
+        self::$modelClinicCache = max(0, $clinicId);
+    }
+
     public static function modelClinicId(): int
     {
-
-        if (self::$modelClinicCache !== null) {
-            return self::$modelClinicCache;
-        }
-        if (!\Prontoo\Core\Architecture\OperationGateway::has('safe_val')) {
-            return self::$modelClinicCache = 0;
-        }
-        return self::$modelClinicCache = (int) \Prontoo\Core\Architecture\OperationGateway::invoke('safe_val', 
-            "SELECT c.id FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.subscription_status='exempt' AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1) ORDER BY c.id ASC LIMIT 1",
-            [],
-            0,
-        );
+        return self::$modelClinicCache ?? 0;
     }
+
     public static function resetModelClinicCache(): void
     {
-
         self::$modelClinicCache = null;
     }
 }

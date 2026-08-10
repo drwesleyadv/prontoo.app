@@ -541,7 +541,7 @@ final class SecurityAccessInfrastructureOperations01
     {
     
         $expected = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::scope_guard_expected_clinic_id();
-        return $expected > 0 ? $expected : \Prontoo\Core\Architecture\OperationGateway::invoke('session_clinic_scope_id', );
+        return $expected > 0 ? $expected : 0;
     
     }
 

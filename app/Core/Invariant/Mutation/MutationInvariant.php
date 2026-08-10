@@ -175,9 +175,8 @@ final class MutationInvariant
         if (!empty($GLOBALS["PRONTOO_READONLY_GUARD_DISABLED"])) {
             return;
         }
-        $readOnly = \Prontoo\Core\Architecture\OperationGateway::has('clinic_read_only_db')
-            ? (bool) \Prontoo\Core\Architecture\OperationGateway::invoke('clinic_read_only_db', $clinicId)
-            : false;
+        $runtimePort = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        $readOnly = $runtimePort?->clinicReadOnly($clinicId) ?? false;
         if (!$readOnly) {
             return;
         }
@@ -203,8 +202,9 @@ final class MutationInvariant
         string $publicMessage = "Proteção de isolamento: operação bloqueada por não preservar as invariantes do consultório ativo.",
     ): never {
 
-        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
-            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', $key, $sql, $detail);
+        $runtimePort = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($runtimePort !== null) {
+            $runtimePort->recordScopeViolation($key, $sql, $detail);
         } else {
             error_log(
                 "[Prontoo invariant mutation violation] {$key} | " .

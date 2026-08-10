@@ -11,7 +11,7 @@ final class DocumentsCompatibilityOperations01
 
     public static function cpfBr(string $cpf): string
     {
-        $digits = \Prontoo\Core\Architecture\OperationGateway::invoke('only_digits', $cpf);
+        $digits = preg_replace('/\D+/', '', $cpf) ?? '';
         return strlen($digits) === 11
             ? substr($digits, 0, 3) . '.' . substr($digits, 3, 3) . '.' . substr($digits, 6, 3) . '-' . substr($digits, 9, 2)
             : $cpf;

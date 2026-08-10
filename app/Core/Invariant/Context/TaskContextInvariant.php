@@ -122,11 +122,12 @@ final class TaskContextInvariant
     private static function deny(string $key, string $sql): never
     {
 
-        if (\Prontoo\Core\Architecture\OperationGateway::has('record_scope_violation')) {
-            \Prontoo\Core\Architecture\OperationGateway::invoke('record_scope_violation', 
-                "task_context_" . $key,
+        $runtimePort = \Prontoo\Core\Invariant\InvariantRuntimeBinding::port();
+        if ($runtimePort !== null) {
+            $runtimePort->recordScopeViolation(
+                'task_context_' . $key,
                 $sql,
-                "Valor estrutural de Tarefas/Avisos recusado pelo contrato especializado.",
+                'Valor estrutural de Tarefas/Avisos recusado pelo contrato especializado.',
             );
         }
         throw new \ProntooHttpError(

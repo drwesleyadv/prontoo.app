@@ -158,11 +158,11 @@ final class AuditChain
     public static function storedHeadMatchesLatest(): bool
     {
 
-        $head = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+        $head = self::one(
             "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
             [self::META_KEY],
         );
-        $latest = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+        $latest = self::one(
             "SELECT chain_hash,policy_version FROM pi_audit ORDER BY id DESC LIMIT 1",
         );
         $stored = mb_trim((string) ($head["meta_value"] ?? ""));
@@ -196,22 +196,22 @@ final class AuditChain
     private static function ensureHead(): void
     {
 
-        \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+        self::q(
             "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,NULL,NOW()) ON DUPLICATE KEY UPDATE meta_key=VALUES(meta_key)",
             [self::META_KEY],
         );
-        $head = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+        $head = self::one(
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
         if (mb_trim((string) ($head["meta_value"] ?? "")) !== "") {
             return;
         }
-        $latest = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+        $latest = self::one(
             "SELECT chain_hash FROM pi_audit WHERE chain_hash IS NOT NULL AND chain_hash<>'' ORDER BY id DESC LIMIT 1",
         );
         $legacyHead = mb_trim((string) ($latest["chain_hash"] ?? ""));
-        \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+        self::q(
             "UPDATE pi_meta SET meta_value=?,updated_at=NOW() WHERE meta_key=?",
             [$legacyHead !== "" ? $legacyHead : null, self::META_KEY],
         );
@@ -220,7 +220,7 @@ final class AuditChain
     {
 
         self::ensureHead();
-        $row = \Prontoo\Core\Architecture\OperationGateway::invoke('one', 
+        $row = self::one(
             "SELECT meta_value FROM pi_meta WHERE meta_key=? FOR UPDATE",
             [self::META_KEY],
         );
@@ -232,7 +232,7 @@ final class AuditChain
         if (preg_match('/^[a-f0-9]{64}$/', $hash) !== 1) {
             throw new \InvalidArgumentException("Novo hash de auditoria inválido.");
         }
-        $statement = \Prontoo\Core\Architecture\OperationGateway::invoke('q', 
+        $statement = self::q(
             "UPDATE pi_meta SET meta_value=?,updated_at=NOW() WHERE meta_key=?",
             [$hash, self::META_KEY],
         );
@@ -242,4 +242,20 @@ final class AuditChain
             );
         }
     }
+    private static function one(string $sql, array $params = []): ?array
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        $row = $statement->fetch(\PDO::FETCH_ASSOC);
+        $statement->closeCursor();
+        return is_array($row) ? $row : null;
+    }
+
+    private static function q(string $sql, array $params = []): \PDOStatement
+    {
+        $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($sql);
+        $statement->execute($params);
+        return $statement;
+    }
+
 }

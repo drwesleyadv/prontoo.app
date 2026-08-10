@@ -40,13 +40,18 @@ foreach ($iterator as $file) {
     $total += $count;
 }
 arsort($files, SORT_NUMERIC);
+$forbiddenFiles = array_values(array_filter([
+    'app/Core/Architecture/OperationGateway.php',
+    'app/Runtime/Architecture/OperationRegistry.php',
+], static fn(string $path): bool => is_file($root . '/' . $path)));
 $result = [
-    'ok' => $total <= $maximum,
+    'ok' => $total <= $maximum && $forbiddenFiles === [],
     'policy' => (string) ($contract['policy'] ?? ''),
     'invoke_calls' => $total,
     'max_invoke_calls' => $maximum,
     'files_with_invocations' => count($files),
     'top_files' => array_slice($files, 0, 12, true),
+    'forbidden_gateway_files' => $forbiddenFiles,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
 exit($result['ok'] ? 0 : 1);
