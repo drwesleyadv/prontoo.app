@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Prontoo\Runtime\Modules;
 
+use ErrorException;
+use Throwable;
+
 final class RuntimeModuleCatalog
 {
     private function __construct()
@@ -42,7 +45,7 @@ final class RuntimeModuleCatalog
         ])));
     }
 
-    public static function routeModuleGroups(string $route): array
+    private static function routeModuleMap(): array
     {
         $commonClinic = [];
         $patients = ['patients' => [
@@ -63,13 +66,21 @@ final class RuntimeModuleCatalog
             'Presentation/Patients/PatientContactView.php',
         ]];
         $leads = [];
+        $tasks = [];
         $financial = ['financial' => [
             'Application/Financial/PatientRevenueReceiptPort.php',
             'Application/Financial/PatientRevenueReceiptService.php',
             'Infrastructure/Financial/PdoPatientRevenueReceiptRepository.php',
         ]];
+        $appointments = [];
+        $documents = [];
+        $audit = [];
+        $clinic = [];
+        $users = [];
+        $admin = [];
+        $status = [];
 
-        $map = [
+        return [
             'home' => $commonClinic + $appointments + $tasks + $financial + $patients + $leads,
             'status' => $status,
             'painel' => $commonClinic + $appointments + $patients + $leads + $tasks + $financial + $documents,
@@ -112,6 +123,7 @@ final class RuntimeModuleCatalog
             'permissions' => $users,
             'audit' => $audit + $documents + $financial + $tasks,
             'settings' => $clinic,
+            'maestro' => [],
             'admin_painel' => $admin + $clinic,
             'admin_stats' => $admin,
             'admin_clinics' => $admin + $clinic,
@@ -133,7 +145,70 @@ final class RuntimeModuleCatalog
             'admin_payment_proof' => $clinic + $admin,
             'admin_audit' => $admin,
         ];
+    }
 
-        return $map[$route] ?? $commonClinic;
+    public static function routeModuleGroups(string $route): array
+    {
+        return self::routeModuleMap()[$route] ?? [];
+    }
+
+    public static function logicSelfTest(array $routes): array
+    {
+        $failures = [];
+        $map = [];
+        $previous = set_error_handler(
+            static function (int $severity, string $message, string $file, int $line): never {
+                throw new ErrorException($message, 0, $severity, $file, $line);
+            },
+        );
+        try {
+            $map = self::routeModuleMap();
+            foreach ($routes as $route) {
+                $route = (string) $route;
+                if (!array_key_exists($route, $map)) {
+                    $failures[] = 'route_missing:' . $route;
+                    continue;
+                }
+                $groups = self::routeModuleGroups($route);
+                if (!is_array($groups)) {
+                    $failures[] = 'groups_invalid:' . $route;
+                    continue;
+                }
+                foreach ($groups as $group => $files) {
+                    if (!is_string($group) || $group === '' || !is_array($files)) {
+                        $failures[] = 'group_invalid:' . $route;
+                        continue;
+                    }
+                    foreach ($files as $file) {
+                        if (!is_string($file) || $file === '') {
+                            $failures[] = 'module_invalid:' . $route . ':' . $group;
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $error) {
+            $failures[] = 'runtime_error:' . $error::class . ':' . $error->getMessage();
+        } finally {
+            restore_error_handler();
+            if ($previous !== null) {
+                set_error_handler($previous);
+            }
+        }
+
+        $declared = array_map('strval', array_keys($map));
+        $expected = array_map('strval', $routes);
+        sort($declared, SORT_STRING);
+        sort($expected, SORT_STRING);
+        if ($declared !== $expected) {
+            $failures[] = 'route_set_mismatch';
+        }
+        $failures = array_values(array_unique($failures));
+
+        return [
+            'ok' => $failures === [],
+            'routes_checked' => count($routes),
+            'declared_routes' => count($map),
+            'failures' => $failures,
+        ];
     }
 }
