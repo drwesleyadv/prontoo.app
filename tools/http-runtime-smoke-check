@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/prontoo-http-runtime.XXXXXX")"
+PORT="$((18100 + RANDOM % 700))"
+CONFIG="$TMP/config.php"
+SERVER_LOG="$TMP/server.log"
+SERVER_PID=""
+STEP="bootstrap"
+
+cleanup() {
+  if [[ -n "$SERVER_PID" ]]; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
+    wait "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$TMP"
+}
+
+on_error() {
+  local code="${1:-1}"
+  printf 'http runtime smoke failed: step=%s exit=%s\n' "$STEP" "$code" >&2
+  for file in "$TMP"/*.headers; do
+    [[ -f "$file" ]] || continue
+    printf '%s\n' "--- $(basename "$file")" >&2
+    sed -n '1,24p' "$file" >&2 || true
+  done
+  if [[ -f "$SERVER_LOG" ]]; then
+    printf '%s\n' '--- server.log (tail)' >&2
+    tail -n 140 "$SERVER_LOG" >&2 || true
+  fi
+  return "$code"
+}
+
+trap 'on_error $?' ERR
+trap cleanup EXIT
+
+cat >"$CONFIG" <<PHP
+<?php
+return [
+    'db_host' => '${DB_HOST:-127.0.0.1}',
+    'db_name' => '${DB_DATABASE:-prontoo_schema}',
+    'db_user' => '${DB_USERNAME:-root}',
+    'db_pass' => '${DB_PASSWORD:-root}',
+    'secret' => 'prontoo-http-runtime-smoke-secret',
+    'debug' => true,
+    'app_env' => 'development',
+];
+PHP
+
+STEP="seed-fixture"
+PRONTOO_CONFIG_PATH="$CONFIG" PRONTOO_HTTP_SMOKE_TMP="$TMP" php <<'PHP'
+<?php
+declare(strict_types=1);
+
+$root = getcwd();
+$config = require getenv('PRONTOO_CONFIG_PATH');
+$dsn = sprintf(
+    'mysql:host=%s;dbname=%s;charset=utf8mb4',
+    (string) $config['db_host'],
+    (string) $config['db_name'],
+);
+$admin = PDO::connect($dsn, (string) $config['db_user'], (string) $config['db_pass'], [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$tables = $admin->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$admin->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $admin->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $admin->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
+require $root . '/app/prontoo.php';
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
+});
+\Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
+$pdo = \Prontoo\Core\Architecture\OperationGateway::invoke('pdo');
+$now = time();
+
+$person = $pdo->prepare('INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,?,?,?)');
+$person->execute(['HTTP Runtime Manager', '52998224725', 631152000, $now]);
+$userPersonId = (int) $pdo->lastInsertId();
+$user = $pdo->prepare('INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,0,1,?)');
+$user->execute([
+    $userPersonId,
+    'HTTP Runtime Manager',
+    'http-runtime-manager@example.invalid',
+    password_hash('Prontoo-CI-2026', PASSWORD_DEFAULT),
+    $now,
+]);
+$userId = (int) $pdo->lastInsertId();
+$clinic = $pdo->prepare('INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,owner_user_id,manager_user_id,timezone,active,created_at) VALUES (?,?,?,?,?,?,?,1,?)');
+$clinic->execute([
+    'cpf',
+    'HTTP Runtime Clinic',
+    '52998224725',
+    'HTTP Runtime Clinic',
+    $userId,
+    $userId,
+    'America/Cuiaba',
+    $now,
+]);
+$clinicId = (int) $pdo->lastInsertId();
+$pdo->prepare("INSERT INTO pi_clinic_roles (clinic_id,role_code,label,enabled,sort_order,updated_at) VALUES (?,'gerente','Gerente',1,40,?)")
+    ->execute([$clinicId, $now]);
+$pdo->prepare("INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active,created_at) VALUES (?,?,'gerente',1,1,?)")
+    ->execute([$userId, $clinicId, $now]);
+
+$person->execute(['HTTP Runtime Patient', '16899535009', 946684800, $now]);
+$patientPersonId = (int) $pdo->lastInsertId();
+$patient = $pdo->prepare(
+    'INSERT INTO pi_patients (clinic_id,person_id,phone,email,address,address_zip,address_number,address_neighborhood,address_complement,address_state,address_city,address_city_ibge,notes,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+);
+$patient->execute([
+    $clinicId,
+    $patientPersonId,
+    '(65) 99999-0000',
+    'http-runtime-patient@example.invalid',
+    'Rua de Teste',
+    '78000000',
+    '10',
+    'Centro',
+    null,
+    'MT',
+    'Cuiabá',
+    null,
+    'fixture HTTP real',
+    $userId,
+    $now,
+]);
+$patientId = (int) $pdo->lastInsertId();
+file_put_contents(getenv('PRONTOO_HTTP_SMOKE_TMP') . '/patient-id', (string) $patientId, LOCK_EX);
+PHP
+
+STEP="start-server"
+PRONTOO_CONFIG_PATH="$CONFIG" PRONTOO_TRUST_PROXY_HEADERS=1 php -S "127.0.0.1:$PORT" -t "$ROOT" >"$SERVER_LOG" 2>&1 &
+SERVER_PID="$!"
+BASE_URL="http://127.0.0.1:$PORT/"
+COMMON_HEADERS=(-H 'Host: prontoo.app' -H 'X-Forwarded-Proto: https')
+
+STEP="wait-server"
+for _ in {1..50}; do
+  if curl -fsS "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.2
+done
+kill -0 "$SERVER_PID" >/dev/null 2>&1
+
+status_code() {
+  awk 'NR==1{print $2}' "$1"
+}
+
+assert_status() {
+  local headers="$1"
+  local expected="$2"
+  local label="$3"
+  local actual
+  actual="$(status_code "$headers")"
+  if [[ "$actual" != "$expected" ]]; then
+    printf 'http runtime status mismatch: %s expected=%s actual=%s\n' "$label" "$expected" "$actual" >&2
+    return 1
+  fi
+}
+
+extract_cookie() {
+  awk 'BEGIN{IGNORECASE=1} /^Set-Cookie: PRONTOO=/{line=$0; sub(/\r$/, "", line); sub(/^Set-Cookie: PRONTOO=/, "", line); sub(/;.*/, "", line); if (line != "") value=line} END{print value}' "$1"
+}
+
+extract_html_csrf() {
+  php -r '$s=stream_get_contents(STDIN); if (!preg_match("~name=\"csrf\" value=\"([a-f0-9]{64})\"~i",$s,$m)) exit(1); echo $m[1];'
+}
+
+STEP="status"
+curl -sS -D "$TMP/status.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" -o "$TMP/status.body"
+assert_status "$TMP/status.headers" 200 "status"
+
+STEP="login-get"
+curl -sS -D "$TMP/login-get.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=login" -o "$TMP/login-get.body"
+assert_status "$TMP/login-get.headers" 200 "login-get"
+SID="$(extract_cookie "$TMP/login-get.headers")"
+CSRF="$(extract_html_csrf <"$TMP/login-get.body")"
+[[ -n "$SID" && -n "$CSRF" ]]
+
+STEP="login-post"
+curl -sS -D "$TMP/login-post.headers" "${COMMON_HEADERS[@]}" \
+  -H 'Accept: application/json' \
+  -H "Cookie: PRONTOO=$SID" \
+  --data-urlencode "csrf=$CSRF" \
+  --data-urlencode 'cpf=52998224725' \
+  --data-urlencode 'password=Prontoo-CI-2026' \
+  "$BASE_URL?r=login" -o "$TMP/login-post.body"
+assert_status "$TMP/login-post.headers" 200 "login-post"
+php -r '$j=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); if (($j["ok"]??false)!==true || ($j["stage"]??"")!=="complete") { fwrite(STDERR, json_encode($j, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).PHP_EOL); exit(1); }' "$TMP/login-post.body"
+ROTATED_SID="$(extract_cookie "$TMP/login-post.headers")"
+if [[ -z "$ROTATED_SID" || "$ROTATED_SID" == "$SID" ]]; then
+  printf 'http runtime smoke: authenticated session was not rotated\n' >&2
+  exit 1
+fi
+
+request_authenticated_route() {
+  local label="$1"
+  local query="$2"
+  STEP="route-$label"
+  curl -sS -D "$TMP/$label.headers" "${COMMON_HEADERS[@]}" -H "Cookie: PRONTOO=$ROTATED_SID" "$BASE_URL?$query" -o "$TMP/$label.body"
+  local code
+  code="$(status_code "$TMP/$label.headers")"
+  if [[ "$code" != "200" && "$code" != "302" ]]; then
+    printf 'http runtime route failed: %s status=%s\n' "$label" "$code" >&2
+    return 1
+  fi
+  if [[ "$code" == "302" ]] && grep -qi 'Location: .*r=login' "$TMP/$label.headers"; then
+    printf 'http runtime route lost authentication: %s\n' "$label" >&2
+    return 1
+  fi
+  if grep -Eqi 'Fatal error|Uncaught .*Error|TypeError|Undefined variable|Warning:' "$TMP/$label.body"; then
+    printf 'http runtime route emitted PHP runtime error: %s\n' "$label" >&2
+    return 1
+  fi
+}
+
+PATIENT_ID="$(cat "$TMP/patient-id")"
+request_authenticated_route "home" "r=home"
+request_authenticated_route "appointments" "r=appointments"
+request_authenticated_route "patients" "r=patients"
+request_authenticated_route "patient" "r=patient&id=$PATIENT_ID"
+request_authenticated_route "financial" "r=financial"
+
+STEP="server-log-contract"
+if grep -Eqi 'PHP (Fatal error|Warning|Notice)|Uncaught .*Error|TypeError|Undefined variable' "$SERVER_LOG"; then
+  printf 'http runtime smoke: server log contains runtime diagnostics\n' >&2
+  exit 1
+fi
+
+STEP="complete"
+echo '{"ok":true,"policy":"http-front-controller-smoke-v1","public_routes":["status","login"],"authenticated_routes":["home","appointments","patients","patient","financial"],"mysql":true,"session_rotation":true}'
