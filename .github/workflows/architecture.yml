@@ -63,6 +63,8 @@ jobs:
           set -euo pipefail
           php tools/release-version --write --date=2026-08-10 --timestamp=2026-08-10T22:24:08+00:00 --expected-current=1.8.9.1
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
           git add -A
       - name: Engineering quality gate
         shell: bash
@@ -115,6 +117,8 @@ jobs:
           git reset --hard origin/agent/architecture-phase-15-release-governance
           php tools/release-version --write --date=2026-08-10 --timestamp=2026-08-10T22:24:08+00:00 --expected-current=1.8.9.1
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
           git checkout origin/agent/architecture-phase-15-release-governance -- .github/workflows/architecture.yml .github/workflows/documentation.yml
           git add -A
           git config user.name 'github-actions[bot]'
