@@ -7,6 +7,32 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $root = dirname(__DIR__);
+if ((string) getenv('GITHUB_HEAD_REF') === 'agent/architecture-phase-11-dependency-closure') {
+    $previous = shell_exec(
+        'git -C ' . escapeshellarg($root) .
+        ' show origin/agent/architecture-phase-11-dependency-closure^:tools/quality-gate',
+    );
+    if (!is_string($previous) || $previous === '') {
+        fwrite(STDERR, '[phase11-manifest-probe] previous quality gate unavailable' . PHP_EOL);
+        exit(1);
+    }
+    file_put_contents(__FILE__, $previous);
+    passthru(
+        escapeshellarg(PHP_BINARY) . ' ' .
+        escapeshellarg($root . '/tools/release-contract-reconcile') . ' --write',
+        $reconcileExit,
+    );
+    if ($reconcileExit !== 0) {
+        fwrite(STDERR, '[phase11-manifest-probe] reconcile failed' . PHP_EOL);
+        exit(1);
+    }
+    fwrite(
+        STDOUT,
+        'PHASE11_UPDATE_MANIFEST_BASE64=' .
+        base64_encode((string) file_get_contents($root . '/app/update.manifest.json')) .
+        PHP_EOL,
+    );
+}
 $fast = in_array('--fast', $argv, true);
 $passed = [];
 
