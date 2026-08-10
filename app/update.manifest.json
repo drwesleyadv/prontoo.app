@@ -28,7 +28,7 @@
     "schema_table_count": 62,
     "operational_tables_verified": 60,
     "file_count": 420,
-    "total_uncompressed_bytes": 5994083,
+    "total_uncompressed_bytes": 5994575,
     "files": {
         ".github/workflows/architecture.yml": "a2c3f2d084bc4f22fabdf69ac21c5835bfcfbc18d853c96edc75211c984d8791",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
@@ -438,7 +438,7 @@
         "tools/documentation-check.php": "fe513ae43e8dc3286760384799595fd6f17a99fe0ad9b74a3d1d3959509f2624",
         "tools/install-security-check.php": "2ca78f7240acb4045da03c1dca09616306b1cccf4c21cb53d4d3a34cc845faa5",
         "tools/install-window-contract-check": "6b8a9f718e6d7cda40ee91753698013dd220098647d4252b5ac47144caa623e2",
-        "tools/login-post-password-runtime-check": "4987b611055e79253526841367b4e18ef66eb4b9d308925acafb2edff60a8d21",
+        "tools/login-post-password-runtime-check": "37dde7a57fcd328eaa3aaddc5bddfdd829788abdc6f87bfebb844901aed3d731",
         "tools/maestro-runtime-regression-check": "833e7f1a419edff758631a853d1345de62b0e4635e3b78d0cd9ed470b17f16ba",
         "tools/native-unit-check": "3a54d756b4a7641f1ae527d6616c0bf966b1cd6d552ef1381122b122827a0f37",
         "tools/page-load-telemetry-contract-check": "2c74a8a4d14000de5f831661669a102d892d1eb45ebb675b821879bb17a965fb",
