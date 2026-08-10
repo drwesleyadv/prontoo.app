@@ -469,7 +469,7 @@
         "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
         "tools/security-regression-check.php": "361c40e017a94f10731f3b0f865c6242f483d9495806699887ddb5742fd58082",
         "tools/solid-audit": "7b29c95bec72bf23f1b830ad3ff8798524c4d874f9c6b44c60a4d01247c60f1f",
-        "tools/test-fast": "01d02435fa0b74f6f07d9f594447faddbfd0d5d210c4f8555fe1a22b8525be6e",
+        "tools/test-fast": "1e2ff73ec2290b1bdd6c8064cc6b8b2a181e56d09b3576041f9a37a25f719680",
         "tools/version-asset-contract-check.php": "bee39fb8e3d8d462514ecd75c8514e6274c8c80cf687e93caa086362c7d0abea",
         "version.json": "bb39da8ad89de6f14a9853cf49a84ba97c67b77a94e442d5c0af734bf406d6ec"
     },
