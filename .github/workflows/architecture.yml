@@ -52,6 +52,11 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Fast unit suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/test-fast
       - name: Operation gateway debt budget
         shell: bash
         run: |
