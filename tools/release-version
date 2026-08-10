@@ -120,6 +120,16 @@ if ($write) {
     $version['release_version_generator'] = 'tools/release-version';
     $version['release_version_last_transition'] = $current . '->' . $next;
     $version['notes'] = 'Engenharia 11–15: dependências tipadas sem OperationGateway, thinning de Runtime, cobertura rápida ampliada de Application, budget real de consultas MySQL e governança explícita de versão.';
+    $version['changelog'] = [
+        'title' => 'Engenharia arquitetural 11–15 e governança de release',
+        'items' => [
+            'elimina o OperationGateway e fixa em zero o budget de invocações globais',
+            'move o salvamento de metas financeiras para Application, Port e Infrastructure, mantendo o Runtime como orquestração fina',
+            'amplia a suíte rápida para sete casos de uso e ports de Application, com 57 assertivas',
+            'adiciona budget real de consultas MySQL com tetos de 1 e 3 SELECTs nos cenários críticos de leitura de pacientes',
+            'introduz gerador explícito de versão por data, valida a cadeia previous_version e publica a conclusão das fases 11–15 como 1.8.10.1',
+        ],
+    ];
     $version['previous_version'] = $current;
     $version['deployment_sync_id'] = 'github-prontoo-' . $next . '-architecture-15';
     $version['deployment_sync_requested_at'] = $timestamp;
@@ -146,6 +156,12 @@ $current = trim((string) ($version['version'] ?? ''));
 $release = trim((string) ($version['release'] ?? ''));
 $releaseDate = trim((string) ($version['release_date'] ?? ''));
 $previous = trim((string) ($version['previous_version'] ?? ''));
+$changelog = (array) ($version['changelog'] ?? []);
+$changelogTitle = trim((string) ($changelog['title'] ?? ''));
+$changelogItems = array_values(array_filter(
+    array_map(static fn(mixed $item): string => trim((string) $item), (array) ($changelog['items'] ?? [])),
+    static fn(string $item): bool => $item !== '',
+));
 try {
     [$month, $day, $sequence] = $parseVersion($current);
     $date = DateTimeImmutable::createFromFormat('!Y-m-d', $releaseDate);
@@ -185,6 +201,9 @@ if (($version['release_reconciliation_policy'] ?? '') !== 'version_json_canonica
 if (($version['logic_changes'] ?? null) !== true) {
     $failures[] = 'logic_changes';
 }
+if ($changelogTitle === '' || count($changelogItems) < 5) {
+    $failures[] = 'changelog';
+}
 
 fwrite(STDOUT, json_encode([
     'ok' => $failures === [],
@@ -193,6 +212,7 @@ fwrite(STDOUT, json_encode([
     'version' => $current,
     'previous_version' => $previous,
     'release_date' => $releaseDate,
+    'changelog_items' => count($changelogItems),
     'self_tests' => count($selfTests) + 1,
     'failures' => $failures,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
