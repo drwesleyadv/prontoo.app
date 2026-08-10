@@ -111,28 +111,7 @@ jobs:
           python3 tools/phase14-apply.py
           git rm -f tools/phase14-apply.py
           git checkout origin/prontoo -- .github/workflows/architecture.yml
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('.github/workflows/architecture.yml')
-          source = path.read_text()
-          needle = '''      - name: Schema contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          php tools/schema-check.php
-'''
-          addition = needle + '''      - name: MySQL query budget
-        shell: bash
-        run: |
-          set -euo pipefail
-          php tools/mysql-query-budget-check
-'''
-          if 'name: MySQL query budget' not in source:
-              if source.count(needle) != 1:
-                  raise SystemExit('schema step insertion point not found')
-              source = source.replace(needle, addition, 1)
-          path.write_text(source)
-          PY
+          python3 -c "from pathlib import Path; p=Path('.github/workflows/architecture.yml'); s=p.read_text(); n='      - name: Schema contract\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/schema-check.php\\n'; a=n+'      - name: MySQL query budget\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/mysql-query-budget-check\\n'; assert s.count(n)==1; p.write_text(s if 'name: MySQL query budget' in s else s.replace(n,a,1))"
           php tools/release-contract-reconcile --write
           git add -A
           git config user.name 'github-actions[bot]'
