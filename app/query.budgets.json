@@ -1,0 +1,12 @@
+{
+    "schema": "prontoo-query-budgets-v1",
+    "policy": "critical_repository_query_counts_are_measured_on_real_mysql_and_must_not_increase",
+    "scenarios": {
+        "patient_registration_read": {
+            "max_selects": 1
+        },
+        "patient_read_bundle": {
+            "max_selects": 3
+        }
+    }
+}

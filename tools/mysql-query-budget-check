@@ -1,0 +1,99 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$tempRoot = sys_get_temp_dir() . '/prontoo-query-budget-' . getmypid();
+if (!is_dir($tempRoot) && !mkdir($tempRoot, 0750, true) && !is_dir($tempRoot)) {
+    throw new RuntimeException('Não foi possível preparar o config temporário do query budget.');
+}
+$configPath = $tempRoot . '/config.php';
+$config = [
+    'db_host' => getenv('DB_HOST') ?: '127.0.0.1',
+    'db_name' => getenv('DB_DATABASE') ?: 'prontoo_schema',
+    'db_user' => getenv('DB_USERNAME') ?: 'root',
+    'db_pass' => getenv('DB_PASSWORD') ?: 'root',
+    'secret' => 'prontoo-query-budget-ci-secret',
+    'debug' => true,
+    'app_env' => 'development',
+];
+file_put_contents($configPath, '<?php return ' . var_export($config, true) . ';' . PHP_EOL, LOCK_EX);
+putenv('PRONTOO_CONFIG_PATH=' . $configPath);
+
+$dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $config['db_host'], $config['db_name']);
+$admin = PDO::connect($dsn, $config['db_user'], $config['db_pass'], [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$tables = $admin->query(
+    "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE'",
+)->fetchAll(PDO::FETCH_COLUMN);
+$admin->exec('SET FOREIGN_KEY_CHECKS=0');
+try {
+    foreach ((array) $tables as $table) {
+        $admin->exec('DROP TABLE `' . str_replace('`', '``', (string) $table) . '`');
+    }
+} finally {
+    $admin->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
+require $root . '/app/prontoo.php';
+\Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
+});
+\Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
+$pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
+$repository = new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository();
+$contract = json_decode(
+    (string) file_get_contents($root . '/app/query.budgets.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+
+$selects = static function (PDO $pdo): int {
+    $row = $pdo->query("SHOW SESSION STATUS LIKE 'Com_select'")->fetch(PDO::FETCH_NUM);
+    return (int) ($row[1] ?? 0);
+};
+$measure = static function (callable $operation) use ($pdo, $selects): int {
+    $before = $selects($pdo);
+    $operation();
+    $after = $selects($pdo);
+    return max(0, $after - $before);
+};
+
+$registration = $measure(static function () use ($repository): void {
+    $repository->appointmentRegistration(987654321, 987654321);
+});
+$bundle = $measure(static function () use ($repository): void {
+    $repository->appointmentRegistration(987654321, 987654321);
+    $repository->activeLegalGuardians(987654321, 987654321);
+    $repository->hasActiveLegalGuardian(987654321, 987654321);
+});
+$actual = [
+    'patient_registration_read' => $registration,
+    'patient_read_bundle' => $bundle,
+];
+$failures = [];
+foreach ($actual as $scenario => $count) {
+    $maximum = (int) ($contract['scenarios'][$scenario]['max_selects'] ?? -1);
+    if ($maximum < 0 || $count > $maximum) {
+        $failures[] = $scenario . ':' . $count . '>' . $maximum;
+    }
+}
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'real-mysql-query-budget-v1',
+    'metric' => 'Com_select',
+    'actual' => $actual,
+    'budgets' => $contract['scenarios'] ?? [],
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+@unlink($configPath);
+@rmdir($tempRoot);
+exit($failures === [] ? 0 : 1);

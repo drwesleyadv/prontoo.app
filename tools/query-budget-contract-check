@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$contract = json_decode(
+    (string) file_get_contents($root . '/app/query.budgets.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+$ceilings = [
+    'patient_registration_read' => 1,
+    'patient_read_bundle' => 3,
+];
+$failures = [];
+if (($contract['schema'] ?? '') !== 'prontoo-query-budgets-v1') {
+    $failures[] = 'schema';
+}
+foreach ($ceilings as $scenario => $maximum) {
+    $actual = (int) ($contract['scenarios'][$scenario]['max_selects'] ?? -1);
+    if ($actual < 0 || $actual > $maximum) {
+        $failures[] = 'budget_weakened:' . $scenario;
+    }
+}
+$result = [
+    'ok' => $failures === [],
+    'policy' => (string) ($contract['policy'] ?? ''),
+    'scenarios' => array_keys($ceilings),
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);

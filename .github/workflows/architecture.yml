@@ -62,6 +62,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/schema-check.php
+      - name: MySQL query budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/mysql-query-budget-check
       - name: Installer security
         shell: bash
         run: |
