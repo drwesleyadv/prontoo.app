@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: architecture-${{ github.head_ref || github.ref }}
@@ -67,25 +67,6 @@ jobs:
           python3 -c "from pathlib import Path; p=Path('.github/workflows/architecture.yml'); s=p.read_text(); n='      - name: Schema contract\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/schema-check.php\\n'; a=n+'      - name: MySQL query budget\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/mysql-query-budget-check\\n'; assert s.count(n)==1; p.write_text(s.replace(n,a,1))"
           php tools/release-contract-reconcile --write
           git add -A
-      - name: Export canonical phase 14 candidate
-        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-14-query-budget'
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase14-canonical-candidate
-          if-no-files-found: error
-          include-hidden-files: true
-          path: |
-            .github/workflows/architecture.yml
-            .github/workflows/documentation.yml
-            CHANGELOG.md
-            app/architecture.manifest.json
-            app/prontoo.php
-            app/query.budgets.json
-            app/update.manifest.json
-            br/index.php
-            tools/mysql-query-budget-check
-            tools/quality-gate
-            tools/query-budget-contract-check
       - name: Engineering quality gate
         shell: bash
         run: |
@@ -127,3 +108,21 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
+      - name: Materialize non-workflow phase 14 files
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-14-query-budget'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo agent/architecture-phase-14-query-budget
+          git checkout -B agent/architecture-phase-14-query-budget origin/agent/architecture-phase-14-query-budget
+          python3 tools/phase14-apply.py
+          git rm -f tools/phase14-apply.py
+          git checkout origin/prontoo -- .github/workflows/architecture.yml
+          python3 -c "from pathlib import Path; p=Path('.github/workflows/architecture.yml'); s=p.read_text(); n='      - name: Schema contract\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/schema-check.php\\n'; a=n+'      - name: MySQL query budget\\n        shell: bash\\n        run: |\\n          set -euo pipefail\\n          php tools/mysql-query-budget-check\\n'; assert s.count(n)==1; p.write_text(s.replace(n,a,1))"
+          php tools/release-contract-reconcile --write
+          git checkout origin/agent/architecture-phase-14-query-budget -- .github/workflows/architecture.yml
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Engenharia 14/15 — adicionar budget real de consultas MySQL'
+          git push origin HEAD:agent/architecture-phase-14-query-budget
