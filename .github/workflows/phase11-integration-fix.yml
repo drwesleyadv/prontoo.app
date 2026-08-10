@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/architecture-phase-11-dependency-closure
+  pull_request:
+    branches:
+      - prontoo
 
 permissions:
   contents: write
