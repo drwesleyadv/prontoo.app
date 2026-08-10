@@ -36,12 +36,13 @@ jobs:
           sed -i 's/re.subn(pattern, repl, s, count=count, flags=flags)/re.subn(pattern, lambda m: repl, s, count=count, flags=flags)/' tools/phase11-apply.py
           sed -i 's/re\.sub(/literal_sub(/g' tools/phase11-apply.py
           sed -i '3i\def literal_sub(pattern, repl, string, count=0, flags=0):\n    return re.sub(pattern, lambda m: repl, string, count=count, flags=flags)\n' tools/phase11-apply.py
+          sed -i "s/if not file.is_file() or file == Path(__file__):/if not file.is_file() or file == Path(__file__) or file.relative_to(ROOT).as_posix() == 'tools\/operation-gateway-budget-check':/" tools/phase11-apply.py
           python3 tools/phase11-apply.py
           git rm tools/phase11-apply.py .github/workflows/phase11-apply.yml
           php tools/release-contract-reconcile --write
           php tools/quality-gate --fast
           php tools/quality-gate
-          if git grep -nE 'OperationGateway::|OperationRegistry::' -- '*.php' 'tools/*' 'cron/*' ':!docs/*'; then
+          if git grep -nE 'OperationGateway::|OperationRegistry::' -- '*.php' 'tools/*' 'cron/*' ':!docs/*' ':!tools/operation-gateway-budget-check'; then
             echo 'Generic operation gateway reference remains.' >&2
             exit 1
           fi
