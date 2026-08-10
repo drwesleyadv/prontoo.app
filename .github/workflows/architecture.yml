@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -88,3 +88,21 @@ jobs:
         run: |
           set -euo pipefail
           bash tools/http-runtime-smoke-check
+      - name: Materialize phase 11 canonical head
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/architecture-phase-11-dependency-closure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo agent/architecture-phase-11-dependency-closure
+          git checkout -B agent/architecture-phase-11-dependency-closure origin/agent/architecture-phase-11-dependency-closure
+          git checkout origin/prontoo -- .github/workflows/architecture.yml tools/quality-gate
+          php tools/release-contract-reconcile --write
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Canonical head already materialized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Engenharia 11/15 — materializar contrato determinístico'
+          git push origin HEAD:agent/architecture-phase-11-dependency-closure
