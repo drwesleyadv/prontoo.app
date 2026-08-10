@@ -13,10 +13,18 @@ foreach ([
     'app/Core/Invariant/Workflow/StateMachine.php',
     'app/Runtime/Routing/RouteDefinition.php',
     'app/Runtime/Routing/RouteRegistry.php',
+    'app/Application/Financial/FinancialCashierAttentionPort.php',
+    'app/Application/Financial/FinancialCashierAttentionService.php',
+    'app/Application/Patients/PatientReadPort.php',
+    'app/Application/Patients/PatientReadService.php',
 ] as $file) {
     require_once $root . '/' . $file;
 }
 
+use Prontoo\Application\Financial\FinancialCashierAttentionPort;
+use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Patients\PatientReadPort;
+use Prontoo\Application\Patients\PatientReadService;
 use Prontoo\Core\Invariant\Workflow\StateMachine;
 use Prontoo\Domain\Financial\FinancialMovementMutationPolicy;
 use Prontoo\Domain\Identity\IdentityDocumentValidator;
@@ -81,11 +89,80 @@ $assert($reauth !== null && !$reauth->public && $reauth->handlerMethod === 'page
 $patient = RouteRegistry::definition('patient');
 $same(['patients', 'financial'], $patient?->moduleGroups, 'routes.patient_module_groups');
 
+$cashPort = new class implements FinancialCashierAttentionPort {
+    public int $assignedCalls = 0;
+    public int $openCalls = 0;
+    public bool $assigned = true;
+    public bool $open = true;
+    public array $lastAssigned = [];
+    public array $lastOpen = [];
+    public function hasAssignedPosition(int $clinicId, int $userId): bool
+    {
+        $this->assignedCalls++;
+        $this->lastAssigned = [$clinicId, $userId];
+        return $this->assigned;
+    }
+    public function hasOpenSessionBefore(int $clinicId, int $userId, string $businessDate): bool
+    {
+        $this->openCalls++;
+        $this->lastOpen = [$clinicId, $userId, $businessDate];
+        return $this->open;
+    }
+};
+$cashService = new FinancialCashierAttentionService($cashPort);
+$context = ['scope' => 'clinic', 'role' => 'recepcionista', 'clinic_id' => 7, 'user' => ['id' => 91]];
+$assert(!$cashService->requiresAttention(['scope' => 'global'], false, '2026-08-10'), 'application.cash.scope_short_circuit');
+$same(0, $cashPort->assignedCalls, 'application.cash.scope_no_port_call');
+$assert(!$cashService->requiresAttention($context, true, '2026-08-10'), 'application.cash.readonly_short_circuit');
+$same(0, $cashPort->assignedCalls, 'application.cash.readonly_no_port_call');
+$cashPort->assigned = false;
+$assert(!$cashService->requiresAttention($context, false, '2026-08-10'), 'application.cash.no_assignment');
+$same(1, $cashPort->assignedCalls, 'application.cash.assignment_called');
+$same(0, $cashPort->openCalls, 'application.cash.open_short_circuit');
+$cashPort->assigned = true;
+$assert($cashService->requiresAttention($context, false, '2026-08-10'), 'application.cash.requires_attention');
+$same([7, 91], $cashPort->lastAssigned, 'application.cash.assignment_context');
+$same([7, 91, '2026-08-10'], $cashPort->lastOpen, 'application.cash.open_context');
+
+$patientPort = new class implements PatientReadPort {
+    public ?array $registration = ['id' => 31, 'name' => 'Ana'];
+    public array $guardians = [];
+    public bool $hasGuardian = false;
+    public int $registrationCalls = 0;
+    public function appointmentRegistration(int $clinicId, int $patientId): ?array
+    {
+        $this->registrationCalls++;
+        return $this->registration;
+    }
+    public function activeLegalGuardians(int $clinicId, int $patientId): array
+    {
+        return $this->guardians;
+    }
+    public function hasActiveLegalGuardian(int $clinicId, int $patientId): bool
+    {
+        return $this->hasGuardian;
+    }
+};
+$patientService = new PatientReadService($patientPort);
+$same(null, $patientService->appointmentRegistrationBlockReason(0, 31, static fn(array $row): bool => true, static fn(array $row): string => 'x'), 'application.patient.invalid_context');
+$same(0, $patientPort->registrationCalls, 'application.patient.invalid_context_no_port_call');
+$same(null, $patientService->appointmentRegistrationBlockReason(7, 31, static fn(array $row): bool => true, static fn(array $row): string => 'x'), 'application.patient.complete_registration');
+$patientPort->registration = null;
+$same('Paciente não encontrado no consultório atual.', $patientService->appointmentRegistrationBlockReason(7, 31, static fn(array $row): bool => true, static fn(array $row): string => 'x'), 'application.patient.not_found');
+$patientPort->registration = ['id' => 31, 'name' => 'Ana'];
+$same('Cadastro incompleto', $patientService->appointmentRegistrationBlockReason(7, 31, static fn(array $row): bool => false, static fn(array $row): string => 'Cadastro incompleto'), 'application.patient.block_reason');
+$patientPort->guardians = [['id' => '5', 'cpf' => '123.456.789-09', 'relationship' => 'MAE', 'is_primary' => '1']];
+$guardians = $patientService->legalGuardians(7, 31, static fn(string $value): string => preg_replace('/\D+/', '', $value) ?? '', static fn(string $value): string => strtolower($value));
+$same([['id' => 5, 'cpf' => '12345678909', 'relationship' => 'mae', 'is_primary' => 1]], $guardians, 'application.patient.guardian_normalization');
+$patientPort->hasGuardian = true;
+$assert($patientService->hasLegalGuardian(7, 31), 'application.patient.has_guardian');
+
 $result = [
     'ok' => $failures === [],
-    'policy' => 'fast-unit-suite-v1',
+    'policy' => 'fast-unit-suite-v2',
     'assertions_passed' => $passed,
     'assertions_failed' => count($failures),
+    'application_ports_tested' => 2,
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
