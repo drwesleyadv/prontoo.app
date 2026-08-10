@@ -1,0 +1,5 @@
+{
+    "schema": "prontoo-operation-gateway-budget-v1",
+    "policy": "operation_gateway_invoke_count_must_not_increase_and_new_code_should_prefer_explicit_typed_dependencies",
+    "max_invoke_calls": 999
+}
