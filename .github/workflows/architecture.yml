@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   DB_HOST: 127.0.0.1
@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -52,6 +53,24 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Finalize deterministic branch contract
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          cp tools/.architecture-phase2.yml .github/workflows/architecture.yml
+          rm tools/.architecture-phase2.yml
+          php tools/release-contract-reconcile --write
+          git add -A .github/workflows/architecture.yml .github/workflows/documentation.yml app/prontoo.php br/index.php CHANGELOG.md app/architecture.manifest.json app/update.manifest.json tools/.architecture-phase2.yml
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "prontoo-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "chore: reconcile phase 2 release contract"
+          git push origin HEAD:"${HEAD_BRANCH}"
       - name: PHP syntax and deprecations
         shell: bash
         run: |
@@ -153,3 +172,8 @@ jobs:
         run: |
           set -euo pipefail
           php tools/critical-runtime-smoke-check
+      - name: HTTP front-controller smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/http-runtime-smoke-check
