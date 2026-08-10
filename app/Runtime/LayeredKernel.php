@@ -46,12 +46,14 @@ final class LayeredKernel
         $credentials = RuntimeCapabilityProvider::logicSelfTest();
         $middleware = ActionMiddleware::logicSelfTest();
         $mutations = InvariantKernel::logicSelfTest();
+        $routes = class_exists(RouteCatalog::class) ? RouteCatalog::all() : [];
+        $moduleCatalog = RuntimeModuleCatalog::logicSelfTest($routes);
         $architecture = $root !== null && $root !== ''
             ? ArchitectureVerifier::report(
                 $root,
                 false,
                 RuntimeModuleCatalog::fullModules(),
-                class_exists(RouteCatalog::class) ? RouteCatalog::all() : [],
+                $routes,
             )
             : ['ok' => true, 'skipped' => true];
         return [
@@ -59,11 +61,13 @@ final class LayeredKernel
                 !empty($credentials['ok']) &&
                 !empty($middleware['ok']) &&
                 !empty($mutations['ok']) &&
+                !empty($moduleCatalog['ok']) &&
                 !empty($architecture['ok']),
             'authorization' => $authorization,
             'credentials' => $credentials,
             'middleware' => $middleware,
             'mutations' => $mutations,
+            'module_catalog' => $moduleCatalog,
             'architecture' => $architecture,
         ];
     }
