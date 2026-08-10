@@ -43,7 +43,7 @@ try {
 
 require $root . '/app/prontoo.php';
 \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
-    install_fresh_schema();
+    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
 });
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 
