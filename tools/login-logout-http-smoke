@@ -6,13 +6,39 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/prontoo-login-logout.XXXXXX")"
 PORT="$((18800 + RANDOM % 600))"
 CONFIG="$TMP/config.php"
 SERVER_LOG="$TMP/server.log"
+AUDIT_SPOOL="$ROOT/ssd/cache/maestro-audit"
+AUDIT_BEFORE="$TMP/audit-before.txt"
 SERVER_PID=""
 STEP="bootstrap"
+
+if [[ -d "$AUDIT_SPOOL" ]]; then
+  find "$AUDIT_SPOOL" -maxdepth 1 -type f -name 'audit-*.json' -printf '%f\n' | sort >"$AUDIT_BEFORE"
+else
+  : >"$AUDIT_BEFORE"
+fi
 
 cleanup() {
   if [[ -n "$SERVER_PID" ]]; then
     kill "$SERVER_PID" >/dev/null 2>&1 || true
     wait "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
+  if [[ -d "$AUDIT_SPOOL" ]]; then
+    while IFS= read -r file; do
+      base="$(basename "$file")"
+      if ! grep -Fxq "$base" "$AUDIT_BEFORE"; then
+        rm -f -- "$file"
+      fi
+    done < <(find "$AUDIT_SPOOL" -maxdepth 1 -type f -name 'audit-*.json' -print)
+  fi
+  if [[ -f "$CONFIG" ]]; then
+    PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP' >/dev/null 2>&1 || true
+<?php
+declare(strict_types=1);
+$config = require getenv('PRONTOO_CONFIG_PATH');
+$dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $config['db_host'], $config['db_name']);
+$pdo = PDO::connect($dsn, $config['db_user'], $config['db_pass'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+$pdo->exec('DROP TRIGGER IF EXISTS ci_block_pi_meta_insert');
+PHP
   fi
   rm -rf "$TMP"
 }
