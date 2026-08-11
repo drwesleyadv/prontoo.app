@@ -1,36 +1,23 @@
-# C4 — contêineres
+# C4 — Containers lógicos
 
-```mermaid
-flowchart TD
-    B[Navegador] --> W[Aplicação PHP 8.4]
-    W --> DB[(MySQL 8)]
-    W --> FS[(ssd)]
-    CRON[Cron CLI PHP 8.4] --> MA[Maestro]
-    MA --> DB
-    MA --> FS
-    W --> SMTP[SMTP]
-```
+O Prontoo é implantado como uma aplicação PHP única, mas pode ser entendido por quatro containers lógicos.
 
-## Aplicação PHP
+## Aplicação web PHP
 
-Deploy monolítico, código modular. Internamente, adapters HTTP/Runtime chamam Application, que depende de ports; os cinco composition roots enumerados conectam implementações de Infrastructure. A classificação Composition também identifica bootstrap e input adapters, mas não os autoriza a persistir nem implica que já sejam finos. O carregamento é orientado por módulos/rotas e separa prontidão mínima de manutenção profunda.
+Recebe requisições, autentica usuários, coordena casos de uso e renderiza respostas. Internamente contém Runtime, Application, Domain, Infrastructure e Presentation.
 
 ## MySQL
 
-Armazena dados operacionais, identidades, permissões, action ledger, auditoria e contratos persistentes. O runtime comum não executa DDL. Operações protegidas revalidam contexto vivo e mutações críticas preservam prova/transação conforme as invariantes.
+Armazena estado relacional, incluindo identidades, vínculos de consultório, pacientes, agenda, financeiro, tarefas e estruturas de integridade. O schema canônico é de instalação limpa e não recebe DDL arbitrário durante requests normais.
 
-## `ssd`
+## Armazenamento persistente `ssd/`
 
-Área persistente fora do código publicado. Contém documentos, imagens, caches JSON por geração, telemetria, filas/spools, locks e estados operacionais. Indisponibilidade de cache/lock não transforma checks de segurança em sucesso: os caminhos críticos usam fallback seguro quando definido.
+Guarda arquivos, imagens, PDFs, telemetria e filas/estados operacionais que não devem depender do diretório efêmero do código. Backups precisam considerar banco e `ssd/` como partes complementares do estado.
 
 ## Maestro
 
-Executa trabalho secundário durável e idempotente fora do caminho crítico. O ciclo é supervisionado, possui preflight somente leitura, orçamento e saúde por estágio, retry/backoff e dead-letter.
+É executado server-side em ciclos supervisionados. Consome trabalho diferido, aplica retry/backoff, preserva escopo de consultório e registra estado operacional. Não é um segundo produto; é um modo de execução da mesma base de código.
 
-## SMTP
+## CI/CD
 
-Adaptador externo opcional. Integrações externas pertencem a Infrastructure e são conectadas por Composition.
-
-## Fronteira de implantação
-
-Web e CLI usam exclusivamente a família PHP 8.4. CI reproduz PHP 8.4 e MySQL 8 para contratos, smoke tests críticos e budgets reais por tipo de comando SQL.
+GitHub Actions não é container de produção, mas é uma fronteira de governança: executa contratos de arquitetura, documentação, MySQL, segurança e runtime antes do merge.

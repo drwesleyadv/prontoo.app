@@ -1,26 +1,19 @@
 # Integridade financeira
 
-## Unidade canônica
+O domínio financeiro exige mais do que validação de formulário. Um recebimento ou movimento precisa ser coerente como unidade, permanecer no consultório correto e deixar rastros suficientes para conferência.
 
-Todos os valores são centavos inteiros. A interface pode aceitar e exibir reais, mas a persistência e os cálculos usam inteiros.
+## Fronteira
 
-## Operações
+Application Services financeiros coordenam casos de uso como recebimentos, movimentos, gavetas, metas e consolidação. Ports descrevem capacidades; Infrastructure executa persistência. Runtime não abre as transações de negócio.
 
-- soma e subtração sem ponto flutuante;
-- arredondamento apenas na conversão de entrada;
-- ajustes posteriores são compensatórios;
-- lançamentos confirmados não são reescritos silenciosamente;
-- fechamento produz snapshot reconciliado.
+## Invariantes
 
-## Propriedades testáveis
+Escritas relacionadas devem ser atômicas quando a operação exige. Duplicidade operacional deve ser impedida pelo caso de uso e pelo banco onde aplicável. Devedor, recurso financeiro, consultório e estado da operação precisam permanecer coerentes.
 
-- conservação de centavos;
-- soma independente da ordem;
-- compensação restaura saldo esperado;
-- repetição idempotente não duplica lançamento;
-- rollback não altera saldo;
-- isolamento impede composição entre consultórios.
+## Performance
 
-## Investigação
+Leituras financeiras críticas participam dos budgets MySQL. Read models não podem introduzir INSERT/UPDATE/DELETE/REPLACE. A meta é manter previsibilidade sem trocar correção por velocidade.
 
-Divergência deve preservar lançamentos originais, cálculo reproduzível e evidência da correção.
+## Auditoria
+
+Movimentos relevantes devem ser rastreáveis por ledger/auditoria; falha de apresentação não pode reexecutar silenciosamente uma operação financeira já confirmada.

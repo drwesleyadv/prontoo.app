@@ -1,47 +1,19 @@
-# Regra de dependências
+# Direção de dependências
 
-## Fonte de verdade
+Dependência é uma forma de conhecimento. Quando um módulo conhece uma classe concreta, uma tabela ou o protocolo HTTP, ele assume responsabilidade por essa decisão. A arquitetura controla esse conhecimento para que mudanças locais permaneçam locais.
 
-A política executável é `app/Core/Architecture/LayerMap.php`. `tools/architecture-check.php` verifica a árvore versionada e o workflow de arquitetura impede merge de relações proibidas.
+## Regra principal
 
-## Relações permitidas
+Domain não depende de Runtime, Presentation ou Infrastructure. Application depende de políticas internas e de ports, não de PDO ou de páginas. Runtime e Presentation podem depender de Application e Domain para usar decisões já definidas. Infrastructure implementa mecanismos e adapters. Composition roots são a ponte explícita entre abstrações e concretos.
 
-| Origem | Destinos permitidos |
-|---|---|
-| Core | Core |
-| Domain | Core, Domain |
-| Application | Core, Domain, Application |
-| Infrastructure | Core, Domain, Application, Infrastructure |
-| Presentation | Core, Domain, Application, Presentation |
-| Composition | Core, Domain, Application, Infrastructure, Presentation, Composition |
+## O que a CI impede
 
-A direção é de dependências para dentro. `Infrastructure` implementa portas declaradas em `Application`; `Presentation` consome casos de uso sem acessar adaptadores concretos; somente os composition roots enumerados conectam implementações concretas. Bootstrap e adapters de entrada classificados como Composition continuam sujeitos aos contratos de fronteira Runtime e não podem usar essa classificação como atalho para persistência.
+Os gates rejeitam SQL de negócio e PDO em Runtime, adapters concretos fora dos pontos de composição, símbolos internos que deixaram de resolver e outras violações tokenizadas. A fronteira é verificada no código-fonte, evitando que uma convenção arquitetural dependa apenas de revisão humana.
 
-## Relações proibidas
+## Acoplamento residual
 
-- `Core` chamando PDO, HTTP ou apresentação;
-- `Domain` lendo `$_GET`, `$_POST`, `$_SESSION`, `$_SERVER`, HTML ou PDO;
-- `Application` renderizando HTML ou conhecendo repositórios PDO concretos;
-- `Presentation` executando SQL ou dependendo de `Infrastructure`;
-- `Infrastructure` decidindo política de autorização;
-- adaptadores externos criando regras alternativas às invariantes;
-- qualquer path histórico removido sendo reintroduzido como exceção à matriz de dependências.
+Ainda existem referências diretas de input adapters a Infrastructure e acessos ao gateway genérico medidos por ratchets. Eles representam dívida histórica tolerada, não modelo recomendado. O valor pode diminuir; novos acoplamentos não devem elevar o teto.
 
-## Exceções de classificação
+## Como decidir uma nova dependência
 
-Alguns arquivos físicos possuem classificação especial porque são composition roots ou contratos de bootstrap. Essas exceções e os cinco roots concretos estão enumerados no `LayerMap`, devem coincidir com `app/runtime.boundary-contract.json` e não podem ser ampliados silenciosamente.
-
-## Estado pós-zero-legacy
-
-Não existem fronteiras globais de compatibilidade executável nem namespaces ativos `/Legacy/`. Referências a origens históricas são permitidas somente em mapas explícitos de migração, listas de removidos, auditorias históricas e contratos que resolvem uma origem removida para seus destinos nativos.
-
-Listas arquiteturais de componentes ativos devem apontar apenas para arquivos existentes e não podem apontar para `removed_legacy_files`. `tools/architecture-check.php` verifica essa condição.
-
-## Política de evolução
-
-- cobertura de classificação: 100%;
-- unidades nativas: não podem diminuir abaixo da baseline consolidada de 278;
-- entrypoints/ferramentas procedurais não nativos: não podem ultrapassar o teto corrente de 21;
-- `compatibility_boundaries`: deve permanecer vazio;
-- remoção/movimentação de símbolos internos deve manter rastreabilidade pelos contratos de resolução quando necessário;
-- mudança da matriz de dependências exige ADR e atualização dos contratos executáveis.
+Se o chamador precisa de uma capacidade de negócio, prefira um Application Service. Se Application precisa de um mecanismo externo, declare um port. Se o detalhe é puramente técnico, mantenha-o em Infrastructure. Se a dependência só existe para montar o grafo, concentre-a no composition root.

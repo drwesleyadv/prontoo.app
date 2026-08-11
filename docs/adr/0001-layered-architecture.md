@@ -1,22 +1,16 @@
-# ADR-0001 — arquitetura em camadas
+# ADR 0001 — Arquitetura em camadas
 
-**Status:** aceito  
-**Data:** 2026-07-29
+**Status:** aceito
+**Data:** 2026-08-11
 
 ## Contexto
 
-O sistema cresceu a partir de páginas PHP com responsabilidades combinadas. Segurança, financeiro e isolamento exigem decisões uniformes e testáveis.
+O produto precisa manter páginas simples enquanto lida com regras de autorização, persistência, financeiro e auditoria. A base histórica misturava essas decisões em Runtime.
 
 ## Decisão
 
-Adotar monólito modular com `Core`, `Domain`, `Application`, `Infrastructure`, `Presentation` e `Composition`. Dependências apontam para dentro.
-
-## Alternativas
-
-- MVC clássico;
-- páginas procedurais;
-- microserviços.
+Adotar Domain, Application, Infrastructure, Presentation e Runtime como camadas semânticas, com composition roots explícitos. Dependências proibidas são verificadas por contratos tokenizados.
 
 ## Consequências
 
-A arquitetura reduz acoplamento e centraliza invariantes. A migração é incremental e mantém fronteiras transitórias. Microserviços não são adotados porque aumentariam complexidade operacional sem benefício proporcional.
+Casos de uso críticos ganham surfaces testáveis; PDO e SQL ficam concentrados; páginas perdem responsabilidade transacional. Há custo de navegação entre classes, compensado por fronteiras mais estáveis. A arquitetura opera hoje em manutenção, não em expansão contínua de abstrações.

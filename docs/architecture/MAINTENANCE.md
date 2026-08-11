@@ -1,31 +1,19 @@
-# Manutenção arquitetural pós-consolidação
+# Manutenção da arquitetura consolidada
 
-## Baseline
+A baseline consolidada é `1.8.11.1`. A versão `1.8.11.2` inaugura explicitamente o modo `consolidated_maintenance`: arquitetura deixa de ser um programa contínuo de refatoração e passa a atuar como conjunto de limites executáveis para a evolução do produto.
 
-A release `1.8.11.1` é a baseline arquitetural consolidada após as fases de Engenharia 16–21 e o ciclo corretivo 1–4.
+## Quando abrir novo ciclo
 
-A partir dessa baseline, a arquitetura deixa de evoluir por ciclos autônomos de refatoração. Novo ciclo arquitetural amplo só deve ser aberto quando houver evidência material de pelo menos uma destas condições:
+Somente quando um invariante importante não puder ser restaurado por mudança focal, quando surgir risco material de produto/segurança que a estrutura atual não absorva, ou quando uma nova capacidade exigir fronteira arquitetural inexistente. “Há arquivos grandes” não é condição suficiente.
 
-- regressão de uma invariante arquitetural executável;
-- risco funcional, de segurança, integridade ou isolamento que não possa ser resolvido de forma focal;
-- crescimento de dívida estrutural além dos ratchets existentes;
-- mudança de produto que exija uma nova fronteira arquitetural real.
+## Refactor-on-touch
 
-Ausentes essas condições, o trabalho arquitetural ocorre por manutenção incremental junto das mudanças funcionais ou corretivas.
+Hotspots Runtime acima de 500 linhas são tratados oportunisticamente. Se um deles precisar mudar por razão real, a mesma mudança deve reduzir o bucket de tamanho ou acessos ao gateway genérico. Assim a dívida cai com o trabalho do produto em vez de competir com ele.
 
-## Refactoring on touch
+## Métricas residuais
 
-Input adapters Runtime acima de 500 linhas são dívida explícita, não violação de camada. Quando um desses hotspots for alterado em um pull request, a própria alteração deve reduzir pelo menos uma das métricas locais protegidas:
+Ratchets de gateway genérico, referências diretas a Infrastructure e hotspots são dívida conhecida. Os valores não definem falha funcional; definem teto. Invariantes estruturais de risco permanecem em zero.
 
-- `generic_data_gateway_calls`; ou
-- `hotspot_bucket`.
+## Critério de sucesso
 
-O contrato executável é `tools/runtime-refactor-on-touch-check`, integrado ao quality gate em pull requests. O contrato não exige refatoração de arquivos que não foram tocados e não autoriza aumento de qualquer ratchet já protegido por `tools/runtime-input-boundary-check`.
-
-## Segurança focal
-
-Falhas de segurança ou integridade não abrem automaticamente um novo ciclo arquitetural. Devem ser corrigidas no menor escopo seguro, preservando as fronteiras consolidadas. O hardening de logout global segue essa regra: revogação de sessões é corrigida como política de segurança e coberta por smoke HTTP real, sem reabrir a decomposição geral do Runtime.
-
-## Regra operacional
-
-A arquitetura serve ao produto. Refatoração sem ganho mensurável de segurança, integridade, modificabilidade ou redução de dívida protegida não constitui objetivo autônomo de release.
+Uma arquitetura madura não é a que muda sempre, mas a que permite mudar o produto sem reabrir problemas já resolvidos.

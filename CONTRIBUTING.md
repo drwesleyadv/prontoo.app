@@ -1,70 +1,27 @@
-# Contribuição
+# Contribuindo com o Prontoo
 
-## Princípios
+Contribuir com o Prontoo significa preservar comportamento e invariantes enquanto o produto evolui. A arquitetura já está consolidada; portanto, mudanças devem resolver uma necessidade real de produto, segurança, operação ou manutenção, e não criar refatorações autônomas sem benefício mensurável.
 
-Toda alteração deve ser mínima, rastreável, testável e compatível com as invariantes do sistema. Não introduza abstrações sem necessidade comprovada e não mova regras de negócio para arquivos de apresentação.
+## Ambiente
 
-## Fluxo de trabalho
+Use PHP 8.4 e MySQL 8.0.30 ou superior. A família PHP é intencionalmente exata: uma versão posterior não deve ser presumida compatível até que o contrato seja alterado. A branch de integração é `prontoo`.
 
-1. Atualize a branch a partir de `prontoo`.
-2. Crie uma branch descritiva.
-3. Identifique a camada pelo `app/Core/Architecture/LayerMap.php` antes de editar.
-4. Implemente a menor mudança capaz de resolver o problema.
-5. Atualize testes, contratos e documentação afetados.
-6. Durante a implementação, execute `php tools/quality-gate --fast` para validar a camada rápida sem banco ou HTTP.
-7. Antes de abrir o pull request, execute `php tools/quality-gate`; esse é o gate estático canônico local e deve permanecer equivalente ao início da CI.
-8. Abra pull request explicando contexto, decisão, impacto e riscos.
-9. Faça merge apenas após o quality gate, os testes de integração com MySQL/HTTP e a autorização estarem verdes.
+## Fluxo de mudança
 
-## Quality gate canônico
+Crie uma branch curta a partir de `prontoo`, implemente o menor escopo coerente, execute os gates aplicáveis e abra PR. O merge só deve ocorrer com `Documentation Contract` e `Architecture Contract` verdes quando esses checks forem disparados.
 
-`php tools/quality-gate --fast` executa os contratos de feedback imediato: suíte rápida, composition roots, fronteira monotônica do Runtime, performance budgets e teto zero do `OperationGateway`.
+Mudanças em Runtime devem respeitar a direção de dependências. SQL, PDO e fronteiras transacionais de caso de uso não pertencem a input adapters. Se um arquivo Runtime já estiver classificado como hotspot acima de 500 linhas, qualquer alteração nele deve reduzir o `hotspot_bucket` ou a quantidade de acessos ao gateway genérico; `tools/runtime-refactor-on-touch-check` aplica essa regra.
 
-`php tools/quality-gate` acrescenta lint PHP 8.4, consistência de versão/manifestos, documentação, segurança, arquitetura, unidades nativas, símbolos de runtime e auditoria SOLID. Schema, instalador, login pós-senha, Maestro, runtime crítico e HTTP permanecem gates de integração porque dependem do ambiente MySQL/HTTP da CI.
+## Testes e contratos
 
-Não duplique um novo contrato estático diretamente no workflow sem integrá-lo também ao `tools/quality-gate`. O objetivo é manter uma única entrada reproduzível entre desenvolvimento local e CI.
+Comece por `php tools/quality-gate --fast`. Para mudanças relevantes, execute o gate integral e os smokes específicos. Application Services públicos precisam continuar caracterizados no contrato de testes. Alterações de consultas não podem ultrapassar os budgets MySQL existentes.
 
-## Regras arquiteturais
+A documentação é validada por `tools/documentation-check.php`; links locais quebrados e ADRs sem status/data válidos falham a CI. O projeto adota política de ausência de comentários de código inline; a explicação durável pertence a nomes, tipos, testes, ADRs e documentação.
 
-- `Core` depende somente de `Core`.
-- `Domain` depende de `Core/Domain` e não conhece HTTP, sessão ou PDO.
-- `Application` coordena casos de uso e portas; não conhece adaptadores concretos.
-- `Infrastructure` implementa portas e detalhes externos.
-- `Presentation` converte HTTP/UI em comandos/resultados e não depende de `Infrastructure`.
-- `Composition/Runtime` é o único ponto autorizado a conectar todas as camadas.
-- não introduza fachadas globais de compatibilidade, namespaces `/Legacy/` ou bridges procedurais para código nativo;
-- referências a paths históricos são permitidas apenas em mapas explícitos de migração, auditorias e contratos de baseline;
-- `compatibility_boundaries` deve permanecer vazio;
-- o teto corrente de entrypoints/ferramentas procedurais não nativos não pode aumentar;
-- o número efetivo de unidades nativas não pode regredir.
-- violações de persistência congeladas em `app/Runtime` só podem diminuir; assinatura nova, dívida em arquivo novo ou ampliação de exceção explícita falha em `tools/runtime-boundary-check`.
+## Release e metadados
 
-## Runtime
+`version.json` é a fonte canônica de versão. Não edite fallbacks ou manifests de release de forma independente. Quando arquivos rastreados mudarem, use `php tools/release-contract-reconcile --write` para reconciliar hashes e artefatos derivados, e depois confirme com `--check`.
 
-Não reúna novamente boot, catálogo de módulos, loading, dispatch e wiring em fachadas globais. Use as unidades de `app/Runtime/Modules`, `Runtime/Routing`, `Runtime/Boot`, `Runtime/Authorization` e composições específicas de feature. Prontidão mínima de login/rotas normais deve permanecer separada da manutenção profunda.
+## Critério de qualidade
 
-## Segurança
-
-Mudanças em autenticação, autorização, sessão, auditoria, financeiro, isolamento de consultório ou instalador exigem análise de ameaça, casos positivos/negativos, teste fail-closed e concorrência quando aplicável. Cache nunca deve se tornar autoridade de segurança.
-
-## Banco de dados
-
-Não execute DDL no runtime comum. Mudanças estruturais exigem decisão formal, contrato de schema, instalação limpa validada e estratégia de compatibilidade de dados quando necessária. Nunca elimine dados existentes como mecanismo de atualização.
-
-## Runtime suportado
-
-Código PHP versionado deve ser compatível com a família **PHP 8.4 exclusivamente**. CI usa PHP 8.4 e MySQL 8 real nos contratos de integração.
-
-## Estilo
-
-- use `declare(strict_types=1)` em PHP;
-- prefira nomes que expressem intenção;
-- mantenha unidades coesas e pequenas;
-- evite estado global novo;
-- não adicione comentários inline ao código;
-- registre decisões não óbvias em ADR ou documento técnico;
-- não duplique contratos em múltiplos pontos.
-
-## Definição de pronto
-
-Uma alteração está pronta quando `php tools/quality-gate` passa localmente, os gates de integração canônicos passam na CI, documentação reflete a árvore atual, componentes ativos apontam somente para paths existentes, não há segredo/dado pessoal/arquivo temporário no diff e versão/manifestos permanecem deterministicamente consistentes.
+Uma contribuição está pronta quando o comportamento desejado é verificável, as invariantes continuam verdadeiras, a dívida arquitetural não aumentou silenciosamente e a documentação relevante descreve o estado que realmente será mergeado.

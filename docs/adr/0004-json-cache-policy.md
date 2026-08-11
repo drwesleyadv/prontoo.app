@@ -1,22 +1,16 @@
-# ADR-0004 — cache JSON por geração
+# ADR 0004 — Política de cache JSON
 
-**Status:** aceito  
-**Data:** 2026-07-29
+**Status:** aceito
+**Data:** 2026-08-11
 
 ## Contexto
 
-Varreduras integrais de cache durante login e logout aumentam latência, criam contenção e dificultam recuperação.
+Painéis e leituras agregadas precisam ser rápidos, mas cache não pode transformar dados clínicos ou financeiros em estado incoerente por longos períodos.
 
 ## Decisão
 
-Usar caches JSON preguiçosos, identificados por geração. A rotação da geração torna estados anteriores inalcançáveis sem apagar diretórios no caminho crítico.
-
-## Alternativas
-
-- limpeza síncrona completa;
-- cache exclusivamente em banco;
-- cache externo distribuído.
+Usar cache JSON server-side com TTL curto e invalidação orientada pelo domínio. Cache é otimização; não é fonte de verdade e não substitui invariantes do banco.
 
 ## Consequências
 
-Login e logout ficam menores e previsíveis. Arquivos antigos podem permanecer até limpeza supervisionada, sem serem reutilizados. Credenciais e autorização continuam sendo revalidadas no banco quando necessário.
+Falha de cache deve degradar para leitura válida sempre que a política permitir. Escritas relevantes invalidam gerações/chaves seletivas. Budgets de consulta continuam medindo o caminho real para evitar que o cache esconda regressões arquiteturais.

@@ -1,44 +1,19 @@
-# Autenticação
+# Autenticação e sessão
 
-## Fluxo
+Autenticação é um ciclo, não apenas a validação de senha. O Prontoo combina credencial, MFA conforme política, rotação de ID de sessão, tempo de inatividade e uma geração persistente que permite invalidar sessões emitidas anteriormente.
 
-1. identificar o usuário por CPF;
-2. validar estado ativo e bloqueios;
-3. verificar senha no servidor;
-4. executar a prontidão mínima pós-senha;
-5. criar/continuar desafio pré-autenticado;
-6. verificar MFA quando ativo ou obrigatório;
-7. rotacionar identificador de sessão;
-8. carregar contexto mínimo;
-9. registrar entrada.
+## Login
 
-O formulário de login deve continuar funcional por envio HTML nativo mesmo sem JavaScript. JavaScript não é autoridade para CPF, senha, MFA, rate limit ou credenciais.
-
-## Prontidão pós-senha
-
-`RuntimeBootCoordinator` mantém prontidão mínima separada de manutenção profunda. O caminho síncrono do login verifica contrato de schema e `integrity lightcheck`; Maestro contract, autotestes profundos, cleanup e runtime self-check não pertencem ao hot path.
-
-O cache de prontidão é otimização, não autoridade. Se diretório/arquivo de lock não puder ser gravado, os checks mínimos executam sem cache. Resultado indeterminado dos checks de segurança continua fail-closed.
-
-## MFA
-
-O estado é triádico:
-
-- ativo;
-- comprovadamente inativo;
-- indisponível ou indeterminado.
-
-O terceiro estado falha fechado. Desenvolvedor deve manter MFA ativo. Usuários regulares podem ativar proteção avançada conforme política. Elevação para escopo global exige senha e MFA recentes.
+A senha é validada server-side e o ID de sessão é rotacionado para impedir fixation. Estados de MFA distinguem inativo, ativo e indisponível; indisponibilidade não deve ser interpretada como MFA dispensado quando a política exigir validação.
 
 ## Sessão
 
-- cookies seguros e apropriados;
-- inatividade máxima de 60 minutos;
-- geração canônica vinculada ao usuário;
-- logout global segue `logout_global_session_revocation_v1`: a rotação da geração canônica é tentada até três vezes;
-- logout sempre destrói a sessão local; se a revogação global não puder ser confirmada, a resposta é `503` e não declara sucesso silencioso;
-- alteração de segurança revoga sessões incompatíveis.
+Contexto autenticado inclui usuário e vínculo com consultório. Guards verificam a geração persistente antes de processamento protegido. Sessões antigas são eliminadas cedo.
 
-## Recuperação
+## Logout global
 
-Códigos de recuperação são de uso controlado, não aparecem em logs e devem ser regenerados após comprometimento.
+A política `logout_global_session_revocation_v1` faz até três tentativas para rotacionar a geração. Sucesso produz revogação global; outras sessões se tornam obsoletas. Se a persistência não confirmar a rotação, a sessão local é destruída e o usuário recebe HTTP 503 com degradação explícita.
+
+## Teste
+
+`tools/login-logout-http-smoke` cobre CSRF, rotação de sessão, duas sessões simultâneas, revogação e falha simulada da escrita canônica.

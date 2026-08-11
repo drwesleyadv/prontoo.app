@@ -1,23 +1,19 @@
-# Cadeia de auditoria
+# Auditoria e cadeia de integridade
 
-## Objetivo
+Auditoria existe para responder quem fez o quê, em qual contexto e em que sequência, sem transformar logs em fonte de autorização.
 
-Detectar remoção, inserção, reordenação ou alteração de eventos auditáveis.
+## Componentes
 
-## Estrutura
+O action ledger registra ações relevantes no banco. Mecanismos de audit chain e integridade verificam continuidade e consistência. Eventos que podem ser adiados entram em spool persistente e são processados pelo Maestro.
 
-Cada evento incorpora dimensões canônicas e referência criptográfica ao estado anterior. A cabeça da cadeia é atualizada de forma transacional.
+## Prova de contexto
 
-## Propriedades
+Eventos diferidos preservam informações suficientes para reconstruir o escopo do consultório. O consumidor valida o contexto antes de escrever ou executar efeitos derivados.
 
-- autoria vem de contexto confiável;
-- IP e agente são normalizados antes da prova;
-- campos públicos não substituem autoria ou instante;
-- mutação protegida e prova confirmam juntas;
-- verificação de cadeia falha fechada;
-- filas adiadas preservam origem assinada;
-- replay não cria evento duplicado.
+## Falhas
 
-## Operação
+Falha de auditoria deve ser observável. Retry é apropriado para indisponibilidade transitória; dead-letter evita loop infinito em eventos permanentemente inválidos. Arquivos inválidos não devem ser “consertados” silenciosamente.
 
-Falha de verificação deve interromper a operação sensível, preservar evidências e iniciar o runbook de incidente.
+## Privacidade
+
+Auditoria deve registrar identidade e significado operacional necessários, evitando copiar conteúdo clínico ou segredo quando um identificador e metadado forem suficientes.

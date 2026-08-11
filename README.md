@@ -1,93 +1,28 @@
 # Prontoo
 
-Prontoo é uma aplicação web monolítica modular para consultórios e clínicas de pequeno porte. A arquitetura atual é um monólito PHP 8.4 em camadas, com núcleo de invariantes, composição explícita de runtime e **sem fachadas globais de compatibilidade executável**.
+Prontoo é uma aplicação web em PHP para a operação cotidiana de consultórios e clínicas pequenas. Para quem usa o sistema, o objetivo é simples: organizar pacientes, agenda, documentos, tarefas, equipe, financeiro e rotinas operacionais em uma interface direta. Por baixo dessa simplicidade há uma arquitetura deliberadamente rigorosa, porque dados clínicos, financeiros, identidades e permissões não toleram ambiguidade estrutural.
 
-## Comece por aqui
+## Estado atual
 
-1. Leia [a visão arquitetural](docs/architecture/overview.md).
-2. Consulte [o mapa de responsabilidades](docs/architecture/responsibility-map.md) e [a regra de dependências](docs/architecture/dependencies.md).
-3. Consulte [o glossário](docs/glossary.md).
-4. Configure o ambiente conforme [o guia de instalação](docs/operations/installation.md).
-5. Execute as validações descritas em [estratégia de testes](docs/testing/strategy.md).
-6. Antes de alterar uma decisão estrutural, consulte os [ADRs](docs/adr/).
+A versão canônica é `1.8.11.2`, executada exclusivamente na família PHP 8.4 e com MySQL 8.0.30 ou superior. A arquitetura foi consolidada em `1.8.11.1`; desde então o projeto opera em modo de manutenção arquitetural: não se abre um novo ciclo de refatoração sem invariante quebrada ou risco material de produto.
 
-## Runtime suportado
+A regra central é simples: **o Runtime coordena; Application expressa casos de uso; Domain contém regras; Infrastructure implementa mecanismos; Presentation renderiza saída**. As dependências perigosas são verificadas por código, não por convenção informal.
 
-- PHP **8.4.x exclusivamente** no web, CLI e CI;
-- MySQL 8.0.30 ou superior;
-- extensão `pdo_mysql`;
-- HTTPS no ambiente publicado;
-- banco vazio para instalação limpa.
+## O que está protegido por contrato
 
-## Mapa atual do código
+No Runtime, SQL de negócio, PDO direto, transações de caso de uso, `OperationGateway` e adapters concretos fora dos composition roots têm orçamento zero. A suíte de Application caracteriza 100% das entradas públicas catalogadas: 49 casos críticos, 30 services, 15 ports e 127 assertivas rastreáveis dentro da suíte rápida. O Architecture Contract também executa MySQL real, budgets de consultas, segurança de instalação, login, logout global, Maestro e smokes do front controller.
 
-| Diretório | Responsabilidade arquitetural |
-|---|---|
-| `app/Core` | invariantes canônicas, workflows, tempo, isolamento, integridade, políticas estruturais e arquitetura |
-| `app/Domain` | regras, políticas e contratos de negócio independentes de HTTP e persistência |
-| `app/Application` | casos de uso, portas e catálogo/contratos de autorização |
-| `app/Infrastructure` | PDO, persistência, credenciais vivas, auditoria, integridade, cache e adaptadores externos |
-| `app/Presentation` | adaptadores HTTP/UI, views e formatação de respostas |
-| `app/Runtime` | composition root, bootstrap, módulos, roteamento, autorização composta, serviços e coordenação de prontidão/manutenção |
-| `br`, `public` | front controllers e borda HTTP |
-| `cron` | entrada CLI do Maestro |
-| `tools` | contratos executáveis, auditorias e utilitários de release/manutenção |
-| `docs` | documentação arquitetural, domínio, segurança, operação, banco, testes e performance |
+A dívida residual é explícita e monotônica. Hotspots de input adapter acima de 500 linhas, referências diretas a Infrastructure e acessos ao gateway genérico podem diminuir, mas não crescer. Quando um hotspot é tocado, `tools/runtime-refactor-on-touch-check` exige redução mensurável de dívida.
 
-Paths históricos removidos podem aparecer somente em mapas explícitos de migração, auditorias de baseline e metadados de rastreabilidade. Eles não são componentes ativos nem participam do bootstrap ou dispatch.
+## Onde começar
 
-A classificação efetiva é definida por `app/Core/Architecture/LayerMap.php` e verificada por `tools/architecture-check.php`. O alvo é **100% dos arquivos PHP versionados classificados**, com pelo menos **278 unidades nativas** e no máximo **21 entrypoints e ferramentas procedurais não classificados como unidades nativas** na baseline atual.
+- `docs/index.md`: mapa de toda a documentação.
+- `docs/architecture/overview.md`: modelo mental da arquitetura.
+- `docs/architecture/layers.md`: responsabilidades por camada.
+- `docs/security/threat-model.md`: ameaças e controles.
+- `docs/testing/strategy.md`: como os contratos executáveis defendem o sistema.
+- `CONTRIBUTING.md`: regras para alterar o código sem degradar a arquitetura.
 
-## Regra de dependências
+## Fonte de verdade
 
-`Core → Core`; `Domain → Core/Domain`; `Application → Core/Domain/Application`; `Infrastructure → Core/Domain/Application/Infrastructure`; `Presentation → Core/Domain/Application/Presentation`; somente `Composition` pode conectar todas as camadas.
-
-Pontos canônicos:
-
-- autorização: `Prontoo\Runtime\LayeredKernel::enforceAction`;
-- mutações: `Prontoo\Core\Invariant\InvariantKernel::guardMutation`;
-- composição modular: `app/Runtime/Modules`;
-- prontidão/manutenção: `app/Runtime/Boot/RuntimeBootCoordinator.php`;
-- catálogo de rotas: `app/Runtime/Routing/RouteCatalog.php`;
-- resposta JSON: `app/Presentation/Http/JsonResponder.php`;
-- Maestro: `cron/maestro.php`.
-
-## Prontidão do runtime
-
-Login e rotas normais executam apenas a prontidão mínima: contrato de schema e `integrity lightcheck`. Manutenção profunda é separada e não pertence ao hot path. Se storage/lock de prontidão não estiver gravável, a validação mínima pode executar sem cache, preservando os checks fail-closed.
-
-## Comandos de validação
-
-```bash
-find . -name '*.php' -not -path './ssd/*' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
-php tools/release-contract-reconcile --check
-php tools/native-unit-check
-php tools/architecture-check.php
-php tools/solid-audit --strict
-php tools/code-comment-check.php
-php tools/documentation-check.php
-php tools/security-regression-check.php
-php tools/schema-check.php
-php tools/install-security-check.php
-php tools/login-post-password-runtime-check
-```
-
-O workflow `.github/workflows/architecture.yml` complementa esses contratos com PHP 8.4/MySQL 8 reais, verificação de símbolos, regressão do Maestro e smoke matrix do runtime crítico.
-
-## Invariantes obrigatórias
-
-- toda ação protegida possui contrato exato e ação desconhecida falha fechada;
-- usuário, consultório e cargos/capacidades são revalidados no banco;
-- mutação autorizada e sua prova confirmam na mesma transação ou fazem rollback juntas;
-- dados de um consultório não atravessam para outro;
-- valores financeiros usam centavos inteiros e operações críticas são transacionais;
-- DDL permanece bloqueado no runtime comum;
-- Desenvolvedor usa MFA obrigatório; elevação global exige senha e MFA recentes;
-- sessões expiram após 60 minutos de inatividade e obedecem à geração canônica do usuário;
-- trabalhos secundários são duráveis, idempotentes e supervisionados pelo Maestro;
-- release, versão, manifestos e hashes são reconciliados deterministicamente e a CI é read-only para divergências;
-- `compatibility_boundaries` permanece vazio e componentes arquiteturais ativos apontam somente para paths existentes e nativos.
-
-## Documentação
-
-- [Índice completo](docs/index.md)
+Documentação explica intenção. O comportamento normativo está nos contratos executáveis, especialmente `app/architecture.manifest.json`, `app/application.test-contract.json`, `version.json` e nos verificadores em `tools/`. Em caso de divergência, o contrato executável prevalece e a documentação deve ser corrigida.

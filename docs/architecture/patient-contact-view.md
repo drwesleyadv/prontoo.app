@@ -1,17 +1,11 @@
-# View de contato do paciente
+# Caso de uso — leitura de contato do paciente
+
+A leitura de dados de paciente segue uma fronteira própria porque leitura e comando têm necessidades diferentes. Runtime solicita uma visão; Application fornece um serviço de leitura por port; Infrastructure resolve a consulta sob escopo do consultório; Presentation recebe uma estrutura pronta para exibição.
 
 ## Objetivo
 
-A Fase 6 remove duas cópias idênticas do formulário de contato da fachada `Patients.php` e estabelece uma única implementação em apresentação.
+O desenho evita que uma página conheça detalhes de tabelas e permite caracterizar a entrada pública do serviço. Também torna possível aplicar budget de consultas sem acoplar o teste ao HTML.
 
-## Fronteira
+## Regra de evolução
 
-A view recebe o paciente, o consultório e callbacks dos componentes visuais existentes. Ela não acessa HTTP, sessão, SQL ou persistência. O runtime faz a composição e a fachada mantém apenas a decisão de permissão.
-
-## Compatibilidade
-
-A estrutura HTML, classes, nomes dos campos, atributos obrigatórios, CSRF, endereço e ação de envio são preservados por snapshot determinístico.
-
-## Manutenção
-
-Mudanças futuras no formulário passam a ocorrer em um único arquivo. A fachada continua compatível durante a migração e não recebe nova lógica de apresentação.
+Read models devem permanecer somente leitura. Se uma tela passar a precisar de uma mudança de estado, crie ou reutilize um comando explícito em vez de esconder escrita no fluxo de consulta.

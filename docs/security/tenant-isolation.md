@@ -1,25 +1,19 @@
-# Isolamento multitenant
+# Isolamento entre consultórios
 
-## Regra
-
-Cada registro operacional deve estar associado ao consultório correto ou ser explicitamente global. O contexto do cliente nunca é prova suficiente de escopo.
+O mesmo runtime atende dados de múltiplos consultórios, mas cada request autenticado opera em um tenant efetivo. O isolamento é tratado como invariante transversal.
 
 ## Leitura
 
-Consultas incluem o escopo canônico e evitam joins capazes de atravessar tenants. Resultados agregados devem manter a mesma prova.
+Consultas sensíveis precisam incorporar o `clinic_id` resolvido do contexto, e não confiar apenas em IDs globais de paciente, tarefa ou agenda.
 
 ## Escrita
 
-O consultório é derivado do contexto revalidado. Referências externas são confirmadas no mesmo tenant antes do commit.
+Commands validam que as entidades manipuladas pertencem ao mesmo tenant. Uma transação correta no tenant errado continua sendo uma falha de segurança.
 
-## Filas e cache
+## Defesa em profundidade
 
-Envelopes do Maestro carregam contexto assinado. Caches são identificados por geração e consultório. Nenhum processo cron recebe autorização implícita para atravessar dados.
+Guards de autorização, SQL scope, constraints e testes de runtime crítico se complementam. Nenhum componente individual é considerado suficiente.
 
-## Testes mínimos
+## Trabalho diferido
 
-- leitura de registro de outro consultório retorna negação ou ausência;
-- escrita com referência externa de outro consultório falha;
-- agregação não mistura tenants;
-- tarefa adiada preserva tenant original;
-- perfil global só acessa escopo global após reautenticação.
+Spools carregam contexto necessário e o Maestro restaura o tenant antes de executar. Evento sem contexto confiável não deve ser reaproveitado em escopo global.

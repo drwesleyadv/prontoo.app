@@ -1,53 +1,29 @@
-# Camadas
+# Camadas e responsabilidades
 
-A classificação normativa está em `Prontoo\Core\Architecture\LayerMap`. O nome físico do diretório é importante, e as exceções de composition root são resolvidas exclusivamente pelo mapa executável.
-
-## Core
-
-Contém invariantes, políticas canônicas, integridade estrutural, tempo, escopo, workflows e decisões internas estáveis. Depende somente de `Core`.
-
-Exemplos: `Core/Invariant`, `Core/Temporal`, políticas de banco e arquitetura.
+As camadas do Prontoo representam tipos diferentes de decisão. A pergunta útil não é “em qual pasta cabe este código?”, mas “qual conhecimento este código precisa possuir?”.
 
 ## Domain
 
-Contém conceitos, validações e regras de negócio independentes de HTTP e persistência. Pode depender de `Core` e `Domain`.
-
-Domain fornece valores, estados e políticas puras; não renderiza `SELECT`, cláusulas ou fragmentos próprios do dialeto MySQL. A tradução dessas decisões para consultas pertence a Infrastructure.
-
-Não existe camada ou namespace ativo `Domain/Legacy`. Origens históricas removidas podem constar apenas nos mapas explícitos de migração e auditorias de baseline.
+Contém regras e políticas que expressam significado de negócio. Não deve depender de request HTTP, sessão, PDO ou detalhes de renderização. Uma regra que poderia ser discutida com alguém do domínio sem mencionar framework ou tabela tende a pertencer aqui.
 
 ## Application
 
-Coordena casos de uso e define portas. Pode depender de `Core`, `Domain` e `Application`.
-
-Abriga também o catálogo declarativo de autorização: fontes de definições, registry, requirements e definições por capacidade. Não implementa persistência nem HTML.
+Contém casos de uso. Services coordenam operações e dependem de ports. A camada sabe **o que precisa acontecer**, mas não escolhe **como o banco executa** ou **como a página responde**. A superfície pública de Application é caracterizada por contrato de testes.
 
 ## Infrastructure
 
-Implementa portas e detalhes externos: PDO, credenciais vivas, auditoria, integridade, armazenamento, cache e integrações. Pode depender de `Core`, `Domain`, `Application` e da própria `Infrastructure`.
-
-Catálogos e renderizadores de consulta, inclusive filtros de leads, auditoria, diretório de pacientes e exclusão do consultório-modelo, vivem nesta camada.
-
-Não existe camada ou namespace ativo `Infrastructure/Legacy`.
+Implementa detalhes concretos: banco, filesystem, criptografia, adapters e mecanismos operacionais. É a camada onde PDO pode existir. Ela satisfaz ports definidos em camadas internas ou fornece mecanismos explicitamente compostos.
 
 ## Presentation
 
-Interpreta HTTP, valida forma, converte entradas, chama casos de uso e renderiza respostas. Pode depender de `Core`, `Domain`, `Application` e `Presentation`, mas não de `Infrastructure`.
+Renderiza dados e estrutura saída. Não deve decidir autorização, transação ou persistência. Seu trabalho é transformar estado já resolvido em representação adequada.
 
-As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram removidas ou decompostas; componentes ativos ficam nas unidades nativas de Presentation e Runtime correspondentes.
+## Runtime
 
-## Composition e Runtime
+É o input adapter da aplicação. Faz roteamento, lê request, resolve sessão e contexto, aplica guards de borda, chama Application e organiza resposta/redirect. Runtime não é um atalho para “tudo que roda”; SQL, PDO e transações de negócio têm budget zero aqui.
 
-É a fronteira autorizada a conhecer todas as camadas. Isso não concede liberdade para implementar persistência ou caso de uso: sua responsabilidade normativa é wiring, bootstrap, catálogo/carregamento de módulos, dispatch, adaptação de entrada e coordenação fina de prontidão/manutenção.
+## Composition
 
-`LayerMap` subdivide a métrica de Composition em roots explícitos, bootstrap Runtime, input adapters, comissionamento, ferramentas de qualidade e entrypoints. Os cinco composition roots concretos são enumerados por arquivo; somente eles podem instanciar adapters concretos. Os demais arquivos Runtime não se tornam composition roots por estarem no diretório, e a classificação como input adapter não afirma que o arquivo já seja fino.
+Composition roots conectam implementações concretas às abstrações. Concreto fora desses pontos é sinal de acoplamento indevido e é detectado pelos contratos.
 
-`app/Runtime` não contém SQL de negócio, acesso direto a PDO, adapters concretos fora dos composition roots ou transações de caso de uso. A correção do detector tornou visíveis 33 chamadas `atomic()` e os ratchets seguintes reduziram esse inventário a zero. `tools/runtime-boundary-check` exige que a categoria permaneça zerada; `tools/runtime-input-boundary-check` congela as 615 dependências diretas a Infrastructure, 784 chamadas ao gateway genérico e faixas de tamanho dos input adapters para redução monotônica.
-
-## Paths históricos
-
-Paths removidos como `app/Support/*`, `app/Admin/*` ou antigas fachadas de domínio podem permanecer em `php84_baseline_path_migrations`, `architecture_source_path_migrations`, `removed_legacy_files` e auditorias históricas. Essas referências servem apenas para rastreabilidade e resolução de origem histórica; não constituem componentes ativos.
-
-## Migração monotônica
-
-A baseline arquitetural exige classificação de 100% dos PHP versionados, pelo menos 278 unidades nativas e no máximo 21 entrypoints/ferramentas procedurais não nativos. Alterações devem manter ou melhorar esses limites. `compatibility_boundaries` deve permanecer vazio.
+A direção desejada é das bordas para o centro sem permitir que detalhes técnicos comandem regras internas.

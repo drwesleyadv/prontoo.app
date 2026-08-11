@@ -1,22 +1,19 @@
-# Pacientes e pessoas
+# Domínio de pacientes
 
-## Conceitos
+Paciente é uma entidade central do Prontoo e aparece em cadastro, ficha, recepção, agenda, documentos e financeiro. Por isso, o domínio evita uma “classe paciente” monolítica e usa casos de uso focados para leitura e comando.
 
-**Interessado** é pessoa em relacionamento inicial.  
-**Paciente** possui vínculo clínico operacional.  
-**Colaborador** participa da equipe.  
-**Credor** participa de operações financeiras.
+## Leituras
 
-Uma pessoa pode exercer mais de um papel, conforme regras e permissões.
+Services de leitura entregam dados necessários às telas sem expor SQL. Histórico de recepção possui leitura própria porque custo e forma de consulta são diferentes do cadastro básico. Budgets MySQL protegem caminhos críticos.
 
-## Invariantes
+## Comandos
 
-- identidade e escopo devem ser consistentes;
-- conversão de interessado em paciente é idempotente;
-- dados sensíveis aparecem somente para cargos autorizados;
-- buscas e consultas respeitam rate limit e consultório;
-- documentos e agendamentos referenciam a pessoa correta.
+Alteração de contato e comandos de ficha usam ports específicos. A escrita precisa respeitar tenant e identidade do paciente. Runtime coleta intenção; Application coordena; Infrastructure persiste.
 
-## Interface
+## Isolamento
 
-O fluxo de Pacientes é o padrão de consistência para listagens, busca, criação e edição de pessoas.
+Um identificador de paciente não é suficiente para acesso. O consultório ativo faz parte do contexto e deve ser validado em toda leitura/escrita.
+
+## Evolução
+
+Quando uma nova função da ficha for criada, prefira ampliar um caso de uso coerente ou criar um novo recorte sem devolver persistência genérica à página.

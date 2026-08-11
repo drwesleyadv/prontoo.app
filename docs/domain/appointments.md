@@ -1,34 +1,19 @@
-# Agenda e jornada do paciente
+# Domínio de agenda
 
-## Responsabilidades
+Agenda combina leitura intensiva, mudança de estado e regras temporais. O fluxo do paciente evolui de agendado para estados como finalizado ou cancelado, e operações de mover/reagendar precisam manter consistência de data, hora, paciente e consultório.
 
-- criar e editar agendamentos;
-- associar paciente, profissional, consultório e procedimento;
-- controlar transições da jornada;
-- impedir duplicidade por repetição de envio;
-- manter histórico legível.
+## Arquitetura
 
-## Estados canônicos
+Runtime interpreta ações da página; Application/serviços operacionais coordenam comandos; Infrastructure executa consultas e escritas. Transações de agenda foram retiradas do Runtime durante o fechamento corretivo.
 
-- agendado;
-- confirmado;
-- chegou;
-- em preparo;
-- em atendimento;
-- atendimento concluído;
-- aguardando pagamento;
-- finalizado;
-- não compareceu;
-- cancelado.
+## Tempo
 
-## Invariantes
+Datas armazenadas e exibidas seguem políticas explícitas de UTC e timezone do consultório. Normalização temporal é infraestrutura/política compartilhada, não regra improvisada por página.
 
-- todo agendamento pertence a um consultório;
-- novos agendamentos rápidos usam procedimento ativo do mesmo consultório;
-- formulários de criação usam token de uso único;
-- transições inválidas são recusadas;
-- registros históricos não são reinterpretados por regras novas.
+## Performance
 
-## Concorrência
+Agenda participa de cenários reais de query budget. Alterações que aumentem consultas devem ser justificadas e medidas, especialmente em visões diárias com múltiplos pacientes.
 
-Procedimento e disponibilidade devem ser revalidados dentro da transação quando a decisão puder mudar entre leitura e gravação.
+## Segurança
+
+Toda operação é tenant-scoped e sujeita à autorização da ação correspondente.

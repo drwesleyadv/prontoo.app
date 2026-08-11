@@ -1,21 +1,15 @@
-# Tarefas
+# Domínio de tarefas e avisos
 
-## Escopos
+Tarefas organizam trabalho interno e avisos operacionais. A complexidade principal está em estado, destinatário, visibilidade e escopo de consultório, não no formulário de criação.
 
-- minhas tarefas;
-- tarefas do meu cargo;
-- tarefas da clínica;
-- tarefas atrasadas.
+## Arquitetura
 
-## Invariantes
+Comandos operacionais usam Application Services; Runtime coordena ações da página; Infrastructure persiste. O input adapter de tarefas é um dos hotspots históricos e, portanto, está protegido por `refactor-on-touch`.
 
-- tarefa pertence a consultório;
-- responsável e cargo precisam estar ativos quando exigido;
-- alterações de status seguem o contrato do banco;
-- filtros não ampliam autorização;
-- atrasos são calculados no fuso do consultório;
-- ações agendadas pelo Maestro respeitam o mesmo isolamento das ações HTTP.
+## Estados
 
-## Busca
+Transições devem respeitar o conjunto de estados aceito pelo schema e pelas políticas do domínio. Corrigir uma inconsistência de estado não deve envolver DDL no runtime.
 
-Quando uma tarefa se relaciona a pessoa, a busca padrão deve privilegiar Pacientes e não expor registros de outro consultório.
+## Evolução
+
+Quando a tela de tarefas for alterada, a mudança deve aproveitar a oportunidade para reduzir dívida mensurada do adapter em vez de acrescentar novos ramos ao mesmo bloco.

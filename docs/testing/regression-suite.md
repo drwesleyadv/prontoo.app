@@ -1,33 +1,19 @@
-# Suíte regressiva
+# Suíte de regressão
 
-## Verificadores principais
+A regressão não é um único comando; é uma malha ordenada de gates.
 
-- lint PHP;
-- `tools/code-comment-check.php`;
-- `tools/documentation-check.php`;
-- `tools/security-regression-check.php`;
-- `tools/application-test-contract-check`;
-- `tools/test-fast`;
-- `tools/architecture-check.php`;
-- `tools/schema-check.php`;
-- `tools/install-security-check.php`;
-- matriz de autorização;
-- contratos JSON;
-- propriedades matemáticas.
+## Fast gate
 
-## Critérios
+`php tools/quality-gate --fast` cobre contratos que devem falhar rapidamente durante desenvolvimento. É a primeira barreira antes de mudanças maiores.
 
-Uma regressão deve:
+## Architecture Contract
 
-- reproduzir a falha antes da correção;
-- passar após a correção;
-- testar o limite de segurança relacionado;
-- ter nome que descreva o contrato;
-- ser determinística;
-- não depender de dados de produção.
+Executa quality gate integral, schema, query budgets MySQL, segurança do instalador, regressão pós-senha, smoke de login/logout global, Maestro, runtime crítico e HTTP front controller.
 
-Todo entry point público de um `*Service` em `app/Application` deve constar em `app/application.test-contract.json`. Cada caso crítico precisa de assertivas nomeadas que a suíte rápida comprove ter executado; transações e locks são caracterizados separadamente em MySQL real.
+## Documentation Contract
 
-## Manutenção
+Valida release determinístico, lint PHP, documentação, política de comentários e regressões de segurança estáticas.
 
-Quando o comportamento muda legitimamente, atualize teste e documentação no mesmo pull request. Não enfraqueça a asserção apenas para obter CI verde.
+## Interpretação de falha
+
+Não rerun automaticamente até ficar verde sem investigar. Um gate novo pode revelar defeito latente, como ocorreu com a invalidação de segunda sessão durante o hardening de logout. Corrija a causa ou o fixture; nunca enfraqueça o contrato apenas para liberar o merge.

@@ -1,30 +1,15 @@
-# Política de mudanças estruturais
+# Política de evolução do schema
 
-## Estado atual
+O Prontoo trabalha com um schema canônico limpo. O runtime não possui autorização para “consertar” ou migrar o banco durante requests comuns.
 
-O schema é congelado no runtime. A instalação limpa opera apenas em banco vazio e sob janela estrutural controlada.
+## Regra
 
-## Mudança de schema
+DDL só pode ocorrer em caminhos explicitamente autorizados de instalação, ferramentas de engenharia ou CI. `version.json` declara se uma release possui mudanças de banco/schema. A `1.8.11.2` não possui.
 
-Uma mudança exige:
+## Por que
 
-1. ADR ou decisão equivalente;
-2. análise de compatibilidade;
-3. atualização de `schema.sql`;
-4. atualização dos contratos;
-5. instalação limpa testada;
-6. estratégia para ambientes existentes;
-7. rollback ou procedimento de contenção;
-8. validação no CI.
+Migração automática no boot mistura disponibilidade com manutenção e pode transformar uma falha de deploy em mutação parcial de dados. Separar as duas coisas permite rollback de código mais previsível e auditoria clara do que mudou.
 
-## Proibições
+## Mudança futura
 
-- DDL disparado por página comum;
-- apagar banco existente;
-- corrigir produção por SQL manual não registrado;
-- divergência entre schema, contrato e versão;
-- migração destrutiva sem cópia e verificação.
-
-## Dados existentes
-
-Transformações devem ser idempotentes, auditáveis e executadas fora do caminho crítico.
+Uma evolução real de schema deve definir pré-condições, compatibilidade, backup, validação e rollback antes do merge. Se o projeto continuar exigindo banco limpo para instalação, isso precisa permanecer explícito no release contract.

@@ -1,42 +1,13 @@
-# Baseline de caracterização da Fase 1
+# Baseline de caracterização
 
-## Objetivo
+Caracterização registra o comportamento público que precisa continuar verdadeiro durante mudanças estruturais. Ela foi essencial enquanto o Prontoo migrou responsabilidades para Application sem alterar UX ou regras do produto.
 
-Provar que a reorganização de funções puras preserva entradas, saídas e contratos públicos sem alterar banco, interface ou fluxo de requisição.
+## Estado atual
 
-## Casos cobertos
+O contrato de Application exige cobertura integral das entradas públicas catalogadas: 49 casos críticos, 30 services, 15 ports e pelo menos 127 assertivas ligadas. Se um método público novo aparecer sem caracterização, o gate falha.
 
-### Identidade
+## Uso em manutenção
 
-- CPF válido e inválido;
-- rejeição de CPF repetido;
-- CNPJ válido e inválido;
-- data válida;
-- data inexistente;
-- data futura;
-- data vazia.
+Antes de mover responsabilidade de um hotspot ou substituir um adapter, preserve/expanda a caracterização do caso de uso. Depois da mudança, o teste deve continuar descrevendo resultado e efeitos, não detalhes internos da implementação.
 
-### Pacientes
-
-- formatação canônica de CPF;
-- preservação da entrada quando o CPF não possui onze dígitos;
-- remoção de HTML e normalização de espaços no nome de aba;
-- limite de sessenta caracteres;
-- geração de `tab_*` e `extra*`;
-- catálogo de vínculos de responsáveis;
-- fallback de vínculo desconhecido;
-- data vazia e futura;
-- identificação de menoridade por data recente.
-
-## Contrato estrutural
-
-Os testes também verificam que:
-
-- as funções globais permanecem definidas nos arquivos legados;
-- as fachadas delegam aos componentes extraídos;
-- componentes puros não acessam superglobais;
-- componentes puros não executam SQL, PDO, redirecionamentos ou respostas HTTP.
-
-## Execução
-
-A caracterização integra `tools/architecture-check.php` e é executada no contrato arquitetural do CI.
+A baseline existe para permitir refatoração segura, não para impedir evolução funcional consciente.

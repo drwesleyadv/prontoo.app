@@ -1,20 +1,15 @@
-# Invalidação de cache por geração
+# Gerações e invalidação de cache
 
-## Objetivo
+Cache no Prontoo é uma cópia descartável de dados derivados. A fonte de verdade continua sendo o estado persistente e as regras do caso de uso.
 
-A Fase 2 substitui a exclusão recursiva de categorias durante gravações por troca atômica de geração. A mutação deixa de percorrer e remover todos os arquivos da categoria no caminho da requisição.
+## Política
 
-## Funcionamento
+Caches JSON usam TTL curto e invalidação seletiva. Quando uma escrita altera uma visão conhecida, o domínio/caso de uso deve invalidar a geração ou chave correspondente em vez de esperar expiração longa.
 
-Cada categoria mantém um contador persistente. A chave física inclui a geração atual. Uma invalidação incrementa o contador sob bloqueio exclusivo e limpa apenas a memória da requisição. Arquivos de gerações anteriores deixam de ser endereçáveis imediatamente.
+## Falha
 
-## Falha segura
+Indisponibilidade de cache não pode conceder autorização nem mascarar violação de integridade. Em leituras onde é seguro, o sistema pode recalcular; em controles de segurança, a política específica decide se há fallback.
 
-Se o contador não puder ser bloqueado ou persistido, o sistema executa a limpeza física da categoria e reinicia a geração. A coerência prevalece sobre o ganho de desempenho.
+## Benefício
 
-## Conformidade
-
-- gerações são separadas por categoria e as chaves continuam incluindo o escopo funcional definido pelo chamador;
-- não são armazenados segredos, senhas ou fatores de autenticação;
-- a invalidação permanece obrigatória após mutações;
-- gerações antigas podem ser removidas apenas por manutenção assíncrona, nunca como requisito para a consistência da resposta atual.
+Gerações evitam varrer e apagar arquivos individualmente e tornam explícito que uma família de valores ficou obsoleta após uma mutação.
