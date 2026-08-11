@@ -1,0 +1,130 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$baseRef = trim((string) getenv('GITHUB_BASE_REF'));
+if ($baseRef === '') {
+    fwrite(STDOUT, json_encode([
+        'ok' => true,
+        'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+        'enforced' => false,
+        'reason' => 'no_pull_request_base_ref',
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(0);
+}
+
+$budget = json_decode(
+    (string) file_get_contents($root . '/app/runtime.input-boundary-budget.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+if (!is_array($budget) || ($budget['schema'] ?? '') !== 'prontoo-runtime-input-boundary-budget-v1') {
+    throw new RuntimeException('Budget de input adapters inválido.');
+}
+
+$run = static function (string $command, ?array &$output = null): int {
+    $lines = [];
+    exec($command . ' 2>&1', $lines, $code);
+    $output = $lines;
+    return $code;
+};
+
+$base = 'origin/' . $baseRef;
+$verifyOutput = [];
+if ($run('git -C ' . escapeshellarg($root) . ' rev-parse --verify ' . escapeshellarg($base), $verifyOutput) !== 0) {
+    fwrite(STDERR, json_encode([
+        'ok' => false,
+        'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+        'failure' => 'base_ref_unavailable',
+        'base_ref' => $base,
+        'details' => $verifyOutput,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(1);
+}
+
+$headOutput = [];
+if ($run('git -C ' . escapeshellarg($root) . ' rev-parse HEAD', $headOutput) !== 0) {
+    throw new RuntimeException('HEAD indisponível para o contrato refactor-on-touch.');
+}
+$headSha = trim((string) ($headOutput[0] ?? ''));
+if (preg_match('/^[a-f0-9]{40}$/', $headSha) !== 1) {
+    throw new RuntimeException('SHA de HEAD inválido.');
+}
+
+$diffOutput = [];
+$diffCommand = 'git -C ' . escapeshellarg($root) .
+    ' diff --name-only --diff-filter=AM ' .
+    escapeshellarg($base . '...HEAD') .
+    ' -- app/Runtime';
+if ($run($diffCommand, $diffOutput) !== 0) {
+    throw new RuntimeException('Não foi possível calcular os input adapters alterados.');
+}
+$touched = array_values(array_unique(array_filter(
+    array_map(static fn(string $path): string => trim(str_replace('\\', '/', $path)), $diffOutput),
+    static fn(string $path): bool => $path !== '',
+)));
+
+$currentOutput = [];
+$currentCommand = escapeshellarg(PHP_BINARY) . ' ' .
+    escapeshellarg($root . '/tools/runtime-input-boundary-check') . ' --print-budget --source-sha=' .
+    escapeshellarg($headSha);
+if ($run($currentCommand, $currentOutput) !== 0) {
+    fwrite(STDERR, implode(PHP_EOL, $currentOutput) . PHP_EOL);
+    exit(1);
+}
+$current = json_decode(implode(PHP_EOL, $currentOutput), true, 512, JSON_THROW_ON_ERROR);
+$currentFiles = (array) ($current['files'] ?? []);
+$baselineFiles = (array) ($budget['files'] ?? []);
+
+$evaluated = [];
+$failures = [];
+foreach ($touched as $file) {
+    $baseline = (array) ($baselineFiles[$file] ?? []);
+    $baselineBucket = (int) ($baseline['hotspot_bucket'] ?? 0);
+    if ($baselineBucket <= 0) {
+        continue;
+    }
+    $now = (array) ($currentFiles[$file] ?? []);
+    $baselineGateway = (int) ($baseline['generic_data_gateway_calls'] ?? 0);
+    $currentGateway = (int) ($now['generic_data_gateway_calls'] ?? 0);
+    $currentBucket = (int) ($now['hotspot_bucket'] ?? 0);
+    $reduced = $currentGateway < $baselineGateway || $currentBucket < $baselineBucket;
+    $evaluated[$file] = [
+        'baseline_generic_data_gateway_calls' => $baselineGateway,
+        'current_generic_data_gateway_calls' => $currentGateway,
+        'baseline_hotspot_bucket' => $baselineBucket,
+        'current_hotspot_bucket' => $currentBucket,
+        'reduced' => $reduced,
+    ];
+    if (!$reduced) {
+        $failures[] = [
+            'rule' => 'touched_hotspot_requires_reduction',
+            'file' => $file,
+            'baseline_generic_data_gateway_calls' => $baselineGateway,
+            'current_generic_data_gateway_calls' => $currentGateway,
+            'baseline_hotspot_bucket' => $baselineBucket,
+            'current_hotspot_bucket' => $currentBucket,
+        ];
+    }
+}
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+    'enforced' => true,
+    'base_ref' => $baseRef,
+    'touched_runtime_files' => $touched,
+    'evaluated_hotspots' => $evaluated,
+    'failures' => $failures,
+];
+fwrite(
+    $failures === [] ? STDOUT : STDERR,
+    json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL,
+);
+exit($failures === [] ? 0 : 1);
