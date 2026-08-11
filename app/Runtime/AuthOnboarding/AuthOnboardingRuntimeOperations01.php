@@ -37,11 +37,8 @@ final class AuthOnboardingRuntimeOperations01
         }
         $key = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::onboarding_tip_key($c, $route);
         try {
-            \Prontoo\Infrastructure\AuthOnboarding\AuthOnboardingInfrastructureOperations01::onboarding_tips_ensure_schema();
-            return (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_user_onboarding_tips WHERE user_id=? AND tip_key=? LIMIT 1",
-                [$uid, $key],
-            ) > 0;
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->ensureOnboardingTipsSchema();
+            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.onboarding_tip_dismissed.01', [$uid, $key], []) > 0;
         } catch (Throwable $e) {
             error_log("[Prontoo onboarding tip read] " . $e->getMessage());
             return false;
@@ -58,11 +55,8 @@ final class AuthOnboardingRuntimeOperations01
         $key = mb_substr(mb_trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
         if ($uid > 0 && $key !== "") {
             try {
-                \Prontoo\Infrastructure\AuthOnboarding\AuthOnboardingInfrastructureOperations01::onboarding_tips_ensure_schema();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_user_onboarding_tips (user_id,tip_key,dismissed_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE dismissed_at=VALUES(dismissed_at)",
-                    [$uid, $key],
-                );
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->ensureOnboardingTipsSchema();
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.onboarding_tip_dismiss.01', [$uid, $key], []);
             } catch (Throwable $e) {
                 error_log("[Prontoo onboarding tip dismiss] " . $e->getMessage());
             }
@@ -262,12 +256,7 @@ final class AuthOnboardingRuntimeOperations01
             if (!is_string($payload)) {
                 return;
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?)
-                 ON DUPLICATE KEY UPDATE
-                   meta_value=IF(meta_value<>VALUES(meta_value),VALUES(meta_value),meta_value)",
-                [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), $payload],
-            );
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.login_last_credential_remember.01', [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), $payload], []);
             if (
                 is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_file']) &&
                 is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_safe_key'])
@@ -299,7 +288,11 @@ final class AuthOnboardingRuntimeOperations01
         }
         try {
             return \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_normalize(
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get(\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), ""),
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar(
+                    'identity.auth01.login_last_credential_from_meta.01',
+                    [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid)],
+                    [],
+                ) ?? '',
             );
         } catch (Throwable $e) {
             error_log("[Prontoo login last credential meta] " . $e->getMessage());
@@ -429,39 +422,27 @@ final class AuthOnboardingRuntimeOperations01
         try {
             $isDeveloper =
                 $knownDeveloper ||
-                (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT is_global_admin FROM pi_users WHERE id=? AND active=1 LIMIT 1",
-                    [$uid],
-                ) === 1;
+                (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.01', [$uid], []) === 1;
             if (!$isDeveloper) {
                 return false;
             }
             $ready =
-                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
-                    [$marker],
-                ) ?? "") === "1";
+                (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.02', [$marker], []) ?? "") === "1";
             if ($ready) {
                 return true;
             }
             $locked =
-                (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,5)", [$lockName]) === 1;
+                (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.03', [$lockName], []) === 1;
             if (!$locked) {
                 return false;
             }
             $ready =
-                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
-                    [$marker],
-                ) ?? "") === "1";
+                (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.04', [$marker], []) ?? "") === "1";
             if ($ready) {
                 return true;
             }
             $deleted = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_all_json_files();
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?, '1', ?) ON DUPLICATE KEY UPDATE meta_value='1',updated_at=VALUES(updated_at)",
-                [$marker, time()],
-            );
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.developer_first_login_clear_json_cache.05', [$marker, time()], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("cache_instalacao_limpo", "plataforma", null, [
                 "arquivos_json_removidos" => $deleted,
                 "primeiro_login_desenvolvedor" => true,
@@ -477,7 +458,7 @@ final class AuthOnboardingRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$lockName]);
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.06', [$lockName], []);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo first developer login unlock] " .
@@ -522,14 +503,7 @@ final class AuthOnboardingRuntimeOperations01
             return null;
         }
         $uid = (int) $pending["uid"];
-        $user = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT u.id,u.name,u.email,u.password_hash,u.is_global_admin,u.active,
-                    m.meta_value user_auth_generation
-             FROM pi_users u
-             LEFT JOIN pi_meta m ON m.meta_key=CONCAT('auth_user_',u.id)
-             WHERE u.id=? AND u.active=1 LIMIT 1",
-            [$uid],
-        );
+        $user = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth01.mfa_pending_login_user.01', [$uid], []);
         if (
             !$user ||
             !hash_equals(

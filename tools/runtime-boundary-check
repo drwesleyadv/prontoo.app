@@ -196,11 +196,38 @@ $stringValue = static function (array $token): string {
     return stripcslashes($value);
 };
 $sqlKeyword = static function (string $value): ?string {
-    if (preg_match('~^\s*(?:/\*.*?\*/\s*)*(SELECT|INSERT|UPDATE|DELETE|REPLACE)\b~isu', $value, $match) !== 1) {
-        return null;
+    $prefix = '^\s*(?:/\*.*?\*/\s*)*';
+    $forms = [
+        'SELECT' => $prefix . 'SELECT\s+\S',
+        'INSERT' => $prefix . 'INSERT\s+(?:(?:LOW_PRIORITY|DELAYED|HIGH_PRIORITY|IGNORE)\s+)*INTO\s+\S',
+        'UPDATE' => $prefix . 'UPDATE\s+\S',
+        'DELETE' => $prefix . 'DELETE\s+FROM\s+\S',
+        'REPLACE' => $prefix . 'REPLACE\s+(?:(?:LOW_PRIORITY|DELAYED)\s+)*INTO\s+\S',
+    ];
+    foreach ($forms as $keyword => $pattern) {
+        if (preg_match('~' . $pattern . '~isu', $value) === 1) {
+            return $keyword;
+        }
     }
-    return strtoupper((string) $match[1]);
+    return null;
 };
+$sqlDetectionCases = [
+    'SELECT id FROM pi_users' => 'SELECT',
+    'INSERT INTO pi_meta (meta_key) VALUES (?)' => 'INSERT',
+    'UPDATE pi_users SET active=0' => 'UPDATE',
+    'DELETE FROM pi_meta WHERE meta_key=?' => 'DELETE',
+    'REPLACE INTO pi_meta (meta_key) VALUES (?)' => 'REPLACE',
+    'replace' => null,
+    'delete' => null,
+    'UPDATE' => null,
+    '/^\\s*SELECT\\s+/' => null,
+    '<button>Delete</button>' => null,
+];
+foreach ($sqlDetectionCases as $sample => $expectedKeyword) {
+    if ($sqlKeyword($sample) !== $expectedKeyword) {
+        throw new RuntimeException('Autoteste da detecção SQL Runtime falhou.');
+    }
+}
 
 $paths = [];
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($runtime, FilesystemIterator::SKIP_DOTS));

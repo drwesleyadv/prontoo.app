@@ -33,10 +33,7 @@ final class UsersPermissionsRuntimeOperations05
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("users");
         $cid = (int) $c["clinic_id"];
         $uid = (int) ($_GET["id"] ?? 0);
-        $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT u.id user_id,u.name,u.email,u.active user_active,u.last_login_at,u.person_id,p.full_name,p.cpf,p.birth_date,p.phone,p.email person_email,p.address_zip,p.address,p.address_number,p.address_neighborhood,p.address_complement,p.address_state,p.address_city,p.address_city_ibge FROM pi_users u LEFT JOIN pi_persons p ON p.id=u.person_id WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=?) LIMIT 1",
-            [$uid, $cid],
-        );
+        $person = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.permissions05.page_user.01', [$uid, $cid], []);
         if (!$person) {
             http_response_code(404);
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
@@ -46,10 +43,7 @@ final class UsersPermissionsRuntimeOperations05
             return;
         }
         $manageable = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid);
-        $roleRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,role_code,active FROM pi_user_roles WHERE user_id=? AND clinic_id=? ORDER BY FIELD(role_code,'recepcionista','assistente','medico','gerente')",
-            [$uid, $cid],
-        )->fetchAll();
+        $roleRows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.02', [$uid, $cid], [])->fetchAll();
         $activeRoles = [];
         foreach ($roleRows as $rr) {
             if ((int) $rr["active"]) {
@@ -66,12 +60,9 @@ final class UsersPermissionsRuntimeOperations05
                     if ($name === "") {
                         throw new RuntimeException("Revise nome e cargos.");
                     }
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    try {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
-                            [$name, (int) $person["person_id"]],
-                        );
+                    $activeRoles = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                        function () use ($name, $person, $email, $uid, $cid, $roles): array {
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.03', [$name, (int) $person["person_id"]], []);
                         if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'person_common_profile_update'])) {
                             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_update(
                                 (int) $person["person_id"],
@@ -90,10 +81,7 @@ final class UsersPermissionsRuntimeOperations05
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified(
                             (int) $person["person_id"],
                         );
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_users SET name=?, email=NULLIF(?,''), active=1, updated_at=NOW() WHERE id=?",
-                            [$name, $email, $uid],
-                        );
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.04', [$name, $email, $uid], []);
                         $activeRoles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::sync_user_roles_for_clinic(
                             $cid,
                             $uid,
@@ -109,14 +97,10 @@ final class UsersPermissionsRuntimeOperations05
                             "audit_body" =>
                                 "Cadastro e cargos do colaborador atualizados em uma única transação.",
                         ]);
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
-                        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
-                    } catch (Throwable $error) {
-                        if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        }
-                        throw $error;
-                    }
+                            return $activeRoles;
+                        },
+                    );
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador atualizado e permissões aplicadas.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
                 }
@@ -129,21 +113,12 @@ final class UsersPermissionsRuntimeOperations05
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
                     }
                     \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_can_deactivate_user_roles($cid, $uid);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_user_roles SET active=0 WHERE user_id=? AND clinic_id=?",
-                        [$uid, $cid],
-                    );
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.05', [$uid, $cid], []);
                     \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "deactivate");
                     if (
-                        (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                            "SELECT COUNT(*) FROM pi_user_roles WHERE user_id=? AND active=1",
-                            [$uid],
-                        ) === 0
+                        (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.permissions05.page_user.06', [$uid], []) === 0
                     ) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_users SET active=0, updated_at=NOW() WHERE id=?",
-                            [$uid],
-                        );
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.07', [$uid], []);
                     }
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_desativado", "usuario", $uid, [
                         "clinic_id" => $cid,
@@ -267,10 +242,7 @@ final class UsersPermissionsRuntimeOperations05
             try {
                 \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::persist_permission_rules($cid, $role, $_POST["allow"] ?? []);
                 foreach (
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT DISTINCT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code=? AND active=1",
-                        [$cid, $role],
-                    )->fetchAll(PDO::FETCH_COLUMN)
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_permissions.01', [$cid, $role], [])->fetchAll(PDO::FETCH_COLUMN)
                     as $affectedUid
                 ) {
                     \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions(

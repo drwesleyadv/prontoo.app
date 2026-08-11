@@ -47,10 +47,7 @@ final class AuthOnboardingRuntimeOperations07
         if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
             \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($cid, true);
         }
-        $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,display_name,legal_name,legal_document,phone,responsible_profession,clinic_icon,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done FROM pi_clinics WHERE id=?",
-            [$cid],
-        );
+        $cl = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth07.page_onboarding.01', [$cid], []);
         if (!$cl) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
         }
@@ -64,8 +61,9 @@ final class AuthOnboardingRuntimeOperations07
             }
             $rolesEnabled["medico"] = 1;
             $rolesEnabled["gerente"] = 1;
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
             try {
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                    function () use ($rolesEnabled, $cl, $cid): void {
                 $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
                 $city = mb_trim((string) ($_POST["address_city"] ?? ""));
                 $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
@@ -92,9 +90,7 @@ final class AuthOnboardingRuntimeOperations07
                         \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
                     : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET display_name=?, phone=?, responsible_profession=?, clinic_icon=?, accent_color=?, address_line=?, address_state=?, address_city=?, address_city_ibge=?, timezone=?, onboarding_done=1, onboarding_completed_at=NOW(), subscription_status='trial', trial_started_at=COALESCE(NULLIF(trial_started_at,0),?), trial_ends_at=IF(trial_ends_at IS NULL OR trial_ends_at=0 OR trial_ends_at<NOW(),?,trial_ends_at), paid_until=NULL, updated_at=NOW() WHERE id=?",
-                    [
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.02', [
                         mb_trim((string) $_POST["display_name"]),
                         \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
                         $profession,
@@ -108,8 +104,7 @@ final class AuthOnboardingRuntimeOperations07
                         $trialStart,
                         $trialEnd,
                         $cid,
-                    ],
-                );
+                    ], []);
                 $i = 1;
                 foreach (PRONTOO_ROLES as $role => $default) {
                     $label =
@@ -120,10 +115,7 @@ final class AuthOnboardingRuntimeOperations07
                             ) ?:
                             $default);
                     $ico = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_clinic_roles (clinic_id,role_code,label,icon_name,enabled,sort_order) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label), icon_name=IF(icon_name='' OR (icon_name='support_agent' AND role_code<>'recepcionista'),VALUES(icon_name),icon_name), enabled=VALUES(enabled), sort_order=VALUES(sort_order)",
-                        [$cid, $role, $label, $ico, $rolesEnabled[$role], $i++],
-                    );
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.03', [$cid, $role, $label, $ico, $rolesEnabled[$role], $i++], []);
                 }
                 $defaults = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions();
                 foreach (PRONTOO_ROLES as $role => $label) {
@@ -137,10 +129,7 @@ final class AuthOnboardingRuntimeOperations07
                         if ($role === "gerente" && $rolesEnabled[$role]) {
                             $allow = 1;
                         }
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allowed=VALUES(allowed)",
-                            [$cid, $role, $key, $allow],
-                        );
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.04', [$cid, $role, $key, $allow], []);
                     }
                 }
                 $newUid = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member($cid, $_POST);
@@ -157,15 +146,13 @@ final class AuthOnboardingRuntimeOperations07
                     "audit_body" =>
                         "Onboarding concluído com identidade visual inicial. Permissões permaneceram com padrão do sistema para ajuste posterior.",
                 ]);
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                    },
+                );
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Configuração inicial concluída. Você pode ajustar equipe, permissões e identidade visual depois em Meu Consultório.",
                 );
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
             } catch (Throwable $e) {
-                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                }
                 error_log(
                     "[Prontoo onboarding] " .
                         get_class($e) .
@@ -187,10 +174,7 @@ final class AuthOnboardingRuntimeOperations07
             }
         }
         $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_roles($cid, false);
-        $enabled = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT role_code,enabled FROM pi_clinic_roles WHERE clinic_id=?",
-            [$cid],
-        )->fetchAll(PDO::FETCH_KEY_PAIR);
+        $enabled = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.05', [$cid], [])->fetchAll(PDO::FETCH_KEY_PAIR);
         $roleCards = "";
         foreach (PRONTOO_ROLES as $role => $default) {
             $locked = in_array($role, ["medico", "gerente"], true);
@@ -320,10 +304,7 @@ final class AuthOnboardingRuntimeOperations07
     ): string 
     {
     
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT DISTINCT p.id,p.full_name,p.cpf,p.birth_date FROM pi_persons p JOIN (SELECT person_id FROM pi_patients WHERE clinic_id=? AND person_id IS NOT NULL UNION SELECT person_id FROM pi_leads WHERE clinic_id=? AND person_id IS NOT NULL) x ON x.person_id=p.id WHERE p.full_name<>'' ORDER BY p.full_name ASC LIMIT 500",
-            [$cid, $cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.person_autosuggest_datalist.01', [$cid, $cid], [])->fetchAll();
         $h = '<datalist id="' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($id) . '">';
         foreach ($rows as $r) {
             $label = trim(
@@ -370,21 +351,15 @@ final class AuthOnboardingRuntimeOperations07
             if (!\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cnpj($doc)) {
                 throw new RuntimeException("Informe CNPJ válido.");
             }
-            $id = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE legal_document=? LIMIT 1", [
+            $id = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth07.save_person_by_document.01', [
                 $doc,
-            ]);
+            ], []);
             if ($id) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), updated_at=NOW() WHERE id=?",
-                    [$name, $id],
-                );
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.save_person_by_document.02', [$name, $id], []);
                 return (int) $id;
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_persons (full_name,cpf,birth_date,legal_document,created_at) VALUES (?,NULL,NULL,?,NOW())",
-                [$name, $doc],
-            );
-            return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.save_person_by_document.03', [$name, $doc], []);
+            return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->lastInsertId();
         }
         throw new RuntimeException("Informe CPF ou CNPJ válido.");
     

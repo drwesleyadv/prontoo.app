@@ -22,6 +22,13 @@ foreach ([
     'app/Application/Financial/FinancialGoalService.php',
     'app/Application/Financial/PatientRevenueReceiptPort.php',
     'app/Application/Financial/PatientRevenueReceiptService.php',
+    'app/Application/Identity/IdentityDataResult.php',
+    'app/Application/Identity/IdentityDataPort.php',
+    'app/Application/Identity/IdentityDataService.php',
+    'app/Application/SecurityAccess/SecurityIncidentPort.php',
+    'app/Application/SecurityAccess/SecurityIncidentService.php',
+    'app/Application/SecurityAccess/MfaRecordPort.php',
+    'app/Application/SecurityAccess/MfaRecordService.php',
     'app/Application/Patients/PatientContactCommandPort.php',
     'app/Application/Patients/PatientContactCommandService.php',
     'app/Application/Patients/PatientReadPort.php',
@@ -43,6 +50,9 @@ use Prontoo\Application\Financial\FinancialGoalPort;
 use Prontoo\Application\Financial\FinancialGoalService;
 use Prontoo\Application\Financial\PatientRevenueReceiptPort;
 use Prontoo\Application\Financial\PatientRevenueReceiptService;
+use Prontoo\Application\Identity\IdentityDataPort;
+use Prontoo\Application\Identity\IdentityDataResult;
+use Prontoo\Application\Identity\IdentityDataService;
 use Prontoo\Application\Patients\PatientContactCommandPort;
 use Prontoo\Application\Patients\PatientContactCommandService;
 use Prontoo\Application\Patients\PatientReadPort;
@@ -51,6 +61,10 @@ use Prontoo\Application\Patients\PatientReceptionHistoryReadPort;
 use Prontoo\Application\Patients\PatientReceptionHistoryReadService;
 use Prontoo\Application\Patients\PatientTabCommandPort;
 use Prontoo\Application\Patients\PatientTabCommandService;
+use Prontoo\Application\SecurityAccess\SecurityIncidentPort;
+use Prontoo\Application\SecurityAccess\SecurityIncidentService;
+use Prontoo\Application\SecurityAccess\MfaRecordPort;
+use Prontoo\Application\SecurityAccess\MfaRecordService;
 use Prontoo\Core\Invariant\Workflow\StateMachine;
 use Prontoo\Domain\Financial\FinancialMovementMutationPolicy;
 use Prontoo\Domain\Identity\IdentityDocumentValidator;
@@ -195,6 +209,127 @@ try {
     $passed++;
 }
 
+$identityPort = new class implements IdentityDataPort {
+    public array $last = [];
+    public array $ensured = [];
+    public bool $fail = false;
+    public function run(string $operation, array $parameters, array $context): IdentityDataResult
+    {
+        $this->last = [$operation, $parameters, $context];
+        if ($this->fail) {
+            throw new RuntimeException('identity port failure');
+        }
+        return new IdentityDataResult([
+            ['id' => 17, 'role' => 'gerente'],
+            ['id' => 19, 'role' => 'medico'],
+        ], 2);
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return 29;
+    }
+    public function ensure(string $contract): void
+    {
+        $this->ensured[] = $contract;
+    }
+};
+$identityService = new IdentityDataService($identityPort);
+$identityResult = $identityService->result('identity.auth01.test_read.01', [7], ['tenant' => 7]);
+$same([17, 19], $identityResult->fetchAll(PDO::FETCH_COLUMN), 'application.identity.fetch_column');
+$same(['identity.auth01.test_read.01', [7], ['tenant' => 7]], $identityPort->last, 'application.identity.port_arguments');
+$same(['id' => 17, 'role' => 'gerente'], $identityService->row('identity.permissions01.test_read.01'), 'application.identity.row');
+$same(17, $identityService->scalar('identity.security01.test_read.01'), 'application.identity.scalar');
+$same(29, $identityService->lastInsertId(), 'application.identity.last_insert_id');
+$same('atomic', $identityService->atomic(static fn(): string => 'atomic'), 'application.identity.atomic');
+$identityService->ensureOnboardingTipsSchema();
+$same(['onboarding_tips'], $identityPort->ensured, 'application.identity.ensure_contract');
+$identityPort->fail = true;
+$same('closed', $identityService->safeScalar('identity.security02.test_read.01', [], 'closed'), 'application.identity.fail_closed_default');
+try {
+    $identityService->result('identity.raw_sql', []);
+    $failures[] = 'application.identity.closed_catalog';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
+
+$incidentPort = new class implements SecurityIncidentPort {
+    public array $records = [];
+    public function recordScopeViolation(
+        int $clinicId,
+        ?int $userId,
+        string $roleCode,
+        string $route,
+        string $violationKey,
+        string $fingerprint,
+        string $details,
+    ): void {
+        $this->records[] = [$clinicId, $userId, $roleCode, $route, $violationKey, $fingerprint, $details];
+    }
+    public function scopedEntityReadShape(string $table, string $columns): string
+    {
+        return 'shape:' . $table . ':' . $columns;
+    }
+};
+$incidentService = new SecurityIncidentService($incidentPort);
+$incidentService->recordScopeViolation(0, 91, 'gerente', 'patient', 'scope', str_repeat('a', 64), 'ignored');
+$same([], $incidentPort->records, 'application.security_incident.invalid_tenant_short_circuit');
+$incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence');
+$same([7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence'], $incidentPort->records[0] ?? null, 'application.security_incident.port_arguments');
+$same('shape:pi_patients:id', $incidentService->scopedEntityReadShape('pi_patients', 'id'), 'application.security_incident.shape');
+try {
+    $incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'scope', 'invalid', 'evidence');
+    $failures[] = 'application.security_incident.invalid_fingerprint';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
+
+$mfaPort = new class implements MfaRecordPort {
+    public bool $configured = true;
+    public ?string $record = null;
+    public int $deletedUser = 0;
+    public function hasConfig(): bool
+    {
+        return $this->configured;
+    }
+    public function load(int $userId): ?string
+    {
+        return $this->record;
+    }
+    public function save(int $userId, string $encodedRecord): void
+    {
+        $this->record = $encodedRecord;
+    }
+    public function delete(int $userId): void
+    {
+        $this->deletedUser = $userId;
+        $this->record = null;
+    }
+    public function secretKey(): string
+    {
+        return 'mfa-secret';
+    }
+};
+$mfaService = new MfaRecordService($mfaPort);
+$same(null, $mfaService->load(0), 'application.mfa.invalid_user_short_circuit');
+$same(null, $mfaService->load(91), 'application.mfa.absent');
+$mfaService->save(91, ['v' => 1, 'secret' => 'encrypted', 'recovery' => []]);
+$same(['v' => 1, 'secret' => 'encrypted', 'recovery' => []], $mfaService->load(91), 'application.mfa.round_trip');
+$same('mfa-secret', $mfaService->secretKey(), 'application.mfa.secret_key');
+$mfaService->delete(91);
+$same(91, $mfaPort->deletedUser, 'application.mfa.delete_port');
+$same(null, $mfaService->load(91), 'application.mfa.deleted');
+$mfaPort->record = '{';
+try {
+    $mfaService->load(91);
+    $failures[] = 'application.mfa.corrupt_fail_closed';
+} catch (RuntimeException) {
+    $passed++;
+}
+
 $patientPort = new class implements PatientReadPort {
     public ?array $registration = ['id' => 31, 'name' => 'Ana'];
     public array $guardians = [];
@@ -303,7 +438,7 @@ $result = [
     'policy' => 'fast-unit-suite-v4',
     'assertions_passed' => $passed,
     'assertions_failed' => count($failures),
-    'application_ports_tested' => 8,
+    'application_ports_tested' => 11,
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

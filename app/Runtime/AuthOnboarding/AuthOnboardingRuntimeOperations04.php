@@ -33,9 +33,7 @@ final class AuthOnboardingRuntimeOperations04
         try {
             [$pair, $subject, $ip] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
             $now = time();
-            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT MAX(GREATEST(0,locked_until-?)) AS wait_seconds FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
-                [
+            $r = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth04.login_lock.01', [
                     $now,
                     $pair[0],
                     $pair[1],
@@ -43,8 +41,7 @@ final class AuthOnboardingRuntimeOperations04
                     $subject[1],
                     $ip[0],
                     $ip[1],
-                ],
-            );
+                ], []);
             if (!$r) {
                 return 0;
             }
@@ -63,39 +60,7 @@ final class AuthOnboardingRuntimeOperations04
         $seconds = 60;
         try {
             [$pair, $subject, $ip] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_login_locks (subject_hash,ip_hash,fail_count,locked_until,updated_at)
-                 VALUES
-                   (?,?,1,UNIX_TIMESTAMP()+2,NOW()),
-                   (?,?,1,0,NOW()),
-                   (?,?,1,0,NOW())
-                 ON DUPLICATE KEY UPDATE
-                   locked_until=CASE
-                     WHEN subject_hash=? AND ip_hash=? THEN
-                       UNIX_TIMESTAMP()+CAST(
-                         LEAST(900,2*POW(2,LEAST(10,GREATEST(0,fail_count))))
-                         AS UNSIGNED
-                       )
-                     WHEN subject_hash=? AND ip_hash=? THEN
-                       CASE
-                         WHEN fail_count+1>=5 THEN UNIX_TIMESTAMP()+CAST(
-                           LEAST(86400,60*POW(2,LEAST(10,GREATEST(0,fail_count+1-5))))
-                           AS UNSIGNED
-                         )
-                         ELSE COALESCE(locked_until,0)
-                       END
-                     ELSE
-                       CASE
-                         WHEN fail_count+1>=20 THEN UNIX_TIMESTAMP()+CAST(
-                           LEAST(3600,60*POW(2,LEAST(10,GREATEST(0,fail_count+1-20))))
-                           AS UNSIGNED
-                         )
-                         ELSE COALESCE(locked_until,0)
-                       END
-                   END,
-                   fail_count=LEAST(100000,fail_count+1),
-                   updated_at=NOW()",
-                [
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.login_fail.01', [
                     $pair[0],
                     $pair[1],
                     $subject[0],
@@ -106,8 +71,7 @@ final class AuthOnboardingRuntimeOperations04
                     $pair[1],
                     $subject[0],
                     $subject[1],
-                ],
-            );
+                ], []);
             $seconds = max(1, \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf));
         } catch (Throwable $e) {
             error_log("[Prontoo login_fail] " . $e->getMessage());
@@ -122,10 +86,7 @@ final class AuthOnboardingRuntimeOperations04
     
         try {
             [$pair, $subject] = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_bucket_keys($cpf);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "DELETE FROM pi_login_locks WHERE (subject_hash=? AND ip_hash=?) OR (subject_hash=? AND ip_hash=?)",
-                [$pair[0], $pair[1], $subject[0], $subject[1]],
-            );
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.login_clear.01', [$pair[0], $pair[1], $subject[0], $subject[1]], []);
         } catch (Throwable $e) {
             error_log("[Prontoo login_clear] " . $e->getMessage());
         }
@@ -137,10 +98,7 @@ final class AuthOnboardingRuntimeOperations04
     {
         
         try {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_users SET failed_login_count=0, locked_until=NULL, last_login_at=NOW() WHERE id=?",
-                [$uid],
-            );
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.mark_login_success.01', [$uid], []);
         } catch (Throwable $e) {
             error_log("[Prontoo mark_login_success] " . $e->getMessage());
         }
@@ -238,18 +196,16 @@ final class AuthOnboardingRuntimeOperations04
             }
             $timezone = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::timezone_from_location($uf, $city);
             $accentColor = PRONTOO_DEFAULT_ACCENT_COLOR;
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
             try {
+                [$uid, $managerRoleId] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                    function () use ($pass, $cpf, $legalType, $doc, $profession, $timezone, $accentColor, $uf, $city, $cityIbge): array {
                 $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person(
                     mb_trim((string) $_POST["doctor_name"]),
                     $cpf,
                     (string) $_POST["birth_date"],
                 );
                 \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::lock_person_user_identity($pid);
-                $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,password_hash,active,email FROM pi_users WHERE person_id=? LIMIT 1",
-                    [$pid],
-                );
+                $existing = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth04.page_signup.01', [$pid], []);
                 if ($existing) {
                     if (!(int) $existing["active"]) {
                         throw new RuntimeException(
@@ -259,40 +215,24 @@ final class AuthOnboardingRuntimeOperations04
                     if (
                         !password_verify($pass, (string) $existing["password_hash"])
                     ) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                            "Não foi possível confirmar as credenciais informadas. Revise CPF, senha e dados do consultório.",
-                            "bad",
-                        );
-                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
+                        throw new RuntimeException('__signup_credentials__');
                     }
                     $uid = (int) $existing["id"];
                     $email = mb_trim((string) $_POST["email"]);
                     if ($email !== "" && empty($existing["email"])) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_users SET email=?,updated_at=NOW() WHERE id=?",
-                            [$email, $uid],
-                        );
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.02', [$email, $uid], []);
                     }
                 } else {
                     if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_ok($pass)) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                            "Use senha com 8 a 128 caracteres que não seja uma senha comum.",
-                            "bad",
-                        );
-                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
+                        throw new RuntimeException('__signup_password__');
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_users (person_id,name,email,password_hash,active,created_at) VALUES (?,?,?,?,1,NOW())",
-                        [
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.03', [
                             $pid,
                             mb_trim((string) $_POST["doctor_name"]),
                             mb_trim((string) $_POST["email"]) ?: null,
                             \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($pass),
-                        ],
-                    );
-                    $uid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                        ], []);
+                    $uid = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->lastInsertId();
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("users_total");
                 }
                 $trialStart = time();
@@ -302,9 +242,7 @@ final class AuthOnboardingRuntimeOperations04
                         \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
                     : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_clinics (legal_type,legal_name,legal_document,display_name,phone,responsible_profession,owner_user_id,manager_user_id,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,onboarding_done,onboarding_completed_at,trial_started_at,trial_ends_at,subscription_status,monthly_price_cents,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,'trial',?,?)",
-                    [
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.04', [
                         $legalType,
                         mb_trim((string) $_POST["legal_name"]),
                         $doc,
@@ -324,34 +262,21 @@ final class AuthOnboardingRuntimeOperations04
                         $trialEnd,
                         \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents(),
                         $trialStart,
-                    ],
-                );
-                $cid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    ], []);
+                $cid = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->lastInsertId();
                 if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
                     \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($cid, false);
                 }
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("clinics_total");
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active) VALUES (?,?,?,1,1) ON DUPLICATE KEY UPDATE is_owner=1, active=1",
-                    [$uid, $cid, "gerente"],
-                );
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_user_roles (user_id,clinic_id,role_code,is_owner,active) VALUES (?,?,?,1,1) ON DUPLICATE KEY UPDATE is_owner=1, active=1",
-                    [$uid, $cid, "medico"],
-                );
-                $managerRoleId = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT id FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND role_code='gerente' AND active=1 LIMIT 1",
-                    [$uid, $cid],
-                ) ?: 0);
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.05', [$uid, $cid, "gerente"], []);
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.06', [$uid, $cid, "medico"], []);
+                $managerRoleId = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth04.page_signup.07', [$uid, $cid], []) ?: 0);
                 if ($managerRoleId <= 0) {
                     throw new RuntimeException(
                         "Não foi possível definir o ambiente Administrativo inicial.",
                     );
                 }
-                $ownerRoles = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT role_code FROM pi_user_roles WHERE user_id=? AND clinic_id=? AND active=1 AND role_code IN ('gerente','medico')",
-                    [$uid, $cid],
-                )->fetchAll(PDO::FETCH_COLUMN);
+                $ownerRoles = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.08', [$uid, $cid], [])->fetchAll(PDO::FETCH_COLUMN);
                 $ownerRoles = array_values(
                     array_unique(array_map("strval", $ownerRoles ?: [])),
                 );
@@ -363,10 +288,7 @@ final class AuthOnboardingRuntimeOperations04
                 }
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::seed_permissions($cid);
                 \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinic_roles SET label=? WHERE clinic_id=? AND role_code='medico'",
-                    [$profession, $cid],
-                );
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.09', [$profession, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_criado", "consultorio", $cid, [
                     "clinic_id" => $cid,
                     "nome" => $_POST["display_name"],
@@ -377,7 +299,9 @@ final class AuthOnboardingRuntimeOperations04
                     "accent_color" => $accentColor,
                     "onboarding_done" => 1,
                 ]);
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                        return [$uid, $managerRoleId];
+                    },
+                );
                 \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_remember(
                     $uid,
                     "clinic",
@@ -388,8 +312,19 @@ final class AuthOnboardingRuntimeOperations04
                 );
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
             } catch (Throwable $e) {
-                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
+                if ($e->getMessage() === '__signup_credentials__') {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Não foi possível confirmar as credenciais informadas. Revise CPF, senha e dados do consultório.",
+                        "bad",
+                    );
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
+                }
+                if ($e->getMessage() === '__signup_password__') {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Use senha com 8 a 128 caracteres que não seja uma senha comum.",
+                        "bad",
+                    );
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("signup");
                 }
                 error_log("[Prontoo signup] " . $e->getMessage());
                 $reason =

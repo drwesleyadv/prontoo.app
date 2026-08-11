@@ -35,10 +35,7 @@ final class AuthOnboardingRuntimeOperations06
         if ($uid <= 0) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
-        $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT u.id,u.person_id,u.name,u.email,u.password_hash,u.is_global_admin,p.cpf,p.birth_date FROM pi_users u JOIN pi_persons p ON p.id=u.person_id WHERE u.id=? AND u.active=1 LIMIT 1",
-            [$uid],
-        );
+        $u = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth06.page_profile.01', [$uid], []);
         if (!$u) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
@@ -90,10 +87,7 @@ final class AuthOnboardingRuntimeOperations06
                     $personId = (int) $u["person_id"];
                     if ($email !== "") {
                         $emailOwner =
-                            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                                "SELECT id FROM pi_users WHERE email=? AND id<>? LIMIT 1",
-                                [$email, $uid],
-                            ) ?:
+                            (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth06.page_profile.02', [$email, $uid], []) ?:
                             0);
                         if ($emailOwner > 0) {
                             throw new RuntimeException(
@@ -101,21 +95,17 @@ final class AuthOnboardingRuntimeOperations06
                             );
                         }
                     }
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
-                        [$name, $personId],
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                        function () use ($name, $personId, $email, $uid): void {
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.03', [$name, $personId], []);
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.04', [$name, $email !== "" ? $email : null, $uid], []);
+                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_proprio_atualizado", "usuario", $uid, [
+                                "target_name" => $name,
+                                "audit_body" =>
+                                    "O próprio usuário atualizou nome e e-mail cadastrais. CPF e nascimento permanecem imutáveis.",
+                            ]);
+                        },
                     );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_users SET name=?, email=?, updated_at=NOW() WHERE id=?",
-                        [$name, $email !== "" ? $email : null, $uid],
-                    );
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_proprio_atualizado", "usuario", $uid, [
-                        "target_name" => $name,
-                        "audit_body" =>
-                            "O próprio usuário atualizou nome e e-mail cadastrais. CPF e nascimento permanecem imutáveis.",
-                    ]);
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Dados do usuário atualizados.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
@@ -444,19 +434,18 @@ final class AuthOnboardingRuntimeOperations06
                             "A nova senha precisa ser diferente da senha atual.",
                         );
                     }
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_users SET password_hash=?, updated_at=NOW() WHERE id=?",
-                        [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($new), $uid],
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                        function () use ($new, $uid, $u): void {
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.05', [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($new), $uid], []);
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
+                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("senha_redefinida", "usuario", $uid, [
+                                "target_name" => (string) ($u["name"] ?? ""),
+                                "audit_body" =>
+                                    "O próprio usuário alterou a senha; todas as sessões anteriores foram revogadas.",
+                            ]);
+                        },
                     );
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("senha_redefinida", "usuario", $uid, [
-                        "target_name" => (string) ($u["name"] ?? ""),
-                        "audit_body" =>
-                            "O próprio usuário alterou a senha; todas as sessões anteriores foram revogadas.",
-                    ]);
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
                     header(
                         "Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login", ["relogin" => "1"]),
@@ -477,10 +466,7 @@ final class AuthOnboardingRuntimeOperations06
                         throw new RuntimeException("Escolha um ambiente válido.");
                     }
                     $roleId = (int) $m[1];
-                    $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT ur.id,ur.clinic_id,ur.role_code,COALESCE(NULLIF(cr.label,''),ur.role_code) role_label FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE ur.id=? AND ur.user_id=? AND ur.active=1 LIMIT 1",
-                        [$roleId, $uid],
-                    );
+                    $link = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth06.page_profile.06', [$roleId, $uid], []);
                     if (!$link) {
                         throw new RuntimeException(
                             "Ambiente indisponível para este usuário.",
@@ -509,9 +495,6 @@ final class AuthOnboardingRuntimeOperations06
                 }
                 throw new RuntimeException("Ação de perfil inválida.");
             } catch (Throwable $e) {
-                if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                }
                 error_log("[Prontoo profile] " . $e->getMessage());
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_public_error_message(
@@ -861,10 +844,7 @@ final class AuthOnboardingRuntimeOperations06
                 $active,
             );
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT ur.id,ur.clinic_id,ur.role_code,c.display_name clinic_name,COALESCE(NULLIF(cr.label,''),ur.role_code) role_label,COALESCE(NULLIF(cr.icon_name,''),'workspaces') icon_name FROM pi_user_roles ur JOIN pi_clinics c ON c.id=ur.clinic_id AND c.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE ur.user_id=? AND ur.active=1 ORDER BY c.display_name ASC, ur.is_owner DESC, FIELD(ur.role_code,'gerente','medico','assistente','recepcionista'), ur.id ASC",
-            [$uid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.07', [$uid], [])->fetchAll();
         foreach ($rows as $r) {
             $rid = (int) $r["id"];
             $role = (string) $r["role_code"];
