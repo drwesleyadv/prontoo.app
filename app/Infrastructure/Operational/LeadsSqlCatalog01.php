@@ -19,7 +19,7 @@ final class LeadsSqlCatalog01
                 "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at,updated_at FROM pi_leads WHERE clinic_id=? AND (phone_digits=? OR LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=?)" .
                                 (!empty($excludeLead) ? " AND id<>?" : "") .
                                 " ORDER BY CASE WHEN " .
-                                LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                LeadQuerySql::active("stage") .
                                 " THEN 0 WHEN stage='arquivado' THEN 1 ELSE 2 END, COALESCE(updated_at,created_at) DESC, id DESC LIMIT 1"
             ),
             'operational.leads.01.lead_event_create.01' => (

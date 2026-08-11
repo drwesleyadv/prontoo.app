@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $root = dirname(__DIR__);
+require_once $root . '/app/Core/Architecture/LayerMap.php';
 $runtime = $root . '/app/Runtime';
 $contract = json_decode(
     (string) file_get_contents($root . '/app/runtime.boundary-contract.json'),
@@ -19,6 +20,10 @@ if (!is_array($contract) || ($contract['schema'] ?? '') !== 'prontoo-runtime-bou
 }
 $allowed = array_keys((array) ($contract['composition_roots'] ?? []));
 $violations = [];
+$declaredRoots = \Prontoo\Core\Architecture\LayerMap::compositionRoots();
+if ($allowed !== $declaredRoots) {
+    $violations[] = 'composition_root_contract_drift';
+}
 $instantiations = [];
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($runtime, FilesystemIterator::SKIP_DOTS),

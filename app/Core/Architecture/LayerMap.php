@@ -12,6 +12,21 @@ final class LayerMap
     public const PRESENTATION = 'presentation';
     public const COMPOSITION = 'composition';
 
+    public const COMPOSITION_ROOT = 'composition_root';
+    public const RUNTIME_BOOTSTRAP = 'runtime_bootstrap';
+    public const RUNTIME_INPUT_ADAPTER = 'runtime_input_adapter';
+    public const COMMISSIONING_ADAPTER = 'commissioning_adapter';
+    public const QUALITY_TOOL = 'quality_tool';
+    public const ENTRYPOINT = 'entrypoint';
+
+    private const COMPOSITION_ROOTS = [
+        'app/Runtime/LayeredKernel.php',
+        'app/Runtime/Patients/PatientComposition.php',
+        'app/Runtime/Financial/FinancialComposition.php',
+        'app/Runtime/SecurityAccess/SecurityAccessComposition.php',
+        'app/Runtime/Operational/OperationalComposition.php',
+    ];
+
     private const NATIVE_PREFIXES = [
         'app/Core/',
         'app/Domain/Authorization/',
@@ -158,6 +173,38 @@ final class LayerMap
             ],
         ];
         return in_array($to, $allowed[$from] ?? [], true);
+    }
+
+    public static function compositionRoots(): array
+    {
+        return self::COMPOSITION_ROOTS;
+    }
+
+    public static function compositionRoleFor(string $relativePath): ?string
+    {
+        $path = str_replace('\\', '/', ltrim($relativePath, '/'));
+        if (self::layerFor($path) !== self::COMPOSITION) {
+            return null;
+        }
+        if (in_array($path, self::COMPOSITION_ROOTS, true)) {
+            return self::COMPOSITION_ROOT;
+        }
+        if (str_starts_with($path, 'app/Runtime/Modules/') ||
+            str_starts_with($path, 'app/Runtime/Boot/') ||
+            str_starts_with($path, 'app/Runtime/Routing/') ||
+            $path === 'app/Runtime/Runner.php') {
+            return self::RUNTIME_BOOTSTRAP;
+        }
+        if (str_starts_with($path, 'app/Runtime/')) {
+            return self::RUNTIME_INPUT_ADAPTER;
+        }
+        if (str_starts_with($path, 'app/Install/')) {
+            return self::COMMISSIONING_ADAPTER;
+        }
+        if (str_starts_with($path, 'tools/')) {
+            return self::QUALITY_TOOL;
+        }
+        return self::ENTRYPOINT;
     }
 
     public static function phpFiles(string $root): array

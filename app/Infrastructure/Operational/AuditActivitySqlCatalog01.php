@@ -16,7 +16,7 @@ final class AuditActivitySqlCatalog01
         extract($bindings, EXTR_SKIP);
         return match ($operationId) {
             'operational.audit_activity.01.audit_chain_integrity_status.01' => (
-                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit
+                AuditActivityQuerySql::select() . " ORDER BY a.id DESC LIMIT " . $limit
             ),
             'operational.audit_activity.01.fetch_map.01' => (
                 AuditLookupSql::statement($projection, true, (int) $itemCount)
@@ -31,7 +31,7 @@ final class AuditActivitySqlCatalog01
                 "SELECT id,name FROM pi_users u WHERE u.id IN (" . OperationalSequenceSql::placeholders((int) $itemCount) . ") AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) "
             ),
             'operational.audit_activity.01.audit_rows_light.01' => (
-                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() .
+                AuditActivityQuerySql::select() .
                                     " WHERE " .
                                     AuditActivityQuerySql::where($criteria) .
                                     " AND a.event_key NOT IN ('login_clinica_pendente','login_credencial_pendente') ORDER BY a.id DESC LIMIT $limit OFFSET $offset"

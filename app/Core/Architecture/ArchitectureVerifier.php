@@ -40,6 +40,7 @@ final class ArchitectureVerifier
         $files = LayerMap::phpFiles($root);
         $classified = [];
         $layerCounts = [];
+        $compositionRoleCounts = [];
         $nativeFiles = [];
         $transitionalFiles = [];
 
@@ -52,6 +53,10 @@ final class ArchitectureVerifier
             }
             $classified[$relative] = $layer;
             $layerCounts[$layer] = ($layerCounts[$layer] ?? 0) + 1;
+            $compositionRole = LayerMap::compositionRoleFor($relative);
+            if ($compositionRole !== null) {
+                $compositionRoleCounts[$compositionRole] = ($compositionRoleCounts[$compositionRole] ?? 0) + 1;
+            }
             if (LayerMap::isNativePath($relative)) {
                 $nativeFiles[] = $relative;
             } else {
@@ -179,6 +184,7 @@ final class ArchitectureVerifier
                 $discoveredSources,
             ),
             'layers' => $layerCounts,
+            'composition_roles' => $compositionRoleCounts,
             'errors' => array_values(array_unique($errors)),
             'warnings' => array_values(array_unique($warnings)),
             'catalog' => $catalogTest,

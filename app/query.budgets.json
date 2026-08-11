@@ -1,12 +1,83 @@
 {
-    "schema": "prontoo-query-budgets-v1",
-    "policy": "critical_repository_query_counts_are_measured_on_real_mysql_and_must_not_increase",
+    "schema": "prontoo-query-budgets-v2",
+    "policy": "critical_read_models_are_measured_on_real_mysql_by_command_type_and_must_not_regress",
     "scenarios": {
         "patient_registration_read": {
-            "max_selects": 1
+            "max_selects": 1,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
         },
         "patient_read_bundle": {
-            "max_selects": 3
+            "max_selects": 3,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "agenda_daily_read": {
+            "max_selects": 2,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "patient_record_read": {
+            "max_selects": 5,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "financial_dashboard_read": {
+            "max_selects": 7,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "financial_movements_read": {
+            "max_selects": 3,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "tasks_read": {
+            "max_selects": 2,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "documents_read": {
+            "max_selects": 2,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "developer_dashboard_read": {
+            "max_selects": 7,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "login_readiness_read": {
+            "max_selects": 3,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
+        },
+        "maestro_preflight_read": {
+            "max_selects": 6,
+            "max_inserts": 0,
+            "max_updates": 0,
+            "max_deletes": 0,
+            "max_replaces": 0
         }
     }
 }

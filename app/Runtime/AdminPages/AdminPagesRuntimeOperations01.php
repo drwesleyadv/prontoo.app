@@ -199,7 +199,7 @@ final class AdminPagesRuntimeOperations01
             : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_login_locks", 45, 'read.admin_pages.01.platform_backend_selftest.02', [], []);
         $checks["scope_alerts_24h"] = array_key_exists("scope_alerts_24h", $preloaded)
             ? (int) $preloaded["scope_alerts_24h"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 45, 'read.admin_pages.01.platform_backend_selftest.03', [], []);
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 45, 'read.admin_pages.01.platform_backend_selftest.03', [], []);
         $scopeLogic = class_exists("\\Prontoo\\Core\\Database\\SqlScopeGuard")
             ? \Prontoo\Core\Database\SqlScopeGuard::logicSelfTest()
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["class_missing"]];
@@ -211,7 +211,7 @@ final class AdminPagesRuntimeOperations01
         $checks["scope_guard_context"] = $scopeContext;
         $ok = $ok && !empty($scopeContext["ok"]);
         $checks["integrity_alerts"] = (int) \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_remember(
-            "platform_selftest_integrity_alerts_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
+            "platform_selftest_integrity_alerts_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(),
             60,
             static function (): int {
     

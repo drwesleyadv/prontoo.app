@@ -26,7 +26,7 @@ final class AdminPagesSqlCatalog01
             'user_outside_clinic',
         ];
         $quoted = implode(',', array_map(static fn(string $key): string => "'" . $key . "'", $objectiveKeys));
-        $modelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('sv.clinic_id');
+        $modelWhere = ModelClinicQuerySql::exclude('sv.clinic_id');
         $policyWhere = !empty($includePolicy) ? '' : " AND sv.violation_key<>'write_in_read_only'";
         return match ($operationId) {
             'operational.admin_pages.01.admin_scope_guard_stats.01' => (

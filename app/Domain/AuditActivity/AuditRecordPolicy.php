@@ -55,14 +55,6 @@ final class AuditRecordPolicy
     
     }
 
-    public static function audit_select_sql(): string
-    
-    {
-    
-        return "SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.proof_json,a.policy_version,a.created_at FROM pi_audit a";
-    
-    }
-
     public static function int_ids(array $rows, string $key): array
     
     {
@@ -75,14 +67,6 @@ final class AuditRecordPolicy
             }
         }
         return array_values($ids);
-    
-    }
-
-    public static function audit_where_sql(string $where): string
-    
-    {
-    
-        return trim($where) === "1=1" ? "1=1" : $where;
     
     }
 

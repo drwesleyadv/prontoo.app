@@ -12,6 +12,8 @@ Exemplos: `Core/Invariant`, `Core/Temporal`, políticas de banco e arquitetura.
 
 Contém conceitos, validações e regras de negócio independentes de HTTP e persistência. Pode depender de `Core` e `Domain`.
 
+Domain fornece valores, estados e políticas puras; não renderiza `SELECT`, cláusulas ou fragmentos próprios do dialeto MySQL. A tradução dessas decisões para consultas pertence a Infrastructure.
+
 Não existe camada ou namespace ativo `Domain/Legacy`. Origens históricas removidas podem constar apenas nos mapas explícitos de migração e auditorias de baseline.
 
 ## Application
@@ -24,6 +26,8 @@ Abriga também o catálogo declarativo de autorização: fontes de definições,
 
 Implementa portas e detalhes externos: PDO, credenciais vivas, auditoria, integridade, armazenamento, cache e integrações. Pode depender de `Core`, `Domain`, `Application` e da própria `Infrastructure`.
 
+Catálogos e renderizadores de consulta, inclusive filtros de leads, auditoria, diretório de pacientes e exclusão do consultório-modelo, vivem nesta camada.
+
 Não existe camada ou namespace ativo `Infrastructure/Legacy`.
 
 ## Presentation
@@ -34,9 +38,9 @@ As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram rem
 
 ## Composition e Runtime
 
-É a única camada autorizada a conhecer todas as camadas. Sua responsabilidade normativa é wiring, bootstrap, catálogo/carregamento de módulos, composição de serviços, dispatch, adaptação de entrada e coordenação de prontidão/manutenção.
+É a fronteira autorizada a conhecer todas as camadas. Isso não concede liberdade para implementar persistência ou caso de uso: sua responsabilidade normativa é wiring, bootstrap, catálogo/carregamento de módulos, dispatch, adaptação de entrada e coordenação fina de prontidão/manutenção.
 
-`app/Runtime` concentra a composição executável. Front controllers, contratos de bootstrap e arquivos especiais recebem a classificação explicitamente definida por `LayerMap`.
+`LayerMap` subdivide a métrica de Composition em roots explícitos, bootstrap Runtime, adapters finos de entrada, comissionamento, ferramentas de qualidade e entrypoints. Os cinco composition roots concretos são enumerados por arquivo; somente eles podem instanciar adapters concretos. Os demais arquivos Runtime não se tornam composition roots por estarem no diretório.
 
 `app/Runtime` não contém SQL de negócio, acesso direto a PDO, adapters concretos fora dos composition roots nem transações de caso de uso. `tools/runtime-boundary-check` mantém essas categorias globais em zero e continua inventariando os helpers e controles estruturais do executor guardado, que não podem crescer nem virar uma exceção para persistência de negócio.
 

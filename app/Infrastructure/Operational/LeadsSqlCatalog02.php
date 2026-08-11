@@ -47,7 +47,7 @@ final class LeadsSqlCatalog02
             ),
             'operational.leads.02.page_leads.11' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND person_id=? AND " .
-                                                LeadsDomainOperations01::lead_active_stage_sql("stage")
+                                                LeadQuerySql::active("stage")
             ),
             'operational.leads.02.page_leads.12' => (
                 "INSERT INTO pi_leads (clinic_id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())"
@@ -56,32 +56,32 @@ final class LeadsSqlCatalog02
                 "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_at,updated_at FROM pi_leads WHERE clinic_id=?" .
                                 (!empty($searchMode)
                                     ? " AND (name LIKE ? OR phone LIKE ? OR phone_digits LIKE ? OR source LIKE ? OR interest LIKE ?)"
-                                    : " AND " . LeadsDomainOperations01::lead_stage_sql_case("stage") . "=?") .
+                                    : " AND " . LeadQuerySql::column("stage") . "=?") .
                                 " ORDER BY CASE WHEN stage='convertido' THEN 5 WHEN stage='arquivado' THEN 6 WHEN next_action_at IS NOT NULL AND next_action_at<NOW() THEN 0 WHEN next_action_at IS NOT NULL THEN 1 ELSE 2 END, COALESCE(next_action_at,created_at) ASC, id DESC LIMIT 140"
             ),
             'operational.leads.02.page_leads.14' => (
                 "SELECT " .
-                                LeadsDomainOperations01::lead_stage_sql_case("stage") .
+                                LeadQuerySql::column("stage") .
                                 " AS stage,COUNT(*) total FROM pi_leads WHERE clinic_id=? GROUP BY " .
-                                LeadsDomainOperations01::lead_stage_sql_case("stage")
+                                LeadQuerySql::column("stage")
             ),
             'operational.leads.02.page_leads.15' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                    LeadsDomainOperations01::lead_active_stage_sql("stage")
+                                    LeadQuerySql::active("stage")
             ),
             'operational.leads.02.page_leads.16' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                    LeadQuerySql::active("stage") .
                                     " AND created_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)"
             ),
             'operational.leads.02.page_leads.17' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                    LeadQuerySql::active("stage") .
                                     " AND next_action_at>=? AND next_action_at<?"
             ),
             'operational.leads.02.page_leads.18' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                    LeadQuerySql::active("stage") .
                                     " AND next_action_at IS NOT NULL AND next_action_at<NOW()"
             ),
             'operational.leads.02.page_leads.19' => (

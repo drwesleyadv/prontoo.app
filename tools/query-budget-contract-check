@@ -14,23 +14,45 @@ $contract = json_decode(
     JSON_THROW_ON_ERROR,
 );
 $ceilings = [
-    'patient_registration_read' => 1,
-    'patient_read_bundle' => 3,
+    'patient_registration_read' => ['max_selects' => 1],
+    'patient_read_bundle' => ['max_selects' => 3],
+    'agenda_daily_read' => ['max_selects' => 2],
+    'patient_record_read' => ['max_selects' => 5],
+    'financial_dashboard_read' => ['max_selects' => 7],
+    'financial_movements_read' => ['max_selects' => 3],
+    'tasks_read' => ['max_selects' => 2],
+    'documents_read' => ['max_selects' => 2],
+    'developer_dashboard_read' => ['max_selects' => 7],
+    'login_readiness_read' => ['max_selects' => 3],
+    'maestro_preflight_read' => ['max_selects' => 6],
 ];
+$mutationMetrics = ['max_inserts', 'max_updates', 'max_deletes', 'max_replaces'];
 $failures = [];
-if (($contract['schema'] ?? '') !== 'prontoo-query-budgets-v1') {
+if (($contract['schema'] ?? '') !== 'prontoo-query-budgets-v2') {
     $failures[] = 'schema';
 }
-foreach ($ceilings as $scenario => $maximum) {
-    $actual = (int) ($contract['scenarios'][$scenario]['max_selects'] ?? -1);
-    if ($actual < 0 || $actual > $maximum) {
-        $failures[] = 'budget_weakened:' . $scenario;
+if (array_keys((array) ($contract['scenarios'] ?? [])) !== array_keys($ceilings)) {
+    $failures[] = 'scenario_set';
+}
+foreach ($ceilings as $scenario => $limits) {
+    foreach ($limits as $metric => $maximum) {
+        $actual = $contract['scenarios'][$scenario][$metric] ?? null;
+        if (!is_int($actual) || $actual < 0 || $actual > $maximum) {
+            $failures[] = 'budget_weakened:' . $scenario . ':' . $metric;
+        }
+    }
+    foreach ($mutationMetrics as $metric) {
+        $actual = $contract['scenarios'][$scenario][$metric] ?? null;
+        if ($actual !== 0) {
+            $failures[] = 'read_model_mutation_budget:' . $scenario . ':' . $metric;
+        }
     }
 }
 $result = [
     'ok' => $failures === [],
     'policy' => (string) ($contract['policy'] ?? ''),
     'scenarios' => array_keys($ceilings),
+    'metrics' => ['max_selects', ...$mutationMetrics],
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

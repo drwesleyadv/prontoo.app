@@ -27,6 +27,7 @@ Os documentos abaixo registram etapas concluídas. Para localização atual de c
 - [ADR-0002 — isolamento por consultório](adr/0002-tenant-isolation.md)
 - [ADR-0003 — ledger transacional de ações](adr/0003-action-ledger.md)
 - [ADR-0004 — cache JSON por geração](adr/0004-json-cache-policy.md)
+- [ADR-0005 — fechamento semântico do Runtime](adr/0005-runtime-semantic-closure.md)
 
 ## Domínios
 

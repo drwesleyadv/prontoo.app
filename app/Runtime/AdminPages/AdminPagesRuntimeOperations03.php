@@ -310,9 +310,9 @@ final class AdminPagesRuntimeOperations03
         $openErrors = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_errors_open", 120, 'read.admin_pages.03.page_admin_health.01', [], []);
         $errors24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_errors_24h", 120, 'read.admin_pages.03.page_admin_health.02', [], []);
         $locks = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_locks", 60, 'read.admin_pages.03.page_admin_health.03', [], []);
-        $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 120, 'read.admin_pages.03.page_admin_health.04', [], []);
-        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_trialing_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.05', [], []);
-        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_readonly_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.06', [], []);
+        $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_scope_actionable_24h_v2_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 120, 'read.admin_pages.03.page_admin_health.04', [], []);
+        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_trialing_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.05', [], []);
+        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_readonly_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.06', [], []);
         $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "model_excluded"], [], 80);
         $bad = 0;
         foreach ($recent as $r) {
@@ -388,7 +388,7 @@ final class AdminPagesRuntimeOperations03
                 "title" => $bad . " anotação(ões) recentes com assinatura alterada",
                 "body" =>
                     "Amostra de atividades recentes, descontando consultórios isentos do Desenvolvedor.",
-                "meta" => \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_count_note(),
+                "meta" => \Prontoo\Core\Metrics\GlobalMetricScope::countNote(),
                 "html" =>
                     '<a class="ghost small" href="' .
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") .

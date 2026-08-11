@@ -38,7 +38,7 @@ final class DashboardsSqlCatalog01
             ),
             'operational.dashboards.01.page_recepcao_painel.05' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                    LeadsDomainOperations01::lead_active_stage_sql("stage")
+                                    LeadQuerySql::active("stage")
             ),
             'operational.dashboards.01.page_recepcao_painel.06' => (
                 "SELECT COUNT(*) FROM pi_patients WHERE clinic_id=? AND active=1 AND registration_needs_update=1"

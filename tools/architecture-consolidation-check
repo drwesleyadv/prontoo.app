@@ -1,0 +1,181 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+require_once $root . '/app/Core/Architecture/LayerMap.php';
+
+use Prontoo\Core\Architecture\LayerMap;
+
+$json = static function (string $relative) use ($root): array {
+    $decoded = json_decode(
+        (string) file_get_contents($root . '/' . $relative),
+        true,
+        512,
+        JSON_THROW_ON_ERROR,
+    );
+    if (!is_array($decoded)) {
+        throw new RuntimeException('Contrato JSON inválido: ' . $relative);
+    }
+    return $decoded;
+};
+
+$manifest = $json('app/architecture.manifest.json');
+$runtime = $json('app/runtime.boundary-contract.json');
+$gateway = $json('app/architecture.gateway-budget.json');
+$application = $json('app/application.test-contract.json');
+$queries = $json('app/query.budgets.json');
+$failures = [];
+
+$requiredZero = [
+    'runtime_business_sql',
+    'runtime_direct_pdo',
+    'runtime_repository_instantiation_outside_composition',
+    'runtime_transaction_orchestration_business',
+];
+if (($runtime['required_zero_categories'] ?? null) !== $requiredZero) {
+    $failures[] = 'runtime_zero_contract';
+}
+$globalZero = null;
+foreach ((array) ($runtime['path_zero_rules'] ?? []) as $rule) {
+    if (($rule['path_prefix'] ?? '') === 'app/Runtime/') {
+        $globalZero = $rule['categories'] ?? null;
+        break;
+    }
+}
+if ($globalZero !== $requiredZero) {
+    $failures[] = 'runtime_global_zero_rule';
+}
+if ((int) ($gateway['max_invoke_calls'] ?? -1) !== 0) {
+    $failures[] = 'operation_gateway_zero';
+}
+
+$declaredRoots = array_keys((array) ($runtime['composition_roots'] ?? []));
+if ($declaredRoots !== LayerMap::compositionRoots()) {
+    $failures[] = 'composition_roots';
+}
+foreach (LayerMap::compositionRoots() as $rootPath) {
+    if (LayerMap::compositionRoleFor($rootPath) !== LayerMap::COMPOSITION_ROOT) {
+        $failures[] = 'composition_role:' . $rootPath;
+    }
+}
+
+$forbiddenSemanticRenderers = [
+    'app/Domain/Leads/LeadsDomainOperations01.php' => ['lead_active_stage_sql', 'lead_stage_sql_case'],
+    'app/Domain/AuditActivity/AuditRecordPolicy.php' => ['audit_select_sql', 'audit_where_sql'],
+    'app/Domain/Patients/PatientsDomainOperations01.php' => ['patient_directory_order_sql'],
+    'app/Domain/ClinicConfig/ClinicConfigDomainOperations02.php' => ['admin_model_clinic_exclude_sql', 'admin_model_clinic_exclude_where'],
+    'app/Core/Tenant/TenantRegistry.php' => ['globalAdminExemptSubquery', 'excludeModelClinicSql', 'excludeModelClinicWhere'],
+];
+foreach ($forbiddenSemanticRenderers as $relative => $tokens) {
+    $source = (string) file_get_contents($root . '/' . $relative);
+    foreach ($tokens as $token) {
+        if (str_contains($source, $token)) {
+            $failures[] = 'sql_renderer_outside_infrastructure:' . $relative . ':' . $token;
+        }
+    }
+}
+foreach ([
+    'app/Infrastructure/Operational/LeadQuerySql.php',
+    'app/Infrastructure/Operational/AuditActivityQuerySql.php',
+    'app/Infrastructure/Operational/PatientDirectorySql.php',
+    'app/Infrastructure/Operational/ModelClinicQuerySql.php',
+] as $relative) {
+    if (!is_file($root . '/' . $relative)) {
+        $failures[] = 'infrastructure_query_policy_missing:' . $relative;
+    }
+}
+
+$criticalCases = 0;
+$ports = [];
+foreach ((array) ($application['cases'] ?? []) as $case) {
+    if (($case['criticality'] ?? '') !== 'critical') {
+        $failures[] = 'non_critical_application_case:' . (string) ($case['id'] ?? 'unknown');
+        continue;
+    }
+    $criticalCases++;
+    if ((array) ($case['assertions'] ?? []) === []) {
+        $failures[] = 'application_case_without_assertions:' . (string) ($case['id'] ?? 'unknown');
+    }
+    foreach ((array) ($case['ports'] ?? []) as $port) {
+        $interface = (string) ($port['interface'] ?? '');
+        if ($interface !== '') {
+            $ports[$interface] = true;
+        }
+    }
+}
+if ($criticalCases < 32 || count($ports) < 15) {
+    $failures[] = 'application_test_surface_regressed';
+}
+
+$queryScenarios = [
+    'patient_registration_read',
+    'patient_read_bundle',
+    'agenda_daily_read',
+    'patient_record_read',
+    'financial_dashboard_read',
+    'financial_movements_read',
+    'tasks_read',
+    'documents_read',
+    'developer_dashboard_read',
+    'login_readiness_read',
+    'maestro_preflight_read',
+];
+if (($queries['schema'] ?? '') !== 'prontoo-query-budgets-v2' ||
+    array_keys((array) ($queries['scenarios'] ?? [])) !== $queryScenarios) {
+    $failures[] = 'query_budget_surface';
+}
+foreach ((array) ($queries['scenarios'] ?? []) as $scenario => $budget) {
+    foreach (['max_inserts', 'max_updates', 'max_deletes', 'max_replaces'] as $metric) {
+        if (($budget[$metric] ?? null) !== 0) {
+            $failures[] = 'read_model_mutation_budget:' . $scenario . ':' . $metric;
+        }
+    }
+}
+
+$finalTargets = [
+    'operation_gateway_calls' => 0,
+    'runtime_business_sql' => 0,
+    'runtime_direct_pdo' => 0,
+    'concrete_adapters_outside_composition_roots' => 0,
+    'unresolved_runtime_symbols' => 0,
+    'architectural_classification_percent' => 100,
+    'solid_objective_findings' => 0,
+    'solid_hotspots' => 0,
+    'critical_application_use_cases_tested_percent' => 100,
+    'query_budget_regressions' => 0,
+    'release_contract_drift' => 0,
+    'architecture_documentation_drift' => 0,
+];
+if (($manifest['final_architecture_contract_targets'] ?? null) !== $finalTargets) {
+    $failures[] = 'manifest_final_targets';
+}
+foreach ([
+    'architecture_consolidation_check' => 'tools/architecture-consolidation-check',
+    'query_budget_contract' => 'app/query.budgets.json',
+    'query_budget_check' => 'tools/mysql-query-budget-check',
+] as $key => $value) {
+    if (($manifest[$key] ?? null) !== $value) {
+        $failures[] = 'manifest_contract:' . $key;
+    }
+}
+if ((int) ($manifest['query_budget_scenarios_target'] ?? 0) !== count($queryScenarios)) {
+    $failures[] = 'manifest_query_budget_target';
+}
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'architecture-semantic-closure-v1',
+    'composition_roots' => count($declaredRoots),
+    'critical_application_use_cases' => $criticalCases,
+    'application_ports' => count($ports),
+    'mysql_query_budget_scenarios' => count($queryScenarios),
+    'final_targets' => $finalTargets,
+    'failures' => array_values(array_unique($failures)),
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);

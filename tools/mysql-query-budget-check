@@ -47,7 +47,17 @@ require $root . '/app/prontoo.php';
 });
 \Prontoo\Runtime\Modules\RuntimeModuleComposition::loader()->loadFullRuntime();
 $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
-$repository = new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository();
+$patientRepository = new \Prontoo\Infrastructure\Patients\PdoPatientReadRepository();
+$operational = [
+    'appointments' => \Prontoo\Runtime\Operational\OperationalComposition::appointments(),
+    'patients' => \Prontoo\Runtime\Operational\OperationalComposition::patients(),
+    'tasks' => \Prontoo\Runtime\Operational\OperationalComposition::tasks(),
+    'documents' => \Prontoo\Runtime\Operational\OperationalComposition::documents(),
+    'administration' => \Prontoo\Runtime\Operational\OperationalComposition::administration(),
+    'maestro' => \Prontoo\Runtime\Operational\OperationalComposition::maestro(),
+];
+$financial = \Prontoo\Runtime\Financial\FinancialComposition::dataService();
+$identity = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
 $contract = json_decode(
     (string) file_get_contents($root . '/app/query.budgets.json'),
     true,
@@ -55,40 +65,180 @@ $contract = json_decode(
     JSON_THROW_ON_ERROR,
 );
 
-$selects = static function (PDO $pdo): int {
-    $row = $pdo->query("SHOW SESSION STATUS LIKE 'Com_select'")->fetch(PDO::FETCH_NUM);
-    return (int) ($row[1] ?? 0);
+$statusMetrics = [
+    'Com_select' => 'selects',
+    'Com_insert' => 'inserts',
+    'Com_update' => 'updates',
+    'Com_delete' => 'deletes',
+    'Com_replace' => 'replaces',
+];
+$status = static function (PDO $pdo) use ($statusMetrics): array {
+    $rows = $pdo->query(
+        "SHOW SESSION STATUS WHERE Variable_name IN ('Com_select','Com_insert','Com_update','Com_delete','Com_replace')",
+    )->fetchAll(PDO::FETCH_NUM);
+    $values = array_fill_keys(array_values($statusMetrics), 0);
+    foreach ($rows as $row) {
+        $metric = $statusMetrics[(string) ($row[0] ?? '')] ?? null;
+        if ($metric !== null) {
+            $values[$metric] = (int) ($row[1] ?? 0);
+        }
+    }
+    return $values;
 };
-$measure = static function (callable $operation) use ($pdo, $selects): int {
-    $before = $selects($pdo);
+$measure = static function (callable $operation) use ($pdo, $status): array {
+    $before = $status($pdo);
     $operation();
-    $after = $selects($pdo);
-    return max(0, $after - $before);
+    $after = $status($pdo);
+    $delta = [];
+    foreach ($after as $metric => $value) {
+        $delta[$metric] = max(0, $value - (int) ($before[$metric] ?? 0));
+    }
+    return $delta;
 };
 
-$registration = $measure(static function () use ($repository): void {
-    $repository->appointmentRegistration(987654321, 987654321);
-});
-$bundle = $measure(static function () use ($repository): void {
-    $repository->appointmentRegistration(987654321, 987654321);
-    $repository->activeLegalGuardians(987654321, 987654321);
-    $repository->hasActiveLegalGuardian(987654321, 987654321);
-});
-$actual = [
-    'patient_registration_read' => $registration,
-    'patient_read_bundle' => $bundle,
+$clinicId = 987654321;
+$userId = 987654321;
+$patientId = 987654321;
+$personId = 987654321;
+$locationId = 987654321;
+$sessionId = 987654321;
+$dayStart = 1786310400;
+$dayEnd = 1786396800;
+$weekEnd = 1786915200;
+$monthEnd = 1788998400;
+$scenarios = [
+    'patient_registration_read' => static function () use ($patientRepository, $clinicId, $patientId): void {
+        $patientRepository->appointmentRegistration($clinicId, $patientId);
+    },
+    'patient_read_bundle' => static function () use ($patientRepository, $clinicId, $patientId): void {
+        $patientRepository->appointmentRegistration($clinicId, $patientId);
+        $patientRepository->activeLegalGuardians($clinicId, $patientId);
+        $patientRepository->hasActiveLegalGuardian($clinicId, $patientId);
+    },
+    'agenda_daily_read' => static function () use ($operational, $clinicId, $dayStart, $dayEnd): void {
+        $operational['appointments']->result(
+            'operational.appointments.05.page_appointments.38',
+            [$clinicId, $dayStart, $dayEnd],
+            ['doctorScoped' => false],
+        )->fetchAll();
+        $operational['appointments']->result(
+            'operational.appointments.05.page_appointments.39',
+            [$clinicId, $dayEnd, $dayStart],
+            ['doctorScoped' => false],
+        )->fetchAll();
+    },
+    'patient_record_read' => static function () use ($operational, $clinicId, $patientId, $personId): void {
+        $operational['patients']->row('operational.patients.07.page_patient.01', [$patientId, $clinicId]);
+        $operational['patients']->row('operational.patients.07.page_patient.02', [$personId]);
+        foreach (['29', '34', '35'] as $suffix) {
+            $operational['patients']->result(
+                'operational.patients.07.page_patient.' . $suffix,
+                [$clinicId, $patientId],
+            )->fetchAll();
+        }
+    },
+    'financial_dashboard_read' => static function () use ($financial, $clinicId, $dayStart, $dayEnd, $weekEnd, $monthEnd): void {
+        $financial->result('financial.02.account_balances.01', [$clinicId])->fetchAll();
+        foreach (['revenue', 'expense', 'transfer_in', 'transfer_out'] as $balanceSource) {
+            $financial->result(
+                'financial.02.account_balances.02',
+                [$clinicId],
+                compact('balanceSource'),
+            )->fetchAll();
+        }
+        $parameters = [$monthEnd, $weekEnd, $dayStart, $dayEnd, $dayStart, $clinicId];
+        $financial->row('financial.02.dashboard_numbers.01', $parameters);
+        $financial->row('financial.02.dashboard_numbers.02', $parameters);
+    },
+    'financial_movements_read' => static function () use ($financial, $clinicId, $locationId, $sessionId): void {
+        $financial->result(
+            'financial.13.admin_movements_panel.01',
+            [$clinicId],
+            ['limit' => 120],
+        )->fetchAll();
+        $financial->result(
+            'financial.09.location_movement_balances.01',
+            [$clinicId, $locationId, $clinicId, $locationId],
+            ['itemCount' => 1],
+        )->fetchAll();
+        $financial->result(
+            'financial.07.session_movement_totals.01',
+            [$clinicId, $sessionId],
+        )->fetchAll();
+    },
+    'tasks_read' => static function () use ($operational, $clinicId, $userId, $dayStart, $dayEnd): void {
+        $operational['tasks']->result(
+            'operational.tasks_notices.04.page_tasks.16',
+            [$clinicId, $userId, $userId, $dayStart, $dayEnd],
+            ['view' => 'mine', 'search' => false],
+        )->fetchAll();
+        $operational['tasks']->row(
+            'operational.tasks_notices.02.task_nav_counts.01',
+            [$dayStart, $dayEnd, 'gerente', $userId, $userId, 'gerente', $clinicId],
+        );
+    },
+    'documents_read' => static function () use ($operational, $clinicId): void {
+        $operational['documents']->result(
+            'operational.documents.05.page_documents.06',
+            [$clinicId, 'gerente'],
+            ['visibilityMode' => 'manager'],
+        )->fetchAll();
+        $operational['documents']->result(
+            'operational.documents.05.page_documents.07',
+            [$clinicId],
+            ['role' => 'gerente', 'search' => false, 'docLimit' => 10],
+        )->fetchAll();
+    },
+    'developer_dashboard_read' => static function () use ($operational): void {
+        foreach (range(1, 6) as $suffix) {
+            $operational['administration']->scalar(
+                'operational.admin_pages.06.page_admin_painel.07',
+                [],
+                ['query' => sprintf('read.admin_pages.06.page_admin_painel.%02d', $suffix)],
+            );
+        }
+        $operational['administration']->result(
+            'operational.admin_pages.06.page_admin_painel.08',
+        )->fetchAll();
+    },
+    'login_readiness_read' => static function () use ($identity): void {
+        $lock = 'prontoo_query_budget_login';
+        $identity->scalar('identity.auth03.page_login.01', [$lock]);
+        try {
+            $identity->row('identity.auth03.page_login.02', ['00000000000']);
+        } finally {
+            $identity->scalar('identity.auth03.page_login.03', [$lock]);
+        }
+    },
+    'maestro_preflight_read' => static function () use ($operational, $clinicId): void {
+        $operational['maestro']->scalar(
+            'operational.maestro.01.maestro_runtime_access_marker_ready.01',
+        );
+        $operational['maestro']->result('operational.maestro.02.page_maestro.03', [$clinicId])->fetchAll();
+        $operational['maestro']->row('operational.maestro.02.page_maestro.04');
+        $operational['maestro']->scalar('operational.maestro.02.page_maestro.05');
+        $operational['maestro']->scalar('operational.maestro.02.page_maestro.06', [$clinicId]);
+        $operational['maestro']->result('operational.maestro.02.page_maestro.07', [$clinicId])->fetchAll();
+    },
 ];
+$actual = [];
+foreach ($scenarios as $scenario => $operation) {
+    $actual[$scenario] = $measure($operation);
+}
 $failures = [];
-foreach ($actual as $scenario => $count) {
-    $maximum = (int) ($contract['scenarios'][$scenario]['max_selects'] ?? -1);
-    if ($maximum < 0 || $count > $maximum) {
-        $failures[] = $scenario . ':' . $count . '>' . $maximum;
+foreach ($actual as $scenario => $metrics) {
+    foreach ($metrics as $metric => $count) {
+        $budgetKey = 'max_' . $metric;
+        $maximum = $contract['scenarios'][$scenario][$budgetKey] ?? null;
+        if (!is_int($maximum) || $count > $maximum) {
+            $failures[] = $scenario . ':' . $metric . ':' . $count . '>' . (is_int($maximum) ? $maximum : 'missing');
+        }
     }
 }
 $result = [
     'ok' => $failures === [],
-    'policy' => 'real-mysql-query-budget-v1',
-    'metric' => 'Com_select',
+    'policy' => 'real-mysql-query-budget-v2',
+    'metrics' => $statusMetrics,
     'actual' => $actual,
     'budgets' => $contract['scenarios'] ?? [],
     'failures' => $failures,

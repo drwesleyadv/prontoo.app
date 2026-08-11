@@ -233,8 +233,8 @@ final class AdminPagesRuntimeOperations04
         if (empty($chainStatus["ok"])) {
             $bad++;
         }
-        $scopeViolations = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_scope_actionable_7d_v2_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 120, 'read.admin_pages.04.page_admin_integrity.01', [], []);
-        $crossClinic = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_cross_clinic_links_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 300, 'read.admin_pages.04.page_admin_integrity.02', [], []);
+        $scopeViolations = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_scope_actionable_7d_v2_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 120, 'read.admin_pages.04.page_admin_integrity.01', [], []);
+        $crossClinic = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_cross_clinic_links_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 300, 'read.admin_pages.04.page_admin_integrity.02', [], []);
         $issues = [
             [
                 "icon" => $scopeViolations ? "shield_lock" : "verified_user",
@@ -245,7 +245,7 @@ final class AdminPagesRuntimeOperations04
                 "body" =>
                     "A contagem exclui bloqueios de assinatura e não significa que dados tenham atravessado consultórios.",
                 "meta" =>
-                    \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_count_note() .
+                    \Prontoo\Core\Metrics\GlobalMetricScope::countNote() .
                     " · detalhes técnicos em Segurança",
             ],
             [
@@ -282,7 +282,7 @@ final class AdminPagesRuntimeOperations04
                 "time" => "Consultórios",
                 "title" =>
                     (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_clinics_no_manager_model_" .
-                            \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 300, 'read.admin_pages.04.page_admin_integrity.04', [], ['modelClinic' => $modelClinic]) . " consultório(s) ativos sem gerente definido",
+                            \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 300, 'read.admin_pages.04.page_admin_integrity.04', [], ['modelClinic' => $modelClinic]) . " consultório(s) ativos sem gerente definido",
                 "body" => "Afeta suporte e governança local.",
                 "meta" => "Revisar responsável",
             ],
@@ -291,7 +291,7 @@ final class AdminPagesRuntimeOperations04
                 "time" => "Agenda",
                 "title" =>
                     (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_appt_no_patient_model_" .
-                            \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 300, 'read.admin_pages.04.page_admin_integrity.05', [], ['modelScoped' => $modelScoped]) . " agendamento(s) recente(s) sem paciente vinculado",
+                            \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 300, 'read.admin_pages.04.page_admin_integrity.05', [], ['modelScoped' => $modelScoped]) . " agendamento(s) recente(s) sem paciente vinculado",
                 "body" => "Indica inconsistência de vínculo.",
                 "meta" => "Conferência operacional",
             ],
@@ -299,7 +299,7 @@ final class AdminPagesRuntimeOperations04
                 "icon" => "task_alt",
                 "time" => "Tarefas",
                 "title" =>
-                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_tasks_late_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 300, 'read.admin_pages.04.page_admin_integrity.06', [], ['modelScoped' => $modelScoped]) . " tarefa(s) atrasada(s)",
+                    (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("integrity_tasks_late_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 300, 'read.admin_pages.04.page_admin_integrity.06', [], ['modelScoped' => $modelScoped]) . " tarefa(s) atrasada(s)",
                 "body" => "Não é erro técnico, mas sinal de operação parada.",
                 "meta" => "Qualidade de uso",
             ],

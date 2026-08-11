@@ -11,6 +11,11 @@ final class AuditActivityQuerySql
     {
     }
 
+    public static function select(): string
+    {
+        return 'SELECT a.id,a.clinic_id,a.user_id,a.event_key,a.event_key AS event,a.event_label,a.event_icon,a.entity_key,a.entity_key AS entity,a.entity_label,a.entity_id,a.friendly_text,a.context_json,a.integrity_hash,a.previous_hash,a.chain_hash,a.proof_hash,a.proof_json,a.policy_version,a.created_at FROM pi_audit a';
+    }
+
     public static function where(array $criteria): string
     {
         $scope = (string) ($criteria['scope'] ?? 'all');
@@ -19,7 +24,7 @@ final class AuditActivityQuerySql
             return '1=1';
         }
         if ($scope === 'model_excluded') {
-            return \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where('a.clinic_id');
+            return ModelClinicQuerySql::where('a.clinic_id');
         }
         if ($scope === 'clinic') {
             return 'a.clinic_id=?';

@@ -71,28 +71,4 @@ final class LeadsDomainOperations01
     
     }
 
-    public static function lead_active_stage_sql(string $column = "stage"): string
-    
-    {
-    
-        $column = preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
-        $active = array_map(
-            static  fn($s) => "'" . str_replace("'", "''", $s) . "'",
-            self::lead_active_stages(),
-        );
-        return "(" .
-            self::lead_stage_sql_case($column) .
-            ") IN (" .
-            implode(",", $active) .
-            ")";
-    
-    }
-
-    public static function lead_stage_sql_case(string $column = "stage"): string
-    
-    {
-    
-        return preg_replace("/[^A-Za-z0-9_\.]+/", "", $column) ?: "stage";
-    
-    }
 }

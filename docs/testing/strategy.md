@@ -21,6 +21,10 @@ Demonstrar comportamento correto, falha segura, preservação das invariantes e 
 
 A suíte rápida não abre conexão de banco. Casos que dependem de atomicidade real permanecem ligados a uma suíte MySQL separada no próprio contrato; o recebimento financeiro, por exemplo, aponta para `tools/critical-runtime-smoke-check`. O gate exige 100% dos casos críticos catalogados, sem usar percentual de linhas como substituto de comportamento.
 
+## Budgets reais de consulta
+
+`app/query.budgets.json` cataloga 11 read models críticos. `tools/mysql-query-budget-check` instala um schema limpo e mede em MySQL real os contadores de sessão de `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE` para cadastro/ficha do paciente, Agenda diária, financeiro, tarefas, documentos, painel do Desenvolvedor, login/readiness e Maestro/preflight. Os cenários de leitura exigem zero mutações. Tempo absoluto de runner compartilhado não é gate.
+
 ## CI canônica
 
 `.github/workflows/architecture.yml` executa em PHP 8.4 e MySQL 8 reais e cobre, entre outros gates:

@@ -18,7 +18,6 @@ use \PDO;
 use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
-use \Throwable;
 
 final class ClinicConfigDomainOperations02
 {
@@ -325,76 +324,6 @@ final class ClinicConfigDomainOperations02
             "gerente" => "admin_panel_settings",
             default => "groups",
         };
-    
-    }
-
-    public static function admin_model_clinic_meta_key(): string
-    
-    {
-    
-        return "admin_global_exempt_clinic_id";
-    
-    }
-
-    public static function admin_model_clinic_id(): int
-    
-    {
-    
-        try {
-            return \Prontoo\Core\Tenant\TenantRegistry::modelClinicId();
-        } catch (Throwable $e) {
-            return 0;
-        }
-    
-    }
-
-    public static function ensure_global_admin_clinic_exempt(int $clinicId): void
-    
-    {
-    
-        return;
-    
-    }
-
-    public static function admin_model_clinic_set(int $clinicId): void
-    
-    {
-    
-        return;
-    
-    }
-
-    public static function admin_model_clinic_exclude_sql(string $column = "clinic_id"): string
-    
-    {
-    
-        try {
-            return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicSql($column);
-        } catch (Throwable $e) {
-            return "";
-        }
-    
-    }
-
-    public static function admin_model_clinic_exclude_where(string $column = "clinic_id"): string
-    
-    {
-    
-        try {
-            return \Prontoo\Core\Metrics\GlobalMetricScope::modelClinicWhere(
-                $column,
-            );
-        } catch (Throwable $e) {
-            return "1=1";
-        }
-    
-    }
-
-    public static function admin_model_clinic_count_note(): string
-    
-    {
-    
-        return \Prontoo\Core\Metrics\GlobalMetricScope::countNote();
     
     }
 

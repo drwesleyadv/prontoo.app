@@ -13,7 +13,7 @@ flowchart TD
 
 ## Aplicação PHP
 
-Deploy monolítico, código modular. Internamente, o runtime compõe `Presentation → Application → Domain/Core` e implementações de `Infrastructure`. `Runtime/Composition` é o único ponto autorizado a conectar todas as camadas. O carregamento é orientado por módulos/rotas e separa prontidão mínima de manutenção profunda.
+Deploy monolítico, código modular. Internamente, adapters HTTP/Runtime chamam Application, que depende de ports; os cinco composition roots enumerados conectam implementações de Infrastructure. A classificação Composition também identifica bootstrap e adapters finos de entrada, mas não os autoriza a persistir. O carregamento é orientado por módulos/rotas e separa prontidão mínima de manutenção profunda.
 
 ## MySQL
 
@@ -33,4 +33,4 @@ Adaptador externo opcional. Integrações externas pertencem a Infrastructure e 
 
 ## Fronteira de implantação
 
-Web e CLI usam exclusivamente a família PHP 8.4. CI reproduz PHP 8.4 e MySQL 8 para contratos e smoke tests críticos.
+Web e CLI usam exclusivamente a família PHP 8.4. CI reproduz PHP 8.4 e MySQL 8 para contratos, smoke tests críticos e budgets reais por tipo de comando SQL.

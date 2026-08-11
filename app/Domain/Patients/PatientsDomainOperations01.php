@@ -184,24 +184,6 @@ final class PatientsDomainOperations01
     
     }
 
-    public static function patient_directory_order_sql(string $filter): string
-    
-    {
-    
-        $filter = array_key_exists($filter, \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options())
-            ? $filter
-            : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
-        return match ($filter) {
-            "today"
-                => "today_appointment_start_at ASC, p.full_name ASC, pp.id DESC",
-            "week" => "p.full_name ASC, pp.id DESC",
-            "dropouts" => "dropout_at DESC, p.full_name ASC, pp.id DESC",
-            "incomplete" => "p.full_name ASC, pp.id DESC",
-            default => "p.full_name ASC, pp.id DESC",
-        };
-    
-    }
-
     public static function patient_appointment_code(array $a): string
     
     {

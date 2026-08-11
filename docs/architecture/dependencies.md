@@ -15,7 +15,7 @@ A política executável é `app/Core/Architecture/LayerMap.php`. `tools/architec
 | Presentation | Core, Domain, Application, Presentation |
 | Composition | Core, Domain, Application, Infrastructure, Presentation, Composition |
 
-A direção é de dependências para dentro. `Infrastructure` implementa portas declaradas em `Application`; `Presentation` consome casos de uso sem acessar adaptadores concretos; `Composition` conecta as implementações concretas.
+A direção é de dependências para dentro. `Infrastructure` implementa portas declaradas em `Application`; `Presentation` consome casos de uso sem acessar adaptadores concretos; somente os composition roots enumerados conectam implementações concretas. Bootstrap e adapters de entrada classificados como Composition continuam sujeitos aos contratos de fronteira Runtime e não podem usar essa classificação como atalho para persistência.
 
 ## Relações proibidas
 
@@ -29,7 +29,7 @@ A direção é de dependências para dentro. `Infrastructure` implementa portas 
 
 ## Exceções de classificação
 
-Alguns arquivos físicos possuem classificação especial porque são composition roots ou contratos de bootstrap. Essas exceções estão enumeradas no `LayerMap`, não devem ser inferidas por convenção e não podem ser ampliadas silenciosamente.
+Alguns arquivos físicos possuem classificação especial porque são composition roots ou contratos de bootstrap. Essas exceções e os cinco roots concretos estão enumerados no `LayerMap`, devem coincidir com `app/runtime.boundary-contract.json` e não podem ser ampliados silenciosamente.
 
 ## Estado pós-zero-legacy
 

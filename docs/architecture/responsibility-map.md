@@ -17,6 +17,7 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | catálogo SQL e adapter de dados financeiros | `app/Infrastructure/Financial/FinancialSqlCatalog*.php`, `PdoFinancialDataRepository.php` |
 | casos de uso e catálogo de persistência de identidade | `app/Application/Identity/*`, `app/Infrastructure/Identity/*` |
 | casos de uso operacionais e catálogos fechados | `app/Application/Operational/*`, `app/Infrastructure/Operational/*` |
+| renderização de consultas de leads, auditoria, pacientes e consultório-modelo | `app/Infrastructure/Operational/LeadQuerySql.php`, `AuditActivityQuerySql.php`, `PatientDirectorySql.php`, `ModelClinicQuerySql.php` |
 | registro persistente de incidentes de escopo | `app/Application/SecurityAccess/SecurityIncident*`, `app/Infrastructure/SecurityAccess/PdoSecurityIncidentRepository.php` |
 | ciclo persistente de cadastro MFA | `app/Application/SecurityAccess/MfaRecord*`, `app/Infrastructure/SecurityAccess/PdoMfaRecordRepository.php` |
 | auditoria/integridade concreta | `app/Infrastructure/Audit`, `app/Infrastructure/Integrity` |
@@ -25,9 +26,11 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | composição do catálogo de autorização | `app/Runtime/Authorization/*` |
 | prontidão e manutenção | `app/Runtime/Boot/*` |
 | roteamento | `app/Runtime/Routing/*` |
-| wiring de features | `app/Runtime/*` |
+| wiring concreto de features | os cinco roots enumerados por `LayerMap::compositionRoots()` |
+| adapters finos de entrada | demais handlers em `app/Runtime/*` |
 | inventário monotônico da fronteira Runtime | `app/runtime.boundary-contract.json`, `app/runtime.boundary-baseline.json`, `tools/runtime-boundary-check` |
 | matriz e cobertura dos casos críticos de Application | `app/application.test-contract.json`, `tools/application-test-contract-check`, `tools/test-fast` |
+| budgets reais dos read models críticos | `app/query.budgets.json`, `tools/query-budget-contract-check`, `tools/mysql-query-budget-check` |
 | entradas web | `index.php`, `install.php`, `br`, `public` |
 | execução secundária | `cron/maestro.php` |
 
@@ -37,7 +40,7 @@ O catálogo não é mais uma tabela monolítica no núcleo. `Application/Authori
 
 ## Runtime
 
-A composição deixou de concentrar boot, catálogo, loading e wiring numa única unidade. `RuntimeBootPolicy`, `RuntimeModuleCatalog`, `RuntimeModuleLoader` e `RuntimeModuleComposition` possuem responsabilidades separadas. `RuntimeBootCoordinator` separa prontidão mínima de manutenção profunda. `RouteCatalog`, `JsonResponder`, composições de feature e `Runner` separam roteamento, resposta e execução.
+A composição deixou de concentrar boot, catálogo, loading e wiring numa única unidade. `RuntimeBootPolicy`, `RuntimeModuleCatalog`, `RuntimeModuleLoader` e `RuntimeModuleComposition` possuem responsabilidades separadas. `RuntimeBootCoordinator` separa prontidão mínima de manutenção profunda. `RouteCatalog`, `JsonResponder`, composições de feature e `Runner` separam roteamento, resposta e execução. `LayerMap` publica a submétrica de responsabilidades de Composition; somente cinco arquivos possuem papel de root concreto.
 
 ## Estado pós-zero-legacy
 
@@ -55,6 +58,7 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - fronteira operacional fechada: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e módulos residuais usam serviços por escopo e operações nomeadas; SQL, PDO e atomicidade de casos de uso ficam fora do Runtime;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
 - fechamento de testes de Application: todos os entry points públicos dos 13 services estão ligados a 32 casos críticos, 15 ports e assertivas unitárias sem banco; atomicidade permanece em smoke MySQL separado.
+- consolidação de performance: 11 read models críticos possuem budgets MySQL reais para `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`, sem gates frágeis baseados em tempo absoluto.
 
 ## Regras de localização
 
@@ -63,7 +67,7 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - coordenação de caso de uso em Application;
 - regra de negócio pura em Domain;
 - invariantes transversais e decisões canônicas em Core;
-- wiring concreto somente em Composition/Runtime;
+- wiring concreto somente nos composition roots explicitamente enumerados;
 - nenhum path histórico removido cria exceção a essas regras.
 
 ## Limites atuais
