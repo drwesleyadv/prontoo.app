@@ -1,0 +1,40 @@
+name: Telemetry Bootstrap
+
+on:
+  push:
+    branches:
+      - agent/telemetry-audit-live
+    paths:
+      - '.github/workflows/telemetry-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/telemetry-audit-live
+          fetch-depth: 0
+      - name: Repair implementation workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('.github/workflows/telemetry-implement.yml')
+          s = p.read_text()
+          s = s.replace("    if: github.event.head_commit.message == 'chore(telemetry): prepare 30-day record telemetry implementation'\n", "")
+          marker = "          workflow = root / '.github/workflows/telemetry-implement.yml'\n          workflow.unlink()"
+          replacement = "          bootstrap = root / '.github/workflows/telemetry-bootstrap.yml'\n          if bootstrap.exists():\n              bootstrap.unlink()\n          workflow = root / '.github/workflows/telemetry-implement.yml'\n          workflow.unlink()"
+          if marker not in s:
+              raise SystemExit('cleanup marker not found')
+          p.write_text(s.replace(marker, replacement, 1))
+          PY
+          git config user.name 'Wesley Ferreira'
+          git config user.email '48494254+drwesleyadv@users.noreply.github.com'
+          git add .github/workflows/telemetry-implement.yml
+          git commit -m 'chore(telemetry): repair implementation workflow'
+          git push origin HEAD:agent/telemetry-audit-live
