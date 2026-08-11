@@ -106,6 +106,16 @@ final class AdminPagesRuntimeOperations03
                 \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
                     $recordVariation,
                 ),
+            ) .
+            $card(
+                "Landing Page",
+                max(0, (int) ($current["landing_requests"] ?? 0)),
+                "language",
+                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
+                    isset($variations["landing_requests_pct"])
+                        ? (float) $variations["landing_requests_pct"]
+                        : null,
+                ),
             );
     }
 

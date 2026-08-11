@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.11.6 — Telemetria visual e Landing Page
+
+- mantém Registros pintados depois de Visualizações no gráfico móvel de 30 dias.
+- atribui o tom mais escuro à série de Registros no gráfico e nas curvas decorativas do rodapé.
+- preserva a mesma hierarquia tonal também nos temas de clínica.
+- adiciona o card Landing Page ao Painel do Desenvolvedor e à página Status.
+- mostra no card Landing Page o total dos 15 dias móveis recentes e a comparação percentual contra os 15 dias imediatamente anteriores.
+- reutiliza a rota canônica landing já persistida em views.json, sem criar contador ou arquivo paralelo.
+- amplia o contrato executável de telemetria para proteger a ordem de pintura, os tons e a fonte do novo card.
+
 ## 1.8.11.5 — Telemetria em janela móvel de 30 dias
 
 - Redefine os últimos 30 dias como janela móvel encerrada no timestamp corrente, sem ancoragem em meia-noite.
