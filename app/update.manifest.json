@@ -71,7 +71,7 @@
         "app/Application/Financial/PatientRevenueReceiptPort.php": "44edfc0da88320b240d86bc1bcfed6dd0333b00892ea0804300356b773d6d0eb",
         "app/Application/Financial/PatientRevenueReceiptService.php": "6e305c9cddd3a2d01341cfee518acaa76c6222ad082f9558f8585d9fd95fe548",
         "app/Application/Financial/PatientRevenueSettlementPort.php": "493f484611f8ad20c934268d052d6f35077bfd713f2d9b4e5227dfe08c81c49d",
-        "app/Application/Identity/ClinicOnboardingService.php": "e988a041ddbf396674bdde7a834fcf1cdea70445625b07005af2f8148741ed47",
+        "app/Application/Identity/ClinicOnboardingService.php": "c3f2f1e65b25a435b60bfd85ddd156938075b38fc13a1bdb35d3b674e28dbdb7",
         "app/Application/Identity/ClinicRegistrationService.php": "32ba2dec4872c331ece9bda27358bf6ac8207b043893438a2783b4cf46d9e096",
         "app/Application/Identity/IdentityDataPort.php": "838b766186c9dde20a829982372a8321d48b6cd574860744189266c715635690",
         "app/Application/Identity/IdentityDataResult.php": "3d04c7be40546806b5f1cf7398c59145ac1d403255aa927089e1a296769fb2a2",

@@ -57,7 +57,7 @@ final class ClinicOnboardingService
             foreach ($roleDefaults as $role => $defaultLabel) {
                 $label = $role === 'medico'
                     ? (string) $settings['profession']
-                    : (trim((string) ($roleLabels[$role] ?? $defaultLabel)) ?: (string) $defaultLabel);
+                    : (mb_trim((string) ($roleLabels[$role] ?? $defaultLabel)) ?: (string) $defaultLabel);
                 $this->data->result(
                     'identity.auth07.page_onboarding.03',
                     [
