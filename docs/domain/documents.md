@@ -1,22 +1,15 @@
-# Documentos
+# Domínio de documentos
 
-## Responsabilidades
+Documentos combinam modelos, conteúdo do paciente, geração e apresentação. A arquitetura separa identificação/tipo de documento, regras de template e renderização concreta.
 
-- gerar documentos a partir de modelos;
-- relacionar documentos a paciente e consultório;
-- produzir PDFs;
-- armazenar arquivos persistentes;
-- controlar acesso e auditoria.
+## Fluxo
 
-## Invariantes
+Runtime recebe a intenção. Application coordena emissão quando a operação tem significado de caso de uso. Domain contém políticas de identificador, tipo e template. Presentation/Infrastructure cuidam de HTML, PDF e mecanismos concretos.
 
-- documento pertence a um consultório;
-- conteúdo clínico não é exposto por URL previsível;
-- nomes físicos não constituem autorização;
-- geração e persistência devem terminar em estado consistente;
-- arquivos legados podem ser migrados sem perder referência;
-- exclusões devem seguir política explícita e auditável.
+## Segurança
 
-## Armazenamento
+Um documento pertence ao contexto do consultório e do paciente aplicável. Caminhos de arquivo não devem ser aceitos como autorização. PDFs persistentes ficam em `ssd/pdfs`, fora da árvore de código.
 
-PDFs ficam em `ssd/pdfs` e imagens em `ssd/img`. O código publicado não deve conter documentos reais.
+## Integridade
+
+Geração deve ser determinística quanto aos dados fornecidos e não modificar o domínio durante uma leitura. Se emissão produzir efeitos auditáveis, eles precisam ser explícitos no caso de uso.

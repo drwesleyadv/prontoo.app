@@ -1,62 +1,21 @@
-# Fluxos de dados
+# Fluxo de dados
 
-## Ação protegida
+O fluxo típico começa com uma requisição HTTP e termina em uma resposta ou redirect. A arquitetura procura tornar explícita cada mudança de responsabilidade ao longo desse caminho.
 
-```mermaid
-sequenceDiagram
-    participant B as Navegador
-    participant P as Presentation
-    participant K as LayeredKernel
-    participant AC as Action Catalog
-    participant A as Application
-    participant I as InvariantKernel
-    participant DB as MySQL
+## Leitura
 
-    B->>P: POST + CSRF + ação exata
-    P->>K: enforceAction
-    K->>AC: resolver contrato/capacidade
-    K->>DB: revalidar usuário, consultório e cargos
-    DB-->>K: credenciais vivas
-    K-->>P: autorização fail-closed
-    P->>A: executar caso de uso
-    A->>I: guardMutation
-    I->>DB: mutação + prova na mesma transação
-    DB-->>A: commit ou rollback conjunto
-    A-->>P: resultado
-    P-->>B: resposta
-```
+Runtime valida contexto e chama um serviço de leitura ou composição apropriada. Application expressa a intenção. Infrastructure busca dados sob escopo de tenant. O resultado volta como estrutura estável e Presentation o transforma em HTML ou JSON. Read models críticos possuem budgets MySQL para evitar regressões de consultas.
 
-O catálogo de ações é definido em `Application/Authorization` e composto por `Runtime/Authorization`. Adaptadores concretos não decidem autorização.
+## Comando
 
-## Login e prontidão
+Runtime interpreta e valida a entrada de borda, mas não abre transação de negócio. Um Application Service coordena o caso de uso; ports entregam operações ao adapter concreto. A transação, quando necessária, é encerrada na fronteira apropriada. Auditoria e invalidação de cache seguem a operação de forma explícita.
 
-```mermaid
-sequenceDiagram
-    participant B as Navegador
-    participant L as Login
-    participant R as RuntimeBootCoordinator
-    participant DB as MySQL
+## Sessão
 
-    B->>L: CPF + senha
-    L->>DB: usuário, bloqueios e senha
-    L->>R: prontidão pós-senha
-    R->>DB: schema contract + integrity lightcheck
-    DB-->>R: estado mínimo válido
-    R-->>L: ready
-    L->>L: MFA quando exigido
-    L-->>B: sessão autenticada
-```
+Autenticação cria contexto de usuário e geração de sessão. Em cada fluxo protegido, guards verificam validade antes de continuar. Logout rotaciona a geração global; sessões antigas são recusadas no primeiro uso subsequente.
 
-Prontidão mínima e manutenção profunda possuem marcadores separados. Login não executa Maestro contract, autoteste profundo, cleanup ou runtime self-check no caminho síncrono. Se cache/lock de prontidão estiver indisponível, os checks mínimos são executados sem cache em vez de liberar a rota sem validação.
+## Trabalho diferido
 
-## Logout
+Eventos que podem ser processados fora da resposta síncrona entram em spool persistente. Maestro retoma o contexto necessário, aplica política de retry e separa falha temporária de dead-letter.
 
-A geração canônica do usuário é rotacionada e a sessão local é destruída. Auditoria secundária segue por spool/fila durável assinada, com retry, dead-letter e consumo idempotente pelo Maestro. Telemetria da navegação é encerrada separadamente.
-
-## Maestro
-
-O ciclo é supervisionado no servidor, com orçamento residual, preflight somente leitura, estágios de saúde independentes e envelopes duráveis. Processamento é idempotente; falhas seguem política de retry/backoff e dead-letter sem transformar manutenção administrativa em efeito colateral do hot path.
-
-## Leitura e escrita por feature
-
-Presentation chama `Application Service`; Application depende de uma porta; Composition injeta a implementação PDO de Infrastructure. Em comandos críticos, o repositório concreto mantém locks, mutação e persistência na mesma transação, enquanto Core protege invariantes e escopo.
+O princípio comum é não deixar dados mudarem de significado silenciosamente entre camadas.

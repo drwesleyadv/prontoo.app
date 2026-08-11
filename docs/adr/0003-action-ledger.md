@@ -1,22 +1,16 @@
-# ADR-0003 — ledger transacional de ações
+# ADR 0003 — Action ledger
 
-**Status:** aceito  
-**Data:** 2026-07-29
+**Status:** aceito
+**Data:** 2026-08-11
 
 ## Contexto
 
-Uma alteração sem prova auditável ou uma prova sem alteração correspondente produz inconsistência.
+Operações relevantes precisam de rastreabilidade e prova de que a sequência de ações pertence ao contexto correto.
 
 ## Decisão
 
-Persistir mutação e prova na mesma transação. Se qualquer parte falhar, ambas são revertidas.
-
-## Alternativas
-
-- auditoria assíncrona para todas as ações;
-- log em arquivo;
-- auditoria após o commit.
+Manter um ledger de ações de camada 2 como parte do schema canônico e usar políticas de integridade/auditoria para registrar eventos críticos sem espalhar lógica de ledger por páginas.
 
 ## Consequências
 
-A consistência é forte e verificável. O caminho mutável assume custo adicional controlado. Trabalho secundário pode ser adiado, mas a prova essencial não pode se separar da mutação.
+O ledger adiciona custo de persistência e verificação, mas cria uma base comum para auditoria e integridade. Trabalho diferido pode transportar contexto de prova, desde que o Maestro o restaure de forma controlada.

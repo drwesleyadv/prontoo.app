@@ -1,28 +1,19 @@
-# Visão do schema
+# Visão geral do banco de dados
 
-## Modelo
+O Prontoo usa MySQL como fonte relacional de verdade. A versão atual exige MySQL 8.0.30 ou superior e mantém um schema canônico de instalação limpa, identificado por `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`.
 
-O Prontoo usa schema limpo para instalação em banco vazio, com identificadores `Seq` nativos e ledger de ações.
+## Estrutura
 
-## Grupos conceituais
+O contrato atual contabiliza 62 tabelas, das quais 60 são verificadas como operacionais pelos gates. O desenho cobre identidade, consultórios, pacientes, agenda, financeiro, tarefas, documentos, permissões, auditoria e estruturas de suporte.
 
-- identidade e autenticação;
-- consultórios e cargos;
-- pessoas e pacientes;
-- agenda e jornada;
-- documentos;
-- tarefas;
-- financeiro;
-- auditoria e integridade;
-- filas e operação.
+## Identificadores e sequência
 
-## Contratos
+Tabelas usam `Seq` não nulo e único com geração nativa baseada em `UUID_SHORT()` onde definido pelo schema. A regra evita uma tabela global de sequência e mantém a integridade verificável no MySQL.
 
-- `schema.sql` é a origem estrutural de instalação;
-- `app/Database/operational-schema.contract.json` descreve o contrato operacional;
-- hashes canônicos detectam divergência;
-- runtime comum permanece sem DDL.
+## Mutação de schema
 
-## Identificadores
+Requests normais não executam DDL. Instalação e CI possuem caminhos explícitos para montar/verificar schema. A aplicação foi projetada para banco limpo; uma alteração futura de schema precisa ser uma decisão de release, não efeito colateral de boot.
 
-Cada tabela aplicável possui `Seq` não nulo e único, gerado pelo banco. Chaves técnicas não substituem prova de tenant ou autorização.
+## Relação com as camadas
+
+Runtime não conhece SQL. Infrastructure concentra acesso concreto; Application expressa casos de uso e ports. Essa separação permite testar schema e budgets sem misturar persistência com controllers.

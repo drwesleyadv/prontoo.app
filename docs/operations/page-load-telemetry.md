@@ -1,23 +1,15 @@
-# Telemetria de carregamento de página
+# Operação da telemetria de carregamento
 
-## Fonte de verdade
+A série de page load mede navegações HTML concluídas. Ela não deve ser interpretada como contagem de todas as requisições HTTP.
 
-A fonte corrente é `ssd/telemetry/page-loads.jsonl`. Cada linha válida representa uma página HTML carregada, não uma requisição auxiliar.
+## Fonte
 
-## Marcos de duração
+O marcador inicial fica no primeiro ponto executável do front controller; o final ocorre depois do último passo útil da renderização. Fetch, XHR, JSON, prefetch, redirects e downloads são excluídos desta série.
 
-- início: `front_controller_first_executable_line`, capturado antes do primeiro carregamento de módulo;
-- fim normal: `front_controller_last_useful_line`, chamado depois da renderização da página;
-- fallback: `shutdown_fallback`, reservado para encerramentos excepcionais nos quais o fluxo normal não alcançou o fechamento explícito.
+## Armazenamento
 
-O tempo de persistência da própria telemetria e a compactação do arquivo ocorrem depois da captura do marco final e não contaminam a duração medida.
-
-## Exclusões
-
-Não são contabilizados JSON, XHR, `fetch`, rotas de lookup, atualização da meta, autoteste de login, atualização do gráfico, prefetch, prerender, assets, anexos e respostas de redirecionamento.
+Eventos canônicos são persistidos em `ssd/telemetry/page-loads.jsonl`. Telemetria histórica de requisições pode coexistir, mas não deve ser misturada com page load.
 
 ## Diagnóstico
 
-Um evento deve conter `tipo=page_load`, schema `prontoo.telemetria.pagina.v2`, rota, método, caminho sem query string, marcos, duração, status e versão. O caminho não armazena parâmetros para evitar persistência de dados pessoais.
-
-A validação permanente é executada por `tools/architecture-check.php`, que inclui `tools/page-load-telemetry-contract-check`.
+Se a série cair a zero, primeiro verifique se navegações HTML continuam registrando marcador final. Se a duração subir, correlacione com query budgets, erros de banco e mudança recente; não conclua causalidade apenas pelo gráfico.

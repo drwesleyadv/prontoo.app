@@ -1,22 +1,16 @@
-# ADR-0002 — isolamento por consultório
+# ADR 0002 — Isolamento por consultório
 
-**Status:** aceito  
-**Data:** 2026-07-29
+**Status:** aceito
+**Data:** 2026-08-11
 
 ## Contexto
 
-O Prontoo processa dados clínicos e financeiros de múltiplos consultórios. Um erro de escopo pode expor dados de terceiros.
+Uma única aplicação atende múltiplos consultórios. Um filtro esquecido poderia expor ou alterar dados de outro tenant.
 
 ## Decisão
 
-Tratar `clinic_id` como invariante estrutural. Toda operação protegida revalida o contexto e toda consulta operacional deve provar seu escopo.
-
-## Alternativas
-
-- filtros voluntários por página;
-- banco separado por consultório;
-- schema separado por consultório.
+Tratar `clinic_id` e o vínculo do usuário como parte da fronteira de segurança. Leitura, escrita, autorização e auditoria devem preservar o contexto de consultório; mecanismos de SQL scope e invariantes complementam validações de caso de uso.
 
 ## Consequências
 
-Filtros voluntários são rejeitados por serem frágeis. Bancos separados aumentariam custo operacional. O modelo compartilhado exige guardas, testes negativos e falha fechada.
+Consultório não é parâmetro opcional de consulta. Testes de isolamento fazem parte dos smokes críticos e qualquer operação sem contexto suficiente deve falhar em vez de assumir escopo permissivo.

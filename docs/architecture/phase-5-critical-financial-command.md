@@ -1,26 +1,5 @@
-# Fase 5 — endurecimento de recebimento financeiro
+# Arquivo histórico — Fase 5: comando financeiro crítico
 
-> **Documento histórico.** Fase concluída e incorporada à arquitetura vigente.
+O financeiro foi usado como prova de que uma fronteira de Application deveria sobreviver a um caso com maior custo de erro. Recebimentos, movimentos e consolidação exigem atomicidade, escopo de tenant e invariantes numéricas que não cabem em um controller de página.
 
-## Objetivo realizado
-
-Aplicar o padrão de comando transacional a uma mutação financeira crítica sem alterar a operação visível da ficha do paciente.
-
-## Componentes consolidados
-
-- `PatientRevenueReceiptPort` define a fronteira;
-- `PatientRevenueReceiptService` valida autorização, comando e resultado;
-- `PdoPatientRevenueReceiptRepository` mantém locks, persistência e rollback;
-- a borda histórica permanece adaptador HTTP compatível;
-- a composição concreta pertence ao Runtime/Composition, hoje separada em unidades de feature.
-
-## Garantias permanentes
-
-- autorização e tenant são explícitos;
-- paciente/cobrança são bloqueados no escopo correto;
-- repetição/concorrência não cria segundo movimento confirmado;
-- movimento, efetivação da receita e atualização relacionada pertencem à mesma transação;
-- valores financeiros permanecem em centavos inteiros;
-- mutações protegidas também obedecem ao action ledger e às invariantes canônicas.
-
-A fase não é uma descrição completa do Financeiro atual; para responsabilidades vigentes consulte `responsibility-map.md` e `domain/financial.md`.
+O resultado final são services e ports financeiros caracterizados, adapters de persistência e budgets reais de banco. A fase não é plano de trabalho futuro; ela registra por que o domínio financeiro ajudou a fechar a arquitetura.

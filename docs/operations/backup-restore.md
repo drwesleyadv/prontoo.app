@@ -1,31 +1,19 @@
 # Backup e restauração
 
-## Escopo do backup
+O estado do Prontoo é composto por MySQL e armazenamento persistente `ssd/`. Um backup completo precisa considerar os dois.
 
-- banco MySQL;
-- `ssd/pdfs`;
-- `ssd/img`;
-- filas e estados persistentes necessários;
-- configuração externa cifrada;
-- identificação da versão do código.
+## O que preservar
 
-## Requisitos
+Banco relacional, PDFs, imagens, arquivos persistentes necessários, telemetria quando exigida operacionalmente e spools/estado do Maestro conforme a política de recuperação. Código não precisa ser incluído no backup de dados porque é reconstituível pelo repositório.
 
-- criptografia em repouso e transporte;
-- acesso mínimo;
-- retenção definida;
-- teste periódico de restauração;
-- separação entre produção e cópias de teste;
-- ausência de dados reais em ambientes não autorizados.
+## Consistência
+
+Idealmente, banco e filesystem devem representar um ponto temporal compatível. Em restaurações críticas, pause ou coordene writes para evitar que o dump faça referência a arquivo ainda não copiado ou vice-versa.
 
 ## Restauração
 
-1. selecionar ponto consistente;
-2. validar integridade do arquivo;
-3. restaurar em ambiente isolado;
-4. verificar schema e versão;
-5. reconciliar arquivos e referências;
-6. executar verificações de integridade;
-7. liberar apenas após validação.
+Restaure em ambiente controlado, valide versão compatível, permissões de `ssd/`, schema contract e integridade antes de abrir tráfego. Não use o instalador sobre o banco restaurado.
 
-Backup não testado não é estratégia de recuperação.
+## Teste de backup
+
+Backup não testado é apenas uma hipótese. Execute restaurações periódicas fora de produção e registre tempo, lacunas e procedimentos manuais encontrados.

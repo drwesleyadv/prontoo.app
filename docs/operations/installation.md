@@ -1,35 +1,19 @@
 # Instalação
 
-## Pré-requisitos
+A instalação do Prontoo parte de banco vazio e schema canônico. Ela é uma operação administrativa excepcional, não um modo normal de inicialização do runtime.
 
-- PHP **8.4.x** no web e CLI;
-- MySQL 8.0.30 ou superior;
-- `pdo_mysql`;
-- HTTPS e host canônico;
-- banco completamente vazio;
-- diretório `ssd` gravável e fora de exposição indevida;
-- segredos fora do repositório.
+## Requisitos
 
-## Modelo de comissionamento
+PHP deve ser da família 8.4 e MySQL deve ser 8.0.30 ou superior. O host público precisa usar HTTPS e o domínio canônico esperado. Diretórios persistentes em `ssd/` precisam ser graváveis pelo runtime conforme a política de hospedagem.
 
-A instalação limpa é a única origem de schema. `/install.php` só pode ficar publicamente acessível durante a janela temporária explicitamente versionada no contrato de release, em HTTPS/host canônico e estado fresco. Encerrada a janela, a política é 404 automático sem intervenção manual.
+## Banco
 
-## Procedimento
+O instalador cria o schema limpo sob um lock explícito de mutação. Não execute instalação contra banco que contenha dados de produção. O contrato `requires_empty_database` existe para tornar essa pré-condição inequívoca.
 
-1. publicar o commit validado e conferir manifestos;
-2. configurar segredos externos;
-3. criar banco vazio e usuário com privilégios mínimos;
-4. confirmar a janela de comissionamento aprovada no contrato vigente;
-5. executar `/install.php`;
-6. confirmar criação do `install.lock` e estado de instalação;
-7. validar login do Desenvolvedor e cadastro obrigatório de MFA;
-8. executar verificações pós-instalação e smoke tests;
-9. confirmar bloqueio/404 automático do instalador após a janela.
+## Janela de acesso
 
-## Schema
+O endpoint de instalação só deve ficar disponível dentro de janela administrativa declarada no release metadata; fora dela, a política é 404/fechamento automático. Não prolongue janela apenas para contornar um problema de configuração.
 
-O runtime comum não executa DDL. Mutação estrutural é restrita ao instalador na janela autorizada ou ao contexto CLI de GitHub Actions reconhecido pelos marcadores do contrato. Reset destrutivo foi removido do runtime.
+## Pós-instalação
 
-## Restrições
-
-A instalação não pode apagar banco existente. Banco com tabelas preexistentes não é tratado como instalação limpa. Falha parcial deve ser investigada; não contorne os locks nem transforme estado indeterminado em sucesso.
+Valide schema contract, login, criação/vínculo inicial e estado do Maestro antes de considerar o ambiente pronto.

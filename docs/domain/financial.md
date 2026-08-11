@@ -1,23 +1,19 @@
-# Financeiro
+# Domínio financeiro
 
-## Escopo
+O financeiro do Prontoo foi desenhado para a operação de clínicas pequenas: recursos como gavetas, cofre e bancos; contas a pagar/receber; consolidação; metas e movimentos.
 
-O módulo atende clínicas pequenas e cobre recursos, contas a pagar, contas a receber, movimentos, conferência, metas e consolidação.
+## Casos de uso
 
-## Representação
+Application concentra services financeiros específicos em vez de um gateway universal. Há services para dados, gavetas, movimentos, recebimentos, consolidação, metas, revisão e fluxos relacionados a pacientes.
 
-Valores monetários são centavos inteiros. Conversão para formato decimal ocorre apenas na borda de entrada ou apresentação.
+## Consistência
 
-## Invariantes
+Recebimentos e movimentos que precisam de múltiplas escritas são transacionais na fronteira apropriada. O tenant e as entidades relacionadas precisam ser válidos antes da confirmação. A UI não é fonte de verdade para saldo.
 
-- recebimento possui devedor identificado;
-- pagamento possui credor identificado;
-- movimentos definitivos surgem de operação confirmada;
-- correções usam ajustes compensatórios;
-- snapshots diários precisam reconciliar com os lançamentos;
-- toda operação pertence ao consultório correto;
-- arredondamento não pode criar ou eliminar centavos.
+## Conferência
 
-## Fechamento
+Consolidação é uma operação de fechamento/conferência, não simples soma de tela. Estados intermediários devem permanecer distinguíveis até a confirmação que gera lançamentos definitivos.
 
-Conferência só é liberada quando as gavetas aplicáveis estão fechadas. A confirmação produz lançamentos definitivos e auditáveis.
+## Dívida e evolução
+
+Novas capacidades devem preferir ports semânticos. A meta é reduzir gradualmente dependência de gateways genéricos quando o domínio tocado justificar a mudança.

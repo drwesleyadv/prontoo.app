@@ -1,30 +1,23 @@
 # Resposta a incidentes
 
-## Prioridades
+Incidente é qualquer evento que ameace confidencialidade, integridade, disponibilidade ou rastreabilidade do Prontoo. A prioridade é conter dano sem apagar evidência.
 
-1. proteger pessoas e dados;
-2. conter o alcance;
-3. preservar evidências;
-4. restaurar operação segura;
-5. aprender e corrigir a causa.
+## 1. Classificar
 
-## Procedimento
+Determine se o problema é autenticação, tenant isolation, financeiro, banco, storage, deploy, Maestro ou disponibilidade geral. Identifique a primeira versão/commit conhecida e o alcance aparente.
 
-1. registrar instante, sintomas e versão;
-2. classificar impacto e consultórios afetados;
-3. limitar acesso ou desabilitar função vulnerável;
-4. preservar logs, filas, hashes e estado do banco;
-5. revogar sessões ou segredos quando necessário;
-6. identificar causa provável;
-7. aplicar contenção testada;
-8. restaurar serviço;
-9. verificar integridade;
-10. produzir análise pós-incidente e ações preventivas.
+## 2. Conter
 
-## Incidente multitenant
+Revogue sessões quando identidade estiver envolvida, interrompa automações se elas estiverem propagando erro e limite acesso ao recurso afetado. Não faça DDL improvisado ou edição direta de produção.
 
-Interrompa imediatamente a rota suspeita, preserve consultas e contexto, determine registros potencialmente expostos e não conclua ausência de impacto apenas pela interface.
+## 3. Preservar evidência
 
-## Comunicação
+Guarde logs, estado do Maestro, hashes/commit, horário e sintomas. Remova dados pessoais antes de compartilhar evidência em canais amplos.
 
-Não exponha dados pessoais em canais inadequados. Registre fatos confirmados, hipóteses separadas e responsáveis por cada ação.
+## 4. Corrigir
+
+Reproduza com o menor caso possível, escreva regressão automatizada, aplique mudança focal e passe os contratos. Use rollback se a correção segura não estiver pronta e a release anterior for compatível.
+
+## 5. Aprender
+
+Atualize runbook, contrato ou observabilidade quando o incidente revelar uma classe de falha que poderia ter sido detectada antes.

@@ -1,58 +1,22 @@
 # Modelo de ameaças
 
-## Ativos
+O Prontoo protege dados pessoais, informações clínicas, rotinas internas e movimentos financeiros. O modelo assume que erros de aplicação são mais prováveis do que comprometimento físico do servidor e prioriza barreiras contra acesso indevido, cruzamento de tenant, sessão residual e mutações inconsistentes.
 
-- dados pessoais e clínicos;
-- credenciais e fatores de autenticação;
-- documentos;
-- dados financeiros;
-- trilha de auditoria;
-- configuração de consultórios;
-- segredos de aplicação.
+## Ameaças principais
 
-## Ameaças prioritárias
-
-- acesso entre consultórios;
-- escalada de privilégio;
-- sequestro de sessão;
-- reutilização de fator;
-- CSRF;
-- injeção SQL;
-- adulteração de auditoria;
-- replay de fila;
-- exposição de arquivo;
-- instalação ou DDL não autorizado;
-- inconsistência financeira;
-- negação de serviço por consultas repetidas.
-
-## Fronteiras de confiança
-
-```mermaid
-flowchart LR
-    N[Internet] --> H[HTTPS]
-    H --> A[Aplicação]
-    A --> D[(MySQL)]
-    A --> S[(ssd)]
-    C[Cron] --> M[Maestro]
-    M --> D
-    M --> S
-```
+- usuário autenticado acessando dados de outro consultório;
+- sessão roubada ou antiga permanecendo válida após logout;
+- autorização inferida por rota sem validar ação/contexto;
+- SQL ou transação introduzidos em página e escapando de invariantes comuns;
+- escrita financeira parcial ou duplicada;
+- trabalho diferido executado sem contexto original;
+- telemetria/auditoria expondo conteúdo sensível;
+- instalação ou debug disponíveis fora da janela prevista.
 
 ## Controles
 
-- TLS e host canônico;
-- CSRF;
-- rate limits;
-- MFA;
-- contratos de ação;
-- escopo multitenant;
-- consultas parametrizadas;
-- HMAC;
-- nonce estrutural;
-- transações;
-- filas assinadas;
-- logs sem dados sensíveis.
+Tenant isolation, action catalog, geração global de sessão, MFA, constraints, Application Services transacionais, action ledger, spool supervisionado e gates arquiteturais formam defesa em profundidade. HTTPS e host canônico protegem transporte e origem pública.
 
-## Risco residual
+## Princípio de falha
 
-Nenhum controle elimina risco. Mudanças críticas exigem testes negativos, revisão de ameaça e plano de rollback.
+Quando o sistema não consegue provar uma condição de segurança — por exemplo, confirmar revogação global — prefere negar/indicar degradação a continuar como se nada tivesse ocorrido.

@@ -1,25 +1,15 @@
-# Testes de propriedades
+# Testes de propriedades e invariantes
 
-## Quando usar
+Nem toda regra importante é melhor descrita por um exemplo específico. Propriedades expressam relações que devem valer para uma família de entradas e estados.
 
-Propriedades são adequadas quando muitos exemplos compartilham uma regra:
+## Exemplos de propriedades
 
-- conservação financeira;
-- idempotência;
-- ordenação temporal;
-- cadeia de auditoria;
-- escopo multitenant;
-- máquina de estados;
-- estimadores.
+Tenant nunca muda implicitamente durante uma operação; read model não escreve; geração de sessão mais antiga não volta a ser válida; identificadores `Seq` permanecem não nulos e únicos; uma operação financeira confirmada não deve produzir duplicata equivalente.
 
-## Exemplos
+## Relação com contratos
 
-**Financeiro:** soma dos componentes é igual ao total reconciliado.  
-**Auditoria:** qualquer alteração em evento anterior invalida a cadeia posterior.  
-**Idempotência:** processar o mesmo envelope duas vezes produz um único efeito.  
-**Tenant:** trocar apenas o consultório do contexto nunca amplia acesso.  
-**Tempo:** intervalos UTC semiabertos não duplicam instante de fronteira.
+Algumas propriedades são verificadas por testes com dados variados; outras por analisadores estáticos ou constraints do banco. O nome “property test” é menos importante que provar a invariante no nível adequado.
 
-## Reprodutibilidade
+## Boas práticas
 
-Falhas aleatórias devem registrar seed e exemplo mínimo. Geradores evitam valores impossíveis que não pertencem ao domínio.
+Gere entradas que cubram limites e estados inválidos, mantenha o teste determinístico e registre o contraexemplo mínimo quando falhar. Não substitua um constraint de banco por teste probabilístico quando o banco pode garantir a propriedade sempre.

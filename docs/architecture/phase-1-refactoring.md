@@ -1,26 +1,7 @@
-# Fase 1 — enxugamento estrutural
+# Arquivo histórico — Fase 1: separação inicial de responsabilidades
 
-> **Documento histórico.** Esta fase está concluída e não representa o mapa atual da árvore. Consulte `overview.md`, `layers.md` e `responsibility-map.md` para a arquitetura vigente.
+Este documento não descreve trabalho pendente. Ele registra a primeira ideia que permaneceu na arquitetura final: separar decisão de entrada, regra de negócio, persistência e apresentação.
 
-## Escopo concluído
+A fase inicial mostrou que arquivos grandes eram menos problemáticos pelo tamanho do que pela mistura de razões para mudar. A consequência durável foi o mapa de camadas hoje aplicado por contratos.
 
-1. compactação segura de blocos de linhas vazias em tokens PHP;
-2. mapa inicial de responsabilidades e direção de modularização;
-3. inventário inicial de funções puras;
-4. extração de validadores e formatadores sem mudança de assinatura pública;
-5. testes de caracterização incorporados ao contrato arquitetural.
-
-## Estratégia usada
-
-Os arquivos históricos funcionaram inicialmente como fachadas enquanto implementações puras foram extraídas. Essa estratégia evoluiu nas fases posteriores para portas/casos de uso, adaptadores PDO, Presentation dedicada e, por fim, decomposição sistemática em unidades `Domain/Legacy`, `Infrastructure/Legacy`, `Presentation/Legacy` e `Runtime/Legacy` classificadas por camada.
-
-## Legado da fase
-
-- `app/Domain/Identity/IdentityDocumentValidator.php`;
-- `app/Domain/Patients/PatientPure.php`;
-- caracterização permanente no contrato arquitetural;
-- princípio de preservação de comportamento durante migração.
-
-## Situação posterior
-
-A arquitetura consolidada possui composition root decomposto, catálogo de autorização coeso, runtime orientado a módulos/rotas e contratos de classificação/SOLID. Portanto, referências desta fase a “próxima etapa” devem ser interpretadas apenas como histórico cronológico.
+No estado atual, qualquer nova refatoração deve ser motivada por caso de uso, falha de invariante ou redução mensurável de dívida. O plano desta fase não deve ser repetido como campanha autônoma.
