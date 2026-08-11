@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.11.6 — Hierarquia visual da telemetria
+
+- mantém Registros pintados depois de Visualizações no gráfico móvel de 30 dias.
+- mantém Registros pintados depois de Visualizações nas curvas decorativas do rodapé.
+- atribui o tom mais escuro à série de Registros no gráfico de 30 dias.
+- atribui o tom mais escuro à série de Registros no rodapé, inclusive em temas de clínica.
+- adiciona contrato executável para impedir regressão da ordem de pintura e da hierarquia tonal das duas séries.
+
 ## 1.8.11.5 — Telemetria em janela móvel de 30 dias
 
 - Redefine os últimos 30 dias como janela móvel encerrada no timestamp corrente, sem ancoragem em meia-noite.
