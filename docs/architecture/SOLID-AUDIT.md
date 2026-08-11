@@ -29,7 +29,8 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 5. Core passou a receber contexto explicitamente; estado de sessão/request foi deslocado para Runtime e persistência para Infrastructure;
 6. `PiTime`, `SqlExpression`, Documents e Audit Activity foram decompostos em políticas/unidades coesas;
 7. a consolidação `1.8.7.1` removeu seis tombstones namespace-only;
-8. a materialização zero-legacy removeu as últimas 22 fachadas executáveis e 1.289 funções globais delegadoras, mantendo composição nativa via `OperationGateway`/registry onde necessário.
+8. a materialização zero-legacy removeu as últimas 22 fachadas executáveis e 1.289 funções globais delegadoras, mantendo composição nativa via registries explícitos;
+9. as fases 11–15 removeram o `OperationGateway`; o contrato atual proíbe o arquivo e fixa `max_invoke_calls = 0`.
 
 ## Métricas protegidas
 
@@ -44,6 +45,9 @@ A baseline corrente registra:
 - zero funções globais em arquivos nativos;
 - zero achados objetivos no auditor SOLID;
 - zero hotspots acionáveis no auditor SOLID.
+- zero chamadas ou arquivos do `OperationGateway`.
+
+A persistência histórica localizada em Runtime é acompanhada separadamente pelo contrato monotônico `tools/runtime-boundary-check`. Ela não é uma exceção à direção de dependências e não pode crescer enquanto os casos de uso são migrados para Application/Infrastructure.
 
 A quantidade de unidades nativas efetivas não pode diminuir e o teto corrente de arquivos não nativos não pode aumentar. Novas funcionalidades devem nascer diretamente em unidades nativas.
 

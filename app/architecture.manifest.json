@@ -30,7 +30,7 @@
     "ci_workflow": ".github/workflows/architecture.yml",
     "solid_policy": "solid-structural-contract-v3",
     "solid_check": "tools/solid-audit",
-    "solid_runtime_composition_policy": "native_runtime_composition_with_core_operation_gateway_without_global_compatibility_facades",
+    "solid_runtime_composition_policy": "native_runtime_composition_with_typed_application_boundaries_without_operation_gateway_or_global_compatibility_facades",
     "solid_runtime_composition_components": [
         "app/Runtime/Modules/RuntimeBootPolicy.php",
         "app/Runtime/Modules/RuntimeModuleCatalog.php",
@@ -62,6 +62,20 @@
         "app/Runtime/Financial/FinancialComposition.php",
         "app/Runtime/Runner.php"
     ],
+    "runtime_boundary_policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
+    "runtime_boundary_contract": "app/runtime.boundary-contract.json",
+    "runtime_boundary_baseline": "app/runtime.boundary-baseline.json",
+    "runtime_boundary_check": "tools/runtime-boundary-check",
+    "runtime_boundary_baseline_source_sha": "081cdbb234b70f2fa8dc4a1ac95325e022c614ca",
+    "runtime_boundary_baseline_metrics": {
+        "runtime_business_sql": 913,
+        "runtime_structural_sql": 2,
+        "runtime_direct_pdo": 38,
+        "runtime_persistence_helper": 921,
+        "runtime_repository_instantiation_outside_composition": 0,
+        "runtime_transaction_orchestration_business": 71,
+        "runtime_transaction_orchestration_structural": 3
+    },
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",

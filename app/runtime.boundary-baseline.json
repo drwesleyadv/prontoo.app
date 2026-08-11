@@ -1,0 +1,3482 @@
+{
+    "schema": "prontoo-runtime-boundary-baseline-v1",
+    "policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
+    "source_sha": "081cdbb234b70f2fa8dc4a1ac95325e022c614ca",
+    "source_version": "1.8.10.1",
+    "composition_roots": {
+        "app/Runtime/LayeredKernel.php": "wires the authorization service and its infrastructure proof store",
+        "app/Runtime/Patients/PatientComposition.php": "wires patient application services to PDO repositories",
+        "app/Runtime/Financial/FinancialComposition.php": "wires financial application services to PDO repositories",
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php": "wires security application ports to the persistence adapter"
+    },
+    "structural_sql_exceptions": {
+        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen compatibility execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
+    },
+    "detection_contract": {
+        "persistence_helpers": {
+            "Prontoo\\Runtime\\DatabaseSchema\\DatabaseSchemaRuntimeOperations01": [
+                "q",
+                "one",
+                "val"
+            ],
+            "Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01": [
+                "safe_val",
+                "cached_val"
+            ]
+        },
+        "persistence_helper_method_patterns": [
+            "^db_(?:tx|last_insert_id|table_exists|column_exists)$",
+            "^(?:safe_db_columns|install_fresh_schema)$",
+            "^(?:ensure_[a-z0-9_]+_schema|[a-z0-9_]+_ensure_schema)$",
+            "^schema_(?:apply|cleanup)_[a-z0-9_]+$"
+        ],
+        "transaction_methods": [
+            "beginTransaction",
+            "commit",
+            "rollBack",
+            "db_tx",
+            "db_begin_transaction",
+            "db_commit",
+            "db_rollback"
+        ]
+    },
+    "inventory": {
+        "runtime_business_sql": {
+            "total": 913,
+            "files_total": 95,
+            "operations": {
+                "DELETE": 27,
+                "INSERT": 107,
+                "REPLACE": 4,
+                "SELECT": 619,
+                "UPDATE": 156
+            },
+            "files": {
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php": {
+                    "count": 6,
+                    "fingerprints": {
+                        "1d8b6639bc03b1cb4cafdb8229673a536f8c9d0489afb46bb513f7e8c3046aa2": 1,
+                        "517405dbffc70864708aff3c1aa4fb7e1f37fd4e8a98059120fdc705b545c2fd": 1,
+                        "5f97085e6fdcb6196197f387f725e0b8387495fc0eccef7f3030929fe43661c8": 1,
+                        "9b2071b8e03798664a59b8030866106ca376328cff5bd351937959906421ae35": 1,
+                        "b727af25a72c44a8e06260493d30edfcf43f8c6db035f602c5fb1a5f98e7d83f": 1,
+                        "da65f67bc0dd3cfca6f558e62784f4faf58fd5ca78531bed93e4af6994d0ffe2": 1
+                    },
+                    "operations": {
+                        "SELECT": 6
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php": {
+                    "count": 21,
+                    "fingerprints": {
+                        "036bf784c2038c2c12292291bb7f8c541ad7a4f336fdc00e1e6ac6f02a88da56": 1,
+                        "03c7ba7e684b308d062d46dfecd1ea1323ab4a82900559cca356a73604902471": 1,
+                        "2a0bb05c41749d4769d3a7c7317b3392fee42170a35a3769f75358b654b2b4e7": 1,
+                        "37c71dba1567ac16616c390c3cfaa329233c757fed1302fd70dfff0215f2d713": 1,
+                        "382071fb5a2ca1df0762edeec4daa8feb52accba8a1bebd9eb238e620055c80e": 1,
+                        "3d7a0107aa19a7497cf0f748a8bd0cd11b501102e65021f99fbc267f1024a5c0": 1,
+                        "42cec6a736fc102231a68c67febfccb43a569deef1dd648aa2acbe730c145b91": 1,
+                        "85ea45c6bf87fa2c4f63af1560077e63f500cf4088207446015ef6a643dd33ec": 1,
+                        "885369a3dd02281aff2d2bdfa66c051a2aeef8337cd229a5169af510656210c3": 1,
+                        "92d9e60a6952c30341afd580c9d0a8c6ab8cb2565fc135f331103b987f8c3053": 1,
+                        "9ba231312351cda255574966b8d3b46db5447c05af6e0e88d594e4d3e1e04656": 1,
+                        "ae441bbec697322c2c63cd6076d73d4fcd490606d2fd2dca0198e24b1e8fb69f": 1,
+                        "b4cd2a326fe607dd8e81adcc4049d1e37d7ed41dad07cdb06f4f3b1633320ae8": 1,
+                        "b52ade0eb46322883e0abb5ea593ca619d06a7cb9ec7a6dfdfdb1e3fde460682": 1,
+                        "d1793ab4678b1bd74bb5408be24aba422d6a3ead71f1ea47a8f6ed48ab7186f2": 1,
+                        "d7fc8f626e741b593b072d958c280fd58abc2b69f7dd43998dbc984493a07744": 1,
+                        "da46d9db05e0d9a247decd4e62b0e0c37847e45cccda20f0bd780219e0284e2b": 2,
+                        "f22475aa6d8522d8e6b9762c6979130164125b1ec21c248c0a5a979ccd048589": 1,
+                        "f6f11541e360bc47619d7881972c661d829ca165907678ae725c03661f9dae2e": 1,
+                        "fef192d12632bbeceee490d18478e00cab78ab020c20661dd0d7a97207d2aa7f": 1
+                    },
+                    "operations": {
+                        "SELECT": 21
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "0717897ec983f514f87041c5e7d71dc0e0a6825390b3c92176cfbd9f210a4c7f": 1,
+                        "2a89e2251d59306d32bc37eecdda76a8e3323599809ca16002ea0e59ecba7a4d": 1,
+                        "53a493f970889a06c8199647e4cef02656fe0b33f486bc117b558a4066a330cf": 1,
+                        "6589739d356d62e610c860837ea435263668fe39d53886eb4542010078a1bcce": 1,
+                        "80f814fd829660476595fe61715203c0494b10676d5e3792d56da7a1bb04577e": 1,
+                        "91342909726265c41eef60cbbc12d21313990f71f15a9ec079cd46f1e0a2bde3": 1,
+                        "974a0704a50ec9f36fb4561b9bc296c3a67338e5b74e1b1129fb31fd7c5f4d06": 1,
+                        "afab895ba3726d552ac26ea6603eefc8e1e0ea35794d339ff362541aa47a1fd6": 1,
+                        "c2eb65d40fef4f3b0b4f1dd17c799ceb40177cc7676c71f568e5e49163f63f43": 1,
+                        "c557856d3d3be1b998dc2627d061f7b61d3f8b79129a525bb66a90ed1dcc9344": 1,
+                        "c853ad6e08c33605aa2ce4e8bf1e50b9e5f21ded50c0a156b3c48dadf74a69ea": 1,
+                        "ee2e85c0ab5a08609d2598d8ef27c7538b9f5f26eb069f1b64c902b741790d21": 1,
+                        "fa76578ee7ce1baf503831211fd6139e8b4f9750bfbe3dd342df75f1d701222d": 1
+                    },
+                    "operations": {
+                        "SELECT": 11,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations04.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "0f8cc8a2955e8077af04b2aafd99db885fa8b25b582596e4410a87b153c5571c": 1,
+                        "5238cdf206ccad429b52f95e27d3bbfebf2393940f68cb55aa875b9a0d996205": 1,
+                        "54550d156bb56349e7af3ccdf2dc6d8a433c49f0132ab429f11c24e91d55d5a7": 1,
+                        "89a67f08878682f5a4f4f85a9eacf5ddc3241056d64caf11a151d007af94bc13": 1,
+                        "8f8cf0efd30fdb1cc6bea62cda5c734c7255ddaa661d685eea7dcfb610c58244": 1,
+                        "93c8484ec369a7cf0da170a99cd495c7419050b10e2c32b6ee4b58a6aea0aac0": 1,
+                        "b3c74dcd4ca83f8fbf0b0e8ead5e4912ca48bd46bce2d5bae044835c9ec89fbd": 1,
+                        "c59857b5c6689f3b4a47f216d84ed47a4e4af3c3e5dd162c821949a6d0bb58d0": 1,
+                        "c69d3930b0ae87bdf5b509b4dc85f8b5e1afccbea284803115d91b2c8e9f27cd": 1,
+                        "c83e1f5124d6a3cc6dfabdc33887fb76a08de80d83aaf6419d71c7841bd8d86f": 1,
+                        "dd67f76a4dd9b3267bf3f5dc127b6f97369cfb09f6fd86124bd14b24f2ffd34e": 1
+                    },
+                    "operations": {
+                        "SELECT": 10,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php": {
+                    "count": 14,
+                    "fingerprints": {
+                        "0afe9f118cb7e9ebafebcc375c027f3dbf5ad800d35140a273ba2f5b4d5a58ce": 1,
+                        "18e241f2eba665e55be09e39edf5c1d2ec9f69cf38b299927af4954daa8c5260": 1,
+                        "26e56f261e8a3a82f3cb07aed05fbcc91dfc30c0d3d21e026ae6b6c642670b9b": 1,
+                        "2ffc0226e97c042f58ea8ca97edc0b9a7794041f4cb83ba2a88a1bbe75ca2796": 1,
+                        "6ce1d12b4e42bd8bcf534f34b8e23c534e279d0cf16c5b996f640c778113dd91": 1,
+                        "72f5ceb7c9680eac4ba0712a8886b51310d78248db64e03a6f4fe8ecde6954d0": 1,
+                        "7d6b1c5945fa604e0f6b1ede18d649360dd30829bdc42a152c84edc1eea1ccd6": 1,
+                        "8434ad5b7ae38efea75062cf96a4e42b8389f9d74b6dc86f30407af9d32f5981": 1,
+                        "982e58667e6a329f10097d403526644535902f31da73a7aac46e569152545e87": 1,
+                        "adb8951a312a9a7fdf6d4dea58129f5ddce05eec8394e1b6460fdbf06f93f3f5": 1,
+                        "af89d9da20cb07b978e16674008cebde4713632f0ee62992b0fb4e787a510903": 1,
+                        "dfd8fdbed2a6b2a7f8a265a549a51d12cc5138eace5fd5d6beb417b7e78505b6": 1,
+                        "fa420d75f1cf1899d04949a6fe49ba253e8f98e905cd4405040de0be3edade4a": 1,
+                        "ff4028943088de17b87f3b77493c97da558a3d522ca3140885026badb673c836": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 9,
+                        "UPDATE": 4
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations07.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "148fd6a064fef2152a2eb42020a9d3f1433aafb1d9b599886750779a07c71802": 1,
+                        "38576b9f226994c9d0eeb9660ebd3aa6d35ff057f55faadfd39d4610e6e37589": 1,
+                        "56719edf42d21561a95536f050b739e0d8dc22c731229eb9c3eca21528ef3de4": 1,
+                        "6833c71e866468a4fca8f50928279b0824753c5547c4a0d7680949c73b0aec03": 1,
+                        "867fcb5757e97dd349b329ac1364e8ac42571d5238f4eb0ae0061f86f0d1b8e9": 1
+                    },
+                    "operations": {
+                        "SELECT": 5
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "0a420891cb242b7ad583a77c77c4d1a8554d41de46024aac208119cb88481817": 1,
+                        "21965229566ce9ec1f1acd6b975f2f28ecd32898fdd11470e1bad978cd59a17a": 1,
+                        "39a99462d1e3eca20cd06177511bf29d1ce081278c6d03b3a9a62063733bf3c3": 1,
+                        "40d328611ad10b36cd75d1e6767bacf1bbc1a82147d149c2abf35545d6cfeb3c": 1,
+                        "41330dbee40e71f323404301d5301194b053060abd35d236c813884889b1ed37": 1,
+                        "54469d21132844ae117831c962152a71bf5d832818ff58598f76d3653507ac51": 1,
+                        "72ebcacae14e3fdffc99a37cb488914a0b2d41be98e23765716ef8bb3b4bcad5": 1,
+                        "77bb9444cd7d0ff42d7ef685ec78e8dc53801e761556d34ad54835b1d29f391c": 1,
+                        "780ab500442f2a1ca774d016e624a8b984a6a9e2d907d463f7867035138d18bb": 1,
+                        "892838ec0b122a20a9c8ffb21d9481548f0b1f7363cfd6a66ebb23356e82cf31": 1,
+                        "96a0f2a16415abdbe99599b246f29153b849e2747d509cf5a960458a2f96245a": 1,
+                        "bc898111a854eb9556d333625c2b92205a968dcd2466b6456f1dbd2448cab161": 1,
+                        "cfcd8d7f422b0c9c6929a4626fde5c70ef3d67744312ea07a5faf718552bb5df": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "SELECT": 8,
+                        "UPDATE": 4
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php": {
+                    "count": 6,
+                    "fingerprints": {
+                        "16f158c5454951da17857830a791c3406e83964bb70e06e68ac403643cb34b1e": 1,
+                        "1ba67d1c51868f06c04311e42128ebbf423b12e6da161b9ff5fac9f6c682de39": 1,
+                        "1f892bcdea090a33146c58d9d689c5610bb4c3d9c58d3b6e43a46636bb36393e": 1,
+                        "203a126cf4077caa478c4942a1379f78f27e3248e3c3f727992c624495a1a167": 1,
+                        "b4c6304b52cecbdeca75f37cf928d962f94fe95b5b9bf48720e519feaa590347": 1,
+                        "dbf46d5f423bd401fe5e70ed7cee2b4cd51fd6779d4381f986d219720d29b6b9": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 3,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "887f126fb3bb032bc8fbe1460d59707eb414735b91d3456f97c30f939ff667be": 1,
+                        "c51b0270ee3eea3ef50c41d4bb9ddeaa04f41c1280a5ef2735d2b8abdf6cfde6": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "02561533fd3d96d5e74c00358ec4f9a4aedc196693a9368629c3f7d368e070cd": 1,
+                        "0c6be37aed396e8693c7c280a3e6cf6e8aaef130932552aa140fc5fdf8938ae8": 1,
+                        "0ec1ad2a11acfd7c6f06560c4f3e3c758499a79dfcbe03c973a0a6bb0f13edec": 1,
+                        "2fbc127c83719381a976046eed5fa8c058dafeee46b5880a6b9166c3b34cc530": 1,
+                        "71737027774e3f0cffac7061c620507755311672ed37f6614a9856f53e26a791": 1,
+                        "7b1531668288456c752aa46481cf1cb8198d0c2d266e3891b2d02c90b1a9dc71": 1,
+                        "a8fc0dc9a8df935af7fb1c7e1cc98b8812072f5e1765b4e93e4a564fd5427185": 1,
+                        "ac00f5efa849d92daa08c11e4362362e23275ffd02989a5d32e2ebbc018381da": 1,
+                        "b414b068e44621a075dfcf8fcc17fc95b976bd70d1e9063dafa1e016079f14f5": 1,
+                        "fea2eb55be20e95df060094979e0d92945af3d9947a848e990adfac16b9c3dde": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "SELECT": 9
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
+                    "count": 47,
+                    "fingerprints": {
+                        "0061cad9e34599fa2d140bfadd718ea5ebafbb0a1e059f96a8d26dc22df77400": 1,
+                        "085dfb8dcd8f42f331375ce1344942b76bd08c557ff6f2cc89a9e7472d57180e": 1,
+                        "171a9c11ee6a99918c59aeba8b59f374a50708674ed024dd83e2ac6c7f82adab": 1,
+                        "1ab44725db961dcb9c116b67b24867c111741ce1d089e0c48fe6bc8197e9372d": 1,
+                        "1b123e44b2008936f5e6d82cd57280a572c76a77dac61e2e25a752a6c758e991": 1,
+                        "2569e08b3b072a31acb3a7fcbd9910bf8573ee451c297d3e96296fe058ea398f": 1,
+                        "277e9d84a66859e022ca56616c66e7a3a3ec2c1a9ca94b6d7bffe639bced6d8b": 1,
+                        "292142a747e17c9a0ed9f7365d891e4991d1562409ddf4707c88d972c4c4ab4f": 1,
+                        "34757a583e3783d49b8063922c0ed9fff348c394c8ab7be38c75a2ba752b86b6": 1,
+                        "3b6491b786cef6eaf634c75603812b24290eb028ffe7186e9ac90c7717cb9910": 1,
+                        "4dd2aebfb443a0204f5f5b8abddc2ec2b6e4b1f5ec300e8da30621d6d8806687": 1,
+                        "62ec01f4242a3df73228cddb2ae03ce8999ae7cb0fd13df655f40a612dc6857c": 1,
+                        "7364520e731858ba55e45e38bf96389f996f84d2c097a513b9d4057bb9d6f860": 1,
+                        "7893a780cd4fc69bf8b26eeb514279f93620da47bf89e95f4b925d02cce3c618": 1,
+                        "7c3e888ea9076605e86f10f1a008fc8cdafb9bb3c5fd9bffa131a62e60742eee": 1,
+                        "7eb23ef345a844d2d55dc4790114d209a9704097e8c9f2e2e95f9df8d377cbc8": 1,
+                        "927dc0f5eab3209fb3f29cbdcfccf15882639ef6bfb6da2ab9cb260158bf8cbb": 1,
+                        "99a24990ca6eaeda1fd31dc1343c78300a0f7cdb71b76f4f154137c541eea99e": 2,
+                        "9e64de3bb3ed019077ea0762d0e7862a0f28b461cfbbe8eb1528e6536d46c932": 2,
+                        "9ebdac571697f1ad2a8ebfad59498ccb5f68033f7f072b956e8bcabe96956738": 1,
+                        "a60003a856c7e5e61942045b87d2285f9c2d86266040244c82c6cb730e0a1aef": 5,
+                        "b148d73441c3a0aadb606812a362643c6018c96def76ce027fe834a9527c1284": 1,
+                        "b1c47e52664b57345d7d5f7ffd8d3f3aab6e8cad3bc5d705e11adf560740bcfc": 1,
+                        "c312b67399025f9d5303a8009ffac8d39fb843cfa051012666df4ccd1b47b776": 1,
+                        "c9834e061cd7f1d5f7a9cc31ef132f6aba4912ecd1f92f5a93301b89cbc61f2f": 4,
+                        "d5bfe70a2b5b9af5aa78741c46b1c67967da55fb7d2db15e3e03a18c7d6f974a": 1,
+                        "d674d559cfeffaede3a91e402dac1c3223471d2ace9fbc9dff2fbb6e9ed67439": 1,
+                        "d6b2fe8437be70b36847b9d09a1f06d7f10cca5341d2b5849249193791690c18": 1,
+                        "d784d875461a7c1198fe17d7a8a727b991dd670c55324cb9471e96fcc3b4cd10": 1,
+                        "da7e62b8f612487c98e171a68055d12d41a76987d27f304b7da17c30d6efe30c": 1,
+                        "de8e90f99a654f96b8c77cd00b247a650f8e3078052cbc4102d106327a9f621b": 1,
+                        "ee45245ce5ae80f05aa8567a3396544e3293cd8a1f638a36fa1273b98be15a6a": 1,
+                        "ee5810dacdc626b621dc609577cc9de79760e667723fca0610d29777a3ce000a": 4,
+                        "f81d1218272c9af282269cd90918d921984ce822d1a6cd36a3ef556887038236": 1,
+                        "fd8016d846f745bcd47612c77939b8744172b15ac4f3ab1292df7aae4303cb8d": 1
+                    },
+                    "operations": {
+                        "DELETE": 5,
+                        "INSERT": 3,
+                        "SELECT": 21,
+                        "UPDATE": 18
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "17e460c01477eb64a0c3e6c08805d882017f35e47f57405b752a694d5cef5762": 1,
+                        "853f31aac4ed9ee241c07ab5dbbbceabe87a38c0e64c30d96b451fad650359a0": 1,
+                        "9bd15aff1c813db673978f5efb50e2ed00799b92311faf21f3524d37beab1d21": 1
+                    },
+                    "operations": {
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "01b256496cda9e9f67ac6c627db93ba0e89d5f7ab0ab0c71cf62bff6a83dcf1f": 4
+                    },
+                    "operations": {
+                        "SELECT": 4
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "30c3f078963ca7e65182c28a4d33b794d2647b3c50b4933c5e86f3d3cf052200": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations03.php": {
+                    "count": 21,
+                    "fingerprints": {
+                        "0743402b8eb87f0a555bbe499bde0f45daf246a80f3d378d2dadb60fad992834": 1,
+                        "1d64e52976fa34acdb9a84012607cc0611a6534cee0d9166741eecaa881c57b6": 1,
+                        "3572a35b4b035bcde27d57ac375693d5bbe8708b8fa4429f9d0ac395a3a4ad72": 1,
+                        "36b79aa168490ea08a3482934344a8d5c606befb16ad6909af656058687ba4fd": 1,
+                        "3dfbf9cc7563a6b3cefc2e8046cef68f1394e08119c6f6cfed5daf47c2a0ee67": 1,
+                        "4cbe8a95a1449ad3a6d59534c59d65e1bf3114503dca9204ac4bca912c8c8f26": 1,
+                        "58b8300b57c7beeda574248528dbffcd6a0f42cbcf7bec3afa604b7294515c2a": 1,
+                        "5c23fee7dabb9c7fbc372449d8619c74e813d46a74432277b2b6deb2e9774949": 1,
+                        "5d74cf55934da16c68a52d5bc16399aa867c282cce488a3c08004f07c18d70ee": 1,
+                        "7370a4997ef6973829530c91ce762356df105c2e44cc54b3d374e5dbf8a14f1e": 1,
+                        "772cac46831e101f2d5cc84905fa72cf93a01eed069c84f3c825b75ccb63fa6d": 1,
+                        "89b26358b453899b90258feb01c82854d03ea7486988ef533347b3012ebd0ab1": 1,
+                        "8c40fafba1f4cc2fc244a20239c7a866931acb6a014d8f60942d0eddd918f707": 1,
+                        "8e93139d30be74d80d2dba7d0bd8995ce184786a5f33c6fa02221e1efbd79108": 1,
+                        "911ab4308832ba54b6cb0e47a377b6a5bd5cac2f575c8d5468cb454293de01b8": 1,
+                        "97e04939dd46950faad3148130db6512730c47c382510a7e50d7a54c0c3e0dbc": 1,
+                        "a98668c54ab1aa1d0a9adfefe66cf4cb3ec5a891839bcd18a251a80c1a760c72": 1,
+                        "b2443e592d844a160369cde67b0ba045631ec42dffb3e45d3d136f6ef042c6bf": 1,
+                        "bd8b8120dd21aea8266ba875be54b6851f93eb67839d858c778359e3b933cfcb": 1,
+                        "bf17501a1800d022825a965c7dc3fe3a47f1e70cd0fc78addc144f303461c5c6": 1,
+                        "d710771452ba9b77e4d85474a882625457ed9969230a2bcce588197d4464c715": 1
+                    },
+                    "operations": {
+                        "SELECT": 21
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "8f3428fb7d8c295517d6cf600d4d7427823ce11a0ad29c0227d68c4877a5241f": 1,
+                        "c59b29022573611af0f122259a8ae37f706a6471512284a83c327e297234f00b": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "189ad97ca263bcc2f1264cc534fc314e97388fb44d5f8075b5fedf8b22cfc52c": 1,
+                        "30170ea685bc9ceeb466e85b7f18bf623a69ef911469ef5d589221555cfa96b8": 1,
+                        "36bed3cffcb9a62a30658dec5853c1fde20afe1b81d8b7396fa9e9775c0984ab": 1,
+                        "3daa2eb0de6dcca67937ca9b78bd42594eb8f567abe13d8153be04f3d74111da": 1,
+                        "5ea5931cb742e6734f0a54bbf0aec302e3c9e1435acd6a69d9b20ba557294239": 1,
+                        "744ac706863266a4fc4948da3397d58ee7ea22c76dd374466b34aa78d1eb516d": 1,
+                        "9101375eff760582138aa8430ac15b68cdb5cbae33fcc0520cb1f5cf8363f364": 2,
+                        "cc4cd561f01548759b35ce60a2c9cb797ea9f52c292ca62f8da6f9117c4586ff": 1,
+                        "d7b46d1c42592b6c1b2e6d6985fd0d6844996b96d9a4b97dd1b97af63a61716b": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 7
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "aea65715fc4e02b0a764a2e2c96448726f6611c399f0084479ec21f216c76fb9": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "51f9b1f45095591e4670b6a420c65d9700468c84f0a92d4d268f2e28babe4d48": 1,
+                        "57e9e968a0ff9d76723ec8223f1e5a6b4706bc3c7d99c80a432d485dd0fd625b": 1,
+                        "807c2e1cd75c722ae2d71125ae92908888e03eb572d40c1ee7fccbb657559472": 1,
+                        "cfce1656ff2b34fd06bfb3c08385f9cc83958025ee30cf2032a920ca6724c427": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "002bb5e830ef9c107ca9555d5075096eb22a5c66c71f3123aa2491667e0fd68c": 1,
+                        "0461b2e9052df4d18b6757fbaa13a4f7763443cb874817968e933a011472fe89": 1,
+                        "1fdbbb55dcf7cc3d24150444a70df008c118ed213b8068571fdd0c0d4c758c57": 1,
+                        "288369eb4ce6de1284249dfd72ee17cd6c01a5ee0f5593a880990d60d20b8a45": 1,
+                        "45b7251149be695556f0dad5f93356b7959b7fdba4be9a1c504f65d70075fba6": 1,
+                        "5e980fe5b6016af5d3332f8f1a1c93133060dc975f111b7260346c1267d6d29c": 1,
+                        "81bc8bc22beb6406fef702a830c46aac3e64c7f86168e54530604371641e1f43": 1,
+                        "8de847564b8ec5c626d2fcdc8c3b3cae9e67dd3f9533fa1c3d6caa078e6a901e": 1,
+                        "92f5ec55ad3edd26843f39b113b0ad9dee020ed8c49e6274ed1e800f1f1ff5d3": 2,
+                        "c571b3fc58bd13444e124dbec5cb1a297151aa4c13e7127f1f6d69fbf8e271fb": 1,
+                        "df1b0c4ddfa191bc234a003c19d3707fe58c5007bf37e07309fd441dbe4c3c8e": 1,
+                        "f30ddf93e20f91a598413d481374308ba36f5168a4e5da301b7df0a5c43a2624": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 5,
+                        "SELECT": 4,
+                        "UPDATE": 3
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "1ce030b416e165329cac736bac1669424877f0f71c450f29256769039cc75778": 1,
+                        "33754db575cd1edada21e2d23c8666f3551dfd04859288f7292ec1dcd289f73b": 2,
+                        "44bc42230c57af9d750d0ce4df766d333251ac5ec3eed67703a9b045c6aedcc6": 1,
+                        "5eb9118ebd924e3047865664cbd21cfd52bed1627bb2880718708baffcf45650": 1,
+                        "72f1216a9721edd54084232e57e413d74a01fc5b183f1094c38d8a8c7c394bd3": 1,
+                        "7a797a9b7ef89869d47b0adabfb50912a5fc981cc0f400632eb1baab7c537602": 1,
+                        "9801ba36bf8a0ef040c75cadec574ae15e73d641c6bb3f09950a5e13e55040d3": 1,
+                        "baa76c355d15b6eb43fe32372f42cd71d5c92cfe2996a16ec9c4e112ecb9fff7": 1,
+                        "c32ff79403423120189a76db008b3c3357cdb31d0d6ebe5b4c86c22894f8db0c": 2,
+                        "ea6cb6d4d2b1263cce4065314056639db8aa81d6cbcad9bf8a178ab361e64fee": 1,
+                        "fc24adff98da8a654e1f347cf31cba2ccd8bc98b447440d79bd8ed3974d87d27": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 9,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "1d5cbe8f2bdb8c6aa77494a5bb2d2763ff90a0082e0351d111886fa44738aaec": 1,
+                        "26a6ffbdff046e8d8050fa4e3a21adeb70450eb603e3b128517e8d749ad5fb04": 1,
+                        "27d66a595c3d8735aed012d12489017661819265731f4d101c75911a32d187cb": 1,
+                        "57fd99bba9be5157be5b4c30d05604b495800eae3deca980fd8c32ffc67a4535": 1,
+                        "5e8399e511b5d3170e38755d9e1b03c625db2a862d9e14b298040081706fbdd6": 1,
+                        "9d2c8131679c3bccc740c64bb98c9bd74edc4ac2379cda2171243eb6eff8dd75": 1,
+                        "b4d1ecb865008c6672e691c3e474d2beff9400e396ff38f0444d50a3ab8f3c14": 1,
+                        "dd5cd670b2bb593449908950783049dcaa3c5917441ceace90da759d771305f0": 3
+                    },
+                    "operations": {
+                        "REPLACE": 3,
+                        "SELECT": 4,
+                        "UPDATE": 3
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "3b86a34669c03e26a9aa2e9d2fe36fd990fcc4b5c8a37ca803ccc86cb656d032": 1,
+                        "5519b5e573533b728efe92a262c277d1db201ab7360dccff31d7bdfad8f382be": 1,
+                        "8b144cf15f7dacfe53099500e13e6511bf896d29c37b8bd6a5bfe9c7ee61304c": 1,
+                        "8c664d472aa3464f762bf608b1e5c58c35d985dbb89c570f2fb1fba1e425347d": 1,
+                        "c2cb57348cf56606476d6c95d0bfc48f0fe3fbd7aa779069bf33978d56a9b1b5": 1,
+                        "c8ac3f7827bd7743e54cb40c81e49b206e0fa935e2ad68255ac7574e9aecf501": 1,
+                        "c9433f7ff89bf8bbb64b0188998563facef93593c0221c70274cc54188611d92": 1,
+                        "cfb77843f7573e1c53207cb4a0eaf309a387659400073b1dbd6b9245f192d0ff": 1,
+                        "eb6b8d59162012552add272524e1e467bc602a5d1317696d41b0eae823028ae8": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 4,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Boot/RuntimeBootCoordinator.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "4024c8181fb8752d79e09533dd08191a7079a2c8f83246c13d45c4e002388d93": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "0497cad49c0f95b642f21b9c797f6bacd74f18170854f29481808cf601d16b05": 1,
+                        "09452b5b4b6672aef18064c9f9f643a63eb736ae09cbb009476e5e2d205da70b": 2,
+                        "2a41a37a0546090aafd5bc946f67022f5f0eb88968dd4af858cca7853befadb8": 1,
+                        "2bcc8a84ea8debe29372f315c82bfeac5ac591465c81f1f1c26a9b8bc05097d9": 1,
+                        "3f646e08491bacdfa6eba9210fbc476f1616649b06ceab0a09fe447e811d21dc": 1,
+                        "49f53cc033e89c9d1397cb5ad2a9fda0aff684abec8f843d18d6eab0ea2d4d90": 1,
+                        "75da3e2e5d2caf525667628ca69b134d1fa93a090cbac4972e1a07faffe7f4c8": 1,
+                        "c2793fca6af24495780857d06458894448d1b57bb885f40ef3aac02140489be2": 1,
+                        "c780feec549e98a6089d152301039ea912027ce864d8fbcac62af4ec401dad9c": 1,
+                        "d7a07efeaf3e5ef7fbacb9e4062760612643a356c70dcfe5be5789183bdc7a3e": 1,
+                        "dfc3c3cf5207267c950fe28fc4eb87da299a1df0732620c3d8a4d82a1a4ec523": 1,
+                        "e14cf54d7191643ad763866ffe23434d85c89acf613f52af000e2b3509c018e7": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 11
+                    }
+                },
+                "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "eabd686a838c78e4e241af3ebd33f717060cab8c5292091491e931a8f3817192": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations01.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "5f113ef6a40d800522332c7b22e9597ace233af6160b96c6a1f93a35b3a95e9e": 1,
+                        "62db60eee9aa7921d48f2a2eba073bfc56b5e5a157c403c2f192b02dc4192b73": 1,
+                        "74adc2b5ac86e85ef302d31b266ed1fa0d818da57d04c8519f1244b37fa61abb": 1,
+                        "b46d930b93266baf2f3408e2497419ef9966334353db5f30b23720c86db5c6c9": 1,
+                        "c255475d44e65f5d2714420ad585cb0472fb7f10c06c9f6b19a0fe03b8f7068e": 1,
+                        "c72b6f39de2541cf4804219bbf106d69c2bf581f399f9dfadf73ed0c2d5e32c8": 1,
+                        "e13e1b52ff5fd1917765914dfb4b8ca0d122b4420312d5e0db46dd7e778a8d20": 1,
+                        "ebd88e8f990bf6c6d5da692fb396df750d51eceb954e5adebad620aeeca28045": 1,
+                        "efcd5c9e994af1ef3af86badf7a1d545ef5a7d07055d82d57359f04f6ff0ec41": 1
+                    },
+                    "operations": {
+                        "SELECT": 9
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations02.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "4eff5a66063a93014b06386c4f9d6cbb7a6a708373bbacbff139ef59ea716d1e": 1,
+                        "7d454b3054ab28f526e5ea6b25592a4e29924c2f2f51da57e3b01eced18e2abe": 1,
+                        "810be280237a55ec31955ee27267ead24df05f8e759cf807156b00f95de73200": 1
+                    },
+                    "operations": {
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations03.php": {
+                    "count": 17,
+                    "fingerprints": {
+                        "042dfb034f4517bcfe87a38c12f5e42e18f0fdb6c02fcf17594ad2a4fcbac21a": 1,
+                        "234f3bedc555878892450f6e6e941b9326b2cc028c99738ebfe0b8bb687370bd": 1,
+                        "471816c3d1b91cd2aa8875fa1f3adaa30dfcbaa8de9d39d5fffdfa34b55425dd": 1,
+                        "75427b59cdcb68b6c4bb4df2f09eb61077f597ed771094d031184b8e8b95992e": 1,
+                        "8d223ffcf8c2fb759dab641a24a1bfa9c98008658f5a7dd6b64e3b9edb428c53": 1,
+                        "92cf9c000d4f4bf1b17ffdba94391e02e09284bd5c378f8192ca0d805a6f5796": 1,
+                        "937f6567c650bc3e5a743128ca753efcfa5a10ee4e37464639af85521bc7ab4a": 1,
+                        "b90c60d3eaa77567e39be3310fff555c7b06ebc1e9229e9d117fbe781c0e6a1a": 3,
+                        "bba6fe90b2faf894eafc8cc8ced37aa3f743a6941d5e4528f2b563efc863dc7c": 1,
+                        "d0ef8918b7eb3e26ad47dfd3ca177c487c96e05981c2fdc415d26faf174dfc94": 1,
+                        "df4e5d5e5aedcf8a55061a328e1613f31fbb2492a3230a7e486b0b6e51f7d8cb": 1,
+                        "e6986ace303b2bb5c858c2fb6f5dc90a61630338af288246cce9af27561a6d0c": 1,
+                        "e6c45bd406c1018317f9176d1f4150b595436a75e76b9306d06c1e099e67c0dd": 1,
+                        "edf6489c082bca0028130c59b2a5f8c42a6d06f8e06980f25386c8a9fc75b1bf": 1,
+                        "fce6d70ddf416a86a4e5dc75d3de7ee996122396326c1ebdcfe5a8587e961776": 1
+                    },
+                    "operations": {
+                        "SELECT": 17
+                    }
+                },
+                "app/Runtime/DeferredAudit/DeferredAuditRuntimeOperations01.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "cdeee051139335b8b7ee15a6ab1905e2cbb3bbd79e28a7b5b5a8a384df07163b": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "6d387616f7763d788a9b8960a26b7837db87b672b7dbc41e2a722bfc6bdf3aa9": 1,
+                        "8eebfb14583f6e1a11c70e22b0fac97b6a25c4fa3270b9f1c363d9ead8be0248": 1,
+                        "9853186b2e305e24364ced4c23d91fb555463c58b2755d460623f15c53cc8e95": 1,
+                        "9c47fac320e99637a82eea808739d24249c08c45f5c0aaca1ed2011387493982": 1,
+                        "efb08cd793c2eb2fe7dac9e2a1c304e677b8770a06a7fb24f5e8d8e4822cc635": 1
+                    },
+                    "operations": {
+                        "DELETE": 3,
+                        "INSERT": 1,
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations01.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "1ab11b4d173627f7c0124ad5f961fe5431cd7261b56b4a4bad753d65032534aa": 1,
+                        "2c2bbb27046a9a2a539093554bbc2fefb06bb209c79af7c0189309b4e67e9a74": 1,
+                        "318e7102f5e2d3eeb9c9236cd8a630e95e272388b64aad29980b3c06654073ea": 1,
+                        "33c1b95f0d10da83ffb1f0d777886df21be03162d80183b446a8a6269b59b6fe": 1,
+                        "36b37b72c21ebab162ed9342356ef88f206074487f3371952fb08ea34cb25819": 1,
+                        "64205dd6c03464909eb453b211ca6e74a4650d6d9066bf168a1fe62da466486d": 1,
+                        "6c7c1e40c08b9ada1c3ed1d0258ae24ffc0842e418ad4e122f07fa5748ef2ca6": 1,
+                        "6f400d750fd611d3123e0cf9163ad4125ac3f41e543b2700dc5132ac36220bda": 1,
+                        "7dc84b86349a121ef73b55402679976be7285d8f98050037db08b6df3fbf0ff3": 1,
+                        "9d36ba7ebeb6ca2e3c79c6c9ae61312ae3e46211ee29d78f6c544637b4135877": 1,
+                        "cf85519b4a0b85e4f3ec3bf018425672c4b589359c4280c9b4297757cd38ef74": 1,
+                        "d43af5e48e6605241e0fbebea490251778725bdf2ff66b3d98f571e1612eef23": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 6,
+                        "UPDATE": 5
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations02.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "0656f284a46caaae82acaae544747483b4048416a497426c93bb99662220262b": 1,
+                        "0854f0c3cf10b79a5eedab390c5e101b8a5c9a0bbca34c176df4680c9f61109b": 1,
+                        "1228aadaa97ecb51667fdfbf840e3675ff50ceec4fba085bdfb1a96292f37473": 1,
+                        "1336e0801bfe6d724023b8064c3b574ee95d931969f04ca1de40dd75597269f7": 1,
+                        "192cfb7fbdbed48b33252f9702e6847fb206a9f5ef4b6187c1b8eeb6d34cd9e4": 1,
+                        "2a2ec31609628a3126f03c05351609332362c6a24fb3c1f0f962d1b3a867bce2": 1,
+                        "47045fe00218bf0b3b9c63ff4b3b4568d409a4cbb0fa2b105740238202e2fed5": 1,
+                        "50315abea05ceac10f5e9bec4549d939ecc9bfd87e38f27b79dba6ed1d54584c": 1,
+                        "6dd3477dfbc4a6c118b8226ed6119b6d942f5f01b774d36bfde0294beeb8f779": 1,
+                        "7095e2884eca4435a34613114351101f5bcc1606e12b11960efe49c9350f6ab8": 1,
+                        "ec34cd6d57a6a2f844f17cd1d25587b012bfc03f27f7845a5c16cefe846565aa": 1,
+                        "f68be011607859f16e3db916b9659a5aa6bdbe03b1de47159d5e971e1443f1fc": 1
+                    },
+                    "operations": {
+                        "SELECT": 12
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations03.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "031015037b4ab1438f93f13bf48956a3898dc3bc4894b6bcac7777bc82a01756": 1,
+                        "08cfe63b73c6112b858b84f377f24e9ba09a54216c7ddc57b85c0818c6887df2": 1,
+                        "34c9ab48b18c1982fcd35aaa26636641a1db50b09791124c86d690345802e931": 1,
+                        "55f8e465e668c356c7ad6ff2e90d2d7f85771ee1c8b270474ec51513db075911": 1,
+                        "7281a2559e673d869982f60542214b343441ff218f220172ef4a71478d5b48f3": 1,
+                        "7dba8b7f1ca8e6a62b7e0515a3719a83f26721658c8c81c9a9656093ef007c35": 1,
+                        "b5381a6342d44404f80d8ddaf6d92beb3b433179ae0cc7faf88e5853af5bc47e": 1,
+                        "c15567b2df6be555ff8a0b21fb536f6d8ff426c8e9bf77b4f96b2dec8e47c91e": 1,
+                        "d02dfc0429a8c7ea04a28bd34e7bd2fc82a772eeaa28271b223d0d13f74ab988": 1,
+                        "e7a7e47a1d646976697cee7401c528b6b99cc6717e87c22004b8e77db9196ae8": 1
+                    },
+                    "operations": {
+                        "SELECT": 10
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations05.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "20518a846685e601eb684017f466fe67898534fd1057eeb97c364ddaca6e63c6": 1,
+                        "2091bf63a19c6f25cc3e5fdf15b288127cd2d801fece8a53818383480c53cd49": 1,
+                        "52f350105de7ad21df88cf28c2d7c9fb8ef9b24dc7dd43dfaf94c805448bc5d5": 1,
+                        "6a6d6863cff2260577349d9890235fb3b18abc434ef3b005928729a83ec2c583": 1,
+                        "6d9900d401e55e091dc779cd607b2974ff2c8d0faeacd82942687876b75cd52d": 1,
+                        "82d536383f57e6e32753bcaaf4c78a806734ce1a18327457f57481668ee628aa": 1,
+                        "91e81b61d8fcb49490c40504e0d52ae7335e0886ccaf62269c879e15eae0fcd3": 1,
+                        "d9c51c8db22890ab1c759339e1ae0eb580ad9e6a0b4fbcd2adbcf1583b156947": 1,
+                        "ee80aebeb768a1b6fb299c5eafbdbdbf74f9191a145ba1259a19e6ffe3e7f6a0": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 1,
+                        "SELECT": 5,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations06.php": {
+                    "count": 6,
+                    "fingerprints": {
+                        "775f5b1eb81426b98693c69e576455266b4c4e3c67d1a4d788855f5a2f2a471f": 1,
+                        "82bcaedeb19eb0ba63a79640f23f0943b8bbe743199e6f3d15414d7ff9dffb48": 1,
+                        "935eee5db1db3d72c0bd0cd643b672a9cc440bda601ddeeb3f386fe79b022fed": 1,
+                        "a22d2416bef95f73a09cd7faab9281fbb56761660e1a63767984a3c4798d4173": 1,
+                        "c5689aa24785fb4b9f0be9d17484ef63fa91b53d2c8937d2e66b6468737e3ef5": 1,
+                        "ddcaca9bf267304447c322fb6b59368892ecf9b13757a41676ce0ab3a30ce16e": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 3,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations01.php": {
+                    "count": 20,
+                    "fingerprints": {
+                        "0645d81383b1727baa09508e68303a3d59553daaefff5f2851736c8cbb498006": 1,
+                        "14129b3748e0afcb9bf9998e18429daa80597db84e7b081ff6071a45ac21aa1a": 1,
+                        "17ff1f4ee32b4151f17fa4680fd02daae2fae7d13820aea6c9331de04521b4d5": 1,
+                        "445702b25c771f5ceef8c5bdf2a772c98ba5aeb1be463ce271d49d4be29b90a4": 1,
+                        "4776fdda950b7698ce334f2a07a9474d352ee9f22e7abfd7b0da7c793fca0287": 1,
+                        "48327b7cab690bba072f861d9f52bf6fabaafe0a567ba5267936a75de87332bd": 1,
+                        "534aaaf834a90adc69b967a59704bbd48762de80ac3e0bbcf16878a37ced7022": 1,
+                        "5636f8c971ddc27254b9b9def754df4a20b1d381b39b6e1f6e0afc6ac1b4dfa0": 2,
+                        "61840588933c83a416f0e7919d18d341dba328784500c8e7cc13a7bc40748539": 1,
+                        "928a831c64bce0a7dc445dd706f8c38a8a5071eb222a8e26cb7eb16a087b4642": 1,
+                        "9c7c72f42b65584a16842593e899dbd1624a374a91797f272ff3b7ed4936cf1f": 2,
+                        "b0d3939f6dd74666199f3d4f53f8ab01acadfcb3a7834af178ad01a0314015ae": 1,
+                        "b6bd13eac30b68d1ca6cd7ce7f2ecacadc8d194aeb179d10d4f0e86f7bd3ffd6": 1,
+                        "bc16e74f32202fa0200cc93bf71544f553badc17e53309a77a915fbf83f1defa": 1,
+                        "c0eace84e855939e4c26eb1b136d6076b1cf1cb2010b44425c3a6c587357f8cf": 1,
+                        "c42e2a9fc28aeee8b1c47bcd538e2a80b3b46f29a622fb6fdc899c83c5eac528": 1,
+                        "de6a0c74adea81a7ac274fc893e30631edd3d856bd56c721e5164d550e2dec76": 1,
+                        "f7c66f838b6fea6209c83fb880ce7dbf9221eb1f462ed5c0fad0dbc79d8132d8": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 14,
+                        "UPDATE": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations02.php": {
+                    "count": 25,
+                    "fingerprints": {
+                        "03085b7b46cfccd64ab041fc9e702c4484005f057f74837e4399974e51592927": 1,
+                        "119fbbf862f1d3a586bd3cc1e1492ee3a934d05bdf70410aa5f1251c126f8e6c": 1,
+                        "1eca1ee5f5ccf3cf546030c8c9aa63f163669d60ad6924d7a07bbdbc7d9ba520": 1,
+                        "3fafbc289bfe574f34f4d76c127689f3a7c3a4ef37c6f61db7916654a5e4f1ca": 1,
+                        "4ae6afb79f8ac56779f7bd8b6f282f22986b8c9b2f375605250343552eb42734": 1,
+                        "4b60384f09cc3307bb8043b92021abcf218c60ddde990fe208ba93911f4e6aa1": 1,
+                        "6028bfa5dd50e2a3ee2f6a9a1882a9efc86e0514379509af74c6df24407ef454": 1,
+                        "6786ba96d8f19b91e58f6cffd282cf4cc6f6350793a9b81999aeb05ee225e8cc": 1,
+                        "6831ee0dbb35f57ac4d500e9e52d8344741182a9c90f84e14f170eced8261d9c": 1,
+                        "6abc61cecaa01aa269310c0b4a87390af8fb82f76f00e4d7bbcc3c2cd2b1e1b7": 1,
+                        "78e048c2bbacbc0b581460e16534962a5370567430ff9aff98c10695dd4a48cb": 1,
+                        "7bcdd4fd1725ffc088badf9d4f5910e76eaabceebb15e732ea0db4f3af68fd35": 1,
+                        "85fcdb64759a49cc102962c3accf032133d596d63310036941504a64688c4d09": 1,
+                        "ab433355bab2fdf4ede4f1aec3a8e66a367e0c6b99ecc76980c7306694ac8913": 1,
+                        "b81efae0cfed3c4ac44202fa9d643014a62e9f8370d3f96ba4bcc43bd65f60da": 1,
+                        "bb5df31523ab7ce3145998df430785dd725b2516ce47e597d50ffa5679a35688": 1,
+                        "c6d932c717bc09792ad79e65b38609d99ed6840e40d21258615e9d506ec24604": 1,
+                        "d216acd55f6674cbe27cb712ac04760610ab3695bcdba1b63dddb23431e95215": 1,
+                        "d3e521756c56b37705d59080aa22f447998b9b82e8cb4092102df65c2a084c77": 1,
+                        "d8181f1785f08732fede00ed1c08d3b32a5535eaa00308a09b4e4e572b513dab": 1,
+                        "e2ccee16d7215d1b6c7913225061d0a5f9ec1ed539fd103086fc86919d90af1b": 1,
+                        "ed28258be81618ba562def6843b2f1cfa55ecdb922f7486860282743e4e82b77": 1,
+                        "f597781517cd24f36bdb908bddceb19fae01ef8fd0bdfaf1a1b83158765c6c03": 1,
+                        "f7c7ee09cd097d5e9fdeff73e4c1a4ac1c751ddbf0dbcd37beb6eaf32fde33c1": 1,
+                        "f91f9888fe96d6d5a37a8800e34cf56909a33f969a77aeb99bc43ca3dffbf212": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 21,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations03.php": {
+                    "count": 26,
+                    "fingerprints": {
+                        "08e83151aee69eedd4ab6fcce75d8c68240b93acecc24d0cdbab1311bc368b93": 1,
+                        "08ff5b80c1bcd9420ec584c9edd0e106b1d5469a2dac0f9edcde9c396c44aff2": 1,
+                        "0c7e5186d2b2603721110f2f67ff1fc38b3042b7ba00fe3387d2bd0df28dfe9b": 1,
+                        "2e04e78320c6342926eb838343f9c860186be2de438e3ef9913aaa263c9f32b7": 1,
+                        "2efed750bbef5a0d3b7729dcd5cdaf8ffa7200ff4a1e92aa876c674b565c891e": 1,
+                        "30cc2bfce5cc24fd44025e6b751ac8bdf307f2455a6e4a1f4aebb26a1aeabae4": 1,
+                        "3a55fc4f0580937c26975bc4161c088e07284188971047bce32b70895e033837": 1,
+                        "458c954138b17fef9c38ae951ecb06f8c60530343ce02fc832bdefd5ee5e7e13": 1,
+                        "4bbb3cd32a1bdcfa51a7a866b58ee353a0c7b5716e0e53c3557d4379bf186f9e": 1,
+                        "54f58a6d83b00225d2fabf8c317358fbb8f6bd7645b38812cd9b7d64f98b3e18": 1,
+                        "5cc2da3af2b1ac3f231adf3d99dff2ded94bc0de0843dba56efbafaf53fb4bed": 1,
+                        "5faa0455b041a3421f9e4e32cf7951fbb778d3e97f8439417902d5f0ab95f946": 1,
+                        "72d2175d461ecee65e3a98f0ae2a8accea42af78470450ee50fcccdc83d4f94a": 1,
+                        "767209e479fc8bae849453b75a0f82cdf779fe904b1a0756356dd997d39bec8f": 1,
+                        "a607feb7f719fec57058c814d082ee820bace4fffc6b0ddbac1236f68e6f8e75": 3,
+                        "abf605d9407f51c5831f7d6a20e1e56522749f7b2d648940d4dac5baba2dee96": 1,
+                        "b63f59adc08b0e80aa511ee2be3711e5178478ab0196cd1839bcd48c8267061d": 1,
+                        "cbf206b2876acfc8742c091355027a38a2f431beb9207b7f9ae495d7f3e56d26": 1,
+                        "d1bde88a3d8266b101f5b87c2521d4b04c554849eacd0443ef7f8059e5bd6479": 1,
+                        "d9728a85b44f0975fd344557bb28025f600365a92018bff2a812c59e81ae59d6": 1,
+                        "d979aa4ee007f2dad0456507d92798db543e53771aa50ff6189dec568f928262": 1,
+                        "ebfb95ec4bcfb15bd049531ff7581bcab7caffa8a9d50932f23c782a4cfe8a38": 1,
+                        "f559bb08ebe9bba9806f0e27e4a1247ff698317978a11b21de27ce9f1c2f2e96": 1,
+                        "fcba234ded248ade02e4b0da559916d8bc46fafdcb4e47a16ebf0d19c9f7513a": 1
+                    },
+                    "operations": {
+                        "INSERT": 5,
+                        "SELECT": 15,
+                        "UPDATE": 6
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations04.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "1673bae00da06cbac8433d99850bd5be01045635e2e969b0cedd6a6358b2b9c8": 1,
+                        "49b72d5e6512ae9de697e8db4c1f91c4243691d67cc02c690e719e2c04f6ab38": 1,
+                        "557e00b86e35159a5687141cc4011a8db36bd1c5436c09a246fd7fdd88377325": 1,
+                        "5d4de271641d3b935abccbf3e08647ff1e09743e2ec44c426997efb37cdb6ca0": 1,
+                        "68fa2b6471ce7125a8300f57ad8030ed9a79b55e47c49b85d9556131950481c4": 1,
+                        "800ed917bb4613dcb315f8bd033c5509e5018d211ec3b98e0536b502b9be8f8a": 1,
+                        "9b64f1a25fe5f4e177f2f06bfc7d30b42c7eb146a2ee93d658b1dc1e71f5dd43": 1,
+                        "9b802471e52260f312889811564ca400821dd60219060d7f8d24814500199435": 1,
+                        "a63197a59753cc490dc26c644e4ce35ae837cbc18e03fafabcb1af7cb8da4617": 1,
+                        "a9bd0aece9105a79021442ff0f8c7077dd373e40369bbaf25306c01434e2cee5": 1,
+                        "aeacda5a1890425ad86f8a32dd841e0b9cb04762c803c177ac5596dd3552f1f5": 1,
+                        "b8ccacdc4b1d9b29b331de15453e50ccaf1862f0b13d559578a8a928d2d36e8d": 1,
+                        "c07f119eaf3d47c7f8a7c81598c2cd9b6f3d9c74699ac623428e0452223581be": 1,
+                        "c2208691784251139d6190607f933e8800d9e379f4476634b8bcb8f120bdda19": 1,
+                        "f1510826334d18b0331f4f87b699157addc454217927ebd2a14da06bf81c998f": 1,
+                        "f58a3958fb89dd869cd844e1016cc6e7cc7c1171dc00674f674d4b78e9287393": 1
+                    },
+                    "operations": {
+                        "SELECT": 14,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations05.php": {
+                    "count": 20,
+                    "fingerprints": {
+                        "0430fa5c5bd46d21bc14217ec2a4869482cb118485c1976442dd49b199caa4b9": 1,
+                        "0a980ff3bc4d3811b18b82228ef8beac4fc5c5b20aa7a49ff893f28d2b51c3d6": 1,
+                        "0e34253c755c10bf5067e24128cad6445f35641b85308024ea43f3f7ead95018": 1,
+                        "164d03118bdac576a01b488808c3cd07289f5c68732bd4b52e0a0dc2df9d35f8": 1,
+                        "1cdd40c42137ae9dca28d5cdf43795c54e81f730f73385de46672443ef2cc1c9": 1,
+                        "1ec747e35f2e3c2ae6cf0a1ad33b84b8a11644965bbfdde54f3c8bf64bf93059": 1,
+                        "2364b4688bccfa60e4cd26a2010bdafef2e176bbc45fa11beaae13fae313a60d": 1,
+                        "252d35d3b1b64ebe788b915a68c0a4d386a561e8b1c147d996777ef5ff509419": 1,
+                        "2a32f5c8624379bcb55590dd64a38a29031aca91e9defc9d53783ad882d834c8": 1,
+                        "304688c259bde2a6be5ff4f20f821dd09b13b6fdde2d3ca5b0e97ef9ac47d0d2": 1,
+                        "62f56f595b6720afaafae52234730b937f209c3e99ec51b3e2b6c03c7f7470c1": 1,
+                        "7f01339032b4761ff666c0f567dbe1ca261765951cccbef5fdd35f68d10078c0": 1,
+                        "9013357b144b2fa688b75efb64c40ce2e2b549fc030d02b87da8c0baba8dbd00": 1,
+                        "977af78a69a6126e3a90eda1451c5648aeafe491f0d863496ed8c0f2e9d5687e": 1,
+                        "b0f0b3086f1122c47d8035bc8e16d73eba67789b299d73dba3af73f92204a57c": 1,
+                        "b75555735a6b5952b3675730decbcd6999865bcae44032756575109dfa5614af": 1,
+                        "c3894625e8a5bfa2a1e441f89c1cb7a394a42d420bd9a9e2394197e7ab39c9eb": 1,
+                        "ce9601fd15e3996e4df1f70a95a24459fd78b03d2a583246e8d69162415c3d4b": 1,
+                        "f72bc68951d1fb0c4fc18faf953d0d1dc2d6076fc2674fea2877960b2d670703": 1,
+                        "fe7485807f719cb7687cbc1fb091c19c148efd6b653fd4b2467d1e4b4d647d12": 1
+                    },
+                    "operations": {
+                        "SELECT": 16,
+                        "UPDATE": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "0004a8752ce5a430802bd4350987e99dd677923b5c7ce9b274e251c993e8aec6": 1,
+                        "029f407bac0d38a6f8d0c0ee754adaba6d02af7f343afe8acb315c9f8cbea7b5": 1,
+                        "17616713be6275d9a03cbcaaa4cf6330fd22273abb85a741d33aec3c69413d57": 1,
+                        "1df6e87a342df0bc12da899a83b5f0b45802516ef0794de8cab04c2915b4fd1c": 1,
+                        "2baedd205ef8c2aa949edc544bb3d9f0b88a135136a004bfed3b828b4c78fab7": 1,
+                        "35de24551fe2494cc9b2d9ebef80c42bb4e15143feb15380148fda43f92a4527": 1,
+                        "42017571a796087386e560602208914451ccdd36ee4eb4e433e7ad5c3099988b": 1,
+                        "46343683001c1ec785dae91846e3c8effefdc0cf106696b02fdc6e250753b9f4": 1,
+                        "95d077a5b3b8401b6e11cce08f536269a9875a1d1a6c1e51adefd1db7706592e": 1,
+                        "c561c895df1bd977e07e035a9c243ff026fb6c6c16c1a853c9e742b727572f4a": 1,
+                        "d17e70108a09c8bfb4ba726d6deecac59a5a6a74a9bd8a1071fcfdadc9ca94f0": 1,
+                        "f04a4b4f0a685228627307262b2e83e362d57c4a63d8cb896efb44c2770f33a8": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 9,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "29f07e9c1cedd460047c33049ba2fb1e3174f40f82675aeac121a4d50055d38a": 1,
+                        "4e5c6b5e86b82d8fc9b0373e199ac856fb84644796c97ef964f0f95d2e684798": 1,
+                        "54d7e97c8c7ddec9f53d132281a2ff9321dcf7e568b41ede11fe50bd630b4611": 1,
+                        "81c764adb6058a356b232ed2d33ca1c49de083a3cc5a6c49c75d66c41b756d90": 1,
+                        "b0f7474affb142934ca280b94bf7820b447e007158265cd1fb4450fc887f70b4": 1,
+                        "c46dac189423902fc5c176a9cd39333274737b462b6897d31f35429c86e09baa": 1,
+                        "d18a143954890f19d96e138847c6d130655c4ecd14da24aa7c0e8a888c2b9d12": 1,
+                        "d46110b28adf6a6b3fa7648bcb14601945f5592568b886e9b8f8b45a49191ffc": 2,
+                        "d9f3661ca448f21bcb98f5509bdf9ac5bba35d2be987ecc8d4025a2731af9c85": 1,
+                        "ec5d6dc6b7dc8611e22ce3dbe30f56b1e9f0df49f00885f90566720ad8bc8bc5": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 6,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
+                    "count": 17,
+                    "fingerprints": {
+                        "0314715112748956852340101484e4a89805c42548423b2c9530136670dacf0b": 1,
+                        "0bc93e73aca493a9a5b1443f43eb02352f1e3f234eb3a81c787afc5620ba25ed": 1,
+                        "57ec7ef02e7e39be35cbf8c5439fc75ba31d7850e8d19e8a6836a241a7349027": 1,
+                        "5e4acd42b1001a7efaa0726f2397da79deaa8aa0fffecc548514c57bf89df8f9": 1,
+                        "678dc2ae9ac6e16a28d5866ceda8229ca648d261b4e15b6d666a78cf2a63a585": 1,
+                        "6ab3a8164be6ea1637302330c3f2b2c10df4ba1e73a0439d277dfa3b7ef402f1": 1,
+                        "b4ee7d122325815f0dc0c74792f80ecc3402968807b7ce5a4cc11f53d7883793": 1,
+                        "b8d380ae711f363153fdeff0d598b0a87307b07fbecbaeb3f132e06b46bc4e34": 1,
+                        "bfa2370b4ab85f0445ac2e170f56884b9b3b27d8f5dcf93ce9ba6179913094f4": 1,
+                        "c264cad6351473df8729840f2475cd364d204bef183fe2e879d6140e6b77e264": 1,
+                        "cd0448edce8f3ad97723780af470ba187a912267628ee497a0da5592b0c337c1": 2,
+                        "cff70845eb7d92a7a09ca303a625f17611f763f4bb9c41a706b4759c54bb94e8": 1,
+                        "e42d23119666beadc80c9a0c05f476506db522d2e726a8c2038579d7fc9474ae": 2,
+                        "e72c04a070b338b02b97203f86708b952893c03c45778a6ad63aacdecbe16f21": 1,
+                        "eb6aba5871dc4ba09ba80276cae148e256d8542c76e35da740be77fda881ba8e": 1
+                    },
+                    "operations": {
+                        "INSERT": 4,
+                        "SELECT": 6,
+                        "UPDATE": 7
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations09.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "0c2de185d2ca89db616de22bce2fb6ccd13634a5362c0d6d0542b4366d4d07e8": 1,
+                        "114c53b73e63762fac53b8d038d4ce1626b0fc5f273d9300f6c17c83ef629be1": 1,
+                        "191f8595514d6378af433a9474317050ba88cd9e8711c28e56eed96855692adc": 1,
+                        "3125e4bfc967f86c6e42269fb3cd2f754af3e5a489355979dc4b31c712ec7ffc": 1,
+                        "3720746a2b910f4ba7b24d656d2c429e28914d1c7b7369606286d7a25ad7a890": 1,
+                        "38ec1cc461f5a584fc7c35abb12708ac037bf011c094da5ba47967d4e481fed3": 1,
+                        "4a233955291b84ccfd349594874d4572d5a2fe5143baf7b83ef6504cdcd9358c": 2,
+                        "67781cba411c32bc9f965598563bac18e7e84c0902dd04a1af9fc48d778d21c5": 1,
+                        "6a0e46aec8372b908cd73b389ff886eaa280e83ea1d92b3c2ff6d4b4d9d8ae88": 1,
+                        "9507ccccc3e5998d25af80d92081fb44f6814e1df09d042a581a23ad74beeac1": 1,
+                        "b69ad4fc2bd6a2275fc28a4ef80d208da5b477a90684d44946b64b2da6031279": 1,
+                        "c1717e6d62e207d99350dcbd4753c6e0d69e1104fe05f7216f2bf77c19a03dde": 1,
+                        "d1f0a78348aa7aac8354a97543da4106f39eda32d9b5dc7a56df58f4c99b2bec": 1,
+                        "dbc5fffe99accbe8827e7a1a771947e4aceb80ba48a1c58c277a3e09ad260225": 1
+                    },
+                    "operations": {
+                        "SELECT": 14,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations10.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "2564618dab5006fb24bc87497f785720ec6e4ee434a756ba9c3677ee5e7040f4": 1,
+                        "4868f3b8490156aca288583f3b9fc9ce1b955a83a82b31257ea2db0d3f7a262b": 1,
+                        "69a82891db25b033cf642e2a41c8d8e84b1556fa9e1378bc16d6ff76f7d9e481": 1,
+                        "6b7a7fa95fef62024d745b8ef1d8d32c1a61e873a358981c97c699129227ff0b": 1,
+                        "715198aed5f2d68f83c5865a62696e29ce6af78c98bdfb2bf994768216f1e60e": 1,
+                        "a58d751c6adad3d253f6089fd7b3ab99013c34782ce9537631dc5ac4de907a82": 1,
+                        "b29536efc3c1f9f506928bef81c4afafb7cf5d3c97553e0d8f31de5031d71751": 1,
+                        "d02debdc75ccc6860c61ddaeea02ae18449567c4adb0d2ca8bbf9080f7bd681b": 1,
+                        "d6e40db6a612b66f8658fd7e42c5b7d293682a7fe76fd4083a1315c181f1f6ae": 1,
+                        "e973b8b50c2c2961e24a07565ebb9388d22384f7e61f99e476ab4969af31cde6": 1,
+                        "f8ed5e427f44e30e2898cd8b16c0b523dac61899a4db16a0025cb65f78772564": 1
+                    },
+                    "operations": {
+                        "SELECT": 9,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations11.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "871b03e517cf3affbd97e1f4e6605fa332546135fedfc50baffcf1234a53c726": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations12.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "37a5435324057bd9cc9ccc569bcdcb5a898f5d327385ba7c27ca2b3c078c0e25": 1,
+                        "a398edefb978cc19756c0562c54e54a53d2458b4a254fc091656dee725712d27": 1,
+                        "c4780b8cedde5583b5c318ad5505afbefddce5af2dc613a1c083df9d66aa060a": 1
+                    },
+                    "operations": {
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations13.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "ac886b85c4b8278bb92aac6410226abfbb81067cc6ebd6c338d772fc1c5ea392": 1,
+                        "bde6614f27ca088718d4bf5d158b335231c34648f5e1368e08aeffd13ccf453c": 1,
+                        "d885d2c7627a4d3d6fd11d7194f36b4fb78ea12dffbabeff48adf28ac04a2631": 1,
+                        "e17cc62d8820850c00ff3c5547463c4312ed580300b60ccfae8b3ebe53a7831f": 1,
+                        "fa5a71fd8f15bcb2f413a0e91acd60ee7af6d7f77427ae4abd12ed1d411374fc": 1
+                    },
+                    "operations": {
+                        "SELECT": 5
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "0ffd001c937251f3d0469dd939e77d114c61e27725859014992a261d0b6d9e6a": 1,
+                        "1fca34657e42bf0c1f82884f09a13fbeb22e7aa212b8ccb6c96e21c2d14085a7": 1,
+                        "42013809c9313b9baae9af635ce9ad7ad838ecba4e8921898a735322866eaccb": 1,
+                        "652c869e825d2398458b49847371877a730f9beaa4d8a39072545e80dfdaec93": 1,
+                        "9426f1739c2ab675efb6cc72b46f0615c933f16d95bb6b805b9d925e3e441eec": 1,
+                        "9e97da355d686a2e663f4b09d703a6e8bd9b8079faf9188db66b3a9049a170c3": 1,
+                        "b0f8384a0f51520331a083217b0e6f41b45fbd3bdf1cd52c90f4f1fd3993b1fe": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations15.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "d9c6dc5bc9238963b9c50804f412540fa6cb85fd0b1baf4cc47a9545735d287b": 1,
+                        "e4c99287cd03690a99434cbdb9dd8ef20bf6775393e967efa01698d5c25f37eb": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations16.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "1793899edf87e6c0d5336eb666d4035e19e69400a9c1332aa0f6325ad002fdad": 1,
+                        "2a22f46639f16175840ad07f6242fc759da1e6d830e8ef29d0bd55573e0203e8": 1,
+                        "37d8a89e7ff651bdc756dc1a73668617699e5df8debc3eda80e643f8e2dd3d0c": 1,
+                        "4d4d5dae9c63433917dea301ebb885d2ddc6f38ce70796a2a4dfddaa7682380b": 1,
+                        "58228c851ef34de8823058778b650ac27655162308f6212a6f2ad65c6b854a49": 1,
+                        "6851c365c681e34abee2295ecf1cd5024c1c55bd8ea52fb9381d5101261d5c7b": 1,
+                        "7863037386f0753e65181388e55faa70f60f75a6734042866b92794d37e5f536": 1,
+                        "da68f78ff980563f5112825cb9ef26b760ce53427ea5d3ec233b0a7707465ca6": 1,
+                        "f9c1e9cb3ed1228bef200c384dfe2c0f34eb3a71d9d3efda211f12240a4a685a": 1
+                    },
+                    "operations": {
+                        "SELECT": 8,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations17.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "2a7dbab78b3ec5bc9723280e99dc43e4b2741d261a70b025e25eef0938ccb187": 1
+                    },
+                    "operations": {
+                        "INSERT": 1
+                    }
+                },
+                "app/Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "4844906027b738b06e931bafcb2de167fdfef2fa98f772c4a6cdd703ad87ad43": 1,
+                        "7b8f9a8a7eac22ddac67723bcf3235d59c3926e314d107fa6c4682ed4eefc997": 1,
+                        "a9f73fb9102d566367a2971c375fde31d5046c1fb00a6e472a4384502512c40f": 1,
+                        "ece2ef75db563a56d6c9f9b70d4482f3a1d72a9954a0ce25b3e99aa589c5eacd": 1
+                    },
+                    "operations": {
+                        "SELECT": 4
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "0ab1cd29aac1ee8e7a6829369e270d5edd78703b26ff0a40a8d4f34590a78da4": 1,
+                        "8ab49fecbda9c72b25187b8546af807430bbb5adc07fa0f805d5dad2493cd407": 1,
+                        "f66035b11340c78ce9645aced3c3bd137a997dc2b7edd01c489caf87b42d9ce9": 1,
+                        "fe4bf60b158d754f95d63416e3f032abb3546d80a7252170b0add6731cab9b2e": 1
+                    },
+                    "operations": {
+                        "SELECT": 4
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "c369a87be83519e04d226a3bf09b75b7d56c10b715ce499577b153ea450c91e8": 1,
+                        "fbcc4c618df924c23224212a667e885a75668a634b605c1af3e484e45a25bdbe": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Invariant/InvariantRuntimeAdapter.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "51cebeb2dc1ce16430585b253ebe794cc96962dc7368c198ac0d693832f0ca74": 1,
+                        "6ac3add245fdd92655b12b86e40d5258bc555ee98486dc11fddc206c4866b423": 1,
+                        "733a53522ed122294bac19b12d18c236efd3fcf66e38a42d28b2512ced3d70de": 2
+                    },
+                    "operations": {
+                        "SELECT": 4
+                    }
+                },
+                "app/Runtime/Leads/LeadsRuntimeOperations01.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "1c13e795231f11dbdb2c927f37e0d8183edc72b99bb9acc4db5b075d02abbb06": 1,
+                        "375c36acd6219f143a95315f10b926893cc31a0f5b4458b71f863d205cd27dc1": 1,
+                        "3e473c2db92bc3941afde3a342fef77c2f25eee761517d16afd4c229451e1c6a": 2,
+                        "6418711931190fe5cbeee1b3904d3a5e74f197742935fdf0fe07e7f509ba77de": 1,
+                        "69003e346688da68e62aeb6a079c987952f3208adbac38752868e8a3cec85ad9": 1,
+                        "8d1804f2f31aa748eadcbe7ed4da424a7f4066987217421d7745f6b341e475cf": 1,
+                        "8db620fd3ade47d80a308e3c4c5674553024ccb965eabe1e900c7ed071c11e73": 1,
+                        "9da5f8ad4865a1a372ad103a94426285780e7786786bebf52f07a125717452ae": 1,
+                        "cb18cad571e6f2b762e4cbbcbfd6c6f20eb19c55e1932d9e165211b965cb104b": 1,
+                        "f937f86f02af28b5c6bc0e162de8a66332d3323d270480856d5872dcbcc1131a": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 6,
+                        "UPDATE": 4
+                    }
+                },
+                "app/Runtime/Leads/LeadsRuntimeOperations02.php": {
+                    "count": 22,
+                    "fingerprints": {
+                        "008839166bde2d928085c13774cd6f4a803cd277daa4fa9c939bbbbc2fd8be9f": 1,
+                        "03cab24bf1ed7ac492f6df964046ddc80b90926c22aaaa9614215f73bbb23a65": 1,
+                        "0a0d1d6e4e77d0e9cf0763dbfa5d9d5ac924028652abef6fce773243487f61be": 2,
+                        "0c0a72159ba6e001c7cf139ce05e8829e1a6ae9856783eafb03fb0c28c1c8810": 1,
+                        "111a56cadf45db5860a816fb200b96d01e2a101c61a78eff3442e4a7c740da63": 1,
+                        "1bfe903bf679c0ddf5396334a35d618332f8634bd77982809fc0913330311a35": 1,
+                        "54bd632ceb5da7b1a0e0fd686435afb333e4ec82d6311156c4f4574a2b4fc37a": 4,
+                        "651fa9a5eaa1ba9b4d4a6819996477ca5a2bd09030403affd3f0f7d53a655313": 1,
+                        "66db8ec36754cca3292975f3d435ade0d5893f8eb4a9f86053170d74667592a1": 1,
+                        "6810804019f4e5d39fd0fb8c01440087e66cba4f712472cc6c189f9f104c4c4b": 1,
+                        "72ea5c50e185bfb7d6944135d4e2434d58c2852f4e13e7c02f1e53bfad150e07": 1,
+                        "7a4182f70fdb7b3cb3abfc997040b13a56b7b29435097ef099fe6856af64779f": 1,
+                        "975bfbd6a07a8083cef71d11fbdbdf36df4a779874ffaa45cb6034ba085414d6": 1,
+                        "a2853eba51bb82b52b3aa8cc65a808742d470621ffa4ea8700c6980e36ce6363": 2,
+                        "e3476783f2c7c2a4e520c7d5aaa7eadf0889ff8e82aaf41c6949caa82b57e1d1": 1,
+                        "eb7f356cc06b098870af4af3c1ec3c58912aa454375f223529da3e8fd26d1d57": 1,
+                        "f65081ec34729bc9a092978daf4ca65b94b2a0302239d0640add1970f1fffcab": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 13,
+                        "UPDATE": 7
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations01.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "34a4620bd792df9d104f4b1654686c4929190b4624cccf3750d310d972fb4ed8": 1,
+                        "468c0f193cfeb5e9bad0d9c7e8a4fd44616257512c7641efcf7c2cb2fc0a7b3c": 1,
+                        "74e9ab0bb09362bbd7f36e10ff6ba195a58d3d466f46983db23bc4b24f6e3f9a": 1,
+                        "7787c99ac5b3c06d22bbc3130bc44eefa5a147e5aae3438446be0118c87e5f41": 1,
+                        "94081393312f694ca8391b5a2f4e159aa1e54a6e99830486bd5a8e647ffe0a36": 1,
+                        "9c223f3f8c9c7bac70d0d156eec3563779d55f23dbd13c9879508cbbe0b14d44": 1,
+                        "c027517e4118f62f8f0b5d1c81cdb83bf8859ce5f1c7294c21fff7c3fba9d84a": 1,
+                        "d401135d8db22a851e7fe0ab45a2d779f2d831f38277bfaf439e2b67bc7722ed": 1,
+                        "f13695efe31e97b0fde94c8bb2c9aa9ad07ea5afeb341fe251b872e31d837afa": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 5,
+                        "SELECT": 2,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations02.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "0de0cc0ffa0b3bc394daf26b3ed6135c67ec48d854c3e8b3f0c335591e9f5ae5": 1,
+                        "105733251e666ff56cc9ba56d434733c481d1d538b126404e6bc35d89598a258": 1,
+                        "45e5fdb803b4a9153b46787cecb4adae840003e653571b96eb88305dad497b89": 1,
+                        "4b364ce375477dd0e3ff0db46bb95da92376edda7086732099f7c040e61a37da": 1,
+                        "5f76c327625b54304b632768127b149f163196eca000d785042f5e1ee8573f15": 1,
+                        "747f6af743c8c460010ddff5421dbfea53d0c24da9f28c491667ab6b5efb90e3": 1,
+                        "795042e9da3a8436cdf80edf740d139ca5337f4c36ca854d579b09af89845093": 1,
+                        "9a944a7b8c14cc627437efc2b94b289713d4fdbc0e7e0ed1e7fde5f695746bf1": 1,
+                        "e4f45bf599892860c9c7c8a9962d100ddcebfb628b1e4d56e8244b353f69c22a": 1
+                    },
+                    "operations": {
+                        "DELETE": 2,
+                        "SELECT": 6,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations03.php": {
+                    "count": 30,
+                    "fingerprints": {
+                        "08e9a983d5971d017888c3d895fb62ddb35ad9aa4860322644201e8847f2cc9d": 1,
+                        "0fd454aa0cea6120728fc94620b9aa956d9d073bf64db44501daaa42395f039d": 1,
+                        "191632c039a6894e1eb810777d6b6b9eef2da56fda5f8416f8416a3871d624a6": 1,
+                        "2de28dfa27563dd0d469047a787c12f35a56ceb551f74cd4f716ff981a86454e": 1,
+                        "30fe1a738b4bbba7c29ff8b95d3f4cab3155cd9cc63689a1894f49589ce24a9f": 1,
+                        "3ae5262ac04e8d83658c398f5d586eb048374c9f02ba024ad835685e2c5a1c67": 1,
+                        "40c141de83e30d1147d3c50178af3d80b2ff8d2c3117fa1c9df15c0b8db5f40a": 1,
+                        "47a95580b4734646a6095604192328f5069951c511ecac654beee12ded462045": 1,
+                        "5931faa9da6d27609a7193f1cb1b5f260840609b5ae95db217df09d586d21343": 1,
+                        "6b24f20135da5be7ddc7afce0258cfd6edcbdf2ce602f00569a63492dcf379bc": 1,
+                        "6b319ecfabc1c04f96b22d0f84d15b965df4c82e30fe724da16f58c42d7f0136": 1,
+                        "6fd1c7d39e684b01037d624fae63a4dadb9217705cd72bac1adb8f3f43129a22": 1,
+                        "74f512daea1e7e6e8280fe6877541861f9a9ac4477fc347dc21bbb9ae207a56f": 1,
+                        "7d3489558641bed1da6317ee8da9a57d26ab865cbd8a1fe306ec638fe4ed0844": 1,
+                        "7d7a460b49b70b7dcf363a274fe72c6bf644680e025fc7ee456692110b1790c6": 1,
+                        "89f25aee1720ee207457398c999d6df32a4ba7cfa3e5d8038ba5b8c88641ee47": 1,
+                        "a2bd084555292a579281f11a6235fff484cd2ef72343655b10cacb007c16f808": 1,
+                        "aa29b97bd30c0a0684fec33eb8a247e82585dceccc8097ebcb7f5500857abf59": 1,
+                        "ada2a2c2963fe584d0d71b31ea232ce61d98a965271afe3347a29772324f1856": 1,
+                        "ae4e5f732f6ffd82fd93f1b6635958b0ea7d225eaebd1c7ec359cb405f48685f": 1,
+                        "af575c3e5d3a74b387bc351c23cd0a1f6c4b60fc59e8535c8e90c29430388624": 1,
+                        "b0cf14dbdde7f7f870a2bdbbec5f15e137deda4a1be93f4086d99e8e7d38d829": 2,
+                        "be46dba4286bbaf9ccec6cae86c20146fa32f5c9663edb770145e9b5b6608ff0": 1,
+                        "c58733e06b529f2a051601a6d8d9bd77d39464f498a9d56e7f962261a28d2379": 1,
+                        "c6eb6df804df9805c8555c04f6c192054c518ff38922ff24355e033be2084dff": 1,
+                        "cd54d8180d79c5330a6a6b634ba73e02e924ab5e41605dcb582d0c604fc38469": 1,
+                        "e072e065f9a6b4af0945465ba849aa3b3d00c20b16988f34646e36187cd480bd": 1,
+                        "e72ffd698b01f6060ee6cbd433dc91a005423ac0a580bc3d619fd20ce0e5e20d": 1,
+                        "f3d45c0fd38ab5ba8c3e7f8322af32931d8f815622baaed2a23ae14d71e005d3": 1
+                    },
+                    "operations": {
+                        "SELECT": 30
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations04.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "09fe531b201567c31431ced34e62a6d66c65880f8f8fc68c9c3b1067a21ef694": 1,
+                        "23ae21e2c220e68c4b670eb2e6268669a26ae53ba436551f5ffa9626d6718689": 1,
+                        "2647756d3548e4b5b4fa75422f47662652ec450d2ab06e31309bb4fe7feac10f": 1,
+                        "343749dc2cbb9f2a73717d065e05d1fc535d344ecb679524efa41a93d8725241": 1,
+                        "5ceaeeb3ca39007c2865cf686d591c421facad45249b9060cd775a45a0a1caf5": 1,
+                        "6d4d4a37f5fc8ef4e73207a5cc50218c6e97974afdc008d328fdaf43af08f7fe": 1,
+                        "73eafae1c4117c7a465910a97326f24a9ae3629a1bd53a0cbadda7926bcbde5d": 1,
+                        "945c1c7de4fd4db8a71fdc7fe6d52d60540db1c0b78c10561175bf36594ce671": 1,
+                        "9fa1c689deb7997c165649947e045ee4f2e36d90e3032f4aa01e6c52c752257d": 1,
+                        "a3db9b7c1c7f276a723fbaaa3484db6f187491e86258d3d31b3f98bad93ad04d": 1,
+                        "afc7a3d5102b3c06db2965b21aa39118b07ce692fa64890f15008894a170d385": 1,
+                        "c3208696a72ee0be354eaf7a7f4bb31e45026448a04753a370d8d0e3061152f0": 1,
+                        "d594a07b4f6663827af050a6204f0afb9e25235ccbb78d7a8532f33211318f75": 1,
+                        "ee1622e2be0f23d1a51d08d26808f1e5f878e68651c3b7a1ce01f85962bd16b3": 1,
+                        "fc69e0f5a6f956e05902a9389295b2fd59f130174e01f3a26cf1169117a04c94": 1,
+                        "fec1013430bcdb30e665cafd87f40b54cdace7e9fc19a7e859145db8aeafe9de": 1
+                    },
+                    "operations": {
+                        "INSERT": 5,
+                        "SELECT": 2,
+                        "UPDATE": 9
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "04fe52af5ab51ca0854d5e014595d7e5df54e911f21b2fb7cfe6542be9bc6b34": 2,
+                        "16d40ef6cdfad8da7f9ad445a9477c200eefc184a02cf5fbad85366090081ac3": 1,
+                        "42eac174e5c931a5e667c2087495cf0eb39449c4ac38387d068a56c01f253b27": 1,
+                        "4578d232eec933d9e3d213f04d14da8292e9fb0adbaecfd6199b09304a1168f8": 2,
+                        "a87139fa86d59c74b6b6a7ca684ef8285af80e4da177b7dc1228640e987abcaa": 1,
+                        "bf8347db706b244464d6e6de219d76e21e2422118c50e185c42ec55fd5ae6f64": 1,
+                        "e12a445242acc785bdc9631eff2c2eaaa9a4dedc58fceab639e1fb2ecf7886cf": 1,
+                        "ec4cb336c24805e0e8434bb6945e9f7646217f8adc2cc842683d0e66b2c9338a": 2,
+                        "f224dcba43f439c89ee6f2601b38abd8b9385369394d0e05cc1e08103eb6a789": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 4,
+                        "UPDATE": 5
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "275027a1fe771b5267ee148ea6ef797d01a88cd02cfee84fd4c239b147de1f11": 1,
+                        "d3d80e52cff640fdb50e20cfa9e18c242366f1b02de56fd406c08f3505b11eef": 1
+                    },
+                    "operations": {
+                        "SELECT": 2
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations02.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "11680aaa93d588af466ee23008f2269686fe428e3b9e1d422484168d1d2e3165": 1,
+                        "11782d69821ad620bff29d3028419e6825aa28e2dd902dc3eae0fdcdea77f680": 1,
+                        "260cc0b0c1e77d32cf7f3cdbee0116db3e93ff41bc97cb86cb88e1c8a3d5c93e": 1,
+                        "60681dd519da0e74cb164d8daba69997973ca7374cc4b929241deb75f70005dc": 1,
+                        "7914ffa956547f12dbcca7561aea4a030c40c6255f4edd82dc6fe0e18de53a65": 1,
+                        "aac4aca469aafe1ec4df457c1593cacff096d118a5ff88c44177618929d70c76": 1,
+                        "b2315f1676c917f9121e68609060015923f14276d1f02b2c8e1c4a4787a709fc": 1,
+                        "cf0ec305bbda1e1db71cf96244ccf9f9fa8c6fdd3f0556fe956d75ef5fe64df6": 1,
+                        "e6ecdffced6e5b0a3e009ac11b3e89c30224416ba7becbb76beaa6e2021b932f": 1
+                    },
+                    "operations": {
+                        "SELECT": 9
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "ffcb0b9c70c96c325bcbe9e969930e8b3751e84dd0921ec3ed1f82536c0b3b4d": 1
+                    },
+                    "operations": {
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "f71a72826a5c334a92867b28593ff0654f2dcc2960db7791a39ded309f54d458": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations05.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "0d4ef2724fcc98243bb901a069552c105f39f167c519be09dc758ba2683a4cd1": 2,
+                        "2c1e86fa6206ce293ab9dc466c439cd3a539b4f1b8a95d47418b84fc516f7fbb": 1,
+                        "5a2d6cd84050cc6b9593e7f7843f564ccc7be5fe84d14531b85c5787faaf9bfe": 1,
+                        "70406342b25292092ac00b9187ace1af7989f5077a845000ce359f00f1a2fec3": 1,
+                        "8a52b5c2a486feb0c72aa3a5040b24abda93f64143cffcc955b92b3a3f7278d7": 1,
+                        "8e148f7b1e68c0d1b7bafa51ea23c7c8ddc154827f2d1dfb96911a4a2c675ae8": 1,
+                        "9187d8cce1b5b3a14ff386e38a1105c6cbba5b0d05adf22b50b9414628f6f1a2": 1,
+                        "a428c735121e90f17b91943b180afa1877c3ca37a211eab548771d72a94f9d24": 1,
+                        "e62a5eb1fc326afc03fd334d4c39a67f30c8a7ca52427c75d18724f5d5204205": 1,
+                        "f136598a17b74f754902aa963f91dc5d0415af08fe2fca603844de4fcb68302e": 2
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 10,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations06.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "f11e2ad23e92fd1c358307c4e0af83c61e0e2d80cde376cf2c401a212807587e": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations07.php": {
+                    "count": 39,
+                    "fingerprints": {
+                        "01f5531da99d78948013af641ad769dc5e17fe6f1000197b5c382a286063a8e2": 1,
+                        "03b80748cda95be61e2c0c430cecf77f41a706c5cfcc18d526e79784d118be50": 1,
+                        "06dde9e34ab708c0e6249cdc80e6547736fd9409ef11deb269f95d03458025e7": 1,
+                        "08dde69fabae41190a5534ce4748fa60a3ec0171ece4810bf350b7a8adda6962": 3,
+                        "09def8d9c129987fb0ba66919cfe7e6137df699c805a4d9c86f7a7213fade003": 1,
+                        "0e0425e819106fb2ba002e59f158dd704c3656295f56b410c365bb3e19bd37b6": 1,
+                        "0f6af9ba5c6434a6e4f2fdcae74bb73ce8ce52c63856b8b18179f2b6d57f8ca8": 1,
+                        "15bb6a0c73216097448b40d72e4ff47d9339eeef03840001314a02be2e166f8c": 1,
+                        "1a4fc0e7e83fa1f999cd2d9920dd29e6d81a4eb97c18a29cd99f4f4758b3f20d": 1,
+                        "1e3d884db70166590b2ed8f5d12379d85f214e51ffa4148a527361f1fa424dd3": 1,
+                        "2272c9a0c98a511545ad8fbaafedbfae9eee4061705d33bb503cb275500bd3eb": 1,
+                        "2dde6f9575187264116b54413848ca5ba9501fa5d906a1608266fa53120ee318": 1,
+                        "2f2efdd9ab3374e1d7865e203171134429748debd09cedb7933dfd73a64cd765": 1,
+                        "311ba608d79c8677825fda6954e5d8f520c5cc80ee97e2f7efebe42c44eff5e9": 1,
+                        "3eb5aeaf3eecd243598489f27105fe72841463cd650218238da5e108783945a4": 1,
+                        "470bbd784051d102fbcb16ce0a101a79a69cb8ca74b6c57eaaafaf4c26fad1a0": 1,
+                        "48773365f2135c1ab2ef2dda527c0eae43b23d69d5e1dd2006682802df93a94b": 1,
+                        "4e7697697a1062f81cc2cfac76de592626c90ba5fdcfccb9212f7742a5e288a5": 1,
+                        "612c073c35311834d7c09840e3ef922472c2c32044b567d84ba2b0cc9d65b7cc": 1,
+                        "659b5d9ee7abdf86a228ef7d12d6785a9365c345f513f5e4971fe438a44e11eb": 1,
+                        "771ea51f5ca6c77c1c141ddb326a337e3c018c1334e205b928e7237c75b42ae2": 1,
+                        "77d86ce6d54ebfca7465cb23381e24e7fb33772e58c1104d489ba3d6118fa72d": 1,
+                        "8b8fd52f88d88982e36f8d7d31175d6a5c5f96d7d57f4abccffcbdb8d2d0b81e": 1,
+                        "90dd434cdb376c615ee76dd1167ed3ab20b067c6d627d44e1e27b1ad437bce03": 1,
+                        "9c723073cae404554946f01f74999f6ec5ad56bb332372080bbaef725841af8d": 1,
+                        "b163ab8dd55b02f0771d492e1884bb8b0255bba39e53d729eb9384d75d5cb79d": 1,
+                        "b4760657b83bd3e0a429c5b9826d87a8e0eb774613dd4912054efa8c23d2bab6": 1,
+                        "b71abe91c027f0afaad703547d8a6069e1bee94d3700b862eb5efee8b82fbd93": 1,
+                        "bcf05b2f77cff7bcbf0160a3757872b71ecc078b92df7e08a63205f86a0ccee3": 2,
+                        "c6bf2327f672a155463a688707e5e961d792f66d6cdea6fc05ab161cb1a8ab11": 1,
+                        "d70a832129cbb80ce8303813c7361fe6d8362f6e4f8ea6a3f8e2b087638c4599": 1,
+                        "e98441260dca3da67371f20d138bd0a60c44312adf59098e48def54d82a9ac1e": 1,
+                        "eee5987b8e0ec74a30ba9b620809169789501494d156c3469583d9b8b04ed1fa": 1,
+                        "f240f613889489902d47b49bd0a1b0552f56c19929eb622f0cbe3e42002dec81": 1,
+                        "fa887620dd29609e723c76a817bafeb0e925d598c384934d39805efef761435e": 1,
+                        "fd9a97810293a6614ebb245c3dbb9dc6925cb6308b7629d303338208c8063174": 1
+                    },
+                    "operations": {
+                        "DELETE": 2,
+                        "INSERT": 4,
+                        "SELECT": 20,
+                        "UPDATE": 13
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations01.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "730bb4c6f98dce3183469e89fccebcf4fdc55e2eadac5dc25f91affb2bd15518": 1,
+                        "c36b571d96cf1419b206bec36655b39bdefce3f7af95ec1fb77533b5e359b885": 1,
+                        "df123b5e09752a9abed52bedb063db7fe1dc5f00556aae5fc36b3721e587ab3c": 1
+                    },
+                    "operations": {
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "1896e4d0f2aceeae614d18604e0e5d0f928ea3cc56ce708e24fe677d090a68ed": 1,
+                        "37d55000a9339479eb71bfd3c122639d0dee2462dbd3ebd4eb67af1e80ce4be7": 5,
+                        "832def1839e8e8987d277e5559dae3e889e09347fc0f60257f99c74481b407e0": 1,
+                        "8c5510bd2fa759a9a2f8f09149a45a0bb4d818eddbc468da725c788032e9a66f": 5,
+                        "a832ebf6ab4d479b3afde4bffb11b45912c02cccce4fd183e13b7679a597a49c": 1,
+                        "ad459207e7f6364e152aacccbe5ec31caad360b6bb5ab90f18d6a49f7413f1ef": 1,
+                        "b18eccaf6641a3b25c55d851dded579f6c578e2d5ae40e938c5edcf46c2bfe01": 1,
+                        "c674b1655d3b453b6bac834175b7e18fc8963a23d7d7ab1e21ca0a1ff68710f9": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 1,
+                        "SELECT": 13,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "00762d680cccc44e796aa9441ba112281ed6d41950b6e443100f2193542c1fbc": 1,
+                        "1818182081d178dab452c9bb562234ac350742ab3f4099ece223838bddd68b47": 1,
+                        "29624710a75a73be7e0247eb16954b24dc2fd573d3e1d21c696a56e244aad740": 1,
+                        "3df5c9257604c8a73dc40de8c11fc5b527b871c16f70aafda92dd712243230fc": 1,
+                        "562d3cddb26907a6d4cf4c857850c47079e16a759a70ec378d395689056fb03a": 2,
+                        "8fe779fcb61d165e3bffe2ff5f3c8da3f0c7edf0547dae7322b329900032ae34": 1,
+                        "9c0e5162f42e524ca867d9a07dcf758e280d8da0169e10dffe8b4497b074445d": 1,
+                        "af931afcb90190b7fe71e9eb126b1a6629979e64b8a076d5de358091caa7ff33": 1,
+                        "cb3e485e157e455abdd75532e82f98baffbcd0c16ab98dca03cf649688f66a08": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 3,
+                        "REPLACE": 1,
+                        "SELECT": 4,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "474e1117fefb5e1675afe734f355eea0fbbca97dddd82e54413d41dccb3f0ea9": 1,
+                        "48a6ce40a9fd42fbc4c7778498e38c0b9ce7b5bd82ac1774c93d1c49ffb1b1a4": 1,
+                        "ad38b87f4536dd03b83be4bf5f61d102264ab38c7b0b19fecbb804704659158f": 1
+                    },
+                    "operations": {
+                        "SELECT": 3
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "4a891291d06e3fec69f138adf8c695f34c2a4afc2f01d9b6c967198b00e9cb72": 1,
+                        "7f75a1f7678576c9ca3f02a2d1c03fdd1f9d60cacfe742c6ff130ae8ba556181": 1,
+                        "926cfc1b60cfd76be174c47f1b027ed75c962dcb4d5b677f6966cb16621e21fa": 1,
+                        "ddca9fe12c1323e4e70d494c84c8f837f1e979b0a23c26b72d5661464a966930": 1
+                    },
+                    "operations": {
+                        "SELECT": 3,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "18d26a4228ad70915e5dc15e305e851feb2fdb7ae76ac0b905245a47f59f6488": 1,
+                        "1b37acb46fe2ab3d8ad4867623fbacc619cda0745b6febef7411f972ee756c74": 1,
+                        "614fb86c84d10550bbbc5f983dae87a9548a5253f71246b3b9b31445d2e100d1": 2,
+                        "dfc6fe46359c4cff46730483d8dde896d42723187a283d6538bb4e27fa0fe3d6": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 1,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "2b1f2980b5f3f5e73dd40d894e4beacb52b1c979d1eeddc60b130460f83b5363": 2,
+                        "625797da97cb3f04e7b66d76be56e7f5065d3448cae0d14215b422ad4fc7d0ed": 1,
+                        "e43132d933fdf91e67518a0a95045b4a8a9b87992154efe796bc6217d0fdd784": 1,
+                        "fd74a6ce9d9d017cdf248701881f0a7a86254dc45f021f370440a829e203464c": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 2,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php": {
+                    "count": 6,
+                    "fingerprints": {
+                        "12fae7eda2598b7aab833a963fe1849fb8f900bf2392a4f3fdb1ff3c908d0803": 1,
+                        "1faa50f93ba78a32f53e56a7e325f046ad30a3dd7d414a4733efb6ddb29a9722": 1,
+                        "5fd2760f38ca7636f360643d4aac5aff84fabc2983258e69d9f1f36ba53148a5": 1,
+                        "b8dcc9a9230c259e465de7e7243f225c29f9332c93bb229d1250f7d77ae46540": 2,
+                        "f3249b5deaae35aff0aa48dd5692b74a6b23001c0eb58b4ebeb210b96da494ee": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 5
+                    }
+                },
+                "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "05e9787ea195945a6ca9f090cc1258478c410266cd3d81bd8a20b42bb0b7942e": 1,
+                        "1ed314e487b8f4d0e7629215ca7d7a84111a5ef3622bd2925d44cae210fb6b39": 1,
+                        "55eeaa8692d35e65307ffe646c8f4a4a1a61871c1fe75af75cfa44555016e959": 1,
+                        "65e202b807d18b6e1eec341a0b309b2cc957bba1cf88591c319eafd22002e5b5": 1,
+                        "a23fd45d33468f67b9244c3b65a01701918bf481b189035fb89753f53dd58b25": 1,
+                        "c6908402c8025ed9bc8ec47914e2d77a5547887e6b97f406877e6f924763f244": 1,
+                        "c70e34f086bc8221f607f811fe1e750588af4b02f0307800a519eeb011210937": 1,
+                        "fa898a4dba11bf4e84a5fc95e20baebd2bd1b61da95fa4917fae8e086eb811a6": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 4,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "2c8ddbf6c28dc18919f38bccfad334a1b198cdef956f667bf4e2a189bef6bb9e": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "360f81c3745e1a71b751dc3b87a22037129c84566ccd8aef40d365d1fe950301": 1,
+                        "3bbd24bdef3a96ecdccaa74a32ee4af03b7f55c56742786e2db6966372995213": 1,
+                        "58a70aa7a77385f1a4f256b7e0e6edcd97f5c0b865bf543aa37e10858cf30abc": 1,
+                        "59a692f6696915300b4c058f4d2a69ade9bc3ef43db6e88be5bff2c11e02f47c": 1,
+                        "a24e3f69bf15ff556d8d3711155367bd662157bcaa5bc996d2401e04b64155c8": 2,
+                        "c3b3ea316348b3e78555e13788b06e51191fa174d871c50f5acbe09e23cab7a7": 1,
+                        "d97cc9e865e4799f3b9abc77554b6d8709b4d02c43fd3682476fbd7556041024": 1
+                    },
+                    "operations": {
+                        "INSERT": 3,
+                        "SELECT": 3,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php": {
+                    "count": 14,
+                    "fingerprints": {
+                        "09ef8da0e0ef80009d65b78cb791fdcb400f8969577eacdd10e8260a688457e8": 1,
+                        "0e4343dfb30b9d445bcaba4c4c310cfc81a9be48998f4b223c9b43189cae5f0b": 1,
+                        "12cf4722c52e635877912e0ec26f5a4e44ff203cdd93930ebe49279b46472bc6": 1,
+                        "22e9f0c3416d2af2db39511b120ad602582675604167f3a5aca8dd601d5e1f74": 1,
+                        "235c97337a63c175a9651c99c8afb9d0e816fe3d440ad68be41dfdc2f2a2a804": 1,
+                        "2ff36bc866281c46e98a496e2a51175783a8d6679f4adccd8cfae9023430473e": 1,
+                        "3b32015753b0ae677e1830f6faa3c4ab4675ac944de5a83228c75f72759a28a6": 1,
+                        "3e74a2949c1535ad979a3287fa7a1277052d5343bcf05ff146a57076eae207ad": 1,
+                        "43063a9085bc0d84e8c28560a70aa024679beb8d3c368865ff163c548366c1ff": 1,
+                        "5c295e25a9d0d3ed3cdf6a5d50dccf1a1c4c22a71f8fd7c58f49c9880578eb83": 1,
+                        "5def1c1410db2905e889f1dbc41e559bd992d15575cb3f63e7fabefc69ae42d1": 1,
+                        "c52d75ebdfb0957d4644a8f21ff6179d4e4c7e496163390f1272e2d3adb16ac6": 1,
+                        "ca0d86b278d0b2bdb52a2a97953d36f784839d9c92632078004bf97c4d73c712": 1,
+                        "f015284e74def70432ec7d34865bcfedaa55ca05551ea8bb4163c9331f497c34": 1
+                    },
+                    "operations": {
+                        "INSERT": 2,
+                        "SELECT": 9,
+                        "UPDATE": 3
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "0749f8ecb65ab1116f65513ca8057d7c3f8e39a749b87e15689435b10b069473": 1,
+                        "236f279c35facbc1f0e0433d4506ecd74c26d25d2e39a5fe6dc02c6799ffd2e0": 1,
+                        "d685ccb1b88ce99436ae84d7cf84a75d7fea6f9520f097d6dc3745f8d8226f01": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 1,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php": {
+                    "count": 18,
+                    "fingerprints": {
+                        "0692c40a456df79f3d8145fb86541a77c76ef0f4e8233f0f7462b939861fafeb": 1,
+                        "0be12cd0b1829e6314ec49a263e700300cfa775b0cae43d38f1133b2f9a1557e": 1,
+                        "22397c172103e2e00a9def8cece297f55a110a26acf957a081b46488dec4c572": 1,
+                        "3722a933daa8bb537fa8d8c19dd8aff313a263265c7cf00bed7903c41313a5f3": 1,
+                        "3f809d10f073f8d46e6616a9815da86c75631dff7cd3388207e036ff8fc3a47c": 1,
+                        "4691570fefdc618991cd3037e20fec0e6fbeed5d3daa5e6280e731deb3502448": 1,
+                        "50042ac19959423ea24b7aa2988968885785abca465f1a750bcc71bd4b16b94c": 1,
+                        "5ec1cef8cd0d13a6fa0352402d1d0753fffcefbbd60c6ba76b1b62caa443241d": 1,
+                        "9618de0680e2971a8d0b7606779e2a71d864b474fc1b2a9b3be5d4470dc8d3e9": 1,
+                        "abe70c86efc6c99a1ba9ac21191fadd7dbca27cad9999c9f2fb4b0455e2a1b54": 1,
+                        "af8f6c521afd547677491b54f908f3b2e7188722f900e2054a67e4bfab7bbe2b": 1,
+                        "ba133e763469804e36aafdc1d7156262815240aebdca884ccc947f49d67b719e": 1,
+                        "c16b059b5299fd24e3e72f6181be82e3c781652995871599a44da0658ca2bcdb": 2,
+                        "c80f6b11fb89faff761fcbc82aedae85762ff041794fe88f2ef62a083d0b761d": 1,
+                        "ce44807067cff898813620dd40715e079638540564a5394fb699adae36a7af0f": 1,
+                        "d0b6b951bf76a706c866393fb2fc04d234b055b7460791bad979312f1b3d09a2": 1,
+                        "f34a8e032da507843fac0240adcbad95b6d11fe240a1a3a9cc0f68175413364b": 1
+                    },
+                    "operations": {
+                        "DELETE": 1,
+                        "INSERT": 3,
+                        "SELECT": 8,
+                        "UPDATE": 6
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "6c7007ed04626b7899db5429c5bd1b6182465f8476dedef304a25dd9948cc5a4": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "1c3492c05fce52d17d7e2fdb8bd4366a0949b52027432f181e7cbea1c3f57196": 1,
+                        "53641099887082220f894d462dde3b0d160d98daf10005fdfb2e0ba61e0096c7": 1,
+                        "63e9310da21165445f51b58a4bd3371c3c745c90ca3f555218dfc4da7863dcfb": 1,
+                        "66693a338cb0983ede13c7fdba2d2a77ddffeabb55a558e76918232c58383ee3": 2,
+                        "68e5099d33eecdb4339f2476a4d490fcd8eef79754a049e9f258ef610558cd3a": 1,
+                        "72255bc6547bea01a85443e19e630e2c7c7be063ca6b73f89b89f682049d7e14": 1,
+                        "8aeed389f0187b716a1448f8d253615d870c3421f2cdcc15c2b40c35f7f6471d": 1,
+                        "9f5dd415a3abc2d2e51b0b380543dfdc5829e6c65d3ed90300680bc41661b3ef": 1,
+                        "bde7b53dfbfbcdcdc219cdd3dfdfcef554f00babdbcd7e56cb5da381a0a81115": 1,
+                        "f672f149bc8d2461661026a75b0725d19532faae0d5a11c2234d05ec0c49621b": 1
+                    },
+                    "operations": {
+                        "INSERT": 6,
+                        "SELECT": 4,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/UiComponents/UiComponentsRuntimeOperations01.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "092dc987125f97c871ac4c18166e216002c4476de4f0e257e1391e683c7dea77": 1,
+                        "4da5b85c9a16d5710bb35ffd5e5dfbe255ad5b7b7860413018b6f50d1cc97419": 4,
+                        "90147ff0f78b58431ab18d6096baa99cd5b99c8f9d75b8b62ed2d5598715b59f": 1,
+                        "a1f835109f20699c4ba0416060c867df0abad74a233e76d9f700596f98f0a85d": 1,
+                        "b2c735dc4ffdaef6518ab395fd7673fc00d18c6ddf729c81743d7a2142b681ae": 1,
+                        "ce66e76e182c23fa2abf0007a83daf068b735a0c2b59b502ba05f799fdd9c591": 1,
+                        "df20d6a1762336c5d36d92bae239cf568d906ac64c74bdd6189f2e564d005d03": 1,
+                        "e3a33ab757c43201a2dd60e436db00254e1374cfb0ac6abad29d16fea25edb30": 1,
+                        "eade6de9201af8eaeb7624123fae16e970d3ffd128832ae3289f1da1ed88460a": 1,
+                        "ed03de5ed5584cea2d531248427c41ec6f6951bca097d156fc84f9119c9b32bc": 1
+                    },
+                    "operations": {
+                        "INSERT": 1,
+                        "SELECT": 12
+                    }
+                },
+                "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "8fa0ab0dbeafa043efd6f9d150cf2a61041594b73b186a0ca712e06b8da12a7a": 1
+                    },
+                    "operations": {
+                        "DELETE": 1
+                    }
+                },
+                "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "93cb3aa4790f7be38ba39056535b1e6fd3fe783bffcf79e5f50db6c1a549b807": 1
+                    },
+                    "operations": {
+                        "DELETE": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php": {
+                    "count": 19,
+                    "fingerprints": {
+                        "2302dcf34c0b71ef19a0a61dbe4856dce2b5969f4c912ebeb2cd647f0635445e": 1,
+                        "2bd5e9e3ba0d8d055eff4481e7c3933c542adf02aaa7d2b4a090c3d09fc927d9": 1,
+                        "34d0f9b1903173890aff2f882aa7ed33c65b0e2cc55ce8af4201b040382f71e1": 1,
+                        "3e0e15909e06a39b4d5330d437d7b8ab21c185cae6855b1383bdf409b11cdacf": 1,
+                        "4ac00714dcad487eb3488b9c30b1eea8bf29084f582ad14326d59103cae932b8": 1,
+                        "577f36c4d597dd6df6af8010aec44399d7289ce925b2f17a7a5046c04d280d85": 1,
+                        "5920e79795e9c8837e6a9c7870e3760962bb47a775638441134dedf233b36baf": 1,
+                        "65cb524648d79ffa4664862faed8dd58724db8ead2ed5a9e698001e99724e646": 1,
+                        "7bb0b2beb96d3009665d6f85c48fcc5f72b244e2e8a73c0f1ecfd90da2e8473a": 1,
+                        "7f3b617161a068688c8819435e38751085b82fcf03e8fcda3231283621f66681": 1,
+                        "807fb91382b55ce0f2bc264f6d2b0987ac1bb2bfe2f58f154ae06eccb75ecd19": 1,
+                        "920bd14fc11a961ed06b586d9f89176993633a62994d8285f5112bb9b64eb64f": 1,
+                        "9a35f1b93a02aa0e3fd4a04335eb5f35c1ebff90d8fbeb3f2046c81bf68eae38": 1,
+                        "a7075adb0c7ca2d115455ebe17e6b5112cc13ebd163eb4da3052cdc4e57ce95d": 1,
+                        "a82ec6d788cd4660c783d8931d28925fcc4e8a8be7723d9938d0dd720b6581ad": 1,
+                        "bdf76c92c3a6ca4c2d1c064364b1bdf63eb8f778f16e41b56d2f1adfb862ce0d": 1,
+                        "d141e7091d35fac6715f9d45df8765380c2834f25d764c1729bcdd6f8ffcf667": 1,
+                        "eacbba281093b1b5f48467d3fa32b9f7fd097287384f90c6939e11fc68def6fc": 1,
+                        "ff2bd78197961256f2aa49c546cb0c983d3302724716604ff8a5ff3d8abcf2d7": 1
+                    },
+                    "operations": {
+                        "INSERT": 5,
+                        "SELECT": 11,
+                        "UPDATE": 3
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "055270a5325ae78862a547080bd595b86865e26d58ad4d2eef73389737fb2b9b": 1,
+                        "14822246e0ca6b78166e90fa944e4a2d87660d104f1b35a3f0833665896228cc": 1,
+                        "4116a55f451349be060b4260bd343bda573d0cdde322e0c9b0c11ca5aee9232e": 1,
+                        "4cd09ac62dc0b8006b7c22f4d2c99d7d60bba43ccb321745939d1d8392b7e889": 1,
+                        "596f51486719c802514173a4db0c714d7e3e20dac4cefb394b6d85921649917d": 1,
+                        "6890560d50c9dcc97cdb361d60b2c9ef528e063726c844ed78136525f321fb87": 1,
+                        "836829936b5f2e121eeaf109efeea48e508d4e2b5246f82d65175fbb9dcd1794": 4,
+                        "a08a966c5c97aed3f0c1745b8f870578c8121774afd54b848453f29436306f6c": 1,
+                        "a2ede8f8f82aa7a712e978d426805f59f6c9e96a25202add3e4d80417d9eaee8": 1,
+                        "ad902197005c64bf9e5d3c3f1a296863373bfd745f90edcdb2a4bc93a7f29fa7": 1,
+                        "b3d4a121ddc5ff9468c45f9dd8c141529416949d775b732c510cf08b593ff043": 1,
+                        "bfd849d3abd0e84c2937048ddba875d1e9f1dfd471072a899724421cffe392b2": 1,
+                        "db4d2d8d4f1bfe922e5400acc2a8f9b3783e62946e4ab92eea004f67c2026c11": 1
+                    },
+                    "operations": {
+                        "DELETE": 4,
+                        "INSERT": 3,
+                        "SELECT": 8,
+                        "UPDATE": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "3beee1aad38425b2a9d0ad5318c55ccd9630d3f0f570c2ab9aad2b63a9478c1a": 1
+                    },
+                    "operations": {
+                        "SELECT": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "331890ecfe4df9eab2dd81b56f90f67c71b1d491b61540acfe4dcaf614d7b088": 1,
+                        "50981af01362bcfae0e8817cc2257b27c34addfb65632f41e2cb013e24d3fa8e": 1,
+                        "52596e3d44ae01c4927774a630d67d92df4fb535166e9b4bb158d0c2688b2714": 1,
+                        "68bd6934f85d6b71e119daf07b12f88fd646d31fe82b68e3648506bfdb9a2899": 1,
+                        "7503392ebc54a5c0a36b9c88cb1f6b866ca974e7786de806118e1d92bf6e2970": 1,
+                        "a5cc75353053b923de911bdf9d63dd4502f6941dbdd0c608f625fb7ee287dc51": 1,
+                        "abfc4b40ee7d6d1ef5c42a8ad0ac926c2e8a265ef79bce813c1135c545c5b8db": 1,
+                        "de00c36fda42d884debd9f97862a537e0808d52d4a321e332b0b8327c877743f": 1,
+                        "ff9c7fd0de1beb9b4cbaf44639c3023e0df48f7ab2c0830a9f4f241e4ed43c15": 1
+                    },
+                    "operations": {
+                        "SELECT": 7,
+                        "UPDATE": 2
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "11b770bb9b7d464f0f4bea9c9e2c247869411449fe2d04236aa013680a32e4a3": 1,
+                        "58933692f46612b915a5db1101b1659c41f2ac8f96b525da9b8c499609e7d9bd": 1,
+                        "69a0dfb97e2ee0203ea43995d3607e17dd426dbc003ea011c6595666cade6310": 1,
+                        "848616b17eaaae7193d51cde76d50d3bbc1aa163ca52221538b23251ea55f558": 1,
+                        "9c6a6303716b7346d655d363190ce572bc435cf3bb2232b90a1288b36f2273c7": 1,
+                        "a855661629bae3b4b1ef95febcb149ab37559de9ab92a57b6427f1cac2fe1de5": 1,
+                        "c3f2da8ee74af146c151d1cf77da51bf84c2c7365f37f272311fb2d3ec99d725": 1,
+                        "c9fe4183d156db70726558b32f040da2a144f8d5adac15235067b0cc7a5a83c8": 2,
+                        "ea049570c97551a509f7527ac1cc824534713a9c0630e7eeace3dd65acef3f3b": 1
+                    },
+                    "operations": {
+                        "SELECT": 4,
+                        "UPDATE": 6
+                    }
+                }
+            }
+        },
+        "runtime_structural_sql": {
+            "total": 2,
+            "files_total": 1,
+            "operations": {
+                "SELECT": 2
+            },
+            "files": {
+                "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "7199cf26847eb6a6e88b7ac2d80ee0f7511b8b20f11989d83fe9688ef35ed0d3": 2
+                    },
+                    "operations": {
+                        "SELECT": 2
+                    }
+                }
+            }
+        },
+        "runtime_direct_pdo": {
+            "total": 38,
+            "files_total": 19,
+            "operations": {
+                "connect": 1,
+                "pdo": 26,
+                "prepare": 6,
+                "query": 5
+            },
+            "files": {
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "8f17c622a54f2b69dba5d2fc2eda081865a813f397b6b1375466a27c055dc11c": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "af0483c3505545bfe47e8cb93f839011aeebf7436700f4a073ff65807dc3d297": 4
+                    },
+                    "operations": {
+                        "pdo": 4
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "1d04d87d10f6626cff0e55f4eed1ad7753657d59b5b1cdf26ca55f424cbf378b": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "8dd6bfbd345ec989e622e350f328b8f7073ee9a8d805e8a0e935ee5c300a823e": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "279a8985d690def2663dd8c98e7c65b03ca6c11f96a78f6b9b80d01f5902ef6d": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "9bcbc4b781ef5574368401ffb1db0a3cdcf394bcb5f477a8cb202999b748ebf9": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/Boot/RuntimeBootCoordinator.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "43437ca3c6f198ddbd31dfca3f2f43498c20a27d58806a4310167ed1e1ace0af": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "29ddd359cd15d6a02ff9d02bfe3113636fc2e82b174f315737a35b464d76caf2": 1,
+                        "a05adbb18640560e0ae3809fedde42d7a1ab606127bd06ab1ca08ee3137b70b4": 1
+                    },
+                    "operations": {
+                        "pdo": 1,
+                        "prepare": 1
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "3c98175a3d4b5123929a7d3898941101125c41489569e7fa259404344ffb5f25": 1,
+                        "878eb7b851d7b32f31fadd4fbc632f5a905024c9a488d808a717839f537df6b8": 4
+                    },
+                    "operations": {
+                        "connect": 1,
+                        "query": 4
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "759b6c855c38d6cff5b7c1ef0d43163746da7095bf4010297546f2adc63d9fe1": 3,
+                        "91b49eebf23c092f2c028e0c2ef5d6cf13db6c4b86976274023ea703974246e1": 1
+                    },
+                    "operations": {
+                        "pdo": 3,
+                        "query": 1
+                    }
+                },
+                "app/Runtime/Invariant/InvariantRuntimeAdapter.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "03ac5e5fa503512e1ca4f7f9e3cc59ef61b434cc82989850c91361d85b00bca3": 3,
+                        "afa5829b5b80522f5c2e8f451ca5ed20a8be9f145c6ad8070aab0cae11c05448": 4
+                    },
+                    "operations": {
+                        "pdo": 3,
+                        "prepare": 4
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "807c59007ac98d704ad2f50530d9002bfc70f7a251da45e10d521e4f96dfa4a4": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "46ef18ac0f8e412db465ac266401eb8358ecdf91d9edf9d844f6c75dc13988f9": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "4283ec94b56cf39317884a7f40914061576ae9dbc6ef46c9b5a73cbed0fbdf94": 1,
+                        "b1e198ceb0fc8d38d2b94bb4deb3d86c33aab826510b3c668fc2ce5863332fc6": 1
+                    },
+                    "operations": {
+                        "pdo": 1,
+                        "prepare": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "776ad848a7f1bfb4dd7c590a3a5fa0b7dde52b3cbd10718f0e30094aa2a5db00": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "4ee316baf3318656dfc7f5360a0950fd1c0bf1937d754c0e2cd5669d51584dc0": 2
+                    },
+                    "operations": {
+                        "pdo": 2
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "9aff2c2ba1d949261ebfe600d1d04dd337d9b84555efed3be7e1756d15a0358d": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "f8aed07156034e507e6f4b0882ac9ccb34f7261862f56be459c08ec7fdbc12df": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "b5784656b77feaea4bc7050c12b9e7852a137fbc095622f0a6448d0519b58148": 1
+                    },
+                    "operations": {
+                        "pdo": 1
+                    }
+                }
+            }
+        },
+        "runtime_persistence_helper": {
+            "total": 921,
+            "files_total": 91,
+            "operations": {
+                "admin_alerts_ensure_schema": 1,
+                "agenda_notes_ensure_schema": 2,
+                "db_column_exists": 2,
+                "db_last_insert_id": 41,
+                "db_table_exists": 11,
+                "db_tx": 18,
+                "ensure_financial_operational_schema": 4,
+                "ensure_lead_events_schema": 4,
+                "financial_daily_closing_ensure_schema": 3,
+                "install_fresh_schema": 1,
+                "onboarding_tips_ensure_schema": 2,
+                "one": 192,
+                "patient_guardians_ensure_schema": 4,
+                "patient_tabs_ensure_schema": 2,
+                "q": 456,
+                "readonly_support_alerts_ensure_schema": 2,
+                "safe_db_columns": 4,
+                "safe_val": 22,
+                "schema_apply_pending_release_migrations": 1,
+                "schema_cleanup_failed_install": 1,
+                "val": 148
+            },
+            "files": {
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "3e73bfc173dbef1c1efa0114d69ddea03ad8ffd3b15e74123e54c1627a27285a": 1,
+                        "41c0bad055d8c8bf67515478812d8daf2b6724a94129f584ae9bbe99d73fbfe1": 1,
+                        "be9ec112405d04362f7f4be7b546ee07e695ef256edb5091762d20ecad3f5196": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 1,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "1f69e8e8b0ed627e7095661d1f897fa2e682f22fbd8c5533fd423de7e8596233": 1,
+                        "3850e2069288e7c1273d950764826fe14cb8cf372f3ccd0c120de94aef9b688f": 2,
+                        "a55afe9bdc92935caec01bccf3ac768b355b4fb7223b6deeaa0243a1206cfa1f": 2,
+                        "ba12d9248a9861e97a4590130c347ac392f13bd2fd7aa6b3a0e1e2f7f0f6562d": 2
+                    },
+                    "operations": {
+                        "db_column_exists": 1,
+                        "db_table_exists": 2,
+                        "q": 2,
+                        "safe_val": 2
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "3ce7f7cdb23e041182cae03e0121b9ba754815a0a759efc576e3b4a7d921d703": 1,
+                        "e6d4ad42c549cc004325a00b582f3890c888fb7e6b46ad69058088a44cbba9ce": 2,
+                        "f803a0ce14c2d1141b809292eaccd432c8eaf485e68fae2ae955a9f48611b26d": 4
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 4,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations04.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "a6fdf159c3701cb48a8bb19ca03b543666a0b2bef77e4ff3584533b0350d94af": 2,
+                        "af0cfb27cdb4db48d24c17d012a54eab9ffdf6661853b01871cfc58ab07876b2": 3
+                    },
+                    "operations": {
+                        "q": 3,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "1b11b0540c15a27bcbba8dbd0e30d2568abbfaa05fcfe5bef39b7eef472aa3ac": 1,
+                        "6ca9febada3b42fd3bb24d2f99fb27f0e5147aa13e5417c928038af719afb2bc": 7,
+                        "d54f8fa41eff455463736c06ae66ab73c36d650f60987c550efdfad6488b44c6": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 7,
+                        "safe_val": 1
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations07.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "44cef37e9f606c08b040929ab7f579890bbfb958b821ae0decabb05149469c8f": 2,
+                        "af0e5de60ecc493e9d8e679b48db31a636ae623e607954f1666dd8fd75cc622b": 1,
+                        "b81f584f4e0178204892bb6c14f607b74286743200f668ec684dabaf548a96e9": 2
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 2,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "86d9acf40f29edb9cf6a61247f5531888576da99feb2a507b4b2bb6bd4cf3d34": 5,
+                        "c92522237127be1c3a4db658717b1dda4962c235fbcf57046934081711836c01": 7,
+                        "ec7ed9bbd49b531a11e59f2a19c4385466aab78771f88af5416fbd548a62ecbe": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 7,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "16a761aecc3a6a68e12d1691367d287adab2e1f88239b8cd18ff562fccbd7ec7": 1,
+                        "16b2367107f1ca9ee23db47cd941519a61b4ace50b75fee3ba9faee14c8aaa97": 5,
+                        "abecd4388ccc23a16c1b04a9c03cbe967468d35235eae16de91a2e01694fe006": 1,
+                        "bb551b1711ed53b0babbe3164636c71eebbd09c3548aab088c46251c3aa4043b": 1
+                    },
+                    "operations": {
+                        "admin_alerts_ensure_schema": 1,
+                        "db_last_insert_id": 1,
+                        "one": 1,
+                        "q": 5
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "0b4b4b3d3e76be3063e942fa33121b0581f1be47af6e81dded06e384c3348688": 2
+                    },
+                    "operations": {
+                        "q": 2
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "1b5e076e9aee080f0b088af4b7264b980f1cb1dc305fd92acfdb1ad89091e737": 3,
+                        "5ec809b75d4049629277b1ab29ca836a573b52685410d00d1ff588a4268c0eca": 6,
+                        "bb8dce94ef4dd1c9df2b0111d0981a69eb12f9111a1a5bb78c54392b67ef6c35": 1
+                    },
+                    "operations": {
+                        "agenda_notes_ensure_schema": 1,
+                        "one": 6,
+                        "q": 3
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
+                    "count": 46,
+                    "fingerprints": {
+                        "10c9d828283c801a71fb6255caeb83e5da5bb14b3d05f5164bb6173894ac6c1a": 1,
+                        "59f218464a170e316fb5c99387cfc0063fe9b58f3183727273eab5268c7d0144": 30,
+                        "6961884517cae2f7a1b67ea4ace8fbd624542717bb15ff483d1ddd73c1efbccc": 11,
+                        "a2d4b6da01379516af9b13b11f55b6b57b3a839bacac13b292f9374b0f3da276": 1,
+                        "d8c0f23b82f041c94efe471a59e1568e2874ffbf5ea886d0b53f9063309bcb84": 3
+                    },
+                    "operations": {
+                        "agenda_notes_ensure_schema": 1,
+                        "db_last_insert_id": 3,
+                        "one": 11,
+                        "q": 30,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "50d8a212811dce51a601221f7255b71fef16175f0a84546241ff1014bcf79add": 1,
+                        "ef3c81a79424f38c1762cbc336a8608e0efe748d21594408ecce2e1e50827eb4": 2
+                    },
+                    "operations": {
+                        "one": 2,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations01.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "8e2a9f4c6fd3ebb5ab71cfa06ce4da101c711b7d150f5a410808280143d63f53": 3,
+                        "9b8067fefb73122206eb64a75420572d471dbf66488b2d8cc8575ecd60b9b481": 6
+                    },
+                    "operations": {
+                        "q": 6,
+                        "safe_db_columns": 3
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "289e5dba61044c9c79bac4ee2f1b99fe6726f5debda8af2fe4cd6cb542f414c0": 1
+                    },
+                    "operations": {
+                        "q": 1
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations03.php": {
+                    "count": 21,
+                    "fingerprints": {
+                        "80497762be8d66874281bb786fb85e4d288d8960e6350406c8272b0b80776d04": 1,
+                        "94725ba97f2c0790dc68a5f8abfcc499998eb4202116fcd24ad9aae6a55f344e": 20
+                    },
+                    "operations": {
+                        "one": 20,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "1d3057a8795ee86a18c52895767ef8c4f9b4551f84ec372bace521add0d0bbf4": 2,
+                        "d5b8db99438dd92570c5a1e0946597712999298c1c95c3cccd95d9fa4f8ac589": 1
+                    },
+                    "operations": {
+                        "db_tx": 1,
+                        "q": 2
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "50406d333544da68a994d1453b83094842dc6165aa525d76087b72a08e43e72d": 2,
+                        "56dd3bebd8b62f2e8f8da3534ef4a26369bdec926b85e843885ec55b4b66a28f": 1,
+                        "7b51fcf5c2cb0b504b03e449d2dbe32d4299fb88da206989b8eb3ebc79ccae92": 6,
+                        "acd02160633490c32fa9670d17d81bb2be042c887a35c6baca01bc56436d8acb": 3
+                    },
+                    "operations": {
+                        "onboarding_tips_ensure_schema": 2,
+                        "one": 1,
+                        "q": 3,
+                        "val": 6
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "1e8841c7fd3ff63c13b7d74f3c7f9b2e357b387ad987c204e27c2822d1dd4c7d": 1
+                    },
+                    "operations": {
+                        "one": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "35d2a476efb64530fe9bd8f55458cfadb3991769ba50bb91626b7fa8990c34cd": 1,
+                        "ce9b4f6dc9fb28f66f99e294e90ad22926be29ce2321545c31877b5b49ddbd1d": 1,
+                        "fb1648eefca6b1b75e5a6773f35afac6d248581316afbb9e14dc90f07d368a55": 2
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 1,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "21b28336bebe131fe957aa1aaa24cb9fb1a3a1f059ae348ced9cd5a95acc9359": 2,
+                        "2f5c904687ed3e6f3210f388846e4b73f4bc8ad7e33dca5d22032252fdc515b0": 2,
+                        "40c2dc4b12ef1c4a02cc6c00d7113fb6b7ab7d8fe51fbb480e217d304bf35ce4": 10,
+                        "4f53598540ba1e1c684725d3d05b87fa48c367180750c0d60a941d9abe0aba16": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "one": 2,
+                        "q": 10,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "0ea32c59e08c4ae86648f7ab3ca34766ef6b7eee32054d59cd5ce065d69b3f06": 2,
+                        "36f842116a5ed7e73a3a3f6f6002197a1461fb19995aa7be48d5baee86434c69": 4,
+                        "defd5ef2057603a87e9e6603b3d3772f210ac351b2459a58362ed2dd82882a07": 5,
+                        "ed3ea8e882323de614129498a158fcec5badc45f43ac55f0577c100fc8c81111": 4
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "one": 5,
+                        "q": 4,
+                        "val": 4
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "58651c7c51688c176d1d9bc5aeb0188774f64951eb471161a759db5a01dbe71e": 2,
+                        "9d56c715910bf5f7fd099df1b57e609c7c9f64ce5bdb1bfc319a6ce067d74297": 4,
+                        "bb42153e7c3d59ffcee248fe9a13dff8d67db99fd0d01b3c7760e9ee888c9ee0": 1
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 4,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "353fdebe218d76f66bea99231debff62cdbdb89e042359432c4500303f8b64fb": 1,
+                        "500fe0a7e381a5c0fbe2173e036ef82e00f38843f3bba5a6ae89e3340cbcf607": 1,
+                        "d76ccd199c28a488fc4f5498dfb153938998a0bb1b566afe314794b6671cc37e": 1,
+                        "df4252e9be5f3f8920cc5612ef72208f9f244dd7e88569da2df468d67fcb4e3f": 7
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 1,
+                        "q": 7,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Boot/RuntimeBootCoordinator.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "e72dfaaaa388f2927c6f93f467ca1cf69ef8adc1451ccfc2102c5d1f2609e18c": 1
+                    },
+                    "operations": {
+                        "val": 1
+                    }
+                },
+                "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "0268c9c73e4910a53093e2c34fa3a047a07e1271c21feaef8a5076161810c6ba": 1,
+                        "06911258d01ecccff03d31b94e037f4a442f329353a6bee70f71a13bbd0bf2e0": 3,
+                        "31e0ed37d1ec02a978048e99b15ea2cd15efc42743c9bd35a871b6563dfe3345": 2,
+                        "6ba425963ffce2c9020641cae4abf785812fdbf6ad09ba8a0bc7bf53da340957": 6
+                    },
+                    "operations": {
+                        "one": 3,
+                        "q": 6,
+                        "safe_val": 1,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "29d7fb73c140a817fc9961314102c6dbfe36a70bc76dbe6efd76fbac85cc734e": 1
+                    },
+                    "operations": {
+                        "q": 1
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations01.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "b18542a71d627fbbd252dd8e3a165193845e5e1aec71a04ae31b840da00e5a2c": 5,
+                        "b648c7c59b67eee791576e32d9953a4fd530a45ae3e39aa53b9833e1c92d4d3f": 4
+                    },
+                    "operations": {
+                        "q": 4,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations02.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "a4de715fbd5197a215c0f6b82149c55bce88fea1a41c45f7ebcda4a100214838": 1,
+                        "d16da88be697ded46f896f88d48ddfe8f5b79f7420a1a890f1c7db1c34048775": 1,
+                        "dd055316943818541dbbe2602e2314b313ac28904a02741e632cfb072da7a334": 3
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 1,
+                        "val": 3
+                    }
+                },
+                "app/Runtime/Dashboards/DashboardsRuntimeOperations03.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "0d3510f0b2d9692af4a6e4099d04d4857adbf8a1d4cffaf0bf8f452583b14ef2": 2,
+                        "9c57c78112908e534f3ec6719394367a3275443c000bafd7b0ae969955c317a6": 1
+                    },
+                    "operations": {
+                        "q": 1,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "1ccbfd74bd4890eb1433789dfb12f6dde14c1717c5bb2cb6669c1c657f6f33e7": 2,
+                        "77f204ad6f9f311bc62f7d1c1f1f85b02984f7a330aebff9412ac3abadfb3e7c": 2,
+                        "7e3924e87751cd7bd3fbea10df56b3a08318bd6a89bbe2146dc323d80b0abed6": 1
+                    },
+                    "operations": {
+                        "q": 2,
+                        "schema_apply_pending_release_migrations": 1,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/DeferredAudit/DeferredAuditRuntimeOperations01.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "8ae6babcab27f04d9915b0fbd1e822b1f7b4a443f8b58c6dcc58cae315e08c03": 1
+                    },
+                    "operations": {
+                        "one": 1
+                    }
+                },
+                "app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "81f8cedfc0ba78093b37dcb04f07838674c8a63f4dfabd9c704c3e9f2c798951": 4,
+                        "e490538e423f6b9de2c88bfe40109983bb27780e1f79420ff30858977a754f9b": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 4
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations01.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "5c226b039bb6e2ae2a030b9daa67bfc2f539ec0dab8ee5595e05481b10477e4d": 4,
+                        "6775f7db1f2a53fd755274c4d001a056501bd6d00256bd95f0d7b2833569705b": 2,
+                        "806c64d2f3f980f27c8a1ce55a7b6bd886001b97fafe18e039d22610140eb2da": 2,
+                        "a4ba885ab00a276f99f0a63710333147df9d7767148107b6a75deaddc490aaa2": 1,
+                        "b5eb03e46e13f0593912cf334ad51984c88ffd222cf4fb2826990151043eb5d6": 6
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "db_tx": 2,
+                        "one": 4,
+                        "q": 6,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations02.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "56ea2e9bb87621d8809e1e6adc0be6b096ed320b1db6c88da688e2f930820f6a": 5,
+                        "62cc8f62f8750fb9e79b7a146341f97496f9d13876ab995cffaff0ed96743927": 6,
+                        "a73da0585bd523cb89b219d2b7f65256b1eb4dc7fec483a4761b9717f6a1fc3d": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 5,
+                        "safe_val": 6
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations03.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "6219e095c1f3bc2218c051a15e4315450a655424b0d79c40dec0686e8dc032b2": 8,
+                        "7be345e585e5bb5789a85273e1650408ef69e30b5ea249a5b7555ea19851cb68": 2
+                    },
+                    "operations": {
+                        "one": 8,
+                        "q": 2
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations05.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "24f0c17169a6eaa4f2ea9a5b6ec5f9b842299079cb257aece88cf239637af3ab": 1,
+                        "76737f62fa8c3d0af6881406bf37ed0b28539a43176715bcf63d8ef8656ba3ac": 5,
+                        "c3509622b4030289ef155d25867ddc144c4d5551a162ce203ea19ad22c373c86": 3
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 3,
+                        "q": 5
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations06.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "168ba2a1b128379fb3220cbbde4cd9ab4b4f2a08e3a775f0e0da804e22cf2048": 3,
+                        "8cf9c1b37c13734d4e666c2984d4d829f2c0cf7c2947b34de4f030616ecb5dfe": 3,
+                        "cabf6806e05d945a3c3d20c4af8ca5c6e7edd0d4d7edeb4bc11cc8a231f6362b": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 3,
+                        "q": 3
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations01.php": {
+                    "count": 21,
+                    "fingerprints": {
+                        "3c203f7014ea6744720d74dd2670033bec767ba899364dbdcd366fd96dbedbfb": 5,
+                        "8af52a4999e5203631835497906aae23308d171c6853a964a00b96647115fad9": 5,
+                        "93b8dd0968e93fb57b2bb83c9d0e3d6be9a9328f1e80c1f2048788999a69eaa4": 1,
+                        "bcae01b8fe98ed6fb62435d5f81b51efe10145e839d0d3e5a37ca77bedc4b02e": 10
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 5,
+                        "q": 10,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations02.php": {
+                    "count": 24,
+                    "fingerprints": {
+                        "03cf209db4704f4ed62619017267812f0811c73b97688223d6f9e957624dff74": 5,
+                        "5268f591bfe45e9274f7aa2bff0bb7923d438e12f4763dcdf93492b1f15a8745": 1,
+                        "a96ae72c2ac8316efeb0af372274f7822433a371afc2b58e138a9e95fad0f6e1": 6,
+                        "d0dc69cd13d0cef97da1a3cc25387dc9d0f3c227458ad929191d42f48b1c5e6f": 11,
+                        "f94d9b9af248df7d1d70d6d6b042bd463c656e8ffd66c8fa42331edbb0cece6f": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "ensure_financial_operational_schema": 1,
+                        "one": 6,
+                        "q": 11,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations03.php": {
+                    "count": 30,
+                    "fingerprints": {
+                        "4180ca68ebd5c7f9be07fc87a5472dc5fb63eea0bfdb502aac985805da0a1c43": 3,
+                        "9e9e7e278ca8e5932a5e1e5b48c54b53b6c4b086b574349ec7b68acf7cf3d07f": 6,
+                        "ab6b333d7bb4024f9f2b3973ac9f043ebc40cc9760f6b50037e6e2b760b5cc4f": 1,
+                        "bf6256c43bad17f655f2379661120a540ce7a8a3098d89a667bfad43688cc9a8": 16,
+                        "e2f5169fc85c41c0a97f207215026f81e6aa0091172318eb131775a05aff4726": 4
+                    },
+                    "operations": {
+                        "db_last_insert_id": 3,
+                        "db_tx": 1,
+                        "one": 6,
+                        "q": 16,
+                        "val": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations04.php": {
+                    "count": 17,
+                    "fingerprints": {
+                        "1cce4761adb9a56dc643d4f2e171505727a05e73c0920d682f63bafc02360b24": 1,
+                        "20ead44ee41e15b18de369a0027dacc9cbe53e6581a4421d5a31e32542be77c3": 3,
+                        "5003c27d987244a68e725d80e99d813910d3de1fa6821f3dab4f9bede50b9c97": 8,
+                        "99387c18b314f0a98026df34006e232be937d320e48272aad534649cf8060002": 5
+                    },
+                    "operations": {
+                        "financial_daily_closing_ensure_schema": 1,
+                        "one": 3,
+                        "q": 8,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations05.php": {
+                    "count": 23,
+                    "fingerprints": {
+                        "4ccfb02c8b4f446a5c29ca3dfb072af055c7f3ff4816fb2bc3c9185f099ae763": 7,
+                        "7c2e60e1f9341314001875a844f72c2e90af8a2ebccdb67f4b7f72241a376f74": 7,
+                        "90778aeaa3500c723825a96f7051a897a32aa2fdfde17d5946d8e004e2a949c4": 1,
+                        "aee64c1885f1b1eb3b7bab17a2cfb26588f2af3f593034f741266a2ea1c24f00": 1,
+                        "cf4f154b89bd1fe85b526395d7c9b5842fafaf40dfd25dc006d1dd20fb960d34": 5,
+                        "e37d587473dd749e94618bb416fa9239fe489b2f0d7fc5081621d93a5204d8cc": 2
+                    },
+                    "operations": {
+                        "db_tx": 2,
+                        "financial_daily_closing_ensure_schema": 1,
+                        "one": 5,
+                        "q": 7,
+                        "safe_val": 1,
+                        "val": 7
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "6e3a9bd6811b243fcb9a35878f0e49e961916758411b88969439c58dc4a0531f": 2,
+                        "a92a52c34d0d16a9fc6a93e21ee2632ff4dd5ee539e526282920d9dde2e99644": 4,
+                        "bac9bb706b994df93faad57429d7970305cf87a8ce7338c05b8c8416b454649e": 2,
+                        "ee06cc6b68644631aec705a80b04a107604d46a4c55324e5dc4f7202e8fe84c6": 5,
+                        "ff3518e62478a7ff9d64578fb4115fe1ac1bf12d3f81951d57cd83aa521e2fff": 2
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "db_tx": 2,
+                        "one": 4,
+                        "q": 5,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "2f6545e0a9c9e87f0a9e1ef3b8a4522ada3208043a9af1d430eb1ed8f4ca8b58": 2,
+                        "846f5cbc1693b90cd0b0280cd1bee3513cb522547857c830d41c668a4eb7e8a9": 3,
+                        "a0da236150f5633fac92481283caa04451f338e05d8b1b8b4dd621e3a14b973b": 1,
+                        "badef03bad313be6e7458e902786b80dc05dc6e4675be14c790bf2e80ab27c36": 8,
+                        "fd57de2c56edb2c3e255ad7c2c9e173a3e1fc0424896aeac85e8b80f112054d1": 2
+                    },
+                    "operations": {
+                        "db_last_insert_id": 3,
+                        "db_tx": 2,
+                        "one": 2,
+                        "q": 8,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
+                    "count": 20,
+                    "fingerprints": {
+                        "0a192d818f81c9df4687ab6d79aa93fb0a712e1fb4937fdd9982caed359a4734": 12,
+                        "78ef0d3e2f46bfba35ada7b919bec87dc14faca6b38833419def8a3add183ee7": 4,
+                        "a0d5dde9ecc86357e36ea02fa9e5d2679d87336107b72a0043d7cb4c88e99a68": 3,
+                        "b7cddfc4aa09980d95c43238d2c3944b4d90eef9a2da2f722fcc9ea475237c13": 1
+                    },
+                    "operations": {
+                        "db_tx": 3,
+                        "one": 4,
+                        "q": 12,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations09.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "07ef1f03cb01530a91869d4c8d395288eb9f61c1ab5fb06124e52bcab8aa815b": 3,
+                        "34ac2004683a5c05c77acc3924d5dc559efe1cbd0666a737a6a9a3a0cb61e641": 3,
+                        "55e4919c0355334c138cb39933b07fb0d4b8b9a6ffad51896c147fb4280e9264": 8,
+                        "7a3fb06de103d267e19d02af64fa37fcb6c1b2ed1bdba47daa3448c4d11c8b32": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 8,
+                        "safe_val": 3,
+                        "val": 3
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations10.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "04a6ddd99bbb6860c9c456a87642d26c32138aa37e2369798ec9a12972113447": 1,
+                        "36f87b09b593eb1857dcdf9f8e69a5948a11dbba74d344287d7275615c97bf3d": 6,
+                        "4cbf02e3802f35a78723911cb04d0bd1c200f81a1bf10d903ca628f6efa0d11e": 4,
+                        "d55b506d012e2c297459361861fd84c7ada1c62d2fd673f47d7a2858da46eaa7": 1
+                    },
+                    "operations": {
+                        "db_tx": 1,
+                        "one": 4,
+                        "q": 6,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations11.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "760487003f243f891c4a90a942a581d7e51542a08d2e1ea618a2ffcd066a0407": 1
+                    },
+                    "operations": {
+                        "q": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations12.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "4cb186214eec4070f565456104f7bab0cc60142f6fe94b4a6f1cac4a4dab4e0a": 3
+                    },
+                    "operations": {
+                        "q": 3
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations13.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "6dc2b33db226d9bc536f1d9b348a8dfcbab5c5d9dd4deb6066b316f7f9fb70e5": 4,
+                        "84188bbd6c87150a2aaa8029114c7014330f2c0e8b0a2348413b776fbb36ff07": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "422a9bb847f36eb0683c210260c816061c684116278c6d61ed7a4052b920479a": 1,
+                        "4a2e6301a8cddeb9723293bafe8c2dd966c58014222bffebf7db5c2c169aab61": 5,
+                        "4f3fbb847a77e9b32644e2e11d4d0e8970e9d276c0a5fc8deac1155554f11f22": 1,
+                        "6e6000d4f5f92923a8f0c6b423b82770e13cf2eca616707d6556beddd4ea718b": 2,
+                        "c4cf8311552006d6120835fc7316f458252c13934a43dd3f589fd2a5c9ac3778": 1,
+                        "dc10f040d61aa9eae79327552aefa1d686c251404e6aed7fc0d5bd326423f990": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "db_tx": 1,
+                        "financial_daily_closing_ensure_schema": 1,
+                        "one": 1,
+                        "q": 5,
+                        "safe_val": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations15.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "8ff09ca089a5f4b9e10c455385a10be25dd86f27d6fd04434b149ac443f252c1": 1,
+                        "cd749dce1424f89efe2f0f328a2fe58b4cc317525933c9ca86b77e44bc8b3031": 1
+                    },
+                    "operations": {
+                        "q": 1,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations16.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "7307d97bcce6deeabb3433b1c1f9bb2e2b4c9282f54e8b93f45eac18133d2c04": 4,
+                        "8a7ec66cb907e1ea57368344ce6b7962db3c5019a4a387faa815c37570035d36": 2,
+                        "b4f23dab7a0f35ed0fab830adf93e716c89cd8d2ce9b4b544a33c6f745058394": 3
+                    },
+                    "operations": {
+                        "q": 2,
+                        "safe_val": 3,
+                        "val": 4
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations17.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "45fe4952ed95157618600846dd296bdf9bc79b9063ce7762570236573064f5fb": 1,
+                        "963efb3ebcac33672a39fa485728b99397b13893807c775c84a278cc79599e92": 1,
+                        "9907d6c448be8a2b89528c4a49c2abc96da68c12db0bee65fa812e429dd84df1": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "ensure_financial_operational_schema": 1,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "9c20cab4c34a0de3acaa5062b1f942b64bc5eb77e17af2e8e084018b21195a3b": 2,
+                        "f151151b344cb70cca3244f2234e008a270edd1d75b5f5c4a20ae551daa7dd14": 2
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 2
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "342451ab5af4fd507896f818679de770cb85379e126ff4601abd91c236d71654": 1,
+                        "5bdf37db31069f74455058109b12cd552dcd70449628e3bf748110bb8b5df2db": 1,
+                        "69852ef0b3fe95400ca923501b3245fedadf5160df89fa52b81f3452ce432320": 1,
+                        "c5e02e20d6835897816a608ce21c944074bfd99197e816a4530b07db87aa1797": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "install_fresh_schema": 1,
+                        "q": 1,
+                        "schema_cleanup_failed_install": 1
+                    }
+                },
+                "app/Runtime/Leads/LeadsRuntimeOperations01.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "39659e3aae903849cdef59b6a34bdcf63ddd59b3272306c477ca28710e1fb0f9": 5,
+                        "492a0eed31425bd11c9cd88bc21e8d4559a4e3046bf42c65a62b2743c43b4210": 2,
+                        "e0e07b6be2278e7a0762d4a045f234622ab3469d924d43b22792327ebd4c4664": 1,
+                        "f7c222b97410d43fdab2b3d670244f3691d8b2d6c27a2422d70575c763c1ae69": 5
+                    },
+                    "operations": {
+                        "ensure_lead_events_schema": 2,
+                        "one": 5,
+                        "q": 5,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Leads/LeadsRuntimeOperations02.php": {
+                    "count": 22,
+                    "fingerprints": {
+                        "0e2abffe7a304df4b83793197346d5b4dc2241ab966d650a762172a53e17933d": 1,
+                        "8f659f7085456a0eb8244a8313db3cb538541b0cdd5adc516f09a955b32103ef": 11,
+                        "98650b6bd9ac92124e0aed5712d9e75ee609e8ba97f2ca43c5250d9b233ad932": 3,
+                        "c6a57b762068895d5591bc5148ff9c93f2f8bfa7170ba1d4b739189640a144ac": 1,
+                        "e988f38692859d8c28e207eed56984d0370cc82f03b17c9b9e89a3e1e3286366": 6
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "ensure_lead_events_schema": 1,
+                        "one": 3,
+                        "q": 11,
+                        "val": 6
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations01.php": {
+                    "count": 11,
+                    "fingerprints": {
+                        "5fee1c4cfcc5dbac751cd74087bb92f4bebdaa6cc8ed7c4193004065004e86a5": 1,
+                        "6749faa0937111a2e638017d8b0679883e6fdb29f7383e800119917387a9e58c": 6,
+                        "b274fafac1ec8933bcf941d497224f97e16a395ee345b6acd6a28d76aa97e962": 2,
+                        "b543174e82c7cb7354b164089a5374d8da2981627adee6ae9285f4a1c49969b8": 1,
+                        "e565d8579f213c6ac8a4e56a3931a75a68c693a67ba6c62734aa747823bf48d7": 1
+                    },
+                    "operations": {
+                        "db_column_exists": 1,
+                        "db_last_insert_id": 1,
+                        "db_tx": 1,
+                        "q": 6,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations02.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "49d12a7c656c8c53519dba81ae9d32827cd0ad57f31da9227aac75effd829c98": 5,
+                        "6974ece31e1f45429c8a45eb979e2024db503cc33cf86a979c4320c40ef332f2": 1,
+                        "cd330be38013123dd739f0390c61906ea34ce76bb65dd5d0e23a43a4339546a5": 2
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 5,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations03.php": {
+                    "count": 30,
+                    "fingerprints": {
+                        "8b7c69ed4995b7b3458f31613e0c918af2bed5ea720648705a72c61f3049733c": 30
+                    },
+                    "operations": {
+                        "q": 30
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations04.php": {
+                    "count": 18,
+                    "fingerprints": {
+                        "08a4e7470f33cd61bf2acb50e5460d7f70674e9f56e691cb5a4f3c2a5d109f3b": 15,
+                        "81c048266fdb1b8f46bf38ab5e2c12bc96ffeb6b7ba12daffbdd53a9ee941bb9": 1,
+                        "9be9e722a5da6f7f4915c5f9c1a03ddc85e528407da7af9646559117335b5811": 1,
+                        "cfbf26c4a49f8623950b48620583f70b99ef002e5ae2bc2c85a9da07ac5af2ec": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "db_tx": 1,
+                        "one": 1,
+                        "q": 15
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "26082aadbed4521e52e6c37806f60c4faeedfb515d201e19c99c342becbf89fa": 12
+                    },
+                    "operations": {
+                        "q": 12
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations01.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "510f95e847c4953c38406827ac3d3ee3b3bfd5a428a17f176bc7bf9ba747afc2": 2,
+                        "5dc883ad3befc192d0f05fa9ba55abd9bdfdd83b3e38a0ce66e24cb7c942c6cd": 1,
+                        "a2981da898a542e5a0164b929b55bfe4793a29fbe7436bca8f657ad69f8c6451": 2
+                    },
+                    "operations": {
+                        "one": 2,
+                        "patient_guardians_ensure_schema": 2,
+                        "patient_tabs_ensure_schema": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations02.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "43690545e9747ce6f5121651e0d11f1c2a7d77903eaac2d1d806db34aea5c4e9": 3,
+                        "7d83e8952d4ea4fcb3452e07e447a50d23de4bd6868294f7492d6b14f68ed1d1": 5,
+                        "c4e3236c7aa45f684cee76d7bc7597e6d73750e439b00ebb365362b528291e9b": 1
+                    },
+                    "operations": {
+                        "one": 5,
+                        "q": 3,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "3422dce1d6fa4b1a51d86eb756c65b1d0aed5180ed8f5427253feb9e121dcb52": 1
+                    },
+                    "operations": {
+                        "ensure_lead_events_schema": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "d702790c5fb8c1854ded62ba7a30249af0136c4337ae9c126f5d5f0d7fbd3d8a": 1
+                    },
+                    "operations": {
+                        "q": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations05.php": {
+                    "count": 13,
+                    "fingerprints": {
+                        "35c9ef485bc521ebc7adb4584cf2e28c88db1d0050c33df1383f7806311e99b0": 3,
+                        "4100165755f3dab7115b6ddd254071b51068ad195e9bb4955d611181e0bbcbf1": 4,
+                        "65bae2c5de454aed8b67aa102292c8be1df6f142bda0c7260ce4274810901ebd": 5,
+                        "9549c0e03baaa467c3a3959a101b7881d36b147cab40fd7d5b2d9e519cbc3ebc": 1
+                    },
+                    "operations": {
+                        "one": 4,
+                        "patient_guardians_ensure_schema": 1,
+                        "q": 3,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations06.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "239e5f52af2abcd61f1352b3bac5be9b72184e43e9eb72f440a40ff653fc72f7": 1,
+                        "302fb9b008dfffe12b6a2ac5741bb6d71a2a8f03695ba8b54964626e264f96f2": 1
+                    },
+                    "operations": {
+                        "db_table_exists": 1,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/Patients/PatientsRuntimeOperations07.php": {
+                    "count": 42,
+                    "fingerprints": {
+                        "433e6ff4571dea8bf4e09d8a57d1dc3126d1883c3a32093b4a82db6f5e8d0d4f": 1,
+                        "55dc5268187812d1ef22afc7f78a456d0bd2cf2cb61bf22ec347168b305ba7b7": 2,
+                        "5740771c0dfae8bef20204d8a8eb653274486a4e4b1b013239f6b62f0b9b4a67": 2,
+                        "5da9593fc4aa411cf851634d5a87f258d35f432d406ecebb1cb2e2cf6469b454": 11,
+                        "bc0d9c8938f0cc3051bbe08a07dc9e4d546e5d1497ceda398b3027173863aae3": 20,
+                        "be6b47791753de3c76ec04b1ba81ae6c1fa5b9353fb378de8de61292b5814842": 1,
+                        "d2f9ae6630bdae2d18bc5a138e6a408b907ea3387c11d36cbe1f72ca6e19af65": 5
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "ensure_financial_operational_schema": 2,
+                        "one": 11,
+                        "patient_guardians_ensure_schema": 1,
+                        "patient_tabs_ensure_schema": 1,
+                        "q": 20,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "1cf7cb36cf0d9a1df61bea90427a3566078b73ea6a8f8170b743e97e9aba4fa9": 3,
+                        "7580dfbcb22421fcb15132204c94ae9928ce97315e1713d68edad9191c941ddc": 12,
+                        "c47a5fd9637bcb7ac6452faa2e7a75c31e72b88e542759f8adeb2150a55501ca": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 3,
+                        "val": 12
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "19172baa4384d7f46f72a6f842467b3722a0da3ac666639aafba716436899eae": 1,
+                        "1bc7cb5355ecaca836c273c23d5f793b3ab8391f5fb0cb8e6a9f18a24749d5fa": 2,
+                        "23488b93445793439699e7cce1be616fb2ee7935a9f44d8f150bcebdbb6743ed": 1,
+                        "b5a37aa007768990911fc86e4315040fd2940271a282c09e9708b34d67192906": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 2,
+                        "safe_db_columns": 1,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "1ea993c57744f4ee5381c262406bae57884acab9b2b4a5b067b704f91fc749e2": 1,
+                        "4fd1dbc333266330460486127f0b0bb51e31d88e24cab87431e2a6c79e25411e": 2
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations01.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "a5ab8149229c23ed873b1de08e73924d6c497c403b68d27d03ed1457174e679c": 3,
+                        "e82a9ed0a048f38e8dcbc09f64f29c5b16039170629bdc2cae668f6f40b3687c": 1
+                    },
+                    "operations": {
+                        "one": 3,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php": {
+                    "count": 7,
+                    "fingerprints": {
+                        "265175eb06639bf74d5c74295da842506bc605198d5f10f9c474e5e207608333": 2,
+                        "30d118da21401b0f258947c08720d129c4c77478c0dd4cb08a03754ecb597d69": 4,
+                        "5ff3826254cb5b3ef1d4cb7ebb57951c5927369b740c3d27020fcd8b06c1826e": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "one": 1,
+                        "q": 4
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "7d413cb636d04cefcb2630fdbba5adef593d4bd8cd5046355d87c8205e563e3b": 2,
+                        "f191b0e3a8752059c60ac0fc27e33ddd2ec0c995a86ed86ed67b98852aa3bf09": 3
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 3
+                    }
+                },
+                "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "2eb8b5ccd8efbf6549f3b91f2dad709f33aa1bc7d2ecd90b9cbd3c7dd8448893": 8,
+                        "f928e46f3698ae4c49f1a14d92243ce5e9700a7dcb94a7d4f5588ef618c578f0": 1
+                    },
+                    "operations": {
+                        "q": 1,
+                        "val": 8
+                    }
+                },
+                "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "3729c4e3583240c4a260c1982b785d703ff14ecfd0cab208be4dcc8a3ee96f0b": 4,
+                        "4e3523bf1a212412f1997078148bc18d230932193d04ec73294dea232f332c22": 2,
+                        "e352210a3e5616947df25729b6d0cfad27dcb4ea36ad9b6adecfacbf52c1102e": 2
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 4,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "47ca12e94c15a1b57e68af43c7f93b573bcd59bc0f846bc3b160bf22aef9432b": 1,
+                        "65863078d35bf0a1dac67b948bd416f72fd82d9e4a2fd7316c374d1bfad353e1": 1
+                    },
+                    "operations": {
+                        "db_table_exists": 1,
+                        "q": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php": {
+                    "count": 10,
+                    "fingerprints": {
+                        "611316924ad53cce17337ac117fc083244c0d7434c77eea2a6a6aefc26cde8a2": 1,
+                        "679c0600fa735530543135ea68e7b513a17083db45f0d0e7b5ee58e7a18ed3da": 2,
+                        "ad3c061164b5736934cecd68b54e16d64ba470e267956bc2125494b6db420e6e": 6,
+                        "de5472f849b2683daa21c3acd30e41080e3dc2af0a019562868cdf117f99ca46": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "one": 1,
+                        "q": 6,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php": {
+                    "count": 16,
+                    "fingerprints": {
+                        "1a8da09e5b622d55174d760d1edff9c096bf83b57268f53b9b00a9d048bcc45d": 3,
+                        "1b79caa2f57fa82dd0a97def1ef5837de59f7134c014de5b81b3a4bb44119b7f": 5,
+                        "7aad14bcba43f98759614dac40aacc6c3d4cbf5a841fb4a506a2a6f0793c7dcf": 6,
+                        "b348c90efa8c82e59305a2f2c8bf926e6d35cf25e863ebacf2f57263501b1906": 1,
+                        "c9905a9255dea41e7f6c21e8742dd094ef8a609d59e6258042cbb07fdf078304": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "db_tx": 1,
+                        "one": 3,
+                        "q": 6,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "69fc559db312fb1433539ac7704b2023188cc4578d7066a08b532909c8aabad0": 1,
+                        "6c6479994473ec5b7871608c2083cfe7a1cd67cb751f751ed6dce3649024c372": 3
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "q": 3
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php": {
+                    "count": 18,
+                    "fingerprints": {
+                        "485fd5cbacbe552c09f73a681c19ef8cbf32d8f9977eb47d2579e9ab3dd89663": 1,
+                        "c1e402b50fde333d87706ec27c04517f7028f68b548562c7505930352b6b7624": 6,
+                        "d23eea6ff92bdde5248a4e7bf6e4908b8102876309e05a9a0ac3ec1f7e95472a": 11
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 6,
+                        "q": 11
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "52c52a29d95770f76058940f37153465f87a4e8f875bbca06592fc7b78203a78": 1,
+                        "61b9dacac0086150619ac8d8f02d1d05cf62191593e485e1ccd3e268774ceffe": 1
+                    },
+                    "operations": {
+                        "q": 1,
+                        "readonly_support_alerts_ensure_schema": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php": {
+                    "count": 14,
+                    "fingerprints": {
+                        "5cfabe9441b0f8cf70eed4e52a18687ecdd548add80f369d90f3b6813624bdb3": 1,
+                        "927d35144185c345aeb88a763d1ecc07844ea15f8a2d150e8791d6a92fd21a5e": 10,
+                        "cd7a3e4fc8fb658333502ec236f03c226e14f5153f028321c41d8cdebf04e1f3": 2,
+                        "dfc5e2e19357445287686ccbeaa772eee9491965c3c5a5144299c548bcd08a84": 1
+                    },
+                    "operations": {
+                        "db_last_insert_id": 2,
+                        "one": 1,
+                        "q": 10,
+                        "readonly_support_alerts_ensure_schema": 1
+                    }
+                },
+                "app/Runtime/UiComponents/UiComponentsRuntimeOperations01.php": {
+                    "count": 15,
+                    "fingerprints": {
+                        "1baff740380adc1189b3447854b6343ca5f1508b95a149399e26f9da82b98954": 2,
+                        "80861b3e6bacc87e032ccb3c713953dc3e7f07f42890d42ace4bddf4ce1a481a": 4,
+                        "85e99a64abeec63bdbbec805eee91d88ee1773e794a40b3a263bfde1b8569e0f": 2,
+                        "d1724bb771cc8faa0bf1232453a4165f45ca0005fd3de34f06e8b886ae7be9ad": 7
+                    },
+                    "operations": {
+                        "db_table_exists": 7,
+                        "one": 2,
+                        "q": 2,
+                        "val": 4
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php": {
+                    "count": 20,
+                    "fingerprints": {
+                        "33a647a79133e42848bcafbafc5b8da626cbd8c4d17564f989428ec746d76500": 10,
+                        "dd590a10936090589cbeed813efaf67abe695dea31ec934763359fefff2a96b5": 4,
+                        "e1ac2e807e3916f39d5749783cbb583c5ad2c6a2d07a0546e5f86d52dee0b277": 1,
+                        "f897f29f9a8d0b2453d1a3cb3ea430b4eb8fa0d6c6b02dde56d377fda2513eac": 5
+                    },
+                    "operations": {
+                        "db_last_insert_id": 1,
+                        "one": 4,
+                        "q": 10,
+                        "val": 5
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php": {
+                    "count": 12,
+                    "fingerprints": {
+                        "62852051da91813ccdf304cfcddf79e640c50ea9a90df242fc568a26a496e6e3": 1,
+                        "7e1ec51e0058721b72bf46eac538e0d5238935a661d0a0185c8e3a96af1b37bb": 2,
+                        "a7cf06474eb9b8e1e2111b199d33200e40bbbf1cd606bc28eb4af5e84430222c": 9
+                    },
+                    "operations": {
+                        "one": 2,
+                        "q": 9,
+                        "val": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "0a8687d13a47c0b0e534a9bc1cb4cbc7301d60cfbdcf997b0ac46cd489a3c381": 1
+                    },
+                    "operations": {
+                        "q": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": {
+                    "count": 9,
+                    "fingerprints": {
+                        "582ef752aede77d227af2424f190000a7d482003f5b67c178e30cb5c0cb9cf7f": 3,
+                        "e6e72059e3fe46a716013b18752684de2e48fd280ac9e6cc43c86bc309bbdaa4": 2,
+                        "fc95199c0716c78740ad79eb48d1741b89a71f6c30c5671256e09001b0b283cc": 4
+                    },
+                    "operations": {
+                        "q": 3,
+                        "safe_val": 4,
+                        "val": 2
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
+                    "count": 8,
+                    "fingerprints": {
+                        "0f4569eb0592baf805afa24bed8810540098cfefd5897de15dedf65fb81954b4": 6,
+                        "4e8f564fd82e6c4507fdb47aad559e35735b2bf47b74b71bc020ca902c99906e": 1,
+                        "a59bca3f03f1aaaaac83152bd18e5ac03770cda716cd85fb7cf0c61fd9a7f597": 1
+                    },
+                    "operations": {
+                        "one": 1,
+                        "q": 6,
+                        "val": 1
+                    }
+                }
+            }
+        },
+        "runtime_repository_instantiation_outside_composition": {
+            "total": 0,
+            "files_total": 0,
+            "operations": [],
+            "files": []
+        },
+        "runtime_transaction_orchestration_business": {
+            "total": 71,
+            "files_total": 22,
+            "operations": {
+                "db_begin_transaction": 15,
+                "db_commit": 15,
+                "db_rollback": 23,
+                "db_tx": 18
+            },
+            "files": {
+                "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
+                    "count": 19,
+                    "fingerprints": {
+                        "4ee9a5c4c011c988444329bb9659d34cfc2d0c18a6c032e3768cc51e3c9b3a2b": 11,
+                        "579310c176e0dd7f261acf9bb7284cf1ba339c56b14e9d3aa8f6c4ed1ca87d15": 4,
+                        "718e1ac44ae953f5b14300c38d61e5fe55c8a817b597319749c3571a5d87e749": 4
+                    },
+                    "operations": {
+                        "db_begin_transaction": 4,
+                        "db_commit": 4,
+                        "db_rollback": 11
+                    }
+                },
+                "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "e636e2cee37b6f0975d269fa1614f1696a1a65645a292da843a1433dafb96a45": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "01e306000f0716bf9878edbce09ff928b9e1faac564adcfafa62325bd11e5b87": 3,
+                        "07301e7e2495c7d0ad319350861fe9bb67e936faa125f4b1681c1192b1f10840": 1,
+                        "82088429192779dfbf6859c2d99a289706c4869e1272ca5cd7981377643d1339": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 3
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php": {
+                    "count": 5,
+                    "fingerprints": {
+                        "06564c75d1c3529f9cf7800f14fac90d8441d0b98ecac83404d935a4a989aaf4": 2,
+                        "35a99559c3cc26548337e264d003308f286b01b26b95cea7706e82ac72184afd": 2,
+                        "521c0f7cf01ff666b1a76c67a810cb86ef1417d2fd58d86795b8f455385671be": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 2,
+                        "db_commit": 2,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "03a00fd698d3c0891c9067ad8dffc6f5ebbff28cc95feafebeec9b46441e5120": 1,
+                        "7f806cd482518ce8db9b277d1bd06a41bcd8c191fbedcf54a322964fd49970e9": 1,
+                        "aeca8f3149a556f8b9a9e9c9eca7c46184ca2f82aae7d89f42161f53f0082fbc": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/Documents/DocumentsRuntimeOperations01.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "98241ec120a5a0fc65847970c06f3c329439d106f41b0d06d65fa6d49bd8ebaa": 2
+                    },
+                    "operations": {
+                        "db_tx": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations03.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "43e51ceeb54e2ff8b9548132ab3317298e704ccdac75b59969b69be4779941b0": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations05.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "f4bbc23e2146d6fce9534cce979e1c3091440af9819a6499f51fe991f9bba778": 2
+                    },
+                    "operations": {
+                        "db_tx": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "cfff85fcb42fab0e1d8c86d15b93e91bfcb76c3ad873a2996b2eed3fd31cff5b": 2
+                    },
+                    "operations": {
+                        "db_tx": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
+                    "count": 2,
+                    "fingerprints": {
+                        "8dc06a5a3cb9f6713ffc6049c21ca3a6b3c11f4ce8473541fc66a44290cf7b22": 2
+                    },
+                    "operations": {
+                        "db_tx": 2
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "53485aa614d93bf8ab0a936b3ecb0806eaeece3791e69437fbcc50033d56e948": 3
+                    },
+                    "operations": {
+                        "db_tx": 3
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations10.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "98bc08165baa57e3623d5fa8269fee39a0bd6f73811dcbc9fe4c168d35850b2a": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "47acfd3a15f3a82546eb82e3cdff7e8627e18e3752f3d6e43b54d89bbcc04034": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "707a6f37ed50452c47118ad14dc64ff38c183120ba8db38d3ed7bd77664bd9cb": 1,
+                        "b12a04184ae1d790f5f8973e520c663b6c400d117ba20b5a04010935b27d7b6b": 1,
+                        "b203f713739c6c51f171c84cc7db869bf40a6df9dc9b5f83d072ee79e3a0dc9d": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations01.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "63dd79c1dabf601790a981e893368b3127388575346a3d2597ca1ce1103f1f28": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations04.php": {
+                    "count": 4,
+                    "fingerprints": {
+                        "3094ac6b95fb1b3b2f43331c52039bdd622b11f9211c8b9bad105ab2ce564810": 1,
+                        "40f4b6439bb40a823b7434e477743af23ceb62ff925f43a3ff6e5be96f10b306": 1,
+                        "601ef2f40f53c5c0706ae9833731231d995d643ea62501538de31075aad6b8f3": 1,
+                        "93f29aef3d524648d597c534fff939d416496fa972dd916f3a890dad0b8abd85": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1,
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "0ce96303a0297f6f089d4cc4552f8c3c6e69501e45034a2f0a2fd582b08de957": 1,
+                        "b022e47b931bc29189e42665a363ca594206eae1c66ea41852cef8cf2e2f5574": 1,
+                        "b4018e1cb547bae0c5183fe564b3c2920aec98de15908e95ee950fa9857182b6": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "6042cff30b1ec32edf181dd497c5ab05d929e964925bf23d2a310b40c3c50a9c": 1,
+                        "b2dfdcf81c03e800bb52c7e04a683990dd529dd0242a5676450b49cb07e84519": 1,
+                        "d33e52e6705ef7738f65c58bb40e534a9588e4bc39fa835fd5120ea8eb321d03": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php": {
+                    "count": 1,
+                    "fingerprints": {
+                        "b2b0e88183c76686ce9292913b564da798c71d4ef1217de3431862c390b4c83a": 1
+                    },
+                    "operations": {
+                        "db_tx": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "5a2bd8731d14ede7dec40efdd8e757578c069c2e238314762eb30b37d1d62207": 1,
+                        "deae5590984a0f31f5cdbdf0e432e5ddaa465baf5fab3b370a78ee43d3431f5a": 1,
+                        "f29b62242363e05e74d9988f446d8ecd99ef7b7dd0f09f45c46798d46b14c869": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "518017e66aa3ba45dad65bc582ce414c9db0398fdd0dba0663a48feca6e66004": 1,
+                        "7d09ba5ed75586ee13c3740457237d1ab1eb27076b77faf0544c2b36e51fb890": 1,
+                        "aac2e8b0750d7978858c612b0fb983d386f45adbf800bfd7bf450b2d5396aa16": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                },
+                "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "46bc1c84e33dcdd2b0da6a106ebbddb14833b95c3a77045d5f53d5163091d201": 1,
+                        "787aad96b0cf88811ab4721a54a0992d81923d792ab5e7ef3151d4795cf4fc81": 1,
+                        "d9c7f1b0b61e60300d91021b943e7e0e3b73d422398acae6ed9e4fa77ee94e3d": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                }
+            }
+        },
+        "runtime_transaction_orchestration_structural": {
+            "total": 3,
+            "files_total": 1,
+            "operations": {
+                "db_begin_transaction": 1,
+                "db_commit": 1,
+                "db_rollback": 1
+            },
+            "files": {
+                "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": {
+                    "count": 3,
+                    "fingerprints": {
+                        "326abeef039e240b6e941f3811a11350076bc7caa98e603457a97d44331473c2": 1,
+                        "4db07b6204fdf192a1fbe958ea36ea47a0ee65d08f9ec3bbadc3ece3d5311e16": 1,
+                        "52980317caa114f12ab43330177c64353542d5c44874c90c6cb1447e1d861675": 1
+                    },
+                    "operations": {
+                        "db_begin_transaction": 1,
+                        "db_commit": 1,
+                        "db_rollback": 1
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "schema": "prontoo-runtime-boundary-contract-v1",
+    "policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
+    "runtime_root": "app/Runtime",
+    "baseline_file": "app/runtime.boundary-baseline.json",
+    "composition_roots": {
+        "app/Runtime/LayeredKernel.php": "wires the authorization service and its infrastructure proof store",
+        "app/Runtime/Patients/PatientComposition.php": "wires patient application services to PDO repositories",
+        "app/Runtime/Financial/FinancialComposition.php": "wires financial application services to PDO repositories",
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php": "wires security application ports to the persistence adapter"
+    },
+    "structural_sql_exceptions": {
+        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen compatibility execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
+    },
+    "persistence_helpers": {
+        "Prontoo\\Runtime\\DatabaseSchema\\DatabaseSchemaRuntimeOperations01": [
+            "q",
+            "one",
+            "val"
+        ],
+        "Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01": [
+            "safe_val",
+            "cached_val"
+        ]
+    },
+    "persistence_helper_method_patterns": [
+        "^db_(?:tx|last_insert_id|table_exists|column_exists)$",
+        "^(?:safe_db_columns|install_fresh_schema)$",
+        "^(?:ensure_[a-z0-9_]+_schema|[a-z0-9_]+_ensure_schema)$",
+        "^schema_(?:apply|cleanup)_[a-z0-9_]+$"
+    ],
+    "transaction_methods": [
+        "beginTransaction",
+        "commit",
+        "rollBack",
+        "db_tx",
+        "db_begin_transaction",
+        "db_commit",
+        "db_rollback"
+    ],
+    "required_zero_categories": [
+        "runtime_repository_instantiation_outside_composition"
+    ],
+    "path_zero_rules": []
+}
