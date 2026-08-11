@@ -56,7 +56,7 @@ final class AdminPagesRuntimeOperations03
             (int) ($current["landing_requests"] ?? 0),
         );
         return $card(
-            "Requisições",
+            "Visualizações",
             max(0, (int) ($current["requests"] ?? 0)),
             "route",
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
@@ -106,7 +106,7 @@ final class AdminPagesRuntimeOperations03
     $statusHeader =
         '<header class="status-page-header">' .
         '<span class="status-page-icon" aria-hidden="true">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitor_heart") . "</span>" .
-        '<div><h1>Status do Prontoo</h1><p>Comparação entre períodos móveis de 10 dias</p></div>' .
+        '<div><h1>Status do Prontoo</h1><p>Comparação entre 15 dias civis completos e os 15 imediatamente anteriores</p></div>' .
         "</header>";
     $card = $statusHeader . $overviewCards . \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html(true);
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .

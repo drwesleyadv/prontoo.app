@@ -1,10 +1,10 @@
 {
-    "version": "1.8.11.2",
-    "release": "1.8.11.2",
-    "generated_at_unix": 1786460105,
-    "generated_at": "2026-08-11T10:55:05-04:00",
-    "updated_at": "2026-08-11T10:55:05-04:00",
-    "build": "1.8.11.2-architecture-21",
+    "version": "1.8.11.3",
+    "release": "1.8.11.3",
+    "generated_at_unix": 1786477129,
+    "generated_at": "2026-08-11T15:38:49-04:00",
+    "updated_at": "2026-08-11T15:38:49-04:00",
+    "build": "1.8.11.3-telemetry-30d",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Manutenção pós-consolidação: hardening de logout global, contrato executável de refactoring-on-touch e formalização da baseline arquitetural consolidada.",
+    "notes": "Telemetria coerente de 30 dias: Visualizações por page_load e Registros por estoque total do banco amostrado pelo Maestro, com comparação civil 15x15 em America/Cuiaba.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.11.1",
+    "previous_version": "1.8.11.2",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.11.2-architecture-21",
-    "deployment_sync_requested_at": "2026-08-11T10:55:05-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.11.3-telemetry-30d",
+    "deployment_sync_requested_at": "2026-08-11T15:38:49-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -307,6 +307,7 @@
         "app/Support/Telemetry.php": [
             "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
             "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php",
             "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
         ],
         "app/Ui/Components.php": [
@@ -342,14 +343,14 @@
         ]
     },
     "changelog": {
-        "title": "Manutenção arquitetural e hardening de sessão",
+        "title": "Telemetria confiável de Visualizações e Registros",
         "items": [
-            "formaliza `1.8.11.1` como baseline arquitetural consolidada e adota modo de manutenção incremental",
-            "institui `refactor-on-touch` executável para hotspots Runtime acima de 500 linhas",
-            "extrai o logout para coordinator dedicado com até três tentativas de revogação global",
-            "torna explícita a degradação do logout com sessão local destruída e resposta HTTP 503 quando a revogação global não é confirmada",
-            "adiciona smoke HTTP real para CSRF, rotação de sessão, revogação multissessão e falha de escrita da geração canônica",
-            "preserva schema, banco e interface e mantém as invariantes arquiteturais de risco em zero"
+            "padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores",
+            "mantém Visualizações como eventos page_load válidos e deduplicados por evento_id",
+            "substitui a inferência de Registros pelo estoque exato de linhas de todas as tabelas base, amostrado pelo Maestro a cada execução válida",
+            "calcula Registros como total atual menos o total imediatamente anterior, preservando inclusive deltas negativos",
+            "persiste a série em ssd/telemetry/database-record-counts.json com retenção móvel de 31 dias",
+            "preserva schema e banco sem DDL e adiciona contrato executável para as fronteiras 30d e 15x15"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -552,6 +553,7 @@
         "app/Support/Telemetry.php": [
             "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php",
             "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php",
+            "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php",
             "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"
         ],
         "app/Ui/Components.php": [
@@ -572,5 +574,7 @@
     "architecture_evolution_mode": "consolidated_maintenance",
     "architecture_maintenance_policy": "no_new_architecture_cycle_without_failed_invariant_or_material_product_risk_refactor_on_touch",
     "runtime_refactor_on_touch_check": "tools/runtime-refactor-on-touch-check",
-    "logout_policy": "logout_global_session_revocation_v1"
+    "logout_policy": "logout_global_session_revocation_v1",
+    "database_record_telemetry_policy": "maestro_exact_total_snapshot_json_31d_delta_current_minus_previous_cuiaba_complete_30d_15x15",
+    "database_record_telemetry_path": "ssd/telemetry/database-record-counts.json"
 }

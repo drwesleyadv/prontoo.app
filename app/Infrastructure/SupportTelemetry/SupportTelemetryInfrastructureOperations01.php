@@ -112,7 +112,7 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_comparison_microseconds(): int
     
     {
-        return 10 * 86400 * 1000000;
+        return 15 * 86400 * 1000000;
     
     }
 
@@ -515,21 +515,31 @@ final class SupportTelemetryInfrastructureOperations01
     }
 
     public static function telemetry_comparative_summary(?int $nowUnixUs = null): array
-    
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $windowUs = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparison_microseconds();
-        $currentStartUs = $nowUnixUs - $windowUs;
-        $previousStartUs = $currentStartUs - $windowUs;
-        $current = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
-        $previous = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
-        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+        $timezone = self::telemetry_cuiaba_tz();
+        $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
+            ->setTimezone($timezone)
+            ->setTime(0, 0);
+        $currentEndUs = $today->getTimestamp() * 1000000;
+        $currentStartUs = $today->modify("-15 days")->getTimestamp() * 1000000;
+        $previousStartUs = $today->modify("-30 days")->getTimestamp() * 1000000;
+        $current = self::telemetry_empty_period();
+        $previous = self::telemetry_empty_period();
+        $seen = [];
+        foreach (self::telemetry_read_events($nowUnixUs) as $event) {
+            $eventId = (string) ($event["evento_id"] ?? "");
+            if ($eventId !== "") {
+                if (isset($seen[$eventId])) {
+                    continue;
+                }
+                $seen[$eventId] = true;
+            }
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            if ($finishedUs < $previousStartUs || $finishedUs >= $nowUnixUs) {
+            if ($finishedUs < $previousStartUs || $finishedUs >= $currentEndUs) {
                 continue;
             }
-            $target = $finishedUs >= $currentStartUs ? "current" : "previous";
-            if ($target === "current") {
+            if ($finishedUs >= $currentStartUs) {
                 $current["requests"]++;
                 $current["duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
                 if ((string) ($event["rota"] ?? "") === "landing") {
@@ -545,41 +555,34 @@ final class SupportTelemetryInfrastructureOperations01
                 }
             }
         }
-        $current = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_finalize_period($current);
-        $previous = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_finalize_period($previous);
+        $current = self::telemetry_finalize_period($current);
+        $previous = self::telemetry_finalize_period($previous);
         return [
             "generated_at_unix_us" => $nowUnixUs,
             "current_start_unix_us" => $currentStartUs,
             "previous_start_unix_us" => $previousStartUs,
+            "current_end_unix_us" => $currentEndUs,
             "current" => $current,
             "previous" => $previous,
             "variations" => [
-                "requests_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                "requests_pct" => self::telemetry_percentage_variation(
                     $current["requests"],
                     $previous["requests"],
                 ),
-                "average_ms_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(
-                    isset($current["average_ms"])
-                        ? (float) $current["average_ms"]
-                        : null,
-                    isset($previous["average_ms"])
-                        ? (float) $previous["average_ms"]
-                        : null,
+                "average_ms_pct" => self::telemetry_nullable_percentage_variation(
+                    isset($current["average_ms"]) ? (float) $current["average_ms"] : null,
+                    isset($previous["average_ms"]) ? (float) $previous["average_ms"] : null,
                 ),
-                "landing_requests_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                "landing_requests_pct" => self::telemetry_percentage_variation(
                     $current["landing_requests"],
                     $previous["landing_requests"],
                 ),
-                "landing_average_ms_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(
-                    isset($current["landing_average_ms"])
-                        ? (float) $current["landing_average_ms"]
-                        : null,
-                    isset($previous["landing_average_ms"])
-                        ? (float) $previous["landing_average_ms"]
-                        : null,
+                "landing_average_ms_pct" => self::telemetry_nullable_percentage_variation(
+                    isset($current["landing_average_ms"]) ? (float) $current["landing_average_ms"] : null,
+                    isset($previous["landing_average_ms"]) ? (float) $previous["landing_average_ms"] : null,
                 ),
             ],
         ];
-    
     }
+
 }

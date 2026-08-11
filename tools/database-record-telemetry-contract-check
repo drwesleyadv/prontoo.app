@@ -1,0 +1,88 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/compatibility-source.php';
+
+$root = dirname(__DIR__);
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
+$assert = static function (bool $condition, string $message): void {
+    if (!$condition) {
+        throw new RuntimeException("Contrato de telemetria de registros: " . $message);
+    }
+};
+$timezone = new DateTimeZone("America/Cuiaba");
+$now = (new DateTimeImmutable("2026-08-11 15:00:00", $timezone))->getTimestamp();
+$today = (new DateTimeImmutable("@" . $now))
+    ->setTimezone($timezone)
+    ->setTime(0, 0);
+$samples = [];
+for ($index = 0; $index < 30; $index++) {
+    $day = $today->modify("-" . (30 - $index) . " days")->setTime(12, 0);
+    $samples[] = [
+        "captured_at_unix" => $day->getTimestamp(),
+        "total_records" => 1000 + $index,
+        "delta_records" => $index === 29 ? -7 : $index + 1,
+    ];
+}
+$samples[] = [
+    "captured_at_unix" => $today->setTime(12, 0)->getTimestamp(),
+    "total_records" => 2000,
+    "delta_records" => 999,
+];
+$series = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples(
+    $samples,
+    $now,
+);
+$assert(count($series) === 30, "a série deve conter exatamente 30 dias completos");
+$assert(($series[0]["key"] ?? "") === "2026-07-12", "primeira fronteira civil incorreta");
+$assert(($series[29]["key"] ?? "") === "2026-08-10", "última fronteira civil incorreta");
+$assert((int) ($series[29]["value"] ?? 0) === -7, "deltas negativos devem ser preservados");
+$assert(
+    array_sum(array_column($series, "value")) !== 999,
+    "o dia em curso não pode contaminar a série",
+);
+$comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d(
+    $series,
+);
+$assert((int) ($comparison["previous_total"] ?? 0) === 120, "primeiros 15 dias incorretos");
+$assert((int) ($comparison["current_total"] ?? 0) === 308, "últimos 15 dias incorretos");
+$assert(
+    (int) ($comparison["previous_observed_days"] ?? 0) === 15 &&
+        (int) ($comparison["current_observed_days"] ?? 0) === 15,
+    "comparação completa deve exigir 15 dias observados em cada período",
+);
+$emptyComparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d(
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples([], $now),
+);
+$assert(
+    array_key_exists("variation_pct", $emptyComparison) &&
+        $emptyComparison["variation_pct"] === null,
+    "períodos sem cobertura completa não podem produzir percentual",
+);
+$cron = (string) file_get_contents($root . "/cron/maestro.php");
+$assert(
+    str_contains($cron, "telemetry_database_record_snapshot_capture()"),
+    "Maestro deve capturar o estoque em cada ciclo",
+);
+$admin = (string) file_get_contents(
+    $root . "/app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php",
+);
+$assert(
+    str_contains($admin, "\"primary_label\" => \"Visualizações\""),
+    "page_load deve ser nomeado Visualizações",
+);
+$assert(
+    str_contains($admin, "\"comparison_points\" => 15"),
+    "comparação deve ser 15x15",
+);
+unset(
+    $root,
+    $assert,
+    $timezone,
+    $now,
+    $today,
+    $samples,
+    $series,
+    $comparison,
+    $cron,
+    $admin,
+);
