@@ -1,0 +1,224 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+require_once $root . '/app/Core/Architecture/LayerMap.php';
+
+use Prontoo\Core\Architecture\LayerMap;
+
+$thresholds = [500, 700, 1000];
+$operationalFactories = array_fill_keys([
+    'tasks',
+    'appointments',
+    'patients',
+    'documents',
+    'leads',
+    'maestro',
+    'administration',
+    'platform',
+], true);
+$nameTokenIds = array_filter([
+    T_STRING,
+    defined('T_NAME_QUALIFIED') ? T_NAME_QUALIFIED : null,
+    defined('T_NAME_FULLY_QUALIFIED') ? T_NAME_FULLY_QUALIFIED : null,
+], static fn(?int $id): bool => $id !== null);
+
+$significant = static function (array $tokens): array {
+    $result = [];
+    foreach ($tokens as $token) {
+        if (is_array($token) && in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+        $result[] = [
+            'id' => is_array($token) ? $token[0] : null,
+            'text' => is_array($token) ? $token[1] : $token,
+            'line' => is_array($token) ? (int) $token[2] : 0,
+        ];
+    }
+    return $result;
+};
+$classBase = static function (string $name): string {
+    $parts = explode('\\', ltrim($name, '\\'));
+    return (string) end($parts);
+};
+$hotspotBucket = static function (int $lines) use ($thresholds): int {
+    $bucket = 0;
+    foreach ($thresholds as $threshold) {
+        if ($lines > $threshold) {
+            $bucket++;
+        }
+    }
+    return $bucket;
+};
+
+$paths = [];
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root . '/app/Runtime', FilesystemIterator::SKIP_DOTS),
+);
+foreach ($iterator as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+        continue;
+    }
+    $paths[] = str_replace('\\', '/', $file->getPathname());
+}
+sort($paths, SORT_STRING);
+
+$files = [];
+$totals = [
+    'input_adapter_files' => 0,
+    'infrastructure_references' => 0,
+    'generic_data_gateway_calls' => 0,
+    'hotspots_over_500' => 0,
+    'hotspots_over_700' => 0,
+    'hotspots_over_1000' => 0,
+];
+foreach ($paths as $path) {
+    $relative = ltrim(substr($path, strlen($root) + 1), '/');
+    if (LayerMap::compositionRoleFor($relative) !== LayerMap::RUNTIME_INPUT_ADAPTER) {
+        continue;
+    }
+    $totals['input_adapter_files']++;
+    $source = (string) file_get_contents($path);
+    $tokens = $significant(token_get_all($source, TOKEN_PARSE));
+    $infrastructureCategories = [];
+    $gatewayCalls = 0;
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        $id = $token['id'];
+        $text = (string) $token['text'];
+        if ($id !== null && in_array($id, $nameTokenIds, true) &&
+            preg_match('/^\\\\?Prontoo\\\\Infrastructure\\\\([A-Za-z0-9_]+)/', $text, $match) === 1) {
+            $category = (string) $match[1];
+            $infrastructureCategories[$category] = (int) ($infrastructureCategories[$category] ?? 0) + 1;
+        }
+        if ($id === null || !in_array($id, $nameTokenIds, true) || (($tokens[$index + 1]['text'] ?? null) !== '::')) {
+            continue;
+        }
+        $composition = $classBase($text);
+        $factory = (string) ($tokens[$index + 2]['text'] ?? '');
+        if (($tokens[$index + 3]['text'] ?? null) !== '(' || ($tokens[$index + 4]['text'] ?? null) !== ')') {
+            continue;
+        }
+        if (($composition === 'OperationalComposition' && isset($operationalFactories[$factory])) ||
+            (in_array($composition, ['FinancialComposition', 'SecurityAccessComposition'], true) && $factory === 'dataService')) {
+            $gatewayCalls++;
+        }
+    }
+    ksort($infrastructureCategories, SORT_STRING);
+    $infrastructureReferences = array_sum($infrastructureCategories);
+    $lines = substr_count($source, "\n") + 1;
+    $bucket = $hotspotBucket($lines);
+    $totals['infrastructure_references'] += $infrastructureReferences;
+    $totals['generic_data_gateway_calls'] += $gatewayCalls;
+    foreach ($thresholds as $threshold) {
+        if ($lines > $threshold) {
+            $totals['hotspots_over_' . $threshold]++;
+        }
+    }
+    if ($infrastructureReferences > 0 || $gatewayCalls > 0 || $bucket > 0) {
+        $files[$relative] = [
+            'infrastructure_references' => $infrastructureReferences,
+            'infrastructure_categories' => $infrastructureCategories,
+            'generic_data_gateway_calls' => $gatewayCalls,
+            'hotspot_bucket' => $bucket,
+        ];
+    }
+}
+ksort($files, SORT_STRING);
+
+if (in_array('--print-budget', $argv, true)) {
+    $sourceSha = '';
+    foreach ($argv as $argument) {
+        if (str_starts_with((string) $argument, '--source-sha=')) {
+            $sourceSha = trim(substr((string) $argument, strlen('--source-sha=')));
+        }
+    }
+    if (preg_match('/^[a-f0-9]{40}$/', $sourceSha) !== 1) {
+        throw new RuntimeException('SHA de origem do budget inválido.');
+    }
+    fwrite(STDOUT, json_encode([
+        'schema' => 'prontoo-runtime-input-boundary-budget-v1',
+        'policy' => 'runtime_input_adapter_infrastructure_gateway_and_hotspot_debt_is_explicit_and_monotonic',
+        'source_sha' => $sourceSha,
+        'thresholds' => $thresholds,
+        'composition_roots' => LayerMap::compositionRoots(),
+        'totals' => $totals,
+        'files' => $files,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL);
+    exit(0);
+}
+
+$budgetPath = $root . '/app/runtime.input-boundary-budget.json';
+$budget = json_decode((string) file_get_contents($budgetPath), true, 512, JSON_THROW_ON_ERROR);
+if (!is_array($budget) || ($budget['schema'] ?? '') !== 'prontoo-runtime-input-boundary-budget-v1') {
+    throw new RuntimeException('Budget dos input adapters Runtime inválido.');
+}
+$failures = [];
+if (($budget['thresholds'] ?? null) !== $thresholds) {
+    $failures[] = ['rule' => 'threshold_drift'];
+}
+if (($budget['composition_roots'] ?? null) !== LayerMap::compositionRoots()) {
+    $failures[] = ['rule' => 'composition_root_drift'];
+}
+$budgetTotals = (array) ($budget['totals'] ?? []);
+foreach (['infrastructure_references', 'generic_data_gateway_calls', 'hotspots_over_500', 'hotspots_over_700', 'hotspots_over_1000'] as $metric) {
+    $maximum = (int) ($budgetTotals[$metric] ?? -1);
+    if ($maximum < 0 || (int) $totals[$metric] > $maximum) {
+        $failures[] = [
+            'rule' => 'total_increased',
+            'metric' => $metric,
+            'baseline' => $maximum,
+            'current' => (int) $totals[$metric],
+        ];
+    }
+}
+$budgetFiles = (array) ($budget['files'] ?? []);
+foreach ($files as $file => $data) {
+    $maximum = (array) ($budgetFiles[$file] ?? []);
+    foreach (['infrastructure_references', 'generic_data_gateway_calls', 'hotspot_bucket'] as $metric) {
+        $limit = (int) ($maximum[$metric] ?? 0);
+        if ((int) $data[$metric] > $limit) {
+            $failures[] = [
+                'rule' => $metric === 'hotspot_bucket' ? 'hotspot_bucket_worsened' : 'file_debt_increased',
+                'file' => $file,
+                'metric' => $metric,
+                'baseline' => $limit,
+                'current' => (int) $data[$metric],
+            ];
+        }
+    }
+    $allowedCategories = (array) ($maximum['infrastructure_categories'] ?? []);
+    foreach ((array) $data['infrastructure_categories'] as $category => $current) {
+        $limit = (int) ($allowedCategories[$category] ?? 0);
+        if ((int) $current > $limit) {
+            $failures[] = [
+                'rule' => $limit === 0 ? 'new_infrastructure_dependency_category' : 'infrastructure_dependency_increased',
+                'file' => $file,
+                'category' => $category,
+                'baseline' => $limit,
+                'current' => (int) $current,
+            ];
+        }
+    }
+}
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => (string) ($budget['policy'] ?? ''),
+    'baseline_source_sha' => (string) ($budget['source_sha'] ?? ''),
+    'totals' => $totals,
+    'reductions' => [
+        'infrastructure_references' => max(0, (int) ($budgetTotals['infrastructure_references'] ?? 0) - $totals['infrastructure_references']),
+        'generic_data_gateway_calls' => max(0, (int) ($budgetTotals['generic_data_gateway_calls'] ?? 0) - $totals['generic_data_gateway_calls']),
+        'hotspots_over_500' => max(0, (int) ($budgetTotals['hotspots_over_500'] ?? 0) - $totals['hotspots_over_500']),
+    ],
+    'failures' => $failures,
+];
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL);
+exit($failures === [] ? 0 : 1);

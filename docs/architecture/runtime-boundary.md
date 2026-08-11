@@ -2,69 +2,72 @@
 
 ## Finalidade
 
-`app/Runtime` deve convergir para bootstrap, wiring, adaptação de entrada, dispatch e coordenação fina. Persistência, transações de caso de uso e adaptadores concretos pertencem a Application/Infrastructure e não ganham legitimidade por estarem presentes na árvore histórica.
+`app/Runtime` deve convergir para bootstrap, wiring, adaptação HTTP e coordenação fina. SQL, PDO, transações de caso de uso e adapters concretos pertencem às camadas Application/Infrastructure; a classificação ampla como Composition não autoriza essas responsabilidades.
 
-O gate canônico é `php tools/runtime-boundary-check`. Ele integra `tools/quality-gate` e analisa a árvore inteira de `app/Runtime` por tokens PHP. Comentários, docblocks e HTML fora de PHP não entram no inventário. SQL é reconhecido em tokens de string com forma de `SELECT`, `INSERT`, `UPDATE`, `DELETE` ou `REPLACE`; chamadas a helpers, PDO, transações e instanciações concretas são reconhecidas pela estrutura de tokens e pela resolução de imports.
+Dois gates tokenizados protegem essa fronteira:
 
-## Baseline da Fase 16
+- `php tools/runtime-boundary-check` inventaria SQL, PDO, helpers, adapters concretos e controle transacional;
+- `php tools/runtime-input-boundary-check` mede, somente nos arquivos classificados como input adapters, referências diretas a Infrastructure, chamadas ao gateway genérico de dados e faixas de tamanho.
+
+Comentários, docblocks e HTML fora de PHP não entram nos inventários. Os gates mantêm limites globais, por arquivo e por categoria; arquivo novo começa com teto zero.
+
+## Baseline histórica da Fase 16
 
 | Categoria | Ocorrências | Arquivos |
 |---|---:|---:|
 | SQL de negócio em Runtime | 913 | 95 |
-| SQL estrutural explicitamente classificado | 2 | 1 |
+| SQL estrutural | 2 | 1 |
 | acesso direto a PDO | 38 | 19 |
 | helpers de persistência | 921 | 91 |
 | adapters/repositories fora de composition roots | 0 | 0 |
-| controle transacional de negócio | 71 | 22 |
+| controle transacional então detectado | 71 | 22 |
 | controle transacional estrutural | 3 | 1 |
 
-A origem congelada é o commit `081cdbb234b70f2fa8dc4a1ac95325e022c614ca`, versão `1.8.10.1`. O inventário completo, por arquivo, operação e assinatura, está em `app/runtime.boundary-baseline.json`.
+A origem histórica permanece o commit `081cdbb234b70f2fa8dc4a1ac95325e022c614ca`, versão `1.8.10.1`. Esses números são preservados para rastreabilidade e não são o teto corrente.
 
-## Monotonicidade
+## Correção semântica de 2026-08-11
 
-Cada achado recebe fingerprint estável por categoria, arquivo, operação e payload normalizado. O gate falha quando:
+A reavaliação identificou que o analisador anterior não reconhecia `atomic()`/`atomically()`. Por isso, a conclusão de transações de caso de uso iguais a zero não era comprovada. Com esses métodos incluídos, o commit `7fe4800f2752e4656f88820e77609e355f9f72f3` possui:
 
-- o total de uma categoria aumenta;
-- um arquivo ultrapassa sua contagem congelada;
-- surge uma assinatura que não existia na baseline;
-- um arquivo novo introduz persistência Runtime;
-- uma categoria ou prefixo declarado como zero deixa de estar zerado;
-- composition roots ou classificações estruturais divergem da lista explícita congelada.
+| Categoria corrente | Ocorrências |
+|---|---:|
+| SQL de negócio | 0 |
+| SQL estrutural | 0 |
+| PDO direto | 0 |
+| helpers estruturais | 2 |
+| adapters concretos fora dos roots | 0 |
+| transações de caso de uso | 33 |
+| transações estruturais | 3 |
 
-Remoções passam sem rebaselinar. Assim, uma fase posterior pode reduzir a dívida sem tornar o teto restante mais permissivo.
+As 33 ocorrências estão em 22 arquivos: 12 no financeiro, 7 em autenticação/permissões e 14 em módulos operacionais/instalação. Elas são dívida explícita, não exceção arquitetural. Durante a extração, seu contador pode apenas diminuir; a regra zero voltará a ser ativada quando a última ocorrência sair do Runtime.
 
-## Fechamento financeiro da Fase 17
+O segundo inventário tornou mensurável outra distinção antes mascarada pela classificação Composition:
 
-O prefixo `app/Runtime/Financial/` possui regra zero explícita para todas as categorias do contrato. A migração removeu 201 ocorrências de SQL de negócio, 227 chamadas a helpers de persistência e 12 controles transacionais do Runtime financeiro. Nesse prefixo, SQL, PDO, helpers, instanciação concreta e transações agora permanecem em zero.
+| Dívida de input adapters | Teto corrente |
+|---|---:|
+| referências diretas a Infrastructure | 615 |
+| chamadas ao gateway genérico de dados | 928 |
+| arquivos acima de 500 linhas | 42 |
+| arquivos acima de 700 linhas | 7 |
+| arquivos acima de 1.000 linhas | 4 |
 
-Os adaptadores Runtime preservam request, sessão, redirect, flash e composição HTML. Operações de dados passam por `FinancialDataService` e sua porta fechada; somente identificadores semânticos catalogados são aceitos. `PdoFinancialDataRepository` resolve esses identificadores nos catálogos SQL de Infrastructure e executa pelo executor guardado ligado em `FinancialComposition`, preservando scope guard, integridade, retries e a proteção de movimentos consolidados. O serviço não aceita SQL arbitrário vindo do Runtime.
+Esses tetos não são metas arquiteturais nem allowlist por diretório. Cada arquivo e cada categoria de dependência possui limite próprio; novas referências, chamadas genéricas ou mudança para uma faixa de tamanho pior falham na CI. Remoções passam sem rebaselinar.
 
-## Fechamento de segurança e identidade da Fase 18
+## Estado das migrações 17–19
 
-Os prefixos `app/Runtime/SecurityAccess/`, `app/Runtime/AuthOnboarding/` e `app/Runtime/UsersPermissions/` também possuem regras zero para todas as categorias do contrato. Login, MFA, geração de autenticação, onboarding, usuários e permissões preservam request, sessão, cookie, redirect e flash no Runtime; a persistência usa operações fechadas de `IdentityDataService`, catálogos em Infrastructure e transações executadas pela porta. O registro de violações de escopo usa uma porta dedicada que mantém PDO e integração com `PiIntegrity` fora do Runtime, inclusive para evitar recursão no próprio scope guard.
+As fases 17–19 removeram SQL de negócio e PDO direto do Runtime e proibiram a instanciação de adapters concretos fora dos cinco roots. `FinancialDataService`, `IdentityDataService` e `OperationalUseCaseService` usam catálogos fechados de operações, portanto o Runtime não envia SQL arbitrário.
 
-O analisador reconhece formas executáveis de `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`. Valores de domínio isolados, como os estados `replace` e `delete`, não são SQL e não entram no inventário.
-
-## Fechamento operacional da Fase 19
-
-A regra zero global cobre SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em toda a árvore `app/Runtime/`. Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e os módulos residuais usam operações semânticas fechadas por escopo através de `OperationalUseCaseService`; `OperationalComposition` conecta as portas pequenas de dados, schema e contexto ao catálogo PDO de Infrastructure.
-
-O fechamento removeu do Runtime 913 ocorrências de SQL de negócio, 38 acessos diretos a PDO e 71 controles transacionais de negócio em relação à baseline da Fase 16. O executor guardado preserva isolamento de tenant, integridade e transações estruturais; seus dois helpers de compatibilidade e três controles transacionais estruturais continuam inventariados, não representam persistência de caso de uso e não podem crescer.
+Contudo, os callbacks `atomic()` ainda deixam parte da sequência transacional, decisões de `rowCount` e obtenção de IDs nos handlers Runtime. O ciclo corretivo move somente essas sequências reais para serviços semânticos de Application e portas coesas. Leituras simples podem continuar em read models catalogados quando outra abstração não trouxer benefício concreto.
 
 ## Exceções explícitas
 
-As composition roots autorizadas são cinco arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural é `DatabaseSchemaRuntimeOperations01.php`: nela permanecem somente dispatch guardado e atomicidade estrutural explicitamente inventariados, sem SQL, PDO ou transação de negócio. Não existe allowlist genérica por diretório, namespace ou padrão.
-
-## Consolidação da Fase 21
-
-O estado zero deixou de ser apenas a conclusão de uma migração e passou a compor o contrato final. `LayerMap::compositionRoots()` e `app/runtime.boundary-contract.json` devem declarar os mesmos cinco arquivos. A submétrica de Composition distingue roots, bootstrap, adapters de entrada, comissionamento, ferramentas e entrypoints; nenhum desses papéis autoriza lógica de persistência fora de Infrastructure.
-
-Renderizadores concretos de consulta para leads, auditoria, diretório de pacientes e exclusão do consultório-modelo foram consolidados em `app/Infrastructure/Operational`. Domain/Core continuam fornecendo estados, invariantes e decisões puras, sem montar SQL de negócio.
+As cinco composition roots são arquivos exatos enumerados pelo contrato. `DatabaseSchemaRuntimeOperations01.php` é a única classificação estrutural: mantém dois helpers de dispatch e três controles transacionais estruturais inventariados. Não há allowlist genérica por namespace, diretório ou padrão.
 
 ## Operação
 
-- `php tools/runtime-boundary-check` valida monotonicidade e tetos zero;
-- `php tools/runtime-boundary-check --inventory` inclui o inventário atual completo;
-- `php tools/runtime-boundary-check --print-baseline --source-sha=<sha>` materializa uma baseline para revisão explícita, mas não é executado pela CI.
+- `php tools/runtime-boundary-check` valida monotonicidade e categorias zero;
+- `php tools/runtime-boundary-check --inventory` exibe o inventário completo;
+- `php tools/runtime-input-boundary-check` valida dependências, gateway e hotspots por papel;
+- os modos `--print-baseline` e `--print-budget` materializam contratos para revisão explícita e não são executados automaticamente pela CI.
 
-Novos arquivos Runtime não podem introduzir persistência. As quatro categorias semânticas globais permanecem obrigatoriamente em zero.
+O estado comprovado hoje é: SQL, PDO e adapters concretos indevidos em zero; 33 orquestrações transacionais e a dívida de input adapters congeladas para redução monotônica.

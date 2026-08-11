@@ -27,8 +27,9 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | prontidão e manutenção | `app/Runtime/Boot/*` |
 | roteamento | `app/Runtime/Routing/*` |
 | wiring concreto de features | os cinco roots enumerados por `LayerMap::compositionRoots()` |
-| adapters finos de entrada | demais handlers em `app/Runtime/*` |
+| input adapters HTTP/runtime | demais handlers em `app/Runtime/*`; a classificação não presume que já sejam finos |
 | inventário monotônico da fronteira Runtime | `app/runtime.boundary-contract.json`, `app/runtime.boundary-baseline.json`, `tools/runtime-boundary-check` |
+| dívida por papel dos input adapters | `app/runtime.input-boundary-budget.json`, `tools/runtime-input-boundary-check` |
 | matriz e cobertura dos casos críticos de Application | `app/application.test-contract.json`, `tools/application-test-contract-check`, `tools/test-fast` |
 | budgets reais dos read models críticos | `app/query.budgets.json`, `tools/query-budget-contract-check`, `tools/mysql-query-budget-check` |
 | entradas web | `index.php`, `install.php`, `br`, `public` |
@@ -53,11 +54,11 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - criação de aba: `PatientTabCommandPort/Service` + repositório PDO transacional;
 - atualização de contato: `PatientContactCommandPort/Service` + repositório PDO transacional;
 - recebimento financeiro: `PatientRevenueReceiptPort/Service` + repositório PDO transacional;
-- fronteira financeira fechada: `FinancialDataPort/Service` aceita somente operações semânticas catalogadas; `FinancialComposition` liga o adapter ao executor guardado e o Runtime financeiro não contém SQL, PDO, helpers ou controle transacional;
-- fronteira de identidade fechada: SecurityAccess, AuthOnboarding e UsersPermissions usam operações nomeadas de `IdentityDataService`; PDO, SQL, locks de persistência e transações ficam em Infrastructure, enquanto request, sessão, cookies e respostas HTTP permanecem no Runtime;
-- fronteira operacional fechada: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e módulos residuais usam serviços por escopo e operações nomeadas; SQL, PDO e atomicidade de casos de uso ficam fora do Runtime;
+- fronteira financeira de persistência: `FinancialDataPort/Service` aceita operações catalogadas e o Runtime financeiro não contém SQL, PDO ou helpers; 12 sequências `atomic()` ainda aguardam extração semântica;
+- fronteira de identidade de persistência: SecurityAccess, AuthOnboarding e UsersPermissions usam operações nomeadas de `IdentityDataService`; SQL e PDO ficam em Infrastructure, enquanto 7 sequências transacionais ainda são dívida corretiva no Runtime;
+- fronteira operacional de persistência: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e módulos residuais usam serviços por escopo e operações nomeadas; SQL e PDO estão fora do Runtime, mas 14 sequências transacionais ainda coordenam casos de uso nos handlers;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
-- fechamento de testes de Application: todos os entry points públicos dos 13 services estão ligados a 32 casos críticos, 15 ports e assertivas unitárias sem banco; atomicidade permanece em smoke MySQL separado.
+- contrato de testes de Application: 32 entry points públicos de 13 services estão caracterizados sem banco e ligados a 15 ports; a classificação semântica de criticidade será separada do plumbing genérico no ciclo corretivo.
 - consolidação de performance: 11 read models críticos possuem budgets MySQL reais para `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`, sem gates frágeis baseados em tempo absoluto.
 
 ## Regras de localização
@@ -72,4 +73,4 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 
 ## Limites atuais
 
-A baseline consolidada exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso estão zerados no Runtime; os contadores estruturais residuais do executor guardado permanecem inventariados e monotônicos. `tools/architecture-check.php`, `tools/runtime-boundary-check`, `tools/native-unit-check` e `tools/solid-audit --strict` são contratos permanentes de regressão.
+A baseline exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. SQL de negócio, PDO direto e adapters concretos fora dos roots estão zerados. As 33 transações de caso de uso, 615 referências diretas a Infrastructure, 928 chamadas genéricas e 42 input adapters acima de 500 linhas estão explicitamente congelados para redução monotônica. `tools/runtime-input-boundary-check` complementa os contratos anteriores sem transformar Composition em exceção livre.

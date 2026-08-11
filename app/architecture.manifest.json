@@ -13,9 +13,9 @@
         "application": "use cases and ports",
         "infrastructure": "PDO, live credential resolution, runtime permission matrix and external adapters",
         "presentation": "HTTP and UI adapters",
-        "composition": "explicit dependency wiring, runtime bootstrap, commissioning and thin input-adapter boundaries"
+        "composition": "explicit dependency wiring, runtime bootstrap, commissioning and input-adapter boundaries whose debt is measured separately"
     },
-    "dependency_rule": "dependencies_point_inward_and_only_explicit_composition_roots_may_instantiate_concrete_adapters_while_other_runtime_units_remain_thin_input_boundaries",
+    "dependency_rule": "dependencies_point_inward_and_only_explicit_composition_roots_may_instantiate_concrete_adapters_while_other_runtime_units_remain_measured_input_boundaries",
     "authorization_entrypoint": "Prontoo\\Runtime\\LayeredKernel::enforceAction",
     "mutation_entrypoint": "Prontoo\\Core\\Invariant\\InvariantKernel::guardMutation",
     "credential_policy": "every_protected_post_revalidates_active_user_clinic_and_roles_or_global_admin_status_from_the_database",
@@ -30,7 +30,7 @@
     "ci_workflow": ".github/workflows/architecture.yml",
     "solid_policy": "solid-structural-contract-v3",
     "solid_check": "tools/solid-audit",
-    "solid_runtime_composition_policy": "five_explicit_composition_roots_wire_typed_application_boundaries_while_bootstrap_and_input_adapters_remain_persistence_free_without_operation_gateway_or_global_compatibility_facades",
+    "solid_runtime_composition_policy": "five_explicit_composition_roots wire concrete adapters while runtime input debt is measured by role and may only decrease without operation gateway or global compatibility facades",
     "solid_runtime_composition_components": [
         "app/Runtime/Modules/RuntimeBootPolicy.php",
         "app/Runtime/Modules/RuntimeModuleCatalog.php",
@@ -64,18 +64,28 @@
         "app/Runtime/Operational/OperationalComposition.php",
         "app/Runtime/Runner.php"
     ],
-    "runtime_boundary_policy": "runtime_business_persistence_categories_are_zero_and_tokenized_structural_compatibility_debt_remains_frozen_and_monotonic",
+    "runtime_boundary_policy": "runtime_sql_pdo_and_concrete_adapter_categories_are_zero_while_transaction_input_gateway_and_hotspot_debt_are_truthfully_inventoried_and_monotonic_during_the_corrective_cycle",
     "runtime_boundary_contract": "app/runtime.boundary-contract.json",
     "runtime_boundary_baseline": "app/runtime.boundary-baseline.json",
     "runtime_boundary_check": "tools/runtime-boundary-check",
-    "runtime_boundary_baseline_source_sha": "081cdbb234b70f2fa8dc4a1ac95325e022c614ca",
-    "runtime_boundary_baseline_metrics": {
+    "runtime_boundary_historical_baseline_source_sha": "081cdbb234b70f2fa8dc4a1ac95325e022c614ca",
+    "runtime_boundary_historical_baseline_metrics": {
         "runtime_business_sql": 913,
         "runtime_structural_sql": 2,
         "runtime_direct_pdo": 38,
         "runtime_persistence_helper": 921,
         "runtime_repository_instantiation_outside_composition": 0,
         "runtime_transaction_orchestration_business": 71,
+        "runtime_transaction_orchestration_structural": 3
+    },
+    "runtime_boundary_baseline_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "runtime_boundary_baseline_metrics": {
+        "runtime_business_sql": 0,
+        "runtime_structural_sql": 0,
+        "runtime_direct_pdo": 0,
+        "runtime_persistence_helper": 2,
+        "runtime_repository_instantiation_outside_composition": 0,
+        "runtime_transaction_orchestration_business": 33,
         "runtime_transaction_orchestration_structural": 3
     },
     "runtime_boundary_zero_paths": {
@@ -85,7 +95,6 @@
             "runtime_direct_pdo",
             "runtime_persistence_helper",
             "runtime_repository_instantiation_outside_composition",
-            "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
         ],
         "app/Runtime/SecurityAccess/": [
@@ -94,7 +103,6 @@
             "runtime_direct_pdo",
             "runtime_persistence_helper",
             "runtime_repository_instantiation_outside_composition",
-            "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
         ],
         "app/Runtime/AuthOnboarding/": [
@@ -103,7 +111,6 @@
             "runtime_direct_pdo",
             "runtime_persistence_helper",
             "runtime_repository_instantiation_outside_composition",
-            "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
         ],
         "app/Runtime/UsersPermissions/": [
@@ -112,17 +119,27 @@
             "runtime_direct_pdo",
             "runtime_persistence_helper",
             "runtime_repository_instantiation_outside_composition",
-            "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
         ],
         "app/Runtime/": [
             "runtime_business_sql",
             "runtime_direct_pdo",
-            "runtime_repository_instantiation_outside_composition",
-            "runtime_transaction_orchestration_business"
+            "runtime_repository_instantiation_outside_composition"
         ]
     },
-    "engineering_phase_seventeen_policy": "financial_runtime_adapts_input_and_output_while_application_ports_dispatch_only_named_financial_operations_to_guarded_infrastructure_catalogs",
+    "runtime_input_boundary_policy": "direct_infrastructure_references_generic_data_gateway_calls_and_large_input_adapter_buckets_are_frozen_per_file_and_globally_and_may_only_decrease",
+    "runtime_input_boundary_budget": "app/runtime.input-boundary-budget.json",
+    "runtime_input_boundary_check": "tools/runtime-input-boundary-check",
+    "runtime_input_boundary_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "runtime_input_boundary_metrics": {
+        "input_adapter_files": 109,
+        "infrastructure_references": 615,
+        "generic_data_gateway_calls": 928,
+        "hotspots_over_500": 42,
+        "hotspots_over_700": 7,
+        "hotspots_over_1000": 4
+    },
+    "engineering_phase_seventeen_policy": "financial_runtime_has_zero_sql_pdo_and_persistence_helpers_while_twelve_atomic_case_use_sequences_remain_explicit_corrective_debt",
     "engineering_phase_seventeen_components": [
         "app/Application/Financial/FinancialDataPort.php",
         "app/Application/Financial/FinancialDataService.php",
@@ -130,7 +147,7 @@
         "app/Runtime/Financial/FinancialComposition.php"
     ],
     "engineering_phase_seventeen_check": "tools/runtime-boundary-check",
-    "engineering_phase_eighteen_policy": "security_identity_runtime_adapts_http_session_and_mfa_inputs_while_named_application_ports_dispatch_tenant_scoped_identity_operations_to_infrastructure",
+    "engineering_phase_eighteen_policy": "security_identity_runtime_has_zero_sql_pdo_and_persistence_helpers_while_seven_atomic_case_use_sequences_remain_explicit_corrective_debt",
     "engineering_phase_eighteen_components": [
         "app/Application/Identity/IdentityDataPort.php",
         "app/Application/Identity/IdentityDataService.php",
@@ -144,7 +161,7 @@
         "app/Runtime/SecurityAccess/SecurityAccessComposition.php"
     ],
     "engineering_phase_eighteen_check": "tools/runtime-boundary-check",
-    "engineering_phase_nineteen_policy": "operational_runtime_adapts_http_and_coordinates_thin_entry_glue_while_scoped_application_ports_dispatch_only_named_operations_to_infrastructure_catalogs",
+    "engineering_phase_nineteen_policy": "operational_runtime_has_zero_sql_pdo_and_concrete_adapter_instantiation_while_fourteen_atomic_case_use_sequences_remain_explicit_corrective_debt",
     "engineering_phase_nineteen_components": [
         "app/Application/Operational/OperationalDataPort.php",
         "app/Application/Operational/OperationalSchemaPort.php",
@@ -154,13 +171,13 @@
         "app/Runtime/Operational/OperationalComposition.php"
     ],
     "engineering_phase_nineteen_check": "tools/runtime-boundary-check",
-    "engineering_phase_twenty_policy": "every_public_application_service_entry_point_is_cataloged_as_critical_and_exercised_by_database_free_unit_characterization_with_transactional_integration_kept_separate",
+    "engineering_phase_twenty_policy": "the_existing_contract_catalogs_thirty_two_public_application_entries_with_database_free_characterization; the_corrective_cycle_separates_semantic_critical_use_cases_from_generic_data_plumbing",
     "engineering_phase_twenty_components": [
         "app/application.test-contract.json",
         "tools/application-test-contract-check",
         "tools/test-fast"
     ],
-    "engineering_phase_twenty_one_policy": "composition_is_explicit_wiring_bootstrap_commissioning_or_thin_input_adaptation_domain_core_do_not_render_business_queries_and_critical_read_models_have_non_regressing_real_mysql_command_budgets",
+    "engineering_phase_twenty_one_policy": "composition_is_profiled_as_wiring_bootstrap_commissioning_or_input_adaptation_domain_core_do_not_render_business_queries_and_critical_read_models_have_non_regressing_real_mysql_command_budgets; corrective contracts measure input adapters without assuming they are already thin",
     "engineering_phase_twenty_one_components": [
         "app/Core/Architecture/LayerMap.php",
         "app/Infrastructure/Operational/LeadQuerySql.php",
@@ -171,21 +188,25 @@
         "tools/mysql-query-budget-check",
         "tools/architecture-consolidation-check"
     ],
-    "composition_role_policy": "the_composition_layer_is_profiled_as_explicit_roots_runtime_bootstrap_thin_input_adapters_commissioning_quality_tools_or_entrypoints_and_is_not_a_free_business_logic_layer",
+    "composition_role_policy": "the_composition_layer_is_profiled_as_explicit_roots_runtime_bootstrap_input_adapters_commissioning_quality_tools_or_entrypoints_and_is_not_a_free_business_logic_layer; thinness_is_measured_not_assumed",
     "architecture_consolidation_check": "tools/architecture-consolidation-check",
     "query_budget_contract": "app/query.budgets.json",
     "query_budget_check": "tools/mysql-query-budget-check",
     "query_budget_scenarios_target": 11,
-    "final_architecture_contract_targets": {
+    "architecture_contract_targets": {
         "operation_gateway_calls": 0,
         "runtime_business_sql": 0,
         "runtime_direct_pdo": 0,
         "concrete_adapters_outside_composition_roots": 0,
+        "runtime_transaction_orchestration_business_max": 33,
+        "runtime_input_adapter_infrastructure_references_max": 615,
+        "runtime_generic_data_gateway_calls_max": 928,
+        "runtime_input_adapter_hotspots_over_500_max": 42,
         "unresolved_runtime_symbols": 0,
         "architectural_classification_percent": 100,
-        "solid_objective_findings": 0,
-        "solid_hotspots": 0,
-        "critical_application_use_cases_tested_percent": 100,
+        "solid_audit_objective_findings": 0,
+        "solid_audit_hotspots": 0,
+        "application_contract_entries_characterized_percent": 100,
         "query_budget_regressions": 0,
         "release_contract_drift": 0,
         "architecture_documentation_drift": 0

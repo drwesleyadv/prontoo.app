@@ -1,0 +1,865 @@
+{
+    "schema": "prontoo-runtime-input-boundary-budget-v1",
+    "policy": "runtime_input_adapter_infrastructure_gateway_and_hotspot_debt_is_explicit_and_monotonic",
+    "source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "thresholds": [
+        500,
+        700,
+        1000
+    ],
+    "composition_roots": [
+        "app/Runtime/LayeredKernel.php",
+        "app/Runtime/Patients/PatientComposition.php",
+        "app/Runtime/Financial/FinancialComposition.php",
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php",
+        "app/Runtime/Operational/OperationalComposition.php"
+    ],
+    "totals": {
+        "input_adapter_files": 109,
+        "infrastructure_references": 615,
+        "generic_data_gateway_calls": 928,
+        "hotspots_over_500": 42,
+        "hotspots_over_700": 7,
+        "hotspots_over_1000": 4
+    },
+    "files": {
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php": {
+            "infrastructure_references": 8,
+            "infrastructure_categories": {
+                "AdminPages": 1,
+                "SecurityAccess": 6,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php": {
+            "infrastructure_references": 8,
+            "infrastructure_categories": {
+                "DatabaseSchema": 2,
+                "SupportFoundation": 1,
+                "SupportTelemetry": 5
+            },
+            "generic_data_gateway_calls": 7,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SupportTelemetry": 1
+            },
+            "generic_data_gateway_calls": 7,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations04.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations05.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SubscriptionSettings": 1,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations07.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportTelemetry": 2
+            },
+            "generic_data_gateway_calls": 8,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Appointments/AppointmentsRuntimeOperations01.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Appointments/AppointmentsRuntimeOperations02.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Appointments/AppointmentsRuntimeOperations03.php": {
+            "infrastructure_references": 4,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 11,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
+            "infrastructure_references": 12,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "SupportFoundation": 10
+            },
+            "generic_data_gateway_calls": 50,
+            "hotspot_bucket": 3
+        },
+        "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuditActivity/AuditActivityRuntimeOperations01.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "Audit": 3,
+                "DatabaseSchema": 1,
+                "ServerJsonCache": 2,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 6,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuditActivity/AuditActivityRuntimeOperations02.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/AuditActivity/AuditActivityRuntimeOperations03.php": {
+            "infrastructure_references": 6,
+            "infrastructure_categories": {
+                "ServerJsonCache": 6
+            },
+            "generic_data_gateway_calls": 21,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php": {
+            "infrastructure_references": 4,
+            "infrastructure_categories": {
+                "Audit": 1,
+                "ServerJsonCache": 2,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php": {
+            "infrastructure_references": 12,
+            "infrastructure_categories": {
+                "ServerJsonCache": 6,
+                "SupportFoundation": 6
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "SecurityAccess": 5,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 4,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php": {
+            "infrastructure_references": 10,
+            "infrastructure_categories": {
+                "SecurityAccess": 8,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 16,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php": {
+            "infrastructure_references": 16,
+            "infrastructure_categories": {
+                "SecurityAccess": 4,
+                "SupportFoundation": 12
+            },
+            "generic_data_gateway_calls": 15,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "SecurityAccess": 5,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 2
+        },
+        "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "SupportFoundation": 1,
+                "SupportTelemetry": 2
+            },
+            "generic_data_gateway_calls": 11,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php": {
+            "infrastructure_references": 16,
+            "infrastructure_categories": {
+                "DatabaseSchema": 2,
+                "SecurityAccess": 1,
+                "ServerJsonCache": 10,
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 12,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations02.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Dashboards/DashboardsRuntimeOperations01.php": {
+            "infrastructure_references": 9,
+            "infrastructure_categories": {
+                "SupportFoundation": 9
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Dashboards/DashboardsRuntimeOperations02.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Dashboards/DashboardsRuntimeOperations03.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SecurityAccess": 1
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": {
+            "infrastructure_references": 19,
+            "infrastructure_categories": {
+                "Database": 5,
+                "DatabaseSchema": 8,
+                "Integrity": 4,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/DeferredAudit/DeferredAuditRuntimeOperations01.php": {
+            "infrastructure_references": 15,
+            "infrastructure_categories": {
+                "DeferredAudit": 13,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/DocumentPdf/DocumentPdfRuntimeOperations01.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "DocumentPdf": 2,
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Documents/DocumentsRuntimeOperations01.php": {
+            "infrastructure_references": 4,
+            "infrastructure_categories": {
+                "SecurityAccess": 3,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 15,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Documents/DocumentsRuntimeOperations02.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 12,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Documents/DocumentsRuntimeOperations03.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 10,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Documents/DocumentsRuntimeOperations05.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 2
+        },
+        "app/Runtime/Documents/DocumentsRuntimeOperations06.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SecurityAccess": 1
+            },
+            "generic_data_gateway_calls": 7,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations01.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "ServerJsonCache": 1,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 21,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations02.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "SecurityAccess": 1,
+                "SupportFoundation": 6
+            },
+            "generic_data_gateway_calls": 24,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations03.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 30,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations04.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 17,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations05.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "Integrity": 1
+            },
+            "generic_data_gateway_calls": 23,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 15,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 16,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 20,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations09.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 15,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations10.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 12,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations11.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations12.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations13.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 11,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations15.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations16.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SecurityAccess": 1,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Financial/FinancialRuntimeOperations17.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/FinancialGuard/FinancialGuardRuntimeOperations01.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 4,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php": {
+            "infrastructure_references": 36,
+            "infrastructure_categories": {
+                "InstallInstaller": 4,
+                "SecurityPrivacy": 2,
+                "SupportFoundation": 22,
+                "SupportRuntime": 8
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
+            "infrastructure_references": 26,
+            "infrastructure_categories": {
+                "DatabaseSchema": 1,
+                "InstallInstaller": 7,
+                "Integrity": 1,
+                "SecurityAccess": 2,
+                "SupportFoundation": 9,
+                "SupportRuntime": 6
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Leads/LeadsRuntimeOperations01.php": {
+            "infrastructure_references": 8,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "SupportFoundation": 6
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Leads/LeadsRuntimeOperations02.php": {
+            "infrastructure_references": 6,
+            "infrastructure_categories": {
+                "SupportFoundation": 6
+            },
+            "generic_data_gateway_calls": 22,
+            "hotspot_bucket": 3
+        },
+        "app/Runtime/Maestro/MaestroRuntimeOperations01.php": {
+            "infrastructure_references": 6,
+            "infrastructure_categories": {
+                "Maestro": 1,
+                "SecurityAccess": 1,
+                "SupportFoundation": 4
+            },
+            "generic_data_gateway_calls": 11,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Maestro/MaestroRuntimeOperations02.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SecurityAccess": 1
+            },
+            "generic_data_gateway_calls": 8,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Maestro/MaestroRuntimeOperations03.php": {
+            "infrastructure_references": 12,
+            "infrastructure_categories": {
+                "SecurityAccess": 1,
+                "SupportFoundation": 11
+            },
+            "generic_data_gateway_calls": 30,
+            "hotspot_bucket": 2
+        },
+        "app/Runtime/Maestro/MaestroRuntimeOperations04.php": {
+            "infrastructure_references": 6,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "SupportFoundation": 4
+            },
+            "generic_data_gateway_calls": 19,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "ServerJsonCache": 2,
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations01.php": {
+            "infrastructure_references": 5,
+            "infrastructure_categories": {
+                "SupportFoundation": 5
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations02.php": {
+            "infrastructure_references": 11,
+            "infrastructure_categories": {
+                "SecurityAccess": 1,
+                "SupportFoundation": 10
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations03.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "DatabaseSchema": 1,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations04.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations05.php": {
+            "infrastructure_references": 7,
+            "infrastructure_categories": {
+                "SupportFoundation": 7
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations06.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "DatabaseSchema": 1,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/Patients/PatientsRuntimeOperations07.php": {
+            "infrastructure_references": 10,
+            "infrastructure_categories": {
+                "SupportFoundation": 10
+            },
+            "generic_data_gateway_calls": 42,
+            "hotspot_bucket": 3
+        },
+        "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations01.php": {
+            "infrastructure_references": 24,
+            "infrastructure_categories": {
+                "SecurityAccess": 4,
+                "SecurityPrivacy": 5,
+                "SupportFoundation": 15
+            },
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php": {
+            "infrastructure_references": 18,
+            "infrastructure_categories": {
+                "SecurityAccess": 14,
+                "SupportFoundation": 4
+            },
+            "generic_data_gateway_calls": 17,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php": {
+            "infrastructure_references": 20,
+            "infrastructure_categories": {
+                "SecurityAccess": 16,
+                "SupportFoundation": 4
+            },
+            "generic_data_gateway_calls": 4,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php": {
+            "infrastructure_references": 12,
+            "infrastructure_categories": {
+                "SecurityAccess": 4,
+                "ServerJsonCache": 4,
+                "SupportFoundation": 4
+            },
+            "generic_data_gateway_calls": 3,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/SecurityPrivacy/SecurityPrivacyRuntimeOperations01.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SecurityPrivacy": 1
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php": {
+            "infrastructure_references": 13,
+            "infrastructure_categories": {
+                "ServerJsonCache": 10,
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations01.php": {
+            "infrastructure_references": 11,
+            "infrastructure_categories": {
+                "SecurityAccess": 6,
+                "SubscriptionSettings": 3,
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 4,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations02.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SubscriptionSettings": 1
+            },
+            "generic_data_gateway_calls": 8,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php": {
+            "infrastructure_references": 26,
+            "infrastructure_categories": {
+                "SecurityPrivacy": 2,
+                "SupportFoundation": 24
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php": {
+            "infrastructure_references": 24,
+            "infrastructure_categories": {
+                "DatabaseSchema": 1,
+                "SecurityAccess": 1,
+                "SecurityPrivacy": 4,
+                "ServerJsonCache": 3,
+                "SupportFoundation": 15
+            },
+            "generic_data_gateway_calls": 8,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php": {
+            "infrastructure_references": 13,
+            "infrastructure_categories": {
+                "DatabaseSchema": 1,
+                "SupportFoundation": 2,
+                "SupportTelemetry": 10
+            },
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 10,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 16,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 4,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations04.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 18,
+            "hotspot_bucket": 3
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 2,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php": {
+            "infrastructure_references": 0,
+            "infrastructure_categories": [],
+            "generic_data_gateway_calls": 14,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/UiComponents/UiComponentsRuntimeOperations01.php": {
+            "infrastructure_references": 10,
+            "infrastructure_categories": {
+                "DatabaseSchema": 3,
+                "SecurityAccess": 3,
+                "SupportFoundation": 2,
+                "UiComponents": 2
+            },
+            "generic_data_gateway_calls": 15,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php": {
+            "infrastructure_references": 8,
+            "infrastructure_categories": {
+                "SecurityAccess": 7,
+                "SupportFoundation": 1
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php": {
+            "infrastructure_references": 9,
+            "infrastructure_categories": {
+                "SecurityAccess": 9
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SecurityAccess": 2
+            },
+            "generic_data_gateway_calls": 0,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php": {
+            "infrastructure_references": 9,
+            "infrastructure_categories": {
+                "SecurityAccess": 4,
+                "ServerJsonCache": 2,
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 20,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php": {
+            "infrastructure_references": 6,
+            "infrastructure_categories": {
+                "SecurityAccess": 2,
+                "ServerJsonCache": 4
+            },
+            "generic_data_gateway_calls": 13,
+            "hotspot_bucket": 1
+        },
+        "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php": {
+            "infrastructure_references": 1,
+            "infrastructure_categories": {
+                "SecurityAccess": 1
+            },
+            "generic_data_gateway_calls": 1,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php": {
+            "infrastructure_references": 2,
+            "infrastructure_categories": {
+                "SupportFoundation": 2
+            },
+            "generic_data_gateway_calls": 10,
+            "hotspot_bucket": 0
+        },
+        "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
+            "infrastructure_references": 3,
+            "infrastructure_categories": {
+                "SupportFoundation": 3
+            },
+            "generic_data_gateway_calls": 9,
+            "hotspot_bucket": 0
+        }
+    }
+}

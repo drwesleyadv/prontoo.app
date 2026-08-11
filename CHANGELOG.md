@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## Não publicado — correção de evidência arquitetural
+
+- inclui `atomic()` e `atomically()` no detector transacional e torna visíveis 33 orquestrações de caso de uso ainda no Runtime.
+- adiciona budget monotônico, global e por arquivo, para dependências de Infrastructure, gateway genérico de dados e hotspots dos input adapters.
+- corrige manifesto, ADRs e mapas para distinguir SQL/PDO realmente zerados de fechamento semântico ainda em andamento.
+
 ## 1.8.10.2 — Engenharia arquitetural 16–21 e consolidação
 
 - institui análise tokenizada e baseline monotônica para a fronteira Runtime.

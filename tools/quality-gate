@@ -102,6 +102,7 @@ $run('application-test-contract', 'tools/application-test-contract-check');
 $run('fast-unit-suite', 'tools/test-fast');
 $run('composition-root-boundary', 'tools/composition-root-check');
 $run('runtime-boundary-contract', 'tools/runtime-boundary-check');
+$run('runtime-input-boundary-contract', 'tools/runtime-input-boundary-check');
 $run('runtime-thinning-contract', 'tools/runtime-thinning-check');
 $run('performance-budget-contract', 'tools/performance-budget-check');
 $run('query-budget-contract', 'tools/query-budget-contract-check');

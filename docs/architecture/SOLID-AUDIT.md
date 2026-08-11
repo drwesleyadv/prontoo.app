@@ -10,7 +10,7 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 
 ## Aplicação dos princípios
 
-**SRP.** Core, Domain e Application não podem acessar estado HTTP. Persistência é confinada a Infrastructure. Unidades internas são namespaced e não expõem funções globais. Superfícies amplas fora do Composition Root são tratadas como hotspot e bloqueiam o modo estrito.
+**SRP.** Core, Domain e Application não podem acessar estado HTTP. Persistência é confinada a Infrastructure. Unidades internas são namespaced e não expõem funções globais. O auditor trata superfícies amplas fora de Composition como hotspot; input adapters Runtime são medidos adicionalmente pelo contrato específico de fronteira.
 
 **OCP.** Catálogos e variações funcionais utilizam providers, registries, policies ou estratégias. Condicionais extensas em Core, Domain ou Application são hotspots bloqueantes. Wiring e dispatch do Composition Root são deliberadamente excluídos dessa heurística.
 
@@ -31,7 +31,8 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 7. a consolidação `1.8.7.1` removeu seis tombstones namespace-only;
 8. a materialização zero-legacy removeu as últimas 22 fachadas executáveis e 1.289 funções globais delegadoras, mantendo composição nativa via registries explícitos;
 9. as fases 11–15 removeram o `OperationGateway`; o contrato atual proíbe o arquivo e fixa `max_invoke_calls = 0`.
-10. as fases 16–21 fecharam semanticamente Runtime, moveram renderização de consultas de Domain/Core para Infrastructure, catalogaram 32 casos críticos de Application e instituíram 11 budgets reais MySQL.
+10. as fases 16–21 removeram SQL/PDO do Runtime, moveram renderização de consultas de Domain/Core para Infrastructure, catalogaram 32 entradas públicas de Application e instituíram 11 budgets reais MySQL;
+11. a reavaliação de 2026-08-11 corrigiu o detector de `atomic()` e adicionou um gate por papel para não confundir Composition com input adapter já fino.
 
 ## Métricas protegidas
 
@@ -45,12 +46,12 @@ A baseline corrente registra:
 - zero arquivos nativos vazios;
 - zero funções globais em arquivos nativos;
 - zero achados objetivos no auditor SOLID;
-- zero hotspots acionáveis no auditor SOLID.
+- zero hotspots dentro do escopo do auditor SOLID; esse número não inclui os 42 input adapters Runtime acima de 500 linhas, agora medidos separadamente;
 - zero chamadas ou arquivos do `OperationGateway`.
-- 100% dos 32 casos críticos de Application catalogados e ligados a 15 ports;
+- 32 entradas públicas de Application catalogadas e ligadas a 15 ports; 20 são plumbing genérico e não constituem, isoladamente, casos de uso semânticos;
 - 11 cenários MySQL críticos sem regressão de budget.
 
-A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. O prefixo financeiro foi encerrado na Fase 17; Segurança, Autenticação/Onboarding e Usuários/Permissões foram encerrados na Fase 18; a Fase 19 zerou globalmente SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso. O dispatch e a atomicidade estrutural do executor guardado permanecem inventariados e não podem crescer.
+A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. SQL de negócio, PDO direto e adapters concretos indevidos estão em zero. A inclusão de `atomic()`/`atomically()` revelou 33 orquestrações transacionais de caso de uso ainda no Runtime. `tools/runtime-input-boundary-check` congela também 615 dependências diretas a Infrastructure, 928 chamadas ao gateway genérico e os buckets de 42 hotspots acima de 500 linhas. Esses contadores podem apenas diminuir.
 
 A quantidade de unidades nativas efetivas não pode diminuir e o teto corrente de arquivos não nativos não pode aumentar. Novas funcionalidades devem nascer diretamente em unidades nativas.
 

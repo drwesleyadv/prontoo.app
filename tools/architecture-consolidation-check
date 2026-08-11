@@ -26,6 +26,7 @@ $json = static function (string $relative) use ($root): array {
 
 $manifest = $json('app/architecture.manifest.json');
 $runtime = $json('app/runtime.boundary-contract.json');
+$runtimeInput = $json('app/runtime.input-boundary-budget.json');
 $gateway = $json('app/architecture.gateway-budget.json');
 $application = $json('app/application.test-contract.json');
 $queries = $json('app/query.budgets.json');
@@ -35,7 +36,6 @@ $requiredZero = [
     'runtime_business_sql',
     'runtime_direct_pdo',
     'runtime_repository_instantiation_outside_composition',
-    'runtime_transaction_orchestration_business',
 ];
 if (($runtime['required_zero_categories'] ?? null) !== $requiredZero) {
     $failures[] = 'runtime_zero_contract';
@@ -137,25 +137,31 @@ foreach ((array) ($queries['scenarios'] ?? []) as $scenario => $budget) {
     }
 }
 
-$finalTargets = [
+$contractTargets = [
     'operation_gateway_calls' => 0,
     'runtime_business_sql' => 0,
     'runtime_direct_pdo' => 0,
     'concrete_adapters_outside_composition_roots' => 0,
+    'runtime_transaction_orchestration_business_max' => 33,
+    'runtime_input_adapter_infrastructure_references_max' => 615,
+    'runtime_generic_data_gateway_calls_max' => 928,
+    'runtime_input_adapter_hotspots_over_500_max' => 42,
     'unresolved_runtime_symbols' => 0,
     'architectural_classification_percent' => 100,
-    'solid_objective_findings' => 0,
-    'solid_hotspots' => 0,
-    'critical_application_use_cases_tested_percent' => 100,
+    'solid_audit_objective_findings' => 0,
+    'solid_audit_hotspots' => 0,
+    'application_contract_entries_characterized_percent' => 100,
     'query_budget_regressions' => 0,
     'release_contract_drift' => 0,
     'architecture_documentation_drift' => 0,
 ];
-if (($manifest['final_architecture_contract_targets'] ?? null) !== $finalTargets) {
-    $failures[] = 'manifest_final_targets';
+if (($manifest['architecture_contract_targets'] ?? null) !== $contractTargets) {
+    $failures[] = 'manifest_architecture_targets';
 }
 foreach ([
     'architecture_consolidation_check' => 'tools/architecture-consolidation-check',
+    'runtime_input_boundary_budget' => 'app/runtime.input-boundary-budget.json',
+    'runtime_input_boundary_check' => 'tools/runtime-input-boundary-check',
     'query_budget_contract' => 'app/query.budgets.json',
     'query_budget_check' => 'tools/mysql-query-budget-check',
 ] as $key => $value) {
@@ -163,18 +169,25 @@ foreach ([
         $failures[] = 'manifest_contract:' . $key;
     }
 }
+$runtimeInputTotals = (array) ($runtimeInput['totals'] ?? []);
+if (($runtimeInput['schema'] ?? '') !== 'prontoo-runtime-input-boundary-budget-v1' ||
+    (int) ($runtimeInputTotals['infrastructure_references'] ?? -1) !== $contractTargets['runtime_input_adapter_infrastructure_references_max'] ||
+    (int) ($runtimeInputTotals['generic_data_gateway_calls'] ?? -1) !== $contractTargets['runtime_generic_data_gateway_calls_max'] ||
+    (int) ($runtimeInputTotals['hotspots_over_500'] ?? -1) !== $contractTargets['runtime_input_adapter_hotspots_over_500_max']) {
+    $failures[] = 'runtime_input_boundary_surface';
+}
 if ((int) ($manifest['query_budget_scenarios_target'] ?? 0) !== count($queryScenarios)) {
     $failures[] = 'manifest_query_budget_target';
 }
 
 $result = [
     'ok' => $failures === [],
-    'policy' => 'architecture-semantic-closure-v1',
+    'policy' => 'architecture-semantic-correction-v2',
     'composition_roots' => count($declaredRoots),
-    'critical_application_use_cases' => $criticalCases,
+    'legacy_criticality_entries' => $criticalCases,
     'application_ports' => count($ports),
     'mysql_query_budget_scenarios' => count($queryScenarios),
-    'final_targets' => $finalTargets,
+    'contract_targets' => $contractTargets,
     'failures' => array_values(array_unique($failures)),
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

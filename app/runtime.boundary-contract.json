@@ -37,13 +37,14 @@
         "db_tx",
         "db_begin_transaction",
         "db_commit",
-        "db_rollback"
+        "db_rollback",
+        "atomic",
+        "atomically"
     ],
     "required_zero_categories": [
         "runtime_business_sql",
         "runtime_direct_pdo",
-        "runtime_repository_instantiation_outside_composition",
-        "runtime_transaction_orchestration_business"
+        "runtime_repository_instantiation_outside_composition"
     ],
     "path_zero_rules": [
         {
@@ -52,8 +53,7 @@
             "categories": [
                 "runtime_business_sql",
                 "runtime_direct_pdo",
-                "runtime_repository_instantiation_outside_composition",
-                "runtime_transaction_orchestration_business"
+                "runtime_repository_instantiation_outside_composition"
             ]
         },
         {
@@ -65,7 +65,6 @@
                 "runtime_direct_pdo",
                 "runtime_persistence_helper",
                 "runtime_repository_instantiation_outside_composition",
-                "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
             ]
         },
@@ -78,7 +77,6 @@
                 "runtime_direct_pdo",
                 "runtime_persistence_helper",
                 "runtime_repository_instantiation_outside_composition",
-                "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
             ]
         },
@@ -91,7 +89,6 @@
                 "runtime_direct_pdo",
                 "runtime_persistence_helper",
                 "runtime_repository_instantiation_outside_composition",
-                "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
             ]
         },
@@ -104,7 +101,6 @@
                 "runtime_direct_pdo",
                 "runtime_persistence_helper",
                 "runtime_repository_instantiation_outside_composition",
-                "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
             ]
         }
