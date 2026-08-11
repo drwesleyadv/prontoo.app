@@ -133,70 +133,44 @@ final class FinancialRuntimeOperations07
             throw new RuntimeException("Usuário ou consultório inválido.");
         }
         $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $uid, $today) {
-    
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.keep_closed.01", [$cid], []);
-            $loc = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
-            if ($loc <= 0) {
-                throw new RuntimeException(
-                    "Você não é responsável por nenhuma gaveta ainda. Aguarde até que receba autorização para gerenciar gavetas.",
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_guard_can_use($cid, $loc);
-            $other = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_open_session($cid, $loc, $uid);
-            if ($other) {
-                throw new RuntimeException(
-                    "Esta Gaveta já está aberta por " .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
-                            (string) ($other["user_name"] ?? "outro colaborador"),
-                        ) .
-                        ". Aguarde o fechamento antes de abrir ou manter fechado.",
-                );
-            }
-            $pending = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_pending_previous_review($cid, $loc, $today);
-            if ($pending) {
-                throw new RuntimeException(
-                    "Esta Gaveta possui fechamento anterior aguardando conferência da Gerência. Aguarde o destravamento para usá-la.",
-                );
-            }
-            $prev = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_unclosed_previous_session($cid, $uid, $today);
-            if ($prev) {
-                throw new RuntimeException(
-                    "Há uma Gaveta de caixa anterior sem fechamento. Feche a sessão pendente antes de manter o caixa fechado hoje.",
-                );
-            }
-            $exists = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_session_for_date($cid, $uid, $today);
-            if ($exists) {
-                if ((string) $exists["status"] === "kept_closed") {
-                    return (int) $exists["id"];
-                }
-                if ((string) $exists["status"] === "open") {
-                    throw new RuntimeException("O caixa de hoje já está aberto.");
-                }
-                throw new RuntimeException(
-                    "O caixa de hoje já foi fechado ou está em conferência.",
-                );
-            }
-            $balance = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_previous_balance($cid, $loc, $today);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.keep_closed.02", [
-                    $cid,
-                    $uid,
-                    $loc,
-                    $today,
-                    $balance,
-                    $balance,
-                    $balance,
-                    $balance,
-                    "Gaveta mantida fechada pelo Atendimento; saldo físico preservado na Gaveta.",
-                ], []);
-            $sid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("caixa_atendimento_mantido_fechado", "financeiro", $sid, [
-                "gaveta" => $loc,
-                "audit_body" =>
-                    "Atendimento optou por manter a Gaveta fechada no dia, preservando o saldo físico.",
-            ]);
-            return $sid;
-        });
+        return \Prontoo\Runtime\Financial\FinancialComposition::cashSessionService()->keepClosed(
+            $cid,
+            $uid,
+            $today,
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_cashier_location_for_user',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_drawer_guard_can_use',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_open_session',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_pending_previous_review',
+            ]),
+            Closure::fromCallable([self::class, 'financial_unclosed_previous_session']),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_session_for_date',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_previous_balance',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::class,
+                'first_name',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 
@@ -209,138 +183,54 @@ final class FinancialRuntimeOperations07
             throw new RuntimeException("Usuário ou consultório inválido.");
         }
         $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-        $authorizationRequested = false;
-        $authorizationMessage = "";
-        $result = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        $result = \Prontoo\Runtime\Financial\FinancialComposition::cashSessionService()->open(
             $cid,
             $uid,
             $openingBalance,
             $today,
-            &$authorizationRequested,
-            &$authorizationMessage,
-        ) {
-    
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.01", [$cid], []);
-            $loc = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
-            if ($loc <= 0) {
-                throw new RuntimeException(
-                    "Você não é responsável por nenhuma gaveta ainda. Aguarde até que receba autorização para gerenciar gavetas.",
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_guard_can_use($cid, $loc);
-            $other = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_open_session($cid, $loc, $uid);
-            if ($other) {
-                throw new RuntimeException(
-                    "Esta Gaveta já está aberta por " .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
-                            (string) ($other["user_name"] ?? "outro colaborador"),
-                        ) .
-                        ". Aguarde o fechamento antes de abrir a Gaveta.",
-                );
-            }
-            $pending = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_pending_previous_review($cid, $loc, $today);
-            if ($pending) {
-                throw new RuntimeException(
-                    "Esta Gaveta possui fechamento anterior aguardando conferência da Gerência. Aguarde o destravamento para usá-la.",
-                );
-            }
-            $prev = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_unclosed_previous_session($cid, $uid, $today);
-            if ($prev) {
-                throw new RuntimeException(
-                    "Há uma Gaveta de caixa anterior sem fechamento. Feche a sessão pendente antes de abrir uma nova.",
-                );
-            }
-            $exists = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_session_for_date($cid, $uid, $today);
-            $status = $exists ? (string) $exists["status"] : "";
-            if ($exists && $status === "open") {
-                throw new RuntimeException(
-                    "A sessão de caixa de hoje já foi aberta.",
-                );
-            }
-            if (
-                $exists &&
-                in_array(
-                    $status,
-                    ["closed_pending_review", "approved", "rejected"],
-                    true,
-                )
-            ) {
-                throw new RuntimeException(
-                    "O caixa de hoje já foi fechado ou está em conferência.",
-                );
-            }
-            $openingBalance = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_amount_cents(
-                max(0, $openingBalance),
-                "Saldo inicial",
-            );
-            $expected = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_expected_opening_balance(
-                $cid,
-                $uid,
-                $today,
-                $loc,
-                $exists ? (int) $exists["id"] : 0,
-            );
-            if ($exists && $status === "kept_closed") {
-                $expected = (int) ($exists["opening_balance_cents"] ?? $expected);
-            }
-            if ($openingBalance !== $expected) {
-                $sid = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_request_opening_authorization(
-                    $cid,
-                    $uid,
-                    $loc,
-                    $today,
-                    $expected,
-                    $openingBalance,
-                    $exists ?: null,
-                );
-                $authorizationRequested = true;
-                $authorizationMessage =
-                    "O Saldo Inicial informado não coincide com o valor esperado para esta Gaveta. O Administrativo recebeu aviso para autorizar a abertura com saldo diferente.";
-                return $sid;
-            }
-            if ($exists) {
-                if (
-                    in_array(
-                        $status,
-                        [
-                            "kept_closed",
-                            "opening_pending_review",
-                            "opening_rejected",
-                        ],
-                        true,
-                    )
-                ) {
-                    \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.02", [$loc, $openingBalance, (int) $exists["id"], $cid, $uid], []);
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                        "caixa_atendimento_aberto",
-                        "financeiro",
-                        (int) $exists["id"],
-                        [
-                            "gaveta" => $loc,
-                            "saldo_inicial" => $openingBalance,
-                            "audit_body" =>
-                                "Gaveta aberta pelo Atendimento com valor inicial coincidente.",
-                        ],
-                    );
-                    return (int) $exists["id"];
-                }
-                throw new RuntimeException(
-                    "A situação atual do caixa não permite abertura.",
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.03", [$cid, $uid, $loc, $today, $openingBalance], []);
-            $sid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("caixa_atendimento_aberto", "financeiro", $sid, [
-                "gaveta" => $loc,
-                "saldo_inicial" => $openingBalance,
-                "audit_body" => "Gaveta aberta pelo Atendimento.",
-            ]);
-            return $sid;
-        });
-        if ($authorizationRequested) {
-            throw new RuntimeException($authorizationMessage);
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_cashier_location_for_user',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_drawer_guard_can_use',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_open_session',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_pending_previous_review',
+            ]),
+            Closure::fromCallable([self::class, 'financial_unclosed_previous_session']),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_session_for_date',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::class,
+                'first_name',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_assert_amount_cents',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_expected_opening_balance',
+            ]),
+            Closure::fromCallable([self::class, 'financial_request_opening_authorization']),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
+        if (!empty($result['authorization_requested'])) {
+            throw new RuntimeException((string) $result['authorization_message']);
         }
-        return $result;
+        return (int) $result['session_id'];
     
     }
 

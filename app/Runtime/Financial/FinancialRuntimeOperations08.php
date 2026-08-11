@@ -36,9 +36,9 @@ final class FinancialRuntimeOperations08
         string $notes = "",
     ): void 
     {
-    
+
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        \Prontoo\Runtime\Financial\FinancialComposition::cashSessionService()->close(
             $cid,
             $uid,
             $sessionId,
@@ -46,99 +46,47 @@ final class FinancialRuntimeOperations08
             $withdrawalAmount,
             $withdrawalDestinationId,
             $notes,
-        ): void {
-    
-            $s = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.08.close_session.01", [$sessionId, $cid, $uid], []);
-            if (!$s) {
-                throw new RuntimeException("Não há Gaveta aberta para fechamento.");
-            }
-            $expected = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_session_expected($s);
-            $declared = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_amount_cents(max(0, $declared));
-            $withdrawalAmount = max(0, min($withdrawalAmount, $declared));
-            $keep = max(0, $declared - $withdrawalAmount);
-            $diff = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
-                $declared,
-                -$expected,
-                "Diferença do fechamento",
-            );
-            $destinationId = 0;
-            if ($withdrawalAmount > 0) {
-                if ($withdrawalDestinationId > 0) {
-                    if (
-                        !\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_office_destination_belongs(
-                            $cid,
-                            $withdrawalDestinationId,
-                        )
-                    ) {
-                        throw new RuntimeException(
-                            "Informe um Destino da Retirada válido entre as contas do Consultório.",
-                        );
-                    }
-                    $destinationId = $withdrawalDestinationId;
-                } else {
-                    $destinationId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, $uid);
-                }
-                if ($destinationId <= 0) {
-                    throw new RuntimeException(
-                        "Não foi possível preparar o Destino da Retirada.",
-                    );
-                }
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.close_session.02", [
-                    $expected,
-                    $declared,
-                    $keep,
-                    $withdrawalAmount,
-                    $diff,
-                    trim($notes) ?: null,
-                    $sessionId,
-                    $cid,
-                    $uid,
-                ], []);
-            if ($withdrawalAmount > 0) {
-                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
-                    $cid,
-                    "transfer",
-                    $withdrawalAmount,
-                    (int) $s["location_id"],
-                    $destinationId,
-                    $sessionId,
-                    $uid,
-                    "Retirada do fechamento da Gaveta",
-                    "",
-                    trim($notes),
-                    "pending_review",
-                    "cash_session",
-                    $sessionId,
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_record_cash_difference(
-                $cid,
-                $uid,
-                $sessionId,
-                (int) $s["location_id"],
-                $diff,
-                "closing",
-                "pending_review",
-                trim($notes),
-                true,
-            );
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_lock_after_close(
-                $cid,
-                (int) $s["location_id"],
-                (string) $s["business_date"],
-                $sessionId,
-                $uid,
-            );
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("caixa_atendimento_fechado", "financeiro", $sessionId, [
-                "esperado" => $expected,
-                "declarado" => $declared,
-                "fazer_retirada" => $withdrawalAmount,
-                "destino_retirada" => $destinationId,
-                "manter_gaveta" => $keep,
-                "diferenca" => $diff,
-            ]);
-        });
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::class,
+                'financial_session_expected',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_assert_amount_cents',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_checked_add',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations10::class,
+                'financial_office_destination_belongs',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_ensure_admin_safe',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_validate_movement_invariants',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_human_movement_type',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::class,
+                'financial_record_cash_difference',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_drawer_lock_after_close',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 
@@ -150,104 +98,31 @@ final class FinancialRuntimeOperations08
         string $notes = "",
     ): void 
     {
-    
+
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        \Prontoo\Runtime\Financial\FinancialComposition::reviewService()->reviewOpening(
             $cid,
             $adminUid,
             $sessionId,
             $decision,
             $notes,
-        ): void {
-    
-            $s = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.08.review_opening_request.01", [$sessionId, $cid], []);
-            if (!$s) {
-                throw new RuntimeException(
-                    "A solicitação de abertura não está pendente de autorização.",
-                );
-            }
-            $decision = $decision === "reject" ? "reject" : "approve";
-            $expected = (int) ($s["expected_closing_cents"] ?? 0);
-            $informed = (int) ($s["opening_balance_cents"] ?? 0);
-            $diff = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_checked_add(
-                $informed,
-                -$expected,
-                "Diferença da abertura",
-            );
-            $cleanNotes = trim($notes);
-            if ($decision === "reject") {
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_opening_request.02", [$adminUid, $cleanNotes ?: null, $sessionId, $cid], []);
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_opening_request.03", [
-                        $cid,
-                        "Abertura de caixa recusada",
-                        "O Administrativo recusou a abertura de caixa com saldo diferente. Esperado: " .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected) .
-                        ". Saldo informado: " .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($informed) .
-                        ($cleanNotes !== ""
-                            ? "\n\nObservação: " . $cleanNotes
-                            : ""),
-                        1,
-                        "user",
-                        null,
-                        (int) $s["user_id"],
-                        $adminUid,
-                    ], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                    "abertura_caixa_divergente_recusada",
-                    "financeiro",
-                    $sessionId,
-                    [
-                        "usuario_caixa" => (int) $s["user_id"],
-                        "esperado" => $expected,
-                        "informado" => $informed,
-                        "diferenca" => $diff,
-                        "motivo" => $cleanNotes,
-                    ],
-                );
-                return;
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_opening_request.04", [$adminUid, $cleanNotes ?: null, $sessionId, $cid], []);
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_record_cash_difference(
-                $cid,
-                $adminUid,
-                $sessionId,
-                (int) $s["location_id"],
-                $diff,
-                "opening",
-                "confirmed",
-                $cleanNotes,
-                false,
-            );
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_opening_request.05", [
-                    $cid,
-                    "Abertura de caixa autorizada",
-                    "O Administrativo autorizou a abertura de caixa com saldo diferente. Esperado: " .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($expected) .
-                    ". Saldo autorizado: " .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($informed) .
-                    ($cleanNotes !== "" ? "\n\nObservação: " . $cleanNotes : ""),
-                    1,
-                    "user",
-                    null,
-                    (int) $s["user_id"],
-                    $adminUid,
-                ], []);
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                "abertura_caixa_divergente_autorizada",
-                "financeiro",
-                $sessionId,
-                [
-                    "usuario_caixa" => (int) $s["user_id"],
-                    "esperado" => $expected,
-                    "informado" => $informed,
-                    "diferenca" => $diff,
-                    "observacao" => $cleanNotes,
-                    "audit_body" =>
-                        "Gerência autorizou abertura da Gaveta com valor inicial divergente.",
-                ],
-            );
-        });
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_checked_add',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::class,
+                'money_br',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::class,
+                'financial_record_cash_difference',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 
@@ -260,98 +135,33 @@ final class FinancialRuntimeOperations08
         string $drawerUnlockLocal = "",
     ): void 
     {
-    
+
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        \Prontoo\Runtime\Financial\FinancialComposition::reviewService()->reviewSession(
             $cid,
             $uid,
             $sessionId,
             $decision,
             $notes,
             $drawerUnlockLocal,
-        ): void {
-    
-            $s = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.08.review_session.01", [$sessionId, $cid], []);
-            if (!$s) {
-                throw new RuntimeException(
-                    "Fechamento não está pendente de conferência.",
-                );
-            }
-            if ($decision === "reject") {
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.02", [$uid, trim($notes) ?: null, $sessionId, $cid], []);
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.03", [$uid, trim($notes), $cid, $sessionId], []);
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.04", [
-                        $cid,
-                        $sessionId,
-                        $uid,
-                        "rejected",
-                        (int) $s["expected_closing_cents"],
-                        (int) $s["declared_closing_cents"],
-                        0,
-                        (int) $s["difference_cents"],
-                        trim($notes) ?: null,
-                    ], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("fechamento_caixa_devolvido", "financeiro", $sessionId, [
-                    "motivo" => $notes,
-                ]);
-                return;
-            }
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_ensure_closing_adjustment(
-                $s,
-                $uid,
-                "pending_review",
-            );
-            $s = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.08.review_session.05", [$sessionId, $cid], []) ?: $s;
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations08::financial_assert_session_reconciled($s);
-            $remaining =
-                (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.08.review_session.06", [
-                        $cid,
-                        (int) $s["location_id"],
-                        (string) $s["business_date"],
-                        $sessionId,
-                    ], []) ?:
-                0);
-            if ($remaining === 0 && (string) ($s["location_id"] ?? "") !== "0") {
-                $drawer = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_drawer_row($cid, (int) $s["location_id"]);
-                if (
-                    $drawer &&
-                    (string) ($drawer["drawer_lock_status"] ?? "unlocked") ===
-                        "locked" &&
-                    trim($drawerUnlockLocal) === ""
-                ) {
-                    throw new RuntimeException(
-                        "Informe o horário do dia seguinte em que a Gaveta será destrancada.",
-                    );
-                }
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.07", [$uid, trim($notes) ?: null, $sessionId, $cid], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.08", [$uid, $uid, $cid, $sessionId], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.08.review_session.09", [
-                    $cid,
-                    $sessionId,
-                    $uid,
-                    "approved",
-                    (int) $s["expected_closing_cents"],
-                    (int) $s["declared_closing_cents"],
-                    (int) $s["transfer_to_safe_cents"],
-                    (int) $s["difference_cents"],
-                    trim($notes) ?: null,
-                ], []);
-            if ($remaining === 0 && (int) $s["location_id"] > 0) {
-                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_schedule_drawer_unlock(
-                    $cid,
-                    (int) $s["location_id"],
-                    $uid,
-                    $drawerUnlockLocal,
-                    trim($notes),
-                );
-            }
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("fechamento_caixa_conferido", "financeiro", $sessionId, [
-                "retirada" => (int) $s["transfer_to_safe_cents"],
-                "diferenca" => (int) $s["difference_cents"],
-                "destravar_em" => $drawerUnlockLocal,
-            ]);
-        });
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::class,
+                'financial_ensure_closing_adjustment',
+            ]),
+            Closure::fromCallable([self::class, 'financial_assert_session_reconciled']),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_drawer_row',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::class,
+                'financial_schedule_drawer_unlock',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 

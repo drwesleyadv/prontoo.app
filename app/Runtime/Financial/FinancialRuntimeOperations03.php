@@ -311,11 +311,12 @@ final class FinancialRuntimeOperations03
                 "Escolha um colaborador ativo do Atendimento.",
             );
         }
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $drawerId, $cashierUid, $adminUid): void {
-    
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.03.link_drawer_user.02", [$cid, $cashierUid], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.03.link_drawer_user.03", [$cid, $drawerId, $cashierUid, 1, $adminUid ?: null], []);
-        });
+        \Prontoo\Runtime\Financial\FinancialComposition::drawerService()->assignUser(
+            $cid,
+            $drawerId,
+            $cashierUid,
+            $adminUid,
+        );
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_vinculada", "financeiro", $drawerId, [
             "colaborador" => $cashierUid,
             "audit_body" =>

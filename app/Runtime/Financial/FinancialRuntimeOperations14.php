@@ -130,71 +130,28 @@ final class FinancialRuntimeOperations14
     public static function financial_admin_daily_consolidate(int $cid, int $uid): void
     
     {
-    
+
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->ensureDailyClosingSchema();
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $uid): void {
-    
-            $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.01", [$cid], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.02", [$cid, $today], []);
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_reconciliation($cid, $today, $uid, true);
-            $state = \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_consolidation_state($cid, $today);
-            if (!empty($state["consolidated"])) {
-                throw new RuntimeException(
-                    "Este dia financeiro já foi consolidado.",
-                );
-            }
-            if (empty($state["conference_released"])) {
-                throw new RuntimeException(
-                    "A conferência diária só é liberada quando todas as gavetas abertas hoje, por todos os colaboradores, estiverem fechadas.",
-                );
-            }
-            if (empty($state["can_consolidate"])) {
-                throw new RuntimeException(
-                    "Ainda existem conferências, devoluções ou movimentos pendentes. Resolva tudo antes de consolidar o dia.",
-                );
-            }
-            $reconciliation = (array) ($state["reconciliation"] ?? []);
-            if (empty($reconciliation["ok"])) {
-                throw new RuntimeException(
-                    "A reconciliação matemática do dia não foi confirmada.",
-                );
-            }
-            $metrics = (array) $reconciliation["metrics"];
-            $expected = (int) $metrics["expected_cents"];
-            $received = (int) $metrics["received_cents"];
-            $pending = (int) $metrics["pending_cents"];
-            $movements = (int) $metrics["movement_count"];
-            $pos = (array) $reconciliation["position"];
-            $integrityNote =
-                "integrity:financial-reconciliation-v2:" .
-                (string) $reconciliation["hash"];
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.03", [
-                    $cid,
-                    $today,
-                    "consolidado",
-                    $expected,
-                    $received,
-                    $pending,
-                    (int) $pos["pos_cents"],
-                    (int) $pos["safe_cents"],
-                    (int) $pos["bank_cents"],
-                    $movements,
-                    (int) ($state["closure"]["opened_count"] ?? 0),
-                    $integrityNote,
-                    $uid,
-                ], []);
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("financeiro_dia_consolidado", "financeiro", $cid, [
-                "business_date" => $today,
-                "opened_drawers_checked" =>
-                    (int) ($state["closure"]["opened_count"] ?? 0),
-                "movimentos" => $movements,
-                "reconciliation_hash" => (string) $reconciliation["hash"],
-                "audit_body" =>
-                    "Administrador conferiu e consolidou os lançamentos financeiros do dia após fechamento e revisão das gavetas abertas.",
-            ]);
-        });
+        \Prontoo\Runtime\Financial\FinancialComposition::consolidationService()->consolidateDay(
+            $cid,
+            $uid,
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::class,
+                'financial_today',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::class,
+                'financial_daily_reconciliation',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::class,
+                'financial_daily_consolidation_state',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 
