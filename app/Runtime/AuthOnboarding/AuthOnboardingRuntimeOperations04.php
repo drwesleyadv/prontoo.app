@@ -197,44 +197,6 @@ final class AuthOnboardingRuntimeOperations04
             $timezone = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::timezone_from_location($uf, $city);
             $accentColor = PRONTOO_DEFAULT_ACCENT_COLOR;
             try {
-                [$uid, $managerRoleId] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                    function () use ($pass, $cpf, $legalType, $doc, $profession, $timezone, $accentColor, $uf, $city, $cityIbge): array {
-                $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person(
-                    mb_trim((string) $_POST["doctor_name"]),
-                    $cpf,
-                    (string) $_POST["birth_date"],
-                );
-                \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::lock_person_user_identity($pid);
-                $existing = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth04.page_signup.01', [$pid], []);
-                if ($existing) {
-                    if (!(int) $existing["active"]) {
-                        throw new RuntimeException(
-                            "Usuário existente está inativo.",
-                        );
-                    }
-                    if (
-                        !password_verify($pass, (string) $existing["password_hash"])
-                    ) {
-                        throw new RuntimeException('__signup_credentials__');
-                    }
-                    $uid = (int) $existing["id"];
-                    $email = mb_trim((string) $_POST["email"]);
-                    if ($email !== "" && empty($existing["email"])) {
-                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.02', [$email, $uid], []);
-                    }
-                } else {
-                    if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_ok($pass)) {
-                        throw new RuntimeException('__signup_password__');
-                    }
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.03', [
-                            $pid,
-                            mb_trim((string) $_POST["doctor_name"]),
-                            mb_trim((string) $_POST["email"]) ?: null,
-                            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($pass),
-                        ], []);
-                    $uid = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->lastInsertId();
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("users_total");
-                }
                 $trialStart = time();
                 $trialEnd = is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'subscription_trial_end_from_start'])
                     ? \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_trial_end_from_start(
@@ -242,66 +204,59 @@ final class AuthOnboardingRuntimeOperations04
                         \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
                     : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.04', [
-                        $legalType,
-                        mb_trim((string) $_POST["legal_name"]),
-                        $doc,
-                        mb_trim((string) $_POST["display_name"]),
-                        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
-                        $profession,
-                        $uid,
-                        $uid,
-                        $accentColor,
-                        mb_trim((string) ($_POST["address_line"] ?? "")),
-                        $uf,
-                        $city,
-                        $cityIbge,
-                        $timezone,
-                        $trialStart,
-                        $trialStart,
-                        $trialEnd,
-                        \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents(),
-                        $trialStart,
-                    ], []);
-                $cid = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->lastInsertId();
-                if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
-                    \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($cid, false);
-                }
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("clinics_total");
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.05', [$uid, $cid, "gerente"], []);
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.06', [$uid, $cid, "medico"], []);
-                $managerRoleId = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth04.page_signup.07', [$uid, $cid], []) ?: 0);
-                if ($managerRoleId <= 0) {
-                    throw new RuntimeException(
-                        "Não foi possível definir o ambiente Administrativo inicial.",
+                [$uid, $managerRoleId] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::clinicRegistration()
+                    ->register(
+                        [
+                            'doctor_name' => mb_trim((string) $_POST["doctor_name"]),
+                            'cpf' => $cpf,
+                            'birth_date' => (string) $_POST["birth_date"],
+                            'email' => mb_trim((string) $_POST["email"]),
+                            'password' => $pass,
+                            'legal_type' => $legalType,
+                            'legal_name' => mb_trim((string) $_POST["legal_name"]),
+                            'document' => $doc,
+                            'display_name' => mb_trim((string) $_POST["display_name"]),
+                            'phone' => \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
+                            'profession' => $profession,
+                            'accent_color' => $accentColor,
+                            'address_line' => mb_trim((string) ($_POST["address_line"] ?? "")),
+                            'state' => $uf,
+                            'city' => $city,
+                            'city_ibge' => $cityIbge,
+                            'timezone' => $timezone,
+                            'trial_start' => $trialStart,
+                            'trial_end' => $trialEnd,
+                            'monthly_price_cents' => \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents(),
+                        ],
+                        static fn(string $name, string $personCpf, string $birthDate): int =>
+                            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person(
+                                $name,
+                                $personCpf,
+                                $birthDate,
+                            ),
+                        static fn(int $personId): mixed =>
+                            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::lock_person_user_identity($personId),
+                        static fn(string $plain, string $hash): bool => password_verify($plain, $hash),
+                        static fn(string $plain): bool =>
+                            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_ok($plain),
+                        static fn(string $plain): string =>
+                            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($plain),
+                        static fn(string $counter): mixed =>
+                            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc($counter),
+                        static function (int $clinicId, bool $force): void {
+                            if (is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
+                                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active($clinicId, $force);
+                            }
+                        },
+                        static fn(int $clinicId): mixed =>
+                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::seed_permissions($clinicId),
+                        static fn(int $clinicId): mixed =>
+                            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($clinicId),
+                        static fn(...$arguments): bool =>
+                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                ...$arguments,
+                            ),
                     );
-                }
-                $ownerRoles = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.08', [$uid, $cid], [])->fetchAll(PDO::FETCH_COLUMN);
-                $ownerRoles = array_values(
-                    array_unique(array_map("strval", $ownerRoles ?: [])),
-                );
-                sort($ownerRoles);
-                if ($ownerRoles !== ["gerente", "medico"]) {
-                    throw new RuntimeException(
-                        "Não foi possível registrar os ambientes Administrativo e Profissional do responsável.",
-                    );
-                }
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::seed_permissions($cid);
-                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::seed_clinic_roles($cid);
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth04.page_signup.09', [$profession, $cid], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_criado", "consultorio", $cid, [
-                    "clinic_id" => $cid,
-                    "nome" => $_POST["display_name"],
-                    "owner_user_id" => $uid,
-                    "cidade" => $city,
-                    "uf" => $uf,
-                    "timezone" => $timezone,
-                    "accent_color" => $accentColor,
-                    "onboarding_done" => 1,
-                ]);
-                        return [$uid, $managerRoleId];
-                    },
-                );
                 \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::login_last_credential_remember(
                     $uid,
                     "clinic",

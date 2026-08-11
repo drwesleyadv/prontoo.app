@@ -101,27 +101,22 @@ final class MaestroRuntimeOperations05
                             $result["retrying"]++;
                         }
                         try {
-                            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(function () use (
-                                $clinicId,
-                                $rule,
-                                $match,
-                                $ruleId,
-                                $actionKey,
-                            ): void {
-                                $created = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_supervised_with_clinic_timezone(
+                            \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+                                ->createSupervisedAction(
                                     $clinicId,
-                                    static fn(): array => \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action($rule, $match),
-                                );
-                                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_run_rule.02', [
-                                    $created["entity"] ?? null,
-                                    $created["id"] ?? null,
-                                    $clinicId,
+                                    $rule,
+                                    $match,
                                     $ruleId,
-                                    (string) ($match["source_entity"] ?? "registro"),
-                                    (string) ($match["source_entity_id"] ?? "0"),
                                     $actionKey,
-                                ], []);
-                            });
+                                    static fn(int $currentClinicId, array $currentRule, array $currentMatch): array =>
+                                        \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_supervised_with_clinic_timezone(
+                                            $currentClinicId,
+                                            static fn(): array => \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action(
+                                                $currentRule,
+                                                $currentMatch,
+                                            ),
+                                        ),
+                                );
                             $result["created"]++;
                             $result["changed_categories"][] =
                                 (string) $rule["action_type"] === "create_notice"

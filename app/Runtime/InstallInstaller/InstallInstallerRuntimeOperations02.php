@@ -288,27 +288,18 @@ final class InstallInstallerRuntimeOperations02
                 if (class_exists("\\Prontoo\\Infrastructure\\Database\\SeqContract")) {
                     \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::assert_runtime_sequence_contract();
                 }
-                $uid = (int) \Prontoo\Runtime\Operational\OperationalComposition::platform()->atomic(function () use (
-                    $adminName,
-                    $adminCpf,
-                    $adminBirth,
-                    $adminEmail,
-                    $adminPass,
-                ): int {
-                    $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($adminName, $adminCpf, $adminBirth);
-                    \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.install_installer.02.prontoo_install.01', [
-                        $pid,
+                $uid = \Prontoo\Runtime\Operational\OperationalComposition::installationAccount()
+                    ->createInitialDeveloper(
                         $adminName,
                         (string) $adminEmail,
                         \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($adminPass),
-                    ], []);
-                    if (!\Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::runtime_database_in_transaction()) {
-                        throw new RuntimeException(
-                            "Transação de instalação encerrada antes do commit; verifique DDL executado por provas PI durante INSERT de domínio.",
-                        );
-                    }
-                    return \Prontoo\Runtime\Operational\OperationalComposition::platform()->lastInsertId();
-                });
+                        static fn(): int => \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person(
+                            $adminName,
+                            $adminCpf,
+                            $adminBirth,
+                        ),
+                        static fn(): bool => \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::runtime_database_in_transaction(),
+                    );
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $uid, [
                     "nome" => $adminName,
                     "perfil" => "Desenvolvedor",

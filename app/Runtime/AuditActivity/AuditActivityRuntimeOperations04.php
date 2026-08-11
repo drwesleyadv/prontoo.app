@@ -39,13 +39,13 @@ final class AuditActivityRuntimeOperations04
             return false;
         }
         try {
-            \Prontoo\Runtime\Operational\OperationalComposition::administration()->atomic(function () use (
+            \Prontoo\Runtime\Operational\OperationalComposition::auditWrite()->write(function () use (
                 $event,
                 $entity,
                 $entityId,
                 $context,
                 $trustedOrigin,
-            ): void {
+            ): array {
     
                 $origin = \Prontoo\Domain\AuditActivity\AuditWritePolicy::audit_trusted_origin_resolve(
                     $context,
@@ -154,27 +154,27 @@ final class AuditActivityRuntimeOperations04
                     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
                     $forcedProofContext,
                 );
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.04.audit.01', [
-                        $cid,
-                        $uid,
-                        $event,
-                        $eventLabel,
-                        $eventIcon,
-                        $entity,
-                        $entityLabel,
-                        (string) $entityId,
-                        $friendly,
-                        $json,
-                        $proof["integrity_hash"],
-                        $proof["previous_hash"],
-                        $proof["chain_hash"],
-                        $proof["proof_hash"],
-                        $proof["proof_json"],
-                        $proof["policy_version"],
-                        $ipHash,
-                        $userAgent,
-                        $forcedCreatedAt !== "" ? $forcedCreatedAt : null,
-                    ], []);
+                return [
+                    $cid,
+                    $uid,
+                    $event,
+                    $eventLabel,
+                    $eventIcon,
+                    $entity,
+                    $entityLabel,
+                    (string) $entityId,
+                    $friendly,
+                    $json,
+                    $proof["integrity_hash"],
+                    $proof["previous_hash"],
+                    $proof["chain_hash"],
+                    $proof["proof_hash"],
+                    $proof["proof_json"],
+                    $proof["policy_version"],
+                    $ipHash,
+                    $userAgent,
+                    $forcedCreatedAt !== "" ? $forcedCreatedAt : null,
+                ];
             });
             return true;
         } catch (Throwable $e) {

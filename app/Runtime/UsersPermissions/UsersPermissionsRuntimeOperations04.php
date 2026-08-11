@@ -37,20 +37,31 @@ final class UsersPermissionsRuntimeOperations04
             $act = (string) ($_POST["act"] ?? "save");
             try {
                 if ($act === "save") {
-                    [$roles, $uid] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                        function () use ($cid): array {
-                        $roles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::selected_team_roles($_POST, $cid);
-                        $uid = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member($cid, $_POST);
-                        if ($uid && in_array("medico", $roles, true)) {
-                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::save_user_work_hours($cid, $uid, $_POST);
-                        }
-                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $uid, [
-                            "perfil" => implode(",", $roles),
-                            "clinic_id" => $cid,
-                        ]);
-                            return [$roles, $uid];
-                        },
-                    );
+                    [$roles, $uid] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::userPermission()
+                        ->createTeamMember(
+                            $cid,
+                            $_POST,
+                            static fn(array $payload, int $clinicId): array =>
+                                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::selected_team_roles(
+                                    $payload,
+                                    $clinicId,
+                                ),
+                            static fn(int $clinicId, array $payload): int =>
+                                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member(
+                                    $clinicId,
+                                    $payload,
+                                ),
+                            static fn(int $clinicId, int $userId, array $payload): mixed =>
+                                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::save_user_work_hours(
+                                    $clinicId,
+                                    $userId,
+                                    $payload,
+                                ),
+                            static fn(...$arguments): bool =>
+                                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                    ...$arguments,
+                                ),
+                        );
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador vinculado ao consultório.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("users");
                 }

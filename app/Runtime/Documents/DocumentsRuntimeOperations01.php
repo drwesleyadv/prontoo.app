@@ -30,55 +30,8 @@ final class DocumentsRuntimeOperations01
     
     {
     
-        if ($cid <= 0 || $docId <= 0) {
-            throw new RuntimeException("Documento inválido para identificação.");
-        }
-        return \Prontoo\Runtime\Operational\OperationalComposition::documents()->atomic(function () use ($cid, $docId) {
-    
-            $doc = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.document_assign_identifier.01', [$docId, $cid], []);
-            if (!$doc) {
-                throw new RuntimeException(
-                    "Documento não encontrado para identificação.",
-                );
-            }
-            $current = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_display(
-                $doc["document_identifier"] ?? "",
-            );
-            if ($current !== "") {
-                return $current;
-            }
-            $clinic = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.document_assign_identifier.02', [$cid], []);
-            if (!$clinic) {
-                throw new RuntimeException(
-                    "Consultório não encontrado para identificação documental.",
-                );
-            }
-            $alphabet = strtoupper(
-                mb_trim((string) ($clinic["document_code_alphabet"] ?? "")),
-            );
-            if (!\Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_valid_alphabet($alphabet)) {
-                $alphabet = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_random_alphabet();
-            }
-            $seq =
-                max(
-                    (int) ($clinic["document_sequence"] ?? 0),
-                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::documents()->scalar('operational.documents.01.document_assign_identifier.03', [$cid], []) ?? 0),
-                ) + 1;
-            for ($tries = 0; $tries < 100; $tries++) {
-                $identifier = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_encode($seq, $alphabet);
-                $exists =
-                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::documents()->scalar('operational.documents.01.document_assign_identifier.04', [$cid, $identifier, $docId], []) ?? 0);
-                if ($exists === 0) {
-                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.document_assign_identifier.05', [$alphabet, $seq, $cid], []);
-                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.document_assign_identifier.06', [$seq, $identifier, $docId, $cid], []);
-                    return $identifier;
-                }
-                $seq++;
-            }
-            throw new RuntimeException(
-                "Não foi possível gerar identificador documental único.",
-            );
-        });
+        return \Prontoo\Runtime\Operational\OperationalComposition::documentIssuance()
+            ->assignIdentifier($cid, $docId);
     
     }
 
@@ -289,11 +242,8 @@ final class DocumentsRuntimeOperations01
                 "Conteúdo vazio. Revise o modelo antes de emitir.",
             );
         }
-        $identifier = \Prontoo\Runtime\Operational\OperationalComposition::documents()->atomic(function () use ($c, $docId) {
-    
-            \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.confirm_document_issue.01', [$docId, (int) $c["clinic_id"]], []);
-            return \Prontoo\Runtime\Documents\DocumentsRuntimeOperations01::document_assign_identifier((int) $c["clinic_id"], $docId);
-        });
+        $identifier = \Prontoo\Runtime\Operational\OperationalComposition::documentIssuance()
+            ->confirmIssue((int) $c["clinic_id"], $docId);
         $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_emitido", "documento", $docId, [
             "titulo" => $doc["title"] ?? "",

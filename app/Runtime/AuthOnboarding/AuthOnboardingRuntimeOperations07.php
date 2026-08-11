@@ -62,8 +62,6 @@ final class AuthOnboardingRuntimeOperations07
             $rolesEnabled["medico"] = 1;
             $rolesEnabled["gerente"] = 1;
             try {
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                    function () use ($rolesEnabled, $cl, $cid): void {
                 $uf = strtoupper(mb_trim((string) ($_POST["address_state"] ?? "")));
                 $city = mb_trim((string) ($_POST["address_city"] ?? ""));
                 $cityIbge = (int) ($_POST["address_city_ibge"] ?? 0);
@@ -90,64 +88,39 @@ final class AuthOnboardingRuntimeOperations07
                         \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days(),
                     )
                     : $trialStart + max(1, \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days()) * 86400;
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.02', [
-                        mb_trim((string) $_POST["display_name"]),
-                        \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
-                        $profession,
-                        $clinicIcon,
-                        $accentColor,
-                        mb_trim((string) ($_POST["address_line"] ?? "")),
-                        $uf,
-                        $city,
-                        $cityIbge,
-                        $tz,
-                        $trialStart,
-                        $trialEnd,
-                        $cid,
-                    ], []);
-                $i = 1;
-                foreach (PRONTOO_ROLES as $role => $default) {
-                    $label =
-                        $role === "medico"
-                            ? $profession
-                            : (trim(
-                                (string) ($_POST["role_label"][$role] ?? $default),
-                            ) ?:
-                            $default);
-                    $ico = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.03', [$cid, $role, $label, $ico, $rolesEnabled[$role], $i++], []);
-                }
-                $defaults = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions();
-                foreach (PRONTOO_ROLES as $role => $label) {
-                    foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions() as $key => $a) {
-                        $allow = 0;
-                        if ($rolesEnabled[$role]) {
-                            $allow = in_array($key, $defaults[$role] ?? [], true)
-                                ? 1
-                                : 0;
-                        }
-                        if ($role === "gerente" && $rolesEnabled[$role]) {
-                            $allow = 1;
-                        }
-                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth07.page_onboarding.04', [$cid, $role, $key, $allow], []);
-                    }
-                }
-                $newUid = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member($cid, $_POST);
-                if ($newUid) {
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $newUid, [
-                        "clinic_id" => $cid,
-                        "origem" => "wizard",
-                    ]);
-                }
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("onboarding_concluido", "consultorio", $cid, [
-                    "clinic_id" => $cid,
-                    "clinic_icon" => $clinicIcon,
-                    "accent_color" => $accentColor,
-                    "audit_body" =>
-                        "Onboarding concluído com identidade visual inicial. Permissões permaneceram com padrão do sistema para ajuste posterior.",
-                ]);
-                    },
-                );
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::clinicOnboarding()
+                    ->complete(
+                        [
+                            'clinic_id' => $cid,
+                            'display_name' => mb_trim((string) $_POST["display_name"]),
+                            'phone' => \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) $_POST["phone"]),
+                            'profession' => $profession,
+                            'clinic_icon' => $clinicIcon,
+                            'accent_color' => $accentColor,
+                            'address_line' => mb_trim((string) ($_POST["address_line"] ?? "")),
+                            'state' => $uf,
+                            'city' => $city,
+                            'city_ibge' => $cityIbge,
+                            'timezone' => $tz,
+                            'trial_start' => $trialStart,
+                            'trial_end' => $trialEnd,
+                        ],
+                        $rolesEnabled,
+                        PRONTOO_ROLES,
+                        (array) ($_POST["role_label"] ?? []),
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions(),
+                        \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions(),
+                        $_POST,
+                        static fn(int $clinicId, array $payload): int =>
+                            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member(
+                                $clinicId,
+                                $payload,
+                            ),
+                        static fn(...$arguments): bool =>
+                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                ...$arguments,
+                            ),
+                    );
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     "Configuração inicial concluída. Você pode ajustar equipe, permissões e identidade visual depois em Meu Consultório.",
                 );

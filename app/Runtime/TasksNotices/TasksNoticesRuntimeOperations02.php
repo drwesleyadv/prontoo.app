@@ -232,58 +232,32 @@ final class TasksNoticesRuntimeOperations02
                     $patientLinkId = null;
                 }
             }
-            $exists = (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.create_workflow_task.02', [$cid, $sourceEvent, $sourceEntity, $sourceEntityId], []);
-            if ($exists > 0) {
-                return $exists;
+            $createdBy = isset($_SESSION["uid"]) ? (int) $_SESSION["uid"] : null;
+            $outcome = \Prontoo\Runtime\Operational\OperationalComposition::taskCommands()
+                ->createWorkflowTask(
+                    $cid,
+                    $title,
+                    $targetScope,
+                    $targetRole,
+                    $targetUserId,
+                    $assignedTo,
+                    $dueAt,
+                    $description,
+                    $patientLinkId,
+                    $appointmentId,
+                    $sourceEvent,
+                    $sourceEntity,
+                    $sourceEntityId,
+                    $createdBy,
+                    static fn(...$arguments): mixed =>
+                        \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
+                            ...$arguments,
+                        ),
+                );
+            $taskId = (int) ($outcome['task_id'] ?? 0);
+            if (empty($outcome['created'])) {
+                return $taskId;
             }
-            $taskId = (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->atomic(static function () use (
-                $cid,
-                $title,
-                $targetScope,
-                $targetRole,
-                $targetUserId,
-                $assignedTo,
-                $dueAt,
-                $description,
-                $patientLinkId,
-                $appointmentId,
-                $sourceEvent,
-                $sourceEntity,
-                $sourceEntityId,
-            ): int {
-    
-                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.create_workflow_task.03', [
-                        $cid,
-                        $title,
-                        $targetScope,
-                        $targetRole,
-                        $targetUserId,
-                        $assignedTo,
-                        $dueAt,
-                        $_SESSION["uid"] ?? null,
-                    ], []);
-                $newTaskId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
-                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.create_workflow_task.04', [
-                        $newTaskId,
-                        $cid,
-                        $description,
-                        $patientLinkId,
-                        $appointmentId,
-                        $sourceEvent,
-                        $sourceEntity,
-                        $sourceEntityId,
-                    ], []);
-                return $newTaskId;
-            });
-            \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
-                $cid,
-                $taskId,
-                "criada",
-                isset($_SESSION["uid"]) ? (int) $_SESSION["uid"] : null,
-                null,
-                "aberta",
-                "Tarefa automática criada pelo fluxo operacional.",
-            );
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("tasks_total");
             \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "tasks");
             if ($targetScope === "user" && $targetUserId) {
