@@ -1,0 +1,29 @@
+name: Documentation Inventory
+
+on:
+  push:
+    branches:
+      - agent/documentation-rewrite-final-architecture
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory markdown and architecture sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== MARKDOWN ==='
+          find . -type f -name '*.md' \
+            -not -path './.git/*' -not -path './vendor/*' -not -path './node_modules/*' -not -path './ssd/*' \
+            | sed 's#^./##' | sort
+          echo '=== REQUIRED ==='
+          php tools/documentation-check.php
+          echo '=== ARCHITECTURE MANIFEST SUMMARY ==='
+          php -r '$j=json_decode(file_get_contents("app/architecture.manifest.json"),true,512,JSON_THROW_ON_ERROR); foreach(["architecture_policy","architecture_consolidated_baseline","architecture_evolution_mode","architecture_maintenance_policy","runtime_refactor_on_touch_policy","logout_policy","logout_revocation_attempts","logout_degraded_status"] as $k){echo $k,"=",json_encode($j[$k]??null,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),PHP_EOL;}'
+          echo '=== VERSION ==='
+          php -r '$j=json_decode(file_get_contents("version.json"),true,512,JSON_THROW_ON_ERROR); foreach(["version","release","build","schema_revision","database_changes","schema_changes","logic_changes","visual_changes","minimum_php","minimum_mysql"] as $k){echo $k,"=",json_encode($j[$k]??null,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),PHP_EOL;}'
