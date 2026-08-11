@@ -274,20 +274,26 @@ security_regression_assert(
     "Denominador zero foi apresentado como percentual definido.",
 );
 $removedTelemetryEvents = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prune($telemetryNowUs);
-$telemetryLines = file(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$telemetryViews = json_decode(
+    (string) file_get_contents(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_views_file()),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+$telemetrySpeed = json_decode(
+    (string) file_get_contents(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_speed_file()),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
 security_regression_assert(
     $removedTelemetryEvents === 1 &&
-        is_array($telemetryLines) &&
-        count($telemetryLines) === 5,
-    "Retenção configurada não removeu somente o evento anterior à fronteira.",
+        (string) ($telemetryViews["schema"] ?? "") === "prontoo.telemetria.visualizacoes.v1" &&
+        (string) ($telemetrySpeed["schema"] ?? "") === "prontoo.telemetria.velocidade.v1" &&
+        count((array) ($telemetryViews["events"] ?? [])) === 5 &&
+        count((array) ($telemetrySpeed["events"] ?? [])) === 5,
+    "Retenção canônica não preservou Visualizações e Velocidade de forma coerente.",
 );
-foreach ($telemetryLines as $line) {
-    $decoded = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
-    security_regression_assert(
-        is_array($decoded) && \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) !== null,
-        "telemetria.json não contém exatamente um evento JSON válido por linha.",
-    );
-}
 
 $authSource = compatibility_source(dirname(__DIR__), "app/Auth/AuthOnboarding.php");
 $cronSource = (string) file_get_contents(

@@ -1,0 +1,29 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/compatibility-source.php';
+$root = dirname(__DIR__);
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
+$assert = static function (bool $ok, string $message): void {
+    if (!$ok) {
+        throw new RuntimeException('Contrato de fontes JSON de telemetria: ' . $message);
+    }
+};
+$assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_views_file(), '/views.json'), 'views.json não é canônico');
+$assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_speed_file(), '/speed.json'), 'speed.json não é canônico');
+$assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file(), '/database.json'), 'database.json não é canônico');
+$admin2 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php');
+$admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');
+$admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');
+$login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
+foreach (['"primary_label" => "Visualizações"', '"secondary_label" => "Registros"', '"Velocidade"'] as $token) {
+    $assert(str_contains($admin2, $token), 'gráficos perderam ' . $token);
+}
+foreach (['"Visualizações"', '"Tempo médio das rotas"'] as $token) {
+    $assert(str_contains($admin3, $token), 'cards perderam ' . $token);
+}
+$assert(str_contains($admin9, 'telemetry_route_performance_summary(240)') && str_contains($admin9, 'telemetry_comparative_summary()'), 'Performance deixou de usar o contrato canônico');
+$assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'linha pública/rodapé deixou de usar as séries canônicas');
+foreach ([$admin2, $admin3, $admin9, $login] as $source) {
+    $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
+}
+unset($root, $assert, $admin2, $admin3, $admin9, $login, $token, $source);

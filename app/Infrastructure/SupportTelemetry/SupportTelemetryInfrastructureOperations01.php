@@ -36,11 +36,194 @@ final class SupportTelemetryInfrastructureOperations01
     
     }
 
-    public static function telemetry_file(): string
-    
+    public static function telemetry_views_file(): string
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/page-loads.jsonl";
-    
+        return self::telemetry_storage_dir() . "/views.json";
+    }
+
+    public static function telemetry_speed_file(): string
+    {
+        return self::telemetry_storage_dir() . "/speed.json";
+    }
+
+    public static function telemetry_legacy_file(): string
+    {
+        return self::telemetry_storage_dir() . "/page-loads.jsonl";
+    }
+
+    public static function telemetry_file(): string
+    {
+        return self::telemetry_views_file();
+    }
+
+    private static function telemetry_views_schema(): string
+    {
+        return "prontoo.telemetria.visualizacoes.v1";
+    }
+
+    private static function telemetry_speed_schema(): string
+    {
+        return "prontoo.telemetria.velocidade.v1";
+    }
+
+    private static function telemetry_lock_file(): string
+    {
+        return self::telemetry_storage_dir() . "/.canonical.lock";
+    }
+
+    private static function telemetry_payload_read(string $file, string $schema): array
+    {
+        if (!is_file($file)) {
+            return ["schema" => $schema, "timezone" => "America/Cuiaba", "retention_days" => 31, "events" => []];
+        }
+        $raw = @file_get_contents($file);
+        if (!is_string($raw) || mb_trim($raw) === "") {
+            return ["schema" => $schema, "timezone" => "America/Cuiaba", "retention_days" => 31, "events" => []];
+        }
+        $payload = json_decode($raw, true);
+        if (!is_array($payload) || (string) ($payload["schema"] ?? "") !== $schema) {
+            throw new RuntimeException("JSON canônico de telemetria inválido.");
+        }
+        $payload["events"] = is_array($payload["events"] ?? null) ? array_values($payload["events"]) : [];
+        return $payload;
+    }
+
+    private static function telemetry_payload_write(string $file, array $payload): bool
+    {
+        $encoded = json_encode(
+            $payload,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+        ) . PHP_EOL;
+        $tmp = $file . ".tmp." . getmypid() . "." . bin2hex(random_bytes(4));
+        if (@file_put_contents($tmp, $encoded, LOCK_EX) !== strlen($encoded)) {
+            @unlink($tmp);
+            return false;
+        }
+        @chmod($tmp, 0640);
+        if (!@rename($tmp, $file)) {
+            @unlink($tmp);
+            return false;
+        }
+        @chmod($file, 0640);
+        return true;
+    }
+
+    private static function telemetry_view_event(array $event): array
+    {
+        return [
+            "evento_id" => (string) ($event["evento_id"] ?? ""),
+            "rota" => (string) ($event["rota"] ?? "unknown"),
+            "fim_unix_us" => (int) ($event["fim_unix_us"] ?? 0),
+            "status_http" => (int) ($event["status_http"] ?? 200),
+            "sucesso" => (bool) ($event["sucesso"] ?? false),
+        ];
+    }
+
+    private static function telemetry_speed_event(array $event): array
+    {
+        return [
+            "evento_id" => (string) ($event["evento_id"] ?? ""),
+            "rota" => (string) ($event["rota"] ?? "unknown"),
+            "fim_unix_us" => (int) ($event["fim_unix_us"] ?? 0),
+            "duracao_ns" => max(0, (int) ($event["duracao_ns"] ?? 0)),
+            "sucesso" => (bool) ($event["sucesso"] ?? false),
+        ];
+    }
+
+    private static function telemetry_legacy_events(?int $nowUnixUs = null): array
+    {
+        $file = self::telemetry_legacy_file();
+        if (!is_file($file)) {
+            return [];
+        }
+        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        $minimumUnixUs = $nowUnixUs - self::telemetry_retention_microseconds();
+        $events = [];
+        $seen = [];
+        $handle = @fopen($file, "rb");
+        if (!is_resource($handle)) {
+            return [];
+        }
+        try {
+            if (!@flock($handle, LOCK_SH)) {
+                return [];
+            }
+            while (($line = fgets($handle)) !== false) {
+                $decoded = json_decode(mb_trim($line), true);
+                $event = is_array($decoded) ? self::telemetry_normalize_event($decoded) : null;
+                if ($event === null || (int) ($event["fim_unix_us"] ?? 0) < $minimumUnixUs) {
+                    continue;
+                }
+                $id = (string) ($event["evento_id"] ?? "");
+                if ($id !== "" && isset($seen[$id])) {
+                    continue;
+                }
+                if ($id !== "") {
+                    $seen[$id] = true;
+                }
+                $events[] = $event;
+            }
+        } finally {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
+        return $events;
+    }
+
+    private static function telemetry_canonical_migrate_locked(?int $nowUnixUs = null): void
+    {
+        if (is_file(self::telemetry_views_file()) && is_file(self::telemetry_speed_file())) {
+            return;
+        }
+        $legacy = self::telemetry_legacy_events($nowUnixUs);
+        $views = [];
+        $speed = [];
+        foreach ($legacy as $event) {
+            $views[] = self::telemetry_view_event($event);
+            $speed[] = self::telemetry_speed_event($event);
+        }
+        $updated = (new DateTimeImmutable("now", self::telemetry_cuiaba_tz()))->format(DateTimeImmutable::ATOM);
+        if (!is_file(self::telemetry_views_file())) {
+            self::telemetry_payload_write(self::telemetry_views_file(), [
+                "schema" => self::telemetry_views_schema(),
+                "timezone" => "America/Cuiaba",
+                "retention_days" => 31,
+                "updated_at_local" => $updated,
+                "events" => $views,
+            ]);
+        }
+        if (!is_file(self::telemetry_speed_file())) {
+            self::telemetry_payload_write(self::telemetry_speed_file(), [
+                "schema" => self::telemetry_speed_schema(),
+                "timezone" => "America/Cuiaba",
+                "retention_days" => 31,
+                "updated_at_local" => $updated,
+                "events" => $speed,
+            ]);
+        }
+    }
+
+    private static function telemetry_lock_exclusive()
+    {
+        if (!self::telemetry_prepare_storage()) {
+            return false;
+        }
+        $lock = @fopen(self::telemetry_lock_file(), "c+");
+        if (!is_resource($lock) || !@flock($lock, LOCK_EX)) {
+            if (is_resource($lock)) {
+                @fclose($lock);
+            }
+            return false;
+        }
+        return $lock;
+    }
+
+    private static function telemetry_unlock($lock): void
+    {
+        if (is_resource($lock)) {
+            @flock($lock, LOCK_UN);
+            @fclose($lock);
+        }
     }
 
     public static function telemetry_schema(): string
@@ -353,114 +536,143 @@ final class SupportTelemetryInfrastructureOperations01
     }
 
     public static function telemetry_append_event(array $event): bool
-    
     {
-        $line = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
-        if ($line === null || !\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prepare_storage()) {
+        $event = self::telemetry_normalize_event($event);
+        if ($event === null) {
             return false;
         }
-        $handle = @fopen(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file(), "ab");
-        if (!is_resource($handle)) {
+        $lock = self::telemetry_lock_exclusive();
+        if (!is_resource($lock)) {
             return false;
         }
         try {
-            if (!@flock($handle, LOCK_EX)) {
+            self::telemetry_canonical_migrate_locked((int) ($event["fim_unix_us"] ?? 0));
+            $views = self::telemetry_payload_read(self::telemetry_views_file(), self::telemetry_views_schema());
+            $speed = self::telemetry_payload_read(self::telemetry_speed_file(), self::telemetry_speed_schema());
+            $id = (string) ($event["evento_id"] ?? "");
+            foreach ((array) $views["events"] as $row) {
+                if ($id !== "" && (string) ($row["evento_id"] ?? "") === $id) {
+                    return true;
+                }
+            }
+            $views["events"][] = self::telemetry_view_event($event);
+            $speed["events"][] = self::telemetry_speed_event($event);
+            $updated = (new DateTimeImmutable("@" . max(1, intdiv((int) $event["fim_unix_us"], 1000000))))
+                ->setTimezone(self::telemetry_cuiaba_tz())
+                ->format(DateTimeImmutable::ATOM);
+            $views["updated_at_local"] = $updated;
+            $speed["updated_at_local"] = $updated;
+            $oldViews = is_file(self::telemetry_views_file()) ? @file_get_contents(self::telemetry_views_file()) : false;
+            if (!self::telemetry_payload_write(self::telemetry_views_file(), $views)) {
                 return false;
             }
-            $written = @fwrite($handle, $line);
-            return $written === strlen($line) && @fflush($handle);
+            if (!self::telemetry_payload_write(self::telemetry_speed_file(), $speed)) {
+                if (is_string($oldViews)) {
+                    @file_put_contents(self::telemetry_views_file(), $oldViews, LOCK_EX);
+                }
+                return false;
+            }
+            return true;
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            self::telemetry_unlock($lock);
         }
-    
     }
 
     public static function telemetry_read_events(?int $nowUnixUs = null): array
-    
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
-        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
-        if (!is_file($file)) {
+        $minimumUnixUs = $nowUnixUs - self::telemetry_retention_microseconds();
+        $lock = self::telemetry_lock_exclusive();
+        if (!is_resource($lock)) {
             return [];
         }
-        $handle = @fopen($file, "rb");
-        if (!is_resource($handle)) {
+        try {
+            self::telemetry_canonical_migrate_locked($nowUnixUs);
+            $views = self::telemetry_payload_read(self::telemetry_views_file(), self::telemetry_views_schema());
+            $speed = self::telemetry_payload_read(self::telemetry_speed_file(), self::telemetry_speed_schema());
+        } catch (Throwable $error) {
+            error_log("[Prontoo telemetria] " . $error->getMessage());
             return [];
+        } finally {
+            self::telemetry_unlock($lock);
+        }
+        $speedById = [];
+        foreach ((array) ($speed["events"] ?? []) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $id = (string) ($row["evento_id"] ?? "");
+            if ($id !== "") {
+                $speedById[$id] = $row;
+            }
         }
         $events = [];
-        try {
-            if (!@flock($handle, LOCK_SH)) {
-                return [];
+        $seen = [];
+        foreach ((array) ($views["events"] ?? []) as $view) {
+            if (!is_array($view)) {
+                continue;
             }
-            while (($line = fgets($handle)) !== false) {
-                $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
-                $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-                if ($event !== null && $finishedUs >= $minimumUnixUs) {
-                    $events[] = $event;
-                }
+            $finishedUs = (int) ($view["fim_unix_us"] ?? 0);
+            if ($finishedUs < $minimumUnixUs || $finishedUs > $nowUnixUs) {
+                continue;
             }
-        } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            $id = (string) ($view["evento_id"] ?? "");
+            if ($id !== "" && isset($seen[$id])) {
+                continue;
+            }
+            if ($id !== "") {
+                $seen[$id] = true;
+            }
+            $speedRow = $speedById[$id] ?? null;
+            $events[] = [
+                "schema" => self::telemetry_schema(),
+                "tipo" => "page_load",
+                "evento_id" => $id,
+                "rota" => self::telemetry_route_safe((string) ($view["rota"] ?? "unknown")),
+                "fim_unix_us" => $finishedUs,
+                "duracao_ns" => is_array($speedRow) ? max(0, (int) ($speedRow["duracao_ns"] ?? 0)) : 0,
+                "status_http" => max(100, min(599, (int) ($view["status_http"] ?? 200))),
+                "sucesso" => (bool) ($view["sucesso"] ?? false),
+                "speed_observed" => is_array($speedRow),
+            ];
         }
+        usort($events, static fn(array $a, array $b): int => (int) $a["fim_unix_us"] <=> (int) $b["fim_unix_us"]);
         return $events;
-    
     }
 
     public static function telemetry_prune(?int $nowUnixUs = null): int
-    
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
-        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
-        if (!is_file($file)) {
+        $minimumUnixUs = $nowUnixUs - self::telemetry_retention_microseconds();
+        $lock = self::telemetry_lock_exclusive();
+        if (!is_resource($lock)) {
             return 0;
         }
-        $handle = @fopen($file, "c+");
-        if (!is_resource($handle)) {
-            return 0;
-        }
-        $kept = [];
-        $removed = 0;
         try {
-            if (!@flock($handle, LOCK_EX)) {
+            self::telemetry_canonical_migrate_locked($nowUnixUs);
+            $views = self::telemetry_payload_read(self::telemetry_views_file(), self::telemetry_views_schema());
+            $speed = self::telemetry_payload_read(self::telemetry_speed_file(), self::telemetry_speed_schema());
+            $before = count((array) ($views["events"] ?? []));
+            $filter = static fn(array $row): bool =>
+                (int) ($row["fim_unix_us"] ?? 0) >= $minimumUnixUs &&
+                (int) ($row["fim_unix_us"] ?? 0) <= $nowUnixUs;
+            $views["events"] = array_values(array_filter((array) ($views["events"] ?? []), static fn($row): bool => is_array($row) && $filter($row)));
+            $speed["events"] = array_values(array_filter((array) ($speed["events"] ?? []), static fn($row): bool => is_array($row) && $filter($row)));
+            $updated = (new DateTimeImmutable("@" . max(1, intdiv($nowUnixUs, 1000000))))
+                ->setTimezone(self::telemetry_cuiaba_tz())->format(DateTimeImmutable::ATOM);
+            $views["updated_at_local"] = $updated;
+            $speed["updated_at_local"] = $updated;
+            if (!self::telemetry_payload_write(self::telemetry_views_file(), $views) ||
+                !self::telemetry_payload_write(self::telemetry_speed_file(), $speed)) {
                 return 0;
             }
-            rewind($handle);
-            while (($line = fgets($handle)) !== false) {
-                $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
-                if (
-                    $event === null ||
-                    (int) ($event["fim_unix_us"] ?? 0) < $minimumUnixUs
-                ) {
-                    $removed++;
-                    continue;
-                }
-                $normalizedLine = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
-                if ($normalizedLine !== null) {
-                    $kept[] = $normalizedLine;
-                }
-            }
-            rewind($handle);
-            if (!@ftruncate($handle, 0)) {
-                return 0;
-            }
-            foreach ($kept as $line) {
-                if (@fwrite($handle, $line) !== strlen($line)) {
-                    throw new RuntimeException("Falha ao compactar telemetria.");
-                }
-            }
-            @fflush($handle);
-            return $removed;
+            return max(0, $before - count($views["events"]));
+        } catch (Throwable $error) {
+            error_log("[Prontoo telemetria] " . $error->getMessage());
+            return 0;
         } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
+            self::telemetry_unlock($lock);
         }
-    
     }
 
     public static function telemetry_percentage_variation(int|float $current, int|float $previous): ?float
