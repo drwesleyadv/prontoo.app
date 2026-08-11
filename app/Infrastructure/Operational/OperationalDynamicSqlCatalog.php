@@ -15,10 +15,10 @@ final class OperationalDynamicSqlCatalog
     {
         extract($bindings, EXTR_SKIP);
         $since = 'DATE_SUB(NOW(), INTERVAL 30 DAY)';
-        $scopeModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('clinic_id');
+        $scopeModelWhere = ModelClinicQuerySql::exclude('clinic_id');
         $modelScopedWhere = $scopeModelWhere;
         $modelScoped = $scopeModelWhere;
-        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('id');
+        $modelClinicWhere = ModelClinicQuerySql::exclude('id');
         $modelClinic = $modelClinicWhere;
         return match ($queryId) {
             'read.admin_pages.01.platform_backend_selftest.01' => (
@@ -56,7 +56,7 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.admin_pages.02.admin_global_ops_finance_html.09' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE created_at>=$since AND " .
-                                \Prontoo\Domain\Leads\LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                LeadQuerySql::active("stage") .
                                 " $modelScopedWhere"
             ),
             'read.admin_pages.02.admin_global_ops_finance_html.10' => (
@@ -100,7 +100,7 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.admin_pages.03.page_admin_health.04' => (
                 "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id")
+                                ModelClinicQuerySql::exclude("clinic_id")
             ),
             'read.admin_pages.03.page_admin_health.05' => (
                 "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND trial_ends_at>=NOW() $modelClinicWhere"
@@ -113,15 +113,15 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.admin_pages.04.page_admin_integrity.02' => (
                 "SELECT (SELECT COUNT(*) FROM pi_appointments a JOIN pi_patients p ON p.id=a.patient_link_id WHERE a.patient_link_id IS NOT NULL AND a.clinic_id<>p.clinic_id " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("a.clinic_id") .
+                                ModelClinicQuerySql::exclude("a.clinic_id") .
                                 ") + (SELECT COUNT(*) FROM pi_documents d JOIN pi_patients p ON p.id=d.patient_link_id WHERE d.patient_link_id IS NOT NULL AND d.clinic_id<>p.clinic_id " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("d.clinic_id") .
+                                ModelClinicQuerySql::exclude("d.clinic_id") .
                                 ") + (SELECT COUNT(*) FROM pi_care c JOIN pi_patients p ON p.id=c.patient_link_id WHERE c.clinic_id<>p.clinic_id " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("c.clinic_id") .
+                                ModelClinicQuerySql::exclude("c.clinic_id") .
                                 ") + (SELECT COUNT(*) FROM pi_task_details td JOIN pi_tasks t ON t.id=td.task_id WHERE td.clinic_id<>t.clinic_id " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("td.clinic_id") .
+                                ModelClinicQuerySql::exclude("td.clinic_id") .
                                 ") + (SELECT COUNT(*) FROM pi_task_comments tc JOIN pi_tasks t ON t.id=tc.task_id WHERE tc.clinic_id<>t.clinic_id " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("tc.clinic_id") .
+                                ModelClinicQuerySql::exclude("tc.clinic_id") .
                                 ")"
             ),
             'read.admin_pages.04.page_admin_integrity.03' => (
@@ -162,16 +162,16 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.dashboards.03.page_gerente_painel.02' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                \Prontoo\Domain\Leads\LeadsDomainOperations01::lead_active_stage_sql("stage")
+                                LeadQuerySql::active("stage")
             ),
             'read.dashboards.03.page_gerente_painel.03' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                \Prontoo\Domain\Leads\LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                LeadQuerySql::active("stage") .
                                 " AND next_action_at IS NULL"
             ),
             'read.dashboards.03.page_gerente_painel.04' => (
                 "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                                \Prontoo\Domain\Leads\LeadsDomainOperations01::lead_active_stage_sql("stage") .
+                                LeadQuerySql::active("stage") .
                                 " AND next_action_at IS NOT NULL AND next_action_at<NOW()"
             ),
             'read.dashboards.03.page_gerente_painel.05' => (

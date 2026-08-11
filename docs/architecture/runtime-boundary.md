@@ -55,6 +55,12 @@ O fechamento removeu do Runtime 913 ocorrências de SQL de negócio, 38 acessos 
 
 As composition roots autorizadas são cinco arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural é `DatabaseSchemaRuntimeOperations01.php`: nela permanecem somente dispatch guardado e atomicidade estrutural explicitamente inventariados, sem SQL, PDO ou transação de negócio. Não existe allowlist genérica por diretório, namespace ou padrão.
 
+## Consolidação da Fase 21
+
+O estado zero deixou de ser apenas a conclusão de uma migração e passou a compor o contrato final. `LayerMap::compositionRoots()` e `app/runtime.boundary-contract.json` devem declarar os mesmos cinco arquivos. A submétrica de Composition distingue roots, bootstrap, adapters de entrada, comissionamento, ferramentas e entrypoints; nenhum desses papéis autoriza lógica de persistência fora de Infrastructure.
+
+Renderizadores concretos de consulta para leads, auditoria, diretório de pacientes e exclusão do consultório-modelo foram consolidados em `app/Infrastructure/Operational`. Domain/Core continuam fornecendo estados, invariantes e decisões puras, sem montar SQL de negócio.
+
 ## Operação
 
 - `php tools/runtime-boundary-check` valida monotonicidade e tetos zero;

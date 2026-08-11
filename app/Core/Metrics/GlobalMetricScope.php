@@ -7,17 +7,6 @@ final class GlobalMetricScope
     private function __construct() {
 
     }
-    public static function modelClinicSql(string $column = "clinic_id"): string
-    {
-
-        return TenantRegistry::excludeModelClinicSql($column);
-    }
-    public static function modelClinicWhere(
-        string $column = "clinic_id",
-    ): string {
-
-        return TenantRegistry::excludeModelClinicWhere($column);
-    }
     public static function countNote(): string
     {
 

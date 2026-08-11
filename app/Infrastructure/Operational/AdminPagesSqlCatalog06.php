@@ -38,7 +38,7 @@ final class AdminPagesSqlCatalog06
             ),
             'operational.admin_pages.06.page_admin_painel.08' => (
                 "SELECT sp.id,sp.clinic_id,sp.amount_cents,sp.account_self,sp.account_holder_name,sp.proof_path,sp.applied_until,sp.created_at,c.display_name,(SELECT COUNT(*) FROM pi_subscription_payments spr WHERE spr.clinic_id=sp.clinic_id AND spr.status='rejected') AS rejected_count FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.status='pending_admin' " .
-                                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('sp.clinic_id') .
+                                ModelClinicQuerySql::exclude('sp.clinic_id') .
                                 " ORDER BY sp.created_at ASC LIMIT 20"
             ),
             'operational.admin_pages.06.page_admin_people.01' => (

@@ -1,10 +1,10 @@
 {
-    "version": "1.8.10.1",
-    "release": "1.8.10.1",
-    "generated_at_unix": 1786400648,
-    "generated_at": "2026-08-10T22:24:08+00:00",
-    "updated_at": "2026-08-10T22:24:08+00:00",
-    "build": "1.8.10.1-architecture-15",
+    "version": "1.8.10.2",
+    "release": "1.8.10.2",
+    "generated_at_unix": 1786418943,
+    "generated_at": "2026-08-10T23:29:03-04:00",
+    "updated_at": "2026-08-10T23:29:03-04:00",
+    "build": "1.8.10.2-architecture-21",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": false,
-    "functional_equivalence_policy": "architecture_11_15_incremental_engineering_refinement",
+    "functional_equivalence_policy": "architecture_16_21_semantic_closure_without_behavioral_or_visual_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Engenharia 11–15: dependências tipadas sem OperationGateway, thinning de Runtime, cobertura rápida ampliada de Application, budget real de consultas MySQL e governança explícita de versão.",
+    "notes": "Engenharia 16–21: fechamento semântico do Runtime financeiro, identidade e módulos operacionais; matriz integral de Application; budgets reais MySQL ampliados; e contrato final de arquitetura.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.9.1",
+    "previous_version": "1.8.10.1",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.10.1-architecture-15",
-    "deployment_sync_requested_at": "2026-08-10T22:24:08+00:00",
+    "deployment_sync_id": "github-prontoo-1.8.10.2-architecture-21",
+    "deployment_sync_requested_at": "2026-08-10T23:29:03-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -342,13 +342,16 @@
         ]
     },
     "changelog": {
-        "title": "Engenharia arquitetural 11–15 e governança de release",
+        "title": "Engenharia arquitetural 16–21 e consolidação",
         "items": [
-            "elimina o OperationGateway e fixa em zero o budget de invocações globais",
-            "move o salvamento de metas financeiras para Application, Port e Infrastructure, mantendo o Runtime como orquestração fina",
-            "amplia a suíte rápida para sete casos de uso e ports de Application, com 57 assertivas",
-            "adiciona budget real de consultas MySQL com tetos de 1 e 3 SELECTs nos cenários críticos de leitura de pacientes",
-            "introduz gerador explícito de versão por data, valida a cadeia previous_version e publica a conclusão das fases 11–15 como 1.8.10.1"
+            "institui análise tokenizada e baseline monotônica para a fronteira Runtime",
+            "remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento",
+            "mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime",
+            "cataloga os 32 casos críticos dos 13 Application Services, ligados a 15 ports e 145 assertivas rápidas sem banco",
+            "amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil",
+            "move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade",
+            "consolida em CI os contratos finais de classificação, SOLID, símbolos, documentação, release e performance",
+            "publica a conclusão das fases 16–21 sem mudança de schema, banco ou interface"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -566,5 +569,5 @@
     },
     "release_version_policy": "explicit_date_sequence_generator_v1",
     "release_version_generator": "tools/release-version",
-    "release_version_last_transition": "1.8.9.1->1.8.10.1"
+    "release_version_last_transition": "1.8.10.1->1.8.10.2"
 }

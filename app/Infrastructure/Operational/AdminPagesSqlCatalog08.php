@@ -31,16 +31,16 @@ final class AdminPagesSqlCatalog08
                 "UPDATE pi_clinics SET active=?,updated_at=NOW() WHERE id=?"
             ),
             'operational.admin_pages.08.page_admin_clinics.06' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE 1=1 " . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('id')
+                "SELECT COUNT(*) FROM pi_clinics WHERE 1=1 " . ModelClinicQuerySql::exclude('id')
             ),
             'operational.admin_pages.08.page_admin_clinics.07' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 " . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('id')
+                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 " . ModelClinicQuerySql::exclude('id')
             ),
             'operational.admin_pages.08.page_admin_clinics.08' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='exempt' " . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('id')
+                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='exempt' " . ModelClinicQuerySql::exclude('id')
             ),
             'operational.admin_pages.08.page_admin_clinics.09' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status<>'exempt' AND (subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW()))) " . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql('id')
+                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status<>'exempt' AND (subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW()))) " . ModelClinicQuerySql::exclude('id')
             ),
             'operational.admin_pages.08.page_admin_clinics.10' => (
                 "SELECT id,display_name,responsible_profession,active,onboarding_done,owner_user_id,manager_user_id,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics ORDER BY CASE WHEN active=0 THEN 4 WHEN subscription_status='exempt' THEN 3 WHEN subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW())) THEN 0 ELSE 2 END ASC, updated_at DESC, id DESC LIMIT 120"

@@ -44,8 +44,17 @@ final class PatientDirectorySql
 
     public static function order(string $filter, string $searchMode): string
     {
-        return $searchMode !== 'none'
-            ? 'p.full_name ASC, pp.id DESC'
-            : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_order_sql($filter);
+        if ($searchMode !== 'none') {
+            return 'p.full_name ASC, pp.id DESC';
+        }
+        $filter = array_key_exists(
+            $filter,
+            \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options(),
+        ) ? $filter : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
+        return match ($filter) {
+            'today' => 'today_appointment_start_at ASC, p.full_name ASC, pp.id DESC',
+            'dropouts' => 'dropout_at DESC, p.full_name ASC, pp.id DESC',
+            default => 'p.full_name ASC, pp.id DESC',
+        };
     }
 }

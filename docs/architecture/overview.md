@@ -36,7 +36,7 @@ flowchart TD
     R --> C
 ```
 
-As setas representam dependências permitidas. `Core` é autocontido; `Domain` não conhece infraestrutura/apresentação; `Application` não conhece adaptadores externos; `Infrastructure` e `Presentation` não dependem entre si; `Composition` é a única camada que pode conhecer todas as demais.
+As setas representam dependências permitidas. `Core` é autocontido; `Domain` não conhece infraestrutura/apresentação nem renderiza consultas; `Application` não conhece adaptadores externos; `Infrastructure` e `Presentation` não dependem entre si. Composition pode conhecer todas as camadas, mas somente os cinco roots enumerados podem instanciar adapters concretos; as demais unidades Runtime são bootstrap ou adapters finos de entrada.
 
 ## Núcleo de invariantes
 
@@ -44,7 +44,7 @@ As setas representam dependências permitidas. `Core` é autocontido; `Domain` n
 
 ## Runtime e composição
 
-A composição foi decomposta em unidades coesas:
+A composição foi decomposta em unidades coesas e perfilada executavelmente pelo `LayerMap`:
 
 - `app/Runtime/Modules/RuntimeBootPolicy.php` — política de boot;
 - `RuntimeModuleCatalog.php` — catálogo de módulos;
@@ -53,8 +53,10 @@ A composição foi decomposta em unidades coesas:
 - `app/Runtime/Routing/RouteCatalog.php` — catálogo de rotas;
 - `app/Runtime/Boot/RuntimeBootCoordinator.php` — prontidão mínima e manutenção profunda;
 - `app/Runtime/Authorization/ActionCatalogComposition.php` — composição do catálogo de autorização;
-- composições específicas de Pacientes, Financeiro, Identidade e casos operacionais em `app/Runtime/Patients`, `app/Runtime/Financial`, `app/Runtime/SecurityAccess` e `app/Runtime/Operational`;
+- os cinco roots concretos `LayeredKernel`, `PatientComposition`, `FinancialComposition`, `SecurityAccessComposition` e `OperationalComposition`;
 - `app/Runtime/Runner.php` — coordenação final do runtime.
+
+Pertencer a `app/Runtime` não transforma uma unidade em root. Controllers e adapters de entrada mantêm request, sessão, cookies, redirects, flash e montagem de resposta; casos de uso e persistência atravessam Application e ports até Infrastructure.
 
 A fachada global `app/Support/ModuleLoader.php` foi removida. Entrypoints e unidades de runtime consomem diretamente `RuntimeModuleComposition`, `RuntimeBootPolicy`, `RouteCatalog`, `JsonResponder` e as composições de feature.
 
@@ -84,7 +86,10 @@ A migração permanece monotônica: o número efetivo de unidades nativas não p
 A arquitetura não é apenas documental. São gates permanentes:
 
 - `tools/architecture-check.php`;
+- `tools/architecture-consolidation-check`;
 - `tools/runtime-boundary-check`;
+- `tools/application-test-contract-check`;
+- `tools/query-budget-contract-check` e `tools/mysql-query-budget-check`;
 - `tools/solid-audit`;
 - `tools/security-regression-check.php`;
 - `tools/schema-check.php`;

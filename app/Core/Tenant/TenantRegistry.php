@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 namespace Prontoo\Core\Tenant;
-use Prontoo\Core\Support\Check;
 final class TenantRegistry
 {
     private static ?int $modelClinicCache = null;
@@ -68,29 +67,6 @@ final class TenantRegistry
 
         $table = strtolower($table);
         return self::SCOPED_TABLES[$table] ?? null;
-    }
-    private static function globalAdminExemptSubquery(): string
-    {
-
-        return "SELECT c.id FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.subscription_status='exempt' AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1)";
-    }
-    public static function excludeModelClinicSql(
-        string $column = "clinic_id",
-    ): string {
-
-        $column = Check::scopedColumn($column);
-        return " AND " .
-            $column .
-            " NOT IN (" .
-            self::globalAdminExemptSubquery() .
-            ") ";
-    }
-    public static function excludeModelClinicWhere(
-        string $column = "clinic_id",
-    ): string {
-
-        $column = Check::scopedColumn($column);
-        return $column . " NOT IN (" . self::globalAdminExemptSubquery() . ")";
     }
     public static function configureModelClinicId(int $clinicId): void
     {

@@ -18,7 +18,7 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 
 **ISP.** Ports permanecem orientados ao caso de uso. Interfaces internas com superfície superior ao limite do contrato são achados objetivos bloqueantes.
 
-**DIP.** As dependências apontam para dentro. Core depende apenas de Core; Domain pode depender de Core e Domain; Application pode depender de Core, Domain e Application; Infrastructure pode depender das abstrações internas de Core, Domain e Application; Presentation pode depender de Core, Domain e Application. Runtime/Composition é a única camada autorizada a conhecer e conectar todas as camadas.
+**DIP.** As dependências apontam para dentro. Core depende apenas de Core; Domain pode depender de Core e Domain; Application pode depender de Core, Domain e Application; Infrastructure pode depender das abstrações internas de Core, Domain e Application; Presentation pode depender de Core, Domain e Application. Runtime/Composition pode conhecer todas as camadas, mas apenas cinco composition roots enumerados conectam adapters concretos; os demais arquivos permanecem bootstrap ou adapters de entrada sem persistência.
 
 ## Refatorações consolidadas
 
@@ -31,6 +31,7 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 7. a consolidação `1.8.7.1` removeu seis tombstones namespace-only;
 8. a materialização zero-legacy removeu as últimas 22 fachadas executáveis e 1.289 funções globais delegadoras, mantendo composição nativa via registries explícitos;
 9. as fases 11–15 removeram o `OperationGateway`; o contrato atual proíbe o arquivo e fixa `max_invoke_calls = 0`.
+10. as fases 16–21 fecharam semanticamente Runtime, moveram renderização de consultas de Domain/Core para Infrastructure, catalogaram 32 casos críticos de Application e instituíram 11 budgets reais MySQL.
 
 ## Métricas protegidas
 
@@ -46,6 +47,8 @@ A baseline corrente registra:
 - zero achados objetivos no auditor SOLID;
 - zero hotspots acionáveis no auditor SOLID.
 - zero chamadas ou arquivos do `OperationGateway`.
+- 100% dos 32 casos críticos de Application catalogados e ligados a 15 ports;
+- 11 cenários MySQL críticos sem regressão de budget.
 
 A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. O prefixo financeiro foi encerrado na Fase 17; Segurança, Autenticação/Onboarding e Usuários/Permissões foram encerrados na Fase 18; a Fase 19 zerou globalmente SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso. O dispatch e a atomicidade estrutural do executor guardado permanecem inventariados e não podem crescer.
 
