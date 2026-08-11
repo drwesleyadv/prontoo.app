@@ -504,7 +504,7 @@
         "tools/critical-runtime-smoke-check": "58923e697995a82da7e31595e0cfcd951233ae9cd00cea3c6c8f32ccedc505b2",
         "tools/documentation-check.php": "fe513ae43e8dc3286760384799595fd6f17a99fe0ad9b74a3d1d3959509f2624",
         "tools/http-runtime-smoke-check": "0d6b63a04e7dea7c7fe1bc7ae151a986fdde8db8932e8a26e9f8dcaef4375852",
-        "tools/install-security-check.php": "c92d9b4fc830d172c9218122c6fb299e9715c512afcd8af27dad87ec099d1c2c",
+        "tools/install-security-check.php": "9aff33d1a4599f72bf3724bf1bc4f1021e81ffaaf008028357ea64e8800ff3cc",
         "tools/install-window-contract-check": "6b8a9f718e6d7cda40ee91753698013dd220098647d4252b5ac47144caa623e2",
         "tools/login-post-password-runtime-check": "37dde7a57fcd328eaa3aaddc5bddfdd829788abdc6f87bfebb844901aed3d731",
         "tools/maestro-runtime-regression-check": "833e7f1a419edff758631a853d1345de62b0e4635e3b78d0cd9ed470b17f16ba",

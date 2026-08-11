@@ -216,8 +216,13 @@ if (!str_contains($securityAccessSource, '\Prontoo\Infrastructure\SupportFoundat
     $errors[] = 'atomic_rate_limit_policy';
 }
 $authSecuritySource = compatibility_source($root, 'app/Auth/AuthOnboarding.php');
-if (!str_contains($authSecuritySource, 'SELECT GET_LOCK(?,2)') ||
-    !str_contains($authSecuritySource, 'fail_count=LEAST(100000,fail_count+1)') ||
+$authPersistenceSource = implode("\n", [
+    (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentityAuthSqlCatalog03.php'),
+    (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentityAuthSqlCatalog04.php'),
+]);
+if (!str_contains($authPersistenceSource, 'SELECT GET_LOCK(?,2)') ||
+    !str_contains($authPersistenceSource, 'fail_count=LEAST(100000,fail_count+1)') ||
+    !str_contains($authSecuritySource, "'identity.auth03.page_login.01'") ||
     !str_contains($authSecuritySource, 'login|all-ip-addresses') ||
     !str_contains($authSecuritySource, 'login|all-subjects') ||
     !str_contains($authSecuritySource, '\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::login_locks_cleanup_maybe();')) {
@@ -252,12 +257,20 @@ foreach ([
     'function mfa_enroll_user(',
     'function mfa_verify_user_code(',
     '"last_counter"',
-    'SELECT GET_LOCK(?,5)',
     'function security_global_scope_verified(',
 ] as $requiredMfaPolicy) {
     if (!str_contains($securityAccessSource, $requiredMfaPolicy)) {
         $errors[] = 'mfa_runtime_policy:' . $requiredMfaPolicy;
     }
+}
+$mfaPersistenceSource = implode("\n", [
+    (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentitySecuritySqlCatalog01.php'),
+    (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentitySecuritySqlCatalog02.php'),
+]);
+if (!str_contains($mfaPersistenceSource, 'SELECT GET_LOCK(?,5)') ||
+    !str_contains($securityAccessSource, "'identity.security01.mfa_enroll_user.01'") ||
+    !str_contains($securityAccessSource, "'identity.security02.mfa_verify_user_code.01'")) {
+    $errors[] = 'mfa_runtime_policy:named_lock_operations';
 }
 foreach ([
     'function page_mfa(): void',
