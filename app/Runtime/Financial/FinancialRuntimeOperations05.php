@@ -31,11 +31,9 @@ final class FinancialRuntimeOperations05
     {
     
         [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($businessDate, $cid);
-        $activeAppointment =
-            "(a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))";
-        $expected = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.01", [$cid, $dayStart, $dayEnd], compact('activeAppointment')) ?? 0);
-        $received = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.02", [$cid, $dayStart, $dayEnd], compact('activeAppointment')) ?? 0);
-        $pending = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.03", [$cid, $dayStart, $dayEnd], compact('activeAppointment')) ?? 0);
+        $expected = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.01", [$cid, $dayStart, $dayEnd], []) ?? 0);
+        $received = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.02", [$cid, $dayStart, $dayEnd], []) ?? 0);
+        $pending = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.03", [$cid, $dayStart, $dayEnd], []) ?? 0);
         $movements = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.05.daily_metrics.04", [$cid, $dayStart, $dayEnd, $businessDate], []) ?? 0);
         $expected = \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $expected,

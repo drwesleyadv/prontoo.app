@@ -37,13 +37,10 @@ final class DashboardsRuntimeOperations02
             $cid,
             $c,
         );
-        $today = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND status NOT IN ('cancelado') ORDER BY start_at ASC LIMIT 160",
-            [$cid, $todayStart, $todayEnd],
-        )->fetchAll();
+        $today = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.02.page_triagem_painel.01', [$cid, $todayStart, $todayEnd], [])->fetchAll();
         $names = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::appointment_patient_names($today, $cid);
         $doctorIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($today, "doctor_user_id");
-        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", $doctorIds, "id,name");
+        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", $doctorIds);
         $now = time();
         $waiting = [];
         $late = [];
@@ -64,15 +61,9 @@ final class DashboardsRuntimeOperations02
             }
         }
         $taskOpen =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND (assigned_to=? OR (assigned_to IS NULL AND (target_scope='role' AND target_role='assistente' OR target_scope='clinic')))",
-                [$cid, $uid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.02.page_triagem_painel.02', [$cid, $uid], []) ?? 0);
         $taskDue =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at<=DATE_ADD(NOW(), INTERVAL 30 MINUTE) AND (assigned_to=? OR (assigned_to IS NULL AND (target_scope='role' AND target_role='assistente' OR target_scope='clinic')))",
-                [$cid, $uid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.02.page_triagem_painel.03', [$cid, $uid], []) ?? 0);
         $row = function (array $a, string $class = "neutral") use (
             $names,
             $users,
@@ -191,12 +182,12 @@ final class DashboardsRuntimeOperations02
     
     }
 
-    public static function manager_metric_val(string $sql, array $params = []): int
+    public static function manager_metric_val(string $query, array $params = [], array $context = []): int
     
     {
     
         try {
-            return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val($sql, $params) ?? 0);
+            return (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.02.manager_metric_val.01', $params, ['query' => $query] + $context) ?? 0);
         } catch (Throwable $e) {
             error_log("[Prontoo manager metric] " . $e->getMessage());
             return 0;
@@ -204,12 +195,12 @@ final class DashboardsRuntimeOperations02
     
     }
 
-    public static function manager_metric_row(string $sql, array $params = []): array
+    public static function manager_metric_row(string $query, array $params = [], array $context = []): array
     
     {
     
         try {
-            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($sql, $params) ?: [];
+            return \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.dashboards.02.manager_metric_row.01', $params, ['query' => $query] + $context) ?: [];
         } catch (Throwable $e) {
             error_log("[Prontoo manager metric row] " . $e->getMessage());
             return [];

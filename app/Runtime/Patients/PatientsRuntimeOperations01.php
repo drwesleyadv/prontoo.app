@@ -61,7 +61,7 @@ final class PatientsRuntimeOperations01
     
     {
     
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_tabs_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_tabs");
         $rows = PatientComposition::activeTabs($cid, $patientId);
         foreach ($rows as &$r) {
             $r["id"] = (int) $r["id"];
@@ -154,7 +154,7 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return [];
         }
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_guardians");
         return PatientComposition::legalGuardians($cid, $patientId);
     
     }
@@ -174,7 +174,7 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return false;
         }
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_guardians");
         return PatientComposition::hasLegalGuardian($cid, $patientId);
     
     }
@@ -237,10 +237,7 @@ final class PatientsRuntimeOperations01
         if ($cid <= 0 || $patientId <= 0) {
             return null;
         }
-        $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT pp.id,pp.clinic_id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,pp.registration_needs_update,p.full_name,p.cpf,p.birth_date FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1",
-            [$patientId, $cid],
-        );
+        $p = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.01.patient_sensitive_block_reason.01', [$patientId, $cid], []);
         if (!$p) {
             return null;
         }
@@ -440,9 +437,8 @@ final class PatientsRuntimeOperations01
     
         $row = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::require_same_clinic_entity(
             $cid,
-            "pi_patients",
+            "patient",
             $patientId,
-            "id,person_id,active,deleted_at",
         );
         if ((int) ($row["active"] ?? 0) !== 1 || !empty($row["deleted_at"])) {
             throw new ProntooHttpError(
@@ -463,10 +459,7 @@ final class PatientsRuntimeOperations01
         $ibge = mb_trim((string) ($p["address_city_ibge"] ?? ""));
         if ($uf === "" && $cid > 0) {
             $cl =
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT address_state,address_city,address_city_ibge FROM pi_clinics WHERE id=?",
-                    [$cid],
-                ) ?:
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.01.patient_location_defaults.01', [$cid], []) ?:
                 [];
             $uf = mb_trim((string) ($cl["address_state"] ?? "MT"));
             if ($city === "") {

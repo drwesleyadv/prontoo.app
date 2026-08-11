@@ -342,19 +342,6 @@ final class SecurityAccessRuntimeOperations01
     
     }
 
-    public static function safe_val(string $sql, array $p = [], mixed $fallback = 0): mixed
-    
-    {
-    
-        try {
-            return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value($sql, $p) ?? $fallback;
-        } catch (Throwable $e) {
-            error_log("[Prontoo safe_val] " . $e->getMessage());
-            return $fallback;
-        }
-    
-    }
-
     public static function csrf_field(): string
     
     {

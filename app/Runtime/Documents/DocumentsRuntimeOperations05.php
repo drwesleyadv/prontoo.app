@@ -63,10 +63,7 @@ final class DocumentsRuntimeOperations05
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("documents");
                 }
                 if ($id > 0) {
-                    $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,owner_user_id,owner_role FROM pi_document_templates WHERE id=? AND clinic_id=?",
-                        [$id, $cid],
-                    );
+                    $tpl = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.05.page_documents.01', [$id, $cid], []);
                     if (!$tpl || !\Prontoo\Domain\Documents\DocumentTemplatePolicy::can_edit_document_template($c, $tpl)) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Modelo não disponível para alteração.", "bad");
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("documents");
@@ -91,9 +88,7 @@ final class DocumentsRuntimeOperations05
                         (string) $tpl["owner_role"],
                         true,
                     );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_document_templates SET type_key=?,title=?,body=?,status=?,approval_required=?,approved_by=?,approved_at=?,updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.05.page_documents.02', [
                             $type,
                             $title,
                             $body,
@@ -104,8 +99,7 @@ final class DocumentsRuntimeOperations05
                             $uid,
                             $id,
                             $cid,
-                        ],
-                    );
+                        ], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("modelo_documento_atualizado", "documento", $id, [
                         "titulo" => $title,
                         "template_title" => $title,
@@ -124,9 +118,7 @@ final class DocumentsRuntimeOperations05
                         $approvedBy,
                         $approvedAt,
                     ] = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations01::document_template_status_after_save($c, $role, false);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_document_templates (clinic_id,owner_user_id,owner_role,type_key,title,body,status,approval_required,approved_by,approved_at,updated_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.05.page_documents.03', [
                             $cid,
                             $uid,
                             $role,
@@ -138,9 +130,8 @@ final class DocumentsRuntimeOperations05
                             $approvedBy,
                             $approvedAt,
                             $uid,
-                        ],
-                    );
-                    $newId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                        ], []);
+                    $newId = \Prontoo\Runtime\Operational\OperationalComposition::documents()->lastInsertId();
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("modelo_documento_criado", "documento", $newId, [
                         "titulo" => $title,
                         "template_title" => $title,
@@ -161,19 +152,13 @@ final class DocumentsRuntimeOperations05
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("documents");
                 }
                 $id = (int) ($_POST["id"] ?? 0);
-                $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,title FROM pi_document_templates WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $tpl = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.05.page_documents.04', [$id, $cid], []);
                 if (!$tpl) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Modelo não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("documents");
                 }
                 $status = $act === "approve_template" ? "approved" : "rejected";
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_document_templates SET status=?,approval_required=0,approved_by=?,approved_at=NOW(),updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$status, $uid, $uid, $id, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.05.page_documents.05', [$status, $uid, $uid, $id, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     $act === "approve_template"
                         ? "modelo_documento_aprovado"
@@ -285,11 +270,10 @@ final class DocumentsRuntimeOperations05
                 }
             }
         }
-        [$where, $params] = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visible_where($c, "dt");
-        $templates = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT dt.id,dt.owner_user_id,dt.owner_role,dt.type_key,dt.title,dt.status,u.name AS owner_name,(SELECT MAX(d.issued_at) FROM pi_documents d WHERE d.clinic_id=dt.clinic_id AND d.template_id=dt.id) AS last_used_at FROM pi_document_templates dt LEFT JOIN pi_users u ON u.id=dt.owner_user_id WHERE dt.clinic_id=? AND $where ORDER BY FIELD(dt.status,'pending_approval','approved','rejected','archived'), IF(dt.owner_role=?,0,1), COALESCE(last_used_at,dt.updated_at,dt.created_at) DESC, dt.title ASC LIMIT 240",
-            array_merge([$cid], $params, [$role]),
-        )->fetchAll();
+        $templateVisibility = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visibility($c);
+        $params = (array) ($templateVisibility["parameters"] ?? []);
+        $visibilityMode = (string) ($templateVisibility["mode"] ?? "role");
+        $templates = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.05.page_documents.06', array_merge([$cid], $params, [$role]), compact('visibilityMode'))->fetchAll();
         $modelSearch = mb_trim((string) ($_GET["model_q"] ?? ""));
         $createTemplates = [];
         $pending = 0;
@@ -359,24 +343,16 @@ final class DocumentsRuntimeOperations05
                 }),
             );
         }
-        $docWhere = "d.clinic_id=?";
         $docParams = [$cid];
-        if ($role !== "gerente") {
-            if ($role === "medico") {
-                $docWhere .=
-                    " AND (d.issued_by=? OR dt.owner_user_id=? OR dt.owner_role IN ('medico','assistente','recepcionista'))";
-                $docParams[] = $uid;
-                $docParams[] = $uid;
-            } else {
-                $docWhere .=
-                    " AND (d.issued_by=? OR dt.owner_user_id=? OR dt.owner_role=?)";
-                $docParams[] = $uid;
-                $docParams[] = $uid;
-                $docParams[] = $role;
-            }
+        if ($role === "medico") {
+            $docParams[] = $uid;
+            $docParams[] = $uid;
+        } elseif ($role !== "gerente") {
+            $docParams[] = $uid;
+            $docParams[] = $uid;
+            $docParams[] = $role;
         }
         $docSearch = mb_trim((string) ($_GET["doc_q"] ?? ($_GET["q"] ?? "")));
-        $docListWhere = $docWhere . " AND d.document_status='emitido'";
         $docListParams = $docParams;
         if ($docSearch !== "") {
             $like = "%" . $docSearch . "%";
@@ -384,16 +360,10 @@ final class DocumentsRuntimeOperations05
                 "%" .
                 strtoupper(preg_replace("/[^A-Za-z0-9]+/", "", $docSearch)) .
                 "%";
-            $docListWhere .=
-                " AND (d.title LIKE ? OR d.content LIKE ? OR d.type_key LIKE ? OR p.full_name LIKE ? OR u.name LIKE ? OR UPPER(COALESCE(d.document_identifier,'')) LIKE ?)";
             array_push($docListParams, $like, $like, $like, $like, $like, $code);
         }
         $docLimit = $docSearch === "" ? 10 : 100;
-        $docs = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT d.id,d.title,d.type_key,d.issued_at,d.updated_at,d.confirmed_at,d.document_status,d.patient_link_id,d.appointment_id,d.document_identifier,u.name AS issued_name,p.full_name AS patient_name,dt.owner_role FROM pi_documents d LEFT JOIN pi_document_templates dt ON dt.id=d.template_id AND dt.clinic_id=d.clinic_id LEFT JOIN pi_users u ON u.id=d.issued_by LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id AND pl.clinic_id=d.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE $docListWhere ORDER BY COALESCE(d.issued_at,d.confirmed_at,d.updated_at) DESC,d.id DESC LIMIT " .
-                (int) $docLimit,
-            $docListParams,
-        )->fetchAll();
+        $docs = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.05.page_documents.07', $docListParams, ['role' => $role, 'search' => $docSearch !== '', 'docLimit' => $docLimit])->fetchAll();
         $selectedDoc = null;
         $selectedId = (int) ($_GET["doc"] ?? 0);
         if ($selectedId > 0) {
@@ -577,10 +547,7 @@ final class DocumentsRuntimeOperations05
             return;
         }
         if ($editModelId > 0) {
-            $editTpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT dt.id,dt.owner_user_id,dt.owner_role,dt.type_key,dt.title,dt.body,dt.status FROM pi_document_templates dt WHERE dt.id=? AND dt.clinic_id=? AND $where LIMIT 1",
-                array_merge([$editModelId, $cid], $params),
-            );
+            $editTpl = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.05.page_documents.08', array_merge([$editModelId, $cid], $params), compact('visibilityMode'));
             if (!$editTpl || !\Prontoo\Domain\Documents\DocumentTemplatePolicy::can_edit_document_template($c, $editTpl)) {
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Modelo não disponível para alteração.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("documents", ["models" => 1]);

@@ -33,14 +33,13 @@ final class DatabaseSchemaRuntimeOperations01
     {
     
         \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_reject_runtime_ddl($sql);
-        $connection = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
         $autoIntegrityTransaction =
-            !$connection->inTransaction() &&
+            !\Prontoo\Infrastructure\Database\PdoQueryDriver::inTransaction() &&
             preg_match("/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i", $sql) === 1 &&
             class_exists("\\Prontoo\\Infrastructure\\Integrity\\PiIntegrity") &&
             is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) &&
             \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg();
-        $attempts = $connection->inTransaction() ? 1 : 3;
+        $attempts = \Prontoo\Infrastructure\Database\PdoQueryDriver::inTransaction() ? 1 : 3;
         $lastError = null;
     
         for ($attempt = 0; $attempt < $attempts; $attempt++) {
@@ -75,12 +74,11 @@ final class DatabaseSchemaRuntimeOperations01
                 }
     
                 $GLOBALS["PRONTOO_INSTALL_LAST_RUNTIME_SQL"] = $runtimeSql;
-                $statement = $connection->prepare($runtimeSql);
-                $statement->execute($runtimeParams);
+                $statement = \Prontoo\Infrastructure\Database\PdoQueryDriver::execute($runtimeSql, $runtimeParams);
                 if (preg_match("/^\s*(INSERT|REPLACE)\b/i", $runtimeSql)) {
                     $GLOBALS[
                         "PRONTOO_LAST_INSERT_ID"
-                    ] = (int) $connection->lastInsertId();
+                    ] = \Prontoo\Infrastructure\Database\PdoQueryDriver::lastInsertId();
                 }
     
                 $elapsedMs = (microtime(true) - $startedAt) * 1000;
@@ -118,7 +116,7 @@ final class DatabaseSchemaRuntimeOperations01
                         );
                     }
                 }
-                if ($autoIntegrityTransaction && $connection->inTransaction()) {
+                if ($autoIntegrityTransaction && \Prontoo\Infrastructure\Database\PdoQueryDriver::inTransaction()) {
                     \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
                 }
                 if ($attempt + 1 < $attempts && \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_retryable_conflict($error)) {
@@ -160,45 +158,7 @@ final class DatabaseSchemaRuntimeOperations01
     
     {
     
-        static $validated = false;
-        if ($validated || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
-            return;
-        }
-    
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_apply_pending_release_migrations();
-    
-        $expectedRevision = defined("PRONTOO_SCHEMA_REV")
-            ? PRONTOO_SCHEMA_REV
-            : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
-        $revision = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
-            "schema_revision",
-        ]);
-        $contract = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [
-            "schema_contract_hash",
-        ]);
-        if (!hash_equals($expectedRevision, (string) $revision)) {
-            throw new RuntimeException(
-                "Revisão do banco incompatível com a aplicação.",
-            );
-        }
-        if (!hash_equals(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(), (string) $contract)) {
-            throw new RuntimeException(
-                "Contrato do banco incompatível com a aplicação.",
-            );
-        }
-    
-        $ready = json_decode((string) \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_read(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file()), true);
-        if (
-            !is_array($ready) ||
-            !hash_equals($expectedRevision, (string) ($ready["revision"] ?? "")) ||
-            !hash_equals(
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(),
-                (string) ($ready["contract"] ?? ""),
-            )
-        ) {
-            throw new RuntimeException("Marcador do schema instalado é inválido.");
-        }
-        $validated = true;
+        \Prontoo\Infrastructure\DatabaseSchema\RuntimeSchemaReadiness::ensure();
     
     }
 }

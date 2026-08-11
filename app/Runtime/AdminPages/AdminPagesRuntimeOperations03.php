@@ -158,19 +158,13 @@ final class AdminPagesRuntimeOperations03
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
             if ($act === "restore_patient") {
-                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,person_id,clinic_id FROM pi_patients WHERE id=? AND deleted_at IS NOT NULL",
-                    [$id],
-                );
+                $pat = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.03.page_admin_deleted.01', [$id], []);
                 if ($pat) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_patients SET active=1,registration_needs_update=1,deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.03.page_admin_deleted.02', [
                             (int) ($_SESSION["uid"] ?? 0),
                             $id,
                             (int) $pat["clinic_id"],
-                        ],
-                    );
+                        ], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_recuperado", "paciente", $id, [
                         "campos" => ["Restauração administrativa"],
                         "audit_body" =>
@@ -183,19 +177,13 @@ final class AdminPagesRuntimeOperations03
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
             if ($act === "restore_care") {
-                $care = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,clinic_id FROM pi_care WHERE id=? AND deleted_at IS NOT NULL",
-                    [$id],
-                );
+                $care = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.03.page_admin_deleted.03', [$id], []);
                 if ($care) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_care SET deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=? WHERE id=? AND clinic_id=?",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.03.page_admin_deleted.04', [
                             (int) ($_SESSION["uid"] ?? 0),
                             $id,
                             (int) $care["clinic_id"],
-                        ],
-                    );
+                        ], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                         "prontuario_alterado",
                         "paciente",
@@ -211,20 +199,16 @@ final class AdminPagesRuntimeOperations03
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_deleted");
             }
         }
-        $patients = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,person_id,clinic_id,deleted_at,deleted_by FROM pi_patients WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
-        )->fetchAll();
+        $patients = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.03.page_admin_deleted.05', [], [])->fetchAll();
         $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_persons",
+            "persons_identity",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "person_id"),
-            "id,full_name,cpf,birth_date",
         );
         $clinics = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_clinics",
+            "clinics_name",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "clinic_id"),
-            "id,display_name",
         );
-        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "deleted_by"), "id,name");
+        $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($patients, "deleted_by"));
         $pitems = [];
         foreach ($patients as $r) {
             $ps = $persons[(int) $r["person_id"]] ?? [];
@@ -248,13 +232,10 @@ final class AdminPagesRuntimeOperations03
                 "html" => $form,
             ];
         }
-        $care = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,patient_link_id,record_type,title,deleted_at,deleted_by FROM pi_care WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT 80",
-        )->fetchAll();
+        $care = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.03.page_admin_deleted.06', [], [])->fetchAll();
         $patientsMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_patients",
+            "patients_scope",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($care, "patient_link_id"),
-            "id,person_id,clinic_id",
         );
         $personIds = [];
         $clinicIds = [];
@@ -267,16 +248,14 @@ final class AdminPagesRuntimeOperations03
             }
         }
         $personMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_persons",
+            "persons_name",
             array_values(array_unique($personIds)),
-            "id,full_name",
         );
         $clinicMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_clinics",
+            "clinics_name",
             array_values(array_unique($clinicIds)),
-            "id,display_name",
         );
-        $users2 = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($care, "deleted_by"), "id,name");
+        $users2 = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($care, "deleted_by"));
         $citems = [];
         foreach ($care as $r) {
             $pm = $patientsMap[(int) $r["patient_link_id"]] ?? [];
@@ -324,44 +303,17 @@ final class AdminPagesRuntimeOperations03
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
         $dbOk = false;
         try {
-            $dbOk = (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT 1") === "1";
+            $dbOk = (string) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.03.page_admin_health.01', [], []) === "1";
         } catch (Throwable $e) {
             $dbOk = false;
         }
-        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
-        $modelAuditWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where("a.clinic_id");
-        $openErrors = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_errors_open",
-            120,
-            "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
-        );
-        $errors24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_errors_24h",
-            120,
-            "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
-        );
-        $locks = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_locks",
-            60,
-            "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
-        );
-        $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
-            120,
-            "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' " .
-                \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id"),
-        );
-        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_trialing_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
-            PRONTOO_ADMIN_CACHE_TTL,
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND trial_ends_at>=NOW() $modelClinicWhere",
-        );
-        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-            "kpi_readonly_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
-            PRONTOO_ADMIN_CACHE_TTL,
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='read_only' $modelClinicWhere",
-        );
-        $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($modelAuditWhere, [], 80);
+        $openErrors = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_errors_open", 120, 'read.admin_pages.03.page_admin_health.01', [], []);
+        $errors24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_errors_24h", 120, 'read.admin_pages.03.page_admin_health.02', [], []);
+        $locks = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_locks", 60, 'read.admin_pages.03.page_admin_health.03', [], []);
+        $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 120, 'read.admin_pages.03.page_admin_health.04', [], []);
+        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_trialing_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.05', [], []);
+        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_readonly_model_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.06', [], []);
+        $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "model_excluded"], [], 80);
         $bad = 0;
         foreach ($recent as $r) {
             if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($r)) {

@@ -84,10 +84,7 @@ final class AdminPagesRuntimeOperations08
             $id = (int) ($_POST["id"] ?? 0);
             $cl =
                 $id > 0
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,active,monthly_price_cents FROM pi_clinics WHERE id=?",
-                        [$id],
-                    )
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.08.page_admin_clinics.01', [$id], [])
                     : null;
             if (!$cl) {
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório não encontrado.", "bad");
@@ -95,10 +92,7 @@ final class AdminPagesRuntimeOperations08
             }
             if ($act === "activate_subscription") {
                 $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET active=1, subscription_status='active', paid_until=DATE_ADD(CURDATE(), INTERVAL 30 DAY), monthly_price_cents=?, updated_at=NOW() WHERE id=?",
-                    [$price, $id],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.02', [$price, $id], []);
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
@@ -110,10 +104,7 @@ final class AdminPagesRuntimeOperations08
                 $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
             }
             if ($act === "deactivate_subscription") {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET subscription_status='read_only', paid_until=CURDATE(), updated_at=NOW() WHERE id=?",
-                    [$id],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.03', [$id], []);
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
@@ -134,10 +125,7 @@ final class AdminPagesRuntimeOperations08
                     $paid = null;
                 }
                 $price = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET subscription_status=?, paid_until=?, monthly_price_cents=?, updated_at=NOW() WHERE id=?",
-                    [$status, $paid, $price, $id],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.04', [$status, $paid, $price, $id], []);
                 if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
                     \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
                 }
@@ -159,10 +147,10 @@ final class AdminPagesRuntimeOperations08
                 $redirectAfterClinicAction($returnClinicId === $id ? $id : 0);
             }
             $new = (int) $cl["active"] ? 0 : 1;
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("UPDATE pi_clinics SET active=?,updated_at=NOW() WHERE id=?", [
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.05', [
                 $new,
                 $id,
-            ]);
+            ], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("clinica_status", "clinica", $id, [
                 "status" => $new ? "ativa" : "inativa",
             ]);
@@ -173,17 +161,10 @@ final class AdminPagesRuntimeOperations08
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_detail_page($detailId);
             return;
         }
-        $exclude = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
-        $total = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT COUNT(*) FROM pi_clinics WHERE 1=1 $exclude");
-        $active = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 $exclude",
-        );
-        $exempt = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='exempt' $exclude",
-        );
-        $readonly = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status<>'exempt' AND (subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW()))) $exclude",
-        );
+        $total = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.08.page_admin_clinics.06', [], []);
+        $active = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.08.page_admin_clinics.07', [], []);
+        $exempt = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.08.page_admin_clinics.08', [], []);
+        $readonly = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.08.page_admin_clinics.09', [], []);
         $activeOperational = max(0, $active - $readonly - $exempt);
         $defaultPrice = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
         $defaultTrialDays = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
@@ -240,9 +221,7 @@ final class AdminPagesRuntimeOperations08
             ) .
             $defaultBilling .
             "</div>";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,display_name,responsible_profession,active,onboarding_done,owner_user_id,manager_user_id,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents FROM pi_clinics ORDER BY CASE WHEN active=0 THEN 4 WHEN subscription_status='exempt' THEN 3 WHEN subscription_status='read_only' OR (subscription_status<>'active' AND (paid_until IS NULL OR paid_until<CURDATE()) AND (trial_ends_at IS NULL OR trial_ends_at<NOW())) THEN 0 ELSE 2 END ASC, updated_at DESC, id DESC LIMIT 120",
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.10', [], [])->fetchAll();
         $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         $peopleCounts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_people_counts_by_cpf($ids);
         $bodyRows = "";
@@ -384,7 +363,7 @@ final class AdminPagesRuntimeOperations08
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não informado.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_security");
             }
-            $removed = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_login_locks WHERE id=?", [$id])->rowCount();
+            $removed = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_security.01', [$id], [])->rowCount();
             if ($removed < 1) {
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado ou já liberado.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_security");
@@ -411,16 +390,12 @@ final class AdminPagesRuntimeOperations08
                 "icon" => "lock",
                 "time" => "Agora",
                 "title" =>
-                    (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
-                    ) . " bloqueio(s) de entrada ativo(s)",
+                    (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.08.page_admin_security.02', [], []) . " bloqueio(s) de entrada ativo(s)",
                 "body" => "Pausas progressivas por CPF e IP continuam no servidor.",
                 "meta" => "Proteção de força bruta",
             ],
         ];
-        $locks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,fail_count,locked_until FROM pi_login_locks WHERE locked_until>NOW() ORDER BY id DESC LIMIT 30",
-        )->fetchAll();
+        $locks = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_security.03', [], [])->fetchAll();
         foreach ($locks as $l) {
             $btn =
                 '<form method="post" class="inline">' .
@@ -523,7 +498,7 @@ final class AdminPagesRuntimeOperations08
     {
     
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
-        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light("1=1", [], 120);
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "all"], [], 120);
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Atividades",
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(

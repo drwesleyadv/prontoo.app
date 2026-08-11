@@ -69,17 +69,13 @@ final class PatientsRuntimeOperations06
         if (
             !$ids ||
             !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) ||
-            !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_documents")
+            !\Prontoo\Runtime\Operational\OperationalComposition::patients()->tableExists("pi_documents")
         ) {
             return [];
         }
-        $ph = implode(",", array_fill(0, count($ids), "?"));
         $params = array_merge([$cid], $ids);
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,appointment_id,title,type_key,document_status,issued_at FROM pi_documents WHERE clinic_id=? AND appointment_id IN ($ph) ORDER BY issued_at DESC,id DESC",
-                $params,
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.06.patient_appointment_docs_by_appointment.01', $params, ['itemCount' => count($ids)])->fetchAll();
         } catch (Throwable $e) {
             error_log("[Prontoo patient appointment docs] " . $e->getMessage());
             return [];

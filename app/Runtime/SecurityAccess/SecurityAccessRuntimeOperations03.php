@@ -183,16 +183,11 @@ final class SecurityAccessRuntimeOperations03
 
     public static function require_same_clinic_entity(
         int $cid,
-        string $table,
+        string $entity,
         int $id,
-        string $cols = "id",
     ): array 
     {
     
-        $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table($table);
-        if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::tenant_table_is_scoped($table)) {
-            throw new RuntimeException("Tabela sem escopo de consultório.");
-        }
         if ($cid <= 0 || $id <= 0) {
             throw new ProntooHttpError(
                 403,
@@ -202,16 +197,13 @@ final class SecurityAccessRuntimeOperations03
         $row = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.security03.require_same_clinic_entity.01', [
             $id,
             $cid,
-        ], ['cols' => $cols, 'table' => $table]);
+        ], compact('entity'));
         if (!$row) {
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::record_scope_violation(
                 "entity_outside_clinic",
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::securityIncidentService()->scopedEntityReadShape(
-                    $table,
-                    $cols,
-                ),
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::securityIncidentService()->scopedEntityReadShape($entity),
                 "Registro " .
-                    $table .
+                    $entity .
                     "#" .
                     $id .
                     " não encontrado no consultório ativo.",

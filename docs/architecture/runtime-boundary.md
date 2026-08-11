@@ -45,9 +45,15 @@ Os prefixos `app/Runtime/SecurityAccess/`, `app/Runtime/AuthOnboarding/` e `app/
 
 O analisador reconhece formas executáveis de `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`. Valores de domínio isolados, como os estados `replace` e `delete`, não são SQL e não entram no inventário.
 
+## Fechamento operacional da Fase 19
+
+A regra zero global cobre SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em toda a árvore `app/Runtime/`. Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e os módulos residuais usam operações semânticas fechadas por escopo através de `OperationalUseCaseService`; `OperationalComposition` conecta as portas pequenas de dados, schema e contexto ao catálogo PDO de Infrastructure.
+
+O fechamento removeu do Runtime 913 ocorrências de SQL de negócio, 38 acessos diretos a PDO e 71 controles transacionais de negócio em relação à baseline da Fase 16. O executor guardado preserva isolamento de tenant, integridade e transações estruturais; seus dois helpers de compatibilidade e três controles transacionais estruturais continuam inventariados, não representam persistência de caso de uso e não podem crescer.
+
 ## Exceções explícitas
 
-As composition roots autorizadas são quatro arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural inicial é `DatabaseSchemaRuntimeOperations01.php`, que permanece contada como dívida estrutural e não pode crescer. Não existe allowlist genérica por diretório, namespace ou padrão.
+As composition roots autorizadas são cinco arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural é `DatabaseSchemaRuntimeOperations01.php`: nela permanecem somente dispatch guardado e atomicidade estrutural explicitamente inventariados, sem SQL, PDO ou transação de negócio. Não existe allowlist genérica por diretório, namespace ou padrão.
 
 ## Operação
 
@@ -55,4 +61,4 @@ As composition roots autorizadas são quatro arquivos exatos, cada um com justif
 - `php tools/runtime-boundary-check --inventory` inclui o inventário atual completo;
 - `php tools/runtime-boundary-check --print-baseline --source-sha=<sha>` materializa uma baseline para revisão explícita, mas não é executado pela CI.
 
-As fases de fechamento adicionam regras zero por módulo e, ao final, para as categorias globais de persistência de negócio.
+Novos arquivos Runtime não podem introduzir persistência. As quatro categorias semânticas globais permanecem obrigatoriamente em zero.

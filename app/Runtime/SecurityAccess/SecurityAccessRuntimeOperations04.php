@@ -195,9 +195,8 @@ final class SecurityAccessRuntimeOperations04
         }
         $clinicIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($links, "clinic_id");
         $clinics = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_clinics",
+            "clinics_environment",
             $clinicIds,
-            "id,display_name,timezone,address_state,address_city,responsible_profession,clinic_icon,accent_color,created_at,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents,active",
         );
         $roles = [];
         foreach ($links as $ln) {

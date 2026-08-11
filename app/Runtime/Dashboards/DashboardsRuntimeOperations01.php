@@ -46,10 +46,7 @@ final class DashboardsRuntimeOperations01
             $cid,
             $c,
         );
-        $today = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,patient_link_id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND doctor_user_id=? AND start_at>=? AND start_at<? ORDER BY start_at ASC LIMIT 120",
-            [$cid, $uid, $todayStart, $todayEnd],
-        )->fetchAll();
+        $today = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.01.page_medico_painel.01', [$cid, $uid, $todayStart, $todayEnd], [])->fetchAll();
         $total = count($today);
         $done = 0;
         $delaySum = 0;
@@ -66,14 +63,8 @@ final class DashboardsRuntimeOperations01
         }
         $avgDelay = $delayCount ? (int) round($delaySum / $delayCount, 0, \RoundingMode::HalfAwayFromZero) : null;
         $lateTasks =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status='aberta' AND due_at IS NOT NULL AND due_at<NOW() AND (assigned_to IS NULL OR assigned_to=?)",
-                [$cid, $uid],
-            ) ?? 0);
-        $next = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,patient_link_id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND doctor_user_id=? AND start_at>=NOW() ORDER BY start_at ASC LIMIT 3",
-            [$cid, $uid],
-        )->fetchAll();
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.01.page_medico_painel.02', [$cid, $uid], []) ?? 0);
+        $next = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.01.page_medico_painel.03', [$cid, $uid], [])->fetchAll();
         $names = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::appointment_patient_names($next, $cid);
         $items = [];
         foreach ($next as $a) {
@@ -156,16 +147,10 @@ final class DashboardsRuntimeOperations01
             $cid,
             $c,
         );
-        $today = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND status NOT IN ('cancelado') ORDER BY start_at ASC LIMIT 180",
-            [$cid, $todayStart, $todayEnd],
-        )->fetchAll();
+        $today = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.01.page_recepcao_painel.01', [$cid, $todayStart, $todayEnd], [])->fetchAll();
         $blocks = [];
         try {
-            $blocks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at<? AND end_at>? ORDER BY start_at ASC LIMIT 80",
-                [$cid, $todayEnd, $todayStart],
-            )->fetchAll();
+            $blocks = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.01.page_recepcao_painel.02', [$cid, $todayEnd, $todayStart], [])->fetchAll();
         } catch (Throwable $e) {
             $blocks = [];
         }
@@ -173,9 +158,8 @@ final class DashboardsRuntimeOperations01
         $doctorIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($today, "doctor_user_id");
         $creatorIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($blocks, "created_by");
         $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_users",
+            "users_name",
             array_values(array_unique(array_merge($doctorIds, $creatorIds))),
-            "id,name",
         );
         $total = count($today);
         $waiting = 0;
@@ -215,26 +199,13 @@ final class DashboardsRuntimeOperations01
             }
         }
         $taskOpen =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND (assigned_to=? OR (assigned_to IS NULL AND (COALESCE(target_scope,'clinic')='clinic' OR (COALESCE(target_scope,'clinic')='role' AND target_role=?) OR (COALESCE(target_scope,'clinic')='user' AND target_user_id=?))))",
-                [$cid, $uid, $role, $uid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.01.page_recepcao_painel.03', [$cid, $uid, $role, $uid], []) ?? 0);
         $taskOverdue =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at<NOW() AND (assigned_to=? OR (assigned_to IS NULL AND (COALESCE(target_scope,'clinic')='clinic' OR (COALESCE(target_scope,'clinic')='role' AND target_role=?) OR (COALESCE(target_scope,'clinic')='user' AND target_user_id=?))))",
-                [$cid, $uid, $role, $uid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.01.page_recepcao_painel.04', [$cid, $uid, $role, $uid], []) ?? 0);
         $activeLeads =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    LeadsDomainOperations01::lead_active_stage_sql("stage"),
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.01.page_recepcao_painel.05', [$cid], []) ?? 0);
         $needsUpdate =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_patients WHERE clinic_id=? AND active=1 AND registration_needs_update=1",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.01.page_recepcao_painel.06', [$cid], []) ?? 0);
         $unread = \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::unread_notifications_count($c);
         $nextLabel = "—";
         if ($next) {

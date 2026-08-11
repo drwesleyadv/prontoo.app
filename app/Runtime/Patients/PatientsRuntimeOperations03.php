@@ -380,7 +380,7 @@ final class PatientsRuntimeOperations03
             return [];
         }
         if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::class, 'ensure_lead_events_schema'])) {
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
+            \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("lead_events");
         }
         $personId = (int) ($p["person_id"] ?? 0);
         $phoneDigits = substr(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($p["phone"] ?? "")), 0, 11);

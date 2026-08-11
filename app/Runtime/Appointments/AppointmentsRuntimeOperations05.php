@@ -32,7 +32,7 @@ final class AppointmentsRuntimeOperations05
     
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("appointments");
         $cid = (int) $c["clinic_id"];
-        \Prontoo\Infrastructure\Appointments\AppointmentsInfrastructureOperations01::agenda_notes_ensure_schema($cid);
+        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->ensureSchema("agenda_notes");
         $docs = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::doctors($cid);
         $pats = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_options($cid);
         $prePatientId = (int) ($_GET["patient_id"] ?? 0);
@@ -106,10 +106,7 @@ final class AppointmentsRuntimeOperations05
                 $noteId = (int) ($_POST["id"] ?? 0);
                 $note =
                     $noteId > 0
-                        ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                            "SELECT id,note_date,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1",
-                            [$noteId, $cid],
-                        )
+                        ? \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.01', [$noteId, $cid], [])
                         : null;
                 if (!$note) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação não encontrada ou já excluída.", "bad");
@@ -121,10 +118,7 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Somente quem criou a anotação pode excluí-la.", "bad");
                     $redirectBack($noteDay, $postDoctor);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_agenda_notes SET deleted_at=NOW(), deleted_by=?, updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL AND created_by=?",
-                    [$uid, $uid, $noteId, $cid, $uid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.02', [$uid, $uid, $noteId, $cid, $uid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("agenda_anotacao_excluida", "agenda_note", $noteId, [
                     "note_date" => $noteDay,
                     "audit_body" =>
@@ -162,9 +156,7 @@ final class AppointmentsRuntimeOperations05
                         $postRedirect();
                     }
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,NOW(),NOW())",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.03', [
                         $cid,
                         $noteDate,
                         $content,
@@ -172,12 +164,11 @@ final class AppointmentsRuntimeOperations05
                         $targetRole,
                         (int) $c["user"]["id"],
                         (int) $c["user"]["id"],
-                    ],
-                );
+                    ], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "agenda_anotacao_criada",
                     "agenda_note",
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id(),
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId(),
                     [
                         "note_date" => $noteDate,
                         "target_scope" => $targetScope,
@@ -189,10 +180,7 @@ final class AppointmentsRuntimeOperations05
             }
             if ($act === "confirm") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.04', [$id, $cid], []);
                 $guard = $a
                     ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
@@ -202,10 +190,7 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($guard === "") {
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='confirmado', updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                        [$id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.05', [$id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -228,10 +213,7 @@ final class AppointmentsRuntimeOperations05
             }
             if ($act === "arrived") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.06', [$id, $cid], []);
                 $guard = $a
                     ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
@@ -241,10 +223,7 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($guard === "") {
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='chegou', arrived_at=COALESCE(arrived_at,NOW()), updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                        [$id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.07', [$id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -273,10 +252,7 @@ final class AppointmentsRuntimeOperations05
             if ($act === "no_show") {
                 $id = (int) ($_POST["id"] ?? 0);
                 $reason = mb_trim((string) ($_POST["no_show_reason"] ?? ""));
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.08', [$id, $cid], []);
                 if (!$a) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
@@ -291,16 +267,13 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                     $postRedirect();
                 }
-                $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_appointments SET status='nao_compareceu', cancel_reason=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                    [
+                $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.09', [
                         $reason !== ""
                             ? $reason
                             : "Paciente não compareceu no horário agendado.",
                         $id,
                         $cid,
-                    ],
-                );
+                    ], []);
                 if ($stmt->rowCount() <= 0) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -343,10 +316,7 @@ final class AppointmentsRuntimeOperations05
                 )
             ) {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,payment_status,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.10', [$id, $cid], []);
                 if (!$a) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
@@ -365,10 +335,7 @@ final class AppointmentsRuntimeOperations05
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='em_preparo', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='chegou' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                        [$id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.11', [$id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -376,10 +343,7 @@ final class AppointmentsRuntimeOperations05
                         );
                         $postRedirect();
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='em_andamento', t.started_by=COALESCE(t.started_by,?), t.started_at=COALESCE(t.started_at,NOW()), t.assigned_to=COALESCE(t.assigned_to,?), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='paciente_chegou' AND t.status IN ('aberta','aguardando')",
-                        [$uidNow, $uidNow, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.12', [$uidNow, $uidNow, $cid, $id], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("preparo_iniciado_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
@@ -401,10 +365,7 @@ final class AppointmentsRuntimeOperations05
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='pronto_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='em_preparo' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                        [$id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.13', [$id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -412,19 +373,13 @@ final class AppointmentsRuntimeOperations05
                         );
                         $postRedirect();
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='paciente_chegou' AND t.status IN ('aberta','em_andamento','aguardando')",
-                        [$uidNow, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.14', [$uidNow, $cid, $id], []);
                     if (is_callable([\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::class, 'create_workflow_task'])) {
                         $name = $patientId
                             ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::patient_display_name($patientId, $cid)
                             : "paciente";
                         $doctor =
-                            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                                "SELECT doctor_user_id FROM pi_appointments WHERE id=? AND clinic_id=?",
-                                [$id, $cid],
-                            ) ?:
+                            (int) (\Prontoo\Runtime\Operational\OperationalComposition::appointments()->scalar('operational.appointments.05.page_appointments.15', [$id, $cid], []) ?:
                             0);
                         \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::create_workflow_task(
                             $cid,
@@ -462,10 +417,7 @@ final class AppointmentsRuntimeOperations05
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), status='em_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='pronto_atendimento' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL AND (doctor_user_id IS NULL OR doctor_user_id=?)",
-                        [$id, $cid, $uidNow],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.16', [$id, $cid, $uidNow], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -473,10 +425,7 @@ final class AppointmentsRuntimeOperations05
                         );
                         $postRedirect();
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='em_andamento', t.started_by=COALESCE(t.started_by,?), t.started_at=COALESCE(t.started_at,NOW()), t.assigned_to=COALESCE(t.assigned_to,?), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='preparo_concluido' AND t.status IN ('aberta','aguardando')",
-                        [$uidNow, $uidNow, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.17', [$uidNow, $uidNow, $cid, $id], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_iniciada_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
@@ -516,10 +465,7 @@ final class AppointmentsRuntimeOperations05
                             "atalho_jornada",
                         );
                     } else {
-                        $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), consultation_finished_at=COALESCE(consultation_finished_at,NOW()), status='atendimento_concluido', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='em_atendimento' AND consultation_finished_at IS NULL",
-                            [$id, $cid],
-                        );
+                        $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.18', [$id, $cid], []);
                         if ($stmt->rowCount() <= 0) {
                             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                                 "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -528,10 +474,7 @@ final class AppointmentsRuntimeOperations05
                             $postRedirect();
                         }
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='preparo_concluido' AND t.status IN ('aberta','em_andamento','aguardando')",
-                        [$uidNow, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.19', [$uidNow, $cid, $id], []);
                     try {
                         if (is_callable([\Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class, 'financial_sync_appointment'])) {
                             \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment($cid, $id, $uidNow);
@@ -579,10 +522,7 @@ final class AppointmentsRuntimeOperations05
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($guard, "bad");
                         $postRedirect();
                     }
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='finalizado', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='atendimento_concluido' AND consultation_finished_at IS NOT NULL",
-                        [$id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.20', [$id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -590,10 +530,7 @@ final class AppointmentsRuntimeOperations05
                         );
                         $postRedirect();
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='atendimento_finalizado' AND t.status IN ('aberta','em_andamento','aguardando')",
-                        [$uidNow, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.21', [$uidNow, $cid, $id], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("saida_finalizada_atalho", "consulta", $id, [
                         "patient_link_id" => $patientId,
                         "audit_body" =>
@@ -640,42 +577,42 @@ final class AppointmentsRuntimeOperations05
                 }
                 $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
                 $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
-                $blockId = 0;
                 try {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                    $blockId = (int) \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
                         $cid,
                         $blockDoctor,
                         $startAt,
                         $endAt,
-                        "bloqueio",
-                    );
-                    if ($conflict) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
-                        $postRedirect();
-                    }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_blocks (clinic_id,doctor_user_id,start_at,end_at,reason,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
-                        [
+                        $reason,
+                        $c,
+                    ): int {
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.22', [$cid], []);
+                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                            $cid,
+                            $blockDoctor,
+                            $startAt,
+                            $endAt,
+                            "bloqueio",
+                        );
+                        if ($conflict) {
+                            throw new RuntimeException($conflict);
+                        }
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.23', [
                             $cid,
                             $blockDoctor,
                             $startAt,
                             $endAt,
                             $reason,
                             (int) $c["user"]["id"],
-                        ],
-                    );
-                    $blockId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                        ], []);
+                        return \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId();
+                    });
                 } catch (Throwable $e) {
-                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    }
                     error_log("[Prontoo agenda block] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                        "Não foi possível registrar o bloqueio. Revise os horários e tente novamente.",
+                        $e instanceof RuntimeException && trim($e->getMessage()) !== ""
+                            ? $e->getMessage()
+                            : "Não foi possível registrar o bloqueio. Revise os horários e tente novamente.",
                         "bad",
                     );
                     $postRedirect();
@@ -687,10 +624,10 @@ final class AppointmentsRuntimeOperations05
             }
             if ($act === "update_block") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $b = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id FROM pi_blocks WHERE id=? AND clinic_id=?", [
+                $b = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.24', [
                     $id,
                     $cid,
-                ]);
+                ], []);
                 if (!$b) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado.", "bad");
                     $postRedirect();
@@ -745,34 +682,35 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 try {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
                         $cid,
                         $blockDoctor,
                         $startAt,
                         $endAt,
-                        "alteração do bloqueio",
-                        0,
                         $id,
-                    );
-                    if ($conflict) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
-                        $postRedirect();
-                    }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_blocks SET doctor_user_id=?, start_at=?, end_at=?, reason=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$blockDoctor, $startAt, $endAt, $reason, $id, $cid],
-                    );
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                        $reason,
+                    ): void {
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.25', [$cid], []);
+                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                            $cid,
+                            $blockDoctor,
+                            $startAt,
+                            $endAt,
+                            "alteração do bloqueio",
+                            0,
+                            $id,
+                        );
+                        if ($conflict) {
+                            throw new RuntimeException($conflict);
+                        }
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.26', [$blockDoctor, $startAt, $endAt, $reason, $id, $cid], []);
+                    });
                 } catch (Throwable $e) {
-                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    }
                     error_log("[Prontoo agenda block update] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                        "Não foi possível alterar o bloqueio. Revise os dados e tente novamente.",
+                        $e instanceof RuntimeException && trim($e->getMessage()) !== ""
+                            ? $e->getMessage()
+                            : "Não foi possível alterar o bloqueio. Revise os dados e tente novamente.",
                         "bad",
                     );
                     $postRedirect();
@@ -788,15 +726,9 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o motivo da exclusão do bloqueio.", "bad");
                     $postRedirect();
                 }
-                $b = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id FROM pi_blocks WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
-                    [$id, $cid],
-                );
+                $b = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.27', [$id, $cid], []);
                 if ($b) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_blocks SET deleted_at=NOW(),deleted_by=?,cancel_reason=?,updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
-                        [(int) $c["user"]["id"], $cancelReason, $id, $cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.28', [(int) $c["user"]["id"], $cancelReason, $id, $cid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_removido", "bloqueio", $id, [
                         "motivo" => $cancelReason,
                     ]);
@@ -808,10 +740,7 @@ final class AppointmentsRuntimeOperations05
             }
             if ($act === "update_appointment") {
                 $id = (int) ($_POST["id"] ?? 0);
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.29', [$id, $cid], []);
                 if (!$a) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Agendamento não encontrado.", "bad");
                     $postRedirect();
@@ -880,59 +809,61 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 try {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                    $locked = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=? FOR UPDATE",
-                        [$id, $cid],
-                    );
-                    $lockedGuard = $locked
-                        ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
-                            $locked,
-                            "update_appointment",
-                            $role,
-                            $uid,
-                        )
-                        : "Agendamento não encontrado.";
-                    if ($lockedGuard !== "") {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($lockedGuard, "bad");
-                        $postRedirect();
-                    }
-                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
                         $cid,
+                        $id,
                         $did,
                         $startAt,
                         $endAt,
-                        "alteração do agendamento",
-                        $id,
-                        0,
-                    );
-                    if ($conflict) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
-                        $postRedirect();
-                    }
-                    [
-                        $paid,
-                        $method,
-                        $amount,
-                        $paymentDestination,
-                        $paymentError,
-                    ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
-                        $cid,
+                        $role,
+                        $uid,
                         $procId,
-                        (int) ($a["procedure_id"] ?? 0) === (int) $procId
-                    ? (int) ($a["payment_amount_cents"] ?? 0)
-                    : 0,
-                    );
-                    if ($paymentError) {
-                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($paymentError, "bad");
-                        $postRedirect();
-                    }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET patient_link_id=?, doctor_user_id=?, start_at=?, end_at=?, procedure_id=?, reason=?, notes=?, change_reason=?, payment_amount_cents=?, payment_method=?, payment_status=?, payment_confirmed_at=IF(?,COALESCE(payment_confirmed_at,NOW()),NULL), updated_at=NOW() WHERE id=? AND clinic_id=?",
+                        $a,
+                        $patient,
+                        $c,
+                    ): void {
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.30', [$cid], []);
+                        $locked = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.31', [$id, $cid], []);
+                        $lockedGuard = $locked
+                            ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
+                                $locked,
+                                "update_appointment",
+                                $role,
+                                $uid,
+                            )
+                            : "Agendamento não encontrado.";
+                        if ($lockedGuard !== "") {
+                            throw new RuntimeException($lockedGuard);
+                        }
+                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                            $cid,
+                            $did,
+                            $startAt,
+                            $endAt,
+                            "alteração do agendamento",
+                            $id,
+                            0,
+                        );
+                        if ($conflict) {
+                            throw new RuntimeException($conflict);
+                        }
                         [
+                            $paid,
+                            $method,
+                            $amount,
+                            $paymentDestination,
+                            $paymentError,
+                        ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
+                            $cid,
+                            $procId,
+                            (int) ($a["procedure_id"] ?? 0) === (int) $procId
+                                ? (int) ($a["payment_amount_cents"] ?? 0)
+                                : 0,
+                        );
+                        if ($paymentError) {
+                            throw new RuntimeException((string) $paymentError);
+                        }
+                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.32', [
                             $patient,
                             $did,
                             $startAt,
@@ -947,19 +878,15 @@ final class AppointmentsRuntimeOperations05
                             $paid ? 1 : 0,
                             $id,
                             $cid,
-                        ],
-                    );
-                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
-                        $cid,
-                        $id,
-                        (int) $c["user"]["id"],
-                        $paymentDestination,
-                    );
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                        ], []);
+                        \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
+                            $cid,
+                            $id,
+                            (int) $c["user"]["id"],
+                            $paymentDestination,
+                        );
+                    });
                 } catch (Throwable $e) {
-                    if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    }
                     error_log("[Prontoo appointment update] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         $e instanceof RuntimeException &&
@@ -984,10 +911,7 @@ final class AppointmentsRuntimeOperations05
                     );
                     $postRedirect();
                 }
-                $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $a = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.33', [$id, $cid], []);
                 $guard = $a
                     ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                         $a,
@@ -997,10 +921,7 @@ final class AppointmentsRuntimeOperations05
                     )
                     : "Agendamento não encontrado.";
                 if ($a && $guard === "") {
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET status='cancelado', cancel_reason=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('agendado','confirmado') AND arrived_at IS NULL AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                        [$cancelReason, $id, $cid],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.34', [$cancelReason, $id, $cid], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
@@ -1079,59 +1000,51 @@ final class AppointmentsRuntimeOperations05
                 );
                 $postRedirect();
             }
-            $appointmentId = 0;
             try {
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-                $lockedProcedure = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,title,duration_minutes FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1 FOR UPDATE",
-                    [$procId, $cid],
-                );
-                if (!$lockedProcedure) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                        "O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.",
-                        "bad",
-                    );
-                    $postRedirect();
-                }
-                $durationMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_min_duration_message(
+                $appointmentId = (int) \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
                     $cid,
                     $procId,
                     $startAt,
                     $endAt,
-                );
-                if ($durationMessage) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($durationMessage, "bad");
-                    $postRedirect();
-                }
-                $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
-                    $cid,
                     $did,
-                    $startAt,
-                    $endAt,
-                    "agendamento",
-                );
-                if ($conflict) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($conflict, "bad");
-                    $postRedirect();
-                }
-                [
-                    $paid,
-                    $method,
-                    $amount,
-                    $paymentDestination,
-                    $paymentError,
-                ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context($cid, $procId, 0);
-                if ($paymentError) {
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($paymentError, "bad");
-                    $postRedirect();
-                }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_appointments (clinic_id,patient_link_id,doctor_user_id,start_at,end_at,status,procedure_id,reason,notes,payment_amount_cents,payment_method,payment_status,payment_confirmed_at,created_by,created_at) VALUES (?,?,?,?,?,'agendado',?,?,?,?,?,?,IF(?,NOW(),NULL),?,NOW())",
+                    $patient,
+                    $c,
+                ): int {
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.35', [$cid], []);
+                    $lockedProcedure = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.36', [$procId, $cid], []);
+                    if (!$lockedProcedure) {
+                        throw new RuntimeException("O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.");
+                    }
+                    $durationMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_min_duration_message(
+                        $cid,
+                        $procId,
+                        $startAt,
+                        $endAt,
+                    );
+                    if ($durationMessage) {
+                        throw new RuntimeException($durationMessage);
+                    }
+                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
+                        $cid,
+                        $did,
+                        $startAt,
+                        $endAt,
+                        "agendamento",
+                    );
+                    if ($conflict) {
+                        throw new RuntimeException($conflict);
+                    }
                     [
+                        $paid,
+                        $method,
+                        $amount,
+                        $paymentDestination,
+                        $paymentError,
+                    ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context($cid, $procId, 0);
+                    if ($paymentError) {
+                        throw new RuntimeException((string) $paymentError);
+                    }
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.37', [
                         $cid,
                         $patient,
                         $did,
@@ -1145,20 +1058,17 @@ final class AppointmentsRuntimeOperations05
                         $paid ? "efetivada" : "prevista",
                         $paid ? 1 : 0,
                         (int) $c["user"]["id"],
-                    ],
-                );
-                $appointmentId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
-                    $cid,
-                    $appointmentId,
-                    (int) $c["user"]["id"],
-                    $paymentDestination,
-                );
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                    ], []);
+                    $newAppointmentId = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId();
+                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
+                        $cid,
+                        $newAppointmentId,
+                        (int) $c["user"]["id"],
+                        $paymentDestination,
+                    );
+                    return $newAppointmentId;
+                });
             } catch (Throwable $e) {
-                if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                    \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                }
                 error_log("[Prontoo appointment create] " . $e->getMessage());
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $e instanceof RuntimeException && trim($e->getMessage()) !== ""
@@ -1554,33 +1464,23 @@ final class AppointmentsRuntimeOperations05
         $prev = date("Y-m-d", strtotime($day . " -1 day"));
         $next = date("Y-m-d", strtotime($day . " +1 day"));
         [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid, $c);
-        $rowSql =
-            "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,notes,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_status,payment_method,payment_amount_cents,payment_confirmed_at,revenue_id FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
         $rowParams = [$cid, $dayStart, $dayEnd];
         if ($agendaDoctor > 0) {
-            $rowSql .= " AND doctor_user_id=?";
             $rowParams[] = $agendaDoctor;
         }
-        $rowSql .= " ORDER BY start_at ASC LIMIT 180";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($rowSql, $rowParams)->fetchAll();
-        $blockSql =
-            "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at<? AND end_at>?";
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.38', $rowParams, ['doctorScoped' => $agendaDoctor > 0])->fetchAll();
         $blockParams = [$cid, $dayEnd, $dayStart];
         if ($agendaDoctor > 0) {
-            $blockSql .= " AND (doctor_user_id IS NULL OR doctor_user_id=?)";
             $blockParams[] = $agendaDoctor;
         }
-        $blockSql .= " ORDER BY start_at ASC LIMIT 100";
-        $blocks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($blockSql, $blockParams)->fetchAll();
+        $blocks = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.39', $blockParams, ['doctorScoped' => $agendaDoctor > 0])->fetchAll();
         $patientLinks = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map(
             $cid,
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "patient_link_id"),
-            "id,person_id",
         );
         $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_persons",
+            "persons_name",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids(array_values($patientLinks), "person_id"),
-            "id,full_name",
         );
         $doctorIds = array_values(
             array_unique(
@@ -1590,11 +1490,10 @@ final class AppointmentsRuntimeOperations05
                 ),
             ),
         );
-        $doctorMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map($cid, $doctorIds, "id,name");
+        $doctorMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map($cid, $doctorIds);
         $creators = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
             $cid,
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($blocks, "created_by"),
-            "id,name",
         );
         $nowTs = time();
         $isDone = function (array $a): bool {
@@ -2815,36 +2714,25 @@ final class AppointmentsRuntimeOperations05
             }
             [$weekRangeStart] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($weekDays[0], $cid, $c);
             [, $weekRangeEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($weekDays[6], $cid, $c);
-            $weekSql =
-                "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,notes,arrived_at,consultation_started_at,consultation_finished_at,procedure_id,payment_status,payment_method,payment_amount_cents,payment_confirmed_at,revenue_id FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
             $weekParams = [$cid, $weekRangeStart, $weekRangeEnd];
             if ($agendaDoctor > 0) {
-                $weekSql .= " AND doctor_user_id=?";
                 $weekParams[] = $agendaDoctor;
             }
-            $weekSql .= " ORDER BY start_at ASC LIMIT 600";
-            $weekRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($weekSql, $weekParams)->fetchAll();
-            $weekBlockSql =
-                "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at<? AND end_at>?";
+            $weekRows = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.40', $weekParams, ['doctorScoped' => $agendaDoctor > 0])->fetchAll();
             $weekBlockParams = [$cid, $weekRangeEnd, $weekRangeStart];
             if ($agendaDoctor > 0) {
-                $weekBlockSql .=
-                    " AND (doctor_user_id IS NULL OR doctor_user_id=?)";
                 $weekBlockParams[] = $agendaDoctor;
             }
-            $weekBlockSql .= " ORDER BY start_at ASC LIMIT 300";
-            $weekBlocks = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($weekBlockSql, $weekBlockParams)->fetchAll();
+            $weekBlocks = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.41', $weekBlockParams, ['doctorScoped' => $agendaDoctor > 0])->fetchAll();
             $weekGroupedRows = $groupByDay($weekRows);
             $weekGroupedBlocks = $groupByDay($weekBlocks);
             $weekPatientLinks = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map(
                 $cid,
                 \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($weekRows, "patient_link_id"),
-                "id,person_id",
             );
             $weekPersons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-                "pi_persons",
+                "persons_name",
                 \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids(array_values($weekPatientLinks), "person_id"),
-                "id,full_name",
             );
             $weekDoctorMap = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
                 $cid,
@@ -2887,15 +2775,11 @@ final class AppointmentsRuntimeOperations05
             $monthLast = date("Y-m-t", strtotime($day));
             [$monthRangeStart] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($monthFirst, $cid, $c);
             [, $monthRangeEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($monthLast, $cid, $c);
-            $monthSql =
-                "SELECT id,doctor_user_id,start_at,end_at,status FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<?";
             $monthParams = [$cid, $monthRangeStart, $monthRangeEnd];
             if ($agendaDoctor > 0) {
-                $monthSql .= " AND doctor_user_id=?";
                 $monthParams[] = $agendaDoctor;
             }
-            $monthSql .= " ORDER BY start_at ASC LIMIT 1500";
-            $monthRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($monthSql, $monthParams)->fetchAll();
+            $monthRows = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.42', $monthParams, ['doctorScoped' => $agendaDoctor > 0])->fetchAll();
             $monthGrouped = $groupByDay($monthRows);
             $daysInMonth = (int) date("t", strtotime($monthFirst));
             $firstW = ((int) date("w", strtotime($monthFirst)) + 6) % 7;

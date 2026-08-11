@@ -14,13 +14,12 @@ final class IdentitySecuritySqlCatalog03
     public static function statement(string $operation, array $context): string
     {
         extract($context, EXTR_SKIP);
-        if ($operation === 'identity.security03.require_same_clinic_entity.01') {
-            $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table((string) $table);
-            $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns((string) $cols);
-        }
         return match ($operation) {
             'identity.security03.require_same_clinic_entity.01' => (
-                "SELECT $cols FROM $table WHERE id=? AND clinic_id=? LIMIT 1"
+                match ((string) $entity) {
+                    'patient' => 'SELECT id,person_id,active,deleted_at FROM pi_patients WHERE id=? AND clinic_id=? LIMIT 1',
+                    default => throw new \InvalidArgumentException('Entidade com escopo inválida.'),
+                }
             ),
             'identity.security03.effective_allowed_modules_for_roles.01' => (
                 'SELECT DISTINCT action_key FROM pi_permissions WHERE clinic_id=? AND role_code IN (' .

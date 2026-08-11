@@ -95,7 +95,7 @@ final class TasksNoticesRuntimeOperations01
         }
         $missing = array_values(array_filter($ids,  fn($id) => !isset($team[$id])));
         if ($missing) {
-            foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map($cid, $missing, "id,name") as $id => $u) {
+            foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map($cid, $missing) as $id => $u) {
                 if (!isset($team[(int) $id])) {
                     $team[(int) $id] = (string) ($u["name"] ?? "Colaborador");
                 }
@@ -103,13 +103,9 @@ final class TasksNoticesRuntimeOperations01
         }
         $reads = [];
         try {
-            $ph = implode(",", array_fill(0, count($ids), "?"));
             $params = array_merge([(int) ($notice["id"] ?? 0)], $ids);
             foreach (
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT user_id,read_at,ack_at FROM pi_notice_reads WHERE notice_id=? AND user_id IN ($ph)",
-                    $params,
-                )->fetchAll()
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.notice_recipient_people.01', $params, ['itemCount' => count($ids)])->fetchAll()
                 as $r
             ) {
                 $reads[(int) $r["user_id"]] =
@@ -189,9 +185,7 @@ final class TasksNoticesRuntimeOperations01
             if ($cid <= 0 || $taskId <= 0 || $eventKey === "") {
                 return;
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_task_events (clinic_id,task_id,event_key,actor_user_id,from_status,to_status,note,created_at) VALUES (?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.task_event.01', [
                     $cid,
                     $taskId,
                     mb_substr($eventKey, 0, 60),
@@ -199,8 +193,7 @@ final class TasksNoticesRuntimeOperations01
                     $fromStatus,
                     $toStatus,
                     $note !== null ? mb_substr($note, 0, 255) : null,
-                ],
-            );
+                ], []);
         } catch (Throwable $e) {
             error_log("[Prontoo task event] " . $e->getMessage());
         }
@@ -242,11 +235,8 @@ final class TasksNoticesRuntimeOperations01
             }
             $body .=
                 "\n\nAbra o módulo Tarefas para iniciar ou acompanhar esta demanda.";
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [$cid, $title, $body, 1, "user", null, $targetUserId, $creator],
-            );
-            $noticeId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.notify_task_personal_assignment.01', [$cid, $title, $body, 1, "user", null, $targetUserId, $creator], []);
+            $noticeId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
             \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("notificacao_tarefa_individual", "comunicado", $noticeId, [
@@ -345,17 +335,12 @@ final class TasksNoticesRuntimeOperations01
             $body = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::workflow_notice_body($body, $action);
             $creator = isset($_SESSION["uid"]) ? (int) $_SESSION["uid"] : null;
             $exists =
-                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT id FROM pi_notices WHERE clinic_id=? AND title=? AND body=? AND target_scope=? AND (target_role <=> ?) AND (target_user_id <=> ?) AND created_at>=DATE_SUB(NOW(), INTERVAL 6 HOUR) LIMIT 1",
-                    [$cid, $title, $body, $scope, $targetRole, $targetUserId],
-                ) ?:
+                (int) (\Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.01.workflow_care_notice.01', [$cid, $title, $body, $scope, $targetRole, $targetUserId], []) ?:
                 0);
             if ($exists > 0) {
                 return $exists;
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.workflow_care_notice.02', [
                     $cid,
                     $title,
                     $body,
@@ -364,9 +349,8 @@ final class TasksNoticesRuntimeOperations01
                     $targetRole,
                     $targetUserId,
                     $creator,
-                ],
-            );
-            $noticeId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                ], []);
+            $noticeId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
             \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("recado_cuidado_criado", "comunicado", $noticeId, [
@@ -452,10 +436,7 @@ final class TasksNoticesRuntimeOperations01
             if ($cid <= 0 || $appointmentId <= 0) {
                 return false;
             }
-            $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT payment_status,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
-                [$appointmentId, $cid],
-            );
+            $a = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.01.workflow_appointment_payment_pending.01', [$appointmentId, $cid], []);
             if (!$a) {
                 return false;
             }
@@ -490,10 +471,7 @@ final class TasksNoticesRuntimeOperations01
                 return;
             }
             if ($source === "paciente_chegou") {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_appointments SET status='em_preparo', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='chegou' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                    [$appt, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.workflow_on_task_started.01', [$appt, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("preparo_iniciado", "consulta", $appt, [
                     "source_event" => $source,
                     "audit_body" =>
@@ -501,10 +479,7 @@ final class TasksNoticesRuntimeOperations01
                 ]);
             }
             if ($source === "preparo_concluido") {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), status='em_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='pronto_atendimento' AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                    [$appt, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.01.workflow_on_task_started.02', [$appt, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_iniciada", "consulta", $appt, [
                     "source_event" => $source,
                     "audit_body" =>

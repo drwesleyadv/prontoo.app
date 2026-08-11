@@ -38,7 +38,7 @@ As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram rem
 
 `app/Runtime` concentra a composição executável. Front controllers, contratos de bootstrap e arquivos especiais recebem a classificação explicitamente definida por `LayerMap`.
 
-A persistência histórica ainda localizada em `app/Runtime` não constitui autorização de camada. Ela está inventariada por tokens e congelada em `app/runtime.boundary-baseline.json`; `tools/runtime-boundary-check` rejeita aumento, assinatura nova, dívida em arquivo novo e ampliação silenciosa de exceções. A migração semântica deve reduzir esse inventário até os tetos zero declarados no contrato.
+`app/Runtime` não contém SQL de negócio, acesso direto a PDO, adapters concretos fora dos composition roots nem transações de caso de uso. `tools/runtime-boundary-check` mantém essas categorias globais em zero e continua inventariando os helpers e controles estruturais do executor guardado, que não podem crescer nem virar uma exceção para persistência de negócio.
 
 ## Paths históricos
 

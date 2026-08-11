@@ -15,5 +15,5 @@ interface SecurityIncidentPort
         string $details,
     ): void;
 
-    public function scopedEntityReadShape(string $table, string $columns): string;
+    public function scopedEntityReadShape(string $entity): string;
 }

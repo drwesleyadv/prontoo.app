@@ -52,10 +52,7 @@ final class MaestroRuntimeOperations05
             $clinicId,
             static function () use ($rule, $deadline, $started, $clinicId, $ruleId, $result): array {
                 if (\Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($clinicId)) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_maestro_rules SET last_run_at=NOW(),next_run_at=DATE_ADD(NOW(),INTERVAL min_interval_minutes MINUTE),run_count=run_count+1,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$ruleId, $clinicId],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_run_rule.01', [$ruleId, $clinicId], []);
                     $result["skipped_read_only"] = 1;
                     $result["duration_ms"] = (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero);
                     return $result;
@@ -104,14 +101,18 @@ final class MaestroRuntimeOperations05
                             $result["retrying"]++;
                         }
                         try {
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                            $created = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_supervised_with_clinic_timezone(
+                            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(function () use (
                                 $clinicId,
-                                static fn(): array => \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action($rule, $match),
-                            );
-                            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                                "UPDATE pi_maestro_executions SET status='created',action_entity=?,action_entity_id=?,message='Ação criada pelo Maestro',executed_at=NOW() WHERE clinic_id=? AND rule_id=? AND source_entity=? AND source_entity_id=? AND action_key=?",
-                                [
+                                $rule,
+                                $match,
+                                $ruleId,
+                                $actionKey,
+                            ): void {
+                                $created = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_supervised_with_clinic_timezone(
+                                    $clinicId,
+                                    static fn(): array => \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action($rule, $match),
+                                );
+                                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_run_rule.02', [
                                     $created["entity"] ?? null,
                                     $created["id"] ?? null,
                                     $clinicId,
@@ -119,18 +120,14 @@ final class MaestroRuntimeOperations05
                                     (string) ($match["source_entity"] ?? "registro"),
                                     (string) ($match["source_entity_id"] ?? "0"),
                                     $actionKey,
-                                ],
-                            );
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                                ], []);
+                            });
                             $result["created"]++;
                             $result["changed_categories"][] =
                                 (string) $rule["action_type"] === "create_notice"
                                     ? "notices"
                                     : "tasks";
                         } catch (Throwable $error) {
-                            if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                            }
                             $result["errors"]++;
                             \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_supervised_action_failure(
                                 $rule,
@@ -141,18 +138,10 @@ final class MaestroRuntimeOperations05
                             error_log("[Prontoo Maestro action] " . $error->getMessage());
                         }
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_maestro_rules SET last_run_at=NOW(),next_run_at=DATE_ADD(NOW(),INTERVAL min_interval_minutes MINUTE),run_count=run_count+1,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$ruleId, $clinicId],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_run_rule.03', [$ruleId, $clinicId], []);
                 } catch (Throwable $error) {
                     $result["errors"]++;
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_maestro_rules SET next_run_at=DATE_ADD(NOW(),INTERVAL " .
-                            (int) PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES .
-                            " MINUTE),updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$ruleId, $clinicId],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_run_rule.04', [$ruleId, $clinicId], []);
                     error_log("[Prontoo Maestro supervised rule] " . $error->getMessage());
                 }
                 $result["changed_categories"] = array_values(array_unique(
@@ -211,9 +200,7 @@ final class MaestroRuntimeOperations05
     
     {
         try {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,?,?,?,?,?,?,?,?)",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_record_job_run.01', [
                     $startedAt,
                     (int) ($result["duration_ms"] ?? 0),
                     (int) ($result["rules_seen"] ?? 0),
@@ -224,8 +211,7 @@ final class MaestroRuntimeOperations05
                     !empty($result["success"]) ? 1 : 0,
                     (float) ($result["load_score"] ?? 0),
                     mb_substr((string) ($result["note"] ?? ""), 0, 255),
-                ],
-            );
+                ], []);
         } catch (Throwable $error) {
             error_log("[Prontoo Maestro job run] " . $error->getMessage());
         }
@@ -280,18 +266,12 @@ final class MaestroRuntimeOperations05
             return $result;
         }
         try {
-            $rules = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT * FROM pi_maestro_rules WHERE active=1 AND (next_run_at IS NULL OR next_run_at<=NOW()) ORDER BY COALESCE(next_run_at,created_at) ASC,priority DESC,id ASC LIMIT 400",
-            )->fetchAll();
+            $rules = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.01', [], [])->fetchAll();
             $stats = [];
             if ($rules !== []) {
                 $keys = array_values(array_unique(array_map("maestro_routine_key", $rules)));
-                $placeholders = implode(",", array_fill(0, count($keys), "?"));
                 foreach (
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT * FROM pi_maestro_job_stats WHERE routine_key IN ($placeholders)",
-                        $keys,
-                    )->fetchAll()
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $row
                 ) {
                     $stats[(string) $row["routine_key"]] = $row;
@@ -420,19 +400,13 @@ final class MaestroRuntimeOperations05
         $success = true;
         $note = "ok";
         try {
-            $rules = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT * FROM pi_maestro_rules WHERE active=1 AND (next_run_at IS NULL OR next_run_at<=NOW()) ORDER BY priority DESC, COALESCE(next_run_at,created_at) ASC LIMIT 80",
-            )->fetchAll();
+            $rules = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.01', [], [])->fetchAll();
             $seen = count($rules);
             $stats = [];
             if ($rules) {
                 $keys = array_map("maestro_routine_key", $rules);
-                $ph = implode(",", array_fill(0, count($keys), "?"));
                 foreach (
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT * FROM pi_maestro_job_stats WHERE routine_key IN ($ph)",
-                        $keys,
-                    )->fetchAll()
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $s
                 ) {
                     $stats[(string) $s["routine_key"]] = $s;
@@ -462,12 +436,7 @@ final class MaestroRuntimeOperations05
                     $deferred++;
                     \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_with_guarded_clinic(
                         (int) $rule["clinic_id"],
-                        static  fn() => \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_maestro_rules SET next_run_at=DATE_ADD(NOW(), INTERVAL " .
-                                (int) PRONTOO_MAESTRO_CRON_INTERVAL_MINUTES .
-                                " MINUTE) WHERE id=? AND clinic_id=?",
-                            [(int) $rule["id"], (int) $rule["clinic_id"]],
-                        ),
+                        static  fn() => \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.03', [(int) $rule["id"], (int) $rule["clinic_id"]], []),
                     );
                     \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_stats_update($key, 0, 0, $score, true);
                     continue;
@@ -500,9 +469,7 @@ final class MaestroRuntimeOperations05
             }
         }
         $duration = (int) round((microtime(true) - $start) * 1000, 0, \RoundingMode::HalfAwayFromZero);
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,?,?,?,?,?,?,?,?)",
-            [
+        \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.04', [
                 $start,
                 $duration,
                 $seen,
@@ -513,8 +480,7 @@ final class MaestroRuntimeOperations05
                 $success ? 1 : 0,
                 $duration > 0 ? round($created / max(1, $duration / 1000), 3, \RoundingMode::HalfAwayFromZero) : 0,
                 $note,
-            ],
-        );
+            ], []);
         return [
             "success" => $success,
             "rules_seen" => $seen,
@@ -548,10 +514,7 @@ final class MaestroRuntimeOperations05
                     ),
                 );
             $duration = (int) max(0, round((microtime(true) - $startedAt) * 1000, 0, \RoundingMode::HalfAwayFromZero));
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_maestro_job_runs (started_at,finished_at,duration_ms,rules_seen,rules_run,actions_created,deferred_count,errors_count,success,load_score,note) VALUES (FROM_UNIXTIME(?),NOW(),?,0,0,0,0,1,0,0,?)",
-                [$startedAt, $duration, $note],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_record_cron_failure.01', [$startedAt, $duration, $note], []);
         } catch (Throwable $e) {
             error_log("[Prontoo cron failure record] " . $e->getMessage());
         }

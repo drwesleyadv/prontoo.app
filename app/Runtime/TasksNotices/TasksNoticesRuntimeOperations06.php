@@ -46,16 +46,14 @@ final class TasksNoticesRuntimeOperations06
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = $_POST["act"] ?? "create";
             if ($readOnly && $act === "support_message") {
-                \Prontoo\Infrastructure\TasksNotices\TasksNoticesInfrastructureOperations01::readonly_support_alerts_ensure_schema();
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->ensureSchema("readonly_support_alerts");
                 $title = mb_trim((string) ($_POST["title"] ?? ""));
                 $body = mb_trim((string) ($_POST["body"] ?? ""));
                 if ($title === "" || $body === "") {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe assunto e mensagem para o suporte.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_admin_alerts (sender_user_id,sender_clinic_id,source_scope,recipient_user_id,title,body,severity,created_at) VALUES (?,?,?,?,?,?,?,NOW())",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.01', [
                         $uid,
                         $cid,
                         "clinic_readonly",
@@ -63,9 +61,8 @@ final class TasksNoticesRuntimeOperations06
                         mb_substr($title, 0, 180),
                         $body,
                         "warning",
-                    ],
-                );
-                $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    ], []);
+                $id = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("aviso_suporte_assinatura", "aviso_admin", $id, [
                     "clinic_id" => $cid,
                     "audit_body" =>
@@ -82,23 +79,16 @@ final class TasksNoticesRuntimeOperations06
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices");
             }
             if ($act === "ack" || $act === "hide" || $act === "unhide") {
-                [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
-                $accessSql = "(" . $targetSql . " OR n.created_by=?)";
-                $notice = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT n.id,n.created_by,n.requires_ack FROM pi_notices n WHERE n.id=? AND n.clinic_id=? AND $accessSql",
-                    array_merge([(int) ($_POST["id"] ?? 0), $cid], $targetParams, [
+                $targetParams = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_parameters($c);
+                $notice = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.06.page_notices.02', array_merge([(int) ($_POST["id"] ?? 0), $cid], $targetParams, [
                         $uid,
-                    ]),
-                );
+                    ]), []);
                 if (!$notice) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso não encontrado para este colaborador.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => $view]);
                 }
                 if ($act === "ack") {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=COALESCE(read_at,NOW()), ack_at=COALESCE(ack_at,NOW())",
-                        [(int) $notice["id"], $uid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.03', [(int) $notice["id"], $uid], []);
                     \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notice_reads");
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("leitura_confirmada", "comunicado", (int) $notice["id"]);
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Leitura registrada.");
@@ -108,20 +98,14 @@ final class TasksNoticesRuntimeOperations06
                     ]);
                 }
                 if ($act === "unhide") {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_notice_reads SET hidden_at=NULL WHERE notice_id=? AND user_id=?",
-                        [(int) $notice["id"], $uid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.04', [(int) $notice["id"], $uid], []);
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso restaurado.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", [
                         "view" => "received",
                         "notice" => (int) $notice["id"],
                     ]);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_notice_reads (notice_id,user_id,hidden_at) VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE hidden_at=NOW()",
-                    [(int) $notice["id"], $uid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.05', [(int) $notice["id"], $uid], []);
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso arquivado.");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => "archived"]);
             }
@@ -151,9 +135,7 @@ final class TasksNoticesRuntimeOperations06
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe título e mensagem do aviso.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("notices", ["view" => $view]);
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.06', [
                     $cid,
                     $title,
                     $body,
@@ -162,13 +144,9 @@ final class TasksNoticesRuntimeOperations06
                     $targetRole,
                     $targetUser,
                     $uid,
-                ],
-            );
-            $noticeId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=NOW(), ack_at=NOW(), hidden_at=NULL",
-                [$noticeId, $uid],
-            );
+                ], []);
+            $noticeId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.07', [$noticeId, $uid], []);
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
             \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notices");
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
@@ -249,32 +227,23 @@ final class TasksNoticesRuntimeOperations06
                 '">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo aviso", "notifications") .
                 "</a>";
-        [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
-        $accessSql = "(" . $targetSql . " OR n.created_by=?)";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at FROM pi_notices n WHERE n.clinic_id=? AND $accessSql ORDER BY n.id DESC LIMIT 160",
-            array_merge([$cid], $targetParams, [$uid]),
-        )->fetchAll();
+        $targetParams = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_parameters($c);
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.08', array_merge([$cid], $targetParams, [$uid]), [])->fetchAll();
         $reads = [];
         if ($rows) {
             $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
-            $ph = implode(",", array_fill(0, count($ids), "?"));
             $params = array_merge([$uid], $ids);
             foreach (
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT notice_id,read_at,ack_at,hidden_at FROM pi_notice_reads WHERE user_id=? AND notice_id IN ($ph)",
-                    $params,
-                )->fetchAll()
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.09', $params, ['itemCount' => count($ids)])->fetchAll()
                 as $r
             ) {
                 $reads[(int) $r["notice_id"]] = $r;
             }
         }
-        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"), "id,name");
+        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"));
         $targetUsers = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(
             $cid,
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "target_user_id"),
-            "id,name",
         );
         $receivedCount = 0;
         $sentCount = 0;
@@ -333,10 +302,7 @@ final class TasksNoticesRuntimeOperations06
                 $isMine = (int) ($openRow["created_by"] ?? 0) === $uid;
                 $read = $reads[$openId] ?? [];
                 if (!$isMine && empty($read["ack_at"])) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=COALESCE(read_at,NOW()), ack_at=COALESCE(ack_at,NOW())",
-                        [$openId, $uid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.10', [$openId, $uid], []);
                     \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notice_reads");
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("leitura_registrada", "comunicado", $openId);
                     $read["read_at"] = $read["read_at"] ?? date("Y-m-d H:i:s");
@@ -495,10 +461,7 @@ final class TasksNoticesRuntimeOperations06
                 "info" => ["Informativo", "info"],
             ];
             foreach (["critical", "warning", "info"] as $sev) {
-                $globals = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT id,title,body,severity,created_at FROM pi_global_notices WHERE active=1 AND severity=? AND (starts_at IS NULL OR starts_at<=NOW()) AND (expires_at IS NULL OR expires_at>=NOW()) ORDER BY id DESC LIMIT 8",
-                    [$sev],
-                )->fetchAll();
+                $globals = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.11', [$sev], [])->fetchAll();
                 foreach ($globals as $g) {
                     $globalCount++;
                     $gm = $globalMeta[$sev] ?? $globalMeta["info"];

@@ -25,11 +25,7 @@ final class FinancialGuardRuntimeOperations01
         }
         $inside = true;
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                'SELECT id,clinic_id,created_at,cash_session_id FROM pi_financial_movements WHERE ' .
-                    (string) $target['where'],
-                (array) $target['params'],
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.financial_guard.01.financial_movement_write_guard.01', (array) $target['params'], ['target' => $target])->fetchAll();
             $lockedClinics = [];
             foreach ($rows as $row) {
                 $cid = (int) ($row['clinic_id'] ?? 0);
@@ -38,18 +34,12 @@ final class FinancialGuardRuntimeOperations01
                     continue;
                 }
                 if (!isset($lockedClinics[$cid])) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        'SELECT id FROM pi_clinics WHERE id=? FOR UPDATE',
-                        [$cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.financial_guard.01.financial_movement_write_guard.02', [$cid], []);
                     $lockedClinics[$cid] = true;
                 }
                 $businessDate = '';
                 if ($sessionId > 0) {
-                    $session = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        'SELECT business_date FROM pi_cash_sessions WHERE id=? AND clinic_id=? LIMIT 1',
-                        [$sessionId, $cid],
-                    );
+                    $session = \Prontoo\Runtime\Operational\OperationalComposition::platform()->row('operational.financial_guard.01.financial_movement_write_guard.03', [$sessionId, $cid], []);
                     $businessDate = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_date_input_from_storage(
                         $session['business_date'] ?? '',
                     );
@@ -62,10 +52,7 @@ final class FinancialGuardRuntimeOperations01
                     $businessDate = $created ? $created->format('Y-m-d') : '';
                 }
                 $closing = $businessDate !== ''
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id FROM pi_financial_daily_closings WHERE clinic_id=? AND business_date=? AND status='consolidado' LIMIT 1 FOR UPDATE",
-                        [$cid, $businessDate],
-                    )
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::platform()->row('operational.financial_guard.01.financial_movement_write_guard.04', [$cid, $businessDate], [])
                     : null;
                 if ((int) ($closing['id'] ?? 0) > 0) {
                     throw new RuntimeException(

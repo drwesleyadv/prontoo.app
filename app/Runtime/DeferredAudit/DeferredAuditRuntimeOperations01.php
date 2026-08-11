@@ -169,10 +169,7 @@ final class DeferredAuditRuntimeOperations01
         if ($event === "" || !\Prontoo\Infrastructure\DeferredAudit\DeferredAuditInfrastructureOperations01::maestro_deferred_policy_allows($envelope)) {
             return false;
         }
-        $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id FROM pi_audit WHERE event_key=? AND JSON_UNQUOTE(JSON_EXTRACT(context_json,'$.deferred_id'))=? ORDER BY id DESC LIMIT 1",
-            [$event, $id],
-        );
+        $existing = \Prontoo\Runtime\Operational\OperationalComposition::platform()->row('operational.deferred_audit.01.maestro_process_deferred_audit.01', [$event, $id], []);
         if ($existing) {
             return true;
         }

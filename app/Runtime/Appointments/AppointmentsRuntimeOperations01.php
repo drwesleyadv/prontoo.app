@@ -38,10 +38,7 @@ final class AppointmentsRuntimeOperations01
     
             $hours = $defaults;
             try {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT weekday,active,start_time,end_time FROM pi_user_work_hours WHERE clinic_id=? AND user_id=? ORDER BY FIELD(weekday,1,2,3,4,5,6,0)",
-                    [$cid, $uid],
-                )->fetchAll();
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.01.user_work_hours.01', [$cid, $uid], [])->fetchAll();
                 foreach ($rows as $r) {
                     $wd = (int) ($r["weekday"] ?? -1);
                     if (!array_key_exists($wd, $hours)) {
@@ -104,9 +101,7 @@ final class AppointmentsRuntimeOperations01
                         " precisa terminar depois do início.",
                 );
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_user_work_hours (clinic_id,user_id,weekday,active,start_time,end_time,updated_by,updated_at) VALUES (?,?,?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE active=VALUES(active),start_time=VALUES(start_time),end_time=VALUES(end_time),updated_by=VALUES(updated_by),updated_at=NOW()",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.01.save_user_work_hours.01', [
                     $cid,
                     $uid,
                     $wd,
@@ -114,8 +109,7 @@ final class AppointmentsRuntimeOperations01
                     $start,
                     $end,
                     (int) ($_SESSION["uid"] ?? 0) ?: null,
-                ],
-            );
+                ], []);
         }
     
     }

@@ -108,10 +108,7 @@ final class SupportFoundationRuntimeOperations02
             return;
         }
         try {
-            $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,full_name,cpf,birth_date,assinatura FROM pi_persons WHERE id=?",
-                [$personId],
-            );
+            $person = \Prontoo\Runtime\Operational\OperationalComposition::platform()->row('operational.support_foundation.02.person_signature_sync.01', [$personId], []);
             if (!$person) {
                 if ($verify) {
                     throw new RuntimeException("Pessoa não encontrada para validar a identidade.");
@@ -125,16 +122,10 @@ final class SupportFoundationRuntimeOperations02
             );
             $current = mb_trim((string) ($person["assinatura"] ?? ""));
             if ($current === "" || !hash_equals($expected, $current)) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_persons SET assinatura=?, updated_at=COALESCE(updated_at,NOW()) WHERE id=?",
-                    [$expected, $personId],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_foundation.02.person_signature_sync.02', [$expected, $personId], []);
             }
             if ($verify) {
-                $stored = mb_trim((string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT assinatura FROM pi_persons WHERE id=?",
-                    [$personId],
-                ));
+                $stored = mb_trim((string) \Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.02.person_signature_sync.03', [$personId], []));
                 if ($stored === "" || !hash_equals($expected, $stored)) {
                     throw new RuntimeException(
                         "A assinatura de identidade da pessoa não pôde ser atualizada.",
@@ -176,9 +167,9 @@ final class SupportFoundationRuntimeOperations02
     
         $current =
             $personId > 0
-                ? (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT cpf,birth_date FROM pi_persons WHERE id=?", [
+                ? (\Prontoo\Runtime\Operational\OperationalComposition::platform()->row('operational.support_foundation.02.person_identity_immutable_values.01', [
                     $personId,
-                ]) ?:
+                ], []) ?:
                 [])
                 : [];
         $currentCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($current["cpf"] ?? ""));
@@ -222,14 +213,21 @@ final class SupportFoundationRuntimeOperations02
 
     public static function count_recent_or_counter(
         string $counter,
-        string $sql,
+        string $query,
         array $p = [],
         int $ttl = PRONTOO_DASHBOARD_COUNTER_TTL,
+        array $context = [],
     ): int 
     {
     
         try {
-            return (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("counter_" . $counter, max(0, $ttl), $sql, $p);
+            return (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+                "counter_" . $counter,
+                max(0, $ttl),
+                $query,
+                $p,
+                $context,
+            );
         } catch (Throwable $e) {
             error_log(
                 "[Prontoo realtime counter] " . $counter . " " . $e->getMessage(),
@@ -246,7 +244,7 @@ final class SupportFoundationRuntimeOperations02
         $loader = function () use ($key, $default): mixed {
     
             try {
-                $value = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT meta_value FROM pi_meta WHERE meta_key=?", [$key]);
+                $value = \Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.02.meta_get.01', [$key], []);
                 return $value === null ? $default : $value;
             } catch (Throwable $e) {
                 error_log("[Prontoo meta_get] " . $e->getMessage());
@@ -270,10 +268,7 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value), updated_at=NOW()",
-            [$key, (string) $value],
-        );
+        \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_foundation.02.meta_set.01', [$key, (string) $value], []);
         if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_clear_categories'])) {
             $categories = ["meta"];
             if (
@@ -358,9 +353,7 @@ final class SupportFoundationRuntimeOperations02
                 return;
             }
             \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set("err_" . $hash, 1);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_error_events (route,method,http_status,message,file,line,user_id,clinic_id,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_foundation.02.log_runtime_error.01', [
                     \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
                     (string) ($_SERVER["REQUEST_METHOD"] ?? "GET"),
                     $status,
@@ -369,8 +362,7 @@ final class SupportFoundationRuntimeOperations02
                     $e->getLine(),
                     $_SESSION["uid"] ?? null,
                     \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId() ?: null,
-                ],
-            );
+                ], []);
         } catch (Throwable $ignored) {
             error_log(
                 "[Prontoo error_event] " .
@@ -476,10 +468,7 @@ final class SupportFoundationRuntimeOperations02
         $sets[] = "updated_at=NOW()";
         $vals[] = $personId;
         try {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_persons SET " . implode(",", $sets) . " WHERE id=?",
-                $vals,
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_foundation.02.person_common_profile_update.01', $vals, ['sets' => $sets]);
         } catch (Throwable $e) {
             error_log("[Prontoo pessoas perfil comum update] " . $e->getMessage());
         }

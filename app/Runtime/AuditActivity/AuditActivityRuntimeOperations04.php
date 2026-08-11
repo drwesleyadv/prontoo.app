@@ -39,7 +39,7 @@ final class AuditActivityRuntimeOperations04
             return false;
         }
         try {
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->atomic(function () use (
                 $event,
                 $entity,
                 $entityId,
@@ -154,9 +154,7 @@ final class AuditActivityRuntimeOperations04
                     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
                     $forcedProofContext,
                 );
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_audit (clinic_id,user_id,event_key,event_label,event_icon,entity_key,entity_label,entity_id,friendly_text,context_json,integrity_hash,previous_hash,chain_hash,proof_hash,proof_json,policy_version,ip_hash,user_agent,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,COALESCE(?,NOW()))",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.04.audit.01', [
                         $cid,
                         $uid,
                         $event,
@@ -176,8 +174,7 @@ final class AuditActivityRuntimeOperations04
                         $ipHash,
                         $userAgent,
                         $forcedCreatedAt !== "" ? $forcedCreatedAt : null,
-                    ],
-                );
+                    ], []);
             });
             return true;
         } catch (Throwable $e) {
@@ -209,7 +206,7 @@ final class AuditActivityRuntimeOperations04
     
     }
 
-    public static function audit_visibility_filter(array $c, string &$where, array &$params): void
+    public static function audit_visibility(array $c): array
     
     {
     
@@ -217,7 +214,7 @@ final class AuditActivityRuntimeOperations04
         $role = (string) $c["role"];
         $uid = (int) $c["user"]["id"];
         if ($role === "gerente") {
-            return;
+            return ["mode" => "clinic", "user_ids" => []];
         }
         if ($role === "medico") {
             $ids = array_unique(
@@ -226,10 +223,7 @@ final class AuditActivityRuntimeOperations04
                     \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["assistente", "recepcionista"]),
                 ),
             );
-            $ph = implode(",", array_fill(0, count($ids), "?"));
-            $where .= " AND (user_id IN ($ph) OR event_key='janela_aberta')";
-            $params = array_merge($params, $ids);
-            return;
+            return ["mode" => $role, "user_ids" => array_values($ids)];
         }
         if ($role === "assistente") {
             $ids = array_unique(
@@ -238,10 +232,7 @@ final class AuditActivityRuntimeOperations04
                     \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["recepcionista"]),
                 ),
             );
-            $ph = implode(",", array_fill(0, count($ids), "?"));
-            $where .= " AND (user_id IN ($ph) OR event_key='janela_aberta')";
-            $params = array_merge($params, $ids);
-            return;
+            return ["mode" => $role, "user_ids" => array_values($ids)];
         }
         if ($role === "recepcionista") {
             $ids = array_unique(
@@ -250,11 +241,9 @@ final class AuditActivityRuntimeOperations04
                     \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::team_user_ids_for_roles($cid, ["recepcionista"]),
                 ),
             );
-            $ph = implode(",", array_fill(0, count($ids), "?"));
-            $where .= " AND (user_id IN ($ph) OR entity_key IN ('paciente','consulta','lead') OR event_key IN ('paciente_salvo','consulta_agendada','lead_criado','janela_aberta'))";
-            $params = array_merge($params, $ids);
-            return;
+            return ["mode" => $role, "user_ids" => array_values($ids)];
         }
+        return ["mode" => "clinic", "user_ids" => []];
     
     }
 
@@ -262,7 +251,7 @@ final class AuditActivityRuntimeOperations04
     
     {
     
-        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light("clinic_id=?", [$cid], 12);
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "clinic"], [$cid], 12);
         return \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations02::audit_items($rows);
     
     }
@@ -272,7 +261,7 @@ final class AuditActivityRuntimeOperations04
     {
     
         $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(
-            "clinic_id=? AND entity_key=? AND entity_id=?",
+            ["scope" => "appointment"],
             [$cid, "consulta", (string) $appointmentId],
             3,
         );
@@ -307,10 +296,7 @@ final class AuditActivityRuntimeOperations04
         $loader = static function () use ($cid): array {
     
             try {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT DISTINCT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 ORDER BY u.name ASC",
-                    [$cid],
-                )->fetchAll();
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.04.audit_team_filter_options.01', [$cid], [])->fetchAll();
             } catch (Throwable $e) {
                 error_log("[Prontoo audit team lookup] " . $e->getMessage());
                 return [];
@@ -381,13 +367,12 @@ final class AuditActivityRuntimeOperations04
     
     }
 
-    public static function audit_period_clause(
+    public static function audit_period_range(
         string $period,
-        array &$params,
         int $cid,
         array $c,
         ?string $selectedDate = null,
-    ): string 
+    ): array
     {
     
         $opts = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_options($cid, $c);
@@ -409,9 +394,10 @@ final class AuditActivityRuntimeOperations04
             $day = $today;
         }
         [$start, $end] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid, $c);
-        $params[] = gmdate("Y-m-d H:i:s", (int) $start);
-        $params[] = gmdate("Y-m-d H:i:s", (int) $end);
-        return " AND a.created_at>=? AND a.created_at<?";
+        return [
+            gmdate("Y-m-d H:i:s", (int) $start),
+            gmdate("Y-m-d H:i:s", (int) $end),
+        ];
     
     }
 

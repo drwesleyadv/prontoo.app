@@ -52,11 +52,10 @@ final class FinancialRuntimeOperations09
             ),
         );
         if ($missing) {
-            $ph = implode(",", array_fill(0, count($missing), "?"));
             foreach ($missing as $locationId) {
                 $known[$locationId] = 0;
             }
-            $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.09.location_movement_balances.01", array_merge([$cid], $missing, [$cid], $missing), compact('ph'))->fetchAll();
+            $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.09.location_movement_balances.01", array_merge([$cid], $missing, [$cid], $missing), ['itemCount' => count($missing)])->fetchAll();
             foreach ($rows as $row) {
                 $known[(int) $row["location_id"]] =
                     \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
@@ -99,9 +98,8 @@ final class FinancialRuntimeOperations09
         $posOpen = (array) ($posSnapshot["open"] ?? []);
         $linkedByLocation = [];
         if ($posIds) {
-            $posPh = implode(",", array_fill(0, count($posIds), "?"));
             foreach (
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.09.global_position.03", array_merge([$cid], $posIds), compact('posPh'))->fetchAll()
+                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.09.global_position.03", array_merge([$cid], $posIds), ['itemCount' => count($posIds)])->fetchAll()
                 as $linkRow
             ) {
                 $linkedByLocation[(int) $linkRow["location_id"]] =

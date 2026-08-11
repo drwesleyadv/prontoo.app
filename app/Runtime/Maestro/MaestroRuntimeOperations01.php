@@ -38,9 +38,7 @@ final class MaestroRuntimeOperations01
         }
         try {
             $ready =
-                (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT meta_value FROM pi_meta WHERE meta_key='schema_maestro_runtime_access_v2' LIMIT 1",
-                ) ?? "") === "1";
+                (string) (\Prontoo\Runtime\Operational\OperationalComposition::maestro()->scalar('operational.maestro.01.maestro_runtime_access_marker_ready.01', [], []) ?? "") === "1";
         } catch (Throwable $e) {
             $ready = false;
         }
@@ -60,7 +58,7 @@ final class MaestroRuntimeOperations01
         if (!$validated) {
             \Prontoo\Infrastructure\Maestro\MaestroInfrastructureOperations01::maestro_global_physical_rollback();
             foreach (["success", "errors_count", "deferred_count"] as $column) {
-                if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_maestro_job_runs", $column)) {
+                if (!\Prontoo\Runtime\Operational\OperationalComposition::administration()->columnExists("pi_maestro_job_runs", $column)) {
                     throw new RuntimeException(
                         "Schema incompleto: pi_maestro_job_runs.{$column} ausente.",
                     );
@@ -84,24 +82,14 @@ final class MaestroRuntimeOperations01
         try {
             \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_disabled(static function (): void {
     
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(static function (): void {
+                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(static function (): void {
     
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','maestro',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
-                    );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_permissions (clinic_id,role_code,action_key,allowed) SELECT id,'gerente','operations',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.01', [], []);
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.02', [], []);
                     foreach (["view", "add", "edit", "delete"] as $op) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "INSERT INTO pi_permission_rules (clinic_id,role_code,action_key,operation_key,allowed) SELECT id,'gerente','maestro','" .
-                                $op .
-                                "',1 FROM pi_clinics WHERE active=1 ON DUPLICATE KEY UPDATE allowed=1",
-                        );
+                        \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.03', [], ['op' => $op]);
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_meta (meta_key, meta_value) VALUES ('schema_maestro_runtime_access_v2','1') ON DUPLICATE KEY UPDATE meta_value='1', updated_at=NOW()",
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.04', [], []);
                 });
             });
             $GLOBALS["PRONTOO_MAESTRO_RUNTIME_ACCESS_READY"] = true;
@@ -262,9 +250,7 @@ final class MaestroRuntimeOperations01
         $active = empty($_POST["active"]) ? 0 : 1;
         $module = (string) $item["module"];
         if ($id > 0) {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_maestro_rules SET name=?,active=?,trigger_module=?,trigger_event=?,condition_json=?,action_type=?,action_json=?,priority=?,min_interval_minutes=?,next_run_at=NOW(),updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_save_rule.01', [
                     $name,
                     $active,
                     $module,
@@ -277,8 +263,7 @@ final class MaestroRuntimeOperations01
                     $uid,
                     $id,
                     $cid,
-                ],
-            );
+                ], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_atualizada", "maestro", $id, [
                 "nome" => $name,
                 "condicao" => $trigger,
@@ -286,9 +271,7 @@ final class MaestroRuntimeOperations01
                     "Rotina atualizada pelo administrador do consultório.",
             ]);
         } else {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_maestro_rules (clinic_id,name,active,trigger_module,trigger_event,condition_json,action_type,action_json,priority,min_interval_minutes,next_run_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_save_rule.02', [
                     $cid,
                     $name,
                     $active,
@@ -300,9 +283,8 @@ final class MaestroRuntimeOperations01
                     $priority,
                     $minInterval,
                     $uid,
-                ],
-            );
-            $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                ], []);
+            $id = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->lastInsertId();
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_criada", "maestro", $id, [
                 "nome" => $name,
                 "condicao" => $trigger,
@@ -325,10 +307,7 @@ final class MaestroRuntimeOperations01
             $uid = (int) ($act["target_user_id"] ?? 0);
             $name =
                 $uid > 0
-                    ? (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1",
-                        [$uid, $cid],
-                    ) ?:
+                    ? (string) (\Prontoo\Runtime\Operational\OperationalComposition::maestro()->scalar('operational.maestro.01.maestro_target_label.01', [$uid, $cid], []) ?:
                     "")
                     : "";
             return $name !== "" ? "Pessoa: " . $name : "Pessoa específica";

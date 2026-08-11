@@ -27,7 +27,7 @@ final class AuditActivityRuntimeOperations01
     }
 
     public static function mask(mixed $v): mixed
-    
+
     {
     
         if (is_array($v)) {
@@ -138,9 +138,7 @@ final class AuditActivityRuntimeOperations01
     
         $limit = max(2, min(1000, $limit));
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() . " ORDER BY a.id DESC LIMIT " . $limit,
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.audit_chain_integrity_status.01', [], ['limit' => $limit])->fetchAll();
             $sequenceOk = \Prontoo\Infrastructure\Audit\AuditChain::verifySequence(
                 $rows,
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::secret_key(),
@@ -164,31 +162,24 @@ final class AuditActivityRuntimeOperations01
     
     }
 
-    public static function fetch_map(string $table, array $ids, string $cols = "id"): array
+    public static function fetch_map(string $projection, array $ids): array
     
     {
     
-        $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table($table);
-        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if (!$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
         $scopeCid = \Prontoo\Runtime\Tenant\SessionTenantAccess::clinicId();
-        $loader = function () use ($table, $ids, $cols, $scopeCid): array {
-    
-            $ph = implode(",", array_fill(0, count($ids), "?"));
-            if ($scopeCid > 0 && \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::tenant_table_is_scoped($table)) {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT $cols FROM $table WHERE clinic_id=? AND id IN ($ph)",
-                    array_merge([$scopeCid], $ids),
-                )->fetchAll();
+        $tenantScoped = $scopeCid > 0 && str_starts_with($projection, "patients_");
+        $loader = function () use ($projection, $ids, $scopeCid, $tenantScoped): array {
+
+            $context = ["projection" => $projection, "itemCount" => count($ids)];
+            if ($tenantScoped) {
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.fetch_map.01', array_merge([$scopeCid], $ids), $context)->fetchAll();
             } else {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT $cols FROM $table WHERE id IN ($ph)",
-                    $ids,
-                )->fetchAll();
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.fetch_map.02', $ids, $context)->fetchAll();
             }
             $m = [];
             foreach ($rows as $r) {
@@ -203,9 +194,8 @@ final class AuditActivityRuntimeOperations01
             \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_read_allowed()
         ) {
             $key = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_safe_key("fetch_map", [
-                $table,
+                $projection,
                 $ids,
-                $cols,
                 $scopeCid,
                 defined("PRONTOO_SCHEMA_REV") ? PRONTOO_SCHEMA_REV : "",
             ]);
@@ -214,7 +204,7 @@ final class AuditActivityRuntimeOperations01
                 $key,
                 \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_ttl("auxiliary"),
                 $loader,
-                ["table:" . $table, "scope:" . $scopeCid],
+                ["lookup:" . $projection, "scope:" . $scopeCid],
             );
         }
         return $loader();
@@ -224,21 +214,15 @@ final class AuditActivityRuntimeOperations01
     public static function scoped_patient_map(
         int $cid,
         array $ids,
-        string $cols = "id,person_id",
     ): array 
     {
     
-        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if ($cid <= 0 || !$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
-        $ph = implode(",", array_fill(0, count($ids), "?"));
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT $cols FROM pi_patients WHERE clinic_id=? AND id IN ($ph)",
-            array_merge([$cid], $ids),
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.scoped_patient_map.01', array_merge([$cid], $ids), ['itemCount' => count($ids)])->fetchAll();
         $m = [];
         foreach ($rows as $r) {
             if (isset($r["id"])) {
@@ -249,21 +233,16 @@ final class AuditActivityRuntimeOperations01
     
     }
 
-    public static function scoped_user_map(int $cid, array $ids, string $cols = "id,name"): array
+    public static function scoped_user_map(int $cid, array $ids): array
     
     {
     
-        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         $ids = array_values(array_unique(array_map("intval", $ids)));
         if ($cid <= 0 || !$ids) {
             return [];
         }
         $ids = array_slice($ids, 0, 300);
-        $ph = implode(",", array_fill(0, count($ids), "?"));
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT $cols FROM pi_users u WHERE u.id IN ($ph) AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) ",
-            array_merge($ids, [$cid]),
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.scoped_user_map.01', array_merge($ids, [$cid]), ['itemCount' => count($ids)])->fetchAll();
         $m = [];
         foreach ($rows as $r) {
             if (isset($r["id"])) {
@@ -275,7 +254,7 @@ final class AuditActivityRuntimeOperations01
     }
 
     public static function audit_rows_light(
-        string $where = "1=1",
+        array $criteria = [],
         array $p = [],
         int $limit = 80,
         int $offset = 0,
@@ -285,13 +264,7 @@ final class AuditActivityRuntimeOperations01
         $limit = max(1, min(120, $limit));
         $offset = max(0, $offset);
         try {
-            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_select_sql() .
-                    " WHERE " .
-                    \Prontoo\Domain\AuditActivity\AuditRecordPolicy::audit_where_sql($where) .
-                    " AND a.event_key NOT IN ('login_clinica_pendente','login_credencial_pendente') ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
-                $p,
-            )->fetchAll();
+            return \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.01.audit_rows_light.01', $p, ['criteria' => $criteria, 'limit' => $limit, 'offset' => $offset])->fetchAll();
         } catch (Throwable $e) {
             if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_schema_error_is_missing_table($e)) {
                 error_log("[Prontoo audit compact read] " . $e->getMessage());

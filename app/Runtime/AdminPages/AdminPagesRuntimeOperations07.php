@@ -30,10 +30,7 @@ final class AdminPagesRuntimeOperations07
     
     {
     
-        $clinic = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT c.*,ou.name AS owner_name,ou.email AS owner_email,ou.active AS owner_active,ou.last_login_at AS owner_last_login_at,ou.created_at AS owner_created_at,op.full_name AS owner_person_name,op.cpf AS owner_cpf,op.birth_date AS owner_birth_date,op.phone AS owner_phone,op.email AS owner_person_email,op.address AS owner_address,op.address_number AS owner_address_number,op.address_neighborhood AS owner_address_neighborhood,op.address_complement AS owner_address_complement,op.address_city AS owner_address_city,op.address_state AS owner_address_state,mu.name AS manager_name,mu.email AS manager_email FROM pi_clinics c JOIN pi_users ou ON ou.id=c.owner_user_id JOIN pi_persons op ON op.id=ou.person_id LEFT JOIN pi_users mu ON mu.id=c.manager_user_id WHERE c.id=?",
-            [$id],
-        );
+        $clinic = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.07.admin_clinic_detail_page.01', [$id], []);
         if (!$clinic) {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório não encontrado.", "bad");
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
@@ -73,18 +70,9 @@ final class AdminPagesRuntimeOperations07
                     ? "is-stable"
                     : "is-muted"));
     
-        $team = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_user_roles WHERE clinic_id=? AND active=1",
-            [$id],
-        );
-        $professionals = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_user_roles WHERE clinic_id=? AND role_code='medico' AND active=1",
-            [$id],
-        );
-        $roleRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT role_code FROM pi_user_roles WHERE clinic_id=? AND user_id=? AND active=1 ORDER BY role_code",
-            [$id, (int) $clinic["owner_user_id"]],
-        )->fetchAll();
+        $team = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.07.admin_clinic_detail_page.02', [$id], []);
+        $professionals = (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.07.admin_clinic_detail_page.03', [$id], []);
+        $roleRows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.07.admin_clinic_detail_page.04', [$id, (int) $clinic["owner_user_id"]], [])->fetchAll();
         $roleLabels = [];
         foreach ($roleRows as $roleRow) {
             $code = (string) ($roleRow["role_code"] ?? "");
@@ -302,12 +290,8 @@ final class AdminPagesRuntimeOperations07
             foreach ($clinicIds as $clinicId) {
                 $out[$clinicId] = ["professionals" => 0, "collaborators" => 0];
             }
-            $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
             try {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT ur.clinic_id,COUNT(DISTINCT CASE WHEN ur.role_code='medico' THEN NULLIF(p.cpf,'') END) AS professionals,COUNT(DISTINCT NULLIF(p.cpf,'')) AS collaborators FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id AND u.active=1 JOIN pi_persons p ON p.id=u.person_id WHERE ur.clinic_id IN ($placeholders) AND ur.active=1 GROUP BY ur.clinic_id",
-                    $clinicIds,
-                )->fetchAll();
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.07.admin_clinic_people_counts_by_cpf.01', $clinicIds, ['itemCount' => count($clinicIds)])->fetchAll();
                 foreach ($rows as $row) {
                     $clinicId = (int) ($row["clinic_id"] ?? 0);
                     if (isset($out[$clinicId])) {

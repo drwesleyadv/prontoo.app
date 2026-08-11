@@ -34,11 +34,7 @@ final class FinancialRuntimeOperations06
     {
     
         $params = [$locationId, $cid, $locationId, $cid];
-        $excludeTo = "";
-        $excludeFrom = "";
         if ($excludeMovementId > 0) {
-            $excludeTo = " AND id<>?";
-            $excludeFrom = " AND id<>?";
             $params = [
                 $locationId,
                 $cid,
@@ -48,7 +44,7 @@ final class FinancialRuntimeOperations06
                 $excludeMovementId,
             ];
         }
-        $balance = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.06.location_potential_balance.01", $params, compact('excludeTo', 'excludeFrom')) ?:
+        $balance = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.06.location_potential_balance.01", $params, ['excludeMovement' => $excludeMovementId > 0]) ?:
             0);
         return \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $balance,
@@ -110,8 +106,7 @@ final class FinancialRuntimeOperations06
         );
         sort($locationIds, SORT_NUMERIC);
         if ($locationIds) {
-            $placeholders = implode(",", array_fill(0, count($locationIds), "?"));
-            $locked = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.validate_movement_invariants.02", array_merge([$cid], $locationIds), compact('placeholders'))->fetchAll();
+            $locked = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.validate_movement_invariants.02", array_merge([$cid], $locationIds), ['itemCount' => count($locationIds)])->fetchAll();
             if (count($locked) !== count($locationIds)) {
                 throw new RuntimeException("Origem ou destino financeiro inválido.");
             }

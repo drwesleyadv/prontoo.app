@@ -64,20 +64,12 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || $phoneDigits === "") {
             return null;
         }
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
-        $where =
-            "clinic_id=? AND (phone_digits=? OR LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=?)";
+        \Prontoo\Runtime\Operational\OperationalComposition::leads()->ensureSchema("lead_events");
         $params = [$cid, $phoneDigits, $phoneDigits];
         if ($excludeId > 0) {
-            $where .= " AND id<>?";
             $params[] = $excludeId;
         }
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at,updated_at FROM pi_leads WHERE $where ORDER BY CASE WHEN " .
-                LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                " THEN 0 WHEN stage='arquivado' THEN 1 ELSE 2 END, COALESCE(updated_at,created_at) DESC, id DESC LIMIT 1",
-            $params,
-        ) ?:
+        return \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.01.lead_find_by_phone.01', $params, ['excludeLead' => $excludeId > 0]) ?:
             null;
     
     }
@@ -100,7 +92,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || $leadId <= 0) {
             return;
         }
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::leads()->ensureSchema("lead_events");
         $eventType = preg_replace("/[^a-z0-9_\-]/i", "", $eventType) ?: "contato";
         $stageFrom =
             trim($stageFrom) !== "" ? LeadsDomainOperations01::lead_stage_normalize($stageFrom) : "";
@@ -112,9 +104,7 @@ final class LeadsRuntimeOperations01
                     ? "Contato inicial registrado sem observação adicional."
                     : "Contato registrado sem observação adicional.";
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_lead_events (clinic_id,lead_id,event_type,stage_from,stage_to,phone,source,interest,next_action_at,body,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
-            [
+        \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.01.lead_event_create.01', [
                 $cid,
                 $leadId,
                 $eventType,
@@ -126,8 +116,7 @@ final class LeadsRuntimeOperations01
                 $next,
                 $body,
                 $uid,
-            ],
-        );
+            ], []);
     
     }
 
@@ -159,7 +148,7 @@ final class LeadsRuntimeOperations01
         }
         $pid = (int) ($lead["person_id"] ?? 0);
         $existingByCpf =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT id FROM pi_persons WHERE cpf=? LIMIT 1", [$cpf]) ??
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.01.lead_prepare_person_for_patient.01', [$cpf], []) ??
                 0);
         if ($existingByCpf > 0 && $existingByCpf !== $pid) {
             $identity = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_identity_immutable_values(
@@ -170,15 +159,9 @@ final class LeadsRuntimeOperations01
             );
             $birth = (string) $identity["birth_date"];
             $sig = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), assinatura=COALESCE(NULLIF(assinatura,''),?), clinic_id=COALESCE(clinic_id,?), updated_at=NOW() WHERE id=?",
-                [$name, $sig, $cid, $existingByCpf],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.01.lead_prepare_person_for_patient.02', [$name, $sig, $cid, $existingByCpf], []);
             if ($leadId > 0) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_leads SET person_id=?, name=COALESCE(NULLIF(name,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$existingByCpf, $name, $leadId, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.01.lead_prepare_person_for_patient.03', [$existingByCpf, $name, $leadId, $cid], []);
             }
             return $existingByCpf;
         }
@@ -187,18 +170,12 @@ final class LeadsRuntimeOperations01
             $cpf = (string) $identity["cpf"];
             $birth = (string) $identity["birth_date"];
             $sig = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_value($cpf, $name, $birth);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_persons SET full_name=COALESCE(NULLIF(full_name,''),?), cpf=?, birth_date=?, assinatura=COALESCE(NULLIF(assinatura,''),?), clinic_id=COALESCE(clinic_id,?), updated_at=NOW() WHERE id=?",
-                [$name, $cpf, $birth, $sig, $cid, $pid],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.01.lead_prepare_person_for_patient.04', [$name, $cpf, $birth, $sig, $cid, $pid], []);
             return $pid;
         }
         $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($name, $cpf, $birth);
         if ($leadId > 0) {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_leads SET person_id=?, name=COALESCE(NULLIF(name,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                [$pid, $name, $leadId, $cid],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.01.lead_prepare_person_for_patient.05', [$pid, $name, $leadId, $cid], []);
         }
         return $pid;
     
@@ -212,10 +189,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || !\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::valid_cpf($cpf)) {
             return null;
         }
-        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT pat.id patient_id, pat.person_id, per.full_name, per.cpf, per.birth_date FROM pi_patients pat JOIN pi_persons per ON per.id=pat.person_id WHERE pat.clinic_id=? AND pat.active=1 AND per.cpf=? LIMIT 1",
-            [$cid, $cpf],
-        );
+        $row = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.01.lead_patient_by_cpf.01', [$cid, $cpf], []);
         return $row ?: null;
     
     }
@@ -228,10 +202,7 @@ final class LeadsRuntimeOperations01
         if ($cid <= 0 || strlen($phoneDigits) < 10) {
             return null;
         }
-        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT pat.id patient_id, pat.person_id, pat.phone, per.full_name, per.cpf, per.birth_date FROM pi_patients pat JOIN pi_persons per ON per.id=pat.person_id WHERE pat.clinic_id=? AND pat.active=1 AND LEFT(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(pat.phone,''),'(',''),')',''),' ',''),'-',''),'.',''),11)=? LIMIT 1",
-            [$cid, $phoneDigits],
-        );
+        $row = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.01.lead_patient_by_phone.01', [$cid, $phoneDigits], []);
         return $row ?: null;
     
     }
@@ -418,23 +389,7 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT p.id,p.full_name,p.cpf,p.birth_date
-             FROM pi_persons p
-             WHERE p.cpf=?
-               AND (
-                 EXISTS (SELECT 1 FROM pi_patients pat WHERE pat.person_id=p.id AND pat.clinic_id=?)
-                 OR EXISTS (SELECT 1 FROM pi_leads l WHERE l.person_id=p.id AND l.clinic_id=?)
-                 OR EXISTS (
-                   SELECT 1
-                   FROM pi_users u
-                   JOIN pi_user_roles ur ON ur.user_id=u.id
-                   WHERE u.person_id=p.id AND ur.clinic_id=?
-                 )
-               )
-             LIMIT 1",
-            [$cpf, $cid, $cid, $cid],
-        );
+        $person = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.01.page_lead_patient_lookup.01', [$cpf, $cid, $cid, $cid], []);
         if (!$person) {
             echo json_encode(
                 [
@@ -447,10 +402,7 @@ final class LeadsRuntimeOperations01
             );
             return;
         }
-        $patient = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=1 LIMIT 1",
-            [$cid, (int) $person["id"]],
-        );
+        $patient = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.01.page_lead_patient_lookup.02', [$cid, (int) $person["id"]], []);
         echo json_encode(
             [
                 "ok" => true,

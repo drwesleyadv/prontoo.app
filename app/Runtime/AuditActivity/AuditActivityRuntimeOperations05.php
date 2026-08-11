@@ -43,16 +43,24 @@ final class AuditActivityRuntimeOperations05
         }
         $limit = 10;
         $offset = max(0, (int) ($_GET["offset"] ?? 0));
-        $where = "a.clinic_id=?";
-        $p = [$cid];
-        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_visibility_filter($c, $where, $p);
-        $where .= \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_clause($period, $p, $cid, $c, $selectedDate);
+        $visibility = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_visibility($c);
+        $userIds = array_values((array) ($visibility["user_ids"] ?? []));
+        $p = array_merge([$cid], $userIds);
+        [$periodStart, $periodEnd] = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_range($period, $cid, $c, $selectedDate);
+        $p[] = $periodStart;
+        $p[] = $periodEnd;
         $team = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_team_filter_options($cid);
-        if ($member > 0 && isset($team[$member])) {
-            $where .= " AND a.user_id=?";
+        $memberScoped = $member > 0 && isset($team[$member]);
+        if ($memberScoped) {
             $p[] = $member;
         }
-        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($where, $p, $limit, $offset);
+        $criteria = [
+            "scope" => "activity_page",
+            "visibility" => (string) ($visibility["mode"] ?? "clinic"),
+            "userCount" => count($userIds),
+            "member" => $memberScoped,
+        ];
+        $rows = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($criteria, $p, $limit, $offset);
         if ((string) ($_GET["ajax"] ?? "") === "1") {
             if (!headers_sent()) {
                 header("Content-Type: application/json; charset=utf-8");

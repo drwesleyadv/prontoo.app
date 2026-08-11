@@ -2,24 +2,6 @@
 declare(strict_types=1);
 require_once __DIR__ . '/compatibility-source.php';
 require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
-\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configure(
-    new class implements \Prontoo\Application\SecurityAccess\SecurityAccessPersistencePort {
-        public function hasConfig(): bool
-        {
-            return (bool) $GLOBALS['prontoo_test_has_cfg'];
-        }
-
-        public function value(string $sql, array $params = []): mixed
-        {
-            return val($sql, $params);
-        }
-
-        public function secretKey(): string
-        {
-            return str_repeat('s', 48);
-        }
-    },
-);
 \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configureDataPort(
     new class implements \Prontoo\Application\Identity\IdentityDataPort {
         public function run(

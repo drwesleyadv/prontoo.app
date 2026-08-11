@@ -49,16 +49,10 @@ final class DocumentsRuntimeOperations06
             $id = (int) ($_POST["id"] ?? 0);
             $backParams = $id > 0 ? ["edit" => $id] : ["new" => "1"];
             if ($act === "toggle") {
-                $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,active FROM pi_procedures WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $p = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.06.page_procedures.01', [$id, $cid], []);
                 if ($p) {
                     $active = (int) $p["active"] === 1 ? 0 : 1;
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_procedures SET active=?,updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$active, $uid, $id, $cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.06.page_procedures.02', [$active, $uid, $id, $cid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_status", "procedimento", $id, [
                         "active" => $active,
                     ]);
@@ -83,17 +77,12 @@ final class DocumentsRuntimeOperations06
             $pre = mb_trim((string) ($_POST["pre_instructions"] ?? ""));
             $post = mb_trim((string) ($_POST["post_care"] ?? ""));
             if ($id > 0) {
-                $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id FROM pi_procedures WHERE id=? AND clinic_id=?",
-                    [$id, $cid],
-                );
+                $p = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.06.page_procedures.03', [$id, $cid], []);
                 if (!$p) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_procedures SET title=?,category=?,description=?,duration_minutes=?,price_cents=?,payment_methods=?,pre_instructions=?,post_care=?,updated_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.06.page_procedures.04', [
                         $title,
                         $category,
                         $description,
@@ -105,8 +94,7 @@ final class DocumentsRuntimeOperations06
                         $uid,
                         $id,
                         $cid,
-                    ],
-                );
+                    ], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_atualizado", "procedimento", $id, [
                     "titulo" => $title,
                 ]);
@@ -135,9 +123,7 @@ final class DocumentsRuntimeOperations06
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_procedures (clinic_id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW())",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.06.page_procedures.05', [
                         $cid,
                         $title,
                         $category,
@@ -148,9 +134,8 @@ final class DocumentsRuntimeOperations06
                         $pre,
                         $post,
                         $uid,
-                    ],
-                );
-                $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    ], []);
+                $id = \Prontoo\Runtime\Operational\OperationalComposition::documents()->lastInsertId();
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("procedimento_criado", "procedimento", $id, [
                     "titulo" => $title,
                 ]);
@@ -175,10 +160,7 @@ final class DocumentsRuntimeOperations06
                 "active" => 1,
             ];
             if ($editId > 0) {
-                $found = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,active FROM pi_procedures WHERE id=? AND clinic_id=?",
-                    [$editId, $cid],
-                );
+                $found = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.06.page_procedures.06', [$editId, $cid], []);
                 if (!$found) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Procedimento não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("procedures");

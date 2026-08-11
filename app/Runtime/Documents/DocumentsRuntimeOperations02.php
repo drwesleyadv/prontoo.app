@@ -63,10 +63,7 @@ final class DocumentsRuntimeOperations02
         if ($cid <= 0 || $appointmentId <= 0) {
             return null;
         }
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT a.id,a.patient_link_id,a.doctor_user_id,a.start_at,a.end_at,a.reason,a.notes,a.status,a.consultation_started_at,a.consultation_finished_at,COALESCE(pr.title,a.reason,'Consulta') AS procedure_title,u.name AS doctor_name,p.full_name AS patient_name FROM pi_appointments a LEFT JOIN pi_procedures pr ON pr.id=a.procedure_id AND pr.clinic_id=a.clinic_id LEFT JOIN pi_users u ON u.id=a.doctor_user_id LEFT JOIN pi_patients pl ON pl.id=a.patient_link_id AND pl.clinic_id=a.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE a.id=? AND a.clinic_id=? LIMIT 1",
-            [$appointmentId, $cid],
-        ) ?:
+        return \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.02.document_appointment_row.01', [$appointmentId, $cid], []) ?:
             null;
     
     }
@@ -116,11 +113,7 @@ final class DocumentsRuntimeOperations02
     {
     
         $limit = max(20, min(500, $limit));
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT a.id,a.patient_link_id,a.start_at,a.end_at,a.reason,a.status,a.consultation_started_at,a.consultation_finished_at,COALESCE(pr.title,a.reason,'Consulta') AS procedure_title,u.name AS doctor_name,p.full_name AS patient_name FROM pi_appointments a LEFT JOIN pi_procedures pr ON pr.id=a.procedure_id AND pr.clinic_id=a.clinic_id LEFT JOIN pi_users u ON u.id=a.doctor_user_id LEFT JOIN pi_patients pl ON pl.id=a.patient_link_id AND pl.clinic_id=a.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE a.clinic_id=? AND COALESCE(a.status,'')<>'cancelado' ORDER BY ABS(TIMESTAMPDIFF(SECOND,a.start_at,NOW())) ASC, a.start_at DESC LIMIT " .
-                (int) $limit,
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.02.document_appointment_options.01', [$cid], ['limit' => $limit])->fetchAll();
         $out = [];
         foreach ($rows as $a) {
             $id = (int) $a["id"];
@@ -172,26 +165,20 @@ final class DocumentsRuntimeOperations02
         $cid = (int) ($c["clinic_id"] ?? 0);
         $ctx = [];
         $checks = [
-            "lead_id" => ["table" => "pi_leads", "label" => "Interessado"],
+            "lead_id" => ["entity" => "lead", "label" => "Interessado"],
             "procedure_id" => [
-                "table" => "pi_procedures",
+                "entity" => "procedure",
                 "label" => "Procedimento",
             ],
-            "task_id" => ["table" => "pi_tasks", "label" => "Tarefa"],
-            "care_id" => ["table" => "pi_care", "label" => "Atividade"],
+            "task_id" => ["entity" => "task", "label" => "Tarefa"],
+            "care_id" => ["entity" => "care", "label" => "Atividade"],
         ];
         foreach ($checks as $key => $cfg) {
             $id = max(0, (int) ($_POST[$key] ?? 0));
             if ($id <= 0) {
                 continue;
             }
-            $exists = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                "SELECT id FROM " .
-                    $cfg["table"] .
-                    " WHERE id=? AND clinic_id=? LIMIT 1",
-                [$id, $cid],
-                0,
-            );
+            $exists = (int) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_ids_from_post.01', [$id, $cid], 0, ['entity' => $cfg["entity"]]);
             if ($exists <= 0) {
                 throw new RuntimeException(
                     $cfg["label"] . " não encontrado(a) neste consultório.",
@@ -225,11 +212,7 @@ final class DocumentsRuntimeOperations02
         try {
             switch ($kind) {
                 case "lead":
-                    $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT id,name,phone,interest,stage,created_at FROM pi_leads WHERE clinic_id=? ORDER BY updated_at DESC, created_at DESC, id DESC LIMIT " .
-                            (int) $limit,
-                        [$cid],
-                    )->fetchAll();
+                    $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.02.document_context_select_options.01', [$cid], ['limit' => $limit])->fetchAll();
                     foreach ($rows as $r) {
                         $meta = array_filter([
                             (string) ($r["phone"] ?? ""),
@@ -257,11 +240,7 @@ final class DocumentsRuntimeOperations02
                     }
                     break;
                 case "task":
-                    $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT t.id,t.title,t.status,t.due_at,u.name AS assigned_name FROM pi_tasks t LEFT JOIN pi_users u ON u.id=COALESCE(t.assigned_to,t.target_user_id) WHERE t.clinic_id=? ORDER BY FIELD(t.status,'aberta','em_andamento','concluida'), COALESCE(t.due_at,t.created_at) DESC, t.id DESC LIMIT " .
-                            (int) $limit,
-                        [$cid],
-                    )->fetchAll();
+                    $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.02.document_context_select_options.02', [$cid], ['limit' => $limit])->fetchAll();
                     foreach ($rows as $r) {
                         $meta = array_filter([
                             \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label((string) ($r["status"] ?? "")),
@@ -276,11 +255,7 @@ final class DocumentsRuntimeOperations02
                     }
                     break;
                 case "care":
-                    $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT c.id,c.record_type,c.title,c.created_at,p.full_name AS patient_name FROM pi_care c JOIN pi_patients pl ON pl.id=c.patient_link_id AND pl.clinic_id=c.clinic_id JOIN pi_persons p ON p.id=pl.person_id WHERE c.clinic_id=? AND c.deleted_at IS NULL ORDER BY c.created_at DESC,c.id DESC LIMIT " .
-                            (int) $limit,
-                        [$cid],
-                    )->fetchAll();
+                    $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.02.document_context_select_options.03', [$cid], ['limit' => $limit])->fetchAll();
                     foreach ($rows as $r) {
                         $title = mb_trim((string) ($r["title"] ?? ""));
                         if ($title === "") {
@@ -298,11 +273,7 @@ final class DocumentsRuntimeOperations02
                     }
                     break;
                 case "collaborator":
-                    $collaboratorLoader =  fn(): array => \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "SELECT u.id,u.name,u.email,GROUP_CONCAT(DISTINCT cr.label ORDER BY cr.sort_order SEPARATOR ', ') AS role_label FROM pi_users u JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE u.active=1 GROUP BY u.id,u.name,u.email ORDER BY u.name ASC LIMIT " .
-                            (int) $limit,
-                        [$cid],
-                    )->fetchAll();
+                    $collaboratorLoader =  fn(): array => \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.02.document_context_select_options.04', [$cid], ['limit' => $limit])->fetchAll();
                     $rows = is_callable([\Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::class, 'server_json_cache_remember'])
                         ? \Prontoo\Runtime\ServerJsonCache\ServerJsonCacheRuntimeOperations01::server_json_cache_remember(
                             "catalog",
@@ -335,35 +306,15 @@ final class DocumentsRuntimeOperations02
             try {
                 $label = "";
                 if ($kind === "lead") {
-                    $label = (string) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                        "SELECT name FROM pi_leads WHERE id=? AND clinic_id=?",
-                        [$selectedId, $cid],
-                        "",
-                    );
+                    $label = (string) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_select_options.05', [$selectedId, $cid], "", []);
                 } elseif ($kind === "procedure") {
-                    $label = (string) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                        "SELECT title FROM pi_procedures WHERE id=? AND clinic_id=?",
-                        [$selectedId, $cid],
-                        "",
-                    );
+                    $label = (string) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_select_options.06', [$selectedId, $cid], "", []);
                 } elseif ($kind === "task") {
-                    $label = (string) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                        "SELECT title FROM pi_tasks WHERE id=? AND clinic_id=?",
-                        [$selectedId, $cid],
-                        "",
-                    );
+                    $label = (string) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_select_options.07', [$selectedId, $cid], "", []);
                 } elseif ($kind === "care") {
-                    $label = (string) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                        "SELECT COALESCE(title,record_type) FROM pi_care WHERE id=? AND clinic_id=?",
-                        [$selectedId, $cid],
-                        "",
-                    );
+                    $label = (string) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_select_options.08', [$selectedId, $cid], "", []);
                 } elseif ($kind === "collaborator") {
-                    $label = (string) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-                        "SELECT name FROM pi_users u WHERE id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1)",
-                        [$selectedId, $cid],
-                        "",
-                    );
+                    $label = (string) \Prontoo\Runtime\Operational\OperationalComposition::documents()->safeScalar('operational.documents.02.document_context_select_options.09', [$selectedId, $cid], "", []);
                 }
                 if ($label !== "") {
                     $out[$selectedId] = $label;

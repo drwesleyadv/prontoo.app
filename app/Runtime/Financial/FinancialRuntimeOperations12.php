@@ -86,8 +86,7 @@ final class FinancialRuntimeOperations12
         );
         $linksByDrawer = [];
         if ($drawerIds) {
-            $drawerPh = implode(",", array_fill(0, count($drawerIds), "?"));
-            $linkRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.12.admin_drawers_panel.02", array_merge([$cid], $drawerIds), compact('drawerPh'))->fetchAll();
+            $linkRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.12.admin_drawers_panel.02", array_merge([$cid], $drawerIds), ['itemCount' => count($drawerIds)])->fetchAll();
             foreach ($linkRows as $link) {
                 $linksByDrawer[(int) $link["location_id"]][] = $link;
             }

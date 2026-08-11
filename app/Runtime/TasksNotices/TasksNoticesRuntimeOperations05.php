@@ -30,15 +30,12 @@ final class TasksNoticesRuntimeOperations05
     
     {
     
-        \Prontoo\Infrastructure\TasksNotices\TasksNoticesInfrastructureOperations01::readonly_support_alerts_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::tasks()->ensureSchema("readonly_support_alerts");
         $cid = (int) ($c["clinic_id"] ?? 0);
         $uid = (int) ($c["user"]["id"] ?? 0);
         $rows = [];
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,title,body,severity,read_at,created_at FROM pi_admin_alerts WHERE sender_user_id=? AND sender_clinic_id=? AND source_scope='clinic_readonly' ORDER BY id DESC LIMIT 80",
-                [$uid, $cid],
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.05.readonly_support_notice_screen.01', [$uid, $cid], [])->fetchAll();
         } catch (Throwable $e) {
             error_log("[Prontoo readonly support alerts list] " . $e->getMessage());
         }

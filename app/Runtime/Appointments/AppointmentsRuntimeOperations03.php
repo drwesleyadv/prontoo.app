@@ -116,12 +116,11 @@ final class AppointmentsRuntimeOperations03
     
         $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($appointments, "patient_link_id");
         $patients = $cid
-            ? \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map($cid, $ids, "id,person_id")
-            : \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_patients", $ids, "id,person_id");
+            ? \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_patient_map($cid, $ids)
+            : \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("patients_person", $ids);
         $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_persons",
+            "persons_name",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids(array_values($patients), "person_id"),
-            "id,full_name",
         );
         $out = [];
         foreach ($appointments as $a) {
@@ -142,17 +141,8 @@ final class AppointmentsRuntimeOperations03
             return [];
         }
         $loader = function () use ($cid, $activeOnly): array {
-    
-            $where = "clinic_id=?";
-            $params = [$cid];
-            if ($activeOnly) {
-                $where .= " AND active=1";
-            }
             try {
-                return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT id,title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care,active FROM pi_procedures WHERE $where ORDER BY active DESC,title ASC LIMIT 400",
-                    $params,
-                )->fetchAll();
+                return \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.03.procedure_options.01', [$cid], ['activeOnly' => $activeOnly])->fetchAll();
             } catch (Throwable $e) {
                 error_log("[Prontoo procedure options] " . $e->getMessage());
                 return [];
@@ -261,10 +251,7 @@ final class AppointmentsRuntimeOperations03
         $v = mb_trim((string) ($_POST[$field] ?? ""));
         if (str_starts_with($v, "procedure:")) {
             $id = (int) substr($v, 10);
-            $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT title FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
-                [$id, $cid],
-            );
+            $p = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.procedure_reason_from_post.01', [$id, $cid], []);
             if ($p) {
                 return (string) $p["title"];
             }
@@ -277,14 +264,10 @@ final class AppointmentsRuntimeOperations03
     
     {
     
-        $links = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code='medico' AND active=1 ORDER BY id ASC LIMIT 80",
-            [$cid],
-        )->fetchAll();
+        $links = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.03.doctors.01', [$cid], [])->fetchAll();
         $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_users",
+            "users_status",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($links, "user_id"),
-            "id,name,active",
         );
         $o = [];
         foreach ($links as $r) {
@@ -329,10 +312,7 @@ final class AppointmentsRuntimeOperations03
         if (!$doctorId) {
             return "todo o consultório";
         }
-        $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT u.name FROM pi_users u JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.clinic_id=? AND ur.role_code='medico' AND ur.active=1 WHERE u.id=? AND u.active=1 LIMIT 1",
-            [$cid, $doctorId],
-        );
+        $u = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_doctor_name.01', [$cid, $doctorId], []);
         return $u && !empty($u["name"])
             ? (string) $u["name"]
             : "profissional selecionado";
@@ -365,26 +345,22 @@ final class AppointmentsRuntimeOperations03
             ? "agenda de " . \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_doctor_name($cid, $doctorId)
             : "todo o consultório";
         $period = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_period_label($startAt, $endAt);
-        $lock = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction() ? " FOR UPDATE" : "";
-        $apptSql =
-            "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason FROM pi_appointments WHERE clinic_id=? AND status NOT IN ('cancelado','nao_compareceu','reagendado') AND start_at < ? AND end_at > ?";
+        $lock = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->inTransaction();
         $apptParams = [$cid, $endAt, $startAt];
         if ($ignoreAppointmentId > 0) {
-            $apptSql .= " AND id<>?";
             $apptParams[] = $ignoreAppointmentId;
         }
         if ($doctorId !== null) {
-            $apptSql .= " AND doctor_user_id=?";
             $apptParams[] = $doctorId;
         }
-        $apptSql .= " ORDER BY start_at ASC LIMIT 1" . $lock;
-        $appt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($apptSql, $apptParams);
+        $appt = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.01', $apptParams, [
+            'ignoreAppointment' => $ignoreAppointmentId > 0,
+            'doctorScoped' => $doctorId !== null,
+            'lockRows' => $lock,
+        ]);
         if ($appt) {
             $patient = "";
-            $pl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT p.full_name FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=?",
-                [(int) ($appt["patient_link_id"] ?? 0), $cid],
-            );
+            $pl = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.02', [(int) ($appt["patient_link_id"] ?? 0), $cid], []);
             if ($pl && !empty($pl["full_name"])) {
                 $patient = " de " . (string) $pl["full_name"];
             }
@@ -418,25 +394,21 @@ final class AppointmentsRuntimeOperations03
                 $detail .
                 ". Ajuste o horário, escolha outro profissional disponível ou remova/reagende o conflito antes de concluir a operação.";
         }
-        $blockSql =
-            "SELECT id,doctor_user_id,start_at,end_at,reason,created_by FROM pi_blocks WHERE clinic_id=? AND deleted_at IS NULL AND start_at < ? AND end_at > ?";
         $blockParams = [$cid, $endAt, $startAt];
         if ($ignoreBlockId > 0) {
-            $blockSql .= " AND id<>?";
             $blockParams[] = $ignoreBlockId;
         }
         if ($doctorId !== null) {
-            $blockSql .= " AND (doctor_user_id IS NULL OR doctor_user_id=?)";
             $blockParams[] = $doctorId;
         }
-        $blockSql .= " ORDER BY start_at ASC LIMIT 1" . $lock;
-        $block = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($blockSql, $blockParams);
+        $block = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.03', $blockParams, [
+            'ignoreBlock' => $ignoreBlockId > 0,
+            'doctorScoped' => $doctorId !== null,
+            'lockRows' => $lock,
+        ]);
         if ($block) {
             $creator = "";
-            $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1",
-                [(int) ($block["created_by"] ?? 0), $cid],
-            );
+            $u = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.04', [(int) ($block["created_by"] ?? 0), $cid], []);
             if ($u && !empty($u["name"])) {
                 $creator = " · bloqueado por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) $u["name"]);
             }
@@ -476,24 +448,18 @@ final class AppointmentsRuntimeOperations03
     
         if (
             $cid <= 0 ||
-            !preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ||
-            !\Prontoo\Infrastructure\Appointments\AppointmentsInfrastructureOperations01::agenda_notes_ensure_schema($cid)
+            !preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)
         ) {
             return null;
         }
+        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->ensureSchema("agenda_notes");
         try {
             $roles = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_note_role_codes($c);
             $params = [$cid, $day];
-            $roleSql = "0=1";
             if ($roles) {
-                $ph = implode(",", array_fill(0, count($roles), "?"));
-                $roleSql = "(n.target_scope='role' AND n.target_role IN ($ph))";
                 $params = array_merge($params, $roles);
             }
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT n.id,n.note_date,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all') OR $roleSql) ORDER BY n.id DESC LIMIT 1",
-                $params,
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.03.agenda_note_visible_for_day.01', $params, ['roleCount' => count($roles)])->fetchAll();
             return $rows[0] ?? null;
         } catch (Throwable $e) {
             error_log("[Prontoo agenda note day] " . $e->getMessage());

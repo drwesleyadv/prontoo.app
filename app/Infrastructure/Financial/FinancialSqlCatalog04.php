@@ -42,19 +42,19 @@ final class FinancialSqlCatalog04
                 "SELECT s.*,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id=? AND s.business_date<? AND s.status IN ('closed_pending_review','rejected') ORDER BY s.business_date DESC,s.id DESC LIMIT 1"
             ),
             "financial.04.drawer_balance_snapshot.01" => (
-                "SELECT s.id,s.location_id,s.opening_balance_cents,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id IN ($locationPh) AND s.status='open' ORDER BY s.location_id,s.opened_at DESC,s.id DESC"
+                "SELECT s.id,s.location_id,s.opening_balance_cents,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND s.status='open' ORDER BY s.location_id,s.opened_at DESC,s.id DESC"
             ),
             "financial.04.drawer_balance_snapshot.02" => (
-                "SELECT cash_session_id,from_location_id,to_location_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id IN ($sessionPh) AND status IN ('confirmed','pending_review') GROUP BY cash_session_id,from_location_id,to_location_id"
+                "SELECT cash_session_id,from_location_id,to_location_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND status IN ('confirmed','pending_review') GROUP BY cash_session_id,from_location_id,to_location_id"
             ),
             "financial.04.drawer_balance_snapshot.03" => (
-                "SELECT location_id,keep_in_drawer_cents FROM (SELECT location_id,keep_in_drawer_cents,ROW_NUMBER() OVER (PARTITION BY location_id ORDER BY business_date DESC,COALESCE(closed_at,kept_closed_at,created_at) DESC,id DESC) row_rank FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN ($closedPh) AND status IN ('closed_pending_review','approved','kept_closed')) ranked WHERE row_rank=1"
+                "SELECT location_id,keep_in_drawer_cents FROM (SELECT location_id,keep_in_drawer_cents,ROW_NUMBER() OVER (PARTITION BY location_id ORDER BY business_date DESC,COALESCE(closed_at,kept_closed_at,created_at) DESC,id DESC) row_rank FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND status IN ('closed_pending_review','approved','kept_closed')) ranked WHERE row_rank=1"
             ),
             "financial.04.drawer_daily_totals_map.01" => (
-                "SELECT id,location_id,business_date,opening_balance_cents,keep_in_drawer_cents,transfer_to_safe_cents,declared_closing_cents,status FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN ($locationPh) AND business_date IN ($datePh) ORDER BY location_id,business_date,id ASC"
+                "SELECT id,location_id,business_date,opening_balance_cents,keep_in_drawer_cents,transfer_to_safe_cents,declared_closing_cents,status FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $locationCount) . ") AND business_date IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $dateCount) . ") ORDER BY location_id,business_date,id ASC"
             ),
             "financial.04.drawer_daily_totals_map.02" => (
-                "SELECT s.location_id,s.business_date,m.movement_type,COALESCE(SUM(m.amount_cents),0) total FROM pi_financial_movements m JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND s.location_id IN ($locationPh) AND s.business_date IN ($datePh) AND m.status IN ('confirmed','pending_review') GROUP BY s.location_id,s.business_date,m.movement_type"
+                "SELECT s.location_id,s.business_date,m.movement_type,COALESCE(SUM(m.amount_cents),0) total FROM pi_financial_movements m JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND s.location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $locationCount) . ") AND s.business_date IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $dateCount) . ") AND m.status IN ('confirmed','pending_review') GROUP BY s.location_id,s.business_date,m.movement_type"
             ),
             "financial.04.location_belongs.01" => (
                 "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1"

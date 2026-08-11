@@ -31,79 +31,36 @@ final class AdminPagesRuntimeOperations02
     
     {
     
-        $qInt = function (string $sql, array $p = []): int {
+        $qInt = function (string $query, array $p = [], array $context = []): int {
     
-            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.02.admin_global_ops_finance_html.01', $p, 0, ['query' => $query] + $context);
         };
-        $qCents = function (string $sql, array $p = []): int {
+        $qCents = function (string $query, array $p = [], array $context = []): int {
     
-            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.02.admin_global_ops_finance_html.02', $p, 0, ['query' => $query] + $context);
         };
-        $since = "DATE_SUB(NOW(), INTERVAL 30 DAY)";
-        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
-        $modelScopedWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id");
-        $activeClinics = $qInt(
-            "SELECT COUNT(DISTINCT clinic_id) FROM pi_audit WHERE clinic_id IS NOT NULL AND created_at>=$since $modelScopedWhere",
-        );
+        $activeClinics = $qInt('read.admin_pages.02.admin_global_ops_finance_html.01');
         if ($activeClinics <= 0) {
-            $activeClinics = $qInt(
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (created_at>=$since OR updated_at>=$since OR trial_started_at>=$since OR paid_until>=CURDATE()) $modelClinicWhere",
-            );
+            $activeClinics = $qInt('read.admin_pages.02.admin_global_ops_finance_html.02');
         }
-        $newClinics = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND created_at>=$since $modelClinicWhere",
-        );
-        $exemptClinics = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='exempt' $modelClinicWhere",
-        );
-        $readOnly = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (subscription_status='read_only' OR (paid_until IS NOT NULL AND paid_until<CURDATE())) $modelClinicWhere",
-        );
-        $linkedUsers = $qInt(
-            "SELECT COUNT(DISTINCT user_id) FROM pi_user_roles WHERE active=1 $modelScopedWhere",
-        );
-        $appointments30 = $qInt(
-            "SELECT COUNT(*) FROM pi_appointments WHERE start_at>=$since AND start_at<NOW() AND status<>'cancelado' $modelScopedWhere",
-        );
-        $appointmentsFuture = $qInt(
-            "SELECT COUNT(*) FROM pi_appointments WHERE start_at>=NOW() AND start_at<DATE_ADD(NOW(), INTERVAL 30 DAY) AND status<>'cancelado' $modelScopedWhere",
-        );
-        $activeLeads = $qInt(
-            "SELECT COUNT(*) FROM pi_leads WHERE created_at>=$since AND " .
-                LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                " $modelScopedWhere",
-        );
-        $patients30 = $qInt(
-            "SELECT COUNT(*) FROM pi_patients WHERE created_at>=$since AND active=1 AND deleted_at IS NULL $modelScopedWhere",
-        );
-        $documents30 = $qInt(
-            "SELECT COUNT(*) FROM pi_documents WHERE issued_at>=$since AND document_status<>'cancelado' $modelScopedWhere",
-        );
-        $tasks30 = $qInt(
-            "SELECT COUNT(*) FROM pi_tasks WHERE created_at>=$since AND status NOT IN ('concluida','cancelada') $modelScopedWhere",
-        );
-        $overdueTasks = $qInt(
-            "SELECT COUNT(*) FROM pi_tasks WHERE due_at>=$since AND due_at<NOW() AND status NOT IN ('concluida','cancelada') $modelScopedWhere",
-        );
-        $clinicNotices30 = $qInt(
-            "SELECT COUNT(*) FROM pi_notices WHERE created_at>=$since $modelScopedWhere",
-        );
-        $globalNotices30 = $qInt(
-            "SELECT COUNT(*) FROM pi_global_notices WHERE created_at>=$since",
-        );
+        $newClinics = $qInt('read.admin_pages.02.admin_global_ops_finance_html.03');
+        $exemptClinics = $qInt('read.admin_pages.02.admin_global_ops_finance_html.04');
+        $readOnly = $qInt('read.admin_pages.02.admin_global_ops_finance_html.05');
+        $linkedUsers = $qInt('read.admin_pages.02.admin_global_ops_finance_html.06');
+        $appointments30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.07');
+        $appointmentsFuture = $qInt('read.admin_pages.02.admin_global_ops_finance_html.08');
+        $activeLeads = $qInt('read.admin_pages.02.admin_global_ops_finance_html.09');
+        $patients30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.10');
+        $documents30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.11');
+        $tasks30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.12');
+        $overdueTasks = $qInt('read.admin_pages.02.admin_global_ops_finance_html.13');
+        $clinicNotices30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.14');
+        $globalNotices30 = $qInt('read.admin_pages.02.admin_global_ops_finance_html.15');
         $notices30 = $clinicNotices30 + $globalNotices30;
-        $maestroRegencies = $qInt(
-            "SELECT COUNT(*) FROM pi_maestro_rules WHERE 1=1 $modelScopedWhere",
-        );
-        $revenue30 = $qCents(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE status='efetivada' AND received_at>=$since $modelScopedWhere",
-        );
-        $expected30 = $qCents(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE status='prevista' AND expected_at>=$since $modelScopedWhere",
-        );
-        $expenses30 = $qCents(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE status='paga' AND paid_at>=$since $modelScopedWhere",
-        );
+        $maestroRegencies = $qInt('read.admin_pages.02.admin_global_ops_finance_html.16');
+        $revenue30 = $qCents('read.admin_pages.02.admin_global_ops_finance_html.17');
+        $expected30 = $qCents('read.admin_pages.02.admin_global_ops_finance_html.18');
+        $expenses30 = $qCents('read.admin_pages.02.admin_global_ops_finance_html.19');
         $result30 = $revenue30 - $expenses30;
         $note = "Ativas";
         return '<div class="global-compact-summary"><div class="global-pill-section"><div class="global-pill-title">' .
@@ -302,7 +259,6 @@ final class AdminPagesRuntimeOperations02
         $tz = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $today = new DateTimeImmutable("today", $tz);
         $days = [];
-        $select = [];
         $params = [];
         for ($i = 29; $i >= 0; $i--) {
             $day = $today->modify("-" . $i . " days");
@@ -314,23 +270,16 @@ final class AdminPagesRuntimeOperations02
                 "tooltip" => $day->format("d/m/Y"),
                 "value" => 0,
             ];
-            $select[] =
-                "SUM(CASE WHEN created_at>=? AND created_at<? AND status='committed' THEN mutation_count ELSE 0 END) AS d" .
-                (29 - $i);
             $params[] = $day->getTimestamp();
             $params[] = $next->getTimestamp();
         }
         try {
             if (
                 is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) &&
-                !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_action_ledger")
+                !\Prontoo\Runtime\Operational\OperationalComposition::administration()->tableExists("pi_action_ledger")
             ) {
                 return array_values($days);
             }
-            $sql =
-                "SELECT " .
-                implode(",", $select) .
-                " FROM pi_action_ledger WHERE created_at>=? AND created_at<?";
             $first = array_key_first($days);
             $last = array_key_last($days);
             $params[] = new DateTimeImmutable(
@@ -340,7 +289,7 @@ final class AdminPagesRuntimeOperations02
             $params[] = new DateTimeImmutable($last . " 00:00:00", $tz)
                 ->modify("+1 day")
                 ->getTimestamp();
-            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params)->fetch() ?: [];
+            $row = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.02.admin_global_sequence_series_20d.01', $params, [])->fetch() ?: [];
             $idx = 0;
             foreach ($days as $key => &$day) {
                 $day["value"] = (int) ($row["d" . $idx] ?? 0);
@@ -401,16 +350,11 @@ final class AdminPagesRuntimeOperations02
                 if ($allowSchemaEnsure) {
                     \Prontoo\Runtime\Maestro\MaestroRuntimeOperations01::maestro_ensure_schema();
                 } elseif (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists'])) {
-                    $schemaReady = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_maestro_job_runs");
+                    $schemaReady = \Prontoo\Runtime\Operational\OperationalComposition::administration()->tableExists("pi_maestro_job_runs");
                 }
                 if ($schemaReady) {
-                    $hasSuccess = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_maestro_job_runs", "success");
-                $cols = $hasSuccess
-                    ? "started_at,finished_at,duration_ms,note,success,errors_count"
-                    : "started_at,finished_at,duration_ms,note";
-                $latest = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT $cols FROM pi_maestro_job_runs ORDER BY id DESC LIMIT 1",
-                )->fetch();
+                    $hasSuccess = \Prontoo\Runtime\Operational\OperationalComposition::administration()->columnExists("pi_maestro_job_runs", "success");
+                $latest = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.02.admin_maestro_health_pill_html.01', [], compact('hasSuccess'))->fetch();
                 if ($latest) {
                     $finished = mb_trim((string) ($latest["finished_at"] ?? ""));
                     $started = mb_trim((string) ($latest["started_at"] ?? ""));

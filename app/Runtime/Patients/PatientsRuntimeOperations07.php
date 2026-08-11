@@ -36,17 +36,14 @@ final class PatientsRuntimeOperations07
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("patients");
         $cid = (int) $c["clinic_id"];
         $id = (int) ($_GET["id"] ?? 0);
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_tabs_ensure_schema();
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
-        $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,clinic_id,person_id,phone,email,address,address_zip,address_number,address_neighborhood,address_complement,address_state,address_city,address_city_ibge,tags,notes,active,registration_needs_update,deleted_at,created_by,created_at,updated_at FROM pi_patients WHERE id=? AND clinic_id=?",
-            [$id, $cid],
-        );
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_tabs");
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_guardians");
+        $p = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.01', [$id, $cid], []);
         if ($p) {
             $ps =
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT full_name,cpf,birth_date FROM pi_persons WHERE id=?", [
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.02', [
                     (int) $p["person_id"],
-                ]) ?:
+                ], []) ?:
                 [];
             $p += $ps;
         }
@@ -121,20 +118,14 @@ final class PatientsRuntimeOperations07
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
                 if ($guardianId > 0) {
-                    $owned = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id FROM pi_patient_guardians WHERE id=? AND clinic_id=? AND patient_link_id=? AND active=1",
-                        [$guardianId, $cid, $id],
-                    );
+                    $owned = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.03', [$guardianId, $cid, $id], []);
                     if (!$owned) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Responsável legal não encontrado.", "bad");
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                     }
                 }
                 $dup =
-                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT id FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND cpf=? AND active=1 AND id<>? LIMIT 1",
-                        [$cid, $id, $gCpf, $guardianId],
-                    ) ?? 0);
+                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.07.page_patient.04', [$cid, $id, $gCpf, $guardianId], []) ?? 0);
                 if ($dup > 0) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Este CPF já está vinculado como responsável deste paciente.",
@@ -143,15 +134,10 @@ final class PatientsRuntimeOperations07
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
                 if ($makePrimary) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_patient_guardians SET is_primary=0,updated_at=NOW() WHERE clinic_id=? AND patient_link_id=?",
-                        [$cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.05', [$cid, $id], []);
                 }
                 if ($guardianId > 0) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_patient_guardians SET full_name=?,cpf=?,relationship=?,phone=?,email=?,document_note=?,notes=?,is_primary=?,updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.06', [
                             $gName,
                             $gCpf,
                             $gRel,
@@ -163,12 +149,9 @@ final class PatientsRuntimeOperations07
                             $guardianId,
                             $cid,
                             $id,
-                        ],
-                    );
+                        ], []);
                 } else {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_patient_guardians (clinic_id,patient_link_id,full_name,cpf,relationship,phone,email,document_note,notes,is_primary,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.07', [
                             $cid,
                             $id,
                             $gName,
@@ -180,9 +163,8 @@ final class PatientsRuntimeOperations07
                             $gNotes,
                             $makePrimary ? 1 : 0,
                             (int) $c["user"]["id"],
-                        ],
-                    );
-                    $guardianId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                        ], []);
+                    $guardianId = \Prontoo\Runtime\Operational\OperationalComposition::patients()->lastInsertId();
                 }
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("responsavel_legal_salvo", "paciente", $id, [
                     "patient_name" => (string) $p["full_name"],
@@ -204,25 +186,13 @@ final class PatientsRuntimeOperations07
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
                 $guardianId = (int) ($_POST["guardian_id"] ?? 0);
-                $old = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,full_name FROM pi_patient_guardians WHERE id=? AND clinic_id=? AND patient_link_id=? AND active=1",
-                    [$guardianId, $cid, $id],
-                );
+                $old = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.08', [$guardianId, $cid, $id], []);
                 if ($old) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_patient_guardians SET active=0,is_primary=0,updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                        [$guardianId, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.09', [$guardianId, $cid, $id], []);
                     $next =
-                        (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                            "SELECT id FROM pi_patient_guardians WHERE clinic_id=? AND patient_link_id=? AND active=1 ORDER BY id ASC LIMIT 1",
-                            [$cid, $id],
-                        ) ?? 0);
+                        (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.07.page_patient.10', [$cid, $id], []) ?? 0);
                     if ($next > 0) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_patient_guardians SET is_primary=1,updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                            [$next, $cid, $id],
-                        );
+                        \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.11', [$next, $cid, $id], []);
                     }
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("responsavel_legal_removido", "paciente", $id, [
                         "patient_name" => (string) $p["full_name"],
@@ -329,7 +299,7 @@ final class PatientsRuntimeOperations07
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_financial_operational_schema();
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("financial_operational");
                 $rid = (int) ($_POST["revenue_id"] ?? 0);
                 try {
                     $uid = (int) $c["user"]["id"];
@@ -390,10 +360,7 @@ final class PatientsRuntimeOperations07
                         "return_doctor" => $returnDoctor,
                     ]);
                 }
-                $appt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                    [$appointmentId, $cid, $id],
-                );
+                $appt = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.12', [$appointmentId, $cid, $id], []);
                 if (!$appt) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Atendimento ativo não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
@@ -437,10 +404,7 @@ final class PatientsRuntimeOperations07
                         "ficha_atendimento",
                     );
                 } else {
-                    $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), consultation_finished_at=COALESCE(consultation_finished_at,NOW()), status='atendimento_concluido', updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=? AND status='em_atendimento' AND consultation_finished_at IS NULL",
-                        [$appointmentId, $cid, $id],
-                    );
+                    $stmt = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.13', [$appointmentId, $cid, $id], []);
                     if ($stmt->rowCount() <= 0) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "A jornada foi atualizada por outra ação. Reabra a ficha e tente novamente.",
@@ -449,10 +413,7 @@ final class PatientsRuntimeOperations07
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                     }
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_tasks t JOIN pi_task_details d ON d.task_id=t.id AND d.clinic_id=t.clinic_id SET t.status='concluida', t.completed_by=COALESCE(t.completed_by,?), t.completed_at=COALESCE(t.completed_at,NOW()), t.updated_at=NOW() WHERE t.clinic_id=? AND d.appointment_id=? AND d.source_event='preparo_concluido' AND t.status IN ('aberta','em_andamento','aguardando')",
-                    [(int) $c["user"]["id"], $cid, $appointmentId],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.14', [(int) $c["user"]["id"], $cid, $appointmentId], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_concluida_ficha", "consulta", $appointmentId, [
                     "patient_name" => (string) $p["full_name"],
                     "patient_link_id" => $id,
@@ -538,10 +499,7 @@ final class PatientsRuntimeOperations07
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
                 $cpfOwner =
-                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT id FROM pi_persons WHERE cpf=? AND id<>? LIMIT 1",
-                        [$cpf, (int) $p["person_id"]],
-                    ) ?? 0);
+                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.07.page_patient.15', [$cpf, (int) $p["person_id"]], []) ?? 0);
                 if ($cpfOwner > 0) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Este CPF já pertence a outra pessoa cadastrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
@@ -557,16 +515,11 @@ final class PatientsRuntimeOperations07
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_persons SET full_name=?,cpf=?,birth_date=?,updated_at=NOW() WHERE id=?",
-                    [$name, $cpf, $birth, (int) $p["person_id"]],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.16', [$name, $cpf, $birth, (int) $p["person_id"]], []);
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh((int) $p["person_id"]);
                 $loc = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_location_from_post($cid);
                 $contact = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_invoice_contact_from_post();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_patients SET phone=?,email=?,address=?,address_zip=?,address_number=?,address_neighborhood=?,address_complement=?,address_state=?,address_city=?,address_city_ibge=?,notes=?,registration_needs_update=0,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.17', [
                         $contact["phone"],
                         $contact["email"],
                         $loc["address"],
@@ -580,8 +533,7 @@ final class PatientsRuntimeOperations07
                         mb_trim((string) ($_POST["notes"] ?? "")),
                         $id,
                         $cid,
-                    ],
-                );
+                    ], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_salvo", "paciente", $id, [
                     "patient_name" => $name,
                     "acao_paciente" => "alterou",
@@ -605,10 +557,7 @@ final class PatientsRuntimeOperations07
             }
             if ($act === "delete_patient") {
                 $future =
-                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT COUNT(*) FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? AND start_at>=NOW() AND status NOT IN ('cancelado')",
-                        [$cid, $id],
-                    ) ?? 0);
+                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.07.page_patient.18', [$cid, $id], []) ?? 0);
                 if ($future > 0) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                         "Não é possível excluir este paciente enquanto houver agendamento futuro ativo. Cancele ou reagende antes.",
@@ -616,10 +565,7 @@ final class PatientsRuntimeOperations07
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_patients SET active=0,deleted_at=NOW(),deleted_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [(int) $c["user"]["id"], $id, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.19', [(int) $c["user"]["id"], $id, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("paciente_excluido", "paciente", $id, [
                     "patient_name" => (string) $p["full_name"],
                     "campos" => ["Exclusão lógica do paciente"],
@@ -634,10 +580,7 @@ final class PatientsRuntimeOperations07
             }
             if ($act === "update_care") {
                 $careId = (int) ($_POST["care_id"] ?? 0);
-                $oldCare = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT c.id,c.record_type,c.title,cc.content FROM pi_care c INNER JOIN pi_care_content cc ON cc.care_id=c.id AND cc.clinic_id=c.clinic_id WHERE c.id=? AND c.clinic_id=? AND c.patient_link_id=? AND c.deleted_at IS NULL",
-                    [$careId, $cid, $id],
-                );
+                $oldCare = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.20', [$careId, $cid, $id], []);
                 if (!$oldCare) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação não encontrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
@@ -650,9 +593,7 @@ final class PatientsRuntimeOperations07
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_care_versions (care_id,clinic_id,patient_link_id,old_record_type,old_title,old_content,changed_by,change_reason,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.21', [
                         $careId,
                         $cid,
                         $id,
@@ -661,12 +602,8 @@ final class PatientsRuntimeOperations07
                         $oldCare["content"] ?? null,
                         (int) $c["user"]["id"],
                         mb_trim((string) ($_POST["change_reason"] ?? "")),
-                    ],
-                );
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_care c INNER JOIN pi_care_content cc ON cc.care_id=c.id AND cc.clinic_id=c.clinic_id SET c.record_type=?,c.title=?,cc.content=?,c.updated_at=NOW(),cc.updated_at=NOW() WHERE c.id=? AND c.clinic_id=? AND c.patient_link_id=? AND c.deleted_at IS NULL",
-                    [$type, $title, $content, $careId, $cid, $id],
-                );
+                    ], []);
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.22', [$type, $title, $content, $careId, $cid, $id], []);
                 $changed = [];
                 foreach (
                     [
@@ -701,15 +638,9 @@ final class PatientsRuntimeOperations07
             }
             if ($act === "delete_care") {
                 $careId = (int) ($_POST["care_id"] ?? 0);
-                $oldCare = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,record_type,title FROM pi_care WHERE id=? AND clinic_id=? AND patient_link_id=? AND deleted_at IS NULL",
-                    [$careId, $cid, $id],
-                );
+                $oldCare = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.23', [$careId, $cid, $id], []);
                 if ($oldCare) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_care SET deleted_at=NOW(),deleted_by=? WHERE id=? AND clinic_id=? AND patient_link_id=? AND deleted_at IS NULL",
-                        [(int) $c["user"]["id"], $careId, $cid, $id],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.24', [(int) $c["user"]["id"], $careId, $cid, $id], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("prontuario_alterado", "paciente", $id, [
                         "patient_name" => (string) $p["full_name"],
                         "tipo" => (string) $oldCare["record_type"],
@@ -739,39 +670,27 @@ final class PatientsRuntimeOperations07
             $appointmentId = (int) ($_POST["appointment_id"] ?? 0);
             $appointmentForAudit = null;
             if ($appointmentId > 0) {
-                $appointmentForAudit = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                    [$appointmentId, $cid, $id],
-                );
+                $appointmentForAudit = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.25', [$appointmentId, $cid, $id], []);
                 if (!$appointmentForAudit) {
                     $appointmentId = 0;
                     $appointmentForAudit = null;
                 }
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_care (clinic_id,patient_link_id,appointment_id,record_type,title,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.26', [
                     $cid,
                     $id,
                     $appointmentId > 0 ? $appointmentId : null,
                     $type,
                     $title,
                     (int) $c["user"]["id"],
-                ],
-            );
-            $careId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_care_content (care_id,clinic_id,content) VALUES (?,?,?)",
-                [$careId, $cid, $content],
-            );
+                ], []);
+            $careId = \Prontoo\Runtime\Operational\OperationalComposition::patients()->lastInsertId();
+            \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.27', [$careId, $cid, $content], []);
             if (
                 $appointmentForAudit &&
                 empty($appointmentForAudit["consultation_started_at"])
             ) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_appointments SET consultation_started_at=NOW(), status=IF(status='agendado','em_atendimento',status), updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                    [$appointmentId, $cid, $id],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.28', [$appointmentId, $cid, $id], []);
                 $scheduled = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
                     $appointmentForAudit["start_at"],
                 );
@@ -838,10 +757,7 @@ final class PatientsRuntimeOperations07
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação incluída.");
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
         }
-        $appts = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? ORDER BY start_at DESC LIMIT 20",
-            [$cid, $id],
-        )->fetchAll();
+        $appts = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.29', [$cid, $id], [])->fetchAll();
         $apptItems = \Prontoo\Runtime\Patients\PatientsRuntimeOperations06::patient_appointment_timeline_items($cid, $appts, $c);
         $patientDocOptions = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can("documents")
             ? \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::approved_document_template_options($c)
@@ -866,16 +782,10 @@ final class PatientsRuntimeOperations07
         $activeAppointment = null;
         if ($role === "medico") {
             if ($activeAppointmentId > 0) {
-                $activeAppointment = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=? AND patient_link_id=?",
-                    [$activeAppointmentId, $cid, $id],
-                );
+                $activeAppointment = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.30', [$activeAppointmentId, $cid, $id], []);
             }
             if (!$activeAppointment) {
-                $activeAppointment = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,status,reason,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? AND doctor_user_id=? AND consultation_started_at IS NOT NULL AND consultation_finished_at IS NULL AND status NOT IN ('cancelado','nao_compareceu','reagendado','finalizado') ORDER BY start_at DESC LIMIT 1",
-                    [$cid, $id, (int) $c["user"]["id"]],
-                );
+                $activeAppointment = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.31', [$cid, $id, (int) $c["user"]["id"]], []);
             }
             if ($activeAppointment) {
                 $activeCode = is_callable([\Prontoo\Domain\Appointments\AppointmentsDomainOperations01::class, 'appointment_status_code'])
@@ -928,10 +838,7 @@ final class PatientsRuntimeOperations07
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("space_dashboard") .
                 "<span>Voltar ao Painel</span></a></form></section>";
         }
-        $consultStats = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT COUNT(*) total, MIN(start_at) first_at FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? AND status NOT IN ('cancelado')",
-            [$cid, $id],
-        ) ?: ["total" => 0, "first_at" => null];
+        $consultStats = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.07.page_patient.32', [$cid, $id], []) ?: ["total" => 0, "first_at" => null];
         $firstConsultationLabel = !empty($consultStats["first_at"])
             ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_card_full_br($consultStats["first_at"])
             : "Ainda não agendada";
@@ -974,21 +881,15 @@ final class PatientsRuntimeOperations07
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
                 "<span>Agendar Primeira Consulta</span></a></div>"
             : '<div class="empty">Nenhum agendamento encontrado para este paciente.</div>';
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_financial_operational_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("financial_operational");
         \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::financial_ensure_default_accounts($cid, (int) $c["user"]["id"]);
         $pendingPatientRevenueCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_financial_revenues WHERE clinic_id=? AND patient_link_id=? AND status='prevista'",
-                [$cid, $id],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.07.page_patient.33', [$cid, $id], []) ?? 0);
         $showPatientFinance =
             $role === "gerente" ||
             ($role === "recepcionista" && $pendingPatientRevenueCount > 0);
         $patientFinanceRows = $showPatientFinance
-            ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT r.id,r.appointment_id,r.title,r.amount_cents,r.status,r.payment_method,r.expected_at,r.received_at,r.account_id,a.name account_name FROM pi_financial_revenues r LEFT JOIN pi_financial_accounts a ON a.id=r.account_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.patient_link_id=? ORDER BY FIELD(r.status,'prevista','efetivada','cancelada'), COALESCE(r.expected_at,r.received_at,r.created_at) DESC, r.id DESC LIMIT 160",
-                [$cid, $id],
-            )->fetchAll()
+            ? \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.34', [$cid, $id], [])->fetchAll()
             : [];
         $patientAccountOptions = $showPatientFinance
             ? \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::financial_account_label_options($cid, "Conta de recebimento")
@@ -1190,11 +1091,8 @@ final class PatientsRuntimeOperations07
                 "audit_body" => "Nenhuma informação foi alterada.",
             ]);
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT c.id,c.record_type,c.title,cc.content,c.created_by,c.created_at FROM pi_care c INNER JOIN pi_care_content cc ON cc.care_id=c.id AND cc.clinic_id=c.clinic_id WHERE c.clinic_id=? AND c.patient_link_id=? AND c.deleted_at IS NULL AND c.record_type<>'receita' ORDER BY c.id DESC LIMIT 200",
-            [$cid, $id],
-        )->fetchAll();
-        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"), "id,name");
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.35', [$cid, $id], [])->fetchAll();
+        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"));
         $recordItems = [];
         $counts = [];
         foreach ($extraTabs as $tab) {
@@ -1248,10 +1146,7 @@ final class PatientsRuntimeOperations07
             $counts[$rt]++;
             $recordItems[$rt][] = $item;
         }
-        $apptLinkRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,start_at,status,reason FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? AND start_at>=DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND start_at<DATE_ADD(CURDATE(), INTERVAL 7 DAY) ORDER BY start_at ASC LIMIT 20",
-            [$cid, $id],
-        )->fetchAll();
+        $apptLinkRows = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.36', [$cid, $id], [])->fetchAll();
         $apptOptions = ["" => "Sem vínculo com agendamento"];
         $defaultAppointment = null;
         foreach ($apptLinkRows as $a) {

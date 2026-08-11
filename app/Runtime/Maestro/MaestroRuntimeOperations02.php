@@ -52,10 +52,7 @@ final class MaestroRuntimeOperations02
             }
             $id = max(0, (int) ($_POST["id"] ?? 0));
             if ($act === "toggle_rule" && $id > 0) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_maestro_rules SET active=IF(active=1,0,1), next_run_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$uid, $id, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.02.page_maestro.01', [$uid, $id, $cid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_status", "maestro", $id, [
                     "audit_body" => "Status da rotina alterado.",
                 ]);
@@ -63,10 +60,10 @@ final class MaestroRuntimeOperations02
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("maestro");
             }
             if ($act === "delete_rule" && $id > 0) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_maestro_rules WHERE id=? AND clinic_id=?", [
+                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.02.page_maestro.02', [
                     $id,
                     $cid,
-                ]);
+                ], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("maestro_regra_excluida", "maestro", $id, [
                     "audit_body" =>
                         "Rotina excluída pelo administrador do consultório.",
@@ -79,20 +76,13 @@ final class MaestroRuntimeOperations02
         $catalog = \Prontoo\Domain\Maestro\MaestroDomainOperations01::maestro_trigger_catalog();
         $moduleOpts = \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_module_options($catalog);
         $firstModule = array_key_first($moduleOpts) ?: "appointments";
-        $rules = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT * FROM pi_maestro_rules WHERE clinic_id=? ORDER BY active DESC, priority DESC, id DESC LIMIT 300",
-            [$cid],
-        )->fetchAll();
-        $lastRun = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT started_at,finished_at,duration_ms,actions_created,rules_run,deferred_count FROM pi_maestro_job_runs ORDER BY id DESC LIMIT 1",
-        );
+        $rules = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.02.page_maestro.03', [$cid], [])->fetchAll();
+        $lastRun = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->row('operational.maestro.02.page_maestro.04', [], []);
         $lastRunValue = $lastRun
             ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_br((string) ($lastRun["finished_at"] ?: $lastRun["started_at"]))
             : "Nunca";
         $avgDuration24Ms = (int) round(
-            (float) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT AVG(duration_ms) FROM pi_maestro_job_runs WHERE finished_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
-            ) ?? 0),
+            (float) (\Prontoo\Runtime\Operational\OperationalComposition::maestro()->scalar('operational.maestro.02.page_maestro.05', [], []) ?? 0),
         0, \RoundingMode::HalfAwayFromZero);
         if ($avgDuration24Ms <= 0 && $lastRun) {
             $avgDuration24Ms = (int) ($lastRun["duration_ms"] ?? 0);
@@ -101,15 +91,9 @@ final class MaestroRuntimeOperations02
             $avgDuration24Ms > 0
                 ? \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_duration_label($avgDuration24Ms)
                 : "Nunca";
-        $created = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_maestro_executions WHERE clinic_id=? AND status='created' AND executed_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
-            [$cid],
-        );
+        $created = (int) \Prontoo\Runtime\Operational\OperationalComposition::maestro()->scalar('operational.maestro.02.page_maestro.06', [$cid], []);
         $roles = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, true);
-        $users = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT u.id,u.name FROM pi_users u INNER JOIN pi_user_roles ur ON ur.user_id=u.id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 GROUP BY u.id,u.name ORDER BY u.name LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        $users = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.02.page_maestro.07', [$cid], [])->fetchAll();
         $userOpts = ["0" => "Escolha um colaborador"];
         foreach ($users as $u) {
             $userOpts[(string) $u["id"]] = $u["name"];
@@ -191,12 +175,8 @@ final class MaestroRuntimeOperations02
         $execStats = [];
         if ($rules) {
             $ruleIds = array_map( fn($rr) => (int) $rr["id"], $rules);
-            $ph = implode(",", array_fill(0, count($ruleIds), "?"));
             foreach (
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT rule_id, SUM(CASE WHEN status='created' THEN 1 ELSE 0 END) AS created_count, MAX(executed_at) AS last_at FROM pi_maestro_executions WHERE clinic_id=? AND rule_id IN ($ph) GROUP BY rule_id",
-                    array_merge([$cid], $ruleIds),
-                )->fetchAll()
+                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.02.page_maestro.08', array_merge([$cid], $ruleIds), ['itemCount' => count($ruleIds)])->fetchAll()
                 as $er
             ) {
                 $execStats[(int) $er["rule_id"]] = $er;
