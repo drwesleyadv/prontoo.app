@@ -162,8 +162,11 @@ if ($wrongClinicReason !== 'Paciente não encontrado no consultório atual.') {
     throw new RuntimeException('Isolamento de consultório falhou na leitura do paciente.');
 }
 
+$agendaDate = \Prontoo\Core\Temporal\PiTime::dateOnlyToTimestamp(
+    \Prontoo\Core\Temporal\TemporalQueryNormalizer::contextToday(),
+);
 $pdo->prepare('INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,created_by,created_at) VALUES (?,?,?,?,?,?)')
-    ->execute([$clinicId, $now, 'Nota de runtime', 'clinic', $userId, $now]);
+    ->execute([$clinicId, $agendaDate, 'Nota de runtime', 'clinic', $userId, $now]);
 $agendaOwn = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=? AND note_date>=CURDATE()', [$clinicId]);
 $agendaOther = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val('SELECT COUNT(*) FROM pi_agenda_notes WHERE clinic_id=?', [$clinicId + 999]);
 if ($agendaOwn !== 1 || $agendaOther !== 0) {
