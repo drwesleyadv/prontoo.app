@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - agent/maintenance-security-refactor-touch
+  pull_request:
+    branches:
+      - prontoo
 
 permissions:
   contents: write
 
 jobs:
   isolate:
+    if: github.head_ref == 'agent/maintenance-security-refactor-touch' || github.ref == 'refs/heads/agent/maintenance-security-refactor-touch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: agent/maintenance-security-refactor-touch
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
