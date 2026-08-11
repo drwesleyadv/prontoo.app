@@ -49,10 +49,7 @@ final class AdminPagesRuntimeOperations06
                     $base = "efetivada";
                 }
                 $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $goalContext);
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_financial_goals (clinic_id,month_key,target_cents,base_metric,share_with_team,updated_by) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE target_cents=VALUES(target_cents), base_metric=VALUES(base_metric), share_with_team=VALUES(share_with_team), updated_by=VALUES(updated_by), updated_at=NOW()",
-                    [$cid, $month, $target, $base, $share, $uid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.01', [$cid, $month, $target, $base, $share, $uid], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("meta_financeira_salva", "financeiro", $cid, [
                     "valor" => $target,
                     "base" => $base,
@@ -71,10 +68,7 @@ final class AdminPagesRuntimeOperations06
                 $pid = (int) ($_POST["payment_id"] ?? 0);
                 $p =
                     $pid > 0
-                        ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                            "SELECT sp.*,c.display_name FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.id=? AND sp.status='pending_admin'",
-                            [$pid],
-                        )
+                        ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.06.page_admin_painel.02', [$pid], [])
                         : null;
                 if (!$p) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -95,14 +89,8 @@ final class AdminPagesRuntimeOperations06
                             (string) $p["proof_path"],
                         );
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_subscription_payments SET status='confirmed', reviewed_by=?, reviewed_at=NOW(), review_note=?, proof_path=NULL WHERE id=? AND clinic_id=?",
-                        [$adminId, $reviewNote, $pid, $cid],
-                    );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_clinics SET active=1, subscription_status='active', paid_until=COALESCE(?,paid_until), subscription_trust_blocked_until=NULL, subscription_last_payment_claim_at=NULL, updated_at=NOW() WHERE id=?",
-                        [$p["applied_until"] ?: null, $cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.03', [$adminId, $reviewNote, $pid, $cid], []);
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.04', [$p["applied_until"] ?: null, $cid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                         $hadProof
                             ? "assinatura_comprovante_aprovado"
@@ -138,17 +126,11 @@ final class AdminPagesRuntimeOperations06
                 $reviewNote = $hadProof
                     ? "Comprovante recusado."
                     : "Recebimento não confirmado.";
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_subscription_payments SET status='rejected', reviewed_by=?, reviewed_at=NOW(), review_note=? WHERE id=? AND clinic_id=?",
-                    [$adminId, $reviewNote, $pid, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.05', [$adminId, $reviewNote, $pid, $cid], []);
                 $trustBlockedUntil = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
                     "2099-12-31 23:59:59",
                 );
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET subscription_status='read_only', paid_until=CURDATE(), subscription_trust_blocked_until=?, updated_at=NOW() WHERE id=?",
-                    [$trustBlockedUntil, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.06', [$trustBlockedUntil, $cid], []);
                 \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations02::clinic_subscription_rejected_notice($cid, $hadProof);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     $hadProof
@@ -171,29 +153,16 @@ final class AdminPagesRuntimeOperations06
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
             }
         }
-        $qInt = function (string $sql, array $p = []): int {
+        $qInt = function (string $query, array $p = [], array $context = []): int {
     
-            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val($sql, $p, 0);
+            return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.06.page_admin_painel.07', $p, 0, ['query' => $query] + $context);
         };
-        $modelClinicWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("id");
-        $readOnly = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (subscription_status='read_only' OR (paid_until IS NOT NULL AND paid_until<CURDATE())) $modelClinicWhere",
-        );
-        $trialEnding = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='trial' AND trial_ends_at IS NOT NULL AND trial_ends_at>=NOW() AND trial_ends_at<DATE_ADD(NOW(), INTERVAL 7 DAY) $modelClinicWhere",
-        );
-        $onboardingPending = $qInt(
-            "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND onboarding_done=0 $modelClinicWhere",
-        );
-        $locks = $qInt(
-            "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
-        );
-        $openErrors = $qInt(
-            "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
-        );
-        $errors24h = $qInt(
-            "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)",
-        );
+        $readOnly = $qInt('read.admin_pages.06.page_admin_painel.01');
+        $trialEnding = $qInt('read.admin_pages.06.page_admin_painel.02');
+        $onboardingPending = $qInt('read.admin_pages.06.page_admin_painel.03');
+        $locks = $qInt('read.admin_pages.06.page_admin_painel.04', [], []);
+        $openErrors = $qInt('read.admin_pages.06.page_admin_painel.05', [], []);
+        $errors24h = $qInt('read.admin_pages.06.page_admin_painel.06', [], []);
         $scopeStats24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_stats(24);
         $scopeViolations24h = (int) $scopeStats24h["actionable"];
         $scopeGroups24h = $scopeViolations24h > 0
@@ -206,10 +175,7 @@ final class AdminPagesRuntimeOperations06
         ]);
         $actions = [];
         try {
-            $pendingModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sp.clinic_id");
-            $pending = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT sp.id,sp.clinic_id,sp.amount_cents,sp.account_self,sp.account_holder_name,sp.proof_path,sp.applied_until,sp.created_at,c.display_name,(SELECT COUNT(*) FROM pi_subscription_payments spr WHERE spr.clinic_id=sp.clinic_id AND spr.status='rejected') AS rejected_count FROM pi_subscription_payments sp JOIN pi_clinics c ON c.id=sp.clinic_id WHERE sp.status='pending_admin' $pendingModelWhere ORDER BY sp.created_at ASC LIMIT 20",
-            )->fetchAll();
+            $pending = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.08', [], [])->fetchAll();
             foreach ($pending as $p) {
                 $hasProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
                 $hadRejected = (int) ($p["rejected_count"] ?? 0) > 0;
@@ -427,9 +393,7 @@ final class AdminPagesRuntimeOperations06
     {
     
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_users");
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date,COUNT(ur.id) AS vinculos FROM pi_users u JOIN pi_persons p ON p.id=u.person_id LEFT JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.active=1 GROUP BY u.id,u.name,u.email,u.active,u.is_global_admin,p.cpf,p.birth_date ORDER BY u.name ASC LIMIT 200",
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_people.01', [], [])->fetchAll();
         $items = [];
         foreach ($rows as $r) {
             $items[] = [

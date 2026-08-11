@@ -165,13 +165,12 @@ final class FinancialRuntimeOperations16
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($paid30Cents)) .
             "</b><span>Pago em 30 dias</span></p></div></section>";
         $params = [$cid];
-        $where = "fc.clinic_id=? AND fc.kind='credor' AND fc.active=1";
+        $searchMode = "none";
         if ($search !== "") {
             $like = "%" . $search . "%";
             $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search);
             if ($digits !== "") {
-                $where .=
-                    " AND (p.full_name LIKE ? OR p.cpf LIKE ? OR p.legal_document LIKE ? OR p.phone LIKE ? OR p.email LIKE ? OR fc.notes LIKE ?)";
+                $searchMode = "document";
                 array_push(
                     $params,
                     $like,
@@ -182,12 +181,11 @@ final class FinancialRuntimeOperations16
                     $like,
                 );
             } else {
-                $where .=
-                    " AND (p.full_name LIKE ? OR p.email LIKE ? OR p.address_city LIKE ? OR fc.notes LIKE ?)";
+                $searchMode = "text";
                 array_push($params, $like, $like, $like, $like);
             }
         }
-        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.16.page_creditors.06", $params, compact('where'))->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.16.page_creditors.06", $params, compact('searchMode'))->fetchAll();
         $rowsHtml = "";
         foreach ($rows as $r) {
             $rowsHtml .= \Prontoo\Runtime\Financial\FinancialRuntimeOperations15::financial_creditor_directory_card($r, $cid);

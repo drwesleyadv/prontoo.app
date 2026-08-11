@@ -82,14 +82,11 @@ final class DocumentPdfRuntimeOperations01
             if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
                 $cutDb = gmdate("Y-m-d H:i:s", time() - $ttl);
                 if ($cid !== null && (int) $cid > 0) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND created_at < ?",
-                        [(int) $cid, $cutDb],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.document_pdf.01.document_pdf_cleanup.01', [(int) $cid, $cutDb], []);
                 } else {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("DELETE FROM pi_document_pdfs WHERE created_at < ?", [
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.document_pdf.01.document_pdf_cleanup.02', [
                         $cutDb,
-                    ]);
+                    ], []);
                 }
             }
         } catch (Throwable $e) {
@@ -188,10 +185,7 @@ final class DocumentPdfRuntimeOperations01
         }
         try {
             if ($cid > 0 && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "DELETE FROM pi_document_pdfs WHERE clinic_id=? AND file_name=?",
-                    [$cid, basename($fileName)],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.document_pdf.01.document_pdf_delete_pair.01', [$cid, basename($fileName)], []);
             }
         } catch (Throwable $e) {
             error_log(
@@ -229,9 +223,7 @@ final class DocumentPdfRuntimeOperations01
                 $hash = str_repeat("0", 64);
             }
             $size = is_file($path) ? max(0, (int) filesize($path)) : 0;
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_document_pdfs (clinic_id,document_id,generated_by,document_identifier,generated_unix,file_name,file_path,file_sha256,file_size,created_at) VALUES (?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE clinic_id=VALUES(clinic_id), document_id=VALUES(document_id), generated_by=VALUES(generated_by), document_identifier=VALUES(document_identifier), generated_unix=VALUES(generated_unix), file_path=VALUES(file_path), file_sha256=VALUES(file_sha256), file_size=VALUES(file_size), created_at=VALUES(created_at)",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.document_pdf.01.document_pdf_register_file.01', [
                     $cid,
                     (int) $doc["id"],
                     (int) ($c["user"]["id"] ?? 0),
@@ -242,8 +234,7 @@ final class DocumentPdfRuntimeOperations01
                     $hash,
                     $size,
                     $generatedAt,
-                ],
-            );
+                ], []);
         } catch (Throwable $e) {
             error_log("[Prontoo document_pdf_register_file] " . $e->getMessage());
         }
@@ -332,10 +323,7 @@ final class DocumentPdfRuntimeOperations01
             return null;
         }
         try {
-            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT clinic_id,document_id,file_sha256,generated_unix,created_at FROM pi_document_pdfs WHERE file_name=? LIMIT 1",
-                [$fileName],
-            );
+            $r = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.document_pdf.01.document_pdf_catalog_row.01', [$fileName], []);
             if ($r) {
                 return $r;
             }

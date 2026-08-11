@@ -197,10 +197,7 @@ final class SubscriptionSettingsRuntimeOperations02
     
         try {
             $cl =
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT owner_user_id,manager_user_id FROM pi_clinics WHERE id=?",
-                    [$cid],
-                ) ?:
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.subscription_settings.02.clinic_subscription_rejected_notice.01', [$cid], []) ?:
                 [];
             $uid = (int) ($cl["owner_user_id"] ?? 0);
             if ($uid <= 0) {
@@ -215,10 +212,7 @@ final class SubscriptionSettingsRuntimeOperations02
             $body = $proofRejected
                 ? "O comprovante enviado não foi aprovado. Envie um novo comprovante de pagamento na tela Meu Consultório > Assinatura para nova conferência."
                 : "O pagamento informado não foi confirmado. Envie o arquivo do comprovante de pagamento na tela Meu Consultório > Assinatura para nova conferência.";
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_user_id,created_at) VALUES (?,?,?,?,?,?,NOW())",
-                [$cid, $title, $body, 1, "user", $uid],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_rejected_notice.02', [$cid, $title, $body, 1, "user", $uid], []);
         } catch (Throwable $e) {
             error_log("[Prontoo subscription notice] " . $e->getMessage());
         }
@@ -272,17 +266,20 @@ final class SubscriptionSettingsRuntimeOperations02
             (string) ($cl["paid_until"] ?? ""),
             $trustUntil,
         );
-        $db = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
-        $startedTx = false;
         try {
-            if (!$db->inTransaction()) {
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                $startedTx = true;
-            }
-            if ($blockedActive) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_subscription_payments (clinic_id,created_by,amount_cents,status,trust_release,account_self,account_holder_name,proof_path,applied_until,created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())",
-                    [
+            return \Prontoo\Runtime\Operational\OperationalComposition::administration()->atomic(function () use (
+                $blockedActive,
+                $cid,
+                $uid,
+                $price,
+                $own,
+                $holder,
+                $proof,
+                $until,
+                $provisionalUntil,
+            ): string {
+                if ($blockedActive) {
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.01', [
                         $cid,
                         $uid,
                         $price,
@@ -292,26 +289,19 @@ final class SubscriptionSettingsRuntimeOperations02
                         $holder !== "" ? $holder : null,
                         $proof,
                         $until,
-                    ],
-                );
-                $pid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_comprovante_enviado", "assinatura", $cid, [
-                    "pagamento_id" => $pid,
-                    "valor" => $price,
-                    "renovacao_ate" => $until,
-                    "audit_body" =>
-                        "Responsável enviou comprovante após recusa anterior. Uma nova Ação Recomendada foi disponibilizada para o Desenvolvedor visualizar, aprovar ou recusar o comprovante. O consultório permanece em Somente Leitura até aprovação administrativa.",
-                ]);
-                $message =
-                    "Comprovante enviado. A administração vai conferir o arquivo para liberar a assinatura.";
-            } else {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_clinics SET active=1, subscription_status='active', paid_until=?, subscription_trust_blocked_until=NULL, subscription_last_payment_claim_at=NOW(), updated_at=NOW() WHERE id=?",
-                    [$provisionalUntil, $cid],
-                );
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_subscription_payments (clinic_id,created_by,amount_cents,status,trust_release,account_self,account_holder_name,proof_path,applied_until,created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())",
-                    [
+                    ], []);
+                    $pid = \Prontoo\Runtime\Operational\OperationalComposition::administration()->lastInsertId();
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_comprovante_enviado", "assinatura", $cid, [
+                        "pagamento_id" => $pid,
+                        "valor" => $price,
+                        "renovacao_ate" => $until,
+                        "audit_body" =>
+                            "Responsável enviou comprovante após recusa anterior. Uma nova Ação Recomendada foi disponibilizada para o Desenvolvedor visualizar, aprovar ou recusar o comprovante. O consultório permanece em Somente Leitura até aprovação administrativa.",
+                    ]);
+                    return "Comprovante enviado. A administração vai conferir o arquivo para liberar a assinatura.";
+                }
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.02', [$provisionalUntil, $cid], []);
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.03', [
                         $cid,
                         $uid,
                         $price,
@@ -321,9 +311,8 @@ final class SubscriptionSettingsRuntimeOperations02
                         $holder !== "" ? $holder : null,
                         null,
                         $until,
-                    ],
-                );
-                $pid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                    ], []);
+                $pid = \Prontoo\Runtime\Operational\OperationalComposition::administration()->lastInsertId();
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_pagamento_informado", "assinatura", $cid, [
                     "pagamento_id" => $pid,
                     "valor" => $price,
@@ -332,17 +321,9 @@ final class SubscriptionSettingsRuntimeOperations02
                     "audit_body" =>
                         "Responsável informou pagamento da assinatura. Uma Ação Recomendada foi disponibilizada para confirmação ou recusa pelo Desenvolvedor. O acesso operacional foi liberado automaticamente em confiança por prazo operacional interno enquanto aguarda conferência administrativa.",
                 ]);
-                $message =
-                    "Obrigado. Já liberamos sua assinatura em confiança enquanto o banco confirma sua transação. Aproveite!";
-            }
-            if ($startedTx && $db->inTransaction()) {
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
-            }
-            return $message;
+                return "Obrigado. Já liberamos sua assinatura em confiança enquanto o banco confirma sua transação. Aproveite!";
+            });
         } catch (Throwable $e) {
-            if ($startedTx && $db->inTransaction()) {
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-            }
             if ($proof !== null) {
                 \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_delete_proof($proof);
             }

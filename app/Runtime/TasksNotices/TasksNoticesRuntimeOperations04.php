@@ -97,10 +97,7 @@ final class TasksNoticesRuntimeOperations04
             $act = $_POST["act"] ?? "create";
             if ($act === "start") {
                 $tid = (int) ($_POST["id"] ?? 0);
-                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT t.id,t.clinic_id,t.title,t.status,t.assigned_to,t.target_scope,t.target_role,t.target_user_id,t.started_at,td.patient_link_id,td.appointment_id,td.source_event,td.source_entity,td.source_entity_id FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
-                    [$tid, $cid],
-                );
+                $task = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.01', [$tid, $cid], []);
                 if (!$task) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
@@ -114,15 +111,9 @@ final class TasksNoticesRuntimeOperations04
                 }
                 $wasAssigned = (int) ($task["assigned_to"] ?? 0);
                 if ($wasAssigned > 0) {
-                    $st = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks SET started_by=?, started_at=NOW(), status='em_andamento', updated_at=NOW() WHERE id=? AND clinic_id=? AND assigned_to=? AND status IN ('aberta','aguardando') AND started_at IS NULL",
-                        [$uid, $tid, $cid, $wasAssigned],
-                    );
+                    $st = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.02', [$uid, $tid, $cid, $wasAssigned], []);
                 } else {
-                    $st = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_tasks SET assigned_to=?, started_by=?, started_at=NOW(), status='em_andamento', updated_at=NOW() WHERE id=? AND clinic_id=? AND assigned_to IS NULL AND status IN ('aberta','aguardando') AND started_at IS NULL",
-                        [$uid, $uid, $tid, $cid],
-                    );
+                    $st = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.03', [$uid, $uid, $tid, $cid], []);
                 }
                 if ($st->rowCount() < 1) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Outra pessoa já começou esta tarefa.", "bad");
@@ -159,10 +150,7 @@ final class TasksNoticesRuntimeOperations04
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,title,target_scope,assigned_to FROM pi_tasks WHERE id=? AND clinic_id=?",
-                    [$tid, $cid],
-                );
+                $task = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.04', [$tid, $cid], []);
                 if (!$task) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
@@ -174,10 +162,7 @@ final class TasksNoticesRuntimeOperations04
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_tasks SET assigned_to=NULL, started_by=NULL, started_at=NULL, status='aberta', updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$tid, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.05', [$tid, $cid], []);
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
@@ -197,10 +182,7 @@ final class TasksNoticesRuntimeOperations04
             }
             if ($act === "done") {
                 $tid = (int) ($_POST["id"] ?? 0);
-                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT t.id,t.clinic_id,t.title,t.assigned_to,td.patient_link_id,td.appointment_id,td.source_event,td.source_entity,td.source_entity_id,t.status FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
-                    [$tid, $cid],
-                );
+                $task = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.06', [$tid, $cid], []);
                 if (!$task) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
@@ -216,10 +198,7 @@ final class TasksNoticesRuntimeOperations04
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_tasks SET status='concluida', completed_by=?, completed_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$uid, $tid, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.07', [$uid, $tid, $cid], []);
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
@@ -242,10 +221,7 @@ final class TasksNoticesRuntimeOperations04
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o novo texto do comentário.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $cm = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT tc.id,tc.task_id,tc.user_id FROM pi_task_comments tc INNER JOIN pi_tasks t ON t.id=tc.task_id AND t.clinic_id=tc.clinic_id WHERE tc.id=? AND tc.clinic_id=? AND tc.deleted_at IS NULL",
-                    [$commentId, $cid],
-                );
+                $cm = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.08', [$commentId, $cid], []);
                 if (!$cm) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
@@ -257,10 +233,7 @@ final class TasksNoticesRuntimeOperations04
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_task_comments SET body=?, edited_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
-                    [$body, $uid, $commentId, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.09', [$body, $uid, $commentId, $cid], []);
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     (int) $cm["task_id"],
@@ -278,10 +251,7 @@ final class TasksNoticesRuntimeOperations04
             }
             if ($act === "comment_delete") {
                 $commentId = (int) ($_POST["comment_id"] ?? 0);
-                $cm = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT tc.id,tc.task_id,tc.user_id FROM pi_task_comments tc INNER JOIN pi_tasks t ON t.id=tc.task_id AND t.clinic_id=tc.clinic_id WHERE tc.id=? AND tc.clinic_id=? AND tc.deleted_at IS NULL",
-                    [$commentId, $cid],
-                );
+                $cm = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.10', [$commentId, $cid], []);
                 if (!$cm) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comentário não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
@@ -293,10 +263,7 @@ final class TasksNoticesRuntimeOperations04
                     );
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_task_comments SET deleted_at=NOW(), deleted_by=? WHERE id=? AND clinic_id=? AND deleted_at IS NULL",
-                    [$uid, $commentId, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.11', [$uid, $commentId, $cid], []);
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     (int) $cm["task_id"],
@@ -322,18 +289,15 @@ final class TasksNoticesRuntimeOperations04
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o comentário da tarefa.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                $task = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id FROM pi_tasks WHERE id=? AND clinic_id=?", [
+                $task = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.04.page_tasks.12', [
                     $tid,
                     $cid,
-                ]);
+                ], []);
                 if (!$task) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Tarefa não encontrada.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("tasks");
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_task_comments (clinic_id,task_id,user_id,body,created_at) VALUES (?,?,?,?,NOW())",
-                    [$cid, $tid, $uid, $body],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.13', [$cid, $tid, $uid, $body], []);
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                     $cid,
                     $tid,
@@ -381,9 +345,7 @@ final class TasksNoticesRuntimeOperations04
             $taskDescription = mb_trim((string) ($_POST["description"] ?? ""));
             $dueAt = mb_trim((string) ($_POST["due_at"] ?? ""));
             $dueAt = $dueAt !== "" ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_to_db_utc($dueAt, $cid, $c) : null;
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,due_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.14', [
                     $cid,
                     $title,
                     $targetScope,
@@ -392,13 +354,9 @@ final class TasksNoticesRuntimeOperations04
                     $assigned,
                     $dueAt,
                     $uid,
-                ],
-            );
-            $taskId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_task_details (task_id,clinic_id,description) VALUES (?,?,?)",
-                [$taskId, $cid, $taskDescription],
-            );
+                ], []);
+            $taskId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.15', [$taskId, $cid, $taskDescription], []);
             \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
                 $cid,
                 $taskId,
@@ -505,49 +463,25 @@ final class TasksNoticesRuntimeOperations04
         }
         $qTerm = mb_trim((string) ($_GET["q"] ?? ""));
         $taskSearchMode = $qTerm !== "";
-        $where = ["t.clinic_id=?"];
         $params = [$cid];
-        $active = "t.status IN ('aberta','em_andamento','aguardando')";
         if (!$taskSearchMode) {
             if ($view === "mine") {
-                $where[] = $active . " AND t.assigned_to=?";
                 $params[] = $uid;
             } elseif ($view === "role") {
-                $where[] =
-                    $active .
-                    " AND t.assigned_to IS NULL AND COALESCE(t.target_scope,'clinic')='role' AND t.target_role=?";
                 $params[] = $role;
-            } elseif ($view === "clinic") {
-                $where[] =
-                    $active .
-                    " AND t.assigned_to IS NULL AND COALESCE(t.target_scope,'clinic')='clinic'";
-            } elseif ($view === "progress") {
-                $where[] = "t.status='em_andamento'";
-            } elseif ($view === "overdue") {
-                $where[] = $active . " AND t.due_at IS NOT NULL AND t.due_at<NOW()";
             } elseif ($view === "today") {
                 [$taskTodayStart, $taskTodayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
                     $cid,
                     $c,
                 );
-                $where[] =
-                    $active .
-                    " AND t.due_at IS NOT NULL AND t.due_at>=? AND t.due_at<?";
                 $params[] = $taskTodayStart;
                 $params[] = $taskTodayEnd;
-            } elseif ($view === "done") {
-                $where[] = "t.status NOT IN ('aberta','em_andamento','aguardando')";
-            } elseif ($view === "all") {
             } elseif ($view === "start") {
                 $view = "role";
-                $where[] =
-                    $active .
-                    " AND t.assigned_to IS NULL AND COALESCE(t.target_scope,'clinic')='role' AND t.target_role=?";
                 $params[] = $role;
-            } else {
+            } elseif (!in_array($view, ["clinic", "progress", "overdue", "done", "all"], true)) {
                 $view = "mine";
-                $where[] = $active . " AND t.assigned_to=?";
                 $params[] = $uid;
             }
         } else {
@@ -573,8 +507,6 @@ final class TasksNoticesRuntimeOperations04
         }
         if ($qTerm !== "") {
             $like = "%" . $qTerm . "%";
-            $where[] =
-                "(t.title LIKE ? OR td.description LIKE ? OR p.full_name LIKE ? OR u.name LIKE ? OR DATE_FORMAT(t.due_at,'%d/%m/%Y') LIKE ? OR DATE_FORMAT(t.created_at,'%d/%m/%Y') LIKE ?)";
             array_push($params, $like, $like, $like, $like, $like, $like);
         }
         [$taskOrderTodayStart, $taskOrderTodayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
@@ -582,45 +514,15 @@ final class TasksNoticesRuntimeOperations04
             $cid,
             $c,
         );
-        $sql =
-            "SELECT t.id,t.title,td.description,t.target_scope,t.target_role,t.target_user_id,t.assigned_to,t.started_at,t.started_by,t.status,t.due_at,t.completed_at,t.created_at,td.patient_link_id,td.appointment_id,td.source_event,td.source_entity,td.source_entity_id,u.name AS assigned_name,su.name AS started_name,p.full_name AS patient_name
-     FROM pi_tasks t
-     LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id
-     LEFT JOIN pi_users u ON u.id=t.assigned_to AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=t.clinic_id AND ur.active=1)
-     LEFT JOIN pi_users su ON su.id=t.started_by AND EXISTS (SELECT 1 FROM pi_user_roles ur2 WHERE ur2.user_id=su.id AND ur2.clinic_id=t.clinic_id AND ur2.active=1)
-     LEFT JOIN pi_patients pl ON pl.id=td.patient_link_id AND pl.clinic_id=t.clinic_id
-     LEFT JOIN pi_persons p ON p.id=pl.person_id
-     WHERE " .
-            implode(" AND ", $where) .
-            "
-     ORDER BY 
-     CASE 
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.assigned_to=? THEN 0
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.assigned_to IS NULL AND COALESCE(t.target_scope,'clinic')='role' THEN 1
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.assigned_to IS NULL AND COALESCE(t.target_scope,'clinic')='clinic' THEN 2
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.assigned_to IS NOT NULL THEN 3
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.due_at IS NOT NULL AND t.due_at<NOW() THEN 4
-     WHEN t.status IN ('aberta','em_andamento','aguardando') AND t.due_at>=" .
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->quote($taskOrderTodayStart) .
-            " AND t.due_at<" .
-            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->quote($taskOrderTodayEnd) .
-            " THEN 5
-     WHEN t.status NOT IN ('aberta','em_andamento','aguardando') THEN 6
-     ELSE 7
-     END,
-     t.due_at IS NULL ASC,
-     t.due_at ASC,
-     t.id DESC
-     LIMIT 160";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, array_merge($params, [$uid]))->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result(
+            'operational.tasks_notices.04.page_tasks.16',
+            array_merge($params, [$uid, $taskOrderTodayStart, $taskOrderTodayEnd]),
+            ['view' => $view, 'search' => $taskSearchMode],
+        )->fetchAll();
         $commentsByTask = [];
         $taskIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         if ($taskIds) {
-            $ph = implode(",", array_fill(0, count($taskIds), "?"));
-            $commentRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT tc.id,tc.task_id,tc.user_id,tc.body,tc.created_at,tc.updated_at,u.name AS user_name FROM pi_task_comments tc LEFT JOIN pi_users u ON u.id=tc.user_id WHERE tc.clinic_id=? AND tc.deleted_at IS NULL AND tc.task_id IN ($ph) ORDER BY tc.created_at ASC",
-                array_merge([$cid], $taskIds),
-            )->fetchAll();
+            $commentRows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.04.page_tasks.17', array_merge([$cid], $taskIds), ['itemCount' => count($taskIds)])->fetchAll();
             foreach ($commentRows as $cr) {
                 $commentsByTask[(int) $cr["task_id"]][] = $cr;
             }

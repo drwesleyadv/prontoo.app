@@ -31,31 +31,8 @@ final class AdminPagesRuntimeOperations01
     {
     
         $hours = max(1, min(24 * 30, $hours));
-        $objectiveKeys = [
-            "write_without_clinic_scope",
-            "write_without_where",
-            "write_without_clinic_where",
-            "write_changes_clinic_scope",
-            "write_mismatched_clinic_where",
-            "insert_without_clinic_column",
-            "insert_mismatched_clinic_value",
-            "entity_outside_clinic",
-            "user_outside_clinic",
-        ];
-        $quoted = implode(
-            ",",
-            array_map(static  fn($key) => "'" . $key . "'", $objectiveKeys),
-        );
-        $modelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sv.clinic_id");
         try {
-            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT COUNT(*) AS total," .
-                    "SUM(sv.violation_key='write_in_read_only') AS policy_total," .
-                    "SUM(sv.violation_key<>'write_in_read_only') AS actionable_total," .
-                    "SUM(sv.violation_key IN ($quoted)) AS objective_total," .
-                    "COUNT(DISTINCT CASE WHEN sv.violation_key<>'write_in_read_only' THEN CONCAT_WS('|',sv.violation_key,sv.sql_fingerprint,sv.route,sv.clinic_id) END) AS actionable_patterns " .
-                    "FROM pi_scope_violations sv WHERE sv.created_at>=DATE_SUB(NOW(), INTERVAL $hours HOUR) $modelWhere",
-            ) ?: [];
+            $row = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.01.admin_scope_guard_stats.01', [], ['hours' => $hours]) ?: [];
         } catch (Throwable $e) {
             return [
                 "total" => 0,
@@ -88,20 +65,8 @@ final class AdminPagesRuntimeOperations01
     
         $hours = max(1, min(24 * 30, $hours));
         $limit = max(1, min(80, $limit));
-        $modelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("sv.clinic_id");
-        $policyWhere = $includePolicy
-            ? ""
-            : " AND sv.violation_key<>'write_in_read_only'";
         try {
-            return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT sv.violation_key,sv.sql_fingerprint,sv.route,sv.clinic_id,sv.user_id,sv.role_code,sv.details,c.display_name AS clinic_name,u.name AS user_name,COUNT(*) AS occurrences,MIN(sv.created_at) AS first_at,MAX(sv.created_at) AS last_at " .
-                    "FROM pi_scope_violations sv " .
-                    "LEFT JOIN pi_clinics c ON c.id=sv.clinic_id " .
-                    "LEFT JOIN pi_users u ON u.id=sv.user_id " .
-                    "WHERE sv.created_at>=DATE_SUB(NOW(), INTERVAL $hours HOUR)$policyWhere $modelWhere " .
-                    "GROUP BY sv.violation_key,sv.sql_fingerprint,sv.route,sv.clinic_id,sv.user_id,sv.role_code,sv.details,c.display_name,u.name " .
-                    "ORDER BY last_at DESC LIMIT $limit",
-            )->fetchAll();
+            return \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.01.admin_scope_guard_groups.01', [], ['hours' => $hours, 'includePolicy' => $includePolicy, 'limit' => $limit])->fetchAll();
         } catch (Throwable $e) {
             error_log("[Prontoo scope evidence] " . $e->getMessage());
             return [];
@@ -216,7 +181,7 @@ final class AdminPagesRuntimeOperations01
         $checks = [];
         $ok = true;
         try {
-            $dbOk = (string) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT 1") === "1";
+            $dbOk = (string) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.01.platform_backend_selftest.01', [], []) === "1";
         } catch (Throwable $e) {
             $dbOk = false;
         }
@@ -226,29 +191,15 @@ final class AdminPagesRuntimeOperations01
         $checks["storage"] = (bool) $storage["ok"];
         $checks["storage_free_bytes"] = $storage["free_bytes"];
         $ok = $ok && (bool) $storage["ok"];
-        $scopeModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_sql("clinic_id");
-        $auditModelWhere = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_exclude_where("a.clinic_id");
         $checks["open_errors"] = array_key_exists("open_errors", $preloaded)
             ? (int) $preloaded["open_errors"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-                "platform_selftest_open_errors",
-                45,
-                "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL",
-            );
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_open_errors", 45, 'read.admin_pages.01.platform_backend_selftest.01', [], []);
         $checks["login_locks"] = array_key_exists("login_locks", $preloaded)
             ? (int) $preloaded["login_locks"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-                "platform_selftest_login_locks",
-                45,
-                "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()",
-            );
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_login_locks", 45, 'read.admin_pages.01.platform_backend_selftest.02', [], []);
         $checks["scope_alerts_24h"] = array_key_exists("scope_alerts_24h", $preloaded)
             ? (int) $preloaded["scope_alerts_24h"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
-                "platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
-                45,
-                "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' $scopeModelWhere",
-            );
+            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(), 45, 'read.admin_pages.01.platform_backend_selftest.03', [], []);
         $scopeLogic = class_exists("\\Prontoo\\Core\\Database\\SqlScopeGuard")
             ? \Prontoo\Core\Database\SqlScopeGuard::logicSelfTest()
             : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["class_missing"]];
@@ -262,11 +213,11 @@ final class AdminPagesRuntimeOperations01
         $checks["integrity_alerts"] = (int) \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_remember(
             "platform_selftest_integrity_alerts_" . \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::admin_model_clinic_id(),
             60,
-            static function () use ($auditModelWhere): int {
+            static function (): int {
     
                 $alerts = 0;
                 try {
-                    foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light($auditModelWhere, [], 50) as $row) {
+                    foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "model_excluded"], [], 50) as $row) {
                         if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($row)) {
                             $alerts++;
                         }

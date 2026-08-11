@@ -53,7 +53,7 @@ A composição foi decomposta em unidades coesas:
 - `app/Runtime/Routing/RouteCatalog.php` — catálogo de rotas;
 - `app/Runtime/Boot/RuntimeBootCoordinator.php` — prontidão mínima e manutenção profunda;
 - `app/Runtime/Authorization/ActionCatalogComposition.php` — composição do catálogo de autorização;
-- composições específicas de Pacientes e Financeiro em `app/Runtime/Patients` e `app/Runtime/Financial`;
+- composições específicas de Pacientes, Financeiro, Identidade e casos operacionais em `app/Runtime/Patients`, `app/Runtime/Financial`, `app/Runtime/SecurityAccess` e `app/Runtime/Operational`;
 - `app/Runtime/Runner.php` — coordenação final do runtime.
 
 A fachada global `app/Support/ModuleLoader.php` foi removida. Entrypoints e unidades de runtime consomem diretamente `RuntimeModuleComposition`, `RuntimeBootPolicy`, `RouteCatalog`, `JsonResponder` e as composições de feature.

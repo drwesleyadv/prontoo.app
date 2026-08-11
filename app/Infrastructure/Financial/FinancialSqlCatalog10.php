@@ -16,7 +16,9 @@ final class FinancialSqlCatalog10
         extract($context, EXTR_SKIP);
         return match ($operation) {
             "financial.10.location_select_options.01" => (
-                "SELECT id,name,location_type FROM pi_financial_locations WHERE $where ORDER BY FIELD(location_type,'admin_safe','pos','bank_account'), name"
+                "SELECT id,name,location_type FROM pi_financial_locations WHERE clinic_id=? AND active=1" .
+                                (!empty($typeFiltered) ? " AND location_type=?" : "") .
+                                " ORDER BY FIELD(location_type,'admin_safe','pos','bank_account'), name"
             ),
             "financial.10.office_destination_options.01" => (
                 "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND active=1 AND account_type IN ('conta_corrente','conta_poupanca','conta_pagamento','investimento') ORDER BY name"

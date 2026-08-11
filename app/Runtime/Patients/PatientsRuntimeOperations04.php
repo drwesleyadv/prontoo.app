@@ -53,32 +53,23 @@ final class PatientsRuntimeOperations04
         $limit = max(1, min(80, (int) ($_GET["limit"] ?? 12)));
         $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($q);
         $params = [$cid];
-        $where = "pp.clinic_id=? AND pp.active=1 AND pp.deleted_at IS NULL";
+        $searchMode = $digits !== "" ? "digits" : "text";
         $like = "%" . $q . "%";
         $dateLike = "%" . str_replace("/", "-", $q) . "%";
         if ($digits !== "") {
-            $where .=
-                " AND (p.full_name LIKE ? OR p.cpf LIKE ? OR pp.phone LIKE ? OR DATE_FORMAT(p.birth_date,'%d/%m/%Y') LIKE ? OR p.birth_date LIKE ?)";
             $params[] = $like;
             $params[] = "%" . $digits . "%";
             $params[] = "%" . $digits . "%";
             $params[] = $like;
             $params[] = $dateLike;
         } else {
-            $where .=
-                " AND (p.full_name LIKE ? OR pp.email LIKE ? OR DATE_FORMAT(p.birth_date,'%d/%m/%Y') LIKE ? OR p.birth_date LIKE ?)";
             $params[] = $like;
             $params[] = $like;
             $params[] = $like;
             $params[] = $dateLike;
         }
-        $metrics = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_directory_select_metrics_sql($cid);
-        $order = "p.full_name ASC, pp.id DESC";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT pp.id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,pp.created_at,pp.updated_at,pp.registration_needs_update,p.full_name,p.birth_date,p.cpf,(SELECT COUNT(*) FROM pi_patient_guardians pg WHERE pg.clinic_id=pp.clinic_id AND pg.patient_link_id=pp.id AND pg.active=1) guardian_count $metrics FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE $where ORDER BY $order LIMIT " .
-                (int) $limit,
-            $params,
-        )->fetchAll();
+        [$todayStart, $todayEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.04.page_patient_suggest.01', $params, compact('searchMode', 'todayStart', 'todayEnd', 'limit'))->fetchAll();
         $items = [];
         foreach ($rows as $r) {
             $birth = !empty($r["birth_date"])

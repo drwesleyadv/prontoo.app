@@ -35,10 +35,7 @@ final class TasksNoticesRuntimeOperations03
             $act = $_POST["act"] ?? "create";
             $id = (int) ($_POST["id"] ?? 0);
             if ($act === "toggle" && $id) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_global_notices SET active=1-active, updated_at=NOW() WHERE id=?",
-                    [$id],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.03.page_admin_global_notices.01', [$id], []);
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("aviso_global_status", "aviso_global", $id);
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Status da aviso atualizado.");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_global_notices");
@@ -61,22 +58,19 @@ final class TasksNoticesRuntimeOperations03
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("O término do aviso deve ser posterior ao início.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_global_notices");
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_global_notices (title,body,severity,starts_at,expires_at,created_by,created_at) VALUES (?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.03.page_admin_global_notices.02', [
                     $title,
                     $body,
                     $severity,
                     $startsAt,
                     $expiresAt,
                     $_SESSION["uid"] ?? null,
-                ],
-            );
+                ], []);
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("global_notices_total");
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                 "aviso_global_criado",
                 "aviso_global",
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id(),
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId(),
                 $_POST,
             );
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Aviso global publicada.");
@@ -103,10 +97,8 @@ final class TasksNoticesRuntimeOperations03
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Expira em", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("expires_at", "datetime-local")) .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Publicar") .
             "</form></details>";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,title,body,severity,active,starts_at,expires_at,created_by,created_at FROM pi_global_notices ORDER BY created_at DESC LIMIT 100",
-        )->fetchAll();
-        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_users", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"), "id,name");
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.03.page_admin_global_notices.03', [], [])->fetchAll();
+        $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"));
         $active = 0;
         $critical = 0;
         $inactive = 0;

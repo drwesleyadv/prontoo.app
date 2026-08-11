@@ -48,10 +48,7 @@ final class DocumentsRuntimeOperations03
         $guardianCpf = "";
         $guardianRel = "";
         if ($patientId > 0) {
-            $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT p.full_name,p.cpf,p.birth_date,pl.phone,pl.email,pl.address,pl.address_number,pl.address_neighborhood,pl.address_city,pl.address_state,pl.address_zip FROM pi_patients pl JOIN pi_persons p ON p.id=pl.person_id WHERE pl.id=? AND pl.clinic_id=? AND pl.active=1",
-                [$patientId, $cid],
-            );
+            $pat = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.01', [$patientId, $cid], []);
             if ($pat) {
                 $patientName = (string) ($pat["full_name"] ?? "");
                 $patientCpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cpf_br((string) ($pat["cpf"] ?? ""));
@@ -72,10 +69,7 @@ final class DocumentsRuntimeOperations03
             }
         }
         $cl =
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT display_name,legal_name,address_city,address_state,address_line FROM pi_clinics WHERE id=?",
-                [$cid],
-            ) ?:
+            \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.02', [$cid], []) ?:
             [];
         $apptStart = (string) ($appt["start_at"] ?? "");
         $apptEnd = (string) ($appt["end_at"] ?? "");
@@ -103,10 +97,7 @@ final class DocumentsRuntimeOperations03
         $professionalRole = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for((string) ($c["role"] ?? ""), $cid);
         $collabId = (int) ($ctx["collaborator_user_id"] ?? 0);
         if ($collabId > 0 && \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_user_exists($cid, $collabId)) {
-            $u = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT u.id,u.name,u.email,GROUP_CONCAT(DISTINCT ur.role_code ORDER BY ur.role_code SEPARATOR ',') AS role_codes,GROUP_CONCAT(DISTINCT cr.label ORDER BY cr.sort_order SEPARATOR ', ') AS role_labels FROM pi_users u JOIN pi_user_roles ur ON ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1 LEFT JOIN pi_clinic_roles cr ON cr.clinic_id=ur.clinic_id AND cr.role_code=ur.role_code WHERE u.id=? GROUP BY u.id,u.name,u.email",
-                [$cid, $collabId],
-            );
+            $u = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.03', [$cid, $collabId], []);
             if ($u) {
                 $collaboratorName = (string) ($u["name"] ?? $collaboratorName);
                 $collaboratorEmail = (string) ($u["email"] ?? "");
@@ -185,10 +176,7 @@ final class DocumentsRuntimeOperations03
         ];
         $leadId = (int) ($ctx["lead_id"] ?? 0);
         if ($leadId > 0) {
-            $l = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT name,phone,source,interest,stage,next_action_at,notes FROM pi_leads WHERE id=? AND clinic_id=?",
-                [$leadId, $cid],
-            );
+            $l = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.04', [$leadId, $cid], []);
             if ($l) {
                 $vars += [
                     "interessado" => (string) ($l["name"] ?? ""),
@@ -205,10 +193,7 @@ final class DocumentsRuntimeOperations03
         }
         $procId = (int) ($ctx["procedure_id"] ?? 0);
         if ($procId > 0) {
-            $pr = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT title,category,description,duration_minutes,price_cents,payment_methods,pre_instructions,post_care FROM pi_procedures WHERE id=? AND clinic_id=?",
-                [$procId, $cid],
-            );
+            $pr = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.05', [$procId, $cid], []);
             if ($pr) {
                 $vars += [
                     "procedimento" => (string) ($pr["title"] ?? ""),
@@ -232,10 +217,7 @@ final class DocumentsRuntimeOperations03
         }
         $taskId = (int) ($ctx["task_id"] ?? 0);
         if ($taskId > 0) {
-            $t = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT t.title,t.status,t.due_at,td.description,u.name AS assigned_name FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id LEFT JOIN pi_users u ON u.id=COALESCE(t.assigned_to,t.target_user_id) WHERE t.id=? AND t.clinic_id=?",
-                [$taskId, $cid],
-            );
+            $t = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.06', [$taskId, $cid], []);
             if ($t) {
                 $vars += [
                     "tarefa" => (string) ($t["title"] ?? ""),
@@ -252,10 +234,7 @@ final class DocumentsRuntimeOperations03
         }
         $careId = (int) ($ctx["care_id"] ?? 0);
         if ($careId > 0) {
-            $a = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT c.title,c.record_type,c.created_at,cc.content,p.full_name AS patient_name FROM pi_care c LEFT JOIN pi_care_content cc ON cc.care_id=c.id AND cc.clinic_id=c.clinic_id JOIN pi_patients pl ON pl.id=c.patient_link_id AND pl.clinic_id=c.clinic_id JOIN pi_persons p ON p.id=pl.person_id WHERE c.id=? AND c.clinic_id=? AND c.deleted_at IS NULL",
-                [$careId, $cid],
-            );
+            $a = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.document_issue_context.07', [$careId, $cid], []);
             if ($a) {
                 $vars += [
                     "atividade" => (string) ($a["title"] ?? "" ?: "Atividade"),
@@ -294,11 +273,10 @@ final class DocumentsRuntimeOperations03
         }
         $loader = function () use ($c, $cid): array {
     
-            [$where, $params] = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visible_where($c, "dt");
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT dt.id,dt.title,dt.type_key FROM pi_document_templates dt WHERE dt.clinic_id=? AND dt.status='approved' AND $where ORDER BY dt.title ASC, dt.id DESC",
-                array_merge([$cid], $params),
-            )->fetchAll();
+            $visibility = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visibility($c);
+            $params = (array) ($visibility["parameters"] ?? []);
+            $visibilityMode = (string) ($visibility["mode"] ?? "role");
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.03.approved_document_template_options.01', array_merge([$cid], $params), compact('visibilityMode'))->fetchAll();
             $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
             $options = [];
             foreach ($rows as $row) {
@@ -332,10 +310,7 @@ final class DocumentsRuntimeOperations03
         $cid = (int) ($c["clinic_id"] ?? 0);
         $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();
         $limit = max(1, min(200, $limit));
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT d.id,d.title,d.type_key,d.issued_at,u.name AS issued_name FROM pi_documents d LEFT JOIN pi_users u ON u.id=d.issued_by WHERE d.clinic_id=? AND d.patient_link_id=? ORDER BY d.issued_at DESC,d.id DESC LIMIT $limit",
-            [$cid, $patientId],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.03.patient_document_timeline_items.01', [$cid, $patientId], ['limit' => $limit])->fetchAll();
         $items = [];
         foreach ($rows as $d) {
             $docId = (int) $d["id"];
@@ -404,10 +379,7 @@ final class DocumentsRuntimeOperations03
         if ($docId <= 0) {
             return null;
         }
-        $doc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT d.*,dt.owner_user_id,dt.owner_role,u.name AS issued_name,p.full_name AS patient_name,p.cpf AS patient_cpf,p.birth_date AS patient_birth_date FROM pi_documents d LEFT JOIN pi_document_templates dt ON dt.id=d.template_id AND dt.clinic_id=d.clinic_id LEFT JOIN pi_users u ON u.id=d.issued_by LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id AND pl.clinic_id=d.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=? AND d.clinic_id=? LIMIT 1",
-            [$docId, (int) ($c["clinic_id"] ?? 0)],
-        );
+        $doc = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.03.fetch_document_for_current_user.01', [$docId, (int) ($c["clinic_id"] ?? 0)], []);
         return $doc && \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::document_can_access($c, $doc) ? $doc : null;
     
     }

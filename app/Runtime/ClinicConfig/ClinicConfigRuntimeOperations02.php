@@ -62,9 +62,7 @@ final class ClinicConfigRuntimeOperations02
     
         $loader = function (): array {
     
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,display_name FROM pi_clinics ORDER BY id DESC LIMIT 500",
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.clinic_config.02.clinic_options_global.01', [], [])->fetchAll();
             $options = ["" => "Sem consultório específico"];
             foreach ($rows as $row) {
                 $options[(int) $row["id"]] = (string) $row["display_name"];

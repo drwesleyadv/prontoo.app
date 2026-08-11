@@ -39,10 +39,7 @@ final class TasksNoticesRuntimeOperations02
             if ($cid <= 0 || $appointmentId <= 0) {
                 return;
             }
-            $appt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,patient_link_id,payment_status,payment_amount_cents FROM pi_appointments WHERE id=? AND clinic_id=?",
-                [$appointmentId, $cid],
-            );
+            $appt = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.02.workflow_on_appointment_finished.01', [$appointmentId, $cid], []);
             if (!$appt) {
                 return;
             }
@@ -52,10 +49,7 @@ final class TasksNoticesRuntimeOperations02
             $name = $patientLinkId
                 ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::patient_display_name($patientLinkId, $cid)
                 : "paciente";
-            $stmt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), consultation_finished_at=COALESCE(consultation_finished_at,NOW()), status='atendimento_concluido', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='em_atendimento' AND consultation_finished_at IS NULL",
-                [$appointmentId, $cid],
-            );
+            $stmt = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.workflow_on_appointment_finished.02', [$appointmentId, $cid], []);
             if ($stmt->rowCount() <= 0) {
                 return;
             }
@@ -102,20 +96,15 @@ final class TasksNoticesRuntimeOperations02
         }
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
-        [$targetSql, $targetParams] = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_sql($c, "n");
+        $targetParams = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_parameters($c);
         $n = 0;
         try {
-            $n += (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_notices n WHERE n.clinic_id=? AND $targetSql AND NOT EXISTS (SELECT 1 FROM pi_notice_reads r WHERE r.notice_id=n.id AND r.user_id=? AND (r.ack_at IS NOT NULL OR r.hidden_at IS NOT NULL) LIMIT 1)",
-                array_merge([$cid], $targetParams, [$uid]),
-            );
+            $n += (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.unread_notifications_count.01', array_merge([$cid], $targetParams, [$uid]), []);
         } catch (Throwable $e) {
             error_log("[Prontoo unread notices] " . $e->getMessage());
         }
         try {
-            $n += (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_global_notices WHERE active=1 AND (starts_at IS NULL OR starts_at<=NOW()) AND (expires_at IS NULL OR expires_at>=NOW())",
-            );
+            $n += (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.unread_notifications_count.02', [], []);
         } catch (Throwable $e) {
             error_log("[Prontoo unread global notices] " . $e->getMessage());
         }
@@ -148,11 +137,7 @@ final class TasksNoticesRuntimeOperations02
         if (!$roles) {
             return [];
         }
-        $ph = implode(",", array_fill(0, count($roles), "?"));
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND active=1 AND role_code IN ($ph) ORDER BY id ASC LIMIT 300",
-            array_merge([$cid], $roles),
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.team_user_ids_for_roles.01', array_merge([$cid], $roles), ['itemCount' => count($roles)])->fetchAll();
         return \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "user_id");
     
     }
@@ -162,10 +147,7 @@ final class TasksNoticesRuntimeOperations02
     {
     
         try {
-            $id = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT user_id FROM pi_user_roles WHERE clinic_id=? AND role_code=? AND active=1 ORDER BY id ASC LIMIT 1",
-                [$cid, $role],
-            );
+            $id = (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.first_team_user_for_role.01', [$cid, $role], []);
             return $id > 0 ? $id : null;
         } catch (Throwable $e) {
             return null;
@@ -240,10 +222,7 @@ final class TasksNoticesRuntimeOperations02
                 $patientLinkId = null;
             }
             if ($appointmentId !== null) {
-                $appt = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,patient_link_id FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$appointmentId, $cid],
-                );
+                $appt = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.02.create_workflow_task.01', [$appointmentId, $cid], []);
                 if (!$appt) {
                     $appointmentId = null;
                 } elseif (
@@ -253,14 +232,11 @@ final class TasksNoticesRuntimeOperations02
                     $patientLinkId = null;
                 }
             }
-            $exists = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT t.id FROM pi_tasks t INNER JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.clinic_id=? AND td.source_event=? AND td.source_entity=? AND td.source_entity_id=? AND t.status IN ('aberta','em_andamento','aguardando') LIMIT 1",
-                [$cid, $sourceEvent, $sourceEntity, $sourceEntityId],
-            );
+            $exists = (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.create_workflow_task.02', [$cid, $sourceEvent, $sourceEntity, $sourceEntityId], []);
             if ($exists > 0) {
                 return $exists;
             }
-            $taskId = (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(static function () use (
+            $taskId = (int) \Prontoo\Runtime\Operational\OperationalComposition::tasks()->atomic(static function () use (
                 $cid,
                 $title,
                 $targetScope,
@@ -276,9 +252,7 @@ final class TasksNoticesRuntimeOperations02
                 $sourceEntityId,
             ): int {
     
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_tasks (clinic_id,title,target_scope,target_role,target_user_id,assigned_to,status,due_at,created_by,created_at) VALUES (?,?,?,?,?,?, 'aberta', ?, ?, NOW())",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.create_workflow_task.03', [
                         $cid,
                         $title,
                         $targetScope,
@@ -287,12 +261,9 @@ final class TasksNoticesRuntimeOperations02
                         $assignedTo,
                         $dueAt,
                         $_SESSION["uid"] ?? null,
-                    ],
-                );
-                $newTaskId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_task_details (task_id,clinic_id,description,patient_link_id,appointment_id,source_event,source_entity,source_entity_id) VALUES (?,?,?,?,?,?,?,?)",
-                    [
+                    ], []);
+                $newTaskId = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->lastInsertId();
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.create_workflow_task.04', [
                         $newTaskId,
                         $cid,
                         $description,
@@ -301,8 +272,7 @@ final class TasksNoticesRuntimeOperations02
                         $sourceEvent,
                         $sourceEntity,
                         $sourceEntityId,
-                    ],
-                );
+                    ], []);
                 return $newTaskId;
             });
             \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::task_event(
@@ -403,15 +373,9 @@ final class TasksNoticesRuntimeOperations02
         $patient = (int) ($task["patient_link_id"] ?? 0);
         $name = $patient ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::patient_display_name($patient, $cid) : "paciente";
         if ($source === "paciente_chegou" && $appt > 0) {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_appointments SET status='pronto_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND status IN ('chegou','em_preparo') AND consultation_started_at IS NULL AND consultation_finished_at IS NULL",
-                [$appt, $cid],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.workflow_on_task_completed.01', [$appt, $cid], []);
             $doctor =
-                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT doctor_user_id FROM pi_appointments WHERE id=? AND clinic_id=?",
-                    [$appt, $cid],
-                ) ?:
+                (int) (\Prontoo\Runtime\Operational\OperationalComposition::tasks()->scalar('operational.tasks_notices.02.workflow_on_task_completed.02', [$appt, $cid], []) ?:
                 0);
             \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::create_workflow_task(
                 $cid,
@@ -442,10 +406,7 @@ final class TasksNoticesRuntimeOperations02
                 $source === "atendimento_encaminhado") &&
             $appt > 0
         ) {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_appointments SET status='finalizado', updated_at=NOW() WHERE id=? AND clinic_id=? AND status='atendimento_concluido' AND consultation_finished_at IS NOT NULL",
-                [$appt, $cid],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.02.workflow_on_task_completed.03', [$appt, $cid], []);
             if (\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::workflow_appointment_payment_pending($cid, $appt)) {
                 \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations02::create_workflow_task(
                     $cid,
@@ -509,21 +470,7 @@ final class TasksNoticesRuntimeOperations02
         );
         try {
             $row =
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT 
-     COUNT(*) AS all_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') THEN 1 ELSE 0 END) AS open_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at>=? AND due_at<? THEN 1 ELSE 0 END) AS today_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at<NOW() THEN 1 ELSE 0 END) AS overdue_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND assigned_to IS NULL AND (COALESCE(target_scope,'clinic')='clinic' OR (COALESCE(target_scope,'clinic')='role' AND target_role=?) OR (COALESCE(target_scope,'clinic')='user' AND COALESCE(target_user_id,assigned_to)=?)) THEN 1 ELSE 0 END) AS start_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND assigned_to=? THEN 1 ELSE 0 END) AS mine_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND assigned_to IS NULL AND COALESCE(target_scope,'clinic')='role' AND target_role=? THEN 1 ELSE 0 END) AS role_count,
-     SUM(CASE WHEN status IN ('aberta','em_andamento','aguardando') AND assigned_to IS NULL AND COALESCE(target_scope,'clinic')='clinic' THEN 1 ELSE 0 END) AS clinic_count,
-     SUM(CASE WHEN status='em_andamento' THEN 1 ELSE 0 END) AS progress_count,
-     SUM(CASE WHEN status NOT IN ('aberta','em_andamento','aguardando') THEN 1 ELSE 0 END) AS done_count
-     FROM pi_tasks WHERE clinic_id=?",
-                    [$todayStart, $todayEnd, $role, $uid, $uid, $role, $cid],
-                ) ?:
+                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->row('operational.tasks_notices.02.task_nav_counts.01', [$todayStart, $todayEnd, $role, $uid, $uid, $role, $cid], []) ?:
                 [];
             $cache[$key] = [
                 "open" => (int) ($row["open_count"] ?? 0),

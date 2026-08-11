@@ -16,7 +16,7 @@ final class FinancialSqlCatalog09
         extract($context, EXTR_SKIP);
         return match ($operation) {
             "financial.09.location_movement_balances.01" => (
-                "SELECT location_id,COALESCE(SUM(delta_cents),0) balance_cents FROM (SELECT to_location_id location_id,amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND to_location_id IN ($ph) AND status='confirmed' UNION ALL SELECT from_location_id location_id,-amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND from_location_id IN ($ph) AND status='confirmed') movement_totals GROUP BY location_id"
+                "SELECT location_id,COALESCE(SUM(delta_cents),0) balance_cents FROM (SELECT to_location_id location_id,amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND to_location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND status='confirmed' UNION ALL SELECT from_location_id location_id,-amount_cents delta_cents FROM pi_financial_movements WHERE clinic_id=? AND from_location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND status='confirmed') movement_totals GROUP BY location_id"
             ),
             "financial.09.global_position.01" => (
                 "SELECT COALESCE(SUM(transfer_to_safe_cents),0) FROM pi_cash_sessions WHERE clinic_id=? AND status='closed_pending_review'"
@@ -25,7 +25,7 @@ final class FinancialSqlCatalog09
                 "SELECT l.id,l.user_id,l.name FROM pi_financial_locations l WHERE l.clinic_id=? AND l.location_type='pos' AND l.active=1 ORDER BY l.name,l.id"
             ),
             "financial.09.global_position.03" => (
-                "SELECT location_id,COUNT(*) total FROM pi_financial_location_users WHERE clinic_id=? AND location_id IN ($posPh) AND active=1 GROUP BY location_id"
+                "SELECT location_id,COUNT(*) total FROM pi_financial_location_users WHERE clinic_id=? AND location_id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND active=1 GROUP BY location_id"
             ),
             "financial.09.global_position.04" => (
                 "SELECT l.id,l.name,l.account_id,a.bank_name,a.account_type FROM pi_financial_locations l LEFT JOIN pi_financial_accounts a ON a.id=l.account_id AND a.clinic_id=l.clinic_id WHERE l.clinic_id=? AND l.location_type='bank_account' AND l.active=1 ORDER BY l.name"

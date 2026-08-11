@@ -7,7 +7,8 @@
         "app/Runtime/LayeredKernel.php": "wires the authorization service and its infrastructure proof store",
         "app/Runtime/Patients/PatientComposition.php": "wires patient application services to PDO repositories",
         "app/Runtime/Financial/FinancialComposition.php": "wires financial application services to PDO repositories",
-        "app/Runtime/SecurityAccess/SecurityAccessComposition.php": "wires security application ports to the persistence adapter"
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php": "wires security application ports to the persistence adapter",
+        "app/Runtime/Operational/OperationalComposition.php": "wires scoped operational use cases to the PDO catalog repository"
     },
     "structural_sql_exceptions": {
         "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen compatibility execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
@@ -39,9 +40,22 @@
         "db_rollback"
     ],
     "required_zero_categories": [
-        "runtime_repository_instantiation_outside_composition"
+        "runtime_business_sql",
+        "runtime_direct_pdo",
+        "runtime_repository_instantiation_outside_composition",
+        "runtime_transaction_orchestration_business"
     ],
     "path_zero_rules": [
+        {
+            "id": "runtime_operational_semantic_closure",
+            "path_prefix": "app/Runtime/",
+            "categories": [
+                "runtime_business_sql",
+                "runtime_direct_pdo",
+                "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business"
+            ]
+        },
         {
             "id": "financial_semantic_closure",
             "path_prefix": "app/Runtime/Financial/",

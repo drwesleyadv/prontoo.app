@@ -43,10 +43,7 @@ final class SubscriptionSettingsRuntimeOperations03
         if (!in_array($tab, ["perfil", "setores", "visual", "assinatura"], true)) {
             $tab = "perfil";
         }
-        $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,display_name,legal_name,legal_document,phone,responsible_profession,clinic_icon,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,workflow_note,onboarding_done,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents,subscription_trust_blocked_until,subscription_last_payment_claim_at FROM pi_clinics WHERE id=?",
-            [$cid],
-        );
+        $cl = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.subscription_settings.03.page_settings.01', [$cid], []);
         if (!$cl) {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consultório não encontrado.", "bad");
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("appointments");
@@ -87,9 +84,7 @@ final class SubscriptionSettingsRuntimeOperations03
                             "Informe CPF ou CNPJ válido para o consultório.",
                         );
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_clinics SET display_name=?, legal_name=?, legal_document=?, phone=?, responsible_profession=?, address_line=?, address_state=?, address_city=?, address_city_ibge=?, timezone=?, updated_at=NOW() WHERE id=?",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.03.page_settings.02', [
                             mb_trim((string) $_POST["display_name"]),
                             mb_trim((string) $_POST["legal_name"]),
                             $legalDoc,
@@ -101,8 +96,7 @@ final class SubscriptionSettingsRuntimeOperations03
                             $cityIbge,
                             $tz,
                             $cid,
-                        ],
-                    );
+                        ], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_atualizado", "consultorio", $cid, [
                         "audit_body" =>
                             "Identificação cadastral do consultório atualizada.",
@@ -133,10 +127,7 @@ final class SubscriptionSettingsRuntimeOperations03
                         if (!isset($opts[$ico])) {
                             $ico = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::default_role_icon($role);
                         }
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "INSERT INTO pi_clinic_roles (clinic_id,role_code,label,icon_name,enabled,sort_order) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label), icon_name=VALUES(icon_name), sort_order=VALUES(sort_order), enabled=VALUES(enabled)",
-                            [$cid, $role, $label, $ico, 1, $i++],
-                        );
+                        \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.03.page_settings.03', [$cid, $role, $label, $ico, 1, $i++], []);
                     }
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_atualizado", "consultorio", $cid, [
                         "audit_body" => "Departamentos do consultório atualizados.",
@@ -151,10 +142,7 @@ final class SubscriptionSettingsRuntimeOperations03
                     $accentColor = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::normalize_accent_color(
                         (string) ($_POST["accent_color"] ?? ""),
                     );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_clinics SET clinic_icon=?, accent_color=?, updated_at=NOW() WHERE id=?",
-                        [$clinicIcon, $accentColor, $cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.03.page_settings.04', [$clinicIcon, $accentColor, $cid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consultorio_atualizado", "consultorio", $cid, [
                         "clinic_icon" => $clinicIcon,
                         "accent_color" => $accentColor,
@@ -179,10 +167,7 @@ final class SubscriptionSettingsRuntimeOperations03
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("settings", ["tab" => $tab]);
             }
         }
-        $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,display_name,legal_name,legal_document,phone,responsible_profession,clinic_icon,accent_color,address_line,address_state,address_city,address_city_ibge,timezone,workflow_note,onboarding_done,trial_started_at,trial_ends_at,subscription_status,paid_until,monthly_price_cents,subscription_trust_blocked_until,subscription_last_payment_claim_at FROM pi_clinics WHERE id=?",
-            [$cid],
-        );
+        $cl = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.subscription_settings.03.page_settings.05', [$cid], []);
         $nav = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations02::clinic_settings_nav($tab);
         $content = "";
         $screenClass = "settings-ds-screen settings-ds-" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($tab);

@@ -31,9 +31,7 @@ final class AdminPagesRuntimeOperations09
     {
     
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,name,email FROM pi_users WHERE is_global_admin=1 AND active=1 ORDER BY name ASC,id ASC LIMIT 300",
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.09.admin_alerts_admin_users.01', [], [])->fetchAll();
             $out = [];
             foreach ($rows as $r) {
                 $out[(int) $r["id"]] = $r;
@@ -51,7 +49,7 @@ final class AdminPagesRuntimeOperations09
     {
     
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_alerts");
-        \Prontoo\Infrastructure\AdminPages\AdminPagesInfrastructureOperations01::admin_alerts_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::administration()->ensureSchema("admin_alerts");
         $uid = (int) ($c["user"]["id"] ?? 0);
         $admins = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations09::admin_alerts_admin_users();
         $view = preg_replace(
@@ -68,10 +66,7 @@ final class AdminPagesRuntimeOperations09
             if ($act === "read") {
                 $id = (int) ($_POST["id"] ?? 0);
                 if ($id > 0) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_admin_alerts SET read_at=COALESCE(read_at,NOW()), read_by=COALESCE(read_by,?) WHERE id=? AND recipient_user_id=?",
-                        [$uid, $id, $uid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.09.page_admin_alerts.01', [$uid, $id, $uid], []);
                 }
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_alerts", ["view" => $view, "alert" => $id]);
             }
@@ -97,11 +92,8 @@ final class AdminPagesRuntimeOperations09
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe título e mensagem do aviso.", "bad");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_alerts", ["view" => $view]);
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_admin_alerts (sender_user_id,recipient_user_id,title,body,severity,created_at) VALUES (?,?,?,?,?,NOW())",
-                [$uid, $recipientId, mb_substr($title, 0, 180), $body, $severity],
-            );
-            $id = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.09.page_admin_alerts.02', [$uid, $recipientId, mb_substr($title, 0, 180), $body, $severity], []);
+            $id = \Prontoo\Runtime\Operational\OperationalComposition::administration()->lastInsertId();
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("aviso_admin_criado", "aviso_admin", $id, [
                 "destinatario" => $recipientId ?: "todos_desenvolvedores",
                 "severity" => $severity,
@@ -171,14 +163,11 @@ final class AdminPagesRuntimeOperations09
             '<span>Este conteúdo fica restrito aos perfis do Desenvolvedor Prontoo e não é exibido nos ambientes dos consultórios.</span></p>' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Enviar aviso") .
             "</form></details>";
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,sender_user_id,sender_clinic_id,source_scope,recipient_user_id,title,severity,read_at,read_by,created_at FROM pi_admin_alerts WHERE sender_user_id=? OR recipient_user_id=? OR recipient_user_id IS NULL ORDER BY id DESC LIMIT 180",
-            [$uid, $uid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.09.page_admin_alerts.03', [$uid, $uid], [])->fetchAll();
         $clinicNames = [];
         $clinicIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "sender_clinic_id");
         if ($clinicIds) {
-            $clinicNames = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("pi_clinics", $clinicIds, "id,display_name");
+            $clinicNames = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("clinics_name", $clinicIds);
         }
         $sentCount = 0;
         $receivedCount = 0;
@@ -231,10 +220,7 @@ final class AdminPagesRuntimeOperations09
                 }
             }
             if ($open) {
-                $openBody = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT body FROM pi_admin_alerts WHERE id=? AND (sender_user_id=? OR recipient_user_id=? OR recipient_user_id IS NULL) LIMIT 1",
-                    [$openId, $uid, $uid],
-                );
+                $openBody = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.09.page_admin_alerts.04', [$openId, $uid, $uid], []);
                 $open["body"] = (string) ($openBody["body"] ?? "");
                 $mine = (int) $open["sender_user_id"] === $uid;
                 if (
@@ -242,10 +228,7 @@ final class AdminPagesRuntimeOperations09
                     (int) ($open["recipient_user_id"] ?? 0) === $uid &&
                     empty($open["read_at"])
                 ) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_admin_alerts SET read_at=NOW(), read_by=? WHERE id=? AND recipient_user_id=?",
-                        [$uid, $openId, $uid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.09.page_admin_alerts.05', [$uid, $openId, $uid], []);
                     $open["read_at"] = date("Y-m-d H:i:s");
                 }
                 $sender = $admins[(int) $open["sender_user_id"]] ?? [];

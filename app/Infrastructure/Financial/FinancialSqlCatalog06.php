@@ -18,16 +18,16 @@ final class FinancialSqlCatalog06
             "financial.06.location_potential_balance.01" => (
                 "SELECT COALESCE(SUM(delta_cents),0) FROM (" .
                                 "SELECT amount_cents delta_cents FROM pi_financial_movements WHERE to_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
-                                $excludeTo .
+                                (!empty($excludeMovement) ? " AND id<>?" : "") .
                                 " UNION ALL SELECT -amount_cents delta_cents FROM pi_financial_movements WHERE from_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
-                                $excludeFrom .
+                                (!empty($excludeMovement) ? " AND id<>?" : "") .
                                 ") financial_potential"
             ),
             "financial.06.validate_movement_invariants.01" => (
                 "SELECT id FROM pi_clinics WHERE id=? FOR UPDATE"
             ),
             "financial.06.validate_movement_invariants.02" => (
-                "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND id IN ($placeholders) AND active=1 ORDER BY id FOR UPDATE"
+                "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND id IN (" . \Prontoo\Infrastructure\Operational\OperationalSequenceSql::placeholders((int) $itemCount) . ") AND active=1 ORDER BY id FOR UPDATE"
             ),
             "financial.06.validate_movement_invariants.03" => (
                 "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? FOR UPDATE"

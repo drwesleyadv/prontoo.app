@@ -322,14 +322,23 @@ foreach ($requiredMfaRoutes as $requiredRoute => [$handlerClass, $handlerMethod,
 }
 
 $patientSecuritySource = compatibility_source($root, 'app/Domain/Patients/Patients.php');
+$patientPersistenceSource = (string) file_get_contents(
+    $root . '/app/Infrastructure/Operational/PatientsSqlCatalog02.php',
+);
 if (!str_contains($patientSecuritySource, '"patient_lookup_c" . $cid . "_u" . $uid') ||
     !preg_match('/"patient_lookup_c"\s*\.\s*\$cid.*?\b6,\s*60,/s', $patientSecuritySource) ||
-    !str_contains($patientSecuritySource, 'JOIN pi_user_roles ur ON ur.user_id=u.id')) {
+    !str_contains($patientSecuritySource, "'operational.patients.02.patient_identity_by_cpf.01'") ||
+    !str_contains($patientPersistenceSource, 'JOIN pi_user_roles ur ON ur.user_id=u.id') ||
+    !str_contains($patientPersistenceSource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
     $errors[] = 'patient_lookup_limit_or_tenant_policy';
 }
 $leadSecuritySource = (string) file_get_contents($root . '/app/Runtime/Leads/LeadsRuntimeOperations01.php');
-if (!str_contains($leadSecuritySource, 'WHERE p.cpf=?') ||
-    !str_contains($leadSecuritySource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
+$leadPersistenceSource = (string) file_get_contents(
+    $root . '/app/Infrastructure/Operational/LeadsSqlCatalog01.php',
+);
+if (!str_contains($leadSecuritySource, "'operational.leads.01.page_lead_patient_lookup.01'") ||
+    !str_contains($leadPersistenceSource, 'WHERE p.cpf=?') ||
+    !str_contains($leadPersistenceSource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
     $errors[] = 'lead_patient_lookup_tenant_policy';
 }
 $teamSecuritySource = compatibility_source($root, 'app/Domain/Permissions/UsersPermissions.php');

@@ -233,18 +233,7 @@ final class InstallInstallerRuntimeOperations01
     
     {
     
-        $pdo = PDO::connect(
-            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_mysql_dsn(
-                (string) ($context["db_host"] ?? ""),
-                (string) ($context["db_name"] ?? ""),
-            ),
-            (string) ($context["db_user"] ?? ""),
-            (string) ($context["db_pass"] ?? ""),
-            \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_pdo_options(),
-        );
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_assert_mysql_runtime($pdo);
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_apply_mysql_session_contract($pdo, $strictMode);
-        return $pdo;
+        return \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_open_database($context, $strictMode);
     
     }
 
@@ -334,14 +323,10 @@ final class InstallInstallerRuntimeOperations01
             return $lines;
         }
         try {
-            $probe = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_open_database($context);
-            $version = (string) $probe->query("SELECT VERSION()")->fetchColumn();
-            $database = (string) $probe->query("SELECT DATABASE()")->fetchColumn();
-            $tableCount = (int) $probe
-                ->query(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()",
-                )
-                ->fetchColumn();
+            $probe = \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_database_probe($context);
+            $version = (string) ($probe['version'] ?? '');
+            $database = (string) ($probe['database'] ?? '');
+            $tableCount = (int) ($probe['table_count'] ?? 0);
             $lines[] =
                 "Probe DB: conexão OK; database=" .
                 $database .
@@ -351,25 +336,7 @@ final class InstallInstallerRuntimeOperations01
                 $tableCount .
                 ".";
             if ($tableCount > 0) {
-                $stmt = $probe->query(
-                    "SELECT TABLE_NAME AS table_name FROM information_schema.tables WHERE table_schema=DATABASE() ORDER BY TABLE_NAME LIMIT 30",
-                );
-                $names = [];
-                foreach (
-                    (($stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : []) ?: [])
-                    as $r
-                ) {
-                    $row = [];
-                    foreach ($r as $k => $v) {
-                        if (is_string($k)) {
-                            $row[strtolower($k)] = $v;
-                        }
-                    }
-                    $name = mb_trim((string) ($row["table_name"] ?? ""));
-                    if ($name !== "") {
-                        $names[] = $name;
-                    }
-                }
+                $names = array_values((array) ($probe['table_names'] ?? []));
                 $lines[] = "Primeiras tabelas detectadas: " . implode(", ", $names);
             }
         } catch (Throwable $dbError) {

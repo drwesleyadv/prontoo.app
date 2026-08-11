@@ -26,22 +26,22 @@ final class DocumentTemplatePolicy
     {
     }
 
-    public static function document_template_visible_where(array $c, string $alias = "dt"): array
+    public static function document_template_visibility(array $c): array
     
     {
     
         $role = (string) ($c["role"] ?? "");
         $uid = (int) ($c["user"]["id"] ?? 0);
         if ($role === "gerente") {
-            return ["1=1", []];
+            return ["mode" => "manager", "parameters" => []];
         }
         if ($role === "medico") {
             return [
-                "($alias.owner_user_id=? OR $alias.owner_role IN ('medico','assistente','recepcionista'))",
-                [$uid],
+                "mode" => "doctor",
+                "parameters" => [$uid],
             ];
         }
-        return ["($alias.owner_user_id=? OR $alias.owner_role=?)", [$uid, $role]];
+        return ["mode" => "role", "parameters" => [$uid, $role]];
     
     }
 

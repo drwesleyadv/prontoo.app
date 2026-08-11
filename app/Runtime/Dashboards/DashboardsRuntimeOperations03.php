@@ -42,10 +42,7 @@ final class DashboardsRuntimeOperations03
             $cid,
             $c,
         );
-        $today = DashboardsRuntimeOperations02::manager_metric_row(
-            "SELECT COUNT(*) total, SUM(CASE WHEN arrived_at IS NOT NULL OR status IN ('chegou','em_preparo','pronto_atendimento') THEN 1 ELSE 0 END) arrived, SUM(CASE WHEN consultation_finished_at IS NOT NULL OR status IN ('atendimento_concluido','finalizado') THEN 1 ELSE 0 END) finished, SUM(CASE WHEN status='cancelado' THEN 1 ELSE 0 END) canceled FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<?",
-            [$cid, $todayStart, $todayEnd],
-        );
+        $today = DashboardsRuntimeOperations02::manager_metric_row('read.dashboards.03.page_gerente_painel.01', [$cid, $todayStart, $todayEnd], []);
         $todayTotal = (int) ($today["total"] ?? 0);
         $todayArrived = (int) ($today["arrived"] ?? 0);
         $todayFinished = (int) ($today["finished"] ?? 0);
@@ -56,55 +53,17 @@ final class DashboardsRuntimeOperations03
             min(100, ($todayTotal / $estimatedCapacity) * 100),
             1,
         \RoundingMode::HalfAwayFromZero);
-        $activeLeads = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                LeadsDomainOperations01::lead_active_stage_sql("stage"),
-            [$cid],
-        );
-        $leadsNoNext = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                " AND next_action_at IS NULL",
-            [$cid],
-        );
-        $lateLeads = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                " AND next_action_at IS NOT NULL AND next_action_at<NOW()",
-            [$cid],
-        );
-        $pendingTasks = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando')",
-            [$cid],
-        );
-        $lateTasks = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND due_at IS NOT NULL AND due_at<NOW()",
-            [$cid],
-        );
-        $unassignedTasks = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status IN ('aberta','em_andamento','aguardando') AND assigned_to IS NULL",
-            [$cid],
-        );
-        $pendingRevenue = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND (r.expected_at IS NULL OR r.expected_at<?) AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
-            [$cid, $nextMonth],
-        );
-        $overdueRevenue = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='prevista' AND expected_at IS NOT NULL AND expected_at<NOW()",
-            [$cid],
-        );
-        $receivedRevenue = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND received_at>=? AND received_at<?",
-            [$cid, $monthStart, $nextMonth],
-        );
-        $plannedRevenue = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COALESCE(SUM(r.amount_cents),0) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status IN ('prevista','efetivada') AND r.expected_at>=? AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu','reagendado'))",
-            [$cid, $monthStart, $nextMonth],
-        );
-        $paidExpenses = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE clinic_id=? AND status='paga' AND paid_at>=? AND paid_at<?",
-            [$cid, $monthStart, $nextMonth],
-        );
+        $activeLeads = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.02', [$cid], []);
+        $leadsNoNext = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.03', [$cid], []);
+        $lateLeads = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.04', [$cid], []);
+        $pendingTasks = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.05', [$cid], []);
+        $lateTasks = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.06', [$cid], []);
+        $unassignedTasks = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.07', [$cid], []);
+        $pendingRevenue = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.08', [$cid, $nextMonth], []);
+        $overdueRevenue = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.09', [$cid], []);
+        $receivedRevenue = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.10', [$cid, $monthStart, $nextMonth], []);
+        $plannedRevenue = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.11', [$cid, $monthStart, $nextMonth], []);
+        $paidExpenses = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.12', [$cid, $monthStart, $nextMonth], []);
         $goal = \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::monthly_goal_status($cid);
         $target = (int) $goal["target_cents"];
         $done = (int) $goal["done_cents"];
@@ -130,18 +89,12 @@ final class DashboardsRuntimeOperations03
                     : ($goalPct + 5 >= $expectedPct
                         ? "No ritmo da meta"
                         : "Abaixo do ritmo esperado"));
-        $finishedMonth = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<? AND (consultation_finished_at IS NOT NULL OR status IN ('atendimento_concluido','finalizado'))",
-            [$cid, $monthStart, $nextMonth],
-        );
+        $finishedMonth = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.13', [$cid, $monthStart, $nextMonth], []);
         $ticket =
             $finishedMonth > 0 ? (int) round($receivedRevenue / $finishedMonth, 0, \RoundingMode::HalfAwayFromZero) : 0;
         $procedureRows = [];
         try {
-            $procedureRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT COALESCE(p.title,'Sem procedimento vinculado') title, COALESCE(SUM(fr.amount_cents),0) total FROM pi_financial_revenues fr LEFT JOIN pi_procedures p ON p.id=fr.procedure_id AND p.clinic_id=fr.clinic_id WHERE fr.clinic_id=? AND fr.status='efetivada' AND fr.received_at>=? AND fr.received_at<? GROUP BY COALESCE(p.title,'Sem procedimento vinculado') ORDER BY total DESC LIMIT 5",
-                [$cid, $monthStart, $nextMonth],
-            )->fetchAll();
+            $procedureRows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.dashboards.03.page_gerente_painel.01', [$cid, $monthStart, $nextMonth], [])->fetchAll();
         } catch (Throwable $e) {
             error_log("[Prontoo manager procedures] " . $e->getMessage());
         }
@@ -234,10 +187,7 @@ final class DashboardsRuntimeOperations03
             ($ticket > 0 ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($ticket) : "—") .
             "</b><small>ticket médio efetivado</small></span></div></section>";
         $actions = [];
-        $paymentRejected = DashboardsRuntimeOperations02::manager_metric_val(
-            "SELECT COUNT(*) FROM pi_notices n LEFT JOIN pi_notice_reads nr ON nr.notice_id=n.id AND nr.user_id=? WHERE n.clinic_id=? AND n.title='Pagamento não confirmado' AND (nr.hidden_at IS NULL)",
-            [(int) $c["user"]["id"], $cid],
-        );
+        $paymentRejected = DashboardsRuntimeOperations02::manager_metric_val('read.dashboards.03.page_gerente_painel.14', [(int) $c["user"]["id"], $cid], []);
         if ($paymentRejected > 0) {
             $actions[] = DashboardsRuntimeOperations02::manager_action_card(
                 "upload_file",
@@ -385,15 +335,9 @@ final class DashboardsRuntimeOperations03
             $c,
         );
         $today =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_appointments WHERE clinic_id=? AND start_at>=? AND start_at<?",
-                [$cid, $todayStart, $todayEnd],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.03.page_painel.01', [$cid, $todayStart, $todayEnd], []) ?? 0);
         $lateTasks =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_tasks WHERE clinic_id=? AND status='aberta' AND due_at IS NOT NULL AND due_at<NOW() AND (assigned_to IS NULL OR assigned_to=?)",
-                [$cid, $uid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.dashboards.03.page_painel.02', [$cid, $uid], []) ?? 0);
         $cards =
             '<div class="kpis"><div><b>' .
             $today .

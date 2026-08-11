@@ -38,8 +38,8 @@ final class SecurityIncidentService
         );
     }
 
-    public function scopedEntityReadShape(string $table, string $columns): string
+    public function scopedEntityReadShape(string $entity): string
     {
-        return $this->port->scopedEntityReadShape($table, $columns);
+        return $this->port->scopedEntityReadShape($entity);
     }
 }

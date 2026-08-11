@@ -32,7 +32,7 @@ final class PatientsRuntimeOperations05
     
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("patients");
         $cid = (int) $c["clinic_id"];
-        \Prontoo\Infrastructure\Patients\PatientsInfrastructureOperations01::patient_guardians_ensure_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::patients()->ensureSchema("patient_guardians");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $cpf = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits((string) ($_POST["cpf"] ?? ""));
             $birth = (string) ($_POST["birth_date"] ?? "");
@@ -63,15 +63,9 @@ final class PatientsRuntimeOperations05
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("patients");
             }
             try {
-                $existingPerson = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT id FROM pi_persons WHERE cpf=? LIMIT 1",
-                    [$cpf],
-                );
+                $existingPerson = (int) \Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.01', [$cpf], []);
                 if ($existingPerson > 0) {
-                    $active = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=1 LIMIT 1",
-                        [$cid, $existingPerson],
-                    );
+                    $active = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.05.page_patients.02', [$cid, $existingPerson], []);
                     if ($active) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Este paciente já está cadastrado. Deseja abrir o cadastro dele?",
@@ -81,15 +75,9 @@ final class PatientsRuntimeOperations05
                             "existing_patient" => (int) $active["id"],
                         ]);
                     }
-                    $deleted = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=0 LIMIT 1",
-                        [$cid, $existingPerson],
-                    );
+                    $deleted = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.05.page_patients.03', [$cid, $existingPerson], []);
                     if ($deleted) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_patients SET active=1,registration_needs_update=1,deleted_at=NULL,deleted_by=NULL,restored_at=NOW(),restored_by=?,updated_at=NOW() WHERE id=? AND clinic_id=?",
-                            [(int) $c["user"]["id"], (int) $deleted["id"], $cid],
-                        );
+                        \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.05.page_patients.04', [(int) $c["user"]["id"], (int) $deleted["id"], $cid], []);
                         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                             "paciente_recuperado",
                             "paciente",
@@ -111,9 +99,7 @@ final class PatientsRuntimeOperations05
                 $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($name, $cpf, $birth);
                 $loc = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_location_from_post($cid);
                 $contact = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_invoice_contact_from_post();
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_patients (clinic_id,person_id,phone,email,address,address_zip,address_number,address_neighborhood,address_complement,address_state,address_city,address_city_ibge,notes,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE phone=VALUES(phone),email=VALUES(email),address=VALUES(address),address_zip=VALUES(address_zip),address_number=VALUES(address_number),address_neighborhood=VALUES(address_neighborhood),address_complement=VALUES(address_complement),address_state=VALUES(address_state),address_city=VALUES(address_city),address_city_ibge=VALUES(address_city_ibge),notes=VALUES(notes),active=1,registration_needs_update=0,deleted_at=NULL,deleted_by=NULL,updated_at=NOW()",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.05.page_patients.05', [
                         $cid,
                         $pid,
                         $contact["phone"],
@@ -128,12 +114,8 @@ final class PatientsRuntimeOperations05
                         $loc["address_city_ibge"],
                         mb_trim((string) ($_POST["notes"] ?? "")),
                         (int) $c["user"]["id"],
-                    ],
-                );
-                $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? AND active=1 LIMIT 1",
-                    [$cid, $pid],
-                );
+                    ], []);
+                $link = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.05.page_patients.06', [$cid, $pid], []);
                 $patientLinkId = (int) ($link["id"] ?? 0);
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("patient_writes_total");
                 \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "patient_writes");
@@ -176,61 +158,48 @@ final class PatientsRuntimeOperations05
         }
         $searchMode = $search !== "";
         $params = [$cid];
-        $where = "pp.clinic_id=? AND pp.active=1";
         if (!$searchMode) {
-            $where .= \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_directory_filter_where($filter, $params, "pp", "p");
+            if ($filter === "today") {
+                [$start, $end] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
+                $params[] = $start;
+                $params[] = $end;
+            } elseif ($filter === "week") {
+                [$start, $end] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_week_utc_range($cid);
+                $params[] = $start;
+                $params[] = $end;
+            }
         }
+        $searchKind = "none";
         if ($searchMode) {
             $like = "%" . $search . "%";
             $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search);
             $dateLike = "%" . str_replace("/", "-", $search) . "%";
             if ($digits !== "") {
-                $where .=
-                    " AND (p.full_name LIKE ? OR p.cpf LIKE ? OR pp.phone LIKE ? OR DATE_FORMAT(p.birth_date,'%d/%m/%Y') LIKE ? OR p.birth_date LIKE ?)";
+                $searchKind = "digits";
                 $params[] = $like;
                 $params[] = "%" . $digits . "%";
                 $params[] = "%" . $digits . "%";
                 $params[] = $like;
                 $params[] = $dateLike;
             } else {
-                $where .=
-                    " AND (p.full_name LIKE ? OR pp.email LIKE ? OR DATE_FORMAT(p.birth_date,'%d/%m/%Y') LIKE ? OR p.birth_date LIKE ?)";
+                $searchKind = "text";
                 $params[] = $like;
                 $params[] = $like;
                 $params[] = $like;
                 $params[] = $dateLike;
             }
         }
-        $metrics = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_directory_select_metrics_sql($cid);
-        $order = $searchMode
-            ? "p.full_name ASC, pp.id DESC"
-            : \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_order_sql($filter);
-        $base = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT pp.id,pp.person_id,pp.phone,pp.email,pp.address,pp.address_zip,pp.address_number,pp.address_neighborhood,pp.address_city,pp.address_state,pp.created_at,pp.updated_at,pp.registration_needs_update,p.full_name,p.cpf,p.birth_date,(SELECT COUNT(*) FROM pi_patient_guardians pg WHERE pg.clinic_id=pp.clinic_id AND pg.patient_link_id=pp.id AND pg.active=1) guardian_count $metrics FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE $where ORDER BY $order LIMIT 120",
-            $params,
-        )->fetchAll();
         [$todayStart, $todayEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
+        $base = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.05.page_patients.07', $params, compact('filter', 'searchKind', 'todayStart', 'todayEnd'))->fetchAll();
         [$weekStart, $weekEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_week_utc_range($cid);
         $todayCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(DISTINCT patient_link_id) FROM pi_appointments WHERE clinic_id=? AND patient_link_id IS NOT NULL AND start_at>=? AND start_at<? AND status NOT IN ('cancelado','nao_compareceu')",
-                [$cid, $todayStart, $todayEnd],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.08', [$cid, $todayStart, $todayEnd], []) ?? 0);
         $weekCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(DISTINCT patient_link_id) FROM pi_appointments WHERE clinic_id=? AND patient_link_id IS NOT NULL AND start_at>=? AND start_at<? AND status NOT IN ('cancelado','nao_compareceu')",
-                [$cid, $weekStart, $weekEnd],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.09', [$cid, $weekStart, $weekEnd], []) ?? 0);
         $dropoutCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(DISTINCT patient_link_id) FROM pi_appointments WHERE clinic_id=? AND patient_link_id IS NOT NULL AND status IN ('cancelado','nao_compareceu') AND COALESCE(updated_at,created_at,start_at)>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.10', [$cid], []) ?? 0);
         $incompleteCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.clinic_id=? AND pp.active=1 AND ((p.birth_date IS NOT NULL AND p.birth_date>DATE_SUB(CURDATE(), INTERVAL 18 YEAR) AND NOT EXISTS (SELECT 1 FROM pi_patient_guardians pg WHERE pg.clinic_id=pp.clinic_id AND pg.patient_link_id=pp.id AND pg.active=1)) OR COALESCE(pp.phone,'')='' OR COALESCE(pp.updated_at,pp.created_at,0)<DATE_SUB(NOW(), INTERVAL 180 DAY))",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.11', [$cid], []) ?? 0);
         $statHtml =
             '<section class="patient-directory-overview kpis kpi-info-strip" aria-label="Resumo de pacientes"><div class="patient-kpi-card kpi-card ' .
             ($todayCount > 0 ? "is-total" : "is-muted") .
@@ -312,10 +281,7 @@ final class PatientsRuntimeOperations05
         $existingOpen = "";
         $existingId = (int) ($_GET["existing_patient"] ?? 0);
         if ($existingId > 0) {
-            $ex = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT pp.id,p.full_name,p.cpf,p.birth_date FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.id=? AND pp.clinic_id=? AND pp.active=1",
-                [$existingId, $cid],
-            );
+            $ex = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row('operational.patients.05.page_patients.12', [$existingId, $cid], []);
             if ($ex) {
                 $existingOpen =
                     '<div class="flash warn patient-existing-card"><strong>Este paciente já está cadastrado.</strong><span>Deseja abrir o cadastro de ' .

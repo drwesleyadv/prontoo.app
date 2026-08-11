@@ -169,7 +169,6 @@ final class SupportTelemetryRuntimeOperations01
       ->setTimezone($timezone)
       ->setTime(0, 0);
         $days = [];
-        $select = [];
         $params = [];
         for ($i = 29; $i >= 0; $i--) {
             $day = $today->modify("-" . $i . " days");
@@ -181,9 +180,6 @@ final class SupportTelemetryRuntimeOperations01
       "tooltip" => $day->format("d/m/Y"),
       "value" => 0,
             ];
-            $select[] =
-      "SUM(CASE WHEN created_at>=? AND created_at<? AND status='committed' THEN mutation_count ELSE 0 END) AS d" .
-      (29 - $i);
             $params[] = $day->getTimestamp();
             $params[] = $next->getTimestamp();
         }
@@ -191,15 +187,11 @@ final class SupportTelemetryRuntimeOperations01
             !is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) ||
             !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ||
             !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) ||
-            !\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_action_ledger")
+            !\Prontoo\Runtime\Operational\OperationalComposition::administration()->tableExists("pi_action_ledger")
         ) {
             return array_values($days);
         }
         try {
-            $sql =
-      "SELECT " .
-      implode(",", $select) .
-      " FROM pi_action_ledger WHERE created_at>=? AND created_at<?";
             $first = array_key_first($days);
             $last = array_key_last($days);
             $params[] = new DateTimeImmutable(
@@ -212,7 +204,7 @@ final class SupportTelemetryRuntimeOperations01
             ))
       ->modify("+1 day")
       ->getTimestamp();
-            $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, $params)->fetch() ?: [];
+            $row = \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_telemetry.01.telemetry_sequence_records_series_20d.01', $params, [])->fetch() ?: [];
             $index = 0;
             foreach ($days as &$day) {
       $day["value"] = max(0, (int) ($row["d" . $index] ?? 0));

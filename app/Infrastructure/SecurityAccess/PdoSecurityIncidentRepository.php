@@ -36,10 +36,11 @@ final class PdoSecurityIncidentRepository implements SecurityIncidentPort
         $statement->execute($parameters);
     }
 
-    public function scopedEntityReadShape(string $table, string $columns): string
+    public function scopedEntityReadShape(string $entity): string
     {
-        $table = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::allowed_db_table($table);
-        $columns = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($columns);
-        return "SELECT {$columns} FROM {$table} WHERE id=? AND clinic_id=?";
+        return match ($entity) {
+            'patient' => 'SELECT id,person_id,active,deleted_at FROM pi_patients WHERE id=? AND clinic_id=?',
+            default => throw new \InvalidArgumentException('Entidade com escopo inválida.'),
+        };
     }
 }

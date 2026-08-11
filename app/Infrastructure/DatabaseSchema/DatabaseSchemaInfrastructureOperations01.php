@@ -350,6 +350,11 @@ final class DatabaseSchemaInfrastructureOperations01
     
     }
 
+    public static function db_in_transaction(): bool
+    {
+        return self::pdo()->inTransaction();
+    }
+
     public static function db_commit(): void
     
     {

@@ -280,8 +280,7 @@ final class FinancialRuntimeOperations04
         if (isset($requestCache[$requestKey])) {
             return $requestCache[$requestKey];
         }
-        $locationPh = implode(",", array_fill(0, count($locationIds), "?"));
-        $openRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.01", array_merge([$cid], $locationIds), compact('locationPh'))->fetchAll();
+        $openRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.01", array_merge([$cid], $locationIds), ['itemCount' => count($locationIds)])->fetchAll();
         $sessionToLocation = [];
         foreach ($openRows as $open) {
             $locationId = (int) ($open["location_id"] ?? 0);
@@ -294,8 +293,7 @@ final class FinancialRuntimeOperations04
         }
         if ($sessionToLocation) {
             $sessionIds = array_keys($sessionToLocation);
-            $sessionPh = implode(",", array_fill(0, count($sessionIds), "?"));
-            $movementRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.02", array_merge([$cid], $sessionIds), compact('sessionPh'))->fetchAll();
+            $movementRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.02", array_merge([$cid], $sessionIds), ['itemCount' => count($sessionIds)])->fetchAll();
             foreach ($movementRows as $movement) {
                 $locationId =
                     $sessionToLocation[(int) ($movement["cash_session_id"] ?? 0)] ??
@@ -320,8 +318,7 @@ final class FinancialRuntimeOperations04
             array_diff($locationIds, array_keys($openByLocation)),
         );
         if ($closedLocationIds) {
-            $closedPh = implode(",", array_fill(0, count($closedLocationIds), "?"));
-            $closedRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.03", array_merge([$cid], $closedLocationIds), compact('closedPh'))->fetchAll();
+            $closedRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.03", array_merge([$cid], $closedLocationIds), ['itemCount' => count($closedLocationIds)])->fetchAll();
             foreach ($closedRows as $closed) {
                 $balances[(int) $closed["location_id"]] =
                     (int) $closed["keep_in_drawer_cents"];
@@ -381,15 +378,14 @@ final class FinancialRuntimeOperations04
                     \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_drawer_daily_totals_empty();
             }
         }
-        $locationPh = implode(",", array_fill(0, count($locationIds), "?"));
-        $datePh = implode(",", array_fill(0, count($dates), "?"));
         $storageDates = array_map(
             static  fn(string $date): int =>
                 \Prontoo\Core\Temporal\PiTime::dateOnlyToTimestamp($date),
             $dates,
         );
         $params = array_merge([$cid], $locationIds, $storageDates);
-        $sessions = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.01", $params, compact('locationPh', 'datePh'))->fetchAll();
+        $queryShape = ['locationCount' => count($locationIds), 'dateCount' => count($dates)];
+        $sessions = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.01", $params, $queryShape)->fetchAll();
         foreach ($sessions as $session) {
             $key =
                 (int) ($session["location_id"] ?? 0) .
@@ -414,7 +410,7 @@ final class FinancialRuntimeOperations04
                 $out[$key]["pending_count"]++;
             }
         }
-        $movements = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.02", $params, compact('locationPh', 'datePh'))->fetchAll();
+        $movements = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.02", $params, $queryShape)->fetchAll();
         $movementKeys = [
             "receipt" => "receipts",
             "payment" => "payments",

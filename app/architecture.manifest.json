@@ -60,6 +60,8 @@
         "app/Runtime/Patients/PatientComposition.php",
         "app/Runtime/Patients/PatientViewComposition.php",
         "app/Runtime/Financial/FinancialComposition.php",
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php",
+        "app/Runtime/Operational/OperationalComposition.php",
         "app/Runtime/Runner.php"
     ],
     "runtime_boundary_policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
@@ -112,6 +114,12 @@
             "runtime_repository_instantiation_outside_composition",
             "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
+        ],
+        "app/Runtime/": [
+            "runtime_business_sql",
+            "runtime_direct_pdo",
+            "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business"
         ]
     },
     "engineering_phase_seventeen_policy": "financial_runtime_adapts_input_and_output_while_application_ports_dispatch_only_named_financial_operations_to_guarded_infrastructure_catalogs",
@@ -136,6 +144,16 @@
         "app/Runtime/SecurityAccess/SecurityAccessComposition.php"
     ],
     "engineering_phase_eighteen_check": "tools/runtime-boundary-check",
+    "engineering_phase_nineteen_policy": "operational_runtime_adapts_http_and_coordinates_thin_entry_glue_while_scoped_application_ports_dispatch_only_named_operations_to_infrastructure_catalogs",
+    "engineering_phase_nineteen_components": [
+        "app/Application/Operational/OperationalDataPort.php",
+        "app/Application/Operational/OperationalSchemaPort.php",
+        "app/Application/Operational/OperationalDatabaseContextPort.php",
+        "app/Application/Operational/OperationalUseCaseService.php",
+        "app/Infrastructure/Operational/PdoOperationalDataRepository.php",
+        "app/Runtime/Operational/OperationalComposition.php"
+    ],
+    "engineering_phase_nineteen_check": "tools/runtime-boundary-check",
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",

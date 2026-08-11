@@ -1,24 +1,29 @@
 <?php
 declare(strict_types=1);
 
-namespace Prontoo\Runtime\Invariant;
+namespace Prontoo\Infrastructure\Invariant;
 
+use Closure;
 use PDO;
 use Prontoo\Core\Invariant\InvariantRuntimePort;
 use Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01;
-use Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01;
-use Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03;
 
-final class InvariantRuntimeAdapter implements InvariantRuntimePort
+final class PdoInvariantRuntimeAdapter implements InvariantRuntimePort
 {
+    public function __construct(
+        private Closure $clinicReadOnlyResolver,
+        private Closure $scopeViolationRecorder,
+    ) {
+    }
+
     public function clinicReadOnly(int $clinicId): bool
     {
-        return ClinicConfigRuntimeOperations01::clinic_read_only_db($clinicId);
+        return (bool) ($this->clinicReadOnlyResolver)($clinicId);
     }
 
     public function recordScopeViolation(string $key, string $sql, string $detail): void
     {
-        SecurityAccessRuntimeOperations03::record_scope_violation($key, $sql, $detail);
+        ($this->scopeViolationRecorder)($key, $sql, $detail);
     }
 
     public function foreignKeyRelations(string $table): array

@@ -35,10 +35,7 @@ final class AppointmentsRuntimeOperations06
         $v = mb_trim((string) ($_POST[$field] ?? ""));
         if (str_starts_with($v, "procedure:")) {
             $id = (int) substr($v, 10);
-            $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
-                [$id, $cid],
-            );
+            $p = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.06.appointment_procedure_id_from_post.01', [$id, $cid], []);
             if ($p) {
                 return $id;
             }
@@ -62,10 +59,7 @@ final class AppointmentsRuntimeOperations06
             return 0;
         }
         $price =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT price_cents FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
-                [$procedureId, $cid],
-            ) ?:
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::appointments()->scalar('operational.appointments.06.appointment_procedure_price_cents.01', [$procedureId, $cid], []) ?:
             0);
         return max(0, $price);
     
@@ -143,10 +137,7 @@ final class AppointmentsRuntimeOperations06
         if (!$procedureId) {
             return null;
         }
-        $p = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT title,duration_minutes FROM pi_procedures WHERE id=? AND clinic_id=? AND active=1",
-            [$procedureId, $cid],
-        );
+        $p = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.06.appointment_min_duration_message.01', [$procedureId, $cid], []);
         if (!$p) {
             return null;
         }

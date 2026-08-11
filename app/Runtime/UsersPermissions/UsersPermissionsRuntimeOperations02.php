@@ -256,9 +256,8 @@ final class UsersPermissionsRuntimeOperations02
     
         $links = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.team_options.01', [$cid], [])->fetchAll();
         $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_users",
+            "users_status",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($links, "user_id"),
-            "id,name,active",
         );
         $o = [];
         foreach ($links as $r) {

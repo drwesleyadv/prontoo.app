@@ -32,12 +32,10 @@ final class FinancialRuntimeOperations10
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         $params = [$cid];
-        $where = "clinic_id=? AND active=1";
         if ($type !== "") {
-            $where .= " AND location_type=?";
             $params[] = $type;
         }
-        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.location_select_options.01", $params, compact('where'))->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.location_select_options.01", $params, ['typeFiltered' => $type !== ""])->fetchAll();
         $out = ["" => "Selecione"];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] =

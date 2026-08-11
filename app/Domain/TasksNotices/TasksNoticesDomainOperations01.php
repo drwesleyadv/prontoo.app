@@ -26,23 +26,13 @@ final class TasksNoticesDomainOperations01
     {
     }
 
-    public static function notice_target_sql(array $c, string $alias = "n"): array
+    public static function notice_target_parameters(array $c): array
     
     {
     
         $role = (string) ($c["role"] ?? "");
         $uid = (int) ($c["user"]["id"] ?? 0);
-        $p = [$role, $uid];
-        $a = $alias !== "" ? $alias . "." : "";
-        return [
-            "($a" .
-            "target_scope='all' OR ($a" .
-            "target_scope='role' AND $a" .
-            "target_role=?) OR ($a" .
-            "target_scope='user' AND $a" .
-            "target_user_id=?))",
-            $p,
-        ];
+        return [$role, $uid];
     
     }
 

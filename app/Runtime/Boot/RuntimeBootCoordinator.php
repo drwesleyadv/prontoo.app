@@ -126,9 +126,7 @@ final class RuntimeBootCoordinator
 
     private static function configureModelClinic(): void
     {
-        $clinicId = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT c.id FROM pi_clinics c LEFT JOIN pi_users owner_user ON owner_user.id=c.owner_user_id LEFT JOIN pi_users manager_user ON manager_user.id=c.manager_user_id WHERE c.subscription_status='exempt' AND (COALESCE(owner_user.is_global_admin,0)=1 OR COALESCE(manager_user.is_global_admin,0)=1) ORDER BY c.id ASC LIMIT 1",
-        ) ?: 0);
+        $clinicId = (int) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.boot.runtime.boot_database_for_route.01', [], []) ?: 0);
         \Prontoo\Core\Tenant\TenantRegistry::configureModelClinicId($clinicId);
     }
 
@@ -326,9 +324,7 @@ final class RuntimeBootCoordinator
     {
         try {
             if (is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::class, 'pdo']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
-                $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
-                if ($pdo instanceof PDO &&
-                    !$pdo->inTransaction() &&
+                if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_in_transaction() &&
                     class_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity') &&
                     method_exists('\Prontoo\Infrastructure\\Integrity\\PiIntegrity', 'flushFastEvents')) {
                     \Prontoo\Infrastructure\Integrity\PiIntegrity::flushFastEvents();

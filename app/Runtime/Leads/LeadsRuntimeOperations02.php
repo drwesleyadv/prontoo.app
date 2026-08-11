@@ -34,7 +34,7 @@ final class LeadsRuntimeOperations02
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("leads");
         $cid = (int) $c["clinic_id"];
         $uid = (int) $c["user"]["id"];
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_lead_events_schema();
+        \Prontoo\Runtime\Operational\OperationalComposition::leads()->ensureSchema("lead_events");
         $stageOptions = LeadsDomainOperations01::lead_stage_options();
         $editableStageOptions = [
             "em_aberto" => "Em Aberto",
@@ -59,10 +59,7 @@ final class LeadsRuntimeOperations02
             $act = (string) ($_POST["act"] ?? "save");
             if ($act === "convert") {
                 $leadId = (int) ($_POST["lead_id"] ?? 0);
-                $lead = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,person_id,name,phone,notes,stage FROM pi_leads WHERE id=? AND clinic_id=?",
-                    [$leadId, $cid],
-                );
+                $lead = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.02.page_leads.01', [$leadId, $cid], []);
                 if (!$lead) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Interessado não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads");
@@ -81,10 +78,7 @@ final class LeadsRuntimeOperations02
                         $oldStage = LeadsDomainOperations01::lead_stage_normalize(
                             (string) ($lead["stage"] ?? "em_aberto"),
                         );
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_leads SET stage='arquivado', updated_at=NOW() WHERE id=? AND clinic_id=?",
-                            [$leadId, $cid],
-                        );
+                        \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.02', [$leadId, $cid], []);
                         LeadsRuntimeOperations01::lead_event_create(
                             $cid,
                             $leadId,
@@ -116,24 +110,15 @@ final class LeadsRuntimeOperations02
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads", ["status" => "arquivado"]);
                     }
                     $pid = LeadsRuntimeOperations01::lead_prepare_person_for_patient($lead, $_POST, $cid);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_patients (clinic_id,person_id,phone,notes,created_by,created_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE phone=COALESCE(NULLIF(VALUES(phone),''),phone), notes=COALESCE(NULLIF(VALUES(notes),''),notes), active=1, updated_at=NOW()",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.03', [
                             $cid,
                             $pid,
                             \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::phone_br((string) ($lead["phone"] ?? "")),
                             mb_trim((string) ($lead["notes"] ?? "")),
                             $uid,
-                        ],
-                    );
-                    $patientId = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT id FROM pi_patients WHERE clinic_id=? AND person_id=? LIMIT 1",
-                        [$cid, $pid],
-                    );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_leads SET person_id=?, stage='convertido', updated_at=NOW() WHERE id=? AND clinic_id=?",
-                        [$pid, $leadId, $cid],
-                    );
+                        ], []);
+                    $patientId = (int) \Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.04', [$cid, $pid], []);
+                    \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.05', [$pid, $leadId, $cid], []);
                     LeadsRuntimeOperations01::lead_event_create(
                         $cid,
                         $leadId,
@@ -173,10 +158,7 @@ final class LeadsRuntimeOperations02
             }
             if ($act === "archive_lead") {
                 $leadId = (int) ($_POST["lead_id"] ?? 0);
-                $lead = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,name,phone,source,interest,stage,next_action_at FROM pi_leads WHERE id=? AND clinic_id=?",
-                    [$leadId, $cid],
-                );
+                $lead = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.02.page_leads.06', [$leadId, $cid], []);
                 if (!$lead) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Interessado não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads");
@@ -188,10 +170,7 @@ final class LeadsRuntimeOperations02
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Interessado já convertido em paciente.", "warn");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads", ["status" => "convertido"]);
                 }
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_leads SET stage='arquivado', updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [$leadId, $cid],
-                );
+                \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.07', [$leadId, $cid], []);
                 LeadsRuntimeOperations01::lead_event_create(
                     $cid,
                     $leadId,
@@ -216,10 +195,7 @@ final class LeadsRuntimeOperations02
             }
             if ($act === "update") {
                 $leadId = (int) ($_POST["lead_id"] ?? 0);
-                $lead = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes FROM pi_leads WHERE id=? AND clinic_id=?",
-                    [$leadId, $cid],
-                );
+                $lead = \Prontoo\Runtime\Operational\OperationalComposition::leads()->row('operational.leads.02.page_leads.08', [$leadId, $cid], []);
                 if (!$lead) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Interessado não encontrado.", "bad");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads");
@@ -256,9 +232,7 @@ final class LeadsRuntimeOperations02
                 $next =
                     $leadTime((string) ($_POST["next_action_at"] ?? "")) ?: null;
                 $notes = mb_trim((string) ($_POST["notes"] ?? ""));
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_leads SET name=?, source=?, interest=?, stage=?, next_action_at=?, notes=COALESCE(NULLIF(?,''),notes), phone_digits=COALESCE(NULLIF(phone_digits,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                    [
+                \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.09', [
                         $name,
                         $source,
                         $interest,
@@ -268,8 +242,7 @@ final class LeadsRuntimeOperations02
                         $currentPhone,
                         $leadId,
                         $cid,
-                    ],
-                );
+                    ], []);
                 if (isset($_POST["contact_event"])) {
                     LeadsRuntimeOperations01::lead_event_create(
                         $cid,
@@ -383,9 +356,7 @@ final class LeadsRuntimeOperations02
                             $oldStage === "convertido"
                                 ? "convertido"
                                 : LeadsDomainOperations01::lead_stage_normalize($stage);
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_leads SET person_id=COALESCE(NULLIF(?,0),person_id), name=?, source=COALESCE(NULLIF(?,''),source), interest=COALESCE(NULLIF(?,''),interest), stage=?, next_action_at=COALESCE(?,next_action_at), notes=COALESCE(NULLIF(?,''),notes), phone_digits=COALESCE(NULLIF(phone_digits,''),?), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                            [
+                        \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.10', [
                                 $pid,
                                 $name,
                                 $source,
@@ -396,8 +367,7 @@ final class LeadsRuntimeOperations02
                                 $phoneDigits,
                                 $leadId,
                                 $cid,
-                            ],
-                        );
+                            ], []);
                         LeadsRuntimeOperations01::lead_event_create(
                             $cid,
                             $leadId,
@@ -432,11 +402,7 @@ final class LeadsRuntimeOperations02
                     );
                     if (
                         $cpf !== "" &&
-                        (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                            "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND person_id=? AND " .
-                                LeadsDomainOperations01::lead_active_stage_sql("stage"),
-                            [$cid, $pid],
-                        ) > 0
+                        (int) \Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.11', [$cid, $pid], []) > 0
                     ) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Já existe interessado ativo com o mesmo CPF nesta clínica. Atualize o registro existente em vez de duplicar.",
@@ -444,9 +410,7 @@ final class LeadsRuntimeOperations02
                         );
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("leads");
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_leads (clinic_id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,NOW())",
-                        [
+                    \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.12', [
                             $cid,
                             $pid,
                             $name,
@@ -458,9 +422,8 @@ final class LeadsRuntimeOperations02
                             $next,
                             $notes,
                             $uid,
-                        ],
-                    );
-                    $leadId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                        ], []);
+                    $leadId = \Prontoo\Runtime\Operational\OperationalComposition::leads()->lastInsertId();
                     LeadsRuntimeOperations01::lead_event_create(
                         $cid,
                         $leadId,
@@ -492,15 +455,12 @@ final class LeadsRuntimeOperations02
         $status = LeadsDomainOperations01::lead_stage_normalize($statusRaw);
         $qTerm = mb_trim((string) ($_GET["q"] ?? ""));
         $leadSearchMode = $qTerm !== "";
-        $where = "clinic_id=?";
         $params = [$cid];
         if (!$leadSearchMode) {
             if (isset($stageOptions[$status])) {
-                $where .= " AND " . LeadsDomainOperations01::lead_stage_sql_case("stage") . "=?";
                 $params[] = $status;
             } else {
                 $status = "em_aberto";
-                $where .= " AND " . LeadsDomainOperations01::lead_stage_sql_case("stage") . "=?";
                 $params[] = $status;
             }
         } else {
@@ -511,75 +471,40 @@ final class LeadsRuntimeOperations02
         if ($leadSearchMode) {
             $like = "%" . $qTerm . "%";
             $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($qTerm);
-            $where .=
-                " AND (name LIKE ? OR phone LIKE ? OR phone_digits LIKE ? OR source LIKE ? OR interest LIKE ?)";
             $params[] = $like;
             $params[] = $digits !== "" ? "%" . $digits . "%" : $like;
             $params[] = $digits !== "" ? "%" . $digits . "%" : $like;
             $params[] = $like;
             $params[] = $like;
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,person_id,name,phone,phone_digits,source,interest,stage,next_action_at,notes,created_at,updated_at FROM pi_leads WHERE $where ORDER BY CASE WHEN stage='convertido' THEN 5 WHEN stage='arquivado' THEN 6 WHEN next_action_at IS NOT NULL AND next_action_at<NOW() THEN 0 WHEN next_action_at IS NOT NULL THEN 1 ELSE 2 END, COALESCE(next_action_at,created_at) ASC, id DESC LIMIT 140",
-            $params,
-        )->fetchAll();
-        $allCounts = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT " .
-                LeadsDomainOperations01::lead_stage_sql_case("stage") .
-                " AS stage,COUNT(*) total FROM pi_leads WHERE clinic_id=? GROUP BY " .
-                LeadsDomainOperations01::lead_stage_sql_case("stage"),
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.13', $params, ['searchMode' => $leadSearchMode])->fetchAll();
+        $allCounts = \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.14', [$cid], [])->fetchAll();
         $counts = [];
         foreach ($allCounts as $cr) {
             $st = LeadsDomainOperations01::lead_stage_normalize((string) $cr["stage"]);
             $counts[$st] = ($counts[$st] ?? 0) + (int) $cr["total"];
         }
         $activeTotal =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    LeadsDomainOperations01::lead_active_stage_sql("stage"),
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.15', [$cid], []) ?? 0);
         $newLeads =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                    " AND created_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.16', [$cid], []) ?? 0);
         [$leadTodayStart, $leadTodayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_today_in_timezone($cid, $c),
             $cid,
             $c,
         );
         $todayReturns =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                    " AND next_action_at>=? AND next_action_at<?",
-                [$cid, $leadTodayStart, $leadTodayEnd],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.17', [$cid, $leadTodayStart, $leadTodayEnd], []) ?? 0);
         $lateReturns =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_leads WHERE clinic_id=? AND " .
-                    LeadsDomainOperations01::lead_active_stage_sql("stage") .
-                    " AND next_action_at IS NOT NULL AND next_action_at<NOW()",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Operational\OperationalComposition::leads()->scalar('operational.leads.02.page_leads.18', [$cid], []) ?? 0);
         $persons = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-            "pi_persons",
+            "persons_identity",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "person_id"),
-            "id,full_name,cpf,birth_date",
         );
         $patientByPerson = [];
         $personIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "person_id");
         if ($personIds) {
-            $ph = implode(",", array_fill(0, count($personIds), "?"));
-            $prs = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,person_id FROM pi_patients WHERE clinic_id=? AND person_id IN ($ph) AND active=1 LIMIT 160",
-                array_merge([$cid], $personIds),
-            )->fetchAll();
+            $prs = \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.19', array_merge([$cid], $personIds), ['itemCount' => count($personIds)])->fetchAll();
             foreach ($prs as $pr) {
                 $patientByPerson[(int) $pr["person_id"]] = (int) $pr["id"];
             }
@@ -588,11 +513,7 @@ final class LeadsRuntimeOperations02
         $leadEventUsers = [];
         $leadIds = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         if ($leadIds) {
-            $ph = implode(",", array_fill(0, count($leadIds), "?"));
-            $evs = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,lead_id,event_type,stage_from,stage_to,body,created_by,created_at FROM pi_lead_events WHERE clinic_id=? AND lead_id IN ($ph) ORDER BY created_at ASC,id ASC LIMIT 420",
-                array_merge([$cid], $leadIds),
-            )->fetchAll();
+            $evs = \Prontoo\Runtime\Operational\OperationalComposition::leads()->result('operational.leads.02.page_leads.20', array_merge([$cid], $leadIds), ['itemCount' => count($leadIds)])->fetchAll();
             $uids = [];
             foreach ($evs as $ev) {
                 $lid = (int) ($ev["lead_id"] ?? 0);
@@ -607,9 +528,8 @@ final class LeadsRuntimeOperations02
             }
             if ($uids) {
                 $leadEventUsers = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
-                    "pi_users",
+                    "users_name",
                     array_values($uids),
-                    "id,name",
                 );
             }
         }

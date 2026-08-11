@@ -34,7 +34,11 @@ final class FinancialSqlCatalog02
                 "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' AND active=1 LIMIT 1"
             ),
             "financial.02.page_counterparty_suggest.01" => (
-                "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE $where ORDER BY p.full_name ASC, fc.id DESC LIMIT " .
+                "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1" .
+                                ((string) $searchMode === 'document'
+                                    ? " AND (p.full_name LIKE ? OR p.cpf LIKE ? OR p.legal_document LIKE ?)"
+                                    : " AND p.full_name LIKE ?") .
+                                " ORDER BY p.full_name ASC, fc.id DESC LIMIT " .
                                 (int) $limit
             ),
             "financial.02.counterparty_options.01" => (

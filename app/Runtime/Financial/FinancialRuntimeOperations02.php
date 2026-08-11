@@ -226,18 +226,16 @@ final class FinancialRuntimeOperations02
         $limit = max(1, min(80, (int) ($_GET["limit"] ?? 12)));
         $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($q);
         $params = [$cid];
-        $where = "fc.clinic_id=? AND fc.active=1";
+        $searchMode = "name";
         if ($digits !== "" && mb_strlen($q, "UTF-8") >= 2) {
-            $where .=
-                " AND (p.full_name LIKE ? OR p.cpf LIKE ? OR p.legal_document LIKE ?)";
+            $searchMode = "document";
             $params[] = $q . "%";
             $params[] = "%" . $digits . "%";
             $params[] = "%" . $digits . "%";
         } else {
-            $where .= " AND p.full_name LIKE ?";
             $params[] = $q . "%";
         }
-        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.page_counterparty_suggest.01", $params, compact('where', 'limit'))->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.page_counterparty_suggest.01", $params, compact('searchMode', 'limit'))->fetchAll();
         $items = [];
         foreach ($rows as $r) {
             $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");

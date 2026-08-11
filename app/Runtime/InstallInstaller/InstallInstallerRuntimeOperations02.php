@@ -223,12 +223,8 @@ final class InstallInstallerRuntimeOperations02
                 return;
             }
             try {
-                $tmp = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_open_database($installContext, true);
-                $tbl = $tmp
-                    ->query(
-                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()",
-                    )
-                    ->fetchColumn();
+                $probe = \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_database_probe($installContext, true);
+                $tbl = (int) ($probe['table_count'] ?? 0);
                 if ((int) $tbl > 0) {
                     \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations02::install_error(
                         "Este instalador só deve ser usado com banco de dados totalmente vazio.",
@@ -281,7 +277,7 @@ final class InstallInstallerRuntimeOperations02
                 \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(
                     static function (): void {
     
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::install_fresh_schema();
+                        \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::prepare_fresh_database();
                     },
                 );
                 $schemaInstalled = true;
@@ -290,26 +286,29 @@ final class InstallInstallerRuntimeOperations02
                     \Prontoo\Infrastructure\Integrity\PiIntegrity::bootIndexAutotest(5000);
                 }
                 if (class_exists("\\Prontoo\\Infrastructure\\Database\\SeqContract")) {
-                    \Prontoo\Infrastructure\Database\SeqContract::assert(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo());
+                    \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::assert_runtime_sequence_contract();
                 }
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($adminName, $adminCpf, $adminBirth);
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_users (person_id,name,email,password_hash,is_global_admin,active,created_at) VALUES (?,?,?,?,1,1,NOW())",
-                    [
+                $uid = (int) \Prontoo\Runtime\Operational\OperationalComposition::platform()->atomic(function () use (
+                    $adminName,
+                    $adminCpf,
+                    $adminBirth,
+                    $adminEmail,
+                    $adminPass,
+                ): int {
+                    $pid = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::upsert_person($adminName, $adminCpf, $adminBirth);
+                    \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.install_installer.02.prontoo_install.01', [
                         $pid,
                         $adminName,
                         (string) $adminEmail,
                         \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($adminPass),
-                    ],
-                );
-                $uid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
-                if (!\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                    throw new RuntimeException(
-                        "Transação de instalação encerrada antes do commit; verifique DDL executado por provas PI durante INSERT de domínio.",
-                    );
-                }
-                \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
+                    ], []);
+                    if (!\Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::runtime_database_in_transaction()) {
+                        throw new RuntimeException(
+                            "Transação de instalação encerrada antes do commit; verifique DDL executado por provas PI durante INSERT de domínio.",
+                        );
+                    }
+                    return \Prontoo\Runtime\Operational\OperationalComposition::platform()->lastInsertId();
+                });
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $uid, [
                     "nome" => $adminName,
                     "perfil" => "Desenvolvedor",
@@ -330,20 +329,6 @@ final class InstallInstallerRuntimeOperations02
                 header("Location: /?r=login");
                 exit();
             } catch (Throwable $e) {
-                if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
-                    try {
-                        if (\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->inTransaction()) {
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        }
-                    } catch (Throwable $ignored) {
-                        error_log(
-                            "[Prontoo recoverable " .
-                                __FUNCTION__ .
-                                "] " .
-                                $ignored->getMessage(),
-                        );
-                    }
-                }
                 error_log("[Prontoo install] " . $e->getMessage());
                 if ($cfgWritten && !is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("install.lock"))) {
                     if ($schemaInstalled && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
@@ -353,7 +338,7 @@ final class InstallInstallerRuntimeOperations02
     
                                     $GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"] = true;
                                     try {
-                                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::schema_cleanup_failed_install(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::prontoo_schema_table_names());
+                                    \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::revert_failed_commissioning();
                                         \Prontoo\Infrastructure\SupportRuntime\SupportRuntimeInfrastructureOperations01::prontoo_fs_unlink(\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::schema_lock_file());
                                     } finally {
                                         unset($GLOBALS["PRONTOO_SCOPE_GUARD_DISABLED"]);

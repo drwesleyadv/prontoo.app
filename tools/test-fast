@@ -25,6 +25,11 @@ foreach ([
     'app/Application/Identity/IdentityDataResult.php',
     'app/Application/Identity/IdentityDataPort.php',
     'app/Application/Identity/IdentityDataService.php',
+    'app/Application/Operational/OperationalDataResult.php',
+    'app/Application/Operational/OperationalDataPort.php',
+    'app/Application/Operational/OperationalSchemaPort.php',
+    'app/Application/Operational/OperationalDatabaseContextPort.php',
+    'app/Application/Operational/OperationalUseCaseService.php',
     'app/Application/SecurityAccess/SecurityIncidentPort.php',
     'app/Application/SecurityAccess/SecurityIncidentService.php',
     'app/Application/SecurityAccess/MfaRecordPort.php',
@@ -53,6 +58,11 @@ use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Application\Identity\IdentityDataPort;
 use Prontoo\Application\Identity\IdentityDataResult;
 use Prontoo\Application\Identity\IdentityDataService;
+use Prontoo\Application\Operational\OperationalDataPort;
+use Prontoo\Application\Operational\OperationalDataResult;
+use Prontoo\Application\Operational\OperationalDatabaseContextPort;
+use Prontoo\Application\Operational\OperationalSchemaPort;
+use Prontoo\Application\Operational\OperationalUseCaseService;
 use Prontoo\Application\Patients\PatientContactCommandPort;
 use Prontoo\Application\Patients\PatientContactCommandService;
 use Prontoo\Application\Patients\PatientReadPort;
@@ -256,6 +266,81 @@ try {
     $passed++;
 }
 
+$operationalPort = new class implements OperationalDataPort, OperationalSchemaPort, OperationalDatabaseContextPort {
+    public array $last = [];
+    public array $ensured = [];
+    public bool $fail = false;
+    public function run(string $operation, array $parameters, array $context): OperationalDataResult
+    {
+        $this->last = [$operation, $parameters, $context];
+        if ($this->fail) {
+            throw new RuntimeException('operational port failure');
+        }
+        return new OperationalDataResult([['id' => 61, 'status' => 'aberta']], 2);
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return 83;
+    }
+    public function ensure(string $contract): void
+    {
+        $this->ensured[] = $contract;
+    }
+    public function tableExists(string $table): bool
+    {
+        return $table === 'pi_tasks';
+    }
+    public function columnExists(string $table, string $column): bool
+    {
+        return $table === 'pi_tasks' && $column === 'clinic_id';
+    }
+    public function inTransaction(): bool
+    {
+        return true;
+    }
+};
+$taskUseCases = new OperationalUseCaseService(
+    $operationalPort,
+    $operationalPort,
+    $operationalPort,
+    'tasks',
+);
+$taskResult = $taskUseCases->result(
+    'operational.tasks_notices.01.create_task.01',
+    [7, 91],
+    ['tenant' => 7],
+);
+$same(['id' => 61, 'status' => 'aberta'], $taskResult->fetch(), 'application.operational.result');
+$same(2, $taskResult->rowCount(), 'application.operational.affected_rows');
+$same(false, $taskResult->fetch(), 'application.operational.result_cursor');
+$same(['operational.tasks_notices.01.create_task.01', [7, 91], ['tenant' => 7]], $operationalPort->last, 'application.operational.port_arguments');
+$same(61, $taskUseCases->scalar('operational.tasks_notices.02.task_count.01'), 'application.operational.scalar');
+$same(83, $taskUseCases->lastInsertId(), 'application.operational.last_insert_id');
+$same('atomic', $taskUseCases->atomic(static fn(): string => 'atomic'), 'application.operational.atomic');
+$taskUseCases->ensureSchema('readonly_support_alerts');
+$same(['readonly_support_alerts'], $operationalPort->ensured, 'application.operational.schema_contract');
+$assert($taskUseCases->tableExists('pi_tasks'), 'application.operational.table_exists');
+$assert($taskUseCases->columnExists('pi_tasks', 'clinic_id'), 'application.operational.column_exists');
+$assert($taskUseCases->inTransaction(), 'application.operational.transaction_state');
+$operationalPort->fail = true;
+$same(9, $taskUseCases->safeScalar('operational.tasks_notices.03.task_count.01', [], 9), 'application.operational.fail_closed_default');
+try {
+    $taskUseCases->result('operational.appointments.01.create.01');
+    $failures[] = 'application.operational.scope_closed';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
+try {
+    $taskUseCases->result('raw.sql');
+    $failures[] = 'application.operational.catalog_closed';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
+
 $incidentPort = new class implements SecurityIncidentPort {
     public array $records = [];
     public function recordScopeViolation(
@@ -269,9 +354,9 @@ $incidentPort = new class implements SecurityIncidentPort {
     ): void {
         $this->records[] = [$clinicId, $userId, $roleCode, $route, $violationKey, $fingerprint, $details];
     }
-    public function scopedEntityReadShape(string $table, string $columns): string
+    public function scopedEntityReadShape(string $entity): string
     {
-        return 'shape:' . $table . ':' . $columns;
+        return 'shape:' . $entity;
     }
 };
 $incidentService = new SecurityIncidentService($incidentPort);
@@ -279,7 +364,7 @@ $incidentService->recordScopeViolation(0, 91, 'gerente', 'patient', 'scope', str
 $same([], $incidentPort->records, 'application.security_incident.invalid_tenant_short_circuit');
 $incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence');
 $same([7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence'], $incidentPort->records[0] ?? null, 'application.security_incident.port_arguments');
-$same('shape:pi_patients:id', $incidentService->scopedEntityReadShape('pi_patients', 'id'), 'application.security_incident.shape');
+$same('shape:patient', $incidentService->scopedEntityReadShape('patient'), 'application.security_incident.shape');
 try {
     $incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'scope', 'invalid', 'evidence');
     $failures[] = 'application.security_incident.invalid_fingerprint';
@@ -438,7 +523,7 @@ $result = [
     'policy' => 'fast-unit-suite-v4',
     'assertions_passed' => $passed,
     'assertions_failed' => count($failures),
-    'application_ports_tested' => 11,
+    'application_ports_tested' => 14,
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

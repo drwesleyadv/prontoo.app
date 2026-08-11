@@ -33,12 +33,9 @@ final class DocumentsRuntimeOperations01
         if ($cid <= 0 || $docId <= 0) {
             throw new RuntimeException("Documento inválido para identificação.");
         }
-        return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $docId) {
+        return \Prontoo\Runtime\Operational\OperationalComposition::documents()->atomic(function () use ($cid, $docId) {
     
-            $doc = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,document_identifier FROM pi_documents WHERE id=? AND clinic_id=? LIMIT 1 FOR UPDATE",
-                [$docId, $cid],
-            );
+            $doc = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.document_assign_identifier.01', [$docId, $cid], []);
             if (!$doc) {
                 throw new RuntimeException(
                     "Documento não encontrado para identificação.",
@@ -50,10 +47,7 @@ final class DocumentsRuntimeOperations01
             if ($current !== "") {
                 return $current;
             }
-            $clinic = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,document_code_alphabet,document_sequence FROM pi_clinics WHERE id=? LIMIT 1 FOR UPDATE",
-                [$cid],
-            );
+            $clinic = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.document_assign_identifier.02', [$cid], []);
             if (!$clinic) {
                 throw new RuntimeException(
                     "Consultório não encontrado para identificação documental.",
@@ -68,27 +62,15 @@ final class DocumentsRuntimeOperations01
             $seq =
                 max(
                     (int) ($clinic["document_sequence"] ?? 0),
-                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT COALESCE(MAX(document_sequence),0) FROM pi_documents WHERE clinic_id=?",
-                        [$cid],
-                    ) ?? 0),
+                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::documents()->scalar('operational.documents.01.document_assign_identifier.03', [$cid], []) ?? 0),
                 ) + 1;
             for ($tries = 0; $tries < 100; $tries++) {
                 $identifier = \Prontoo\Domain\Documents\DocumentIdentifierPolicy::document_identifier_encode($seq, $alphabet);
                 $exists =
-                    (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT COUNT(*) FROM pi_documents WHERE clinic_id=? AND document_identifier=? AND id<>?",
-                        [$cid, $identifier, $docId],
-                    ) ?? 0);
+                    (int) (\Prontoo\Runtime\Operational\OperationalComposition::documents()->scalar('operational.documents.01.document_assign_identifier.04', [$cid, $identifier, $docId], []) ?? 0);
                 if ($exists === 0) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_clinics SET document_code_alphabet=?, document_sequence=? WHERE id=?",
-                        [$alphabet, $seq, $cid],
-                    );
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_documents SET document_sequence=?, document_identifier=? WHERE id=? AND clinic_id=?",
-                        [$seq, $identifier, $docId, $cid],
-                    );
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.document_assign_identifier.05', [$alphabet, $seq, $cid], []);
+                    \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.document_assign_identifier.06', [$seq, $identifier, $docId, $cid], []);
                     return $identifier;
                 }
                 $seq++;
@@ -125,11 +107,10 @@ final class DocumentsRuntimeOperations01
         if ($templateId <= 0) {
             throw new RuntimeException("Escolha um modelo aprovado.");
         }
-        [$where, $params] = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visible_where($c, "dt");
-        $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT dt.id,dt.owner_user_id,dt.owner_role,dt.type_key,dt.title,dt.body,dt.status FROM pi_document_templates dt WHERE dt.id=? AND dt.clinic_id=? AND $where",
-            array_merge([$templateId, $cid], $params),
-        );
+        $visibility = \Prontoo\Domain\Documents\DocumentTemplatePolicy::document_template_visibility($c);
+        $params = (array) ($visibility["parameters"] ?? []);
+        $visibilityMode = (string) ($visibility["mode"] ?? "role");
+        $tpl = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.create_document_draft_from_template.01', array_merge([$templateId, $cid], $params), compact('visibilityMode'));
         if (!$tpl) {
             throw new RuntimeException(
                 "Modelo não encontrado para esta credencial.",
@@ -146,9 +127,7 @@ final class DocumentsRuntimeOperations01
         $contextJson = \Prontoo\Domain\Documents\DocumentsDomainOperations02::document_context_json_encode($context);
         $vars = \Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::document_issue_context($c, $patientId, $appointmentId, $context);
         $content = \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::render_document_body((string) $tpl["body"], $vars);
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_documents (clinic_id,template_id,patient_link_id,appointment_id,context_json,issued_by,type_key,title,content,document_status,issued_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?, 'preparado',NOW(),NOW())",
-            [
+        \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.create_document_draft_from_template.02', [
                 $cid,
                 $templateId,
                 $patientId > 0 ? $patientId : null,
@@ -158,9 +137,8 @@ final class DocumentsRuntimeOperations01
                 (string) $tpl["type_key"],
                 (string) $tpl["title"],
                 $content,
-            ],
-        );
-        $docId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            ], []);
+        $docId = \Prontoo\Runtime\Operational\OperationalComposition::documents()->lastInsertId();
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_previsualizacao_criada", "documento", $docId, [
             "titulo" => $tpl["title"] ?? "",
             "document_type" => (string) $tpl["type_key"],
@@ -217,10 +195,7 @@ final class DocumentsRuntimeOperations01
                 throw new RuntimeException($block);
             }
         }
-        $tpl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT dt.id,dt.title,dt.body,dt.type_key FROM pi_document_templates dt WHERE dt.id=? AND dt.clinic_id=? AND dt.status='approved'",
-            [(int) ($doc["template_id"] ?? 0), $cid],
-        );
+        $tpl = \Prontoo\Runtime\Operational\OperationalComposition::documents()->row('operational.documents.01.save_document_draft.01', [(int) ($doc["template_id"] ?? 0), $cid], []);
         if (!$tpl) {
             throw new RuntimeException(
                 "Modelo original não está aprovado ou não foi encontrado.",
@@ -234,9 +209,7 @@ final class DocumentsRuntimeOperations01
                 "O modelo aprovado gerou conteúdo vazio. Revise o modelo antes de emitir.",
             );
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "UPDATE pi_documents SET title=?, patient_link_id=?, appointment_id=?, context_json=?, content=?, document_status='preparado', updated_at=NOW() WHERE id=? AND clinic_id=?",
-            [
+        \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.save_document_draft.02', [
                 (string) $tpl["title"],
                 $patientId > 0 ? $patientId : null,
                 $appointmentId > 0 ? $appointmentId : null,
@@ -244,8 +217,7 @@ final class DocumentsRuntimeOperations01
                 $body,
                 $docId,
                 $cid,
-            ],
-        );
+            ], []);
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_vinculos_previsualizacao", "documento", $docId, [
             "titulo" => $tpl["title"] ?? "",
             "status" => \Prontoo\Domain\Documents\DocumentTypePolicy::document_status_label("preparado"),
@@ -280,10 +252,7 @@ final class DocumentsRuntimeOperations01
                 "Apenas o criador ou o Administrativo pode descartar esta pré-visualização.",
             );
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "UPDATE pi_documents SET document_status='cancelado', updated_at=NOW() WHERE id=? AND clinic_id=?",
-            [$docId, (int) $c["clinic_id"]],
-        );
+        \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.discard_document_draft.01', [$docId, (int) $c["clinic_id"]], []);
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("documento_descartado", "documento", $docId, [
             "titulo" => $doc["title"] ?? "",
             "status" => "Cancelado",
@@ -320,12 +289,9 @@ final class DocumentsRuntimeOperations01
                 "Conteúdo vazio. Revise o modelo antes de emitir.",
             );
         }
-        $identifier = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($c, $docId) {
+        $identifier = \Prontoo\Runtime\Operational\OperationalComposition::documents()->atomic(function () use ($c, $docId) {
     
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_documents SET document_status='emitido', confirmed_at=NOW(), issued_at=NOW(), updated_at=NOW() WHERE id=? AND clinic_id=?",
-                [$docId, (int) $c["clinic_id"]],
-            );
+            \Prontoo\Runtime\Operational\OperationalComposition::documents()->result('operational.documents.01.confirm_document_issue.01', [$docId, (int) $c["clinic_id"]], []);
             return \Prontoo\Runtime\Documents\DocumentsRuntimeOperations01::document_assign_identifier((int) $c["clinic_id"], $docId);
         });
         $types = \Prontoo\Domain\Documents\DocumentTypePolicy::document_type_options();

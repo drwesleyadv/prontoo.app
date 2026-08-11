@@ -211,6 +211,30 @@ $sqlKeyword = static function (string $value): ?string {
     }
     return null;
 };
+$sqlFragment = static function (string $value): bool {
+    $value = trim($value);
+    if ($value === '' || preg_match('/<[!\/?a-z]/i', $value) === 1) {
+        return false;
+    }
+    $delimiter = $value[0];
+    if (in_array($delimiter, ['/', '~', '#'], true) && strrpos($value, $delimiter) > 0) {
+        return false;
+    }
+    if (preg_match('/^\s*(?:DATE_(?:SUB|ADD)|COALESCE|CONCAT|CASE\b|IF\s*\(|NOW\s*\(|CURDATE\s*\()/i', $value) === 1) {
+        return true;
+    }
+    if (preg_match('/^\s*1\s*=\s*1\s*$/', $value) === 1) {
+        return true;
+    }
+    $score = 0;
+    $score += preg_match('/\b(?:SELECT|INSERT|UPDATE|DELETE|REPLACE|FROM|JOIN|WHERE|VALUES|SET|EXISTS|ORDER\s+BY|GROUP\s+BY|HAVING|LIMIT|DATE_(?:SUB|ADD)|CURDATE|NOW)\b/i', $value) === 1 ? 1 : 0;
+    $score += preg_match('/\bpi_[a-z0-9_]+\b/i', $value) === 1 ? 2 : 0;
+    $score += preg_match('/(?:[a-z_][a-z0-9_]*\.)?[a-z_][a-z0-9_]*\s*(?:<=>|<>|>=|<=|=|>|<|LIKE\b|IN\s*\(|IS\s+(?:NOT\s+)?NULL)/i', $value) === 1 ? 1 : 0;
+    $score += str_contains($value, '?') ? 1 : 0;
+    $score += preg_match('/\b(?:AND|OR|NOT\s+IN)\b/i', $value) === 1 ? 1 : 0;
+    $score += preg_match('/\b[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*\b/i', $value) === 1 ? 1 : 0;
+    return $score >= 3;
+};
 $sqlDetectionCases = [
     'SELECT id FROM pi_users' => 'SELECT',
     'INSERT INTO pi_meta (meta_key) VALUES (?)' => 'INSERT',
@@ -226,6 +250,20 @@ $sqlDetectionCases = [
 foreach ($sqlDetectionCases as $sample => $expectedKeyword) {
     if ($sqlKeyword($sample) !== $expectedKeyword) {
         throw new RuntimeException('Autoteste da detecção SQL Runtime falhou.');
+    }
+}
+$sqlFragmentCases = [
+    'clinic_id=? AND active=1' => true,
+    " AND EXISTS (SELECT 1 FROM pi_appointments WHERE clinic_id=?)" => true,
+    "(a.id IS NULL OR a.status NOT IN ('cancelado'))" => true,
+    'DATE_SUB(NOW(), INTERVAL 30 DAY)' => true,
+    '/^\\s*UPDATE\\s+/' => false,
+    '<span>SELECT 1</span>' => false,
+    'Verificação leve com SELECT 1.' => false,
+];
+foreach ($sqlFragmentCases as $sample => $expected) {
+    if ($sqlFragment($sample) !== $expected) {
+        throw new RuntimeException('Autoteste da detecção de fragmentos SQL Runtime falhou.');
     }
 }
 
@@ -255,6 +293,9 @@ foreach ($paths as $path) {
         if (in_array($id, [T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
             $value = $stringValue($token);
             $keyword = $sqlKeyword($value);
+            if ($keyword === null && $sqlFragment($value)) {
+                $keyword = 'SQL_FRAGMENT';
+            }
             if ($keyword !== null) {
                 $addFinding(
                     $structural ? 'runtime_structural_sql' : 'runtime_business_sql',
@@ -316,6 +357,15 @@ foreach ($paths as $path) {
                     $addFinding('runtime_persistence_helper', $relative, (int) $methodToken['line'], $method, $class);
                     break;
                 }
+            }
+            if (preg_match('/_(?:sql|where)$/i', $method) === 1) {
+                $addFinding(
+                    $structural ? 'runtime_structural_sql' : 'runtime_business_sql',
+                    $relative,
+                    (int) $methodToken['line'],
+                    'SQL_BUILDER',
+                    $class . '::' . $method,
+                );
             }
             if (isset($transactionMethods[$method])) {
                 $addFinding(

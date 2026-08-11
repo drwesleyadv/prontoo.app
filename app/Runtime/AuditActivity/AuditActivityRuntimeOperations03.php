@@ -40,13 +40,8 @@ final class AuditActivityRuntimeOperations03
         $days = max(1, min(366, $days));
         $from = date("Y-m-d", strtotime("-" . $days . " days"));
         $loader = function () use ($clinicIds, $from): array {
-    
-            $placeholders = implode(",", array_fill(0, count($clinicIds), "?"));
             try {
-                $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "SELECT clinic_id,metric_key,SUM(metric_value) AS metric_value FROM pi_clinic_daily_stats WHERE clinic_id IN ($placeholders) AND day_date>=? GROUP BY clinic_id,metric_key",
-                    array_merge($clinicIds, [$from]),
-                )->fetchAll();
+                $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.audit_activity.03.clinic_recent_metrics.01', array_merge($clinicIds, [$from]), ['itemCount' => count($clinicIds)])->fetchAll();
             } catch (Throwable $e) {
                 error_log("[Prontoo clinic_recent_metrics] " . $e->getMessage());
                 return [];
@@ -85,21 +80,18 @@ final class AuditActivityRuntimeOperations03
         }
         try {
             if ($cid) {
-                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,person_id FROM pi_patients WHERE id=? AND clinic_id=?",
-                    [$patientId, $cid],
-                );
+                $pat = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_patient_name_by_link.01', [$patientId, $cid], []);
             } else {
-                $pat = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,person_id FROM pi_patients WHERE id=?", [
+                $pat = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_patient_name_by_link.02', [
                     $patientId,
-                ]);
+                ], []);
             }
             if (!$pat) {
                 return "";
             }
-            $person = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT full_name FROM pi_persons WHERE id=?", [
+            $person = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_patient_name_by_link.03', [
                 (int) $pat["person_id"],
-            ]);
+            ], []);
             return mb_trim((string) ($person["full_name"] ?? ""));
         } catch (Throwable $e) {
             return "";
@@ -123,8 +115,8 @@ final class AuditActivityRuntimeOperations03
     
             try {
                 $u = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT u.id,u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1", [$uid, $cid])
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,name FROM pi_users WHERE id=?", [$uid]);
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_user_name_lookup.01', [$uid, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_user_name_lookup.02', [$uid], []);
                 return mb_trim((string) ($u["name"] ?? ""));
             } catch (Throwable $e) {
                 error_log("[Prontoo audit user lookup] " . $e->getMessage());
@@ -160,7 +152,7 @@ final class AuditActivityRuntimeOperations03
         $loader = static function () use ($cid): string {
     
             try {
-                $cl = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,display_name FROM pi_clinics WHERE id=?", [$cid]);
+                $cl = \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_clinic_name_lookup.01', [$cid], []);
                 return mb_trim((string) ($cl["display_name"] ?? ""));
             } catch (Throwable $e) {
                 error_log("[Prontoo audit clinic lookup] " . $e->getMessage());
@@ -236,13 +228,10 @@ final class AuditActivityRuntimeOperations03
         if (empty($context["task_title"]) && !empty($context["tarefa_id"])) {
             try {
                 $t = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,title FROM pi_tasks WHERE id=? AND clinic_id=?",
-                        [(int) $context["tarefa_id"], $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,title FROM pi_tasks WHERE id=?", [
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.01', [(int) $context["tarefa_id"], $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.02', [
                         (int) $context["tarefa_id"],
-                    ]);
+                    ], []);
                 if ($t && !empty($t["title"])) {
                     $context["task_title"] = $t["title"];
                 }
@@ -270,14 +259,8 @@ final class AuditActivityRuntimeOperations03
         ) {
             try {
                 $tpl = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,title,type_key,status FROM pi_document_templates WHERE id=? AND clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,title,type_key,status FROM pi_document_templates WHERE id=?",
-                        [$id],
-                    );
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.03', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.04', [$id], []);
                 if ($tpl) {
                     if (empty($context["titulo"]) && !empty($tpl["title"])) {
                         $context["titulo"] = $tpl["title"];
@@ -327,14 +310,8 @@ final class AuditActivityRuntimeOperations03
         ) {
             try {
                 $d = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT d.id,d.title,d.type_key,d.patient_link_id,p.full_name AS patient_name FROM pi_documents d LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id AND pl.clinic_id=d.clinic_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=? AND d.clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT d.id,d.title,d.type_key,d.patient_link_id,p.full_name AS patient_name FROM pi_documents d LEFT JOIN pi_patients pl ON pl.id=d.patient_link_id LEFT JOIN pi_persons p ON p.id=pl.person_id WHERE d.id=?",
-                        [$id],
-                    );
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.05', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.06', [$id], []);
                 if ($d) {
                     if (empty($context["titulo"]) && !empty($d["title"])) {
                         $context["titulo"] = $d["title"];
@@ -380,14 +357,8 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "consulta" && $id > 0) {
             try {
                 $a = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,reason FROM pi_appointments WHERE id=? AND clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,patient_link_id,doctor_user_id,start_at,end_at,reason FROM pi_appointments WHERE id=?",
-                        [$id],
-                    );
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.07', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.08', [$id], []);
                 if ($a) {
                     foreach (
                         [
@@ -434,14 +405,8 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "tarefa" && $id > 0) {
             try {
                 $t = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT t.id,t.title,t.assigned_to,td.patient_link_id,t.due_at FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id AND td.clinic_id=t.clinic_id WHERE t.id=? AND t.clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT t.id,t.title,t.assigned_to,td.patient_link_id,t.due_at FROM pi_tasks t LEFT JOIN pi_task_details td ON td.task_id=t.id WHERE t.id=?",
-                        [$id],
-                    );
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.09', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.10', [$id], []);
                 if ($t) {
                     if (empty($context["task_title"])) {
                         $context["task_title"] = $t["title"] ?? "";
@@ -483,11 +448,8 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "comunicado" && $id > 0) {
             try {
                 $n = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,title FROM pi_notices WHERE id=? AND clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,title FROM pi_notices WHERE id=?", [$id]);
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.11', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.12', [$id], []);
                 if ($n && empty($context["notice_title"])) {
                     $context["notice_title"] = $n["title"] ?? "";
                 }
@@ -503,13 +465,10 @@ final class AuditActivityRuntimeOperations03
         if ($entity === "lead" && $id > 0) {
             try {
                 $l = $cid
-                    ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                        "SELECT id,name,person_id FROM pi_leads WHERE id=? AND clinic_id=?",
-                        [$id, $cid],
-                    )
-                    : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT id,name,person_id FROM pi_leads WHERE id=?", [
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.13', [$id, $cid], [])
+                    : \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.audit_activity.03.audit_enrich_context.14', [
                         $id,
-                    ]);
+                    ], []);
                 if ($l && empty($context["target_name"])) {
                     $context["target_name"] = $l["name"] ?? "";
                 }
