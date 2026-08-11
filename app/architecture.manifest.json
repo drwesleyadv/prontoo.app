@@ -154,6 +154,15 @@
         "app/Runtime/Operational/OperationalComposition.php"
     ],
     "engineering_phase_nineteen_check": "tools/runtime-boundary-check",
+    "engineering_phase_twenty_policy": "every_public_application_service_entry_point_is_cataloged_as_critical_and_exercised_by_database_free_unit_characterization_with_transactional_integration_kept_separate",
+    "engineering_phase_twenty_components": [
+        "app/application.test-contract.json",
+        "tools/application-test-contract-check",
+        "tools/test-fast"
+    ],
+    "application_test_contract": "app/application.test-contract.json",
+    "application_test_check": "tools/application-test-contract-check",
+    "application_test_critical_coverage_target_percent": 100,
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",

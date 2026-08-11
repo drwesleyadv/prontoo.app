@@ -1,0 +1,346 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+$root = dirname(__DIR__);
+$contractPath = $root . '/app/application.test-contract.json';
+$failures = [];
+
+$fail = static function (string $message) use (&$failures): void {
+    $failures[] = $message;
+};
+
+$relativePath = static function (string $path) use ($root): string {
+    return ltrim(str_replace('\\', '/', substr($path, strlen($root))), '/');
+};
+
+$declaration = static function (string $path): array {
+    $source = (string) file_get_contents($path);
+    $tokens = token_get_all($source);
+    $namespace = '';
+    $kind = '';
+    $name = '';
+    $methods = [];
+    $public = false;
+    $depth = 0;
+    $classDepth = null;
+    $awaitingClassBody = false;
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        if (!is_array($token)) {
+            if ($token === '{') {
+                $depth++;
+                if ($awaitingClassBody) {
+                    $classDepth = $depth;
+                    $awaitingClassBody = false;
+                }
+            } elseif ($token === '}') {
+                $depth = max(0, $depth - 1);
+            }
+            if ($token === ';' || $token === '}') {
+                $public = false;
+            }
+            continue;
+        }
+        if ($token[0] === T_NAMESPACE) {
+            $parts = [];
+            for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+                $part = $tokens[$cursor];
+                if ($part === ';' || $part === '{') {
+                    break;
+                }
+                if (is_array($part) && in_array($part[0], [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED], true)) {
+                    $parts[] = $part[1];
+                }
+            }
+            $namespace = implode('', $parts);
+            continue;
+        }
+        if ($kind === '' && in_array($token[0], [T_CLASS, T_INTERFACE], true)) {
+            $kind = $token[0] === T_INTERFACE ? 'interface' : 'class';
+            $awaitingClassBody = true;
+            for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+                $part = $tokens[$cursor];
+                if (is_array($part) && $part[0] === T_STRING) {
+                    $name = $part[1];
+                    break;
+                }
+            }
+            continue;
+        }
+        if ($token[0] === T_PUBLIC && $classDepth !== null && $depth === $classDepth) {
+            $public = true;
+            continue;
+        }
+        if ($token[0] !== T_FUNCTION) {
+            continue;
+        }
+        if ($public && $classDepth !== null && $depth === $classDepth) {
+            for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+                $part = $tokens[$cursor];
+                if (is_array($part) && $part[0] === T_STRING) {
+                    $methods[] = $part[1];
+                    break;
+                }
+                if ($part === '(') {
+                    break;
+                }
+            }
+        }
+        $public = false;
+    }
+    return [
+        'kind' => $kind,
+        'name' => $name,
+        'fqcn' => ($namespace !== '' ? $namespace . '\\' : '') . $name,
+        'public_methods' => array_values(array_unique($methods)),
+    ];
+};
+
+$phpStringLiterals = static function (string $path): array {
+    $literals = [];
+    foreach (token_get_all((string) file_get_contents($path)) as $token) {
+        if (!is_array($token) || $token[0] !== T_CONSTANT_ENCAPSED_STRING) {
+            continue;
+        }
+        $raw = $token[1];
+        $quote = $raw[0] ?? '';
+        $inner = substr($raw, 1, -1);
+        $value = $quote === "'"
+            ? str_replace(["\\\\", "\\'"], ["\\", "'"], $inner)
+            : stripcslashes($inner);
+        $literals[$value] = true;
+    }
+    return $literals;
+};
+
+try {
+    $contract = json_decode(
+        (string) file_get_contents($contractPath),
+        true,
+        512,
+        JSON_THROW_ON_ERROR,
+    );
+} catch (Throwable $error) {
+    fwrite(STDERR, 'Contrato de testes de Application inválido: ' . $error->getMessage() . PHP_EOL);
+    exit(1);
+}
+
+if (!is_array($contract) || ($contract['schema'] ?? '') !== 'prontoo-application-test-contract-v1') {
+    fwrite(STDERR, 'Schema do contrato de testes de Application inválido.' . PHP_EOL);
+    exit(1);
+}
+
+try {
+    $architecture = json_decode(
+        (string) file_get_contents($root . '/app/architecture.manifest.json'),
+        true,
+        512,
+        JSON_THROW_ON_ERROR,
+    );
+} catch (Throwable $error) {
+    $architecture = [];
+    $fail('Manifesto arquitetural inválido: ' . $error->getMessage());
+}
+if (($architecture['application_test_contract'] ?? '') !== 'app/application.test-contract.json' ||
+    ($architecture['application_test_check'] ?? '') !== 'tools/application-test-contract-check' ||
+    (int) ($architecture['application_test_critical_coverage_target_percent'] ?? 0) !== 100) {
+    $fail('Manifesto arquitetural diverge do contrato de testes de Application.');
+}
+
+$unitSuite = (string) ($contract['unit_suite'] ?? '');
+$unitSuitePath = $root . '/' . $unitSuite;
+if ($unitSuite !== 'tools/test-fast' || !is_file($unitSuitePath)) {
+    $fail('Suíte unitária canônica ausente ou divergente.');
+}
+$assertionLiterals = is_file($unitSuitePath) ? $phpStringLiterals($unitSuitePath) : [];
+
+$serviceFiles = [];
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root . '/app/Application', FilesystemIterator::SKIP_DOTS),
+);
+foreach ($iterator as $file) {
+    if (!$file->isFile() || !str_ends_with($file->getFilename(), 'Service.php')) {
+        continue;
+    }
+    $relative = $relativePath($file->getPathname());
+    $serviceFiles[$relative] = $declaration($file->getPathname());
+}
+ksort($serviceFiles);
+
+$allowedCharacteristics = [
+    'happy_path',
+    'invalid_input',
+    'wrong_tenant',
+    'invalid_user',
+    'permission_denied',
+    'normalization',
+    'idempotency',
+    'invalid_transition',
+    'conflict',
+    'port_failure',
+    'deterministic_return',
+    'atomicity',
+    'fail_closed',
+    'scope_isolation',
+    'schema_readiness',
+];
+$caseIds = [];
+$assertionOwners = [];
+$coveredMethods = [];
+$criticalMethods = [];
+$catalogedServices = [];
+$ports = [];
+$criticalTotal = 0;
+$criticalTested = 0;
+$linkedAssertions = 0;
+
+foreach ((array) ($contract['cases'] ?? []) as $offset => $case) {
+    $label = 'cases[' . $offset . ']';
+    if (!is_array($case)) {
+        $fail($label . ': definição inválida.');
+        continue;
+    }
+    $caseOk = true;
+    $caseId = (string) ($case['id'] ?? '');
+    if (preg_match('/^[a-z][a-z0-9_.]*$/D', $caseId) !== 1 || isset($caseIds[$caseId])) {
+        $fail($label . ': id ausente, inválido ou duplicado.');
+        $caseOk = false;
+    }
+    $caseIds[$caseId] = true;
+    $serviceFile = (string) ($case['service_file'] ?? '');
+    $service = (string) ($case['service'] ?? '');
+    $serviceDeclaration = $serviceFiles[$serviceFile] ?? null;
+    if (!is_array($serviceDeclaration) || $serviceDeclaration['kind'] !== 'class' || $serviceDeclaration['fqcn'] !== $service) {
+        $fail($caseId . ': serviço/arquivo não corresponde a uma classe Application descoberta.');
+        $caseOk = false;
+    } else {
+        $catalogedServices[$service] = $serviceFile;
+    }
+    $entryPoints = array_values(array_unique(array_map('strval', (array) ($case['entry_points'] ?? []))));
+    if ($entryPoints === []) {
+        $fail($caseId . ': nenhum entry point catalogado.');
+        $caseOk = false;
+    }
+    foreach ($entryPoints as $method) {
+        if (!is_array($serviceDeclaration) || !in_array($method, $serviceDeclaration['public_methods'], true)) {
+            $fail($caseId . ': método público inexistente: ' . $method . '.');
+            $caseOk = false;
+            continue;
+        }
+        $coveredMethods[$service][$method] = true;
+        if (($case['criticality'] ?? '') === 'critical') {
+            $criticalMethods[$service][$method] = true;
+        }
+    }
+    $casePorts = (array) ($case['ports'] ?? []);
+    if ($casePorts === []) {
+        $fail($caseId . ': nenhum port declarado.');
+        $caseOk = false;
+    }
+    foreach ($casePorts as $port) {
+        if (!is_array($port)) {
+            $fail($caseId . ': port inválido.');
+            $caseOk = false;
+            continue;
+        }
+        $portInterface = (string) ($port['interface'] ?? '');
+        $portFile = (string) ($port['file'] ?? '');
+        $portPath = $root . '/' . $portFile;
+        $portDeclaration = is_file($portPath) ? $declaration($portPath) : null;
+        if (!is_array($portDeclaration) || $portDeclaration['kind'] !== 'interface' || $portDeclaration['fqcn'] !== $portInterface) {
+            $fail($caseId . ': interface/arquivo de port inválido: ' . $portInterface . '.');
+            $caseOk = false;
+            continue;
+        }
+        $ports[$portInterface] = true;
+    }
+    $criticality = (string) ($case['criticality'] ?? '');
+    if ($criticality !== 'critical') {
+        $fail($caseId . ': todo entry point público de Application deve permanecer crítico neste contrato.');
+        $caseOk = false;
+    }
+    $characteristics = array_values(array_unique(array_map('strval', (array) ($case['characteristics'] ?? []))));
+    if (count($characteristics) < 2 || array_diff($characteristics, $allowedCharacteristics) !== []) {
+        $fail($caseId . ': matriz de características insuficiente ou desconhecida.');
+        $caseOk = false;
+    }
+    $assertions = array_values(array_unique(array_map('strval', (array) ($case['assertions'] ?? []))));
+    if (count($assertions) < 2) {
+        $fail($caseId . ': casos críticos exigem ao menos duas assertivas rastreáveis.');
+        $caseOk = false;
+    }
+    foreach ($assertions as $assertion) {
+        if (isset($assertionOwners[$assertion])) {
+            $fail($caseId . ': assertiva já atribuída a ' . $assertionOwners[$assertion] . ': ' . $assertion . '.');
+            $caseOk = false;
+        }
+        $assertionOwners[$assertion] = $caseId;
+        if (!isset($assertionLiterals[$assertion])) {
+            $fail($caseId . ': assertiva não encontrada estruturalmente em ' . $unitSuite . ': ' . $assertion . '.');
+            $caseOk = false;
+        } else {
+            $linkedAssertions++;
+        }
+    }
+    if (isset($case['integration'])) {
+        $integration = $case['integration'];
+        $suite = is_array($integration) ? (string) ($integration['suite'] ?? '') : '';
+        $anchor = is_array($integration) ? (string) ($integration['anchor'] ?? '') : '';
+        $suitePath = $root . '/' . $suite;
+        if ($suite === '' || $anchor === '' || !is_file($suitePath) || !str_contains((string) file_get_contents($suitePath), $anchor)) {
+            $fail($caseId . ': suíte de integração ou âncora transacional ausente.');
+            $caseOk = false;
+        }
+    }
+    $criticalTotal++;
+    if ($caseOk) {
+        $criticalTested++;
+    }
+}
+
+foreach ($serviceFiles as $serviceFile => $service) {
+    $fqcn = (string) $service['fqcn'];
+    if (!isset($catalogedServices[$fqcn])) {
+        $fail('Application Service não catalogado: ' . $serviceFile . '.');
+        continue;
+    }
+    foreach ($service['public_methods'] as $method) {
+        if (in_array($method, ['__construct', 'logicSelfTest'], true)) {
+            continue;
+        }
+        if (!isset($coveredMethods[$fqcn][$method])) {
+            $fail('Entry point público sem caso de teste: ' . $fqcn . '::' . $method . '.');
+        }
+        if (!isset($criticalMethods[$fqcn][$method])) {
+            $fail('Entry point público sem caracterização crítica: ' . $fqcn . '::' . $method . '.');
+        }
+    }
+}
+
+$result = [
+    'ok' => $failures === [],
+    'policy' => (string) ($contract['policy'] ?? ''),
+    'application_services_cataloged' => count($catalogedServices),
+    'application_use_cases_tested' => $criticalTested,
+    'critical_application_use_cases_total' => $criticalTotal,
+    'critical_application_use_cases_tested' => $criticalTested,
+    'critical_coverage_percent' => $criticalTotal > 0
+        ? round(($criticalTested / $criticalTotal) * 100, 2)
+        : 0,
+    'application_ports_tested' => count($ports),
+    'assertions_linked' => $linkedAssertions,
+    'unit_suite' => $unitSuite,
+    'failures' => array_values(array_unique($failures)),
+];
+
+fwrite(
+    $failures === [] ? STDOUT : STDERR,
+    json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL,
+);
+exit($failures === [] ? 0 : 1);

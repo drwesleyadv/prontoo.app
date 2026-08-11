@@ -98,6 +98,7 @@ $canonical = static function () use ($root, &$passed, $abort): void {
     fwrite(STDOUT, '[quality-gate] PASS canonical-json' . PHP_EOL);
 };
 
+$run('application-test-contract', 'tools/application-test-contract-check');
 $run('fast-unit-suite', 'tools/test-fast');
 $run('composition-root-boundary', 'tools/composition-root-check');
 $run('runtime-boundary-contract', 'tools/runtime-boundary-check');
