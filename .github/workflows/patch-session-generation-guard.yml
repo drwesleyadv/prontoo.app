@@ -1,0 +1,59 @@
+name: Patch Session Generation Guard
+
+on:
+  push:
+    branches:
+      - agent/maintenance-security-refactor-touch
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Integrate guard and reconcile candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php')
+          text = p.read_text()
+          old = '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations02::security_session_generation_enforce($uid);'
+          new = '\\Prontoo\\Runtime\\SecurityAccess\\SessionGenerationGuard::enforce($uid);'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one session-generation enforcement call, found {text.count(old)}')
+          p.write_text(text.replace(old, new, 1))
+          PY
+          rm -f .github/workflows/patch-session-generation-guard.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/runtime-input-boundary-check
+          GITHUB_BASE_REF=prontoo php tools/runtime-refactor-on-touch-check
+          php tools/quality-gate --fast
+          php -l app/Runtime/SecurityAccess/SessionGenerationGuard.php
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          while IFS= read -r path; do
+            [[ -n "$path" ]] || continue
+            case "$path" in
+              .github/workflows/*) continue ;;
+            esac
+            git add -- "$path"
+          done < <(git diff --name-only)
+          git commit -m 'fix(security): reject globally revoked sessions early'
+          git push origin HEAD:agent/maintenance-security-refactor-touch
