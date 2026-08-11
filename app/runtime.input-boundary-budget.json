@@ -1,7 +1,7 @@
 {
     "schema": "prontoo-runtime-input-boundary-budget-v1",
     "policy": "runtime_input_adapter_infrastructure_gateway_and_hotspot_debt_is_explicit_and_monotonic",
-    "source_sha": "7f768f36d270aa09c3fa345bccaea3edfa414f6a",
+    "source_sha": "e4004e962e011ead61c4bcaa5627dbec08046e54",
     "thresholds": [
         500,
         700,
@@ -17,8 +17,8 @@
     "totals": {
         "input_adapter_files": 109,
         "infrastructure_references": 615,
-        "generic_data_gateway_calls": 853,
-        "hotspots_over_500": 41,
+        "generic_data_gateway_calls": 784,
+        "hotspots_over_500": 39,
         "hotspots_over_700": 7,
         "hotspots_over_1000": 4
     },
@@ -175,7 +175,7 @@
                 "ServerJsonCache": 2,
                 "SupportFoundation": 1
             },
-            "generic_data_gateway_calls": 3,
+            "generic_data_gateway_calls": 1,
             "hotspot_bucket": 0
         },
         "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php": {
@@ -210,7 +210,7 @@
                 "SecurityAccess": 8,
                 "SupportFoundation": 2
             },
-            "generic_data_gateway_calls": 16,
+            "generic_data_gateway_calls": 4,
             "hotspot_bucket": 0
         },
         "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php": {
@@ -228,7 +228,7 @@
                 "SecurityAccess": 5,
                 "SupportFoundation": 2
             },
-            "generic_data_gateway_calls": 9,
+            "generic_data_gateway_calls": 4,
             "hotspot_bucket": 2
         },
         "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php": {
@@ -238,7 +238,7 @@
                 "SupportFoundation": 1,
                 "SupportTelemetry": 2
             },
-            "generic_data_gateway_calls": 11,
+            "generic_data_gateway_calls": 7,
             "hotspot_bucket": 0
         },
         "app/Runtime/ClinicConfig/ClinicConfigRuntimeOperations01.php": {
@@ -319,8 +319,8 @@
                 "SecurityAccess": 3,
                 "SupportFoundation": 1
             },
-            "generic_data_gateway_calls": 15,
-            "hotspot_bucket": 1
+            "generic_data_gateway_calls": 6,
+            "hotspot_bucket": 0
         },
         "app/Runtime/Documents/DocumentsRuntimeOperations02.php": {
             "infrastructure_references": 3,
@@ -510,7 +510,7 @@
                 "SupportFoundation": 9,
                 "SupportRuntime": 6
             },
-            "generic_data_gateway_calls": 3,
+            "generic_data_gateway_calls": 0,
             "hotspot_bucket": 0
         },
         "app/Runtime/Leads/LeadsRuntimeOperations01.php": {
@@ -537,7 +537,7 @@
                 "SecurityAccess": 1,
                 "SupportFoundation": 4
             },
-            "generic_data_gateway_calls": 11,
+            "generic_data_gateway_calls": 6,
             "hotspot_bucket": 0
         },
         "app/Runtime/Maestro/MaestroRuntimeOperations02.php": {
@@ -563,8 +563,8 @@
                 "SecurityAccess": 2,
                 "SupportFoundation": 4
             },
-            "generic_data_gateway_calls": 19,
-            "hotspot_bucket": 1
+            "generic_data_gateway_calls": 11,
+            "hotspot_bucket": 0
         },
         "app/Runtime/Maestro/MaestroRuntimeOperations05.php": {
             "infrastructure_references": 7,
@@ -572,7 +572,7 @@
                 "ServerJsonCache": 2,
                 "SupportFoundation": 5
             },
-            "generic_data_gateway_calls": 13,
+            "generic_data_gateway_calls": 11,
             "hotspot_bucket": 1
         },
         "app/Runtime/Patients/PatientsRuntimeOperations01.php": {
@@ -704,7 +704,7 @@
             "infrastructure_categories": {
                 "SubscriptionSettings": 1
             },
-            "generic_data_gateway_calls": 8,
+            "generic_data_gateway_calls": 2,
             "hotspot_bucket": 0
         },
         "app/Runtime/SubscriptionSettings/SubscriptionSettingsRuntimeOperations03.php": {
@@ -755,7 +755,7 @@
         "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php": {
             "infrastructure_references": 0,
             "infrastructure_categories": [],
-            "generic_data_gateway_calls": 16,
+            "generic_data_gateway_calls": 11,
             "hotspot_bucket": 0
         },
         "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations03.php": {
@@ -834,7 +834,7 @@
                 "SecurityAccess": 2,
                 "ServerJsonCache": 4
             },
-            "generic_data_gateway_calls": 13,
+            "generic_data_gateway_calls": 9,
             "hotspot_bucket": 1
         },
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php": {
@@ -850,7 +850,7 @@
             "infrastructure_categories": {
                 "SupportFoundation": 2
             },
-            "generic_data_gateway_calls": 10,
+            "generic_data_gateway_calls": 9,
             "hotspot_bucket": 0
         },
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": {
@@ -858,7 +858,7 @@
             "infrastructure_categories": {
                 "SupportFoundation": 3
             },
-            "generic_data_gateway_calls": 9,
+            "generic_data_gateway_calls": 6,
             "hotspot_bucket": 0
         }
     }

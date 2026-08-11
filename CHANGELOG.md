@@ -8,6 +8,9 @@
 - move 12 transações financeiras e 4 de Agenda para 7 Application Services coesos, preservando locks, rollback, auditoria e isolamento por consultório.
 - fixa Financeiro e Agenda em zero transação de negócio no Runtime e reduz o ratchet global de 33 para 17, o gateway genérico de 928 para 853 e os hotspots acima de 500 linhas de 42 para 41.
 - amplia o contrato rápido para 39 casos críticos de 20 services e 162 assertivas sem banco.
+- move as 7 sequências de identidade/permissões e as 10 operacionais/instalação restantes para 10 Application Services coesos, preservando fail-closed, auditoria, rollback e isolamento por consultório.
+- restaura o gate global `Runtime business transactions = 0` e reduz o gateway genérico de 853 para 784 e os hotspots acima de 500 linhas de 41 para 39.
+- caracteriza 49 casos críticos de 30 services em 194 assertivas rápidas sem banco.
 
 ## 1.8.10.2 — Engenharia arquitetural 16–21 e consolidação
 

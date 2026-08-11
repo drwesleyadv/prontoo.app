@@ -69,11 +69,27 @@ O commit de origem `7f768f36d270aa09c3fa345bccaea3edfa414f6a` move as 12 sequên
 
 As 17 transações restantes são 7 de autenticação/permissões e 10 de módulos operacionais/instalação. O ratchet substitui a baseline anterior: uma sequência removida não pode reaparecer.
 
+## Ratchet corretivo 3 — fechamento global
+
+O commit de origem `e4004e962e011ead61c4bcaa5627dbec08046e54` move as 7 sequências de identidade/permissões e as 10 sequências operacionais/instalação restantes para Application Services. O contrato global volta a exigir zero transação de caso de uso em toda a árvore Runtime.
+
+| Categoria corrente | Ocorrências |
+|---|---:|
+| transações de caso de uso | 0 |
+| arquivos com transação de caso de uso | 0 |
+| referências diretas a Infrastructure | 615 |
+| chamadas ao gateway genérico de dados | 784 |
+| arquivos acima de 500 linhas | 39 |
+| arquivos acima de 700 linhas | 7 |
+| arquivos acima de 1.000 linhas | 4 |
+
+Os três controles transacionais estruturais de `DatabaseSchemaRuntimeOperations01.php` continuam inventariados separadamente; eles não coordenam casos de uso.
+
 ## Estado das migrações 17–19
 
 As fases 17–19 removeram SQL de negócio e PDO direto do Runtime e proibiram a instanciação de adapters concretos fora dos cinco roots. `FinancialDataService`, `IdentityDataService` e `OperationalUseCaseService` usam catálogos fechados de operações, portanto o Runtime não envia SQL arbitrário.
 
-Os casos financeiros de gaveta, movimentos, receitas, caixa, revisão e consolidação agora pertencem a Application Services. O mesmo vale para criar/alterar bloqueios e criar/alterar agendamentos. Os handlers Runtime preservam request, autorização, flash, redirect e adaptação dos colaboradores legados. Leituras simples podem continuar em read models catalogados quando outra abstração não trouxer benefício concreto.
+Os casos financeiros, Agenda, cadastro e onboarding, perfil e credenciais, permissões, auditoria, documentos, Maestro, assinatura, tarefas e instalação agora pertencem a Application Services. Os handlers Runtime preservam request, autorização, flash, redirect e adaptação dos colaboradores legados. Leituras simples podem continuar em read models catalogados quando outra abstração não trouxer benefício concreto.
 
 ## Exceções explícitas
 
@@ -86,4 +102,4 @@ As cinco composition roots são arquivos exatos enumerados pelo contrato. `Datab
 - `php tools/runtime-input-boundary-check` valida dependências, gateway e hotspots por papel;
 - os modos `--print-baseline` e `--print-budget` materializam contratos para revisão explícita e não são executados automaticamente pela CI.
 
-O estado comprovado hoje é: SQL, PDO e adapters concretos indevidos em zero; Financeiro e Agenda com transação Runtime igual a zero; 17 orquestrações transacionais residuais, 853 chamadas genéricas e 41 hotspots acima de 500 linhas congelados para redução monotônica.
+O estado comprovado hoje é: SQL, PDO, adapters concretos indevidos e transações de caso de uso em zero; 615 dependências diretas, 784 chamadas genéricas e 39 hotspots acima de 500 linhas congelados para redução monotônica.

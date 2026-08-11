@@ -11,9 +11,11 @@ O contrato da Fase 16 reconhecia métodos transacionais tradicionais, mas não `
 
 Ampliar o analisador transacional e congelar sua baseline corrigida em 33 ocorrências de negócio. Criar um contrato separado, orientado ao papel `runtime_input_adapter`, para referências diretas a Infrastructure, chamadas ao gateway genérico de dados e buckets de tamanho. Todos os limites são globais e por arquivo, novas categorias começam em zero e a dívida só pode diminuir.
 
-As regras zero de SQL, PDO e adapters concretos permanecem ativas. A regra zero transacional será restaurada somente após a extração dos 33 fluxos para casos de uso de Application. A auditoria SOLID continua útil dentro do seu escopo, mas seus zero hotspots não serão apresentados como prova de que os input adapters são finos.
+As regras zero de SQL, PDO e adapters concretos permanecem ativas. A regra zero transacional seria restaurada somente após a extração dos 33 fluxos para casos de uso de Application. A auditoria SOLID continua útil dentro do seu escopo, mas seus zero hotspots não serão apresentados como prova de que os input adapters são finos.
 
 O segundo ratchet, originado em `7f768f36d270aa09c3fa345bccaea3edfa414f6a`, extraiu os 12 fluxos financeiros e 4 de Agenda. Esses módulos agora têm regra transacional zero; a baseline global caiu para 17 e não pode regressar aos 33 iniciais.
+
+O terceiro ratchet, originado em `e4004e962e011ead61c4bcaa5627dbec08046e54`, extraiu as 7 sequências de identidade/permissões e as 10 operacionais/instalação restantes. O contador global passou a zero e a categoria voltou a ser obrigatoriamente zero para toda a árvore Runtime.
 
 ## Alternativas rejeitadas
 
