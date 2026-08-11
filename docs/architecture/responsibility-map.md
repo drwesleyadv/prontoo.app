@@ -27,6 +27,7 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | roteamento | `app/Runtime/Routing/*` |
 | wiring de features | `app/Runtime/*` |
 | inventário monotônico da fronteira Runtime | `app/runtime.boundary-contract.json`, `app/runtime.boundary-baseline.json`, `tools/runtime-boundary-check` |
+| matriz e cobertura dos casos críticos de Application | `app/application.test-contract.json`, `tools/application-test-contract-check`, `tools/test-fast` |
 | entradas web | `index.php`, `install.php`, `br`, `public` |
 | execução secundária | `cron/maestro.php` |
 
@@ -53,6 +54,7 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - fronteira de identidade fechada: SecurityAccess, AuthOnboarding e UsersPermissions usam operações nomeadas de `IdentityDataService`; PDO, SQL, locks de persistência e transações ficam em Infrastructure, enquanto request, sessão, cookies e respostas HTTP permanecem no Runtime;
 - fronteira operacional fechada: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e módulos residuais usam serviços por escopo e operações nomeadas; SQL, PDO e atomicidade de casos de uso ficam fora do Runtime;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
+- fechamento de testes de Application: todos os entry points públicos dos 13 services estão ligados a 32 casos críticos, 15 ports e assertivas unitárias sem banco; atomicidade permanece em smoke MySQL separado.
 
 ## Regras de localização
 

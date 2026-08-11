@@ -8,6 +8,23 @@ if (PHP_SAPI !== 'cli') {
 
 $root = dirname(__DIR__);
 foreach ([
+    'app/Core/Invariant/Canonical.php',
+    'app/Core/Invariant/Decision.php',
+    'app/Domain/Authorization/ActionContract.php',
+    'app/Application/Authorization/CapabilityProvider.php',
+    'app/Application/Authorization/ActionDefinitionSource.php',
+    'app/Application/Authorization/ActionDefinitionCollection.php',
+    'app/Application/Authorization/ActionDefinitionRegistry.php',
+    'app/Application/Authorization/ActionRequirementPolicy.php',
+    'app/Application/Authorization/Definitions/AuthActionDefinitions.php',
+    'app/Application/Authorization/Definitions/PatientActionDefinitions.php',
+    'app/Application/Authorization/Definitions/SchedulingActionDefinitions.php',
+    'app/Application/Authorization/Definitions/DocumentTaskActionDefinitions.php',
+    'app/Application/Authorization/Definitions/WorkforceActionDefinitions.php',
+    'app/Application/Authorization/Definitions/FinancialActionDefinitions.php',
+    'app/Application/Authorization/Definitions/AdminActionDefinitions.php',
+    'app/Application/Authorization/ActionCatalog.php',
+    'app/Application/Authorization/AuthorizationService.php',
     'app/Domain/Identity/IdentityDocumentValidator.php',
     'app/Domain/Financial/FinancialMovementMutationPolicy.php',
     'app/Core/Invariant/Workflow/StateMachine.php',
@@ -46,6 +63,17 @@ foreach ([
     require_once $root . '/' . $file;
 }
 
+use Prontoo\Application\Authorization\ActionCatalog;
+use Prontoo\Application\Authorization\ActionDefinitionRegistry;
+use Prontoo\Application\Authorization\AuthorizationService;
+use Prontoo\Application\Authorization\CapabilityProvider;
+use Prontoo\Application\Authorization\Definitions\AdminActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\AuthActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\DocumentTaskActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\FinancialActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\PatientActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\SchedulingActionDefinitions;
+use Prontoo\Application\Authorization\Definitions\WorkforceActionDefinitions;
 use Prontoo\Application\Financial\FinancialCashierAttentionPort;
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
 use Prontoo\Application\Financial\FinancialDataPort;
@@ -78,11 +106,18 @@ use Prontoo\Application\SecurityAccess\MfaRecordService;
 use Prontoo\Core\Invariant\Workflow\StateMachine;
 use Prontoo\Domain\Financial\FinancialMovementMutationPolicy;
 use Prontoo\Domain\Identity\IdentityDocumentValidator;
+use Prontoo\Domain\Authorization\ActionContract;
 use Prontoo\Runtime\Routing\RouteRegistry;
 
 $passed = 0;
 $failures = [];
-$assert = static function (bool $condition, string $name) use (&$passed, &$failures): void {
+$executedAssertions = [];
+$assert = static function (bool $condition, string $name) use (&$passed, &$failures, &$executedAssertions): void {
+    if (isset($executedAssertions[$name])) {
+        $failures[] = 'duplicate_assertion:' . $name;
+        return;
+    }
+    $executedAssertions[$name] = true;
     if ($condition) {
         $passed++;
         return;
@@ -92,6 +127,70 @@ $assert = static function (bool $condition, string $name) use (&$passed, &$failu
 $same = static function (mixed $expected, mixed $actual, string $name) use ($assert): void {
     $assert($expected === $actual, $name);
 };
+
+ActionCatalog::configure(new ActionDefinitionRegistry([
+    new AuthActionDefinitions(),
+    new PatientActionDefinitions(),
+    new SchedulingActionDefinitions(),
+    new DocumentTaskActionDefinitions(),
+    new WorkforceActionDefinitions(),
+    new FinancialActionDefinitions(),
+    new AdminActionDefinitions(),
+]));
+$capabilityPort = new class implements CapabilityProvider {
+    public array $calls = [];
+    public function grants(ActionContract $contract, string $capability, array $context): bool
+    {
+        $this->calls[] = [$contract->route, $contract->action, $capability, $context['clinic_id'] ?? null];
+        return in_array($capability, (array) ($context['grants'] ?? []), true) ||
+            ($capability === 'session:self' && (int) ($context['user']['id'] ?? 0) > 0) ||
+            ($capability === 'admin:*' && ($context['scope'] ?? '') === 'global');
+    }
+};
+$authorization = new AuthorizationService($capabilityPort);
+$managerContext = [
+    'scope' => 'clinic',
+    'clinic_id' => 7,
+    'user' => ['id' => 91],
+    'role' => 'gerente',
+    'grants' => ['patients:view', 'documents:add'],
+];
+$authorizationDecision = $authorization->evaluate(
+    'patient',
+    'POST',
+    ['act' => 'issue_patient_document'],
+    $managerContext,
+);
+$assert($authorizationDecision->allowed && !$authorizationDecision->skipped, 'application.authorization.clinic_allowed');
+$same(['patients:view', 'documents:add'], $authorizationDecision->evidence['granted'] ?? null, 'application.authorization.exact_grants');
+$permissionDenied = $authorization->evaluate(
+    'patient',
+    'POST',
+    ['act' => 'patient_revenue_receive'],
+    $managerContext,
+);
+$same('action_capability_subset_not_satisfied', $permissionDenied->reason, 'application.authorization.permission_denied');
+$wrongTenant = $authorization->evaluate(
+    'appointments',
+    'POST',
+    ['act' => 'create'],
+    [...$managerContext, 'clinic_id' => 0],
+);
+$same('clinic_scope_required_for_action', $wrongTenant->reason, 'application.authorization.wrong_tenant');
+$identityMissing = $authorization->evaluate(
+    'appointments',
+    'POST',
+    ['act' => 'create'],
+    ['scope' => 'clinic', 'clinic_id' => 7],
+);
+$same('identity_missing_for_action', $identityMissing->reason, 'application.authorization.identity_missing');
+$assert($authorization->evaluate('patient', 'GET', [], [])->skipped, 'application.authorization.read_only_skip');
+$same('action_contract_missing', $authorization->evaluate('patient', 'POST', ['act' => 'unknown'], $managerContext)->reason, 'application.authorization.unknown_fail_closed');
+$same(
+    $authorizationDecision->proofHash,
+    $authorization->evaluate('patient', 'POST', ['act' => 'issue_patient_document'], $managerContext)->proofHash,
+    'application.authorization.deterministic_proof',
+);
 
 $assert(IdentityDocumentValidator::cpf('52998224725'), 'identity.cpf.valid');
 $assert(!IdentityDocumentValidator::cpf('52998224724'), 'identity.cpf.invalid_check_digit');
@@ -199,7 +298,13 @@ $dataPort = new class implements FinancialDataPort {
         $this->ensured[] = $contract;
     }
 };
-$dataService = new FinancialDataService($dataPort);
+$financialDataFailures = [];
+$dataService = new FinancialDataService(
+    $dataPort,
+    static function (Throwable $error) use (&$financialDataFailures): void {
+        $financialDataFailures[] = $error->getMessage();
+    },
+);
 $dataResult = $dataService->result('financial.03.test_read.01', [7, 91], ['scope' => 'clinic']);
 $same([['id' => 41, 'total' => 1250]], $dataResult->fetchAll(), 'application.financial_data.rows');
 $same(['financial.03.test_read.01', [7, 91], ['scope' => 'clinic']], $dataPort->last, 'application.financial_data.port_arguments');
@@ -207,11 +312,21 @@ $same(['id' => 41, 'total' => 1250], $dataService->row('financial.03.test_read.0
 $same(41, $dataService->scalar('financial.03.test_read.03'), 'application.financial_data.scalar');
 $same(73, $dataService->lastInsertId(), 'application.financial_data.last_insert_id');
 $same('committed', $dataService->atomic(static fn(): string => 'committed'), 'application.financial_data.atomic');
+try {
+    $dataService->atomic(static function (): never {
+        throw new RuntimeException('financial atomic failure');
+    });
+    $assert(false, 'application.financial_data.atomic_failure_propagates');
+} catch (RuntimeException $error) {
+    $same('financial atomic failure', $error->getMessage(), 'application.financial_data.atomic_failure_propagates');
+}
 $dataService->ensureOperationalSchema();
 $dataService->ensureDailyClosingSchema();
 $same(['financial_operational', 'financial_daily_closing'], $dataPort->ensured, 'application.financial_data.schema_contracts');
+$same(2, count($dataPort->ensured), 'application.financial_data.schema_contract_count');
 $dataPort->fail = true;
 $same(19, $dataService->safeScalar('financial.03.test_read.04', [], 19), 'application.financial_data.fail_closed_default');
+$same(['port failure'], $financialDataFailures, 'application.financial_data.failure_reported');
 try {
     $dataService->result('arbitrary_sql', []);
     $failures[] = 'application.financial_data.closed_catalog';
@@ -247,7 +362,13 @@ $identityPort = new class implements IdentityDataPort {
         $this->ensured[] = $contract;
     }
 };
-$identityService = new IdentityDataService($identityPort);
+$identityFailures = [];
+$identityService = new IdentityDataService(
+    $identityPort,
+    static function (Throwable $error) use (&$identityFailures): void {
+        $identityFailures[] = $error->getMessage();
+    },
+);
 $identityResult = $identityService->result('identity.auth01.test_read.01', [7], ['tenant' => 7]);
 $same([17, 19], $identityResult->fetchAll(PDO::FETCH_COLUMN), 'application.identity.fetch_column');
 $same(['identity.auth01.test_read.01', [7], ['tenant' => 7]], $identityPort->last, 'application.identity.port_arguments');
@@ -255,10 +376,20 @@ $same(['id' => 17, 'role' => 'gerente'], $identityService->row('identity.permiss
 $same(17, $identityService->scalar('identity.security01.test_read.01'), 'application.identity.scalar');
 $same(29, $identityService->lastInsertId(), 'application.identity.last_insert_id');
 $same('atomic', $identityService->atomic(static fn(): string => 'atomic'), 'application.identity.atomic');
+try {
+    $identityService->atomic(static function (): never {
+        throw new RuntimeException('identity atomic failure');
+    });
+    $assert(false, 'application.identity.atomic_failure_propagates');
+} catch (RuntimeException $error) {
+    $same('identity atomic failure', $error->getMessage(), 'application.identity.atomic_failure_propagates');
+}
 $identityService->ensureOnboardingTipsSchema();
 $same(['onboarding_tips'], $identityPort->ensured, 'application.identity.ensure_contract');
+$same(1, count($identityPort->ensured), 'application.identity.schema_contract_count');
 $identityPort->fail = true;
 $same('closed', $identityService->safeScalar('identity.security02.test_read.01', [], 'closed'), 'application.identity.fail_closed_default');
+$same(['identity port failure'], $identityFailures, 'application.identity.failure_reported');
 try {
     $identityService->result('identity.raw_sql', []);
     $failures[] = 'application.identity.closed_catalog';
@@ -303,24 +434,36 @@ $operationalPort = new class implements OperationalDataPort, OperationalSchemaPo
         return true;
     }
 };
+$operationalFailures = [];
 $taskUseCases = new OperationalUseCaseService(
     $operationalPort,
     $operationalPort,
     $operationalPort,
     'tasks',
+    static function (Throwable $error) use (&$operationalFailures): void {
+        $operationalFailures[] = $error->getMessage();
+    },
 );
 $taskResult = $taskUseCases->result(
     'operational.tasks_notices.01.create_task.01',
     [7, 91],
     ['tenant' => 7],
 );
-$same(['id' => 61, 'status' => 'aberta'], $taskResult->fetch(), 'application.operational.result');
+$same(['id' => 61, 'status' => 'aberta'], $taskResult->fetch(), 'application.operational.tasks.allowed');
 $same(2, $taskResult->rowCount(), 'application.operational.affected_rows');
 $same(false, $taskResult->fetch(), 'application.operational.result_cursor');
-$same(['operational.tasks_notices.01.create_task.01', [7, 91], ['tenant' => 7]], $operationalPort->last, 'application.operational.port_arguments');
+$same(['operational.tasks_notices.01.create_task.01', [7, 91], ['tenant' => 7]], $operationalPort->last, 'application.operational.tasks.tenant_forwarded');
 $same(61, $taskUseCases->scalar('operational.tasks_notices.02.task_count.01'), 'application.operational.scalar');
 $same(83, $taskUseCases->lastInsertId(), 'application.operational.last_insert_id');
 $same('atomic', $taskUseCases->atomic(static fn(): string => 'atomic'), 'application.operational.atomic');
+try {
+    $taskUseCases->atomic(static function (): never {
+        throw new RuntimeException('operational atomic failure');
+    });
+    $assert(false, 'application.operational.atomic_failure_propagates');
+} catch (RuntimeException $error) {
+    $same('operational atomic failure', $error->getMessage(), 'application.operational.atomic_failure_propagates');
+}
 $taskUseCases->ensureSchema('readonly_support_alerts');
 $same(['readonly_support_alerts'], $operationalPort->ensured, 'application.operational.schema_contract');
 $assert($taskUseCases->tableExists('pi_tasks'), 'application.operational.table_exists');
@@ -328,11 +471,12 @@ $assert($taskUseCases->columnExists('pi_tasks', 'clinic_id'), 'application.opera
 $assert($taskUseCases->inTransaction(), 'application.operational.transaction_state');
 $operationalPort->fail = true;
 $same(9, $taskUseCases->safeScalar('operational.tasks_notices.03.task_count.01', [], 9), 'application.operational.fail_closed_default');
+$same(['operational port failure'], $operationalFailures, 'application.operational.failure_reported');
 try {
     $taskUseCases->result('operational.appointments.01.create.01');
-    $failures[] = 'application.operational.scope_closed';
+    $assert(false, 'application.operational.tasks.scope_closed');
 } catch (InvalidArgumentException) {
-    $passed++;
+    $assert(true, 'application.operational.tasks.scope_closed');
 }
 try {
     $taskUseCases->result('raw.sql');
@@ -340,9 +484,76 @@ try {
 } catch (InvalidArgumentException) {
     $passed++;
 }
+$operationalPort->fail = false;
+$operationalScopes = [
+    [
+        'appointments',
+        'operational.appointments.06.appointment_procedure_id_from_post.01',
+        'application.operational.appointments.allowed',
+        'application.operational.appointments.scope_closed',
+    ],
+    [
+        'patients',
+        'operational.patients.06.patient_appointment_docs_by_appointment.01',
+        'application.operational.patients.allowed',
+        'application.operational.patients.scope_closed',
+    ],
+    [
+        'documents',
+        'operational.documents.03.document_issue_context.01',
+        'application.operational.documents.allowed',
+        'application.operational.documents.scope_closed',
+    ],
+    [
+        'leads',
+        'operational.leads.02.page_leads.01',
+        'application.operational.leads.allowed',
+        'application.operational.leads.scope_closed',
+    ],
+    [
+        'maestro',
+        'operational.maestro.01.maestro_runtime_access_marker_ready.01',
+        'application.operational.maestro.allowed',
+        'application.operational.maestro.scope_closed',
+    ],
+    [
+        'administration',
+        'operational.admin_pages.02.admin_global_ops_finance_html.01',
+        'application.operational.administration.allowed',
+        'application.operational.administration.scope_closed',
+    ],
+    [
+        'platform',
+        'operational.boot.runtime.boot_database_for_route.01',
+        'application.operational.platform.allowed',
+        'application.operational.platform.scope_closed',
+    ],
+];
+foreach ($operationalScopes as [$scope, $operation, $allowedAssertion, $closedAssertion]) {
+    $service = new OperationalUseCaseService(
+        $operationalPort,
+        $operationalPort,
+        $operationalPort,
+        $scope,
+    );
+    $same(61, $service->scalar($operation, [7], ['tenant' => 7]), $allowedAssertion);
+    try {
+        $service->result('operational.tasks_notices.01.create_task.01');
+        $assert(false, $closedAssertion);
+    } catch (InvalidArgumentException) {
+        $assert(true, $closedAssertion);
+    }
+}
+try {
+    new OperationalUseCaseService($operationalPort, $operationalPort, $operationalPort, 'unknown');
+    $failures[] = 'application.operational.unknown_scope';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
 
 $incidentPort = new class implements SecurityIncidentPort {
     public array $records = [];
+    public string $lastEntity = '';
     public function recordScopeViolation(
         int $clinicId,
         ?int $userId,
@@ -356,6 +567,7 @@ $incidentPort = new class implements SecurityIncidentPort {
     }
     public function scopedEntityReadShape(string $entity): string
     {
+        $this->lastEntity = $entity;
         return 'shape:' . $entity;
     }
 };
@@ -365,11 +577,12 @@ $same([], $incidentPort->records, 'application.security_incident.invalid_tenant_
 $incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence');
 $same([7, 91, 'gerente', 'patient', 'entity_outside_clinic', str_repeat('b', 64), 'evidence'], $incidentPort->records[0] ?? null, 'application.security_incident.port_arguments');
 $same('shape:patient', $incidentService->scopedEntityReadShape('patient'), 'application.security_incident.shape');
+$same('patient', $incidentPort->lastEntity, 'application.security_incident.shape_argument');
 try {
     $incidentService->recordScopeViolation(7, 91, 'gerente', 'patient', 'scope', 'invalid', 'evidence');
-    $failures[] = 'application.security_incident.invalid_fingerprint';
+    $assert(false, 'application.security_incident.invalid_fingerprint');
 } catch (InvalidArgumentException) {
-    $passed++;
+    $assert(true, 'application.security_incident.invalid_fingerprint');
 }
 
 $mfaPort = new class implements MfaRecordPort {
@@ -399,6 +612,7 @@ $mfaPort = new class implements MfaRecordPort {
     }
 };
 $mfaService = new MfaRecordService($mfaPort);
+$assert($mfaService->hasConfig(), 'application.mfa.configured');
 $same(null, $mfaService->load(0), 'application.mfa.invalid_user_short_circuit');
 $same(null, $mfaService->load(91), 'application.mfa.absent');
 $mfaService->save(91, ['v' => 1, 'secret' => 'encrypted', 'recovery' => []]);
@@ -410,9 +624,9 @@ $same(null, $mfaService->load(91), 'application.mfa.deleted');
 $mfaPort->record = '{';
 try {
     $mfaService->load(91);
-    $failures[] = 'application.mfa.corrupt_fail_closed';
+    $assert(false, 'application.mfa.corrupt_fail_closed');
 } catch (RuntimeException) {
-    $passed++;
+    $assert(true, 'application.mfa.corrupt_fail_closed');
 }
 
 $patientPort = new class implements PatientReadPort {
@@ -461,13 +675,26 @@ $goal = $goalService->save(7, '2026-08', 250000, 'desconhecida', true, 91);
 $same('efetivada', $goal['base_metric'] ?? null, 'application.goal.base_normalized');
 $same(1, $goal['share_with_team'] ?? null, 'application.goal.share_normalized');
 $same([7, '2026-08', 250000, 'efetivada', true, 91], $goalPort->last, 'application.goal.port_arguments');
+try {
+    $goalService->save(0, '2026-08', 250000, 'efetivada', false, 91);
+    $assert(false, 'application.goal.invalid_tenant');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.goal.invalid_tenant');
+}
+try {
+    $goalService->save(7, '2026-8', 250000, 'efetivada', false, 91);
+    $assert(false, 'application.goal.invalid_month');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.goal.invalid_month');
+}
 
 $revenuePort = new class implements PatientRevenueReceiptPort {
     public array $last = [];
+    public array $result = ['status' => 'received', 'movement_id' => 44, 'amount_cents' => 12500, 'title' => 'Consulta'];
     public function receive(int $clinicId, int $patientId, int $revenueId, int $userId, string $role): array
     {
         $this->last = [$clinicId, $patientId, $revenueId, $userId, $role];
-        return ['status' => 'received', 'revenue_id' => $revenueId, 'movement_id' => 44, 'amount_cents' => 12500, 'title' => 'Consulta'];
+        return ['revenue_id' => $revenueId, ...$this->result];
     }
 };
 $revenueService = new PatientRevenueReceiptService($revenuePort);
@@ -475,13 +702,29 @@ $receipt = $revenueService->receive(7, 31, 52, 91, ' GERENTE ');
 $same('received', $receipt['status'] ?? null, 'application.revenue.received');
 $same(44, $receipt['movement_id'] ?? null, 'application.revenue.movement');
 $same([7, 31, 52, 91, 'gerente'], $revenuePort->last, 'application.revenue.port_arguments');
+$revenuePort->result = ['status' => 'not_pending', 'movement_id' => 0, 'amount_cents' => 12500, 'title' => 'Consulta'];
+$same('not_pending', $revenueService->receive(7, 31, 52, 91, 'recepcionista')['status'] ?? null, 'application.revenue.not_pending');
+try {
+    $revenueService->receive(7, 31, 52, 91, 'medico');
+    $assert(false, 'application.revenue.invalid_role');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.revenue.invalid_role');
+}
+$revenuePort->result = ['status' => 'unexpected'];
+try {
+    $revenueService->receive(7, 31, 52, 91, 'gerente');
+    $assert(false, 'application.revenue.invalid_port_result');
+} catch (RuntimeException) {
+    $assert(true, 'application.revenue.invalid_port_result');
+}
 
 $contactPort = new class implements PatientContactCommandPort {
     public array $last = [];
+    public array $result = ['status' => 'updated'];
     public function update(int $clinicId, int $patientId, int $userId, array $contact): array
     {
         $this->last = [$clinicId, $patientId, $userId, $contact];
-        return ['status' => 'updated'];
+        return $this->result;
     }
 };
 $contactService = new PatientContactCommandService($contactPort);
@@ -489,11 +732,26 @@ $contactResult = $contactService->update(7, 31, 91, ['phone' => ' 65999990000 ',
 $same(['status' => 'updated', 'patient_id' => 31], $contactResult, 'application.contact.updated');
 $same('65999990000', $contactPort->last[3]['phone'] ?? null, 'application.contact.phone_trimmed');
 $same('ana@example.com', $contactPort->last[3]['email'] ?? null, 'application.contact.email_trimmed');
+try {
+    $contactService->update(0, 31, 91, []);
+    $assert(false, 'application.contact.invalid_context');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.contact.invalid_context');
+}
+$contactPort->result = ['status' => 'ignored'];
+try {
+    $contactService->update(7, 31, 91, []);
+    $assert(false, 'application.contact.invalid_port_result');
+} catch (RuntimeException) {
+    $assert(true, 'application.contact.invalid_port_result');
+}
 
 $historyPort = new class implements PatientReceptionHistoryReadPort {
     public array $last = [];
+    public int $calls = 0;
     public function read(int $clinicId, int $patientId, int $personId, string $phoneDigits): array
     {
+        $this->calls++;
         $this->last = [$clinicId, $patientId, $personId, $phoneDigits];
         return ['leads' => [8 => ['id' => 8]], 'events' => ['8' => [['id' => 9]]], 'users' => ['91' => 'Ana']];
     }
@@ -503,13 +761,22 @@ $history = $historyService->read(7, 31, 12, '(65) 99999-0000');
 $same([7, 31, 12, '65999990000'], $historyPort->last, 'application.history.port_arguments');
 $same([['id' => 8]], $history['leads'] ?? null, 'application.history.leads_list');
 $same(['91' => 'Ana'], $history['users'] ?? null, 'application.history.users_map');
+$same(['leads' => [], 'events' => [], 'users' => []], $historyService->read(7, 31, 0, ''), 'application.history.empty_no_port_call');
+$same(1, $historyPort->calls, 'application.history.empty_port_calls');
+try {
+    $historyService->read(0, 31, 12, '65999990000');
+    $assert(false, 'application.history.invalid_tenant');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.history.invalid_tenant');
+}
 
 $tabPort = new class implements PatientTabCommandPort {
     public array $last = [];
+    public array $result = ['status' => 'duplicate', 'id' => 71, 'sort_order' => 4];
     public function createIfAbsent(int $clinicId, int $patientId, string $label, string $iconName, int $userId): array
     {
         $this->last = [$clinicId, $patientId, $label, $iconName, $userId];
-        return ['status' => 'duplicate', 'id' => 71, 'sort_order' => 4];
+        return $this->result;
     }
 };
 $tabService = new PatientTabCommandService($tabPort);
@@ -517,13 +784,53 @@ $tab = $tabService->create(7, 31, ' Exames ', ' science ', 91);
 $same('duplicate', $tab['status'] ?? null, 'application.tab.duplicate');
 $same(71, $tab['id'] ?? null, 'application.tab.id');
 $same([7, 31, 'Exames', 'science', 91], $tabPort->last, 'application.tab.port_arguments');
+try {
+    $tabService->create(7, 31, ' ', 'science', 91);
+    $assert(false, 'application.tab.invalid_input');
+} catch (InvalidArgumentException) {
+    $assert(true, 'application.tab.invalid_input');
+}
+$tabPort->result = ['status' => 'unknown'];
+try {
+    $tabService->create(7, 31, 'Exames', 'science', 91);
+    $assert(false, 'application.tab.invalid_port_result');
+} catch (RuntimeException) {
+    $assert(true, 'application.tab.invalid_port_result');
+}
 
+$applicationContract = json_decode(
+    (string) file_get_contents($root . '/app/application.test-contract.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+$applicationServices = [];
+$applicationPorts = [];
+$contractAssertions = [];
+foreach ((array) ($applicationContract['cases'] ?? []) as $case) {
+    $applicationServices[(string) ($case['service'] ?? '')] = true;
+    foreach ((array) ($case['ports'] ?? []) as $port) {
+        $applicationPorts[(string) ($port['interface'] ?? '')] = true;
+    }
+    foreach ((array) ($case['assertions'] ?? []) as $assertion) {
+        $contractAssertions[] = (string) $assertion;
+    }
+}
+$missingContractAssertions = array_values(array_diff($contractAssertions, array_keys($executedAssertions)));
+foreach ($missingContractAssertions as $missingContractAssertion) {
+    $failures[] = 'contract_assertion_not_executed:' . $missingContractAssertion;
+}
+$applicationCases = count((array) ($applicationContract['cases'] ?? []));
 $result = [
     'ok' => $failures === [],
-    'policy' => 'fast-unit-suite-v4',
+    'policy' => 'fast-unit-suite-v5',
     'assertions_passed' => $passed,
     'assertions_failed' => count($failures),
-    'application_ports_tested' => 14,
+    'application_services_tested' => count(array_filter(array_keys($applicationServices))),
+    'application_use_cases_tested' => $applicationCases,
+    'critical_application_use_cases_tested' => $applicationCases,
+    'application_ports_tested' => count(array_filter(array_keys($applicationPorts))),
+    'contract_assertions_executed' => count($contractAssertions) - count($missingContractAssertions),
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
