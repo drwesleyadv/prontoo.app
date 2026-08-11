@@ -24,7 +24,9 @@ require_once __DIR__ . "/Runtime/Autoload/ProntooAutoloader.php";
 \Prontoo\Core\Invariant\InvariantRuntimeBinding::configure(
     new \Prontoo\Infrastructure\Invariant\PdoInvariantRuntimeAdapter(
         static fn(int $clinicId): bool => \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_read_only_db($clinicId),
-        static fn(string $key, string $sql, string $detail): void => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::record_scope_violation($key, $sql, $detail),
+        static function (string $key, string $sql, string $detail): void {
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::record_scope_violation($key, $sql, $detail);
+        },
     ),
 );
 if (PHP_SAPI !== "cli") {

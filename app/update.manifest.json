@@ -460,7 +460,7 @@
         "app/architecture.manifest.json": "d5a7b15db5306264b6908a8421836565d10e78b0278f85a5eef4239d5d8087e0",
         "app/bootstrap_architecture.php": "8788ce3a68b9aa0006fe96286d3511f6d6f4cbbb3e3b1ccefdc7ce6ac5b97ed6",
         "app/performance.budgets.json": "43f1c93ab75389cad1e5041c8a0458e3fab14a43e3282bb3e184996bf1e1d8e5",
-        "app/prontoo.php": "33b7aa2bb39ab961b04acc318c037c490e48c871851e2418c90289e86e46bb8a",
+        "app/prontoo.php": "7606d99ec3143abc424d681dd047e4d3305e63a9431089aa5cb5aa13e5917dca",
         "app/query.budgets.json": "855e000a57b93ea91f6abd518b99787de0d126619fa4c045eda4daac5a9066e3",
         "app/runtime.boundary-baseline.json": "02708c14b456ed167a348cfcd3f86d23c5225b4bbb9983ab54c54e6f57d49f8e",
         "app/runtime.boundary-contract.json": "f5434d3770d964f1ef768bd8afadcaddb924462384cbbe30b501208522122df4",
