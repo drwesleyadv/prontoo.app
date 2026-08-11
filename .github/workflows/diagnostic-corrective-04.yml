@@ -1,0 +1,95 @@
+name: Corrective 04 Diagnostics
+
+on:
+  push:
+    branches:
+      - diagnostic/corrective-04-ci
+
+permissions:
+  contents: read
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;dbname=prontoo_schema;charset=utf8mb4
+  PRONTOO_SCHEMA_USER: root
+  PRONTOO_SCHEMA_PASS: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Run isolated diagnostics
+        shell: bash
+        run: |
+          set -u
+          rm -f .github/workflows/diagnostic-corrective-04.yml
+          mkdir -p diagnostic-output
+          : > diagnostic-output/summary.txt
+          run_check() {
+            name="$1"
+            shift
+            set +e
+            "$@" >"diagnostic-output/${name}.log" 2>&1
+            code=$?
+            set -e
+            printf '%s=%s\n' "$name" "$code" | tee -a diagnostic-output/summary.txt
+          }
+          set -e
+          run_check release-contract php tools/release-contract-reconcile --check
+          run_check quality-gate php tools/quality-gate
+          run_check documentation php tools/documentation-check.php
+          run_check code-comments php tools/code-comment-check.php
+          run_check security php tools/security-regression-check.php
+          run_check schema php tools/schema-check.php
+          run_check mysql-query-budget php tools/mysql-query-budget-check
+          run_check installer-security php tools/install-security-check.php
+          run_check installer-window php tools/install-window-contract-check
+          run_check login-runtime php tools/login-post-password-runtime-check
+          run_check maestro-runtime php tools/maestro-runtime-regression-check
+          run_check critical-runtime php tools/critical-runtime-smoke-check
+          set +e
+          bash tools/http-runtime-smoke-check > diagnostic-output/http-runtime.log 2>&1
+          code=$?
+          set -e
+          printf 'http-runtime=%s\n' "$code" | tee -a diagnostic-output/summary.txt
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: corrective-04-diagnostics
+          path: diagnostic-output
+          if-no-files-found: error
+          retention-days: 1
