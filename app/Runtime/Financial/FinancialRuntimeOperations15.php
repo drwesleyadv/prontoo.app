@@ -314,15 +314,9 @@ final class FinancialRuntimeOperations15
         $profile["legal_document"] = $doc;
         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_update($pid, $profile);
         $notes = mb_trim((string) ($_POST["creditor_notes"] ?? ""));
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_financial_counterparties (clinic_id,person_id,kind,notes,active,created_by,created_at) VALUES (?,?,?,?,1,?,NOW()) ON DUPLICATE KEY UPDATE notes=VALUES(notes), active=1, updated_at=NOW()",
-            [$cid, $pid, "credor", $notes ?: null, $uid],
-        );
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.15.creditor_upsert_from_post.01", [$cid, $pid, "credor", $notes ?: null, $uid], []);
         $id =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' LIMIT 1",
-                [$cid, $pid],
-            ) ?:
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.15.creditor_upsert_from_post.02", [$cid, $pid], []) ?:
             0);
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("credor_salvo", "pessoa", $id, [
             "nome" => $name,

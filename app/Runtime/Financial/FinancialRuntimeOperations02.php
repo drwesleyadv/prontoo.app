@@ -37,10 +37,7 @@ final class FinancialRuntimeOperations02
         $display = "";
         $id = (int) $hiddenValue;
         if ($id > 0) {
-            $r = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.id=? AND fc.clinic_id=? AND fc.active=1 LIMIT 1",
-                [$id, $cid],
-            );
+            $r = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.counterparty_lookup_field.01", [$id, $cid], []);
             if ($r) {
                 $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
                 $display =
@@ -70,10 +67,7 @@ final class FinancialRuntimeOperations02
     {
     
         if ($postedId > 0) {
-            $ok = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_financial_counterparties WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
-                [$postedId, $cid],
-            );
+            $ok = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.02.resolve_counterparty_lookup_id.01", [$postedId, $cid], []);
             if ($ok > 0) {
                 return $ok;
             }
@@ -84,10 +78,7 @@ final class FinancialRuntimeOperations02
         }
         $clean = mb_strtolower($search, "UTF-8");
         $digits = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search);
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name ASC LIMIT 1000",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.resolve_counterparty_lookup_id.02", [$cid], [])->fetchAll();
         $exact = [];
         $nameExact = [];
         $starts = [];
@@ -173,14 +164,8 @@ final class FinancialRuntimeOperations02
             return;
         }
         $p = $isCpf
-            ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,full_name,cpf,birth_date,legal_document FROM pi_persons WHERE cpf=? LIMIT 1",
-                [$doc],
-            )
-            : \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id,full_name,cpf,birth_date,legal_document FROM pi_persons WHERE legal_document=? LIMIT 1",
-                [$doc],
-            );
+            ? \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.page_counterparty_lookup.01", [$doc], [])
+            : \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.page_counterparty_lookup.02", [$doc], []);
         if (!$p) {
             echo json_encode(
                 [
@@ -192,10 +177,7 @@ final class FinancialRuntimeOperations02
             );
             return;
         }
-        $link = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' AND active=1 LIMIT 1",
-            [$cid, (int) $p["id"]],
-        );
+        $link = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.page_counterparty_lookup.03", [$cid, (int) $p["id"]], []);
         if (!$link) {
             echo json_encode(
                 [
@@ -255,11 +237,7 @@ final class FinancialRuntimeOperations02
             $where .= " AND p.full_name LIKE ?";
             $params[] = $q . "%";
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT fc.id,p.full_name,p.cpf,p.legal_document FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE $where ORDER BY p.full_name ASC, fc.id DESC LIMIT " .
-                (int) $limit,
-            $params,
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.page_counterparty_suggest.01", $params, compact('where', 'limit'))->fetchAll();
         $items = [];
         foreach ($rows as $r) {
             $doc = (string) ($r["cpf"] ?? "" ?: $r["legal_document"] ?? "");
@@ -282,10 +260,7 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT fc.id,p.full_name FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.active=1 ORDER BY p.full_name LIMIT 300",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.counterparty_options.01", [$cid], [])->fetchAll();
         $out = ["" => "Selecione o credor"];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] = $r["full_name"];
@@ -298,10 +273,7 @@ final class FinancialRuntimeOperations02
     
     {
     
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY name LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.account_options.01", [$cid], [])->fetchAll();
         $out = ["" => "Caixa geral"];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] = $r["name"];
@@ -316,10 +288,7 @@ final class FinancialRuntimeOperations02
     ): array 
     {
     
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name FROM pi_financial_accounts WHERE clinic_id=? AND active=1 ORDER BY FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.account_label_options.01", [$cid], [])->fetchAll();
         $out = ["" => $empty];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] = $r["name"];
@@ -339,23 +308,17 @@ final class FinancialRuntimeOperations02
             \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
             \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, $uid);
             $cashId =
-                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND account_type='caixa_interno' AND LOWER(name)=LOWER('Cofre do Consultório') LIMIT 1",
-                    [$cid],
-                ) ?:
+                (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.02.ensure_default_accounts.01", [$cid], []) ?:
                 0);
             if ($cashId <= 0) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_financial_accounts (clinic_id,name,bank_name,account_type,opening_balance_cents,active,created_by,created_at) VALUES (?,?,?,?,?,1,?,NOW())",
-                    [
+                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.ensure_default_accounts.02", [
                         $cid,
                         "Cofre do Consultório",
                         null,
                         "caixa_interno",
                         0,
                         $uid,
-                    ],
-                );
+                    ], []);
             }
         } catch (Throwable $e) {
             error_log("[Prontoo finance default accounts] " . $e->getMessage());
@@ -368,10 +331,7 @@ final class FinancialRuntimeOperations02
     {
     
         return $accountId > 0 &&
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_financial_accounts WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
-                [$accountId, $cid],
-            ) ?:
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.02.account_belongs.01", [$accountId, $cid], []) ?:
                 0) > 0;
     
     }
@@ -400,35 +360,20 @@ final class FinancialRuntimeOperations02
         }
         if ($pid <= 0) {
             $pid =
-                (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                    "SELECT p.id FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND LOWER(p.full_name)=LOWER(?) AND p.cpf IS NULL AND p.legal_document IS NULL ORDER BY fc.id ASC LIMIT 1",
-                    [$cid, $name],
-                ) ?:
+                (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.02.counterparty_light.01", [$cid, $name], []) ?:
                 0);
             if ($pid > 0) {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "UPDATE pi_persons SET full_name=?, updated_at=NOW() WHERE id=?",
-                    [$name, $pid],
-                );
+                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.counterparty_light.02", [$name, $pid], []);
             } else {
-                \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                    "INSERT INTO pi_persons (full_name,cpf,birth_date,created_at) VALUES (?,NULL,NULL,NOW())",
-                    [$name],
-                );
-                $pid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.counterparty_light.03", [$name], []);
+                $pid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
             }
         }
         if ($pid <= 0) {
             return 0;
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_financial_counterparties (clinic_id,person_id,kind,notes,created_by,created_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE notes=COALESCE(NULLIF(VALUES(notes),''),notes), active=1, updated_at=NOW()",
-            [$cid, $pid, "credor", $notes, $uid],
-        );
-        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT id FROM pi_financial_counterparties WHERE clinic_id=? AND person_id=? AND kind='credor' LIMIT 1",
-            [$cid, $pid],
-        ) ?:
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.counterparty_light.04", [$cid, $pid, "credor", $notes, $uid], []);
+        return (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.02.counterparty_light.05", [$cid, $pid], []) ?:
         0);
     
     }
@@ -459,35 +404,24 @@ final class FinancialRuntimeOperations02
     
     {
     
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_financial_operational_schema();
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name,account_type,bank_name,opening_balance_cents,active FROM pi_financial_accounts WHERE clinic_id=? ORDER BY active DESC, FIELD(account_type,'caixa_interno','conta_corrente','conta_pagamento','conta_poupanca','investimento'), name LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->ensureOperationalSchema();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.account_balances.01", [$cid], [])->fetchAll();
         $ids = [];
         foreach ($rows as $r) {
             $ids[] = (int) $r["id"];
         }
-        $map = function (string $sql) use ($cid): array {
+        $map = function (string $balanceSource) use ($cid): array {
     
             $out = [];
-            foreach (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q($sql, [$cid])->fetchAll() as $r) {
+            foreach (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.02.account_balances.02", [$cid], compact('balanceSource'))->fetchAll() as $r) {
                 $out[(int) $r["account_id"]] = (int) $r["total"];
             }
             return $out;
         };
-        $revenues = $map(
-            "SELECT account_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_revenues WHERE clinic_id=? AND status='efetivada' AND account_id IS NOT NULL GROUP BY account_id",
-        );
-        $expenses = $map(
-            "SELECT account_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_expenses WHERE clinic_id=? AND status='paga' AND account_id IS NOT NULL GROUP BY account_id",
-        );
-        $tin = $map(
-            "SELECT account_to_id account_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_transfers WHERE clinic_id=? GROUP BY account_to_id",
-        );
-        $tout = $map(
-            "SELECT account_from_id account_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_transfers WHERE clinic_id=? GROUP BY account_from_id",
-        );
+        $revenues = $map('revenue');
+        $expenses = $map('expense');
+        $tin = $map('transfer_in');
+        $tout = $map('transfer_out');
         $out = [];
         $total = 0;
         foreach ($rows as $r) {
@@ -530,16 +464,10 @@ final class FinancialRuntimeOperations02
             ->getTimestamp();
         $bal = \Prontoo\Runtime\Financial\FinancialRuntimeOperations02::financial_account_balances($cid);
         $rev =
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT COALESCE(SUM(CASE WHEN status='prevista' AND expected_at IS NOT NULL AND expected_at<? THEN amount_cents ELSE 0 END),0) receive30, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at IS NOT NULL AND expected_at<? THEN amount_cents ELSE 0 END),0) receive7, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at>=? AND expected_at<? THEN amount_cents ELSE 0 END),0) receiveToday, COALESCE(SUM(CASE WHEN status='prevista' AND expected_at<? THEN amount_cents ELSE 0 END),0) overRec FROM pi_financial_revenues WHERE clinic_id=?",
-                [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid],
-            ) ?:
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.dashboard_numbers.01", [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid], []) ?:
             [];
         $exp =
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT COALESCE(SUM(CASE WHEN status='prevista' AND due_at IS NOT NULL AND due_at<? THEN amount_cents ELSE 0 END),0) pay30, COALESCE(SUM(CASE WHEN status='prevista' AND due_at IS NOT NULL AND due_at<? THEN amount_cents ELSE 0 END),0) pay7, COALESCE(SUM(CASE WHEN status='prevista' AND due_at>=? AND due_at<? THEN amount_cents ELSE 0 END),0) payToday, COALESCE(SUM(CASE WHEN status='prevista' AND due_at<? THEN amount_cents ELSE 0 END),0) overPay FROM pi_financial_expenses WHERE clinic_id=?",
-                [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid],
-            ) ?:
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.02.dashboard_numbers.02", [$d30End, $d7End, $todayStart, $todayEnd, $todayStart, $cid], []) ?:
             [];
         $receive30 = (int) ($rev["receive30"] ?? 0);
         $receive7 = (int) ($rev["receive7"] ?? 0);

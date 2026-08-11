@@ -76,6 +76,25 @@
         "runtime_transaction_orchestration_business": 71,
         "runtime_transaction_orchestration_structural": 3
     },
+    "runtime_boundary_zero_paths": {
+        "app/Runtime/Financial/": [
+            "runtime_business_sql",
+            "runtime_structural_sql",
+            "runtime_direct_pdo",
+            "runtime_persistence_helper",
+            "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business",
+            "runtime_transaction_orchestration_structural"
+        ]
+    },
+    "engineering_phase_seventeen_policy": "financial_runtime_adapts_input_and_output_while_application_ports_dispatch_only_named_financial_operations_to_guarded_infrastructure_catalogs",
+    "engineering_phase_seventeen_components": [
+        "app/Application/Financial/FinancialDataPort.php",
+        "app/Application/Financial/FinancialDataService.php",
+        "app/Infrastructure/Financial/PdoFinancialDataRepository.php",
+        "app/Runtime/Financial/FinancialComposition.php"
+    ],
+    "engineering_phase_seventeen_check": "tools/runtime-boundary-check",
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",

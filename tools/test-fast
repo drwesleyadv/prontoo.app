@@ -15,6 +15,9 @@ foreach ([
     'app/Runtime/Routing/RouteRegistry.php',
     'app/Application/Financial/FinancialCashierAttentionPort.php',
     'app/Application/Financial/FinancialCashierAttentionService.php',
+    'app/Application/Financial/FinancialDataResult.php',
+    'app/Application/Financial/FinancialDataPort.php',
+    'app/Application/Financial/FinancialDataService.php',
     'app/Application/Financial/FinancialGoalPort.php',
     'app/Application/Financial/FinancialGoalService.php',
     'app/Application/Financial/PatientRevenueReceiptPort.php',
@@ -33,6 +36,9 @@ foreach ([
 
 use Prontoo\Application\Financial\FinancialCashierAttentionPort;
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Financial\FinancialDataPort;
+use Prontoo\Application\Financial\FinancialDataResult;
+use Prontoo\Application\Financial\FinancialDataService;
 use Prontoo\Application\Financial\FinancialGoalPort;
 use Prontoo\Application\Financial\FinancialGoalService;
 use Prontoo\Application\Financial\PatientRevenueReceiptPort;
@@ -144,6 +150,51 @@ $assert($cashService->requiresAttention($context, false, '2026-08-10'), 'applica
 $same([7, 91], $cashPort->lastAssigned, 'application.cash.assignment_context');
 $same([7, 91, '2026-08-10'], $cashPort->lastOpen, 'application.cash.open_context');
 
+$dataPort = new class implements FinancialDataPort {
+    public array $last = [];
+    public array $ensured = [];
+    public bool $fail = false;
+    public function run(string $operation, array $parameters, array $context): FinancialDataResult
+    {
+        $this->last = [$operation, $parameters, $context];
+        if ($this->fail) {
+            throw new RuntimeException('port failure');
+        }
+        return new FinancialDataResult([['id' => 41, 'total' => 1250]], 3);
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return 73;
+    }
+    public function ensure(string $contract): void
+    {
+        $this->ensured[] = $contract;
+    }
+};
+$dataService = new FinancialDataService($dataPort);
+$dataResult = $dataService->result('financial.03.test_read.01', [7, 91], ['scope' => 'clinic']);
+$same([['id' => 41, 'total' => 1250]], $dataResult->fetchAll(), 'application.financial_data.rows');
+$same(['financial.03.test_read.01', [7, 91], ['scope' => 'clinic']], $dataPort->last, 'application.financial_data.port_arguments');
+$same(['id' => 41, 'total' => 1250], $dataService->row('financial.03.test_read.02'), 'application.financial_data.row');
+$same(41, $dataService->scalar('financial.03.test_read.03'), 'application.financial_data.scalar');
+$same(73, $dataService->lastInsertId(), 'application.financial_data.last_insert_id');
+$same('committed', $dataService->atomic(static fn(): string => 'committed'), 'application.financial_data.atomic');
+$dataService->ensureOperationalSchema();
+$dataService->ensureDailyClosingSchema();
+$same(['financial_operational', 'financial_daily_closing'], $dataPort->ensured, 'application.financial_data.schema_contracts');
+$dataPort->fail = true;
+$same(19, $dataService->safeScalar('financial.03.test_read.04', [], 19), 'application.financial_data.fail_closed_default');
+try {
+    $dataService->result('arbitrary_sql', []);
+    $failures[] = 'application.financial_data.closed_catalog';
+} catch (InvalidArgumentException) {
+    $passed++;
+}
+
 $patientPort = new class implements PatientReadPort {
     public ?array $registration = ['id' => 31, 'name' => 'Ana'];
     public array $guardians = [];
@@ -249,10 +300,10 @@ $same([7, 31, 'Exames', 'science', 91], $tabPort->last, 'application.tab.port_ar
 
 $result = [
     'ok' => $failures === [],
-    'policy' => 'fast-unit-suite-v3',
+    'policy' => 'fast-unit-suite-v4',
     'assertions_passed' => $passed,
     'assertions_failed' => count($failures),
-    'application_ports_tested' => 7,
+    'application_ports_tested' => 8,
     'failures' => $failures,
 ];
 fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

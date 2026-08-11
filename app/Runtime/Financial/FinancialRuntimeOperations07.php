@@ -47,9 +47,7 @@ final class FinancialRuntimeOperations07
         if ($existing && (int) ($existing["id"] ?? 0) > 0) {
             $sid = (int) $existing["id"];
             $oldStatus = (string) ($existing["status"] ?? "");
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_cash_sessions SET location_id=?, opened_at=NULL, kept_closed_at=NULL, opening_balance_cents=?, expected_closing_cents=?, declared_closing_cents=?, keep_in_drawer_cents=?, transfer_to_safe_cents=0, difference_cents=?, status='opening_pending_review', closing_notes=?, reviewed_by=NULL, reviewed_at=NULL, review_status=NULL, review_notes=NULL, updated_at=NOW() WHERE id=? AND clinic_id=? AND user_id=?",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.request_opening_authorization.01", [
                     $loc,
                     $informed,
                     $expected,
@@ -60,8 +58,7 @@ final class FinancialRuntimeOperations07
                     $sid,
                     $cid,
                     $uid,
-                ],
-            );
+                ], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("abertura_caixa_divergente_atualizada", "financeiro", $sid, [
                 "esperado" => $expected,
                 "informado" => $informed,
@@ -82,9 +79,7 @@ final class FinancialRuntimeOperations07
             }
             return $sid;
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_cash_sessions (clinic_id,user_id,location_id,business_date,opened_at,kept_closed_at,opening_balance_cents,expected_closing_cents,declared_closing_cents,keep_in_drawer_cents,transfer_to_safe_cents,difference_cents,status,closing_notes,created_at,updated_at) VALUES (?,?,?,?,NULL,NULL,?,?,?,?,0,?,'opening_pending_review',?,NOW(),NOW())",
-            [
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.request_opening_authorization.02", [
                 $cid,
                 $uid,
                 $loc,
@@ -95,9 +90,8 @@ final class FinancialRuntimeOperations07
                 $expected,
                 $diff,
                 $notes,
-            ],
-        );
-        $sid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            ], []);
+        $sid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("abertura_caixa_divergente_solicitada", "financeiro", $sid, [
             "esperado" => $expected,
             "informado" => $informed,
@@ -126,10 +120,7 @@ final class FinancialRuntimeOperations07
     
         $today = $today ?: \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date<? AND status='open' ORDER BY business_date DESC,id DESC LIMIT 1",
-            [$cid, $uid, $today],
-        );
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.07.unclosed_previous_session.01", [$cid, $uid, $today], []);
     
     }
 
@@ -142,9 +133,9 @@ final class FinancialRuntimeOperations07
             throw new RuntimeException("Usuário ou consultório inválido.");
         }
         $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-        return (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $uid, $today) {
+        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $uid, $today) {
     
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.keep_closed.01", [$cid], []);
             $loc = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
             if ($loc <= 0) {
                 throw new RuntimeException(
@@ -187,9 +178,7 @@ final class FinancialRuntimeOperations07
                 );
             }
             $balance = \Prontoo\Runtime\Financial\FinancialRuntimeOperations04::financial_drawer_previous_balance($cid, $loc, $today);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_cash_sessions (clinic_id,user_id,location_id,business_date,opened_at,kept_closed_at,opening_balance_cents,closed_at,expected_closing_cents,declared_closing_cents,keep_in_drawer_cents,transfer_to_safe_cents,difference_cents,status,closing_notes,created_at,updated_at) VALUES (?,?,?,?,NULL,NOW(),?,NULL,?,?,?,0,0,'kept_closed',?,NOW(),NOW())",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.keep_closed.02", [
                     $cid,
                     $uid,
                     $loc,
@@ -199,9 +188,8 @@ final class FinancialRuntimeOperations07
                     $balance,
                     $balance,
                     "Gaveta mantida fechada pelo Atendimento; saldo físico preservado na Gaveta.",
-                ],
-            );
-            $sid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                ], []);
+            $sid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("caixa_atendimento_mantido_fechado", "financeiro", $sid, [
                 "gaveta" => $loc,
                 "audit_body" =>
@@ -223,7 +211,7 @@ final class FinancialRuntimeOperations07
         $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         $authorizationRequested = false;
         $authorizationMessage = "";
-        $result = (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
+        $result = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
             $cid,
             $uid,
             $openingBalance,
@@ -232,7 +220,7 @@ final class FinancialRuntimeOperations07
             &$authorizationMessage,
         ) {
     
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.01", [$cid], []);
             $loc = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_cashier_location_for_user($cid, $uid);
             if ($loc <= 0) {
                 throw new RuntimeException(
@@ -322,10 +310,7 @@ final class FinancialRuntimeOperations07
                         true,
                     )
                 ) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_cash_sessions SET location_id=?, opened_at=NOW(), kept_closed_at=NULL, opening_balance_cents=?, closed_at=NULL, expected_closing_cents=0, declared_closing_cents=0, keep_in_drawer_cents=0, transfer_to_safe_cents=0, difference_cents=0, status='open', closing_notes=NULL, reviewed_by=NULL, reviewed_at=NULL, review_status=NULL, review_notes=NULL, updated_at=NOW() WHERE id=? AND clinic_id=? AND user_id=?",
-                        [$loc, $openingBalance, (int) $exists["id"], $cid, $uid],
-                    );
+                    \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.02", [$loc, $openingBalance, (int) $exists["id"], $cid, $uid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                         "caixa_atendimento_aberto",
                         "financeiro",
@@ -343,11 +328,8 @@ final class FinancialRuntimeOperations07
                     "A situação atual do caixa não permite abertura.",
                 );
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_cash_sessions (clinic_id,user_id,location_id,business_date,opened_at,opening_balance_cents,status,created_at,updated_at) VALUES (?,?,?,?,NOW(),?,'open',NOW(),NOW())",
-                [$cid, $uid, $loc, $today, $openingBalance],
-            );
-            $sid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.open_session.03", [$cid, $uid, $loc, $today, $openingBalance], []);
+            $sid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("caixa_atendimento_aberto", "financeiro", $sid, [
                 "gaveta" => $loc,
                 "saldo_inicial" => $openingBalance,
@@ -367,10 +349,7 @@ final class FinancialRuntimeOperations07
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT movement_type,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND status IN ('confirmed','pending_review') GROUP BY movement_type",
-            [$cid, $sessionId],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.07.session_movement_totals.01", [$cid, $sessionId], [])->fetchAll();
         $out = [
             "receipt" => 0,
             "payment" => 0,
@@ -442,14 +421,11 @@ final class FinancialRuntimeOperations07
         if ($difference === 0) {
             return;
         }
-        $existing = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COUNT(*) FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id=? AND movement_type='adjustment' AND source_entity='cash_closing_adjustment' AND source_id=? AND status IN ('confirmed','pending_review')",
-            [
+        $existing = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.07.ensure_closing_adjustment.01", [
                 (int) $session["clinic_id"],
                 (int) $session["id"],
                 (int) $session["id"],
-            ],
-        ) ?:
+            ], []) ?:
             0);
         if ($existing === 0) {
             \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_record_cash_difference(
@@ -472,10 +448,7 @@ final class FinancialRuntimeOperations07
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date=? AND status='open' LIMIT 1",
-            [$cid, $uid, \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid)],
-        );
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.07.current_open_session.01", [$cid, $uid, \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid)], []);
     
     }
 

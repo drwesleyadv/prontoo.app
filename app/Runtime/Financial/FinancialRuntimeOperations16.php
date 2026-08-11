@@ -51,10 +51,7 @@ final class FinancialRuntimeOperations16
                 }
                 if ($act === "creditor_deactivate") {
                     $id = (int) ($_POST["creditor_id"] ?? 0);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_financial_counterparties SET active=0,updated_at=NOW() WHERE id=? AND clinic_id=? AND kind='credor'",
-                        [$id, $cid],
-                    );
+                    \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.16.page_creditors.01", [$id, $cid], []);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("credor_desativado", "pessoa", $id, [
                         "audit_body" => "Credor desativado no contexto Pessoas.",
                     ]);
@@ -130,25 +127,13 @@ final class FinancialRuntimeOperations16
             return;
         }
         $activeCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_financial_counterparties WHERE clinic_id=? AND kind='credor' AND active=1",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.16.page_creditors.02", [$cid], []) ?? 0);
         $withDocCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.kind='credor' AND fc.active=1 AND COALESCE(NULLIF(p.legal_document,''),NULLIF(p.cpf,''),'')<>''",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.16.page_creditors.03", [$cid], []) ?? 0);
         $withContactCount =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.clinic_id=? AND fc.kind='credor' AND fc.active=1 AND (COALESCE(p.phone,'')<>'' OR COALESCE(p.email,'')<>'')",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.16.page_creditors.04", [$cid], []) ?? 0);
         $paid30Cents =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COALESCE(SUM(e.amount_cents),0) FROM pi_financial_expenses e JOIN pi_financial_counterparties fc ON fc.id=e.counterparty_id AND fc.clinic_id=e.clinic_id WHERE e.clinic_id=? AND fc.kind='credor' AND fc.active=1 AND e.status='paga' AND e.paid_at>=DATE_SUB(NOW(), INTERVAL 30 DAY)",
-                [$cid],
-            ) ?? 0);
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.16.page_creditors.05", [$cid], []) ?? 0);
         $statHtml =
             '<section class="patient-directory-overview kpis kpi-info-strip creditor-directory-overview" aria-label="Resumo de credores"><div class="patient-kpi-card kpi-card ' .
             ($activeCount > 0 ? "is-total" : "is-muted") .
@@ -202,10 +187,7 @@ final class FinancialRuntimeOperations16
                 array_push($params, $like, $like, $like, $like);
             }
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT fc.id,fc.notes,p.*,(SELECT COALESCE(SUM(e.amount_cents),0) FROM pi_financial_expenses e WHERE e.clinic_id=fc.clinic_id AND e.counterparty_id=fc.id AND e.status='paga') paid_total_cents,(SELECT MAX(e.paid_at) FROM pi_financial_expenses e WHERE e.clinic_id=fc.clinic_id AND e.counterparty_id=fc.id AND e.status='paga') last_paid_at,(SELECT COUNT(*) FROM pi_financial_expenses e WHERE e.clinic_id=fc.clinic_id AND e.counterparty_id=fc.id AND e.status='prevista' AND e.due_at<CURDATE()) overdue_expenses FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE $where ORDER BY p.full_name ASC LIMIT 160",
-            $params,
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.16.page_creditors.06", $params, compact('where'))->fetchAll();
         $rowsHtml = "";
         foreach ($rows as $r) {
             $rowsHtml .= \Prontoo\Runtime\Financial\FinancialRuntimeOperations15::financial_creditor_directory_card($r, $cid);
@@ -292,23 +274,11 @@ final class FinancialRuntimeOperations16
         $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         [$dayStart, $dayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($today, $cid);
         $items = "";
-        $pending = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(*) FROM pi_financial_revenues r LEFT JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id WHERE r.clinic_id=? AND r.status='prevista' AND r.amount_cents>0 AND r.expected_at<? AND (a.id IS NULL OR a.status NOT IN ('cancelado','nao_compareceu'))",
-            [$cid, $dayEnd],
-            0,
-        );
+        $pending = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->safeScalar("financial.16.admin_attention_panel.01", [$cid, $dayEnd], 0, []);
         $closure = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_daily_drawer_closure_state($cid, $today);
         $openDrawers = (int) $closure["blocking_count"];
-        $reviews = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(*) FROM pi_cash_sessions WHERE clinic_id=? AND status IN ('closed_pending_review','opening_pending_review')",
-            [$cid],
-            0,
-        );
-        $diffs = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COALESCE(SUM(ABS(difference_cents)),0) FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND difference_cents<>0",
-            [$cid, $today],
-            0,
-        );
+        $reviews = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->safeScalar("financial.16.admin_attention_panel.02", [$cid], 0, []);
+        $diffs = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->safeScalar("financial.16.admin_attention_panel.03", [$cid, $today], 0, []);
         if ($pending > 0) {
             $items .=
                 '<a class="finance-attention-item" href="' .

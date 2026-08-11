@@ -38,11 +38,7 @@ final class FinancialRuntimeOperations14
         $received = (int) $metrics["received_cents"];
         $pending = (int) $metrics["pending_cents"];
         $movements = (int) $metrics["movement_count"];
-        $diffs = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COALESCE(SUM(ABS(difference_cents)),0) FROM pi_cash_sessions WHERE clinic_id=? AND business_date=? AND difference_cents<>0",
-            [$cid, $today],
-            0,
-        );
+        $diffs = (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->safeScalar("financial.14.admin_daily_conference_panel.01", [$cid, $today], 0, []);
         $pos = \Prontoo\Runtime\Financial\FinancialRuntimeOperations09::financial_global_position($cid);
         $summary =
             '<div class="finance-conference-summary"><article><span>Previsto</span><b>' .
@@ -136,15 +132,12 @@ final class FinancialRuntimeOperations14
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        \Prontoo\Infrastructure\Financial\FinancialInfrastructureOperations01::financial_daily_closing_ensure_schema();
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use ($cid, $uid): void {
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->ensureDailyClosingSchema();
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $uid): void {
     
             $today = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id FROM pi_financial_daily_closings WHERE clinic_id=? AND business_date=? FOR UPDATE",
-                [$cid, $today],
-            );
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.01", [$cid], []);
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.02", [$cid, $today], []);
             \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_reconciliation($cid, $today, $uid, true);
             $state = \Prontoo\Runtime\Financial\FinancialRuntimeOperations05::financial_daily_consolidation_state($cid, $today);
             if (!empty($state["consolidated"])) {
@@ -177,9 +170,7 @@ final class FinancialRuntimeOperations14
             $integrityNote =
                 "integrity:financial-reconciliation-v2:" .
                 (string) $reconciliation["hash"];
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_financial_daily_closings (clinic_id,business_date,status,expected_cents,received_cents,pending_cents,drawer_cents,safe_cents,bank_cents,movement_count,closed_drawer_count,notes,consolidated_by,consolidated_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE status='consolidado', expected_cents=VALUES(expected_cents), received_cents=VALUES(received_cents), pending_cents=VALUES(pending_cents), drawer_cents=VALUES(drawer_cents), safe_cents=VALUES(safe_cents), bank_cents=VALUES(bank_cents), movement_count=VALUES(movement_count), closed_drawer_count=VALUES(closed_drawer_count), notes=VALUES(notes), consolidated_by=VALUES(consolidated_by), consolidated_at=NOW(), updated_at=NOW()",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_daily_consolidate.03", [
                     $cid,
                     $today,
                     "consolidado",
@@ -193,8 +184,7 @@ final class FinancialRuntimeOperations14
                     (int) ($state["closure"]["opened_count"] ?? 0),
                     $integrityNote,
                     $uid,
-                ],
-            );
+                ], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("financeiro_dia_consolidado", "financeiro", $cid, [
                 "business_date" => $today,
                 "opened_drawers_checked" =>
@@ -289,9 +279,7 @@ final class FinancialRuntimeOperations14
             $title = "Recebimento sem agendamento vinculado";
         }
         $accountId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations13::financial_location_account_id($cid, $to);
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_financial_revenues (clinic_id,patient_link_id,title,amount_cents,status,payment_method,account_id,received_at,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,NOW())",
-            [
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_save_receipt.01", [
                 $cid,
                 $patientId,
                 $title,
@@ -301,9 +289,8 @@ final class FinancialRuntimeOperations14
                 $accountId,
                 date("Y-m-d H:i:s"),
                 $uid,
-            ],
-        );
-        $rid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            ], []);
+        $rid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
         \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
             $cid,
             "receipt",
@@ -335,10 +322,7 @@ final class FinancialRuntimeOperations14
         $creditorId = (int) ($_POST["counterparty_id"] ?? 0);
         $cred =
             $creditorId > 0
-                ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT fc.id,p.full_name FROM pi_financial_counterparties fc JOIN pi_persons p ON p.id=fc.person_id WHERE fc.id=? AND fc.clinic_id=? AND fc.kind='credor' AND fc.active=1 LIMIT 1",
-                    [$creditorId, $cid],
-                )
+                ? \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.14.admin_save_payment.01", [$creditorId, $cid], [])
                 : null;
         if (!$cred) {
             throw new RuntimeException("Escolha um Credor cadastrado em Pessoas.");
@@ -366,9 +350,7 @@ final class FinancialRuntimeOperations14
         }
         $notes = mb_trim((string) ($_POST["notes"] ?? ""));
         $accountId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations13::financial_location_account_id($cid, $from);
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "INSERT INTO pi_financial_expenses (clinic_id,counterparty_id,account_id,title,expense_category,amount_cents,status,due_at,paid_at,payment_method,notes,created_by,created_at) VALUES (?,?,?,?,?,?,'paga',CURDATE(),NOW(),?,?,?,NOW())",
-            [
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.14.admin_save_payment.02", [
                 $cid,
                 $creditorId,
                 $accountId,
@@ -378,9 +360,8 @@ final class FinancialRuntimeOperations14
                 $method,
                 $notes ?: null,
                 $uid,
-            ],
-        );
-        $eid = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+            ], []);
+        $eid = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
         \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
             $cid,
             "payment",

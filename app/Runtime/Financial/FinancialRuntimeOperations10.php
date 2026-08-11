@@ -37,10 +37,7 @@ final class FinancialRuntimeOperations10
             $where .= " AND location_type=?";
             $params[] = $type;
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name,location_type FROM pi_financial_locations WHERE $where ORDER BY FIELD(location_type,'admin_safe','pos','bank_account'), name",
-            $params,
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.location_select_options.01", $params, compact('where'))->fetchAll();
         $out = ["" => "Selecione"];
         foreach ($rows as $r) {
             $out[(int) $r["id"]] =
@@ -59,20 +56,14 @@ final class FinancialRuntimeOperations10
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
         \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_admin_safe($cid, $uid);
         try {
-            $accounts = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id FROM pi_financial_accounts WHERE clinic_id=? AND active=1 AND account_type IN ('conta_corrente','conta_poupanca','conta_pagamento','investimento') ORDER BY name",
-                [$cid],
-            )->fetchAll();
+            $accounts = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.office_destination_options.01", [$cid], [])->fetchAll();
             foreach ($accounts as $a) {
                 \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_bank_location($cid, (int) $a["id"], $uid);
             }
         } catch (Throwable $e) {
             error_log("[Prontoo destinos financeiros] " . $e->getMessage());
         }
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT l.id,l.name,l.location_type,a.bank_name FROM pi_financial_locations l LEFT JOIN pi_financial_accounts a ON a.id=l.account_id AND a.clinic_id=l.clinic_id WHERE l.clinic_id=? AND l.active=1 AND l.location_type IN ('admin_safe','bank_account') ORDER BY FIELD(l.location_type,'admin_safe','bank_account'), l.name",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.office_destination_options.02", [$cid], [])->fetchAll();
         $out = ["" => "Selecione o destino"];
         foreach ($rows as $r) {
             $type = (string) $r["location_type"];
@@ -97,10 +88,7 @@ final class FinancialRuntimeOperations10
         if ($cid <= 0 || $locationId <= 0) {
             return false;
         }
-        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') LIMIT 1",
-            [$locationId, $cid],
-        ) ?:
+        return (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.10.office_destination_belongs.01", [$locationId, $cid], []) ?:
             0) > 0;
     
     }
@@ -110,10 +98,7 @@ final class FinancialRuntimeOperations10
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT r.id,r.amount_cents,r.title,r.expected_at,a.start_at,a.status,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.procedure_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado','nao_compareceu') ORDER BY CASE WHEN a.status IN ('atendimento_concluido','finalizado') THEN 0 ELSE 1 END, COALESCE(a.start_at,r.expected_at,NOW()) ASC,r.id ASC LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.expected_appointment_revenue_options.01", [$cid], [])->fetchAll();
         $out = ["" => "Selecione o atendimento"];
         foreach ($rows as $r) {
             $patient =
@@ -164,7 +149,7 @@ final class FinancialRuntimeOperations10
             throw new RuntimeException("Informe a forma de recebimento.");
         }
         $s = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_require_open_session($cid, $uid);
-        return (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
+        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
             $cid,
             $uid,
             $revenueId,
@@ -174,19 +159,13 @@ final class FinancialRuntimeOperations10
             $s,
         ): int {
     
-            $session = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? AND user_id=? AND status='open' FOR UPDATE",
-                [(int) $s["id"], $cid, $uid],
-            );
+            $session = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.01", [(int) $s["id"], $cid, $uid], []);
             if (!$session) {
                 throw new RuntimeException(
                     "Não há Gaveta aberta para registrar recebimento.",
                 );
             }
-            $rev = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT r.*,a.status appointment_status,a.start_at,pr.title procedure_title,p.full_name patient_name FROM pi_financial_revenues r JOIN pi_appointments a ON a.id=r.appointment_id AND a.clinic_id=r.clinic_id LEFT JOIN pi_procedures pr ON pr.id=r.procedure_id AND pr.clinic_id=r.clinic_id LEFT JOIN pi_patients pp ON pp.id=r.patient_link_id AND pp.clinic_id=r.clinic_id LEFT JOIN pi_persons p ON p.id=pp.person_id WHERE r.id=? AND r.clinic_id=? AND r.status='prevista' AND r.appointment_id IS NOT NULL AND r.procedure_id IS NOT NULL AND r.amount_cents>0 AND a.status NOT IN ('cancelado') FOR UPDATE",
-                [$revenueId, $cid],
-            );
+            $rev = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.02", [$revenueId, $cid], []);
             if (!$rev) {
                 throw new RuntimeException(
                     "Selecione uma receita prevista de Procedimento Agendado ainda não recebida.",
@@ -210,10 +189,7 @@ final class FinancialRuntimeOperations10
                         "Informe o Destino entre as contas do Consultório para recebimentos que não forem em Dinheiro.",
                     );
                 }
-                $dest = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                    "SELECT id,account_id,location_type,name FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
-                    [$destinationLocationId, $cid],
-                );
+                $dest = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.03", [$destinationLocationId, $cid], []);
                 $to = (int) $destinationLocationId;
                 $sessionId = null;
                 $accountId =
@@ -236,10 +212,7 @@ final class FinancialRuntimeOperations10
                 $extraNote . ($cleanNotes !== "" ? " " . $cleanNotes : "");
             $movementStatus =
                 $method === "dinheiro" ? "pending_review" : "confirmed";
-            $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id FROM pi_financial_movements WHERE clinic_id=? AND source_entity='appointment' AND source_id=? AND movement_type='receipt' ORDER BY id DESC LIMIT 1 FOR UPDATE",
-                [$cid, $appointmentId],
-            );
+            $existing = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.04", [$cid, $appointmentId], []);
             if ($existing) {
                 \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
                     $cid,
@@ -273,14 +246,8 @@ final class FinancialRuntimeOperations10
                     $appointmentId,
                 );
             }
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_financial_revenues SET status='efetivada', payment_method=?, account_id=?, received_at=NOW(), updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
-                [$method, $accountId, $uid, $revenueId, $cid],
-            );
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_appointments SET payment_status='efetivada', payment_method=?, payment_amount_cents=?, payment_confirmed_at=NOW(), revenue_id=?, updated_at=NOW() WHERE id=? AND clinic_id=?",
-                [$method, $amount, $revenueId, $appointmentId, $cid],
-            );
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.receive_expected_appointment_revenue.05", [$method, $accountId, $uid, $revenueId, $cid], []);
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.receive_expected_appointment_revenue.06", [$method, $amount, $revenueId, $appointmentId, $cid], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("recebimento_atendimento_agendado", "financeiro", $revenueId, [
                 "appointment_id" => $appointmentId,
                 "movement_id" => $movementId,
