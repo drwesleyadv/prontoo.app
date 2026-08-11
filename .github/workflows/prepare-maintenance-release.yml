@@ -120,6 +120,7 @@ jobs:
           set -euo pipefail
           rm -f .github/workflows/prepare-maintenance-release.yml
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/runtime-input-boundary-check
           GITHUB_BASE_REF=prontoo php tools/runtime-refactor-on-touch-check
