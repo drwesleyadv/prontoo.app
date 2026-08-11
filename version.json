@@ -1,10 +1,10 @@
 {
     "version": "1.8.11.6",
     "release": "1.8.11.6",
-    "generated_at_unix": 1786485197,
-    "generated_at": "2026-08-11T17:53:17-04:00",
-    "updated_at": "2026-08-11T17:53:17-04:00",
-    "build": "1.8.11.6-telemetry-visual-hierarchy",
+    "generated_at_unix": 1786485510,
+    "generated_at": "2026-08-11T17:58:30-04:00",
+    "updated_at": "2026-08-11T17:58:30-04:00",
+    "build": "1.8.11.6-telemetry-visual-landing",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": true,
-    "functional_equivalence_policy": "maintenance_visual_refinement_without_schema_or_behavior_change",
+    "functional_equivalence_policy": "maintenance_telemetry_presentation_without_schema_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Hierarquia visual da telemetria: Registros à frente de Visualizações e em tom mais escuro no gráfico de 30 dias e nas curvas decorativas de rodapé.",
+    "notes": "Telemetria consolidada: Registros em tom mais escuro e à frente de Visualizações; novo card Landing Page com total móvel de 15 dias e comparação contra os 15 dias anteriores no Painel do Desenvolvedor e Status.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.11.6-telemetry-visual-hierarchy",
-    "deployment_sync_requested_at": "2026-08-11T17:53:17-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.11.6-telemetry-visual-landing",
+    "deployment_sync_requested_at": "2026-08-11T17:58:30-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -350,13 +350,15 @@
         ]
     },
     "changelog": {
-        "title": "Hierarquia visual da telemetria",
+        "title": "Telemetria visual e Landing Page",
         "items": [
             "mantém Registros pintados depois de Visualizações no gráfico móvel de 30 dias",
-            "mantém Registros pintados depois de Visualizações nas curvas decorativas do rodapé",
-            "atribui o tom mais escuro à série de Registros no gráfico de 30 dias",
-            "atribui o tom mais escuro à série de Registros no rodapé, inclusive em temas de clínica",
-            "adiciona contrato executável para impedir regressão da ordem de pintura e da hierarquia tonal das duas séries"
+            "atribui o tom mais escuro à série de Registros no gráfico e nas curvas decorativas do rodapé",
+            "preserva a mesma hierarquia tonal também nos temas de clínica",
+            "adiciona o card Landing Page ao Painel do Desenvolvedor e à página Status",
+            "mostra no card Landing Page o total dos 15 dias móveis recentes e a comparação percentual contra os 15 dias imediatamente anteriores",
+            "reutiliza a rota canônica landing já persistida em views.json, sem criar contador ou arquivo paralelo",
+            "amplia o contrato executável de telemetria para proteger a ordem de pintura, os tons e a fonte do novo card"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
