@@ -423,13 +423,13 @@ final class AdminPagesPresentationOperations03
     public static function admin_telemetry_variation_note(?float $variation): string
     {
         if ($variation === null) {
-            return "15 dias completos · sem base comparável nos 15 dias anteriores";
+            return "15 dias móveis · sem base comparável nos 15 dias anteriores";
         }
         if (abs($variation) < 0.0000005) {
             $variation = 0.0;
         }
         $prefix = $variation > 0 ? "+" : "";
-        return "15 dias completos · " .
+        return "15 dias móveis · " .
             $prefix .
             number_format($variation, 2, ",", ".") .
             "% vs. 15 dias anteriores";

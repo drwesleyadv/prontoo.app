@@ -19,7 +19,7 @@ $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnb
 foreach (['"primary_label" => "Visualizações"', '"secondary_label" => "Registros"', '"Velocidade"'] as $token) {
     $assert(str_contains($admin2, $token), 'gráficos perderam ' . $token);
 }
-foreach (['"Visualizações"', '"Tempo médio das rotas"'] as $token) {
+foreach (['"Visualizações"', '"Tempo médio das rotas"', '"Registros"'] as $token) {
     $assert(str_contains($admin3, $token), 'cards perderam ' . $token);
 }
 $assert(str_contains($admin9, 'telemetry_route_performance_summary(240)') && str_contains($admin9, 'telemetry_comparative_summary()'), 'Performance deixou de usar o contrato canônico');

@@ -27,11 +27,27 @@ final class AdminPagesRuntimeOperations03
     }
 
     public static function admin_telemetry_kpi_cards_html(bool $linked = false): string
-    
     {
         $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparative_summary();
         $current = (array) ($summary["current"] ?? []);
         $variations = (array) ($summary["variations"] ?? []);
+        $recordSeries = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
+$recordPrevious = array_slice(array_values($recordSeries), 0, 15);
+$recordCurrent = array_slice(array_values($recordSeries), 15, 15);
+$recordPreviousTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordPrevious));
+$recordCurrentTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordCurrent));
+$recordPreviousObserved = count(array_filter($recordPrevious, static fn(array $row): bool => !empty($row["observed"])));
+$recordCurrentObserved = count(array_filter($recordCurrent, static fn(array $row): bool => !empty($row["observed"])));
+$recordVariation = null;
+if ($recordPreviousObserved === 15 && $recordCurrentObserved === 15) {
+    $recordVariation = $recordPreviousTotal === 0
+        ? ($recordCurrentTotal === 0 ? 0.0 : null)
+        : (($recordCurrentTotal - $recordPreviousTotal) / $recordPreviousTotal) * 100;
+}
+$recordComparison = [
+    "current_total" => $recordCurrentTotal,
+    "variation_pct" => $recordVariation,
+];
         $card = static function (
             string $label,
             mixed $value,
@@ -51,10 +67,10 @@ final class AdminPagesRuntimeOperations03
         $averageMs = isset($current["average_ms"])
             ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms((float) $current["average_ms"])
             : "—";
-        $landingRequests = max(
-            0,
-            (int) ($current["landing_requests"] ?? 0),
-        );
+        $recordVariation = isset($recordComparison["variation_pct"]) &&
+            is_numeric($recordComparison["variation_pct"])
+                ? (float) $recordComparison["variation_pct"]
+                : null;
         return $card(
             "Visualizações",
             max(0, (int) ($current["requests"] ?? 0)),
@@ -76,16 +92,13 @@ final class AdminPagesRuntimeOperations03
                 ),
             ) .
             $card(
-                "Execuções da Landing Page",
-                $landingRequests,
-                "web",
+                "Registros",
+                (int) ($recordComparison["current_total"] ?? 0),
+                "database",
                 \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
-                    isset($variations["landing_requests_pct"])
-                        ? (float) $variations["landing_requests_pct"]
-                        : null,
+                    $recordVariation,
                 ),
             );
-    
     }
 
     public static function page_status(): void
@@ -106,7 +119,7 @@ final class AdminPagesRuntimeOperations03
     $statusHeader =
         '<header class="status-page-header">' .
         '<span class="status-page-icon" aria-hidden="true">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitor_heart") . "</span>" .
-        '<div><h1>Status do Prontoo</h1><p>Comparação entre 15 dias civis completos e os 15 imediatamente anteriores</p></div>' .
+        '<div><h1>Status do Prontoo</h1><p>Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores</p></div>' .
         "</header>";
     $card = $statusHeader . $overviewCards . \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html(true);
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .

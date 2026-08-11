@@ -436,17 +436,13 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_comparative_summary(?int $nowUnixUs = null): array
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $timezone = self::telemetry_cuiaba_tz();
-        $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
-            ->setTimezone($timezone)
-            ->setTime(0, 0);
-        $currentEndUs = $today->getTimestamp() * 1000000;
-        $currentStartUs = $today->modify("-15 days")->getTimestamp() * 1000000;
-        $previousStartUs = $today->modify("-30 days")->getTimestamp() * 1000000;
+        $currentEndUs = max(1, $nowUnixUs);
+        $currentStartUs = $currentEndUs - self::telemetry_comparison_microseconds();
+        $previousStartUs = $currentStartUs - self::telemetry_comparison_microseconds();
         $current = self::telemetry_empty_period();
         $previous = self::telemetry_empty_period();
         $seen = [];
-        foreach (self::telemetry_read_events($nowUnixUs) as $event) {
+        foreach (self::telemetry_read_events($currentEndUs) as $event) {
             $eventId = (string) ($event["evento_id"] ?? "");
             if ($eventId !== "") {
                 if (isset($seen[$eventId])) {
@@ -460,7 +456,8 @@ final class SupportTelemetryInfrastructureOperations01
             }
             $isLanding = (string) ($event["rota"] ?? "") === "landing";
             $speedObserved = !empty($event["speed_observed"]);
-            if ($finishedUs >= $currentStartUs) {
+            $target = $finishedUs >= $currentStartUs ? "current" : "previous";
+            if ($target === "current") {
                 $current["requests"]++;
                 if ($isLanding) {
                     $current["landing_requests"]++;
@@ -491,7 +488,8 @@ final class SupportTelemetryInfrastructureOperations01
         $current = self::telemetry_finalize_period($current);
         $previous = self::telemetry_finalize_period($previous);
         return [
-            "generated_at_unix_us" => $nowUnixUs,
+            "generated_at_unix_us" => $currentEndUs,
+            "window_mode" => "rolling_30d",
             "current_start_unix_us" => $currentStartUs,
             "previous_start_unix_us" => $previousStartUs,
             "current_end_unix_us" => $currentEndUs,
@@ -517,5 +515,6 @@ final class SupportTelemetryInfrastructureOperations01
             ],
         ];
     }
+
 
 }

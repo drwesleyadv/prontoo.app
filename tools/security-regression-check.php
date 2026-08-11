@@ -201,13 +201,9 @@ security_regression_assert(
 );
 
 $telemetryNowUs = 2000000000000000;
-$telemetryTimezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-$telemetryToday = (new DateTimeImmutable("@" . intdiv($telemetryNowUs, 1000000)))
-    ->setTimezone($telemetryTimezone)
-    ->setTime(0, 0);
-$telemetryCurrentEndUs = $telemetryToday->getTimestamp() * 1000000;
-$telemetryPreviousStartUs = $telemetryToday->modify("-30 days")->getTimestamp() * 1000000;
-$telemetryCurrentStartUs = $telemetryToday->modify("-15 days")->getTimestamp() * 1000000;
+$telemetryCurrentEndUs = $telemetryNowUs;
+$telemetryCurrentStartUs = $telemetryCurrentEndUs - 15 * 86400 * 1000000;
+$telemetryPreviousStartUs = $telemetryCurrentEndUs - 30 * 86400 * 1000000;
 $telemetryEvent = static function (
     string $route,
     int $finishedUs,
@@ -235,7 +231,7 @@ foreach ([
         $telemetryNowUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds() - 1,
         999000000,
     ),
-    $telemetryEvent("current_day_boundary", $telemetryCurrentEndUs, 400000000),
+    $telemetryEvent("future_boundary", $telemetryCurrentEndUs, 400000000),
 ] as $event) {
     security_regression_assert(
         \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_append_event($event),
@@ -244,12 +240,13 @@ foreach ([
 }
 $telemetrySummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparative_summary($telemetryNowUs);
 $telemetryCurrent = (array) ($telemetrySummary["current"] ?? []);
+security_regression_assert((string) ($telemetrySummary["window_mode"] ?? "") === "rolling_30d", "Resumo de telemetria não usa janela móvel de 30 dias.");
 $telemetryPrevious = (array) ($telemetrySummary["previous"] ?? []);
 $telemetryVariations = (array) ($telemetrySummary["variations"] ?? []);
 security_regression_assert(
     (int) ($telemetryCurrent["requests"] ?? -1) === 2 &&
         (int) ($telemetryPrevious["requests"] ?? -1) === 2,
-    "Janelas civis 15x15 sobrepuseram ou perderam eventos de fronteira.",
+    "Janelas móveis 15x15 sobrepuseram ou perderam eventos de fronteira.",
 );
 security_regression_assert(
     abs((float) ($telemetryCurrent["average_ms"] ?? 0) - 200.0) < 0.000001 &&
@@ -333,6 +330,7 @@ echo json_encode(
         "telemetry_current_requests" => (int) $telemetryCurrent["requests"],
         "telemetry_previous_requests" => (int) $telemetryPrevious["requests"],
         "telemetry_retention_removed" => $removedTelemetryEvents,
+        "telemetry_window_mode" => (string) ($telemetrySummary["window_mode"] ?? ""),
         "mfa_lifecycle_actions" => 5,
         "maestro_shared_budget" => true,
     ],

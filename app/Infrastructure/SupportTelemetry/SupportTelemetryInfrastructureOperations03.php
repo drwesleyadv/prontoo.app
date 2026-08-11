@@ -268,22 +268,24 @@ final class SupportTelemetryInfrastructureOperations03
         ?int $nowUnix = null,
     ): array {
         $nowUnix ??= time();
+        $nowUnix = max(1, $nowUnix);
+        $bucketSeconds = 86400;
+        $windowStart = $nowUnix - 30 * $bucketSeconds;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-        $today = (new DateTimeImmutable("@" . max(1, $nowUnix)))
-            ->setTimezone($timezone)
-            ->setTime(0, 0);
-        $days = [];
-        for ($offset = 30; $offset >= 1; $offset--) {
-            $day = $today->modify("-" . $offset . " days");
-            $key = $day->format("Y-m-d");
-            $days[$key] = [
-                "key" => $key,
-                "ts" => $day->getTimestamp(),
-                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
-                "tooltip" => $day->format("d/m/Y"),
+        $buckets = [];
+        for ($index = 0; $index < 30; $index++) {
+            $startUnix = $windowStart + $index * $bucketSeconds;
+            $endUnix = $startUnix + $bucketSeconds;
+            $start = (new DateTimeImmutable("@" . $startUnix))->setTimezone($timezone);
+            $end = (new DateTimeImmutable("@" . $endUnix))->setTimezone($timezone);
+            $buckets[$index] = [
+                "key" => (string) $startUnix,
+                "ts" => $startUnix,
+                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end),
+                "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"),
                 "value" => null,
                 "observed" => false,
-                "period" => $offset > 15 ? "previous" : "current",
+                "period" => $index < 15 ? "previous" : "current",
             ];
         }
         foreach ($samples as $sample) {
@@ -291,21 +293,20 @@ final class SupportTelemetryInfrastructureOperations03
                 continue;
             }
             $capturedAt = (int) ($sample["captured_at_unix"] ?? 0);
-            if ($capturedAt <= 0) {
+            if ($capturedAt < $windowStart || $capturedAt >= $nowUnix) {
                 continue;
             }
-            $key = (new DateTimeImmutable("@" . $capturedAt))
-                ->setTimezone($timezone)
-                ->format("Y-m-d");
-            if (isset($days[$key])) {
-                if (empty($days[$key]["observed"])) {
-                    $days[$key]["value"] = 0;
-                    $days[$key]["observed"] = true;
-                }
-                $days[$key]["value"] += (int) ($sample["delta_records"] ?? 0);
+            $index = intdiv($capturedAt - $windowStart, $bucketSeconds);
+            if ($index < 0 || $index >= 30) {
+                continue;
             }
+            if (empty($buckets[$index]["observed"])) {
+                $buckets[$index]["value"] = 0;
+                $buckets[$index]["observed"] = true;
+            }
+            $buckets[$index]["value"] += (int) ($sample["delta_records"] ?? 0);
         }
-        return array_values($days);
+        return array_values($buckets);
     }
 
     public static function telemetry_database_record_series_30d(?int $nowUnix = null): array

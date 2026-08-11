@@ -1,15 +1,17 @@
 # Telemetria de performance
 
-Telemetria serve para observar comportamento real depois que os contratos de CI já garantiram limites determinísticos. O Prontoo separa page load de requisições auxiliares para evitar métricas ambíguas.
+A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetry/views.json` para Visualizações, `ssd/telemetry/speed.json` para duração/tempo médio e `ssd/telemetry/database.json` para variação de Registros.
 
-## Page load
+## Janela móvel
 
-Uma amostra representa navegação HTML concluída, do início do front controller ao fim útil da renderização. A série permite comparar evolução de experiência sem misturar fetch e endpoints internos.
+`Últimos 30 dias` significa os 30 intervalos de 24 horas imediatamente anteriores ao timestamp da leitura. A janela não é ancorada em meia-noite. Ela termina no instante atual, divide-se em 15 dias recentes e 15 imediatamente anteriores e avança continuamente conforme o relógio avança.
 
-## Requisições e registros
+Cards de Visualizações e Tempo médio leem os eventos persistidos até o timestamp corrente. O card de Registros lê os deltas amostrados pelo Maestro, portanto sua atualização acompanha o ciclo do Maestro.
 
-Outras séries podem medir volume de requests e registros processados. Elas respondem capacidade/carga, não duração de página.
+## Higienização
 
-## Uso correto
+As três fontes mantêm retenção móvel de 31 dias. `views.json` e `speed.json` são higienizados no fechamento de page loads; `database.json` é higienizado durante a captura do Maestro. Dados mais antigos que 31 dias não participam das fontes canônicas.
 
-Procure tendência e mudança de distribuição, correlacione com deploys e query budgets, e evite transformar uma média isolada em SLO sem entender a população. Telemetria deve conter metadados operacionais, não payloads sensíveis.
+## Interpretação
+
+Visualizações contam `page_load` elegível e deduplicado. Tempo médio usa somente eventos que possuem amostra correspondente em `speed.json`. Registros representam `total atual - total imediatamente anterior` de todas as tabelas-base, amostrado pelo Maestro; deltas negativos permanecem válidos.
