@@ -39,7 +39,7 @@ final class SecurityAccessRuntimeOperations04
             return $c = [];
         }
     
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_session_generation_enforce($uid);
+        \Prontoo\Runtime\SecurityAccess\SessionGenerationGuard::enforce($uid);
     
         $scopeHint = (string) ($_SESSION["scope"] ?? "global");
         $clinicHint = (int) ($_SESSION["clinic_id"] ?? 0);
