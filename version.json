@@ -1,10 +1,10 @@
 {
-    "version": "1.8.10.2",
-    "release": "1.8.10.2",
-    "generated_at_unix": 1786418943,
-    "generated_at": "2026-08-10T23:29:03-04:00",
-    "updated_at": "2026-08-10T23:29:03-04:00",
-    "build": "1.8.10.2-architecture-21",
+    "version": "1.8.11.1",
+    "release": "1.8.11.1",
+    "generated_at_unix": 1786450409,
+    "generated_at": "2026-08-11T08:13:29-04:00",
+    "updated_at": "2026-08-11T08:13:29-04:00",
+    "build": "1.8.11.1-architecture-21",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.10.1",
+    "previous_version": "1.8.10.2",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.10.2-architecture-21",
-    "deployment_sync_requested_at": "2026-08-10T23:29:03-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.11.1-architecture-21",
+    "deployment_sync_requested_at": "2026-08-11T08:13:29-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -61,7 +61,7 @@
     "rewrite_scope": "post_zero_legacy_metadata_ci_and_repository_hygiene",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
-    "release_date": "2026-08-10",
+    "release_date": "2026-08-11",
     "required_php_family": "8.4",
     "php84_baseline_path_migrations": {
         "app/Core/Database/SqlScopeGuard.php": "app/Core/Invariant/Tenant/SqlScopeGuard.php",
@@ -346,8 +346,8 @@
         "items": [
             "institui análise tokenizada e baseline monotônica para a fronteira Runtime",
             "remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento",
-            "mantém SQL de negócio, PDO direto e adapters concretos fora dos composition roots em zero; a correção posterior do detector encontrou 33 transações de caso de uso que não eram medidas nesta publicação",
-            "cataloga os 32 casos críticos dos 13 Application Services, ligados a 15 ports e 145 assertivas rápidas sem banco",
+            "mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime",
+            "cataloga 49 casos críticos de 30 Application Services, ligados a 15 ports e 127 assertivas rastreáveis dentro de 194 assertivas rápidas sem banco",
             "amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil",
             "move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade",
             "consolida em CI os contratos finais de classificação, SOLID, símbolos, documentação, release e performance",
@@ -569,5 +569,5 @@
     },
     "release_version_policy": "explicit_date_sequence_generator_v1",
     "release_version_generator": "tools/release-version",
-    "release_version_last_transition": "1.8.10.1->1.8.10.2"
+    "release_version_last_transition": "1.8.10.2->1.8.11.1"
 }

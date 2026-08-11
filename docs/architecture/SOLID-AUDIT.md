@@ -31,7 +31,7 @@ O contrato `native-unit-contract-v1`, executado no mesmo workflow, exige que tod
 7. a consolidação `1.8.7.1` removeu seis tombstones namespace-only;
 8. a materialização zero-legacy removeu as últimas 22 fachadas executáveis e 1.289 funções globais delegadoras, mantendo composição nativa via registries explícitos;
 9. as fases 11–15 removeram o `OperationGateway`; o contrato atual proíbe o arquivo e fixa `max_invoke_calls = 0`.
-10. as fases 16–21 removeram SQL/PDO do Runtime, moveram renderização de consultas de Domain/Core para Infrastructure, catalogaram 32 entradas públicas de Application e instituíram 11 budgets reais MySQL;
+10. as fases 16–21 removeram SQL/PDO do Runtime, moveram renderização de consultas de Domain/Core para Infrastructure, catalogaram 49 casos críticos de 30 Application Services e instituíram 11 budgets reais MySQL;
 11. a reavaliação de 2026-08-11 corrigiu o detector de `atomic()` e adicionou um gate por papel para não confundir Composition com input adapter já fino.
 
 ## Métricas protegidas
@@ -48,7 +48,7 @@ A baseline corrente registra:
 - zero achados objetivos no auditor SOLID;
 - zero hotspots dentro do escopo do auditor SOLID; esse número não inclui os 39 input adapters Runtime acima de 500 linhas, medidos separadamente;
 - zero chamadas ou arquivos do `OperationGateway`.
-- 49 casos críticos de Application em 30 services, catalogados e ligados a 15 ports; o plumbing genérico permanece distinguido dos casos semânticos;
+- 49 casos críticos de Application em 30 services, catalogados e ligados a 15 ports e 127 assertivas rastreáveis dentro das 194 assertivas rápidas; o plumbing genérico permanece distinguido dos casos semânticos;
 - 11 cenários MySQL críticos sem regressão de budget.
 
 A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. SQL de negócio, PDO direto, adapters concretos indevidos e transações de caso de uso estão em zero. `tools/runtime-input-boundary-check` congela também 615 dependências diretas a Infrastructure, 784 chamadas ao gateway genérico e 39 hotspots acima de 500 linhas. Esses contadores podem apenas diminuir.

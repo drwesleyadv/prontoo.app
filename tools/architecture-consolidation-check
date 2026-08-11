@@ -92,16 +92,24 @@ foreach ([
 }
 
 $criticalCases = 0;
+$services = [];
 $ports = [];
+$linkedAssertions = 0;
 foreach ((array) ($application['cases'] ?? []) as $case) {
     if (($case['criticality'] ?? '') !== 'critical') {
         $failures[] = 'non_critical_application_case:' . (string) ($case['id'] ?? 'unknown');
         continue;
     }
     $criticalCases++;
-    if ((array) ($case['assertions'] ?? []) === []) {
+    $service = (string) ($case['service'] ?? '');
+    if ($service !== '') {
+        $services[$service] = true;
+    }
+    $assertions = (array) ($case['assertions'] ?? []);
+    if ($assertions === []) {
         $failures[] = 'application_case_without_assertions:' . (string) ($case['id'] ?? 'unknown');
     }
+    $linkedAssertions += count($assertions);
     foreach ((array) ($case['ports'] ?? []) as $port) {
         $interface = (string) ($port['interface'] ?? '');
         if ($interface !== '') {
@@ -109,7 +117,19 @@ foreach ((array) ($application['cases'] ?? []) as $case) {
         }
     }
 }
-if ($criticalCases < 32 || count($ports) < 15) {
+$applicationTargets = [
+    'critical_cases_min' => 49,
+    'services_min' => 30,
+    'ports_min' => 15,
+    'linked_assertions_min' => 127,
+];
+if (($manifest['application_test_contract_targets'] ?? null) !== $applicationTargets) {
+    $failures[] = 'manifest_application_test_targets';
+}
+if ($criticalCases < $applicationTargets['critical_cases_min'] ||
+    count($services) < $applicationTargets['services_min'] ||
+    count($ports) < $applicationTargets['ports_min'] ||
+    $linkedAssertions < $applicationTargets['linked_assertions_min']) {
     $failures[] = 'application_test_surface_regressed';
 }
 
@@ -183,10 +203,12 @@ if ((int) ($manifest['query_budget_scenarios_target'] ?? 0) !== count($queryScen
 
 $result = [
     'ok' => $failures === [],
-    'policy' => 'architecture-semantic-correction-v2',
+    'policy' => 'architecture-semantic-correction-v3',
     'composition_roots' => count($declaredRoots),
-    'legacy_criticality_entries' => $criticalCases,
+    'critical_application_cases' => $criticalCases,
+    'application_services' => count($services),
     'application_ports' => count($ports),
+    'linked_assertions' => $linkedAssertions,
     'mysql_query_budget_scenarios' => count($queryScenarios),
     'contract_targets' => $contractTargets,
     'failures' => array_values(array_unique($failures)),

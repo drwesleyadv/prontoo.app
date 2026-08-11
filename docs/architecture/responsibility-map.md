@@ -54,11 +54,11 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - criação de aba: `PatientTabCommandPort/Service` + repositório PDO transacional;
 - atualização de contato: `PatientContactCommandPort/Service` + repositório PDO transacional;
 - recebimento financeiro: `PatientRevenueReceiptPort/Service` + repositório PDO transacional;
-- fronteira financeira de persistência: `FinancialDataPort/Service` aceita operações catalogadas e o Runtime financeiro não contém SQL, PDO ou helpers; 12 sequências `atomic()` ainda aguardam extração semântica;
+- fronteira financeira de persistência: `FinancialDataPort/Service` aceita operações catalogadas; os serviços de gavetas, movimentos, recebimentos, caixa, revisão e consolidação possuem a orquestração transacional e o Runtime financeiro não contém SQL, PDO, helpers ou transações de caso de uso;
 - fronteira de identidade de persistência: SecurityAccess, AuthOnboarding e UsersPermissions delegam cadastro, onboarding, perfil, credenciais e cargos a Application Services sobre `IdentityDataService`; SQL, PDO e transações ficam fora do Runtime;
 - fronteira operacional de persistência: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro, auditoria, assinatura e instalação usam serviços semânticos sobre `OperationalUseCaseService`; SQL, PDO e transações ficam fora do Runtime;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
-- contrato de testes de Application: 49 casos críticos de 30 services estão caracterizados sem banco e ligados a 15 ports, com o plumbing genérico distinguido dos casos semânticos.
+- contrato de testes de Application: 49 casos críticos de 30 services estão caracterizados sem banco e ligados a 15 ports e 127 assertivas rastreáveis dentro das 194 assertivas rápidas, com o plumbing genérico distinguido dos casos semânticos.
 - consolidação de performance: 11 read models críticos possuem budgets MySQL reais para `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`, sem gates frágeis baseados em tempo absoluto.
 
 ## Regras de localização
