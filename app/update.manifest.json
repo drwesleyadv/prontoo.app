@@ -600,7 +600,7 @@
         "tools/release-contract-reconcile": "fd1cef3795e39c88c16a27a3c6a4db33a58fc816bc84512ac847d1ea3cc5ffcf",
         "tools/release-version": "bcdc27d6f817a28ab5bd510b6f7e510cc9cbf7bcfbfa24f89c9890acb5beeb86",
         "tools/runtime-boundary-check": "5e0a24d9c89bf4ecc7c0dd0a147526d0b7e2331929b443164bc815e64952cf2a",
-        "tools/runtime-input-boundary-check": "00d9796e580cd284e9ccd423757ff284da89b3904d540582a386143d61e7cc8e",
+        "tools/runtime-input-boundary-check": "7b13d39d0cb978998d273f252682a1e4d87a8d59185149361579ef727cd6bb7c",
         "tools/runtime-symbol-contract-check": "99ab92e4ce191f1a7cdba1403b694908177ef33531de683d3efd90a28c8fb655",
         "tools/runtime-thinning-check": "b7e4116743a85cb4664a52407726234abfab2c19f5bb67dcc100173fa525acc8",
         "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
