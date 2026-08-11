@@ -65,9 +65,18 @@ $canonicalChangelog = static function (string $source, string $release, array $v
         if (!is_string($updated) || $count !== 1) {
             throw new RuntimeException('Falha ao reconciliar entrada existente do CHANGELOG.md.');
         }
-        return $updated;
+    } else {
+        $updated = $prefix . PHP_EOL . $entry . substr($source, strlen($prefix));
     }
-    return $prefix . PHP_EOL . $entry . substr($source, strlen($prefix));
+    $updated = preg_replace(
+        '/^##\s+Não publicado[^\n]*\n.*?(?=^##\s+|\z)/ms',
+        '',
+        $updated,
+    );
+    if (!is_string($updated)) {
+        throw new RuntimeException('Falha ao consumir o bloco não publicado do CHANGELOG.md.');
+    }
+    return $updated;
 };
 
 $documentationWorkflow = <<<'YAML'
