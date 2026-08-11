@@ -15,6 +15,9 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | contratos e catálogo declarativo de autorização | `app/Application/Authorization/*` |
 | PDO e repositórios | `app/Infrastructure/*` |
 | catálogo SQL e adapter de dados financeiros | `app/Infrastructure/Financial/FinancialSqlCatalog*.php`, `PdoFinancialDataRepository.php` |
+| casos de uso e catálogo de persistência de identidade | `app/Application/Identity/*`, `app/Infrastructure/Identity/*` |
+| registro persistente de incidentes de escopo | `app/Application/SecurityAccess/SecurityIncident*`, `app/Infrastructure/SecurityAccess/PdoSecurityIncidentRepository.php` |
+| ciclo persistente de cadastro MFA | `app/Application/SecurityAccess/MfaRecord*`, `app/Infrastructure/SecurityAccess/PdoMfaRecordRepository.php` |
 | auditoria/integridade concreta | `app/Infrastructure/Audit`, `app/Infrastructure/Integrity` |
 | HTTP, views e JSON | `app/Presentation/*` |
 | composição de módulos | `app/Runtime/Modules/*` |
@@ -46,6 +49,7 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - atualização de contato: `PatientContactCommandPort/Service` + repositório PDO transacional;
 - recebimento financeiro: `PatientRevenueReceiptPort/Service` + repositório PDO transacional;
 - fronteira financeira fechada: `FinancialDataPort/Service` aceita somente operações semânticas catalogadas; `FinancialComposition` liga o adapter ao executor guardado e o Runtime financeiro não contém SQL, PDO, helpers ou controle transacional;
+- fronteira de identidade fechada: SecurityAccess, AuthOnboarding e UsersPermissions usam operações nomeadas de `IdentityDataService`; PDO, SQL, locks de persistência e transações ficam em Infrastructure, enquanto request, sessão, cookies e respostas HTTP permanecem no Runtime;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
 
 ## Regras de localização

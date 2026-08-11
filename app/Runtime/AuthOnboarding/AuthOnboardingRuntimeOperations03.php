@@ -194,7 +194,7 @@ final class AuthOnboardingRuntimeOperations03
             $wait = 2;
             try {
                 $loginAttemptLocked =
-                    (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT GET_LOCK(?,2)", [$loginAttemptLock]) === 1;
+                    (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth03.page_login.01', [$loginAttemptLock], []) === 1;
                 if ($loginAttemptLocked) {
                     $wait = max(
                         $cpf ? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf) : 0,
@@ -204,13 +204,7 @@ final class AuthOnboardingRuntimeOperations03
                         $loginAttemptState = "locked";
                     } else {
                         $person = $cpfValid
-                            ? \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                                "SELECT p.full_name,p.cpf,p.birth_date,u.id uid,u.password_hash,u.active,u.is_global_admin
-                                 FROM pi_persons p
-                                 JOIN pi_users u ON u.person_id=p.id
-                                 WHERE p.cpf=? LIMIT 1",
-                                [$cpf],
-                            )
+                            ? \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth03.page_login.02', [$cpf], [])
                             : null;
                         $userRow = $person;
                         $passwordValid = $person && $userRow
@@ -239,7 +233,7 @@ final class AuthOnboardingRuntimeOperations03
             } finally {
                 if ($loginAttemptLocked) {
                     try {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT RELEASE_LOCK(?)", [$loginAttemptLock]);
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth03.page_login.03', [$loginAttemptLock], []);
                     } catch (Throwable $unlockError) {
                         error_log(
                             "[Prontoo login attempt unlock] " .
@@ -549,9 +543,7 @@ final class AuthOnboardingRuntimeOperations03
             return;
         }
         try {
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "DELETE FROM pi_login_locks WHERE locked_until<UNIX_TIMESTAMP()-604800 LIMIT 500",
-            );
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth03.login_locks_cleanup_maybe.01', [], []);
         } catch (Throwable $e) {
             error_log("[Prontoo login lock cleanup] " . $e->getMessage());
         }

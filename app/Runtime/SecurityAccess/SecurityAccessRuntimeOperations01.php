@@ -386,7 +386,7 @@ final class SecurityAccessRuntimeOperations01
         return hash_hmac(
             "sha256",
             "prontoo-mfa-secret-v1",
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->secretKey(),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::mfaRecordService()->secretKey(),
             true,
         );
     
@@ -450,47 +450,21 @@ final class SecurityAccessRuntimeOperations01
     public static function mfa_record_load(int $uid): ?array
     
     {
-        if ($uid <= 0 || !\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->hasConfig()) {
-            return null;
-        }
-        $raw = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value(
-            "SELECT meta_value FROM pi_meta WHERE meta_key=? LIMIT 1",
-            [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid)],
-        );
-        if (!is_string($raw) || trim($raw) === "") {
-            return null;
-        }
-        try {
-            $record = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            throw new RuntimeException("Cadastro MFA corrompido.", 0, $e);
-        }
-        if (
-            !is_array($record) ||
-            (int) ($record["v"] ?? 0) !== 1 ||
-            empty($record["secret"])
-        ) {
-            throw new RuntimeException("Cadastro MFA incompleto.");
-        }
-        return $record;
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::mfaRecordService()->load($uid);
     
     }
 
     public static function mfa_record_save(int $uid, array $record): void
     
     {
-        $encoded = json_encode(
-            $record,
-            JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
-        );
-        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_set(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_meta_key($uid), $encoded);
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::mfaRecordService()->save($uid, $record);
     
     }
 
     public static function mfa_enrollment_state(int $uid): string
     
     {
-        if ($uid <= 0 || !\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->hasConfig()) {
+        if ($uid <= 0 || !\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::mfaRecordService()->hasConfig()) {
             return "unavailable";
         }
         try {
@@ -523,7 +497,7 @@ final class SecurityAccessRuntimeOperations01
         return hash_hmac(
             "sha256",
             \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_code_normalize($code),
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->secretKey(),
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::mfaRecordService()->secretKey(),
         );
     
     }
@@ -537,7 +511,7 @@ final class SecurityAccessRuntimeOperations01
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value("SELECT GET_LOCK(?,5)", [$lock]) === 1;
+            $locked = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security01.mfa_enroll_user.01', [$lock], []) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger o cadastro MFA.",
@@ -565,7 +539,7 @@ final class SecurityAccessRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::persistence()->value("SELECT RELEASE_LOCK(?)", [$lock]);
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security01.mfa_enroll_user.02', [$lock], []);
                 } catch (Throwable $e) {
                     error_log("[Prontoo MFA enroll unlock] " . $e->getMessage());
                 }

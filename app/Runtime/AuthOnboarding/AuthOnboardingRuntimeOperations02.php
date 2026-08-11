@@ -246,10 +246,7 @@ final class AuthOnboardingRuntimeOperations02
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
         }
         $uid = (int) ($c["user"]["id"] ?? 0);
-        $user = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,name,password_hash,is_global_admin,active FROM pi_users WHERE id=? AND active=1 LIMIT 1",
-            [$uid],
-        );
+        $user = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth02.page_global_reauth.01', [$uid], []);
         if (
             !$user ||
             (int) ($user["is_global_admin"] ?? 0) !== 1 ||

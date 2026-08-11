@@ -37,12 +37,8 @@ final class UsersPermissionsRuntimeOperations04
             $act = (string) ($_POST["act"] ?? "save");
             try {
                 if ($act === "save") {
-                    $db = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
-                    $ownTransaction = !$db->inTransaction();
-                    if ($ownTransaction) {
-                        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_begin_transaction();
-                    }
-                    try {
+                    [$roles, $uid] = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
+                        function () use ($cid): array {
                         $roles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::selected_team_roles($_POST, $cid);
                         $uid = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::save_team_member($cid, $_POST);
                         if ($uid && in_array("medico", $roles, true)) {
@@ -52,15 +48,9 @@ final class UsersPermissionsRuntimeOperations04
                             "perfil" => implode(",", $roles),
                             "clinic_id" => $cid,
                         ]);
-                        if ($ownTransaction && $db->inTransaction()) {
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_commit();
-                        }
-                    } catch (Throwable $e) {
-                        if ($ownTransaction && $db->inTransaction()) {
-                            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_rollback();
-                        }
-                        throw $e;
-                    }
+                            return [$roles, $uid];
+                        },
+                    );
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador vinculado ao consultório.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("users");
                 }
@@ -73,10 +63,7 @@ final class UsersPermissionsRuntimeOperations04
                         );
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("users");
                     }
-                    $exists = (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                        "SELECT COUNT(*) FROM pi_user_roles WHERE user_id=? AND clinic_id=?",
-                        [$uid, $cid],
-                    );
+                    $exists = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.permissions04.page_users.01', [$uid, $cid], []);
                     if (!$exists) {
                         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                             "Colaborador não encontrado neste consultório.",
@@ -85,25 +72,16 @@ final class UsersPermissionsRuntimeOperations04
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("users");
                     }
                     \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_can_deactivate_user_roles($cid, $uid);
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "UPDATE pi_user_roles SET active=0 WHERE user_id=? AND clinic_id=?",
-                        [$uid, $cid],
-                    );
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions04.page_users.02', [$uid, $cid], []);
                     \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions(
                         $cid,
                         $uid,
                         "deactivate_from_list",
                     );
                     if (
-                        (int) \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                            "SELECT COUNT(*) FROM pi_user_roles WHERE user_id=? AND active=1",
-                            [$uid],
-                        ) === 0
+                        (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.permissions04.page_users.03', [$uid], []) === 0
                     ) {
-                        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                            "UPDATE pi_users SET active=0, updated_at=NOW() WHERE id=?",
-                            [$uid],
-                        );
+                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions04.page_users.04', [$uid], []);
                     }
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_desativado", "usuario", $uid, [
                         "clinic_id" => $cid,
@@ -218,26 +196,10 @@ final class UsersPermissionsRuntimeOperations04
             );
             return;
         }
-        $statsTotal = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(DISTINCT ur.user_id) FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id WHERE ur.clinic_id=?",
-            [$cid],
-            0,
-        );
-        $statsActive = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(DISTINCT ur.user_id) FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1",
-            [$cid],
-            0,
-        );
-        $statsProfessionals = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(DISTINCT ur.user_id) FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 AND ur.role_code='medico'",
-            [$cid],
-            0,
-        );
-        $statsNoEmail = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::safe_val(
-            "SELECT COUNT(DISTINCT ur.user_id) FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id WHERE ur.clinic_id=? AND ur.active=1 AND u.active=1 AND COALESCE(u.email,'')=''",
-            [$cid],
-            0,
-        );
+        $statsTotal = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->safeScalar('identity.permissions04.page_users.05', [$cid], 0, []);
+        $statsActive = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->safeScalar('identity.permissions04.page_users.06', [$cid], 0, []);
+        $statsProfessionals = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->safeScalar('identity.permissions04.page_users.07', [$cid], 0, []);
+        $statsNoEmail = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->safeScalar('identity.permissions04.page_users.08', [$cid], 0, []);
         $inactive = max(0, $statsTotal - $statsActive);
         $statHtml =
             '<section class="collaborator-directory-overview patient-directory-overview kpis kpi-info-strip" aria-label="Resumo de colaboradores"><div class="patient-kpi-card kpi-card ' .
@@ -265,24 +227,12 @@ final class UsersPermissionsRuntimeOperations04
             "<p><b>" .
             number_format($inactive, 0, ",", ".") .
             "</b><span>Inativos</span></p></div></section>";
-        $where = "ur.clinic_id=?";
         $params = [$cid];
-        if ($filter === "ativos") {
-            $where .= " AND ur.active=1 AND u.active=1";
-        } elseif ($filter === "profissionais") {
-            $where .= " AND ur.active=1 AND u.active=1 AND ur.role_code='medico'";
-        } elseif ($filter === "sem_email") {
-            $where .= " AND ur.active=1 AND u.active=1 AND COALESCE(u.email,'')=''";
-        } elseif ($filter === "inativos") {
-            $where .= " AND (ur.active=0 OR u.active=0)";
-        }
         if ($search !== "") {
             $like = "%" . $search . "%";
             $digits = is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'only_digits'])
                 ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits($search)
                 : preg_replace("/\D+/", "", $search);
-            $where .=
-                " AND (u.name LIKE ? OR u.email LIKE ? OR p.full_name LIKE ? OR p.cpf LIKE ? OR p.phone LIKE ? OR ur.role_code LIKE ?)";
             array_push(
                 $params,
                 $like,
@@ -293,9 +243,10 @@ final class UsersPermissionsRuntimeOperations04
                 $like,
             );
         }
-        $links = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT u.id user_id,u.name,u.email,u.active user_active,u.last_login_at,p.cpf,p.birth_date,p.phone,GROUP_CONCAT(CASE WHEN ur.active=1 THEN ur.role_code END ORDER BY FIELD(ur.role_code,'recepcionista','assistente','medico','gerente') SEPARATOR ',') active_roles,MAX(ur.active) any_role_active FROM pi_user_roles ur JOIN pi_users u ON u.id=ur.user_id LEFT JOIN pi_persons p ON p.id=u.person_id WHERE $where GROUP BY u.id,u.name,u.email,u.active,u.last_login_at,p.cpf,p.birth_date,p.phone ORDER BY any_role_active DESC,u.name ASC LIMIT 220",
+        $links = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result(
+            'identity.permissions04.page_users.09',
             $params,
+            ['filter' => $filter, 'has_search' => $search !== ''],
         )->fetchAll();
         $rows = "";
         foreach ($links as $r) {

@@ -47,10 +47,7 @@ final class UsersPermissionsRuntimeOperations03
         }
         $allowed = [];
         foreach (
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT action_key,allowed FROM pi_permissions WHERE clinic_id=? AND role_code=?",
-                [$cid, $role],
-            )->fetchAll()
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions03.collaborator_permission_matrix_base.01', [$cid, $role], [])->fetchAll()
             as $r
         ) {
             $allowed[(string) $r["action_key"]] = (int) $r["allowed"] === 1;

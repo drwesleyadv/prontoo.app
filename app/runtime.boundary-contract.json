@@ -54,6 +54,45 @@
                 "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
             ]
+        },
+        {
+            "id": "security_access_semantic_closure",
+            "path_prefix": "app/Runtime/SecurityAccess/",
+            "categories": [
+                "runtime_business_sql",
+                "runtime_structural_sql",
+                "runtime_direct_pdo",
+                "runtime_persistence_helper",
+                "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business",
+                "runtime_transaction_orchestration_structural"
+            ]
+        },
+        {
+            "id": "auth_onboarding_semantic_closure",
+            "path_prefix": "app/Runtime/AuthOnboarding/",
+            "categories": [
+                "runtime_business_sql",
+                "runtime_structural_sql",
+                "runtime_direct_pdo",
+                "runtime_persistence_helper",
+                "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business",
+                "runtime_transaction_orchestration_structural"
+            ]
+        },
+        {
+            "id": "users_permissions_semantic_closure",
+            "path_prefix": "app/Runtime/UsersPermissions/",
+            "categories": [
+                "runtime_business_sql",
+                "runtime_structural_sql",
+                "runtime_direct_pdo",
+                "runtime_persistence_helper",
+                "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business",
+                "runtime_transaction_orchestration_structural"
+            ]
         }
     ]
 }

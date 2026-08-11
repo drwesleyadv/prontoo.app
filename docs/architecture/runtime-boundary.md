@@ -39,6 +39,12 @@ O prefixo `app/Runtime/Financial/` possui regra zero explícita para todas as ca
 
 Os adaptadores Runtime preservam request, sessão, redirect, flash e composição HTML. Operações de dados passam por `FinancialDataService` e sua porta fechada; somente identificadores semânticos catalogados são aceitos. `PdoFinancialDataRepository` resolve esses identificadores nos catálogos SQL de Infrastructure e executa pelo executor guardado ligado em `FinancialComposition`, preservando scope guard, integridade, retries e a proteção de movimentos consolidados. O serviço não aceita SQL arbitrário vindo do Runtime.
 
+## Fechamento de segurança e identidade da Fase 18
+
+Os prefixos `app/Runtime/SecurityAccess/`, `app/Runtime/AuthOnboarding/` e `app/Runtime/UsersPermissions/` também possuem regras zero para todas as categorias do contrato. Login, MFA, geração de autenticação, onboarding, usuários e permissões preservam request, sessão, cookie, redirect e flash no Runtime; a persistência usa operações fechadas de `IdentityDataService`, catálogos em Infrastructure e transações executadas pela porta. O registro de violações de escopo usa uma porta dedicada que mantém PDO e integração com `PiIntegrity` fora do Runtime, inclusive para evitar recursão no próprio scope guard.
+
+O analisador reconhece formas executáveis de `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`. Valores de domínio isolados, como os estados `replace` e `delete`, não são SQL e não entram no inventário.
+
 ## Exceções explícitas
 
 As composition roots autorizadas são quatro arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural inicial é `DatabaseSchemaRuntimeOperations01.php`, que permanece contada como dívida estrutural e não pode crescer. Não existe allowlist genérica por diretório, namespace ou padrão.

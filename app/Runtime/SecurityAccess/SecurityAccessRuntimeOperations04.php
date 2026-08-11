@@ -84,17 +84,14 @@ final class SecurityAccessRuntimeOperations04
             }
         }
     
-        $user = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT id,person_id,name,email,password_hash,is_global_admin,active,failed_login_count,locked_until,last_login_at,created_at,updated_at FROM pi_users WHERE id=? AND active=1",
-            [$uid],
-        );
+        $user = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.security04.ctx.01', [$uid], []);
         if (!$user) {
             return $c = [];
         }
         $person =
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT cpf,birth_date FROM pi_persons WHERE id=?", [
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.security04.ctx.02', [
                 (int) $user["person_id"],
-            ]) ?:
+            ], []) ?:
             [];
         $user += [
             "cpf" => $person["cpf"] ?? "",
@@ -167,10 +164,7 @@ final class SecurityAccessRuntimeOperations04
         if (is_callable([\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::class, 'clinic_enable_roles_from_active_user_links'])) {
             \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::clinic_enable_roles_from_active_user_links($uid);
         }
-        $links = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,user_id,clinic_id,role_code,is_owner,active,created_at FROM pi_user_roles WHERE user_id=? AND active=1 ORDER BY clinic_id ASC, is_owner DESC, FIELD(role_code,'gerente','medico','assistente','recepcionista'), id ASC LIMIT 80",
-            [$uid],
-        )->fetchAll();
+        $links = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.security04.ctx.03', [$uid], [])->fetchAll();
         if (!$links) {
             if (
                 (int) $user["is_global_admin"] === 1 &&

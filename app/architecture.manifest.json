@@ -85,6 +85,33 @@
             "runtime_repository_instantiation_outside_composition",
             "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
+        ],
+        "app/Runtime/SecurityAccess/": [
+            "runtime_business_sql",
+            "runtime_structural_sql",
+            "runtime_direct_pdo",
+            "runtime_persistence_helper",
+            "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business",
+            "runtime_transaction_orchestration_structural"
+        ],
+        "app/Runtime/AuthOnboarding/": [
+            "runtime_business_sql",
+            "runtime_structural_sql",
+            "runtime_direct_pdo",
+            "runtime_persistence_helper",
+            "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business",
+            "runtime_transaction_orchestration_structural"
+        ],
+        "app/Runtime/UsersPermissions/": [
+            "runtime_business_sql",
+            "runtime_structural_sql",
+            "runtime_direct_pdo",
+            "runtime_persistence_helper",
+            "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business",
+            "runtime_transaction_orchestration_structural"
         ]
     },
     "engineering_phase_seventeen_policy": "financial_runtime_adapts_input_and_output_while_application_ports_dispatch_only_named_financial_operations_to_guarded_infrastructure_catalogs",
@@ -95,6 +122,20 @@
         "app/Runtime/Financial/FinancialComposition.php"
     ],
     "engineering_phase_seventeen_check": "tools/runtime-boundary-check",
+    "engineering_phase_eighteen_policy": "security_identity_runtime_adapts_http_session_and_mfa_inputs_while_named_application_ports_dispatch_tenant_scoped_identity_operations_to_infrastructure",
+    "engineering_phase_eighteen_components": [
+        "app/Application/Identity/IdentityDataPort.php",
+        "app/Application/Identity/IdentityDataService.php",
+        "app/Application/SecurityAccess/SecurityIncidentPort.php",
+        "app/Application/SecurityAccess/SecurityIncidentService.php",
+        "app/Application/SecurityAccess/MfaRecordPort.php",
+        "app/Application/SecurityAccess/MfaRecordService.php",
+        "app/Infrastructure/Identity/PdoIdentityDataRepository.php",
+        "app/Infrastructure/SecurityAccess/PdoSecurityIncidentRepository.php",
+        "app/Infrastructure/SecurityAccess/PdoMfaRecordRepository.php",
+        "app/Runtime/SecurityAccess/SecurityAccessComposition.php"
+    ],
+    "engineering_phase_eighteen_check": "tools/runtime-boundary-check",
     "removed_legacy_files": [
         "app/Core/Invariant/ActionCapabilityCatalog.php",
         "app/Core/Invariant/CapabilityInvariant.php",

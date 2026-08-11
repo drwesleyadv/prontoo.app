@@ -112,9 +112,7 @@ final class SecurityAccessRuntimeOperations03
         }
         $recorded[$dedupKey] = true;
         try {
-            $ins =
-                "INSERT INTO pi_scope_violations (clinic_id,user_id,role_code,route,violation_key,sql_fingerprint,details,created_at) VALUES (?,?,?,?,?,?,?,NOW())";
-            $params = [
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::securityIncidentService()->recordScopeViolation(
                 $cid,
                 $_SESSION["uid"] ?? null,
                 \Prontoo\Runtime\Tenant\SessionTenantAccess::roleCode(),
@@ -122,18 +120,7 @@ final class SecurityAccessRuntimeOperations03
                 $key,
                 $fingerprint,
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::scope_violation_evidence_payload($sql, $detail),
-            ];
-            if (class_exists("\Prontoo\Infrastructure\\Integrity\\PiIntegrity")) {
-                [
-                    $ins,
-                    $params,
-                ] = \Prontoo\Infrastructure\Integrity\PiIntegrity::prepareRuntimeQuery(
-                    $ins,
-                    $params,
-                );
-            }
-            $st = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare($ins);
-            $st->execute($params);
+            );
         } catch (Throwable $e) {
             error_log(
                 "[Prontoo scope violation] " .
@@ -206,21 +193,23 @@ final class SecurityAccessRuntimeOperations03
         if (!\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::tenant_table_is_scoped($table)) {
             throw new RuntimeException("Tabela sem escopo de consultório.");
         }
-        $cols = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::safe_db_columns($cols);
         if ($cid <= 0 || $id <= 0) {
             throw new ProntooHttpError(
                 403,
                 "Registro não pertence ao consultório ativo.",
             );
         }
-        $row = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one("SELECT $cols FROM $table WHERE id=? AND clinic_id=? LIMIT 1", [
+        $row = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.security03.require_same_clinic_entity.01', [
             $id,
             $cid,
-        ]);
+        ], ['cols' => $cols, 'table' => $table]);
         if (!$row) {
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::record_scope_violation(
                 "entity_outside_clinic",
-                "SELECT $cols FROM $table WHERE id=? AND clinic_id=?",
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::securityIncidentService()->scopedEntityReadShape(
+                    $table,
+                    $cols,
+                ),
                 "Registro " .
                     $table .
                     "#" .
@@ -366,11 +355,11 @@ final class SecurityAccessRuntimeOperations03
         if (in_array("gerente", $roles, true)) {
             return array_keys(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions());
         }
-        $ph = implode(",", array_fill(0, count($roles), "?"));
         try {
-            $allowed = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT DISTINCT action_key FROM pi_permissions WHERE clinic_id=? AND role_code IN ($ph) AND allowed=1",
+            $allowed = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result(
+                'identity.security03.effective_allowed_modules_for_roles.01',
                 array_merge([$cid], $roles),
+                ['role_count' => count($roles)],
             )->fetchAll(PDO::FETCH_COLUMN);
             return array_values(array_unique(array_map("strval", $allowed ?: [])));
         } catch (Throwable $e) {
@@ -388,15 +377,12 @@ final class SecurityAccessRuntimeOperations03
     
             foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions() as $role => $keys) {
                 foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions() as $key => $a) {
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_permissions (clinic_id, role_code, action_key, allowed) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE allowed=allowed",
-                        [
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.security03.seed_permissions.01', [
                             $clinicId,
                             $role,
                             $key,
                             in_array($key, $keys, true) ? 1 : 0,
-                        ],
-                    );
+                        ], []);
                 }
             }
         });
@@ -411,9 +397,7 @@ final class SecurityAccessRuntimeOperations03
         if (is_string($secret) && $secret !== "") {
             return $secret;
         }
-        $secret = (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT meta_value FROM pi_meta WHERE meta_key='app_secret'",
-        ) ??
+        $secret = (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security03.secret_key.01', [], []) ??
             (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()["secret"] ?? "prontoo"));
         return $secret;
     

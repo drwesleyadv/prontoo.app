@@ -20,6 +20,67 @@ require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
         }
     },
 );
+\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configureDataPort(
+    new class implements \Prontoo\Application\Identity\IdentityDataPort {
+        public function run(
+            string $operation,
+            array $parameters,
+            array $context,
+        ): \Prontoo\Application\Identity\IdentityDataResult {
+            if ($operation === 'identity.security01.mfa_record_load.01') {
+                $value = val('SELECT meta_value FROM pi_meta WHERE meta_key=?', $parameters);
+                return new \Prontoo\Application\Identity\IdentityDataResult(
+                    $value === null ? [] : [['meta_value' => $value]],
+                    0,
+                );
+            }
+            return new \Prontoo\Application\Identity\IdentityDataResult([], 0);
+        }
+
+        public function atomically(Closure $operation): mixed
+        {
+            return $operation();
+        }
+
+        public function lastInsertId(): int
+        {
+            return 0;
+        }
+
+        public function ensure(string $contract): void
+        {
+        }
+    },
+);
+\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configureMfaRecordPort(
+    new class implements \Prontoo\Application\SecurityAccess\MfaRecordPort {
+        public function hasConfig(): bool
+        {
+            return (bool) $GLOBALS['prontoo_test_has_cfg'];
+        }
+
+        public function load(int $userId): ?string
+        {
+            $value = val('SELECT meta_value FROM pi_meta WHERE meta_key=?', ['mfa_user_' . $userId]);
+            return is_string($value) ? $value : null;
+        }
+
+        public function save(int $userId, string $encodedRecord): void
+        {
+            $GLOBALS['prontoo_test_mfa_record'] = $encodedRecord;
+        }
+
+        public function delete(int $userId): void
+        {
+            $GLOBALS['prontoo_test_mfa_record'] = null;
+        }
+
+        public function secretKey(): string
+        {
+            return str_repeat('s', 48);
+        }
+    },
+);
 
 $testStorageRoot =
     sys_get_temp_dir() .
