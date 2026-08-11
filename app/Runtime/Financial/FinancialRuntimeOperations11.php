@@ -552,10 +552,7 @@ final class FinancialRuntimeOperations11
         $list = "";
         if ($extractSession) {
             $extractDate = (string) ($extractSession["business_date"] ?? $today);
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT m.movement_type,m.cash_session_id,m.source_entity,m.status,m.title,m.created_at,m.payment_method,m.amount_cents,lt.name to_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id WHERE m.clinic_id=? AND (m.cash_session_id=? OR (m.cash_session_id IS NULL AND m.created_by=? AND DATE(m.created_at)=? AND m.movement_type='receipt' AND m.source_entity='appointment')) ORDER BY m.created_at DESC,m.id DESC LIMIT 100",
-                [$cid, (int) $extractSession["id"], $uid, $extractDate],
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.11.cashier_page.01", [$cid, (int) $extractSession["id"], $uid, $extractDate], [])->fetchAll();
             foreach ($rows as $r) {
                 $type = (string) $r["movement_type"];
                 $outside = (int) ($r["cash_session_id"] ?? 0) <= 0;

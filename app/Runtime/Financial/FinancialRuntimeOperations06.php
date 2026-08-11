@@ -48,15 +48,7 @@ final class FinancialRuntimeOperations06
                 $excludeMovementId,
             ];
         }
-        $balance = (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT COALESCE(SUM(delta_cents),0) FROM (" .
-                "SELECT amount_cents delta_cents FROM pi_financial_movements WHERE to_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
-                $excludeTo .
-                " UNION ALL SELECT -amount_cents delta_cents FROM pi_financial_movements WHERE from_location_id=? AND clinic_id=? AND status IN ('confirmed','pending_review')" .
-                $excludeFrom .
-                ") financial_potential",
-            $params,
-        ) ?:
+        $balance = (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.06.location_potential_balance.01", $params, compact('excludeTo', 'excludeFrom')) ?:
             0);
         return \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_assert_balance_cents(
             $balance,
@@ -81,7 +73,7 @@ final class FinancialRuntimeOperations06
         if ($cid <= 0 || $amount <= 0) {
             throw new RuntimeException("Informe um valor financeiro válido.");
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q("SELECT id FROM pi_clinics WHERE id=? FOR UPDATE", [$cid]);
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.validate_movement_invariants.01", [$cid], []);
         $allowedTypes = [
             "receipt",
             "payment",
@@ -119,10 +111,7 @@ final class FinancialRuntimeOperations06
         sort($locationIds, SORT_NUMERIC);
         if ($locationIds) {
             $placeholders = implode(",", array_fill(0, count($locationIds), "?"));
-            $locked = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id FROM pi_financial_locations WHERE clinic_id=? AND id IN ($placeholders) AND active=1 ORDER BY id FOR UPDATE",
-                array_merge([$cid], $locationIds),
-            )->fetchAll();
+            $locked = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.validate_movement_invariants.02", array_merge([$cid], $locationIds), compact('placeholders'))->fetchAll();
             if (count($locked) !== count($locationIds)) {
                 throw new RuntimeException("Origem ou destino financeiro inválido.");
             }
@@ -130,10 +119,7 @@ final class FinancialRuntimeOperations06
         $session = null;
         $businessDate = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         if (($sessionId ?? 0) > 0) {
-            $session = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT * FROM pi_cash_sessions WHERE id=? AND clinic_id=? FOR UPDATE",
-                [$sessionId, $cid],
-            );
+            $session = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.06.validate_movement_invariants.03", [$sessionId, $cid], []);
             if (!$session) {
                 throw new RuntimeException(
                     "Sessão de gaveta inválida para o lançamento.",
@@ -221,7 +207,7 @@ final class FinancialRuntimeOperations06
     ): void 
     {
     
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
             $cid,
             $movementId,
             $type,
@@ -236,10 +222,7 @@ final class FinancialRuntimeOperations06
             $status,
         ): void {
     
-            $existing = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-                "SELECT id FROM pi_financial_movements WHERE id=? AND clinic_id=? FOR UPDATE",
-                [$movementId, $cid],
-            );
+            $existing = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.06.update_existing_movement.01", [$movementId, $cid], []);
             if (!$existing) {
                 throw new RuntimeException("Movimento financeiro não encontrado.");
             }
@@ -253,9 +236,7 @@ final class FinancialRuntimeOperations06
                 $status,
                 $movementId,
             );
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "UPDATE pi_financial_movements SET movement_type=?,status=?,amount_cents=?,payment_method=?,from_location_id=?,to_location_id=?,cash_session_id=?,title=?,notes=?,updated_at=NOW(),confirmed_by=IF(?='confirmed',COALESCE(confirmed_by,?),NULL),confirmed_at=IF(?='confirmed',COALESCE(confirmed_at,NOW()),NULL),reviewed_by=NULL,reviewed_at=NULL WHERE id=? AND clinic_id=?",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.update_existing_movement.02", [
                     $type,
                     $status,
                     $amount,
@@ -270,8 +251,7 @@ final class FinancialRuntimeOperations06
                     $status,
                     $movementId,
                     $cid,
-                ],
-            );
+                ], []);
         });
     
     }
@@ -293,7 +273,7 @@ final class FinancialRuntimeOperations06
     ): int 
     {
     
-        return (int) \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_tx(function () use (
+        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
             $cid,
             $type,
             $amount,
@@ -321,9 +301,7 @@ final class FinancialRuntimeOperations06
             );
             $title = trim($title) ?: \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_type($type);
             $paymentMethod = mb_substr(trim($paymentMethod), 0, 40);
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_financial_movements (clinic_id,movement_type,status,amount_cents,payment_method,from_location_id,to_location_id,cash_session_id,source_entity,source_id,title,notes,created_by,created_at,confirmed_by,confirmed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),?,IF(?='confirmed',NOW(),NULL))",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.create_movement.01", [
                     $cid,
                     $type,
                     $status,
@@ -339,9 +317,8 @@ final class FinancialRuntimeOperations06
                     $uid ?: null,
                     $status === "confirmed" ? ($uid ?: null) : null,
                     $status,
-                ],
-            );
-            return \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                ], []);
+            return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
         });
     
     }
@@ -351,10 +328,7 @@ final class FinancialRuntimeOperations06
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? AND business_date=? LIMIT 1",
-            [$cid, $uid, $date],
-        );
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.06.session_for_date.01", [$cid, $uid, $date], []);
     
     }
 
@@ -363,10 +337,7 @@ final class FinancialRuntimeOperations06
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND user_id=? ORDER BY business_date DESC,id DESC LIMIT 1",
-            [$cid, $uid],
-        );
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.06.latest_session.01", [$cid, $uid], []);
     
     }
 
@@ -421,7 +392,7 @@ final class FinancialRuntimeOperations06
     {
     
         $name = trim(
-            (string) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val("SELECT name FROM pi_users WHERE id=? LIMIT 1", [$uid]) ?:
+            (string) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.06.cashier_name.01", [$uid], []) ?:
             "Atendimento"),
         );
         return $name !== "" ? $name : "Atendimento";
@@ -457,9 +428,7 @@ final class FinancialRuntimeOperations06
                 "\nDiferença: " .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br($diff) .
                 "\n\nAbra Financeiro > Gavetas para autorizar ou recusar esta abertura.";
-            \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "INSERT INTO pi_notices (clinic_id,title,body,requires_ack,target_scope,target_role,target_user_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,NOW())",
-                [
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.notify_opening_authorization_request.01", [
                     $cid,
                     $title,
                     $body,
@@ -468,9 +437,8 @@ final class FinancialRuntimeOperations06
                     "gerente",
                     null,
                     $createdBy ?: null,
-                ],
-            );
-            $noticeId = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                ], []);
+            $noticeId = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
             if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'counter_inc'])) {
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("notices_total");
             }

@@ -192,17 +192,14 @@ final class FinancialRuntimeOperations17
                             "Informe o nome da conta bancária.",
                         );
                     }
-                    \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                        "INSERT INTO pi_financial_accounts (clinic_id,name,bank_name,account_type,opening_balance_cents,active,created_by,created_at) VALUES (?,?,?,?,0,1,?,NOW())",
-                        [
+                    \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.17.admin_page.01", [
                             $cid,
                             $name,
                             mb_trim((string) ($_POST["bank_name"] ?? "")),
                             "conta_corrente",
                             $uid,
-                        ],
-                    );
-                    $acc = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_last_insert_id();
+                        ], []);
+                    $acc = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
                     \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_ensure_bank_location($cid, $acc, $uid);
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("conta_bancaria_criada", "financeiro", $acc, [
                         "name" => $name,
@@ -346,7 +343,7 @@ final class FinancialRuntimeOperations17
     {
     
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("financial");
-        \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations03::ensure_financial_operational_schema();
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->ensureOperationalSchema();
         if (\Prontoo\Domain\Financial\FinancialDomainOperations01::financial_is_cashier($c)) {
             \Prontoo\Runtime\Financial\FinancialRuntimeOperations11::financial_cashier_page($c);
             return;

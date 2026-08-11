@@ -41,5 +41,19 @@
     "required_zero_categories": [
         "runtime_repository_instantiation_outside_composition"
     ],
-    "path_zero_rules": []
+    "path_zero_rules": [
+        {
+            "id": "financial_semantic_closure",
+            "path_prefix": "app/Runtime/Financial/",
+            "categories": [
+                "runtime_business_sql",
+                "runtime_structural_sql",
+                "runtime_direct_pdo",
+                "runtime_persistence_helper",
+                "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business",
+                "runtime_transaction_orchestration_structural"
+            ]
+        }
+    ]
 }

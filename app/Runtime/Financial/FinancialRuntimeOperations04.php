@@ -50,10 +50,7 @@ final class FinancialRuntimeOperations04
             return;
         }
         $linked =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(*) FROM pi_financial_location_users WHERE clinic_id=? AND location_id=? AND active=1",
-                [$cid, $drawerId],
-            ) ?:
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.04.drawer_lock_after_close.01", [$cid, $drawerId], []) ?:
             0);
         if ($linked <= 0 && (int) ($current["user_id"] ?? 0) > 0) {
             $linked = 1;
@@ -62,10 +59,7 @@ final class FinancialRuntimeOperations04
             $linked = 1;
         }
         $done =
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT COUNT(DISTINCT user_id) FROM pi_cash_sessions WHERE clinic_id=? AND location_id=? AND business_date=? AND status IN ('closed_pending_review','approved','rejected','kept_closed')",
-                [$cid, $drawerId, $businessDate],
-            ) ?:
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.04.drawer_lock_after_close.02", [$cid, $drawerId, $businessDate], []) ?:
             0);
         if ($done < $linked) {
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
@@ -83,10 +77,7 @@ final class FinancialRuntimeOperations04
             );
             return;
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "UPDATE pi_financial_locations SET drawer_lock_status='locked', drawer_locked_business_date=?, drawer_locked_at=NOW(), drawer_unlock_at=NULL, drawer_unlocked_at=NULL, drawer_reviewed_by=NULL, drawer_reviewed_at=NULL, drawer_review_notes=NULL, updated_at=NOW() WHERE id=? AND clinic_id=? AND location_type='pos'",
-            [$businessDate, $drawerId, $cid],
-        );
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_lock_after_close.03", [$businessDate, $drawerId, $cid], []);
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_trancada_para_conferencia", "financeiro", $drawerId, [
             "cash_session_id" => $sessionId,
             "business_date" => $businessDate,
@@ -164,10 +155,7 @@ final class FinancialRuntimeOperations04
                 "Informe um horário de destravamento válido.",
             );
         }
-        \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "UPDATE pi_financial_locations SET drawer_unlock_at=?, drawer_reviewed_by=?, drawer_reviewed_at=NOW(), drawer_review_notes=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND location_type='pos'",
-            [$unlockUtc, $adminUid, trim($notes) ?: null, $drawerId, $cid],
-        );
+        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.schedule_drawer_unlock.01", [$unlockUtc, $adminUid, trim($notes) ?: null, $drawerId, $cid], []);
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("gaveta_destravamento_agendado", "financeiro", $drawerId, [
             "unlock_at" => $unlockUtc,
             "locked_business_date" => $lockedDay,
@@ -188,14 +176,10 @@ final class FinancialRuntimeOperations04
             return null;
         }
         $params = [$cid, $locationId];
-        $sql =
-            "SELECT s.*,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id=? AND s.status='open'";
         if ($excludeUid > 0) {
-            $sql .= " AND s.user_id<>?";
             $params[] = $excludeUid;
         }
-        $sql .= " ORDER BY s.opened_at DESC,s.id DESC LIMIT 1";
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($sql, $params);
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.04.drawer_open_session.01", $params, compact('excludeUid'));
     
     }
 
@@ -211,19 +195,13 @@ final class FinancialRuntimeOperations04
             return null;
         }
         $params = [$cid, $locationId];
-        $sql =
-            "SELECT * FROM pi_cash_sessions WHERE clinic_id=? AND location_id=? AND status IN ('closed_pending_review','approved','kept_closed')";
         if ($maxDate !== "") {
-            $sql .= " AND business_date<=?";
             $params[] = $maxDate;
         }
         if ($ignoreSessionId > 0) {
-            $sql .= " AND id<>?";
             $params[] = $ignoreSessionId;
         }
-        $sql .=
-            " ORDER BY business_date DESC, COALESCE(closed_at,kept_closed_at,created_at) DESC, id DESC LIMIT 1";
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one($sql, $params);
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.04.latest_drawer_session.01", $params, compact('maxDate', 'ignoreSessionId'));
     
     }
 
@@ -260,10 +238,7 @@ final class FinancialRuntimeOperations04
         if ($cid <= 0 || $locationId <= 0) {
             return null;
         }
-        return \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::one(
-            "SELECT s.*,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id=? AND s.business_date<? AND s.status IN ('closed_pending_review','rejected') ORDER BY s.business_date DESC,s.id DESC LIMIT 1",
-            [$cid, $locationId, $today],
-        );
+        return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.04.drawer_pending_previous_review.01", [$cid, $locationId, $today], []);
     
     }
 
@@ -306,10 +281,7 @@ final class FinancialRuntimeOperations04
             return $requestCache[$requestKey];
         }
         $locationPh = implode(",", array_fill(0, count($locationIds), "?"));
-        $openRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT s.id,s.location_id,s.opening_balance_cents,u.name user_name FROM pi_cash_sessions s LEFT JOIN pi_users u ON u.id=s.user_id WHERE s.clinic_id=? AND s.location_id IN ($locationPh) AND s.status='open' ORDER BY s.location_id,s.opened_at DESC,s.id DESC",
-            array_merge([$cid], $locationIds),
-        )->fetchAll();
+        $openRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.01", array_merge([$cid], $locationIds), compact('locationPh'))->fetchAll();
         $sessionToLocation = [];
         foreach ($openRows as $open) {
             $locationId = (int) ($open["location_id"] ?? 0);
@@ -323,10 +295,7 @@ final class FinancialRuntimeOperations04
         if ($sessionToLocation) {
             $sessionIds = array_keys($sessionToLocation);
             $sessionPh = implode(",", array_fill(0, count($sessionIds), "?"));
-            $movementRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT cash_session_id,from_location_id,to_location_id,COALESCE(SUM(amount_cents),0) total FROM pi_financial_movements WHERE clinic_id=? AND cash_session_id IN ($sessionPh) AND status IN ('confirmed','pending_review') GROUP BY cash_session_id,from_location_id,to_location_id",
-                array_merge([$cid], $sessionIds),
-            )->fetchAll();
+            $movementRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.02", array_merge([$cid], $sessionIds), compact('sessionPh'))->fetchAll();
             foreach ($movementRows as $movement) {
                 $locationId =
                     $sessionToLocation[(int) ($movement["cash_session_id"] ?? 0)] ??
@@ -352,10 +321,7 @@ final class FinancialRuntimeOperations04
         );
         if ($closedLocationIds) {
             $closedPh = implode(",", array_fill(0, count($closedLocationIds), "?"));
-            $closedRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT location_id,keep_in_drawer_cents FROM (SELECT location_id,keep_in_drawer_cents,ROW_NUMBER() OVER (PARTITION BY location_id ORDER BY business_date DESC,COALESCE(closed_at,kept_closed_at,created_at) DESC,id DESC) row_rank FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN ($closedPh) AND status IN ('closed_pending_review','approved','kept_closed')) ranked WHERE row_rank=1",
-                array_merge([$cid], $closedLocationIds),
-            )->fetchAll();
+            $closedRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_balance_snapshot.03", array_merge([$cid], $closedLocationIds), compact('closedPh'))->fetchAll();
             foreach ($closedRows as $closed) {
                 $balances[(int) $closed["location_id"]] =
                     (int) $closed["keep_in_drawer_cents"];
@@ -423,10 +389,7 @@ final class FinancialRuntimeOperations04
             $dates,
         );
         $params = array_merge([$cid], $locationIds, $storageDates);
-        $sessions = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,location_id,business_date,opening_balance_cents,keep_in_drawer_cents,transfer_to_safe_cents,declared_closing_cents,status FROM pi_cash_sessions WHERE clinic_id=? AND location_id IN ($locationPh) AND business_date IN ($datePh) ORDER BY location_id,business_date,id ASC",
-            $params,
-        )->fetchAll();
+        $sessions = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.01", $params, compact('locationPh', 'datePh'))->fetchAll();
         foreach ($sessions as $session) {
             $key =
                 (int) ($session["location_id"] ?? 0) .
@@ -451,10 +414,7 @@ final class FinancialRuntimeOperations04
                 $out[$key]["pending_count"]++;
             }
         }
-        $movements = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT s.location_id,s.business_date,m.movement_type,COALESCE(SUM(m.amount_cents),0) total FROM pi_financial_movements m JOIN pi_cash_sessions s ON s.id=m.cash_session_id AND s.clinic_id=m.clinic_id WHERE m.clinic_id=? AND s.location_id IN ($locationPh) AND s.business_date IN ($datePh) AND m.status IN ('confirmed','pending_review') GROUP BY s.location_id,s.business_date,m.movement_type",
-            $params,
-        )->fetchAll();
+        $movements = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.drawer_daily_totals_map.02", $params, compact('locationPh', 'datePh'))->fetchAll();
         $movementKeys = [
             "receipt" => "receipts",
             "payment" => "payments",
@@ -480,10 +440,7 @@ final class FinancialRuntimeOperations04
     {
     
         return $locationId > 0 &&
-            (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 LIMIT 1",
-                [$locationId, $cid],
-            ) ?:
+            (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.04.location_belongs.01", [$locationId, $cid], []) ?:
                 0) > 0;
     
     }
@@ -495,10 +452,7 @@ final class FinancialRuntimeOperations04
         if ($locationId <= 0) {
             return false;
         }
-        return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-            "SELECT id FROM pi_financial_locations WHERE id=? AND clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') LIMIT 1",
-            [$locationId, $cid],
-        ) ?:
+        return (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.04.admin_location_belongs.01", [$locationId, $cid], []) ?:
             0) > 0;
     
     }
@@ -508,10 +462,7 @@ final class FinancialRuntimeOperations04
     {
     
         \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-        $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name,location_type FROM pi_financial_locations WHERE clinic_id=? AND active=1 AND location_type IN ('admin_safe','bank_account') ORDER BY FIELD(location_type,'admin_safe','bank_account'), name,id",
-            [$cid],
-        )->fetchAll();
+        $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.04.admin_location_select_options.01", [$cid], [])->fetchAll();
         $out = ["" => "Selecione"];
         foreach ($rows as $r) {
             $label =
@@ -531,12 +482,9 @@ final class FinancialRuntimeOperations04
     {
     
         try {
-            \Prontoo\Infrastructure\Financial\FinancialInfrastructureOperations01::financial_daily_closing_ensure_schema();
+            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->ensureDailyClosingSchema();
             $businessDate = $businessDate ?: \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
-            return (int) (\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::val(
-                "SELECT id FROM pi_financial_daily_closings WHERE clinic_id=? AND business_date=? AND status='consolidado' LIMIT 1",
-                [$cid, $businessDate],
-            ) ?:
+            return (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.04.day_is_consolidated.01", [$cid, $businessDate], []) ?:
                 0) > 0;
         } catch (Throwable $e) {
             error_log("[Prontoo daily closing check] " . $e->getMessage());

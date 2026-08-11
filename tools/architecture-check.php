@@ -151,7 +151,13 @@ foreach ([
 ] as $token) {
     $assert(str_contains($patientViewCompositionSource, $token), 'patient_view_composition_missing:' . $token);
 }
-foreach (['new PdoPatientRevenueReceiptRepository(new PatientRevenueSettlementAdapter())', 'receivePatientRevenue('] as $token) {
+foreach ([
+    'new PdoPatientRevenueReceiptRepository(new PatientRevenueSettlementAdapter())',
+    'new FinancialDataService(',
+    'new PdoFinancialDataRepository(',
+    "Closure::fromCallable([DatabaseSchemaRuntimeOperations01::class, 'q'])",
+    'receivePatientRevenue(',
+] as $token) {
     $assert(str_contains($financialCompositionSource, $token), 'financial_composition_missing:' . $token);
 }
 $assert(\Prontoo\Domain\Identity\IdentityDocumentValidator::cpf('52998224725'), 'cpf_valid');

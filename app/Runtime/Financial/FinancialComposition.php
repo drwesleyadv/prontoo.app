@@ -4,17 +4,21 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Financial;
 
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Financial\FinancialDataService;
 use Prontoo\Application\Financial\FinancialGoalService;
 use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Infrastructure\Financial\PdoFinancialCashierAttentionRepository;
+use Prontoo\Infrastructure\Financial\PdoFinancialDataRepository;
 use Prontoo\Infrastructure\Financial\PdoFinancialGoalRepository;
 use Prontoo\Infrastructure\Financial\PdoPatientRevenueReceiptRepository;
+use Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01;
 
 final class FinancialComposition
 {
     private static ?PatientRevenueReceiptService $patientRevenue = null;
     private static ?FinancialCashierAttentionService $cashierAttention = null;
     private static ?FinancialGoalService $financialGoal = null;
+    private static ?FinancialDataService $financialData = null;
 
     private function __construct()
     {
@@ -38,6 +42,18 @@ final class FinancialComposition
     {
         return self::$financialGoal ??= new FinancialGoalService(
             new PdoFinancialGoalRepository(),
+        );
+    }
+
+    public static function dataService(): FinancialDataService
+    {
+        return self::$financialData ??= new FinancialDataService(
+            new PdoFinancialDataRepository(
+                \Closure::fromCallable([DatabaseSchemaRuntimeOperations01::class, 'q']),
+            ),
+            static fn(\Throwable $error): bool => error_log(
+                '[Prontoo financial data] ' . $error->getMessage(),
+            ),
         );
     }
 

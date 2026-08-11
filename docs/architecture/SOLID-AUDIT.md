@@ -47,7 +47,7 @@ A baseline corrente registra:
 - zero hotspots acionáveis no auditor SOLID.
 - zero chamadas ou arquivos do `OperationGateway`.
 
-A persistência histórica localizada em Runtime é acompanhada separadamente pelo contrato monotônico `tools/runtime-boundary-check`. Ela não é uma exceção à direção de dependências e não pode crescer enquanto os casos de uso são migrados para Application/Infrastructure.
+A persistência histórica localizada em Runtime é acompanhada separadamente pelo contrato monotônico `tools/runtime-boundary-check`. Ela não é uma exceção à direção de dependências e não pode crescer enquanto os casos de uso são migrados para Application/Infrastructure. O prefixo financeiro foi encerrado na Fase 17 e possui teto executável igual a zero para SQL, PDO, helpers, adapters concretos e transações Runtime.
 
 A quantidade de unidades nativas efetivas não pode diminuir e o teto corrente de arquivos não nativos não pode aumentar. Novas funcionalidades devem nascer diretamente em unidades nativas.
 

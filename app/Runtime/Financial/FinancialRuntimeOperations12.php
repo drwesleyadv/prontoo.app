@@ -75,10 +75,7 @@ final class FinancialRuntimeOperations12
         } catch (Throwable $e) {
             $yesterday = date("Y-m-d", strtotime("-1 day"));
         }
-        $drawers = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-            "SELECT id,name,drawer_lock_status,drawer_locked_business_date,drawer_unlock_at FROM pi_financial_locations WHERE clinic_id=? AND location_type='pos' AND active=1 ORDER BY name,id LIMIT 200",
-            [$cid],
-        )->fetchAll();
+        $drawers = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.12.admin_drawers_panel.01", [$cid], [])->fetchAll();
         $drawerIds = array_values(
             array_filter(
                 array_map(
@@ -90,10 +87,7 @@ final class FinancialRuntimeOperations12
         $linksByDrawer = [];
         if ($drawerIds) {
             $drawerPh = implode(",", array_fill(0, count($drawerIds), "?"));
-            $linkRows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT id,location_id,name FROM (SELECT lu.id,lu.location_id,u.name,ROW_NUMBER() OVER (PARTITION BY lu.location_id ORDER BY u.name,lu.id) row_rank FROM pi_financial_location_users lu JOIN pi_users u ON u.id=lu.user_id WHERE lu.clinic_id=? AND lu.location_id IN ($drawerPh) AND lu.active=1) ranked WHERE row_rank<=80 ORDER BY location_id,name,id",
-                array_merge([$cid], $drawerIds),
-            )->fetchAll();
+            $linkRows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.12.admin_drawers_panel.02", array_merge([$cid], $drawerIds), compact('drawerPh'))->fetchAll();
             foreach ($linkRows as $link) {
                 $linksByDrawer[(int) $link["location_id"]][] = $link;
             }
@@ -329,10 +323,7 @@ final class FinancialRuntimeOperations12
         $day = \Prontoo\Runtime\Financial\FinancialRuntimeOperations03::financial_today($cid);
         [$startUtc, $endUtc] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range($day, $cid);
         try {
-            $rows = \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::q(
-                "SELECT m.movement_type,m.status,m.payment_method,m.created_at,m.title,m.amount_cents,lf.name from_name,lt.name to_name,u.name user_name FROM pi_financial_movements m LEFT JOIN pi_financial_locations lf ON lf.id=m.from_location_id AND lf.clinic_id=m.clinic_id LEFT JOIN pi_financial_locations lt ON lt.id=m.to_location_id AND lt.clinic_id=m.clinic_id LEFT JOIN pi_users u ON u.id=m.created_by WHERE m.clinic_id=? AND m.created_at>=? AND m.created_at<? AND m.status IN ('confirmed','pending_review') ORDER BY m.created_at ASC,m.id ASC LIMIT 240",
-                [$cid, $startUtc, $endUtc],
-            )->fetchAll();
+            $rows = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.12.admin_daily_ledger_timeline.01", [$cid, $startUtc, $endUtc], [])->fetchAll();
         } catch (Throwable $e) {
             error_log("[Prontoo financeiro razonete diário] " . $e->getMessage());
             return '<div class="empty">Não foi possível carregar as movimentações do dia.</div>';

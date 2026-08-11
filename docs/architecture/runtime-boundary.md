@@ -33,6 +33,12 @@ Cada achado recebe fingerprint estável por categoria, arquivo, operação e pay
 
 Remoções passam sem rebaselinar. Assim, uma fase posterior pode reduzir a dívida sem tornar o teto restante mais permissivo.
 
+## Fechamento financeiro da Fase 17
+
+O prefixo `app/Runtime/Financial/` possui regra zero explícita para todas as categorias do contrato. A migração removeu 201 ocorrências de SQL de negócio, 227 chamadas a helpers de persistência e 12 controles transacionais do Runtime financeiro. Nesse prefixo, SQL, PDO, helpers, instanciação concreta e transações agora permanecem em zero.
+
+Os adaptadores Runtime preservam request, sessão, redirect, flash e composição HTML. Operações de dados passam por `FinancialDataService` e sua porta fechada; somente identificadores semânticos catalogados são aceitos. `PdoFinancialDataRepository` resolve esses identificadores nos catálogos SQL de Infrastructure e executa pelo executor guardado ligado em `FinancialComposition`, preservando scope guard, integridade, retries e a proteção de movimentos consolidados. O serviço não aceita SQL arbitrário vindo do Runtime.
+
 ## Exceções explícitas
 
 As composition roots autorizadas são quatro arquivos exatos, cada um com justificativa no contrato. A única classificação estrutural inicial é `DatabaseSchemaRuntimeOperations01.php`, que permanece contada como dívida estrutural e não pode crescer. Não existe allowlist genérica por diretório, namespace ou padrão.
