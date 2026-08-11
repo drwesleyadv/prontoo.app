@@ -160,7 +160,7 @@ authenticated_csrf() {
   local sid="$1"
   local prefix="$2"
   STEP="authenticated-$prefix"
-  curl -sS -D "$TMP/$prefix-auth.headers" "${COMMON_HEADERS[@]}" -H "Cookie: PRONTOO=$sid" "$BASE_URL?r=appointments" -o "$TMP/$prefix-auth.body"
+  curl -sS -D "$TMP/$prefix-auth.headers" "${COMMON_HEADERS[@]}" -H "Cookie: PRONTOO=$sid" "$BASE_URL?r=onboarding" -o "$TMP/$prefix-auth.body"
   assert_status "$TMP/$prefix-auth.headers" 200 "authenticated-$prefix"
   extract_meta_csrf <"$TMP/$prefix-auth.body"
 }
@@ -181,7 +181,7 @@ assert_status "$TMP/logout.headers" 302 "logout-valid"
 grep -qi '^X-Prontoo-Global-Logout: confirmed' "$TMP/logout.headers"
 
 STEP="reuse-revoked-session"
-curl -sS -D "$TMP/reuse.headers" "${COMMON_HEADERS[@]}" -H "Cookie: PRONTOO=$SID_B" "$BASE_URL?r=appointments" -o "$TMP/reuse.body"
+curl -sS -D "$TMP/reuse.headers" "${COMMON_HEADERS[@]}" -H "Cookie: PRONTOO=$SID_B" "$BASE_URL?r=onboarding" -o "$TMP/reuse.body"
 assert_status "$TMP/reuse.headers" 302 "reuse-revoked-session"
 grep -qi 'Location: .*r=login' "$TMP/reuse.headers"
 
