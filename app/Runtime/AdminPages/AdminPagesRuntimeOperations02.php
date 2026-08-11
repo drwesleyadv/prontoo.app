@@ -375,7 +375,7 @@ final class AdminPagesRuntimeOperations02
             : "Visualizações cobrem a janela móvel dos últimos 30 dias. Registros têm " .
                 $recordObservedDays .
                 " janela(s) de 24h observada(s) desde o início da nova coleta; janelas sem amostra não são tratadas como zero.";
-        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
+        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="5min">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Velocidade",
                 $duration,

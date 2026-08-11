@@ -8,6 +8,8 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 Cards de Visualizações e Tempo médio leem os eventos persistidos até o timestamp corrente. O card de Registros lê os deltas amostrados pelo Maestro, portanto sua atualização acompanha o ciclo do Maestro.
 
+No Painel do Desenvolvedor e em `/status`, a área de telemetria é recarregada a cada 60 segundos enquanto a página está visível, de modo que cards e gráficos reflitam a fonte persistida sem esperar a antiga janela de 15 minutos.
+
 ## Higienização
 
 As três fontes mantêm retenção móvel de 31 dias. `views.json` e `speed.json` são higienizados no fechamento de page loads; `database.json` é higienizado durante a captura do Maestro. Dados mais antigos que 31 dias não participam das fontes canônicas.

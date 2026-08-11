@@ -1,13 +1,14 @@
 # Histórico de versões
 
-## 1.8.11.5 — Telemetria confiável de Visualizações e Registros
+## 1.8.11.5 — Telemetria em janela móvel de 30 dias
 
-- padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores.
-- mantém Visualizações como eventos page_load válidos e deduplicados por evento_id.
-- substitui a inferência de Registros pelo estoque exato de linhas de todas as tabelas base, amostrado pelo Maestro a cada execução válida.
-- calcula Registros como total atual menos o total imediatamente anterior, preservando inclusive deltas negativos.
-- persiste a série em ssd/telemetry/database-record-counts.json com retenção móvel de 31 dias.
-- preserva schema e banco sem DDL e adiciona contrato executável para as fronteiras 30d e 15x15.
+- Redefine os últimos 30 dias como janela móvel encerrada no timestamp corrente, sem ancoragem em meia-noite.
+- Compara 15 dias móveis recentes com os 15 imediatamente anteriores.
+- Faz Visualizações e Tempo médio refletirem eventos persistidos até o instante corrente e mantém Registros pela amostragem do Maestro.
+- Exibe Visualizações, Tempo médio e Registros nos cards e mantém os gráficos sobre as mesmas fontes canônicas.
+- Atualiza cards e gráficos automaticamente a cada 60 segundos enquanto a página estiver visível.
+- Mantém views.json, speed.json e database.json com retenção móvel de 31 dias.
+- Preserva schema e banco sem DDL.
 
 ## 1.8.11.4 — Telemetria confiável de Visualizações e Registros
 

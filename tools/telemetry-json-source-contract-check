@@ -23,6 +23,7 @@ foreach (['"Visualizações"', '"Tempo médio das rotas"', '"Registros"'] as $to
     $assert(str_contains($admin3, $token), 'cards perderam ' . $token);
 }
 $assert(str_contains($admin9, 'telemetry_route_performance_summary(240)') && str_contains($admin9, 'telemetry_comparative_summary()'), 'Performance deixou de usar o contrato canônico');
+$assert(str_contains($admin2, 'data-refresh-ms="60000"'), 'cards e gráficos devem atualizar a cada minuto');
 $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'linha pública/rodapé deixou de usar as séries canônicas');
 foreach ([$admin2, $admin3, $admin9, $login] as $source) {
     $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');

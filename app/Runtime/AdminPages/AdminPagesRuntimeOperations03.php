@@ -32,22 +32,30 @@ final class AdminPagesRuntimeOperations03
         $current = (array) ($summary["current"] ?? []);
         $variations = (array) ($summary["variations"] ?? []);
         $recordSeries = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
-$recordPrevious = array_slice(array_values($recordSeries), 0, 15);
-$recordCurrent = array_slice(array_values($recordSeries), 15, 15);
-$recordPreviousTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordPrevious));
-$recordCurrentTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordCurrent));
-$recordPreviousObserved = count(array_filter($recordPrevious, static fn(array $row): bool => !empty($row["observed"])));
-$recordCurrentObserved = count(array_filter($recordCurrent, static fn(array $row): bool => !empty($row["observed"])));
-$recordVariation = null;
-if ($recordPreviousObserved === 15 && $recordCurrentObserved === 15) {
-    $recordVariation = $recordPreviousTotal === 0
-        ? ($recordCurrentTotal === 0 ? 0.0 : null)
-        : (($recordCurrentTotal - $recordPreviousTotal) / $recordPreviousTotal) * 100;
-}
-$recordComparison = [
-    "current_total" => $recordCurrentTotal,
-    "variation_pct" => $recordVariation,
-];
+        $recordPrevious = array_slice(array_values($recordSeries), 0, 15);
+        $recordCurrent = array_slice(array_values($recordSeries), 15, 15);
+        $recordPreviousTotal = array_sum(
+            array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordPrevious),
+        );
+        $recordCurrentTotal = array_sum(
+            array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $recordCurrent),
+        );
+        $recordPreviousObserved = count(
+            array_filter($recordPrevious, static fn(array $row): bool => !empty($row["observed"])),
+        );
+        $recordCurrentObserved = count(
+            array_filter($recordCurrent, static fn(array $row): bool => !empty($row["observed"])),
+        );
+        $recordVariation = null;
+        if ($recordPreviousObserved === 15 && $recordCurrentObserved === 15) {
+            $recordVariation = $recordPreviousTotal === 0
+                ? ($recordCurrentTotal === 0 ? 0.0 : null)
+                : (($recordCurrentTotal - $recordPreviousTotal) / $recordPreviousTotal) * 100;
+        }
+        $recordComparison = [
+            "current_total" => $recordCurrentTotal,
+            "variation_pct" => $recordVariation,
+        ];
         $card = static function (
             string $label,
             mixed $value,
