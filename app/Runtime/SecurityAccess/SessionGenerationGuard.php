@@ -11,7 +11,7 @@ final class SessionGenerationGuard
 
     public static function enforce(int $uid): void
     {
-        if ($uid <= 0 || !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+        if ($uid <= 0) {
             return;
         }
 
