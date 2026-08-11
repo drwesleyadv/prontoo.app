@@ -17,7 +17,7 @@ final class RouteRegistry
         'mobile_web_access' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_mobile_web_access', true, false, ['GET'], []],
         'goal_status' => [\Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class, 'page_goal_status', false, true, [], ['financial']],
         'signup' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::class, 'page_signup', true, false, ['GET'], []],
-        'logout' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations05::class, 'page_logout', true, false, ['*'], []],
+        'logout' => [\Prontoo\Runtime\AuthOnboarding\LogoutCoordinator::class, 'handle', true, false, ['*'], []],
         'switch' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::class, 'page_switch', false, false, [], []],
         'profile' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations06::class, 'page_profile', false, false, [], []],
         'global_reauth' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class, 'page_global_reauth', false, false, [], []],

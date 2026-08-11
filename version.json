@@ -1,10 +1,10 @@
 {
-    "version": "1.8.11.1",
-    "release": "1.8.11.1",
-    "generated_at_unix": 1786450409,
-    "generated_at": "2026-08-11T08:13:29-04:00",
-    "updated_at": "2026-08-11T08:13:29-04:00",
-    "build": "1.8.11.1-architecture-21",
+    "version": "1.8.11.2",
+    "release": "1.8.11.2",
+    "generated_at_unix": 1786460105,
+    "generated_at": "2026-08-11T10:55:05-04:00",
+    "updated_at": "2026-08-11T10:55:05-04:00",
+    "build": "1.8.11.2-architecture-21",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": false,
-    "functional_equivalence_policy": "architecture_16_21_semantic_closure_without_behavioral_or_visual_change",
+    "functional_equivalence_policy": "maintenance_security_hardening_without_schema_or_visual_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Engenharia 16–21: fechamento semântico do Runtime financeiro, identidade e módulos operacionais; matriz integral de Application; budgets reais MySQL ampliados; e contrato final de arquitetura.",
+    "notes": "Manutenção pós-consolidação: hardening de logout global, contrato executável de refactoring-on-touch e formalização da baseline arquitetural consolidada.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.10.2",
+    "previous_version": "1.8.11.1",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.11.1-architecture-21",
-    "deployment_sync_requested_at": "2026-08-11T08:13:29-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.11.2-architecture-21",
+    "deployment_sync_requested_at": "2026-08-11T10:55:05-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -342,16 +342,14 @@
         ]
     },
     "changelog": {
-        "title": "Engenharia arquitetural 16–21 e consolidação",
+        "title": "Manutenção arquitetural e hardening de sessão",
         "items": [
-            "institui análise tokenizada e baseline monotônica para a fronteira Runtime",
-            "remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento",
-            "mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime",
-            "cataloga 49 casos críticos de 30 Application Services, ligados a 15 ports e 127 assertivas rastreáveis dentro de 194 assertivas rápidas sem banco",
-            "amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil",
-            "move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade",
-            "consolida em CI os contratos finais de classificação, SOLID, símbolos, documentação, release e performance",
-            "publica a conclusão das fases 16–21 sem mudança de schema, banco ou interface"
+            "formaliza `1.8.11.1` como baseline arquitetural consolidada e adota modo de manutenção incremental",
+            "institui `refactor-on-touch` executável para hotspots Runtime acima de 500 linhas",
+            "extrai o logout para coordinator dedicado com até três tentativas de revogação global",
+            "torna explícita a degradação do logout com sessão local destruída e resposta HTTP 503 quando a revogação global não é confirmada",
+            "adiciona smoke HTTP real para CSRF, rotação de sessão, revogação multissessão e falha de escrita da geração canônica",
+            "preserva schema, banco e interface e mantém as invariantes arquiteturais de risco em zero"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -569,5 +567,10 @@
     },
     "release_version_policy": "explicit_date_sequence_generator_v1",
     "release_version_generator": "tools/release-version",
-    "release_version_last_transition": "1.8.10.2->1.8.11.1"
+    "release_version_last_transition": "1.8.11.1->1.8.11.2",
+    "architecture_consolidated_baseline": "1.8.11.1",
+    "architecture_evolution_mode": "consolidated_maintenance",
+    "architecture_maintenance_policy": "no_new_architecture_cycle_without_failed_invariant_or_material_product_risk_refactor_on_touch",
+    "runtime_refactor_on_touch_check": "tools/runtime-refactor-on-touch-check",
+    "logout_policy": "logout_global_session_revocation_v1"
 }

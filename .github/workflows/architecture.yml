@@ -78,6 +78,11 @@ jobs:
         run: |
           set -euo pipefail
           php tools/login-post-password-runtime-check
+      - name: Login/logout global revocation smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/login-logout-http-smoke
       - name: Maestro runtime regression
         shell: bash
         run: |
