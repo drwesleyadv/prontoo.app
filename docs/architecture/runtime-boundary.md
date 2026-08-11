@@ -39,11 +39,11 @@ A reavaliação identificou que o analisador anterior não reconhecia `atomic()`
 | transações de caso de uso | 33 |
 | transações estruturais | 3 |
 
-As 33 ocorrências estão em 22 arquivos: 12 no financeiro, 7 em autenticação/permissões e 14 em módulos operacionais/instalação. Elas são dívida explícita, não exceção arquitetural. Durante a extração, seu contador pode apenas diminuir; a regra zero voltará a ser ativada quando a última ocorrência sair do Runtime.
+As 33 ocorrências estavam em 22 arquivos: 12 no financeiro, 7 em autenticação/permissões e 14 em módulos operacionais/instalação. Elas são dívida explícita, não exceção arquitetural. Durante a extração, seu contador pode apenas diminuir; a regra zero voltará a ser ativada quando a última ocorrência sair do Runtime.
 
 O segundo inventário tornou mensurável outra distinção antes mascarada pela classificação Composition:
 
-| Dívida de input adapters | Teto corrente |
+| Dívida de input adapters | Teto corrigido inicial |
 |---|---:|
 | referências diretas a Infrastructure | 615 |
 | chamadas ao gateway genérico de dados | 928 |
@@ -51,13 +51,29 @@ O segundo inventário tornou mensurável outra distinção antes mascarada pela 
 | arquivos acima de 700 linhas | 7 |
 | arquivos acima de 1.000 linhas | 4 |
 
-Esses tetos não são metas arquiteturais nem allowlist por diretório. Cada arquivo e cada categoria de dependência possui limite próprio; novas referências, chamadas genéricas ou mudança para uma faixa de tamanho pior falham na CI. Remoções passam sem rebaselinar.
+Esses eram os tetos corrigidos iniciais, não metas arquiteturais nem allowlist por diretório. Cada arquivo e cada categoria de dependência possui limite próprio; novas referências, chamadas genéricas ou mudança para uma faixa de tamanho pior falham na CI.
+
+## Ratchet corretivo 2 — Financeiro e Agenda
+
+O commit de origem `7f768f36d270aa09c3fa345bccaea3edfa414f6a` move as 12 sequências financeiras e as 4 sequências de Agenda para serviços semânticos de Application. O Runtime financeiro e `app/Runtime/Appointments` passam a ter regra transacional zero explícita. A nova baseline monotônica registra:
+
+| Categoria corrente | Ocorrências |
+|---|---:|
+| transações de caso de uso | 17 |
+| arquivos com transação de caso de uso | 14 |
+| referências diretas a Infrastructure | 615 |
+| chamadas ao gateway genérico de dados | 853 |
+| arquivos acima de 500 linhas | 41 |
+| arquivos acima de 700 linhas | 7 |
+| arquivos acima de 1.000 linhas | 4 |
+
+As 17 transações restantes são 7 de autenticação/permissões e 10 de módulos operacionais/instalação. O ratchet substitui a baseline anterior: uma sequência removida não pode reaparecer.
 
 ## Estado das migrações 17–19
 
 As fases 17–19 removeram SQL de negócio e PDO direto do Runtime e proibiram a instanciação de adapters concretos fora dos cinco roots. `FinancialDataService`, `IdentityDataService` e `OperationalUseCaseService` usam catálogos fechados de operações, portanto o Runtime não envia SQL arbitrário.
 
-Contudo, os callbacks `atomic()` ainda deixam parte da sequência transacional, decisões de `rowCount` e obtenção de IDs nos handlers Runtime. O ciclo corretivo move somente essas sequências reais para serviços semânticos de Application e portas coesas. Leituras simples podem continuar em read models catalogados quando outra abstração não trouxer benefício concreto.
+Os casos financeiros de gaveta, movimentos, receitas, caixa, revisão e consolidação agora pertencem a Application Services. O mesmo vale para criar/alterar bloqueios e criar/alterar agendamentos. Os handlers Runtime preservam request, autorização, flash, redirect e adaptação dos colaboradores legados. Leituras simples podem continuar em read models catalogados quando outra abstração não trouxer benefício concreto.
 
 ## Exceções explícitas
 
@@ -70,4 +86,4 @@ As cinco composition roots são arquivos exatos enumerados pelo contrato. `Datab
 - `php tools/runtime-input-boundary-check` valida dependências, gateway e hotspots por papel;
 - os modos `--print-baseline` e `--print-budget` materializam contratos para revisão explícita e não são executados automaticamente pela CI.
 
-O estado comprovado hoje é: SQL, PDO e adapters concretos indevidos em zero; 33 orquestrações transacionais e a dívida de input adapters congeladas para redução monotônica.
+O estado comprovado hoje é: SQL, PDO e adapters concretos indevidos em zero; Financeiro e Agenda com transação Runtime igual a zero; 17 orquestrações transacionais residuais, 853 chamadas genéricas e 41 hotspots acima de 500 linhas congelados para redução monotônica.

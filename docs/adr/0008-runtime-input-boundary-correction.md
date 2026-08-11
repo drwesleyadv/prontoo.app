@@ -13,6 +13,8 @@ Ampliar o analisador transacional e congelar sua baseline corrigida em 33 ocorr�
 
 As regras zero de SQL, PDO e adapters concretos permanecem ativas. A regra zero transacional será restaurada somente após a extração dos 33 fluxos para casos de uso de Application. A auditoria SOLID continua útil dentro do seu escopo, mas seus zero hotspots não serão apresentados como prova de que os input adapters são finos.
 
+O segundo ratchet, originado em `7f768f36d270aa09c3fa345bccaea3edfa414f6a`, extraiu os 12 fluxos financeiros e 4 de Agenda. Esses módulos agora têm regra transacional zero; a baseline global caiu para 17 e não pode regressar aos 33 iniciais.
+
 ## Alternativas rejeitadas
 
 - manter `atomic()` invisível por ser chamado através de uma porta;

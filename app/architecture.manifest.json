@@ -78,14 +78,24 @@
         "runtime_transaction_orchestration_business": 71,
         "runtime_transaction_orchestration_structural": 3
     },
-    "runtime_boundary_baseline_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
-    "runtime_boundary_baseline_metrics": {
+    "runtime_boundary_corrected_inventory_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "runtime_boundary_corrected_inventory_metrics": {
         "runtime_business_sql": 0,
         "runtime_structural_sql": 0,
         "runtime_direct_pdo": 0,
         "runtime_persistence_helper": 2,
         "runtime_repository_instantiation_outside_composition": 0,
         "runtime_transaction_orchestration_business": 33,
+        "runtime_transaction_orchestration_structural": 3
+    },
+    "runtime_boundary_baseline_source_sha": "7f768f36d270aa09c3fa345bccaea3edfa414f6a",
+    "runtime_boundary_baseline_metrics": {
+        "runtime_business_sql": 0,
+        "runtime_structural_sql": 0,
+        "runtime_direct_pdo": 0,
+        "runtime_persistence_helper": 2,
+        "runtime_repository_instantiation_outside_composition": 0,
+        "runtime_transaction_orchestration_business": 17,
         "runtime_transaction_orchestration_structural": 3
     },
     "runtime_boundary_zero_paths": {
@@ -95,7 +105,11 @@
             "runtime_direct_pdo",
             "runtime_persistence_helper",
             "runtime_repository_instantiation_outside_composition",
+            "runtime_transaction_orchestration_business",
             "runtime_transaction_orchestration_structural"
+        ],
+        "app/Runtime/Appointments/": [
+            "runtime_transaction_orchestration_business"
         ],
         "app/Runtime/SecurityAccess/": [
             "runtime_business_sql",
@@ -130,8 +144,8 @@
     "runtime_input_boundary_policy": "direct_infrastructure_references_generic_data_gateway_calls_and_large_input_adapter_buckets_are_frozen_per_file_and_globally_and_may_only_decrease",
     "runtime_input_boundary_budget": "app/runtime.input-boundary-budget.json",
     "runtime_input_boundary_check": "tools/runtime-input-boundary-check",
-    "runtime_input_boundary_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
-    "runtime_input_boundary_metrics": {
+    "runtime_input_boundary_initial_source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "runtime_input_boundary_initial_metrics": {
         "input_adapter_files": 109,
         "infrastructure_references": 615,
         "generic_data_gateway_calls": 928,
@@ -139,10 +153,25 @@
         "hotspots_over_700": 7,
         "hotspots_over_1000": 4
     },
-    "engineering_phase_seventeen_policy": "financial_runtime_has_zero_sql_pdo_and_persistence_helpers_while_twelve_atomic_case_use_sequences_remain_explicit_corrective_debt",
+    "runtime_input_boundary_source_sha": "7f768f36d270aa09c3fa345bccaea3edfa414f6a",
+    "runtime_input_boundary_metrics": {
+        "input_adapter_files": 109,
+        "infrastructure_references": 615,
+        "generic_data_gateway_calls": 853,
+        "hotspots_over_500": 41,
+        "hotspots_over_700": 7,
+        "hotspots_over_1000": 4
+    },
+    "engineering_phase_seventeen_policy": "financial_runtime_has_zero_sql_pdo_persistence_helpers_and_transaction_orchestration_after_twelve_case_use_sequences_moved_to_application_services",
     "engineering_phase_seventeen_components": [
         "app/Application/Financial/FinancialDataPort.php",
         "app/Application/Financial/FinancialDataService.php",
+        "app/Application/Financial/FinancialDrawerService.php",
+        "app/Application/Financial/FinancialMovementService.php",
+        "app/Application/Financial/FinancialRevenueService.php",
+        "app/Application/Financial/FinancialCashSessionService.php",
+        "app/Application/Financial/FinancialReviewService.php",
+        "app/Application/Financial/FinancialConsolidationService.php",
         "app/Infrastructure/Financial/PdoFinancialDataRepository.php",
         "app/Runtime/Financial/FinancialComposition.php"
     ],
@@ -161,17 +190,18 @@
         "app/Runtime/SecurityAccess/SecurityAccessComposition.php"
     ],
     "engineering_phase_eighteen_check": "tools/runtime-boundary-check",
-    "engineering_phase_nineteen_policy": "operational_runtime_has_zero_sql_pdo_and_concrete_adapter_instantiation_while_fourteen_atomic_case_use_sequences_remain_explicit_corrective_debt",
+    "engineering_phase_nineteen_policy": "operational_runtime_has_zero_sql_pdo_and_concrete_adapter_instantiation; four_agenda_transactions_moved_to_application_and_ten_residual_sequences_remain_for_the_next_corrective_step",
     "engineering_phase_nineteen_components": [
         "app/Application/Operational/OperationalDataPort.php",
         "app/Application/Operational/OperationalSchemaPort.php",
         "app/Application/Operational/OperationalDatabaseContextPort.php",
         "app/Application/Operational/OperationalUseCaseService.php",
+        "app/Application/Operational/AppointmentCommandService.php",
         "app/Infrastructure/Operational/PdoOperationalDataRepository.php",
         "app/Runtime/Operational/OperationalComposition.php"
     ],
     "engineering_phase_nineteen_check": "tools/runtime-boundary-check",
-    "engineering_phase_twenty_policy": "the_existing_contract_catalogs_thirty_two_public_application_entries_with_database_free_characterization; the_corrective_cycle_separates_semantic_critical_use_cases_from_generic_data_plumbing",
+    "engineering_phase_twenty_policy": "the_contract_catalogs_thirty_nine_public_application_entries_with_database_free_characterization; the_corrective_cycle_separates_semantic_critical_use_cases_from_generic_data_plumbing",
     "engineering_phase_twenty_components": [
         "app/application.test-contract.json",
         "tools/application-test-contract-check",
@@ -198,10 +228,10 @@
         "runtime_business_sql": 0,
         "runtime_direct_pdo": 0,
         "concrete_adapters_outside_composition_roots": 0,
-        "runtime_transaction_orchestration_business_max": 33,
+        "runtime_transaction_orchestration_business_max": 17,
         "runtime_input_adapter_infrastructure_references_max": 615,
-        "runtime_generic_data_gateway_calls_max": 928,
-        "runtime_input_adapter_hotspots_over_500_max": 42,
+        "runtime_generic_data_gateway_calls_max": 853,
+        "runtime_input_adapter_hotspots_over_500_max": 41,
         "unresolved_runtime_symbols": 0,
         "architectural_classification_percent": 100,
         "solid_audit_objective_findings": 0,

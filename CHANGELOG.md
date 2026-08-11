@@ -5,12 +5,15 @@
 - inclui `atomic()` e `atomically()` no detector transacional e torna visíveis 33 orquestrações de caso de uso ainda no Runtime.
 - adiciona budget monotônico, global e por arquivo, para dependências de Infrastructure, gateway genérico de dados e hotspots dos input adapters.
 - corrige manifesto, ADRs e mapas para distinguir SQL/PDO realmente zerados de fechamento semântico ainda em andamento.
+- move 12 transações financeiras e 4 de Agenda para 7 Application Services coesos, preservando locks, rollback, auditoria e isolamento por consultório.
+- fixa Financeiro e Agenda em zero transação de negócio no Runtime e reduz o ratchet global de 33 para 17, o gateway genérico de 928 para 853 e os hotspots acima de 500 linhas de 42 para 41.
+- amplia o contrato rápido para 39 casos críticos de 20 services e 162 assertivas sem banco.
 
 ## 1.8.10.2 — Engenharia arquitetural 16–21 e consolidação
 
 - institui análise tokenizada e baseline monotônica para a fronteira Runtime.
 - remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento.
-- mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime.
+- mantém SQL de negócio, PDO direto e adapters concretos fora dos composition roots em zero; a correção posterior do detector encontrou 33 transações de caso de uso que não eram medidas nesta publicação.
 - cataloga os 32 casos críticos dos 13 Application Services, ligados a 15 ports e 145 assertivas rápidas sem banco.
 - amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil.
 - move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade.

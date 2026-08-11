@@ -1,7 +1,7 @@
 {
     "schema": "prontoo-runtime-input-boundary-budget-v1",
     "policy": "runtime_input_adapter_infrastructure_gateway_and_hotspot_debt_is_explicit_and_monotonic",
-    "source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "source_sha": "7f768f36d270aa09c3fa345bccaea3edfa414f6a",
     "thresholds": [
         500,
         700,
@@ -17,8 +17,8 @@
     "totals": {
         "input_adapter_files": 109,
         "infrastructure_references": 615,
-        "generic_data_gateway_calls": 928,
-        "hotspots_over_500": 42,
+        "generic_data_gateway_calls": 853,
+        "hotspots_over_500": 41,
         "hotspots_over_700": 7,
         "hotspots_over_1000": 4
     },
@@ -134,7 +134,7 @@
                 "SecurityAccess": 2,
                 "SupportFoundation": 10
             },
-            "generic_data_gateway_calls": 50,
+            "generic_data_gateway_calls": 34,
             "hotspot_bucket": 3
         },
         "app/Runtime/Appointments/AppointmentsRuntimeOperations06.php": {
@@ -379,7 +379,7 @@
             "infrastructure_categories": {
                 "SupportFoundation": 3
             },
-            "generic_data_gateway_calls": 30,
+            "generic_data_gateway_calls": 27,
             "hotspot_bucket": 1
         },
         "app/Runtime/Financial/FinancialRuntimeOperations04.php": {
@@ -395,7 +395,7 @@
             "infrastructure_categories": {
                 "Integrity": 1
             },
-            "generic_data_gateway_calls": 23,
+            "generic_data_gateway_calls": 13,
             "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
@@ -403,19 +403,19 @@
             "infrastructure_categories": {
                 "SupportFoundation": 1
             },
-            "generic_data_gateway_calls": 15,
+            "generic_data_gateway_calls": 9,
             "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
             "infrastructure_references": 0,
             "infrastructure_categories": [],
-            "generic_data_gateway_calls": 16,
+            "generic_data_gateway_calls": 7,
             "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
             "infrastructure_references": 0,
             "infrastructure_categories": [],
-            "generic_data_gateway_calls": 20,
+            "generic_data_gateway_calls": 1,
             "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations09.php": {
@@ -429,8 +429,8 @@
             "infrastructure_categories": {
                 "SupportFoundation": 2
             },
-            "generic_data_gateway_calls": 12,
-            "hotspot_bucket": 1
+            "generic_data_gateway_calls": 5,
+            "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations11.php": {
             "infrastructure_references": 0,
@@ -453,7 +453,7 @@
         "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
             "infrastructure_references": 0,
             "infrastructure_categories": [],
-            "generic_data_gateway_calls": 11,
+            "generic_data_gateway_calls": 6,
             "hotspot_bucket": 0
         },
         "app/Runtime/Financial/FinancialRuntimeOperations15.php": {

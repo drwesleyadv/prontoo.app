@@ -65,7 +65,15 @@
                 "runtime_direct_pdo",
                 "runtime_persistence_helper",
                 "runtime_repository_instantiation_outside_composition",
+                "runtime_transaction_orchestration_business",
                 "runtime_transaction_orchestration_structural"
+            ]
+        },
+        {
+            "id": "appointments_transaction_semantic_closure",
+            "path_prefix": "app/Runtime/Appointments/",
+            "categories": [
+                "runtime_transaction_orchestration_business"
             ]
         },
         {
