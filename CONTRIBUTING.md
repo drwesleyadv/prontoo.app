@@ -18,7 +18,7 @@ Toda alteração deve ser mínima, rastreável, testável e compatível com as i
 
 ## Quality gate canônico
 
-`php tools/quality-gate --fast` executa os contratos de feedback imediato: suíte rápida, composition roots, performance budgets e teto do `OperationGateway`.
+`php tools/quality-gate --fast` executa os contratos de feedback imediato: suíte rápida, composition roots, fronteira monotônica do Runtime, performance budgets e teto zero do `OperationGateway`.
 
 `php tools/quality-gate` acrescenta lint PHP 8.4, consistência de versão/manifestos, documentação, segurança, arquitetura, unidades nativas, símbolos de runtime e auditoria SOLID. Schema, instalador, login pós-senha, Maestro, runtime crítico e HTTP permanecem gates de integração porque dependem do ambiente MySQL/HTTP da CI.
 
@@ -37,6 +37,7 @@ Não duplique um novo contrato estático diretamente no workflow sem integrá-lo
 - `compatibility_boundaries` deve permanecer vazio;
 - o teto corrente de entrypoints/ferramentas procedurais não nativos não pode aumentar;
 - o número efetivo de unidades nativas não pode regredir.
+- violações de persistência congeladas em `app/Runtime` só podem diminuir; assinatura nova, dívida em arquivo novo ou ampliação de exceção explícita falha em `tools/runtime-boundary-check`.
 
 ## Runtime
 

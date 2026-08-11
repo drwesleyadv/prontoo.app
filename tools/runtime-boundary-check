@@ -1,0 +1,538 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$contractPath = $root . '/app/runtime.boundary-contract.json';
+$readJson = static function (string $path): array {
+    $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('Contrato JSON inválido: ' . $path);
+    }
+    return $decoded;
+};
+$contract = $readJson($contractPath);
+if (($contract['schema'] ?? '') !== 'prontoo-runtime-boundary-contract-v1') {
+    throw new RuntimeException('Contrato da fronteira Runtime inválido.');
+}
+
+$runtimeRelative = trim((string) ($contract['runtime_root'] ?? ''), '/');
+$runtime = $root . '/' . $runtimeRelative;
+if ($runtimeRelative === '' || !is_dir($runtime)) {
+    throw new RuntimeException('Árvore Runtime não encontrada.');
+}
+
+$compositionRoots = array_fill_keys(array_keys((array) ($contract['composition_roots'] ?? [])), true);
+$structuralSqlFiles = array_fill_keys(array_keys((array) ($contract['structural_sql_exceptions'] ?? [])), true);
+$persistenceHelpers = [];
+foreach ((array) ($contract['persistence_helpers'] ?? []) as $class => $methods) {
+    $class = ltrim((string) $class, '\\');
+    foreach ((array) $methods as $method) {
+        $method = trim((string) $method);
+        if ($class !== '' && $method !== '') {
+            $persistenceHelpers[$class][$method] = true;
+        }
+    }
+}
+$persistenceHelperPatterns = array_values(array_map('strval', (array) ($contract['persistence_helper_method_patterns'] ?? [])));
+foreach ($persistenceHelperPatterns as $pattern) {
+    if (@preg_match('/' . $pattern . '/i', '') === false) {
+        throw new RuntimeException('Pattern de helper de persistência inválido: ' . $pattern);
+    }
+}
+$transactionMethods = array_fill_keys(array_map('strval', (array) ($contract['transaction_methods'] ?? [])), true);
+$categoryNames = [
+    'runtime_business_sql',
+    'runtime_structural_sql',
+    'runtime_direct_pdo',
+    'runtime_persistence_helper',
+    'runtime_repository_instantiation_outside_composition',
+    'runtime_transaction_orchestration_business',
+    'runtime_transaction_orchestration_structural',
+];
+$findings = array_fill_keys($categoryNames, []);
+
+$normalizeClass = static function (string $name): string {
+    return ltrim(str_replace('\\\\', '\\', trim($name)), '\\');
+};
+$normalizePayload = static function (string $value): string {
+    $value = preg_replace('/\s+/u', ' ', trim($value)) ?? trim($value);
+    return mb_strtolower($value);
+};
+$addFinding = static function (
+    string $category,
+    string $file,
+    int $line,
+    string $operation,
+    string $payload,
+) use (&$findings, $normalizePayload): void {
+    $fingerprint = hash('sha256', implode("\0", [
+        $category,
+        $file,
+        $operation,
+        $normalizePayload($payload),
+    ]));
+    $findings[$category][] = [
+        'file' => $file,
+        'line' => $line,
+        'operation' => $operation,
+        'fingerprint' => $fingerprint,
+    ];
+};
+$significant = static function (array $tokens): array {
+    $result = [];
+    foreach ($tokens as $token) {
+        if (is_array($token) && in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+        $result[] = [
+            'id' => is_array($token) ? $token[0] : null,
+            'text' => is_array($token) ? $token[1] : $token,
+            'line' => is_array($token) ? (int) $token[2] : 0,
+        ];
+    }
+    $lastLine = 1;
+    foreach ($result as &$token) {
+        if ($token['line'] > 0) {
+            $lastLine = $token['line'];
+        } else {
+            $token['line'] = $lastLine;
+        }
+    }
+    unset($token);
+    return $result;
+};
+$importsFor = static function (array $tokens) use ($normalizeClass): array {
+    $imports = [];
+    $depth = 0;
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        if ($token === '{') {
+            $depth++;
+            continue;
+        }
+        if ($token === '}') {
+            $depth = max(0, $depth - 1);
+            continue;
+        }
+        if (!is_array($token) || $token[0] !== T_USE || $depth !== 0) {
+            continue;
+        }
+        $name = '';
+        $alias = '';
+        $readingAlias = false;
+        for ($cursor = $index + 1; $cursor < $count; $cursor++) {
+            $part = $tokens[$cursor];
+            if ($part === ';') {
+                break;
+            }
+            if ($part === ',') {
+                $name = '';
+                $alias = '';
+                $readingAlias = false;
+                continue;
+            }
+            if (!is_array($part)) {
+                continue;
+            }
+            if (in_array($part[0], [T_FUNCTION, T_CONST], true)) {
+                $name = '';
+                break;
+            }
+            if ($part[0] === T_AS) {
+                $readingAlias = true;
+                continue;
+            }
+            if (!in_array($part[0], [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                continue;
+            }
+            if ($readingAlias) {
+                $alias .= $part[1];
+            } else {
+                $name .= $part[1];
+            }
+        }
+        $name = $normalizeClass($name);
+        if ($name === '') {
+            continue;
+        }
+        if ($alias === '') {
+            $parts = explode('\\', $name);
+            $alias = (string) end($parts);
+        }
+        $imports[$alias] = $name;
+    }
+    return $imports;
+};
+$resolveClass = static function (string $raw, array $imports) use ($normalizeClass): string {
+    $leading = str_starts_with($raw, '\\');
+    $normalized = $normalizeClass($raw);
+    if ($normalized === '' || $leading || str_starts_with($normalized, 'Prontoo\\')) {
+        return $normalized;
+    }
+    $parts = explode('\\', $normalized);
+    $first = (string) ($parts[0] ?? '');
+    if (!isset($imports[$first])) {
+        return $normalized;
+    }
+    array_shift($parts);
+    return $imports[$first] . ($parts === [] ? '' : '\\' . implode('\\', $parts));
+};
+$stringValue = static function (array $token): string {
+    $text = (string) $token['text'];
+    if ($token['id'] !== T_CONSTANT_ENCAPSED_STRING || strlen($text) < 2) {
+        return $text;
+    }
+    $quote = $text[0];
+    $value = substr($text, 1, -1);
+    if ($quote === "'") {
+        return str_replace(["\\\\", "\\'"], ["\\", "'"], $value);
+    }
+    return stripcslashes($value);
+};
+$sqlKeyword = static function (string $value): ?string {
+    if (preg_match('~^\s*(?:/\*.*?\*/\s*)*(SELECT|INSERT|UPDATE|DELETE|REPLACE)\b~isu', $value, $match) !== 1) {
+        return null;
+    }
+    return strtoupper((string) $match[1]);
+};
+
+$paths = [];
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($runtime, FilesystemIterator::SKIP_DOTS));
+foreach ($iterator as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+        continue;
+    }
+    $paths[] = str_replace('\\', '/', $file->getPathname());
+}
+sort($paths, SORT_STRING);
+
+foreach ($paths as $path) {
+    $relative = $runtimeRelative . '/' . ltrim(substr($path, strlen(str_replace('\\', '/', $runtime))), '/');
+    $tokens = token_get_all((string) file_get_contents($path), TOKEN_PARSE);
+    $imports = $importsFor($tokens);
+    $tokens = $significant($tokens);
+    $structural = isset($structuralSqlFiles[$relative]);
+    $count = count($tokens);
+    for ($index = 0; $index < $count; $index++) {
+        $token = $tokens[$index];
+        $id = $token['id'];
+        $text = (string) $token['text'];
+        $line = (int) $token['line'];
+
+        if (in_array($id, [T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
+            $value = $stringValue($token);
+            $keyword = $sqlKeyword($value);
+            if ($keyword !== null) {
+                $addFinding(
+                    $structural ? 'runtime_structural_sql' : 'runtime_business_sql',
+                    $relative,
+                    $line,
+                    $keyword,
+                    $value,
+                );
+            }
+        }
+
+        if ($id === T_NEW) {
+            $candidate = $tokens[$index + 1] ?? null;
+            if (!is_array($candidate)) {
+                continue;
+            }
+            $raw = (string) ($candidate['text'] ?? '');
+            $class = $resolveClass($raw, $imports);
+            $parts = explode('\\', $class);
+            $base = (string) end($parts);
+            $concrete = str_starts_with($class, 'Prontoo\\Infrastructure\\') || preg_match('/^Pdo[A-Z]/', $base) === 1;
+            if ($concrete && !isset($compositionRoots[$relative])) {
+                $addFinding(
+                    'runtime_repository_instantiation_outside_composition',
+                    $relative,
+                    $line,
+                    'new',
+                    $class,
+                );
+            }
+            continue;
+        }
+
+        if ($id === T_STRING && strcasecmp($text, 'pdo') === 0 && (($tokens[$index + 1]['text'] ?? null) === '(')) {
+            $previous = (string) ($tokens[$index - 1]['text'] ?? '');
+            if (!in_array($previous, ['::', '->', '?->', 'function'], true)) {
+                $addFinding('runtime_direct_pdo', $relative, $line, 'pdo', 'function');
+            }
+        }
+
+        if ($text === '::') {
+            $classToken = $tokens[$index - 1] ?? null;
+            $methodToken = $tokens[$index + 1] ?? null;
+            if (!is_array($classToken) || !is_array($methodToken) || (($tokens[$index + 2]['text'] ?? null) !== '(')) {
+                continue;
+            }
+            $class = $resolveClass((string) ($classToken['text'] ?? ''), $imports);
+            $method = (string) ($methodToken['text'] ?? '');
+            if ($method === 'pdo' || ($class === 'PDO' && $method === 'connect')) {
+                $addFinding('runtime_direct_pdo', $relative, (int) $methodToken['line'], $method, $class);
+            }
+            if (isset($persistenceHelpers[$class][$method])) {
+                $addFinding('runtime_persistence_helper', $relative, (int) $methodToken['line'], $method, $class);
+            } elseif (str_starts_with($class, 'Prontoo\\Infrastructure\\')) {
+                foreach ($persistenceHelperPatterns as $pattern) {
+                    if (@preg_match('/' . $pattern . '/i', $method) !== 1) {
+                        continue;
+                    }
+                    $addFinding('runtime_persistence_helper', $relative, (int) $methodToken['line'], $method, $class);
+                    break;
+                }
+            }
+            if (isset($transactionMethods[$method])) {
+                $addFinding(
+                    $structural ? 'runtime_transaction_orchestration_structural' : 'runtime_transaction_orchestration_business',
+                    $relative,
+                    (int) $methodToken['line'],
+                    $method,
+                    $class,
+                );
+            }
+            continue;
+        }
+
+        if (in_array($text, ['->', '?->'], true)) {
+            $methodToken = $tokens[$index + 1] ?? null;
+            if (!is_array($methodToken) || (($tokens[$index + 2]['text'] ?? null) !== '(')) {
+                continue;
+            }
+            $method = (string) ($methodToken['text'] ?? '');
+            if (in_array($method, ['prepare', 'query', 'exec', 'beginTransaction'], true)) {
+                $addFinding('runtime_direct_pdo', $relative, (int) $methodToken['line'], $method, 'object-call');
+            }
+            if (isset($transactionMethods[$method])) {
+                $addFinding(
+                    $structural ? 'runtime_transaction_orchestration_structural' : 'runtime_transaction_orchestration_business',
+                    $relative,
+                    (int) $methodToken['line'],
+                    $method,
+                    'object-call',
+                );
+            }
+        }
+    }
+}
+
+foreach ($findings as &$categoryFindings) {
+    usort($categoryFindings, static fn(array $left, array $right): int => [
+        $left['file'],
+        $left['line'],
+        $left['operation'],
+        $left['fingerprint'],
+    ] <=> [
+        $right['file'],
+        $right['line'],
+        $right['operation'],
+        $right['fingerprint'],
+    ]);
+}
+unset($categoryFindings);
+
+$indexInventory = static function (array $allFindings) use ($categoryNames): array {
+    $inventory = [];
+    foreach ($categoryNames as $category) {
+        $files = [];
+        $operations = [];
+        foreach ((array) ($allFindings[$category] ?? []) as $finding) {
+            $file = (string) $finding['file'];
+            $fingerprint = (string) $finding['fingerprint'];
+            $operation = (string) $finding['operation'];
+            $files[$file]['count'] = (int) ($files[$file]['count'] ?? 0) + 1;
+            $files[$file]['fingerprints'][$fingerprint] = (int) ($files[$file]['fingerprints'][$fingerprint] ?? 0) + 1;
+            $files[$file]['operations'][$operation] = (int) ($files[$file]['operations'][$operation] ?? 0) + 1;
+            $operations[$operation] = (int) ($operations[$operation] ?? 0) + 1;
+        }
+        foreach ($files as &$fileData) {
+            ksort($fileData['fingerprints'], SORT_STRING);
+            ksort($fileData['operations'], SORT_STRING);
+        }
+        unset($fileData);
+        ksort($files, SORT_STRING);
+        ksort($operations, SORT_STRING);
+        $inventory[$category] = [
+            'total' => count((array) ($allFindings[$category] ?? [])),
+            'files_total' => count($files),
+            'operations' => $operations,
+            'files' => $files,
+        ];
+    }
+    return $inventory;
+};
+$inventory = $indexInventory($findings);
+
+if (in_array('--print-baseline', $argv, true)) {
+    $sourceSha = '';
+    foreach ($argv as $argument) {
+        if (str_starts_with((string) $argument, '--source-sha=')) {
+            $sourceSha = trim(substr((string) $argument, strlen('--source-sha=')));
+        }
+    }
+    $shaOutput = [];
+    $shaExit = 1;
+    if ($sourceSha === '') {
+        exec('git -C ' . escapeshellarg($root) . ' rev-parse HEAD', $shaOutput, $shaExit);
+        if ($shaExit === 0) {
+            $sourceSha = trim((string) ($shaOutput[0] ?? ''));
+        }
+    }
+    if (preg_match('/^[a-f0-9]{40}$/', $sourceSha) !== 1) {
+        throw new RuntimeException('SHA de origem da baseline inválido.');
+    }
+    $version = $readJson($root . '/version.json');
+    $baseline = [
+        'schema' => 'prontoo-runtime-boundary-baseline-v1',
+        'policy' => (string) ($contract['policy'] ?? ''),
+        'source_sha' => $sourceSha,
+        'source_version' => (string) ($version['version'] ?? ''),
+        'composition_roots' => (array) ($contract['composition_roots'] ?? []),
+        'structural_sql_exceptions' => (array) ($contract['structural_sql_exceptions'] ?? []),
+        'detection_contract' => [
+            'persistence_helpers' => (array) ($contract['persistence_helpers'] ?? []),
+            'persistence_helper_method_patterns' => (array) ($contract['persistence_helper_method_patterns'] ?? []),
+            'transaction_methods' => (array) ($contract['transaction_methods'] ?? []),
+        ],
+        'inventory' => $inventory,
+    ];
+    fwrite(STDOUT, json_encode($baseline, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL);
+    exit(0);
+}
+
+$baselinePath = $root . '/' . ltrim((string) ($contract['baseline_file'] ?? ''), '/');
+$baseline = $readJson($baselinePath);
+if (($baseline['schema'] ?? '') !== 'prontoo-runtime-boundary-baseline-v1') {
+    throw new RuntimeException('Baseline da fronteira Runtime inválida.');
+}
+$configurationDrift = [];
+foreach (['composition_roots', 'structural_sql_exceptions'] as $key) {
+    if (($baseline[$key] ?? null) !== ($contract[$key] ?? null)) {
+        $configurationDrift[] = $key;
+    }
+}
+$detectionContract = [
+    'persistence_helpers' => (array) ($contract['persistence_helpers'] ?? []),
+    'persistence_helper_method_patterns' => (array) ($contract['persistence_helper_method_patterns'] ?? []),
+    'transaction_methods' => (array) ($contract['transaction_methods'] ?? []),
+];
+if (($baseline['detection_contract'] ?? null) !== $detectionContract) {
+    $configurationDrift[] = 'detection_contract';
+}
+
+$regressions = [];
+$reductions = [];
+$baselineInventory = (array) ($baseline['inventory'] ?? []);
+foreach ($categoryNames as $category) {
+    $currentCategory = (array) ($inventory[$category] ?? []);
+    $baselineCategory = (array) ($baselineInventory[$category] ?? []);
+    $currentTotal = (int) ($currentCategory['total'] ?? 0);
+    $baselineTotal = (int) ($baselineCategory['total'] ?? 0);
+    if ($currentTotal < $baselineTotal) {
+        $reductions[$category] = $baselineTotal - $currentTotal;
+    }
+    if ($currentTotal > $baselineTotal) {
+        $regressions[] = [
+            'category' => $category,
+            'rule' => 'category_total_increased',
+            'baseline' => $baselineTotal,
+            'current' => $currentTotal,
+        ];
+    }
+    $baselineFiles = (array) ($baselineCategory['files'] ?? []);
+    foreach ((array) ($currentCategory['files'] ?? []) as $file => $fileData) {
+        $baselineFile = (array) ($baselineFiles[$file] ?? []);
+        $currentCount = (int) ($fileData['count'] ?? 0);
+        $baselineCount = (int) ($baselineFile['count'] ?? 0);
+        if ($currentCount > $baselineCount) {
+            $regressions[] = [
+                'category' => $category,
+                'file' => $file,
+                'rule' => $baselineCount === 0 ? 'new_runtime_debt_file' : 'file_debt_increased',
+                'baseline' => $baselineCount,
+                'current' => $currentCount,
+            ];
+        }
+        $baselineFingerprints = (array) ($baselineFile['fingerprints'] ?? []);
+        foreach ((array) ($fileData['fingerprints'] ?? []) as $fingerprint => $fingerprintCount) {
+            $allowed = (int) ($baselineFingerprints[$fingerprint] ?? 0);
+            if ((int) $fingerprintCount <= $allowed) {
+                continue;
+            }
+            $regressions[] = [
+                'category' => $category,
+                'file' => $file,
+                'rule' => 'new_violation_signature',
+                'fingerprint' => $fingerprint,
+                'baseline' => $allowed,
+                'current' => (int) $fingerprintCount,
+            ];
+        }
+    }
+}
+
+$zeroFailures = [];
+foreach ((array) ($contract['required_zero_categories'] ?? []) as $category) {
+    $category = (string) $category;
+    $total = (int) ($inventory[$category]['total'] ?? -1);
+    if ($total !== 0) {
+        $zeroFailures[] = ['category' => $category, 'current' => $total];
+    }
+}
+foreach ((array) ($contract['path_zero_rules'] ?? []) as $rule) {
+    if (!is_array($rule)) {
+        $zeroFailures[] = ['rule' => 'invalid_path_zero_rule'];
+        continue;
+    }
+    $prefix = (string) ($rule['path_prefix'] ?? '');
+    foreach ((array) ($rule['categories'] ?? []) as $category) {
+        $category = (string) $category;
+        $count = 0;
+        foreach ((array) ($inventory[$category]['files'] ?? []) as $file => $fileData) {
+            if ($prefix !== '' && str_starts_with((string) $file, $prefix)) {
+                $count += (int) ($fileData['count'] ?? 0);
+            }
+        }
+        if ($prefix === '' || $count !== 0) {
+            $zeroFailures[] = [
+                'category' => $category,
+                'path_prefix' => $prefix,
+                'current' => $count,
+            ];
+        }
+    }
+}
+
+$totals = [];
+$filesByCategory = [];
+foreach ($categoryNames as $category) {
+    $totals[$category] = (int) ($inventory[$category]['total'] ?? 0);
+    $filesByCategory[$category] = (int) ($inventory[$category]['files_total'] ?? 0);
+}
+$ok = $configurationDrift === [] && $regressions === [] && $zeroFailures === [];
+$result = [
+    'ok' => $ok,
+    'policy' => (string) ($contract['policy'] ?? ''),
+    'baseline_source_sha' => (string) ($baseline['source_sha'] ?? ''),
+    'runtime_php_files' => count($paths),
+    'totals' => $totals,
+    'files_by_category' => $filesByCategory,
+    'debt_reductions' => $reductions,
+    'configuration_drift' => $configurationDrift,
+    'regressions' => $regressions,
+    'zero_rule_failures' => $zeroFailures,
+];
+if (in_array('--inventory', $argv, true)) {
+    $result['inventory'] = $inventory;
+    $result['findings'] = $findings;
+}
+fwrite(STDOUT, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL);
+exit($ok ? 0 : 1);

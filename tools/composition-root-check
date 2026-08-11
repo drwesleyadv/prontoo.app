@@ -8,12 +8,16 @@ if (PHP_SAPI !== 'cli') {
 
 $root = dirname(__DIR__);
 $runtime = $root . '/app/Runtime';
-$allowed = [
-    'app/Runtime/LayeredKernel.php',
-    'app/Runtime/Patients/PatientComposition.php',
-    'app/Runtime/Financial/FinancialComposition.php',
-    'app/Runtime/SecurityAccess/SecurityAccessComposition.php',
-];
+$contract = json_decode(
+    (string) file_get_contents($root . '/app/runtime.boundary-contract.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR,
+);
+if (!is_array($contract) || ($contract['schema'] ?? '') !== 'prontoo-runtime-boundary-contract-v1') {
+    throw new RuntimeException('Contrato da fronteira Runtime inválido.');
+}
+$allowed = array_keys((array) ($contract['composition_roots'] ?? []));
 $violations = [];
 $instantiations = [];
 $iterator = new RecursiveIteratorIterator(

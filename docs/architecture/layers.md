@@ -34,9 +34,11 @@ As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram rem
 
 ## Composition e Runtime
 
-É a única camada autorizada a conhecer todas as camadas. Faz wiring, bootstrap, catálogo/carregamento de módulos, composição de serviços, dispatch e coordenação de prontidão/manutenção.
+É a única camada autorizada a conhecer todas as camadas. Sua responsabilidade normativa é wiring, bootstrap, catálogo/carregamento de módulos, composição de serviços, dispatch, adaptação de entrada e coordenação de prontidão/manutenção.
 
 `app/Runtime` concentra a composição executável. Front controllers, contratos de bootstrap e arquivos especiais recebem a classificação explicitamente definida por `LayerMap`.
+
+A persistência histórica ainda localizada em `app/Runtime` não constitui autorização de camada. Ela está inventariada por tokens e congelada em `app/runtime.boundary-baseline.json`; `tools/runtime-boundary-check` rejeita aumento, assinatura nova, dívida em arquivo novo e ampliação silenciosa de exceções. A migração semântica deve reduzir esse inventário até os tetos zero declarados no contrato.
 
 ## Paths históricos
 

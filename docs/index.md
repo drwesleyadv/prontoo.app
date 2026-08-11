@@ -9,6 +9,7 @@
 - [C4 — contexto](architecture/c4-context.md)
 - [C4 — contêineres](architecture/c4-containers.md)
 - [Fluxos de dados e runtime](architecture/data-flow.md)
+- [Contrato da fronteira Runtime](architecture/runtime-boundary.md)
 
 ## Histórico da migração arquitetural
 
@@ -77,4 +78,4 @@ Os documentos abaixo registram etapas concluídas. Para localização atual de c
 
 ## Contratos executáveis
 
-A documentação é complementada por `app/architecture.manifest.json`, `app/update.manifest.json`, `version.json`, `tools/architecture-check.php`, `tools/solid-audit`, `tools/documentation-check.php`, `tools/release-contract-reconcile` e pelos workflows de CI. Em divergência entre texto histórico e contrato atual, corrija a documentação; não contorne o contrato silenciosamente.
+A documentação é complementada por `app/architecture.manifest.json`, `app/runtime.boundary-contract.json`, `app/runtime.boundary-baseline.json`, `app/update.manifest.json`, `version.json`, `tools/architecture-check.php`, `tools/runtime-boundary-check`, `tools/solid-audit`, `tools/documentation-check.php`, `tools/release-contract-reconcile` e pelos workflows de CI. Em divergência entre texto histórico e contrato atual, corrija a documentação; não contorne o contrato silenciosamente.

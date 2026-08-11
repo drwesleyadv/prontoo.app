@@ -21,6 +21,7 @@ Este documento descreve **onde a responsabilidade vive hoje**. Os documentos `ph
 | prontidão e manutenção | `app/Runtime/Boot/*` |
 | roteamento | `app/Runtime/Routing/*` |
 | wiring de features | `app/Runtime/*` |
+| inventário monotônico da fronteira Runtime | `app/runtime.boundary-contract.json`, `app/runtime.boundary-baseline.json`, `tools/runtime-boundary-check` |
 | entradas web | `index.php`, `install.php`, `br`, `public` |
 | execução secundária | `cron/maestro.php` |
 
@@ -57,4 +58,4 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 
 ## Limites atuais
 
-A baseline consolidada exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. `tools/architecture-check.php`, `tools/native-unit-check` e `tools/solid-audit --strict` são contratos permanentes de regressão.
+A baseline consolidada exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. A dívida de persistência no Runtime tem inventário separado e monotônico; sua presença histórica não altera a regra normativa de que SQL/PDO pertencem a Infrastructure. `tools/architecture-check.php`, `tools/runtime-boundary-check`, `tools/native-unit-check` e `tools/solid-audit --strict` são contratos permanentes de regressão.

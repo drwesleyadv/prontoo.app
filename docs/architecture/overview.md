@@ -84,6 +84,7 @@ A migração permanece monotônica: o número efetivo de unidades nativas não p
 A arquitetura não é apenas documental. São gates permanentes:
 
 - `tools/architecture-check.php`;
+- `tools/runtime-boundary-check`;
 - `tools/solid-audit`;
 - `tools/security-regression-check.php`;
 - `tools/schema-check.php`;
