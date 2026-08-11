@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.11.5 — Telemetria em janela móvel de 30 dias
+
+- Redefine os últimos 30 dias como janela móvel encerrada no timestamp corrente, sem ancoragem em meia-noite.
+- Compara 15 dias móveis recentes com os 15 imediatamente anteriores.
+- Faz Visualizações e Tempo médio refletirem eventos persistidos até o instante corrente e mantém Registros pela amostragem do Maestro.
+- Exibe Visualizações, Tempo médio e Registros nos cards e mantém os gráficos sobre as mesmas fontes canônicas.
+- Atualiza cards e gráficos automaticamente a cada 60 segundos enquanto a página estiver visível.
+- Mantém views.json, speed.json e database.json com retenção móvel de 31 dias.
+- Preserva schema e banco sem DDL.
+
 ## 1.8.11.4 — Telemetria confiável de Visualizações e Registros
 
 - padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores.

@@ -89,20 +89,22 @@ final class SupportTelemetryInfrastructureOperations02
     public static function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        $nowUnixUs = max(1, $nowUnixUs);
+        $bucketUs = 86400 * 1000000;
+        $windowStartUs = $nowUnixUs - 30 * $bucketUs;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-        $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
-            ->setTimezone($timezone)
-            ->setTime(0, 0);
-        $days = [];
-        for ($offset = 30; $offset >= 1; $offset--) {
-            $day = $today->modify("-" . $offset . " days");
-            $key = $day->format("Y-m-d");
-            $days[$key] = [
-                "ts" => $day->getTimestamp(),
-                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
-                "tooltip" => $day->format("d/m/Y"),
+        $buckets = [];
+        for ($index = 0; $index < 30; $index++) {
+            $startUs = $windowStartUs + $index * $bucketUs;
+            $endUs = $startUs + $bucketUs;
+            $start = (new DateTimeImmutable("@" . intdiv($startUs, 1000000)))->setTimezone($timezone);
+            $end = (new DateTimeImmutable("@" . intdiv($endUs, 1000000)))->setTimezone($timezone);
+            $buckets[$index] = [
+                "ts" => intdiv($startUs, 1000000),
+                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end),
+                "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"),
                 "value" => 0,
-                "period" => $offset > 15 ? "previous" : "current",
+                "period" => $index < 15 ? "previous" : "current",
             ];
         }
         $seen = [];
@@ -115,14 +117,16 @@ final class SupportTelemetryInfrastructureOperations02
                 $seen[$eventId] = true;
             }
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            $key = (new DateTimeImmutable("@" . intdiv($finishedUs, 1000000)))
-                ->setTimezone($timezone)
-                ->format("Y-m-d");
-            if (isset($days[$key])) {
-                $days[$key]["value"]++;
+            if ($finishedUs < $windowStartUs || $finishedUs >= $nowUnixUs) {
+                continue;
+            }
+            $index = intdiv($finishedUs - $windowStartUs, $bucketUs);
+            if ($index >= 0 && $index < 30) {
+                $buckets[$index]["value"]++;
             }
         }
-        return array_values($days);
+        return array_values($buckets);
     }
+
 
 }

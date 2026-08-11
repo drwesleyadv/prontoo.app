@@ -371,11 +371,11 @@ final class AdminPagesRuntimeOperations02
             ),
         );
         $recordCoverageNote = $recordObservedDays >= 30
-            ? "dados de Visualizações e Registros dos últimos 30 dias completos, em dias civis de America/Cuiaba."
-            : "Visualizações cobrem os últimos 30 dias completos. Registros têm " .
+            ? "dados de Visualizações e Registros na janela móvel dos últimos 30 dias, atualizada pelo timestamp corrente."
+            : "Visualizações cobrem a janela móvel dos últimos 30 dias. Registros têm " .
                 $recordObservedDays .
-                " dia(s) completo(s) observado(s) desde o início da nova coleta; dias sem amostra não são tratados como zero.";
-        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
+                " janela(s) de 24h observada(s) desde o início da nova coleta; janelas sem amostra não são tratadas como zero.";
+        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="5min">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Velocidade",
                 $duration,
@@ -403,9 +403,9 @@ final class AdminPagesRuntimeOperations02
                     "recent_points" => 15,
                     "comparison_points" => 15,
                     "middle_points" => 15,
-                    "recent_title" => "Média diária de visualizações · 15 dias recentes",
-                    "middle_title" => "Média diária de visualizações · 15 dias anteriores",
-                    "overall_title" => "Média diária de visualizações · últimos 30 dias",
+                    "recent_title" => "Média por 24h de visualizações · 15 dias recentes",
+                    "middle_title" => "Média por 24h de visualizações · 15 dias anteriores",
+                    "overall_title" => "Média por 24h de visualizações · janela móvel de 30 dias",
                     "summary_lead" => $recordCoverageNote,
                 ],
             ) .
