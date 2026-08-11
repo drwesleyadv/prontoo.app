@@ -38,6 +38,9 @@ final class SupportTelemetryInfrastructureOperations02
             if ($finishedUs < $startUs || $finishedUs >= $nowUs) {
                 continue;
             }
+            if (empty($event["speed_observed"])) {
+                continue;
+            }
             $route = (string) ($event["rota"] ?? "unknown");
             if (!isset($routes[$route])) {
                 $routes[$route] = [

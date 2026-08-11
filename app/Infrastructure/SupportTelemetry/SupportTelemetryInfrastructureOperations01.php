@@ -36,11 +36,24 @@ final class SupportTelemetryInfrastructureOperations01
     
     }
 
-    public static function telemetry_file(): string
-    
+    public static function telemetry_views_file(): string
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/page-loads.jsonl";
-    
+        return self::telemetry_storage_dir() . "/views.json";
+    }
+
+    public static function telemetry_speed_file(): string
+    {
+        return self::telemetry_storage_dir() . "/speed.json";
+    }
+
+    public static function telemetry_legacy_file(): string
+    {
+        return self::telemetry_storage_dir() . "/page-loads.jsonl";
+    }
+
+    public static function telemetry_file(): string
+    {
+        return self::telemetry_views_file();
     }
 
     public static function telemetry_schema(): string
@@ -353,114 +366,18 @@ final class SupportTelemetryInfrastructureOperations01
     }
 
     public static function telemetry_append_event(array $event): bool
-    
     {
-        $line = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
-        if ($line === null || !\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prepare_storage()) {
-            return false;
-        }
-        $handle = @fopen(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file(), "ab");
-        if (!is_resource($handle)) {
-            return false;
-        }
-        try {
-            if (!@flock($handle, LOCK_EX)) {
-                return false;
-            }
-            $written = @fwrite($handle, $line);
-            return $written === strlen($line) && @fflush($handle);
-        } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
-        }
-    
+        return TelemetryJsonStore::append($event);
     }
 
     public static function telemetry_read_events(?int $nowUnixUs = null): array
-    
     {
-        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
-        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
-        if (!is_file($file)) {
-            return [];
-        }
-        $handle = @fopen($file, "rb");
-        if (!is_resource($handle)) {
-            return [];
-        }
-        $events = [];
-        try {
-            if (!@flock($handle, LOCK_SH)) {
-                return [];
-            }
-            while (($line = fgets($handle)) !== false) {
-                $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
-                $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-                if ($event !== null && $finishedUs >= $minimumUnixUs) {
-                    $events[] = $event;
-                }
-            }
-        } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
-        }
-        return $events;
-    
+        return TelemetryJsonStore::read($nowUnixUs);
     }
 
     public static function telemetry_prune(?int $nowUnixUs = null): int
-    
     {
-        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
-        $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_file();
-        if (!is_file($file)) {
-            return 0;
-        }
-        $handle = @fopen($file, "c+");
-        if (!is_resource($handle)) {
-            return 0;
-        }
-        $kept = [];
-        $removed = 0;
-        try {
-            if (!@flock($handle, LOCK_EX)) {
-                return 0;
-            }
-            rewind($handle);
-            while (($line = fgets($handle)) !== false) {
-                $decoded = json_decode(trim($line), true);
-                $event = is_array($decoded) ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded) : null;
-                if (
-                    $event === null ||
-                    (int) ($event["fim_unix_us"] ?? 0) < $minimumUnixUs
-                ) {
-                    $removed++;
-                    continue;
-                }
-                $normalizedLine = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_json_line($event);
-                if ($normalizedLine !== null) {
-                    $kept[] = $normalizedLine;
-                }
-            }
-            rewind($handle);
-            if (!@ftruncate($handle, 0)) {
-                return 0;
-            }
-            foreach ($kept as $line) {
-                if (@fwrite($handle, $line) !== strlen($line)) {
-                    throw new RuntimeException("Falha ao compactar telemetria.");
-                }
-            }
-            @fflush($handle);
-            return $removed;
-        } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
-        }
-    
+        return TelemetryJsonStore::prune($nowUnixUs);
     }
 
     public static function telemetry_percentage_variation(int|float $current, int|float $previous): ?float
@@ -490,9 +407,11 @@ final class SupportTelemetryInfrastructureOperations01
     {
         return [
             "requests" => 0,
+            "speed_requests" => 0,
             "duration_ns" => 0,
             "average_ms" => null,
             "landing_requests" => 0,
+            "landing_speed_requests" => 0,
             "landing_duration_ns" => 0,
             "landing_average_ms" => null,
         ];
@@ -502,13 +421,13 @@ final class SupportTelemetryInfrastructureOperations01
     public static function telemetry_finalize_period(array $period): array
     
     {
-        $requests = max(0, (int) ($period["requests"] ?? 0));
-        $landingRequests = max(0, (int) ($period["landing_requests"] ?? 0));
-        $period["average_ms"] = $requests > 0
-            ? ((int) ($period["duration_ns"] ?? 0) / $requests) / 1000000
+        $speedRequests = max(0, (int) ($period["speed_requests"] ?? 0));
+        $landingSpeedRequests = max(0, (int) ($period["landing_speed_requests"] ?? 0));
+        $period["average_ms"] = $speedRequests > 0
+            ? ((int) ($period["duration_ns"] ?? 0) / $speedRequests) / 1000000
             : null;
-        $period["landing_average_ms"] = $landingRequests > 0
-            ? ((int) ($period["landing_duration_ns"] ?? 0) / $landingRequests) / 1000000
+        $period["landing_average_ms"] = $landingSpeedRequests > 0
+            ? ((int) ($period["landing_duration_ns"] ?? 0) / $landingSpeedRequests) / 1000000
             : null;
         return $period;
     
@@ -539,19 +458,33 @@ final class SupportTelemetryInfrastructureOperations01
             if ($finishedUs < $previousStartUs || $finishedUs >= $currentEndUs) {
                 continue;
             }
+            $isLanding = (string) ($event["rota"] ?? "") === "landing";
+            $speedObserved = !empty($event["speed_observed"]);
             if ($finishedUs >= $currentStartUs) {
                 $current["requests"]++;
-                $current["duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
-                if ((string) ($event["rota"] ?? "") === "landing") {
+                if ($isLanding) {
                     $current["landing_requests"]++;
-                    $current["landing_duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                }
+                if ($speedObserved) {
+                    $current["speed_requests"]++;
+                    $current["duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                    if ($isLanding) {
+                        $current["landing_speed_requests"]++;
+                        $current["landing_duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                    }
                 }
             } else {
                 $previous["requests"]++;
-                $previous["duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
-                if ((string) ($event["rota"] ?? "") === "landing") {
+                if ($isLanding) {
                     $previous["landing_requests"]++;
-                    $previous["landing_duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                }
+                if ($speedObserved) {
+                    $previous["speed_requests"]++;
+                    $previous["duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                    if ($isLanding) {
+                        $previous["landing_speed_requests"]++;
+                        $previous["landing_duration_ns"] += (int) ($event["duracao_ns"] ?? 0);
+                    }
                 }
             }
         }

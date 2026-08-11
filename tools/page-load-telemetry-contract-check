@@ -115,7 +115,8 @@ foreach (["index.php", "install.php", "br/index.php"] as $path) {
 $telemetryContractSource = compatibility_source($telemetryContractRoot, "app/Support/Telemetry.php");
 foreach ([
     "prontoo.telemetria.pagina.v2",
-    "page-loads.jsonl",
+    "views.json",
+    "speed.json",
     "front_controller_first_executable_line",
     "front_controller_last_useful_line",
     "shutdown_fallback",

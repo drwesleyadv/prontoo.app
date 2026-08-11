@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.11.4 — Telemetria confiável de Visualizações e Registros
+
+- padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores.
+- mantém Visualizações como eventos page_load válidos e deduplicados por evento_id.
+- substitui a inferência de Registros pelo estoque exato de linhas de todas as tabelas base, amostrado pelo Maestro a cada execução válida.
+- calcula Registros como total atual menos o total imediatamente anterior, preservando inclusive deltas negativos.
+- persiste a série em ssd/telemetry/database-record-counts.json com retenção móvel de 31 dias.
+- preserva schema e banco sem DDL e adiciona contrato executável para as fronteiras 30d e 15x15.
+
 ## 1.8.11.3 — Telemetria confiável de Visualizações e Registros
 
 - padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores.

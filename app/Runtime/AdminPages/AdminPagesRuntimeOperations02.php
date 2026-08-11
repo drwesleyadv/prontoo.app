@@ -220,13 +220,15 @@ final class AdminPagesRuntimeOperations02
                     continue;
                 }
                 $series["requests"][$idx]["value"]++;
-                $series["duration"][$idx]["sum"] +=
-                    max(0, (int) ($event["duracao_ns"] ?? 0));
-                $series["duration"][$idx]["count"]++;
-                if ((string) ($event["rota"] ?? "") === "landing") {
-                    $series["landing_duration"][$idx]["sum"] +=
+                if (!empty($event["speed_observed"])) {
+                    $series["duration"][$idx]["sum"] +=
                         max(0, (int) ($event["duracao_ns"] ?? 0));
-                    $series["landing_duration"][$idx]["count"]++;
+                    $series["duration"][$idx]["count"]++;
+                    if ((string) ($event["rota"] ?? "") === "landing") {
+                        $series["landing_duration"][$idx]["sum"] +=
+                            max(0, (int) ($event["duracao_ns"] ?? 0));
+                        $series["landing_duration"][$idx]["count"]++;
+                    }
                 }
             }
             foreach (["duration", "landing_duration"] as $averageSeries) {

@@ -32,6 +32,10 @@ $series = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructur
     $samples,
     $now,
 );
+$assert(
+    str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file(), "/database.json"),
+    "database.json deve ser a fonte canônica de Registros",
+);
 $assert(count($series) === 30, "a série deve conter exatamente 30 dias completos");
 $assert(($series[0]["key"] ?? "") === "2026-07-12", "primeira fronteira civil incorreta");
 $assert(($series[29]["key"] ?? "") === "2026-08-10", "última fronteira civil incorreta");
