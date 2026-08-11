@@ -1,0 +1,703 @@
+name: Telemetry 30d Implementation
+
+on:
+  push:
+    branches:
+      - agent/telemetry-audit-live
+    paths:
+      - '.github/workflows/telemetry-implement.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.event.head_commit.message == 'chore(telemetry): prepare 30-day record telemetry implementation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout implementation branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/telemetry-audit-live
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply telemetry implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          import json
+          import re
+
+          root = Path('.')
+
+          def replace_once(path, old, new):
+              p = root / path
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'missing exact token in {path}: {old[:100]!r}')
+              s = s.replace(old, new, 1)
+              p.write_text(s)
+
+          def replace_between(path, start_marker, end_marker, replacement):
+              p = root / path
+              s = p.read_text()
+              start = s.find(start_marker)
+              if start < 0:
+                  raise SystemExit(f'missing start marker in {path}: {start_marker}')
+              end = s.find(end_marker, start)
+              if end < 0:
+                  raise SystemExit(f'missing end marker in {path}: {end_marker}')
+              s = s[:start] + replacement + s[end:]
+              p.write_text(s)
+
+          ops03 = r'''<?php
+          declare(strict_types=1);
+
+          namespace Prontoo\Infrastructure\SupportTelemetry;
+
+          use \DateTimeImmutable;
+          use \PDO;
+          use \RuntimeException;
+          use \Throwable;
+
+          final class SupportTelemetryInfrastructureOperations03
+          {
+              private function __construct()
+              {
+              }
+
+              public static function telemetry_database_records_file(): string
+              {
+                  return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/database-record-counts.json";
+              }
+
+              public static function telemetry_database_total_records(): array
+              {
+                  $started = microtime(true);
+                  $pdo = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo();
+                  $statement = $pdo->query(
+                      "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME",
+                  );
+                  $tables = [];
+                  while (($table = $statement->fetchColumn()) !== false) {
+                      $table = (string) $table;
+                      if ($table === "" || preg_match('/^[a-zA-Z0-9_]+$/', $table) !== 1) {
+                          throw new RuntimeException("Tabela inválida durante contagem de registros.");
+                      }
+                      $tables[] = $table;
+                  }
+                  $total = 0;
+                  foreach ($tables as $table) {
+                      $count = $pdo->query("SELECT COUNT(*) FROM `" . $table . "`")->fetchColumn();
+                      if ($count === false || !is_numeric($count)) {
+                          throw new RuntimeException("Contagem indisponível para tabela " . $table . ".");
+                      }
+                      $total += max(0, (int) $count);
+                  }
+                  return [
+                      "total_records" => $total,
+                      "table_count" => count($tables),
+                      "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
+                  ];
+              }
+
+              public static function telemetry_database_record_samples(): array
+              {
+                  $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file();
+                  if (!is_file($file)) {
+                      return [];
+                  }
+                  $handle = @fopen($file, "rb");
+                  if (!is_resource($handle)) {
+                      return [];
+                  }
+                  try {
+                      if (!@flock($handle, LOCK_SH)) {
+                          return [];
+                      }
+                      $raw = stream_get_contents($handle);
+                  } finally {
+                      @flock($handle, LOCK_UN);
+                      @fclose($handle);
+                  }
+                  if (!is_string($raw) || trim($raw) === "") {
+                      return [];
+                  }
+                  $payload = json_decode($raw, true);
+                  if (!is_array($payload) || (string) ($payload["schema"] ?? "") !== "prontoo.telemetria.registros.v1") {
+                      return [];
+                  }
+                  $samples = [];
+                  foreach ((array) ($payload["samples"] ?? []) as $sample) {
+                      if (!is_array($sample)) {
+                          continue;
+                      }
+                      $capturedAt = (int) ($sample["captured_at_unix"] ?? 0);
+                      $total = (int) ($sample["total_records"] ?? -1);
+                      if ($capturedAt <= 0 || $total < 0) {
+                          continue;
+                      }
+                      $samples[] = [
+                          "captured_at_unix" => $capturedAt,
+                          "captured_at_local" => (string) ($sample["captured_at_local"] ?? ""),
+                          "total_records" => $total,
+                          "delta_records" => (int) ($sample["delta_records"] ?? 0),
+                      ];
+                  }
+                  usort($samples, static fn(array $a, array $b): int => $a["captured_at_unix"] <=> $b["captured_at_unix"]);
+                  return $samples;
+              }
+
+              public static function telemetry_database_record_snapshot_capture(?int $nowUnix = null): array
+              {
+                  $nowUnix ??= time();
+                  $nowUnix = max(1, $nowUnix);
+                  $started = microtime(true);
+                  if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
+                      return ["ok" => false, "note" => "Configuração indisponível."];
+                  }
+                  try {
+                      $count = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_total_records();
+                      if (!\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_prepare_storage()) {
+                          throw new RuntimeException("Diretório de telemetria indisponível.");
+                      }
+                      $file = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file();
+                      $handle = @fopen($file, "c+");
+                      if (!is_resource($handle)) {
+                          throw new RuntimeException("Arquivo de contagem de registros indisponível.");
+                      }
+                      try {
+                          if (!@flock($handle, LOCK_EX)) {
+                              throw new RuntimeException("Lock da contagem de registros indisponível.");
+                          }
+                          rewind($handle);
+                          $raw = stream_get_contents($handle);
+                          $payload = ["samples" => []];
+                          if (is_string($raw) && trim($raw) !== "") {
+                              $decoded = json_decode($raw, true);
+                              if (!is_array($decoded) || (string) ($decoded["schema"] ?? "") !== "prontoo.telemetria.registros.v1") {
+                                  throw new RuntimeException("JSON de contagem de registros inválido.");
+                              }
+                              $payload = $decoded;
+                          }
+                          $samples = [];
+                          foreach ((array) ($payload["samples"] ?? []) as $sample) {
+                              if (!is_array($sample)) {
+                                  continue;
+                              }
+                              $capturedAt = (int) ($sample["captured_at_unix"] ?? 0);
+                              $total = (int) ($sample["total_records"] ?? -1);
+                              if ($capturedAt <= 0 || $total < 0) {
+                                  continue;
+                              }
+                              $samples[] = [
+                                  "captured_at_unix" => $capturedAt,
+                                  "captured_at_local" => (string) ($sample["captured_at_local"] ?? ""),
+                                  "total_records" => $total,
+                                  "delta_records" => (int) ($sample["delta_records"] ?? 0),
+                              ];
+                          }
+                          usort($samples, static fn(array $a, array $b): int => $a["captured_at_unix"] <=> $b["captured_at_unix"]);
+                          $previousTotal = $samples === [] ? null : (int) $samples[array_key_last($samples)]["total_records"];
+                          $totalRecords = (int) $count["total_records"];
+                          $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+                          $captured = (new DateTimeImmutable("@" . $nowUnix))->setTimezone($timezone);
+                          $sample = [
+                              "captured_at_unix" => $nowUnix,
+                              "captured_at_local" => $captured->format(DateTimeImmutable::ATOM),
+                              "total_records" => $totalRecords,
+                              "delta_records" => $previousTotal === null ? 0 : $totalRecords - $previousTotal,
+                          ];
+                          $samples[] = $sample;
+                          $cutoff = $nowUnix - 31 * 86400;
+                          $samples = array_values(array_filter(
+                              $samples,
+                              static fn(array $row): bool => (int) $row["captured_at_unix"] >= $cutoff,
+                          ));
+                          $out = [
+                              "schema" => "prontoo.telemetria.registros.v1",
+                              "timezone" => "America/Cuiaba",
+                              "retention_days" => 31,
+                              "updated_at_local" => $captured->format(DateTimeImmutable::ATOM),
+                              "samples" => $samples,
+                          ];
+                          $encoded = json_encode(
+                              $out,
+                              JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+                          ) . PHP_EOL;
+                          rewind($handle);
+                          if (!@ftruncate($handle, 0) || @fwrite($handle, $encoded) !== strlen($encoded) || !@fflush($handle)) {
+                              throw new RuntimeException("Falha ao persistir contagem de registros.");
+                          }
+                          @chmod($file, 0640);
+                      } finally {
+                          @flock($handle, LOCK_UN);
+                          @fclose($handle);
+                      }
+                      return [
+                          "ok" => true,
+                          "total_records" => $sample["total_records"],
+                          "delta_records" => $sample["delta_records"],
+                          "table_count" => (int) $count["table_count"],
+                          "samples_retained" => count($samples),
+                          "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
+                      ];
+                  } catch (Throwable $error) {
+                      error_log("[Prontoo telemetry database records] " . $error->getMessage());
+                      return [
+                          "ok" => false,
+                          "note" => mb_substr($error->getMessage(), 0, 220),
+                          "duration_ms" => (int) round((microtime(true) - $started) * 1000, 0, \RoundingMode::HalfAwayFromZero),
+                      ];
+                  }
+              }
+
+              public static function telemetry_database_record_series_from_samples(array $samples, ?int $nowUnix = null): array
+              {
+                  $nowUnix ??= time();
+                  $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+                  $today = (new DateTimeImmutable("@" . max(1, $nowUnix)))
+                      ->setTimezone($timezone)
+                      ->setTime(0, 0);
+                  $days = [];
+                  for ($offset = 30; $offset >= 1; $offset--) {
+                      $day = $today->modify("-" . $offset . " days");
+                      $key = $day->format("Y-m-d");
+                      $days[$key] = [
+                          "key" => $key,
+                          "ts" => $day->getTimestamp(),
+                          "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
+                          "tooltip" => $day->format("d/m/Y"),
+                          "value" => 0,
+                          "period" => $offset > 15 ? "previous" : "current",
+                      ];
+                  }
+                  foreach ($samples as $sample) {
+                      if (!is_array($sample)) {
+                          continue;
+                      }
+                      $capturedAt = (int) ($sample["captured_at_unix"] ?? 0);
+                      if ($capturedAt <= 0) {
+                          continue;
+                      }
+                      $key = (new DateTimeImmutable("@" . $capturedAt))
+                          ->setTimezone($timezone)
+                          ->format("Y-m-d");
+                      if (isset($days[$key])) {
+                          $days[$key]["value"] += (int) ($sample["delta_records"] ?? 0);
+                      }
+                  }
+                  return array_values($days);
+              }
+
+              public static function telemetry_database_record_series_30d(?int $nowUnix = null): array
+              {
+                  return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples(
+                      \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_samples(),
+                      $nowUnix,
+                  );
+              }
+
+              public static function telemetry_series_comparison_15d(array $series): array
+              {
+                  $series = array_values($series);
+                  $previous = array_slice($series, 0, 15);
+                  $current = array_slice($series, 15, 15);
+                  $previousTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $previous));
+                  $currentTotal = array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $current));
+                  return [
+                      "previous_total" => $previousTotal,
+                      "current_total" => $currentTotal,
+                      "variation_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation($currentTotal, $previousTotal),
+                  ];
+              }
+          }
+          '''
+          ops03 = '\n'.join(line[10:] if line.startswith('          ') else line for line in ops03.splitlines()) + '\n'
+          (root / 'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php').write_text(ops03)
+
+          p = root / 'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php'
+          s = p.read_text()
+          marker = '    public static function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array'
+          start = s.index(marker)
+          end = s.rfind('\n}')
+          route_fn = r'''    public static function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array
+              {
+                  $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+                  $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+                  $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
+                      ->setTimezone($timezone)
+                      ->setTime(0, 0);
+                  $days = [];
+                  for ($offset = 30; $offset >= 1; $offset--) {
+                      $day = $today->modify("-" . $offset . " days");
+                      $key = $day->format("Y-m-d");
+                      $days[$key] = [
+                          "ts" => $day->getTimestamp(),
+                          "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
+                          "tooltip" => $day->format("d/m/Y"),
+                          "value" => 0,
+                          "period" => $offset > 15 ? "previous" : "current",
+                      ];
+                  }
+                  $seen = [];
+                  foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+                      $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
+                      $eventId = (string) ($event["evento_id"] ?? "");
+                      if ($eventId !== "") {
+                          if (isset($seen[$eventId])) {
+                              continue;
+                          }
+                          $seen[$eventId] = true;
+                      }
+                      $key = (new DateTimeImmutable("@" . intdiv($finishedUs, 1000000)))
+                          ->setTimezone($timezone)
+                          ->format("Y-m-d");
+                      if (isset($days[$key])) {
+                          $days[$key]["value"]++;
+                      }
+                  }
+                  return array_values($days);
+              }
+          '''
+          route_fn = '\n'.join(line[10:] if line.startswith('          ') else line for line in route_fn.splitlines()) + '\n'
+          p.write_text(s[:start] + route_fn + s[end:])
+
+          replace_once(
+              'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php',
+              '        return 10 * 86400 * 1000000;',
+              '        return 15 * 86400 * 1000000;',
+          )
+          replace_once(
+              'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php',
+              '''        $windowUs = \\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_comparison_microseconds();
+        $currentStartUs = $nowUnixUs - $windowUs;
+        $previousStartUs = $currentStartUs - $windowUs;''',
+              '''        $timezone = \\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+        $today = (new DateTimeImmutable("@" . intdiv($nowUnixUs, 1000000)))
+            ->setTimezone($timezone)
+            ->setTime(0, 0);
+        $currentEndUs = $today->getTimestamp() * 1000000;
+        $currentStartUs = $today->modify("-15 days")->getTimestamp() * 1000000;
+        $previousStartUs = $today->modify("-30 days")->getTimestamp() * 1000000;''',
+          )
+          replace_once(
+              'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php',
+              '''        $previous = \\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
+        foreach (\\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
+            if ($finishedUs < $previousStartUs || $finishedUs >= $nowUnixUs) {
+                continue;
+            }''',
+              '''        $previous = \\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_empty_period();
+        $seenEventIds = [];
+        foreach (\\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
+            $eventId = (string) ($event["evento_id"] ?? "");
+            if ($eventId !== "") {
+                if (isset($seenEventIds[$eventId])) {
+                    continue;
+                }
+                $seenEventIds[$eventId] = true;
+            }
+            if ($finishedUs < $previousStartUs || $finishedUs >= $currentEndUs) {
+                continue;
+            }''',
+          )
+
+          runtime_path = 'app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php'
+          runtime_replacement = r'''    public static function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
+              {
+                  return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d($nowUnix);
+              }
+
+          '''
+          runtime_replacement = '\n'.join(line[10:] if line.startswith('          ') else line for line in runtime_replacement.splitlines())
+          rp = root / runtime_path
+          rs = rp.read_text()
+          rstart = rs.index('    public static function telemetry_sequence_records_series_20d(?int $nowUnix = null): array')
+          rend = rs.rfind('\n}')
+          rp.write_text(rs[:rstart] + runtime_replacement + rs[rend:])
+
+          admin_path = 'app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php'
+          admin_method = r'''    public static function admin_global_sequence_series_20d(): array
+              {
+                  return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d();
+              }
+
+          '''
+          admin_method = '\n'.join(line[10:] if line.startswith('          ') else line for line in admin_method.splitlines())
+          replace_between(
+              admin_path,
+              '    public static function admin_global_sequence_series_20d(): array',
+              '    public static function admin_maestro_health_time_label',
+              admin_method,
+          )
+          replace_once(admin_path, '                    "primary_label" => "Requisições",', '                    "primary_label" => "Visualizações",')
+          replace_once(admin_path, '                    "recent_points" => 1,', '                    "recent_points" => 15,\n                    "comparison_points" => 15,')
+          replace_once(admin_path, '                    "middle_points" => 7,', '                    "middle_points" => 15,')
+          replace_once(admin_path, '                    "recent_title" => "Requisições de hoje",', '                    "recent_title" => "Média diária de visualizações · 15 dias recentes",')
+          replace_once(admin_path, '                    "middle_title" => "Média diária de requisições nos últimos 7 dias",', '                    "middle_title" => "Média diária de visualizações · 15 dias anteriores",')
+          replace_once(admin_path, '                    "overall_title" => "Média diária de requisições nos últimos 20 dias",', '                    "overall_title" => "Média diária de visualizações · últimos 30 dias",')
+          replace_once(admin_path, '                    "summary_lead" => "dados de Requisições e Registros dos últimos 20 dias.",', '                    "summary_lead" => "dados de Visualizações e Registros dos últimos 30 dias completos, em dias civis de America/Cuiaba.",')
+
+          presentation_path = 'app/Presentation/AdminPages/AdminPagesPresentationOperations03.php'
+          replace_once(
+              presentation_path,
+              '        $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));',
+              '        $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));\n        $comparisonPoints = max(0, (int) ($presentation["comparison_points"] ?? 0));',
+          )
+          replace_once(
+              presentation_path,
+              '''        $max = max(max($loadValues), max($responseValues));
+        if ($max <= 0) {
+            $max = 1.0;
+        }''',
+              '''        $scaleMin = min(0.0, min($loadValues), min($responseValues));
+        $scaleMax = max(0.0, max($loadValues), max($responseValues));
+        if ($scaleMax <= $scaleMin) {
+            $scaleMax = $scaleMin + 1.0;
+        }
+        $range = $scaleMax - $scaleMin;''',
+          )
+          replace_once(
+              presentation_path,
+              '        $baseline = $padT + $plotH;',
+              '        $baseline = $padT + $plotH - ((0.0 - $scaleMin) / $range) * $plotH;',
+          )
+          replace_once(
+              presentation_path,
+              '''            $plotH,
+            $max,
+        ): array {''',
+              '''            $plotH,
+            $scaleMin,
+            $range,
+        ): array {''',
+          )
+          replace_once(presentation_path, '                $v = max(0.0, (float) ($row["value"] ?? 0));', '                $v = (float) ($row["value"] ?? 0);')
+          replace_once(presentation_path, '                $y = $padT + $plotH - ($v / $max) * $plotH;', '                $y = $padT + $plotH - (($v - $scaleMin) / $range) * $plotH;')
+          replace_once(presentation_path, '            $gv = $max - ($max / 3) * $i;', '            $gv = $scaleMax - ($range / 3) * $i;')
+          pp = root / presentation_path
+          ps = pp.read_text()
+          pattern = re.compile(r'''        \$recentValues = array_slice\(\$loadValues, -\$recentPoints\);.*?        \$middleValue = \$valueType === "count"\n            \? \(count\(\$middleValues\) > 0\n                \? array_sum\(\$middleValues\) / count\(\$middleValues\)\n                : 0\.0\)\n            : \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations01::admin_metric_recent_average\(\$loadSeries, \$middlePoints\);''', re.S)
+          metric_block = '''        $comparisonMode = $valueType === "count" && $comparisonPoints > 0 && count($loadValues) >= $comparisonPoints * 2;
+        if ($comparisonMode) {
+            $recentValues = array_slice($loadValues, -$comparisonPoints);
+            $middleValues = array_slice($loadValues, -2 * $comparisonPoints, $comparisonPoints);
+            $recentValue = $recentValues ? array_sum($recentValues) / count($recentValues) : 0.0;
+            $middleValue = $middleValues ? array_sum($middleValues) / count($middleValues) : 0.0;
+        } else {
+            $recentValues = array_slice($loadValues, -$recentPoints);
+            $recentValue = $valueType === "count"
+                ? ($recentValues ? array_sum($recentValues) / count($recentValues) : 0.0)
+                : \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $recentPoints);
+            $middleValues = array_slice($loadValues, -$middlePoints);
+            $middleValue = $valueType === "count"
+                ? ($middleValues ? array_sum($middleValues) / count($middleValues) : 0.0)
+                : \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $middlePoints);
+        }
+        $overallValue = $valueType === "count"
+            ? (count($loadValues) > 0 ? array_sum($loadValues) / count($loadValues) : 0.0)
+            : \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, count($loadSeries));'''
+          ps2, count = pattern.subn(lambda m: metric_block, ps, count=1)
+          if count != 1:
+              raise SystemExit('metric comparison block not patched')
+          pp.write_text(ps2)
+          variation_method = r'''    public static function admin_telemetry_variation_note(?float $variation): string
+              {
+                  if ($variation === null) {
+                      return "15 dias completos · sem base comparável nos 15 dias anteriores";
+                  }
+                  if (abs($variation) < 0.0000005) {
+                      $variation = 0.0;
+                  }
+                  $prefix = $variation > 0 ? "+" : "";
+                  return "15 dias completos · " .
+                      $prefix .
+                      number_format($variation, 2, ",", ".") .
+                      "% vs. 15 dias anteriores";
+              }
+
+          '''
+          variation_method = '\n'.join(line[10:] if line.startswith('          ') else line for line in variation_method.splitlines())
+          replace_between(
+              presentation_path,
+              '    public static function admin_telemetry_variation_note(?float $variation): string',
+              '    public static function onboarding_score',
+              variation_method,
+          )
+
+          admin03 = 'app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php'
+          replace_once(admin03, '            "Requisições",\n            max(0, (int) ($current["requests"] ?? 0)),', '            "Visualizações",\n            max(0, (int) ($current["requests"] ?? 0)),')
+          replace_once(admin03, '<div><h1>Status do Prontoo</h1><p>Comparação entre períodos móveis de 10 dias</p></div>', '<div><h1>Status do Prontoo</h1><p>Comparação entre 15 dias civis completos e os 15 imediatamente anteriores</p></div>')
+
+          cron_path = 'cron/maestro.php'
+          replace_once(
+              cron_path,
+              '    $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));',
+              '''    $recordSnapshot = \\Prontoo\\Infrastructure\\SupportTelemetry\\SupportTelemetryInfrastructureOperations03::telemetry_database_record_snapshot_capture();
+    $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));''',
+          )
+          replace_once(
+              cron_path,
+              '''    $attention = (string) ($rules["status"] ?? "") === "attention" ||
+        (string) ($deferredWork["status"] ?? "") === "attention" ||
+        !empty($preflight["warning"]);''',
+              '''    $attention = (string) ($rules["status"] ?? "") === "attention" ||
+        (string) ($deferredWork["status"] ?? "") === "attention" ||
+        !($recordSnapshot["ok"] ?? false) ||
+        !empty($preflight["warning"]);''',
+          )
+          replace_once(
+              cron_path,
+              '        "preflight" => [\n            "ran" => (bool) ($preflight["ran"] ?? false),',
+              '        "database_records" => $recordSnapshot,\n        "preflight" => [\n            "ran" => (bool) ($preflight["ran"] ?? false),',
+          )
+          replace_once(
+              cron_path,
+              '            "preflight" => $cycle["preflight"],\n            "deferred_work" => $deferredWork,',
+              '            "preflight" => $cycle["preflight"],\n            "database_records" => $recordSnapshot,\n            "deferred_work" => $deferredWork,',
+          )
+
+          test = r'''<?php
+          declare(strict_types=1);
+          require_once __DIR__ . '/compatibility-source.php';
+
+          $root = dirname(__DIR__);
+          require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
+          $assert = static function (bool $condition, string $message): void {
+              if (!$condition) {
+                  throw new RuntimeException('Contrato de telemetria de registros: ' . $message);
+              }
+          };
+          $timezone = new DateTimeZone('America/Cuiaba');
+          $now = (new DateTimeImmutable('2026-08-11 15:00:00', $timezone))->getTimestamp();
+          $today = (new DateTimeImmutable('@' . $now))->setTimezone($timezone)->setTime(0, 0);
+          $samples = [];
+          for ($index = 0; $index < 30; $index++) {
+              $day = $today->modify('-' . (30 - $index) . ' days')->setTime(12, 0);
+              $samples[] = [
+                  'captured_at_unix' => $day->getTimestamp(),
+                  'total_records' => 1000 + $index,
+                  'delta_records' => $index === 29 ? -7 : $index + 1,
+              ];
+          }
+          $samples[] = [
+              'captured_at_unix' => $today->setTime(12, 0)->getTimestamp(),
+              'total_records' => 2000,
+              'delta_records' => 999,
+          ];
+          $series = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples($samples, $now);
+          $assert(count($series) === 30, 'a série deve conter exatamente 30 dias completos');
+          $assert(($series[0]['key'] ?? '') === '2026-07-12', 'a primeira fronteira civil deve ser 12/07/2026');
+          $assert(($series[29]['key'] ?? '') === '2026-08-10', 'a última fronteira civil deve ser 10/08/2026');
+          $assert((int) ($series[29]['value'] ?? 0) === -7, 'deltas negativos devem ser preservados');
+          $assert(array_sum(array_column($series, 'value')) !== 999, 'o dia em curso não pode contaminar os 30 dias completos');
+          $comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d($series);
+          $assert((int) ($comparison['previous_total'] ?? 0) === 120, 'os 15 dias anteriores devem ocupar a primeira metade');
+          $assert((int) ($comparison['current_total'] ?? 0) === 308, 'os 15 dias recentes devem ocupar a segunda metade');
+          $source = (string) file_get_contents($root . '/cron/maestro.php');
+          $assert(str_contains($source, 'telemetry_database_record_snapshot_capture()'), 'o Maestro deve capturar o estoque do banco em cada ciclo válido');
+          $admin = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php');
+          $assert(str_contains($admin, '"primary_label" => "Visualizações"'), 'o gráfico deve nomear page_load como Visualizações');
+          $assert(str_contains($admin, '"comparison_points" => 15'), 'o gráfico deve comparar 15 dias contra 15 dias');
+          unset($root, $assert, $timezone, $now, $today, $samples, $series, $comparison, $source, $admin);
+          '''
+          test = '\n'.join(line[10:] if line.startswith('          ') else line for line in test.splitlines()) + '\n'
+          (root / 'tools/database-record-telemetry-contract-check').write_text(test)
+
+          replace_once(
+              'tools/architecture-check.php',
+              "require __DIR__ . '/page-load-telemetry-contract-check';",
+              "require __DIR__ . '/page-load-telemetry-contract-check';\nrequire __DIR__ . '/database-record-telemetry-contract-check';",
+          )
+
+          version_path = root / 'version.json'
+          version = json.loads(version_path.read_text())
+          now_local = datetime.now(ZoneInfo('America/Cuiaba')).replace(microsecond=0)
+          version['previous_version'] = version.get('version', '1.8.11.2')
+          version['version'] = '1.8.11.3'
+          version['release'] = '1.8.11.3'
+          version['generated_at_unix'] = int(now_local.timestamp())
+          version['generated_at'] = now_local.isoformat()
+          version['updated_at'] = now_local.isoformat()
+          version['build'] = '1.8.11.3-telemetry-30d'
+          version['release_date'] = now_local.date().isoformat()
+          version['database_changes'] = False
+          version['schema_changes'] = False
+          version['logic_changes'] = True
+          version['visual_changes'] = False
+          version['notes'] = 'Telemetria coerente de 30 dias: Visualizações por page_load e Registros por estoque total do banco amostrado pelo Maestro, com comparação civil 15x15 em America/Cuiaba.'
+          version['deployment_sync_id'] = 'github-prontoo-1.8.11.3-telemetry-30d'
+          version['deployment_sync_requested_at'] = now_local.isoformat()
+          version['database_record_telemetry_policy'] = 'maestro_exact_total_snapshot_json_31d_delta_current_minus_previous_cuiaba_complete_30d_15x15'
+          version['database_record_telemetry_path'] = 'ssd/telemetry/database-record-counts.json'
+          version['changelog'] = {
+              'title': 'Telemetria confiável de Visualizações e Registros',
+              'items': [
+                  'padroniza o gráfico em 30 dias civis completos de America/Cuiaba, divididos em 15 dias recentes e 15 imediatamente anteriores',
+                  'mantém Visualizações como eventos page_load válidos e deduplicados por evento_id',
+                  'substitui a inferência de Registros pelo estoque exato de linhas de todas as tabelas base, amostrado pelo Maestro a cada execução válida',
+                  'calcula Registros como total atual menos o total imediatamente anterior, preservando inclusive deltas negativos',
+                  'persiste a série em ssd/telemetry/database-record-counts.json com retenção móvel de 31 dias',
+                  'preserva schema e banco sem DDL e adiciona contrato executável para as fronteiras 30d e 15x15'
+              ]
+          }
+          for mapping_key in ['php84_baseline_path_migrations', 'architecture_source_path_migrations']:
+              mapping = version.get(mapping_key)
+              if isinstance(mapping, dict) and isinstance(mapping.get('app/Support/Telemetry.php'), list):
+                  values = mapping['app/Support/Telemetry.php']
+                  new_path = 'app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php'
+                  if new_path not in values:
+                      insert_at = values.index('app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php') if 'app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php' in values else len(values)
+                      values.insert(insert_at, new_path)
+          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
+
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text())
+          architecture['version'] = '1.8.11.3'
+          architecture['database_record_telemetry_policy'] = 'exact_database_row_stock_sampled_by_maestro_json_31d_and_daily_delta_current_minus_previous'
+          architecture['database_record_telemetry_contract'] = 'tools/database-record-telemetry-contract-check'
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n')
+
+          workflow = root / '.github/workflows/telemetry-implement.yml'
+          workflow.unlink()
+          PY
+      - name: Validate implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php
+          php -l app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php
+          php -l app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php
+          php -l app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
+          php -l cron/maestro.php
+          php tools/database-record-telemetry-contract-check
+          php tools/page-load-telemetry-contract-check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/architecture-check.php
+          git diff --check
+      - name: Commit implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Wesley Ferreira'
+          git config user.email '48494254+drwesleyadv@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(telemetry): make 30-day views and records coherent'
+          git push origin HEAD:agent/telemetry-audit-live
