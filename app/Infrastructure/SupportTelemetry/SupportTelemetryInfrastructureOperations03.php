@@ -306,13 +306,29 @@ final class SupportTelemetryInfrastructureOperations03
                 $current,
             ),
         );
+        $previousObservedDays = count(
+            array_filter(
+                $previous,
+                static fn(array $row): bool => !empty($row["observed"]),
+            ),
+        );
+        $currentObservedDays = count(
+            array_filter(
+                $current,
+                static fn(array $row): bool => !empty($row["observed"]),
+            ),
+        );
         return [
             "previous_total" => $previousTotal,
             "current_total" => $currentTotal,
-            "variation_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
-                $currentTotal,
-                $previousTotal,
-            ),
+            "previous_observed_days" => $previousObservedDays,
+            "current_observed_days" => $currentObservedDays,
+            "variation_pct" => $previousObservedDays === 15 && $currentObservedDays === 15
+                ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                    $currentTotal,
+                    $previousTotal,
+                )
+                : null,
         ];
     }
 }

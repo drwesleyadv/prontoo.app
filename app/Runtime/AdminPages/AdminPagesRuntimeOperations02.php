@@ -414,7 +414,7 @@ final class AdminPagesRuntimeOperations02
     public static function admin_performance_card_content_html(bool $public = false): string
     
     {
-        return '<div class="section-head admin-performance-head"><h2>Telemetria das últimas 24 horas</h2>' .
+        return '<div class="section-head admin-performance-head"><h2>Telemetria operacional</h2>' .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_maestro_health_pill_html(!$public) .
             "</div>" .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_perf_charts_html();

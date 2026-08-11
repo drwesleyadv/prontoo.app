@@ -201,9 +201,13 @@ security_regression_assert(
 );
 
 $telemetryNowUs = 2000000000000000;
-$telemetryWindowUs = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparison_microseconds();
-$telemetryPreviousStartUs = $telemetryNowUs - 2 * $telemetryWindowUs;
-$telemetryCurrentStartUs = $telemetryNowUs - $telemetryWindowUs;
+$telemetryTimezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+$telemetryToday = (new DateTimeImmutable("@" . intdiv($telemetryNowUs, 1000000)))
+    ->setTimezone($telemetryTimezone)
+    ->setTime(0, 0);
+$telemetryCurrentEndUs = $telemetryToday->getTimestamp() * 1000000;
+$telemetryPreviousStartUs = $telemetryToday->modify("-30 days")->getTimestamp() * 1000000;
+$telemetryCurrentStartUs = $telemetryToday->modify("-15 days")->getTimestamp() * 1000000;
 $telemetryEvent = static function (
     string $route,
     int $finishedUs,
@@ -225,13 +229,13 @@ foreach ([
     $telemetryEvent("patient", $telemetryPreviousStartUs, 200000000),
     $telemetryEvent("landing", $telemetryCurrentStartUs - 1, 500000000),
     $telemetryEvent("patient", $telemetryCurrentStartUs, 100000000),
-    $telemetryEvent("landing", $telemetryNowUs - 1, 300000000),
+    $telemetryEvent("landing", $telemetryCurrentEndUs - 1, 300000000),
     $telemetryEvent(
         "old",
         $telemetryNowUs - \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds() - 1,
         999000000,
     ),
-    $telemetryEvent("future_boundary", $telemetryNowUs, 400000000),
+    $telemetryEvent("current_day_boundary", $telemetryCurrentEndUs, 400000000),
 ] as $event) {
     security_regression_assert(
         \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_append_event($event),
@@ -245,7 +249,7 @@ $telemetryVariations = (array) ($telemetrySummary["variations"] ?? []);
 security_regression_assert(
     (int) ($telemetryCurrent["requests"] ?? -1) === 2 &&
         (int) ($telemetryPrevious["requests"] ?? -1) === 2,
-    "Janelas móveis sobrepuseram ou perderam eventos de fronteira.",
+    "Janelas civis 15x15 sobrepuseram ou perderam eventos de fronteira.",
 );
 security_regression_assert(
     abs((float) ($telemetryCurrent["average_ms"] ?? 0) - 200.0) < 0.000001 &&

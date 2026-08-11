@@ -45,6 +45,19 @@ $comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastru
 );
 $assert((int) ($comparison["previous_total"] ?? 0) === 120, "primeiros 15 dias incorretos");
 $assert((int) ($comparison["current_total"] ?? 0) === 308, "últimos 15 dias incorretos");
+$assert(
+    (int) ($comparison["previous_observed_days"] ?? 0) === 15 &&
+        (int) ($comparison["current_observed_days"] ?? 0) === 15,
+    "comparação completa deve exigir 15 dias observados em cada período",
+);
+$emptyComparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d(
+    \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples([], $now),
+);
+$assert(
+    array_key_exists("variation_pct", $emptyComparison) &&
+        $emptyComparison["variation_pct"] === null,
+    "períodos sem cobertura completa não podem produzir percentual",
+);
 $cron = (string) file_get_contents($root . "/cron/maestro.php");
 $assert(
     str_contains($cron, "telemetry_database_record_snapshot_capture()"),
