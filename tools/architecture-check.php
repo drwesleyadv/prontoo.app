@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require __DIR__ . '/page-load-telemetry-contract-check';
+require __DIR__ . '/database-record-telemetry-contract-check';
 
 use Prontoo\Core\Architecture\ArchitectureVerifier;
 use Prontoo\Runtime\LayeredKernel;

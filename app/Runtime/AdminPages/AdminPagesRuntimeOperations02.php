@@ -253,54 +253,8 @@ final class AdminPagesRuntimeOperations02
     }
 
     public static function admin_global_sequence_series_20d(): array
-    
     {
-    
-        $tz = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-        $today = new DateTimeImmutable("today", $tz);
-        $days = [];
-        $params = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $day = $today->modify("-" . $i . " days");
-            $next = $day->modify("+1 day");
-            $key = $day->format("Y-m-d");
-            $days[$key] = [
-                "key" => $key,
-                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
-                "tooltip" => $day->format("d/m/Y"),
-                "value" => 0,
-            ];
-            $params[] = $day->getTimestamp();
-            $params[] = $next->getTimestamp();
-        }
-        try {
-            if (
-                is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) &&
-                !\Prontoo\Runtime\Operational\OperationalComposition::administration()->tableExists("pi_action_ledger")
-            ) {
-                return array_values($days);
-            }
-            $first = array_key_first($days);
-            $last = array_key_last($days);
-            $params[] = new DateTimeImmutable(
-                $first . " 00:00:00",
-                $tz,
-            )->getTimestamp();
-            $params[] = new DateTimeImmutable($last . " 00:00:00", $tz)
-                ->modify("+1 day")
-                ->getTimestamp();
-            $row = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.02.admin_global_sequence_series_20d.01', $params, [])->fetch() ?: [];
-            $idx = 0;
-            foreach ($days as $key => &$day) {
-                $day["value"] = (int) ($row["d" . $idx] ?? 0);
-                $idx++;
-            }
-            unset($day);
-        } catch (Throwable $e) {
-            error_log("[Prontoo admin seq chart] " . $e->getMessage());
-        }
-        return array_values($days);
-    
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d();
     }
 
     public static function admin_maestro_health_time_label(?string $value): string
@@ -430,15 +384,16 @@ final class AdminPagesRuntimeOperations02
                 $records,
                 "speed",
                 [
-                    "primary_label" => "Requisições",
+                    "primary_label" => "Visualizações",
                     "secondary_label" => "Registros",
                     "value_type" => "count",
-                    "recent_points" => 1,
-                    "middle_points" => 7,
-                    "recent_title" => "Requisições de hoje",
-                    "middle_title" => "Média diária de requisições nos últimos 7 dias",
-                    "overall_title" => "Média diária de requisições nos últimos 20 dias",
-                    "summary_lead" => "dados de Requisições e Registros dos últimos 20 dias.",
+                    "recent_points" => 15,
+                    "comparison_points" => 15,
+                    "middle_points" => 15,
+                    "recent_title" => "Média diária de visualizações · 15 dias recentes",
+                    "middle_title" => "Média diária de visualizações · 15 dias anteriores",
+                    "overall_title" => "Média diária de visualizações · últimos 30 dias",
+                    "summary_lead" => "dados de Visualizações e Registros dos últimos 30 dias completos, em dias civis de America/Cuiaba.",
                 ],
             ) .
             "</div>";

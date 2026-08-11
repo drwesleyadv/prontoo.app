@@ -160,64 +160,8 @@ final class SupportTelemetryRuntimeOperations01
     }
 
     public static function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
-    
     {
-        $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-        $today = $nowUnix === null
-            ? new DateTimeImmutable("today", $timezone)
-            : (new DateTimeImmutable("@" . max(0, $nowUnix)))
-      ->setTimezone($timezone)
-      ->setTime(0, 0);
-        $days = [];
-        $params = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $day = $today->modify("-" . $i . " days");
-            $next = $day->modify("+1 day");
-            $key = $day->format("Y-m-d");
-            $days[$key] = [
-      "key" => $key,
-      "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
-      "tooltip" => $day->format("d/m/Y"),
-      "value" => 0,
-            ];
-            $params[] = $day->getTimestamp();
-            $params[] = $next->getTimestamp();
-        }
-        if (
-            !is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'has_cfg']) ||
-            !\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() ||
-            !is_callable([\Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::class, 'db_table_exists']) ||
-            !\Prontoo\Runtime\Operational\OperationalComposition::administration()->tableExists("pi_action_ledger")
-        ) {
-            return array_values($days);
-        }
-        try {
-            $first = array_key_first($days);
-            $last = array_key_last($days);
-            $params[] = new DateTimeImmutable(
-      $first . " 00:00:00",
-      $timezone,
-            )->getTimestamp();
-            $params[] = (new DateTimeImmutable(
-      $last . " 00:00:00",
-      $timezone,
-            ))
-      ->modify("+1 day")
-      ->getTimestamp();
-            $row = \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_telemetry.01.telemetry_sequence_records_series_20d.01', $params, [])->fetch() ?: [];
-            $index = 0;
-            foreach ($days as &$day) {
-      $day["value"] = max(0, (int) ($row["d" . $index] ?? 0));
-      $index++;
-            }
-            unset($day);
-        } catch (Throwable $error) {
-            error_log(
-      "[Prontoo login telemetry records] " .
-          $error->getMessage(),
-            );
-        }
-        return array_values($days);
-    
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d($nowUnix);
     }
+
 }

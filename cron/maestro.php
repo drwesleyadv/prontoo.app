@@ -412,6 +412,7 @@ try {
         );
         exit(1);
     }
+    $recordSnapshot = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_snapshot_capture();
     $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));
     $rules = $rulesBudget >= 5000
         ? \Prontoo\Runtime\Maestro\MaestroRuntimeOperations05::maestro_supervised_cron_run($rulesBudget)
@@ -436,6 +437,7 @@ try {
         (bool) ($maintenance["ok"] ?? false);
     $attention = (string) ($rules["status"] ?? "") === "attention" ||
         (string) ($deferredWork["status"] ?? "") === "attention" ||
+        !($recordSnapshot["ok"] ?? false) ||
         !empty($preflight["warning"]);
     $cycle = [
         "ok" => $ok,
@@ -444,6 +446,7 @@ try {
         "started_at_utc" => gmdate("c", (int) $__prontooCronStarted),
         "finished_at_utc" => gmdate("c"),
         "duration_ms" => (int) round((microtime(true) - $__prontooCronStarted) * 1000, 0, \RoundingMode::HalfAwayFromZero),
+        "database_records" => $recordSnapshot,
         "preflight" => [
             "ran" => (bool) ($preflight["ran"] ?? false),
             "ok" => (bool) ($preflight["ok"] ?? false),
@@ -462,6 +465,7 @@ try {
             "ok" => $ok,
             "status" => $cycle["status"],
             "preflight" => $cycle["preflight"],
+            "database_records" => $recordSnapshot,
             "deferred_work" => $deferredWork,
             "pi_integrity" => $piResult,
             "maintenance" => $maintenance,

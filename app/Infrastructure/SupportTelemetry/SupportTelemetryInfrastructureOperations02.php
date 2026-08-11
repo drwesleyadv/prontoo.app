@@ -84,7 +84,6 @@ final class SupportTelemetryInfrastructureOperations02
     }
 
     public static function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array
-    
     {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
@@ -92,7 +91,7 @@ final class SupportTelemetryInfrastructureOperations02
             ->setTimezone($timezone)
             ->setTime(0, 0);
         $days = [];
-        for ($offset = 29; $offset >= 0; $offset--) {
+        for ($offset = 30; $offset >= 1; $offset--) {
             $day = $today->modify("-" . $offset . " days");
             $key = $day->format("Y-m-d");
             $days[$key] = [
@@ -100,13 +99,19 @@ final class SupportTelemetryInfrastructureOperations02
                 "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
                 "tooltip" => $day->format("d/m/Y"),
                 "value" => 0,
+                "period" => $offset > 15 ? "previous" : "current",
             ];
         }
+        $seen = [];
         foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
-            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            if ($finishedUs >= $nowUnixUs) {
-                continue;
+            $eventId = (string) ($event["evento_id"] ?? "");
+            if ($eventId !== "") {
+                if (isset($seen[$eventId])) {
+                    continue;
+                }
+                $seen[$eventId] = true;
             }
+            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
             $key = (new DateTimeImmutable("@" . intdiv($finishedUs, 1000000)))
                 ->setTimezone($timezone)
                 ->format("Y-m-d");
@@ -115,6 +120,6 @@ final class SupportTelemetryInfrastructureOperations02
             }
         }
         return array_values($days);
-    
     }
+
 }

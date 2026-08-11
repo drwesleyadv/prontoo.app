@@ -49,6 +49,7 @@ final class AdminPagesPresentationOperations03
         }
         $recentPoints = max(1, (int) ($presentation["recent_points"] ?? 5));
         $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));
+        $comparisonPoints = max(0, (int) ($presentation["comparison_points"] ?? 0));
         $recentTitle = mb_trim((string) ($presentation["recent_title"] ?? "Carregamento médio dos últimos 5 minutos"));
         $middleTitle = mb_trim((string) ($presentation["middle_title"] ?? "Carregamento médio dos últimos 30 minutos"));
         $overallTitle = mb_trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
@@ -64,10 +65,12 @@ final class AdminPagesPresentationOperations03
         if (!$responseValues) {
             $responseValues = [0.0];
         }
-        $max = max(max($loadValues), max($responseValues));
-        if ($max <= 0) {
-            $max = 1.0;
+        $scaleMin = min(0.0, min($loadValues), min($responseValues));
+        $scaleMax = max(0.0, max($loadValues), max($responseValues));
+        if ($scaleMax <= $scaleMin) {
+            $scaleMax = $scaleMin + 1.0;
         }
+        $range = $scaleMax - $scaleMin;
         $w = 720;
         $h = 190;
         $padL = 34;
@@ -76,21 +79,22 @@ final class AdminPagesPresentationOperations03
         $padB = 32;
         $plotW = $w - $padL - $padR;
         $plotH = $h - $padT - $padB;
-        $baseline = $padT + $plotH;
+        $baseline = $padT + $plotH - ((0.0 - $scaleMin) / $range) * $plotH;
         $makePoints = static function (array $series) use (
             $padL,
             $plotW,
             $padT,
             $plotH,
-            $max,
+            $scaleMin,
+            $range,
         ): array {
     
             $n = count($series);
             $points = [];
             foreach ($series as $idx => $row) {
-                $v = max(0.0, (float) ($row["value"] ?? 0));
+                $v = (float) ($row["value"] ?? 0);
                 $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
-                $y = $padT + $plotH - ($v / $max) * $plotH;
+                $y = $padT + $plotH - (($v - $scaleMin) / $range) * $plotH;
                 $points[] = [
                     round($x, 2, \RoundingMode::HalfAwayFromZero),
                     round($y, 2, \RoundingMode::HalfAwayFromZero),
@@ -172,7 +176,7 @@ final class AdminPagesPresentationOperations03
         $grid = "";
         for ($i = 0; $i <= 3; $i++) {
             $gy = $padT + $i * ($plotH / 3);
-            $gv = $max - ($max / 3) * $i;
+            $gv = $scaleMax - ($range / 3) * $i;
             $grid .=
                 '<line x1="' .
                 $padL .
@@ -232,23 +236,51 @@ final class AdminPagesPresentationOperations03
                 ) .
                 "</title></circle>";
         }
-        $recentValues = array_slice($loadValues, -$recentPoints);
-        $recentValue = $valueType === "count"
-            ? ($recentValues
+        $comparisonMode =
+            $valueType === "count" &&
+            $comparisonPoints > 0 &&
+            count($loadValues) >= $comparisonPoints * 2;
+        if ($comparisonMode) {
+            $recentValues = array_slice($loadValues, -$comparisonPoints);
+            $middleValues = array_slice(
+                $loadValues,
+                -2 * $comparisonPoints,
+                $comparisonPoints,
+            );
+            $recentValue = $recentValues
                 ? array_sum($recentValues) / count($recentValues)
-                : 0.0)
-            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $recentPoints);
+                : 0.0;
+            $middleValue = $middleValues
+                ? array_sum($middleValues) / count($middleValues)
+                : 0.0;
+        } else {
+            $recentValues = array_slice($loadValues, -$recentPoints);
+            $recentValue = $valueType === "count"
+                ? ($recentValues
+                    ? array_sum($recentValues) / count($recentValues)
+                    : 0.0)
+                : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
+                    $loadSeries,
+                    $recentPoints,
+                );
+            $middleValues = array_slice($loadValues, -$middlePoints);
+            $middleValue = $valueType === "count"
+                ? ($middleValues
+                    ? array_sum($middleValues) / count($middleValues)
+                    : 0.0)
+                : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
+                    $loadSeries,
+                    $middlePoints,
+                );
+        }
         $overallValue = $valueType === "count"
             ? (count($loadValues) > 0
                 ? array_sum($loadValues) / count($loadValues)
                 : 0.0)
-            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, count($loadSeries));
-        $middleValues = array_slice($loadValues, -$middlePoints);
-        $middleValue = $valueType === "count"
-            ? (count($middleValues) > 0
-                ? array_sum($middleValues) / count($middleValues)
-                : 0.0)
-            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average($loadSeries, $middlePoints);
+            : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
+                $loadSeries,
+                count($loadSeries),
+            );
         $recentCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($recentValue, $valueType);
         $middleCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($middleValue, $valueType);
         $overallCompact = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_value_compact($overallValue, $valueType);
@@ -374,20 +406,18 @@ final class AdminPagesPresentationOperations03
     }
 
     public static function admin_telemetry_variation_note(?float $variation): string
-    
     {
         if ($variation === null) {
-            return "últimos 10 dias · sem base comparável no período anterior";
+            return "15 dias completos · sem base comparável nos 15 dias anteriores";
         }
         if (abs($variation) < 0.0000005) {
             $variation = 0.0;
         }
         $prefix = $variation > 0 ? "+" : "";
-        return "últimos 10 dias · " .
+        return "15 dias completos · " .
             $prefix .
             number_format($variation, 2, ",", ".") .
-            "% vs. 10 dias anteriores";
-    
+            "% vs. 15 dias anteriores";
     }
 
     public static function onboarding_score(array $r): array
