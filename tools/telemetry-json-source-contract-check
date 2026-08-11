@@ -11,6 +11,7 @@ $assert = static function (bool $ok, string $message): void {
 $assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_views_file(), '/views.json'), 'views.json não é canônico');
 $assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_speed_file(), '/speed.json'), 'speed.json não é canônico');
 $assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file(), '/database.json'), 'database.json não é canônico');
+$assert(class_exists(\Prontoo\Infrastructure\SupportTelemetry\TelemetryJsonStore::class), 'store JSON canônico não foi carregado');
 $admin2 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php');
 $admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');
 $admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');
