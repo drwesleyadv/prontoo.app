@@ -40,9 +40,9 @@ As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram rem
 
 É a fronteira autorizada a conhecer todas as camadas. Isso não concede liberdade para implementar persistência ou caso de uso: sua responsabilidade normativa é wiring, bootstrap, catálogo/carregamento de módulos, dispatch, adaptação de entrada e coordenação fina de prontidão/manutenção.
 
-`LayerMap` subdivide a métrica de Composition em roots explícitos, bootstrap Runtime, adapters finos de entrada, comissionamento, ferramentas de qualidade e entrypoints. Os cinco composition roots concretos são enumerados por arquivo; somente eles podem instanciar adapters concretos. Os demais arquivos Runtime não se tornam composition roots por estarem no diretório.
+`LayerMap` subdivide a métrica de Composition em roots explícitos, bootstrap Runtime, input adapters, comissionamento, ferramentas de qualidade e entrypoints. Os cinco composition roots concretos são enumerados por arquivo; somente eles podem instanciar adapters concretos. Os demais arquivos Runtime não se tornam composition roots por estarem no diretório, e a classificação como input adapter não afirma que o arquivo já seja fino.
 
-`app/Runtime` não contém SQL de negócio, acesso direto a PDO, adapters concretos fora dos composition roots nem transações de caso de uso. `tools/runtime-boundary-check` mantém essas categorias globais em zero e continua inventariando os helpers e controles estruturais do executor guardado, que não podem crescer nem virar uma exceção para persistência de negócio.
+`app/Runtime` não contém SQL de negócio, acesso direto a PDO ou adapters concretos fora dos composition roots. A correção do detector tornou visíveis 33 chamadas `atomic()` que ainda coordenam casos de uso no Runtime. `tools/runtime-boundary-check` congela essa dívida para redução monotônica; `tools/runtime-input-boundary-check` faz o mesmo com dependências diretas a Infrastructure, gateway genérico e faixas de tamanho dos input adapters.
 
 ## Paths históricos
 

@@ -13,7 +13,7 @@ flowchart TD
 
 ## Aplicação PHP
 
-Deploy monolítico, código modular. Internamente, adapters HTTP/Runtime chamam Application, que depende de ports; os cinco composition roots enumerados conectam implementações de Infrastructure. A classificação Composition também identifica bootstrap e adapters finos de entrada, mas não os autoriza a persistir. O carregamento é orientado por módulos/rotas e separa prontidão mínima de manutenção profunda.
+Deploy monolítico, código modular. Internamente, adapters HTTP/Runtime chamam Application, que depende de ports; os cinco composition roots enumerados conectam implementações de Infrastructure. A classificação Composition também identifica bootstrap e input adapters, mas não os autoriza a persistir nem implica que já sejam finos. O carregamento é orientado por módulos/rotas e separa prontidão mínima de manutenção profunda.
 
 ## MySQL
 

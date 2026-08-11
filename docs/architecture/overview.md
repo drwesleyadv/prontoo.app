@@ -36,7 +36,7 @@ flowchart TD
     R --> C
 ```
 
-As setas representam dependências permitidas. `Core` é autocontido; `Domain` não conhece infraestrutura/apresentação nem renderiza consultas; `Application` não conhece adaptadores externos; `Infrastructure` e `Presentation` não dependem entre si. Composition pode conhecer todas as camadas, mas somente os cinco roots enumerados podem instanciar adapters concretos; as demais unidades Runtime são bootstrap ou adapters finos de entrada.
+As setas representam dependências permitidas. `Core` é autocontido; `Domain` não conhece infraestrutura/apresentação nem renderiza consultas; `Application` não conhece adaptadores externos; `Infrastructure` e `Presentation` não dependem entre si. Composition pode conhecer todas as camadas, mas somente os cinco roots enumerados podem instanciar adapters concretos; as demais unidades Runtime são bootstrap ou input adapters cuja espessura é medida pelo contrato específico.
 
 ## Núcleo de invariantes
 
@@ -88,6 +88,7 @@ A arquitetura não é apenas documental. São gates permanentes:
 - `tools/architecture-check.php`;
 - `tools/architecture-consolidation-check`;
 - `tools/runtime-boundary-check`;
+- `tools/runtime-input-boundary-check`;
 - `tools/application-test-contract-check`;
 - `tools/query-budget-contract-check` e `tools/mysql-query-budget-check`;
 - `tools/solid-audit`;
