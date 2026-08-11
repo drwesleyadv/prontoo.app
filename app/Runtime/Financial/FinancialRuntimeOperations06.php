@@ -202,7 +202,7 @@ final class FinancialRuntimeOperations06
     ): void 
     {
     
-        \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        \Prontoo\Runtime\Financial\FinancialComposition::movementService()->update(
             $cid,
             $movementId,
             $type,
@@ -215,39 +215,11 @@ final class FinancialRuntimeOperations06
             $paymentMethod,
             $notes,
             $status,
-        ): void {
-    
-            $existing = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.06.update_existing_movement.01", [$movementId, $cid], []);
-            if (!$existing) {
-                throw new RuntimeException("Movimento financeiro não encontrado.");
-            }
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_validate_movement_invariants(
-                $cid,
-                $type,
-                $amount,
-                $from,
-                $to,
-                $sessionId,
-                $status,
-                $movementId,
-            );
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.update_existing_movement.02", [
-                    $type,
-                    $status,
-                    $amount,
-                    trim($paymentMethod) ?: null,
-                    $from ?: null,
-                    $to ?: null,
-                    $sessionId ?: null,
-                    trim($title),
-                    trim($notes) ?: null,
-                    $status,
-                    $uid ?: null,
-                    $status,
-                    $movementId,
-                    $cid,
-                ], []);
-        });
+            Closure::fromCallable([
+                self::class,
+                'financial_validate_movement_invariants',
+            ]),
+        );
     
     }
 
@@ -268,7 +240,7 @@ final class FinancialRuntimeOperations06
     ): int 
     {
     
-        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        return \Prontoo\Runtime\Financial\FinancialComposition::movementService()->create(
             $cid,
             $type,
             $amount,
@@ -282,39 +254,15 @@ final class FinancialRuntimeOperations06
             $status,
             $sourceEntity,
             $sourceId,
-        ): int {
-    
-            \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_operational_schema_ready();
-            \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_validate_movement_invariants(
-                $cid,
-                $type,
-                $amount,
-                $from,
-                $to,
-                $sessionId,
-                $status,
-            );
-            $title = trim($title) ?: \Prontoo\Domain\Financial\FinancialDomainOperations01::financial_human_movement_type($type);
-            $paymentMethod = mb_substr(trim($paymentMethod), 0, 40);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.06.create_movement.01", [
-                    $cid,
-                    $type,
-                    $status,
-                    $amount,
-                    $paymentMethod ?: null,
-                    $from ?: null,
-                    $to ?: null,
-                    $sessionId ?: null,
-                    $sourceEntity ?: null,
-                    $sourceId ?: null,
-                    $title,
-                    trim($notes) ?: null,
-                    $uid ?: null,
-                    $status === "confirmed" ? ($uid ?: null) : null,
-                    $status,
-                ], []);
-            return \Prontoo\Runtime\Financial\FinancialComposition::dataService()->lastInsertId();
-        });
+            Closure::fromCallable([
+                self::class,
+                'financial_validate_movement_invariants',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_human_movement_type',
+            ]),
+        );
     
     }
 

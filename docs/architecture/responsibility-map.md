@@ -58,7 +58,7 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 - fronteira de identidade de persistência: SecurityAccess, AuthOnboarding e UsersPermissions usam operações nomeadas de `IdentityDataService`; SQL e PDO ficam em Infrastructure, enquanto 7 sequências transacionais ainda são dívida corretiva no Runtime;
 - fronteira operacional de persistência: Tarefas, Agenda, Pacientes, Documentos, Leads, Maestro e módulos residuais usam serviços por escopo e operações nomeadas; SQL e PDO estão fora do Runtime, mas 14 sequências transacionais ainda coordenam casos de uso nos handlers;
 - view de contato: `Presentation/Patients/PatientContactView.php`.
-- contrato de testes de Application: 32 entry points públicos de 13 services estão caracterizados sem banco e ligados a 15 ports; a classificação semântica de criticidade será separada do plumbing genérico no ciclo corretivo.
+- contrato de testes de Application: 39 casos críticos de 20 services estão caracterizados sem banco e ligados a 15 ports; a classificação semântica de criticidade será separada do plumbing genérico no fechamento corretivo.
 - consolidação de performance: 11 read models críticos possuem budgets MySQL reais para `SELECT`, `INSERT`, `UPDATE`, `DELETE` e `REPLACE`, sem gates frágeis baseados em tempo absoluto.
 
 ## Regras de localização
@@ -73,4 +73,4 @@ Não há fachadas globais ou namespaces `/Legacy/` executáveis. Paths históric
 
 ## Limites atuais
 
-A baseline exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. SQL de negócio, PDO direto e adapters concretos fora dos roots estão zerados. As 33 transações de caso de uso, 615 referências diretas a Infrastructure, 928 chamadas genéricas e 42 input adapters acima de 500 linhas estão explicitamente congelados para redução monotônica. `tools/runtime-input-boundary-check` complementa os contratos anteriores sem transformar Composition em exceção livre.
+A baseline exige 100% de classificação dos PHP versionados, pelo menos 278 unidades nativas, no máximo 21 entrypoints/ferramentas procedurais não nativos e `compatibility_boundaries=[]`. SQL de negócio, PDO direto e adapters concretos fora dos roots estão zerados. Restam 17 transações de caso de uso; Financeiro e Agenda estão em zero. As 615 referências diretas a Infrastructure, 853 chamadas genéricas e 41 input adapters acima de 500 linhas estão explicitamente congelados para redução monotônica. `tools/runtime-input-boundary-check` complementa os contratos anteriores sem transformar Composition em exceção livre.

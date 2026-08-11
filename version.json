@@ -346,7 +346,7 @@
         "items": [
             "institui análise tokenizada e baseline monotônica para a fronteira Runtime",
             "remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento",
-            "mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime",
+            "mantém SQL de negócio, PDO direto e adapters concretos fora dos composition roots em zero; a correção posterior do detector encontrou 33 transações de caso de uso que não eram medidas nesta publicação",
             "cataloga os 32 casos críticos dos 13 Application Services, ligados a 15 ports e 145 assertivas rápidas sem banco",
             "amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil",
             "move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade",

@@ -42,7 +42,7 @@ As antigas fachadas em `app/Admin`, `app/Auth`, `app/Pages` e `app/Ui` foram rem
 
 `LayerMap` subdivide a métrica de Composition em roots explícitos, bootstrap Runtime, input adapters, comissionamento, ferramentas de qualidade e entrypoints. Os cinco composition roots concretos são enumerados por arquivo; somente eles podem instanciar adapters concretos. Os demais arquivos Runtime não se tornam composition roots por estarem no diretório, e a classificação como input adapter não afirma que o arquivo já seja fino.
 
-`app/Runtime` não contém SQL de negócio, acesso direto a PDO ou adapters concretos fora dos composition roots. A correção do detector tornou visíveis 33 chamadas `atomic()` que ainda coordenam casos de uso no Runtime. `tools/runtime-boundary-check` congela essa dívida para redução monotônica; `tools/runtime-input-boundary-check` faz o mesmo com dependências diretas a Infrastructure, gateway genérico e faixas de tamanho dos input adapters.
+`app/Runtime` não contém SQL de negócio, acesso direto a PDO ou adapters concretos fora dos composition roots. A correção do detector tornou visíveis 33 chamadas `atomic()`; após o ratchet de Financeiro e Agenda, restam 17 em 14 arquivos e os dois módulos migrados têm regra zero. `tools/runtime-boundary-check` congela essa dívida para redução monotônica; `tools/runtime-input-boundary-check` faz o mesmo com dependências diretas a Infrastructure, 853 chamadas ao gateway genérico e faixas de tamanho dos input adapters.
 
 ## Paths históricos
 

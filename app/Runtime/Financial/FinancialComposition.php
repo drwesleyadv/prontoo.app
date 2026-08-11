@@ -4,8 +4,14 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Financial;
 
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Financial\FinancialCashSessionService;
+use Prontoo\Application\Financial\FinancialConsolidationService;
 use Prontoo\Application\Financial\FinancialDataService;
+use Prontoo\Application\Financial\FinancialDrawerService;
 use Prontoo\Application\Financial\FinancialGoalService;
+use Prontoo\Application\Financial\FinancialMovementService;
+use Prontoo\Application\Financial\FinancialReviewService;
+use Prontoo\Application\Financial\FinancialRevenueService;
 use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Infrastructure\Financial\PdoFinancialCashierAttentionRepository;
 use Prontoo\Infrastructure\Financial\PdoFinancialDataRepository;
@@ -19,6 +25,12 @@ final class FinancialComposition
     private static ?FinancialCashierAttentionService $cashierAttention = null;
     private static ?FinancialGoalService $financialGoal = null;
     private static ?FinancialDataService $financialData = null;
+    private static ?FinancialDrawerService $financialDrawer = null;
+    private static ?FinancialMovementService $financialMovement = null;
+    private static ?FinancialRevenueService $financialRevenue = null;
+    private static ?FinancialCashSessionService $financialCashSession = null;
+    private static ?FinancialReviewService $financialReview = null;
+    private static ?FinancialConsolidationService $financialConsolidation = null;
 
     private function __construct()
     {
@@ -54,6 +66,44 @@ final class FinancialComposition
             static fn(\Throwable $error): bool => error_log(
                 '[Prontoo financial data] ' . $error->getMessage(),
             ),
+        );
+    }
+
+    public static function drawerService(): FinancialDrawerService
+    {
+        return self::$financialDrawer ??= new FinancialDrawerService(self::dataService());
+    }
+
+    public static function movementService(): FinancialMovementService
+    {
+        return self::$financialMovement ??= new FinancialMovementService(self::dataService());
+    }
+
+    public static function revenueService(): FinancialRevenueService
+    {
+        return self::$financialRevenue ??= new FinancialRevenueService(
+            self::dataService(),
+            self::movementService(),
+        );
+    }
+
+    public static function cashSessionService(): FinancialCashSessionService
+    {
+        return self::$financialCashSession ??= new FinancialCashSessionService(
+            self::dataService(),
+            self::movementService(),
+        );
+    }
+
+    public static function reviewService(): FinancialReviewService
+    {
+        return self::$financialReview ??= new FinancialReviewService(self::dataService());
+    }
+
+    public static function consolidationService(): FinancialConsolidationService
+    {
+        return self::$financialConsolidation ??= new FinancialConsolidationService(
+            self::dataService(),
         );
     }
 

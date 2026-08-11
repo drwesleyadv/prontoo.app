@@ -147,7 +147,7 @@ final class FinancialRuntimeOperations10
             throw new RuntimeException("Informe a forma de recebimento.");
         }
         $s = \Prontoo\Runtime\Financial\FinancialRuntimeOperations07::financial_require_open_session($cid, $uid);
-        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        return \Prontoo\Runtime\Financial\FinancialComposition::revenueService()->receiveAtCashier(
             $cid,
             $uid,
             $revenueId,
@@ -155,108 +155,23 @@ final class FinancialRuntimeOperations10
             $destinationLocationId,
             $notes,
             $s,
-        ): int {
-    
-            $session = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.01", [(int) $s["id"], $cid, $uid], []);
-            if (!$session) {
-                throw new RuntimeException(
-                    "Não há Gaveta aberta para registrar recebimento.",
-                );
-            }
-            $rev = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.02", [$revenueId, $cid], []);
-            if (!$rev) {
-                throw new RuntimeException(
-                    "Selecione uma receita prevista de Procedimento Agendado ainda não recebida.",
-                );
-            }
-            $amount = (int) $rev["amount_cents"];
-            $appointmentId = (int) $rev["appointment_id"];
-            $to = (int) $session["location_id"];
-            $sessionId = (int) $session["id"];
-            $accountId = null;
-            $extraNote =
-                "Recebimento em dinheiro vinculado ao agendamento; compõe a conferência da Gaveta.";
-            if ($method !== "dinheiro") {
-                if (
-                    !\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_office_destination_belongs(
-                        $cid,
-                        $destinationLocationId,
-                    )
-                ) {
-                    throw new RuntimeException(
-                        "Informe o Destino entre as contas do Consultório para recebimentos que não forem em Dinheiro.",
-                    );
-                }
-                $dest = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.03", [$destinationLocationId, $cid], []);
-                $to = (int) $destinationLocationId;
-                $sessionId = null;
-                $accountId =
-                    $dest && (string) $dest["location_type"] === "bank_account"
-                        ? ((int) ($dest["account_id"] ?? 0) ?:
-                        null)
-                        : null;
-                $extraNote =
-                    "Recebimento sem dinheiro físico vinculado ao agendamento; direcionado ao Consultório e fora da conferência da Gaveta.";
-            }
-            $title =
-                "Recebimento · " .
-                trim(
-                    (string) ($rev["procedure_title"] ?:
-                    $rev["title"] ?:
-                    "Procedimento agendado"),
-                );
-            $cleanNotes = trim($notes);
-            $movementNotes =
-                $extraNote . ($cleanNotes !== "" ? " " . $cleanNotes : "");
-            $movementStatus =
-                $method === "dinheiro" ? "pending_review" : "confirmed";
-            $existing = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.10.receive_expected_appointment_revenue.04", [$cid, $appointmentId], []);
-            if ($existing) {
-                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
-                    $cid,
-                    (int) $existing["id"],
-                    "receipt",
-                    $amount,
-                    null,
-                    $to,
-                    $sessionId,
-                    $uid,
-                    $title,
-                    $method,
-                    $movementNotes,
-                    $movementStatus,
-                );
-                $movementId = (int) $existing["id"];
-            } else {
-                $movementId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
-                    $cid,
-                    "receipt",
-                    $amount,
-                    null,
-                    $to,
-                    $sessionId,
-                    $uid,
-                    $title,
-                    $method,
-                    $movementNotes,
-                    $movementStatus,
-                    "appointment",
-                    $appointmentId,
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.receive_expected_appointment_revenue.05", [$method, $accountId, $uid, $revenueId, $cid], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.10.receive_expected_appointment_revenue.06", [$method, $amount, $revenueId, $appointmentId, $cid], []);
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("recebimento_atendimento_agendado", "financeiro", $revenueId, [
-                "appointment_id" => $appointmentId,
-                "movement_id" => $movementId,
-                "valor" => $amount,
-                "forma" => $method,
-                "conta_na_gaveta" => $method === "dinheiro",
-                "audit_body" =>
-                    "Recepção registrou recebimento de receita prevista vinculada a Procedimento Agendado.",
-            ]);
-            return $movementId;
-        });
+            Closure::fromCallable([
+                self::class,
+                'financial_office_destination_belongs',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_validate_movement_invariants',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_human_movement_type',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Prontoo\Runtime\Operational;
 
 use Closure;
+use Prontoo\Application\Operational\AppointmentCommandService;
 use Prontoo\Application\Operational\OperationalDataPort;
 use Prontoo\Application\Operational\OperationalDatabaseContextPort;
 use Prontoo\Application\Operational\OperationalSchemaPort;
@@ -17,6 +18,7 @@ final class OperationalComposition
     private static ?OperationalSchemaPort $schema = null;
     private static ?OperationalDatabaseContextPort $databaseContext = null;
     private static array $services = [];
+    private static ?AppointmentCommandService $appointmentCommands = null;
 
     private function __construct()
     {
@@ -30,6 +32,13 @@ final class OperationalComposition
     public static function appointments(): OperationalUseCaseService
     {
         return self::service('appointments');
+    }
+
+    public static function appointmentCommands(): AppointmentCommandService
+    {
+        return self::$appointmentCommands ??= new AppointmentCommandService(
+            self::appointments(),
+        );
     }
 
     public static function patients(): OperationalUseCaseService
@@ -72,6 +81,7 @@ final class OperationalComposition
         self::$schema = $schema;
         self::$databaseContext = $databaseContext;
         self::$services = [];
+        self::$appointmentCommands = null;
     }
 
     private static function service(string $scope): OperationalUseCaseService

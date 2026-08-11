@@ -578,35 +578,18 @@ final class AppointmentsRuntimeOperations05
                 $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
                 $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
                 try {
-                    $blockId = (int) \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
+                    $blockId = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createBlock(
                         $cid,
                         $blockDoctor,
                         $startAt,
                         $endAt,
                         $reason,
-                        $c,
-                    ): int {
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.22', [$cid], []);
-                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
-                            $cid,
-                            $blockDoctor,
-                            $startAt,
-                            $endAt,
-                            "bloqueio",
-                        );
-                        if ($conflict) {
-                            throw new RuntimeException($conflict);
-                        }
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.23', [
-                            $cid,
-                            $blockDoctor,
-                            $startAt,
-                            $endAt,
-                            $reason,
-                            (int) $c["user"]["id"],
-                        ], []);
-                        return \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId();
-                    });
+                        (int) $c['user']['id'],
+                        Closure::fromCallable([
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
+                            'agenda_conflict_message',
+                        ]),
+                    );
                 } catch (Throwable $e) {
                     error_log("[Prontoo agenda block] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -682,29 +665,18 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 try {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->updateBlock(
                         $cid,
+                        $id,
                         $blockDoctor,
                         $startAt,
                         $endAt,
-                        $id,
                         $reason,
-                    ): void {
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.25', [$cid], []);
-                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
-                            $cid,
-                            $blockDoctor,
-                            $startAt,
-                            $endAt,
-                            "alteração do bloqueio",
-                            0,
-                            $id,
-                        );
-                        if ($conflict) {
-                            throw new RuntimeException($conflict);
-                        }
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.26', [$blockDoctor, $startAt, $endAt, $reason, $id, $cid], []);
-                    });
+                        Closure::fromCallable([
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
+                            'agenda_conflict_message',
+                        ]),
+                    );
                 } catch (Throwable $e) {
                     error_log("[Prontoo agenda block update] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -808,84 +780,47 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($durationMessage, "bad");
                     $postRedirect();
                 }
+                $procedureReasonSelection = mb_trim((string) ($_POST['reason'] ?? ''));
+                $appointmentNotes = mb_trim((string) ($_POST['notes'] ?? ''));
+                $changeReason = mb_trim((string) ($_POST['change_reason'] ?? ''));
                 try {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->updateAppointment(
                         $cid,
                         $id,
                         $did,
+                        $patient,
                         $startAt,
                         $endAt,
-                        $role,
-                        $uid,
                         $procId,
-                        $a,
-                        $patient,
-                        $c,
-                    ): void {
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.30', [$cid], []);
-                        $locked = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.31', [$id, $cid], []);
-                        $lockedGuard = $locked
+                        $procedureReasonSelection,
+                        $appointmentNotes,
+                        $changeReason,
+                        (int) $c['user']['id'],
+                        static fn(?array $locked): string => $locked
                             ? \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::appointment_journey_hard_guard_message(
                                 $locked,
-                                "update_appointment",
+                                'update_appointment',
                                 $role,
                                 $uid,
                             )
-                            : "Agendamento não encontrado.";
-                        if ($lockedGuard !== "") {
-                            throw new RuntimeException($lockedGuard);
-                        }
-                        $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
-                            $cid,
-                            $did,
-                            $startAt,
-                            $endAt,
-                            "alteração do agendamento",
-                            $id,
-                            0,
-                        );
-                        if ($conflict) {
-                            throw new RuntimeException($conflict);
-                        }
-                        [
-                            $paid,
-                            $method,
-                            $amount,
-                            $paymentDestination,
-                            $paymentError,
-                        ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
-                            $cid,
-                            $procId,
-                            (int) ($a["procedure_id"] ?? 0) === (int) $procId
-                                ? (int) ($a["payment_amount_cents"] ?? 0)
-                                : 0,
-                        );
-                        if ($paymentError) {
-                            throw new RuntimeException((string) $paymentError);
-                        }
-                        \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.32', [
-                            $patient,
-                            $did,
-                            $startAt,
-                            $endAt,
-                            $procId,
-                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_reason_from_post($cid),
-                            mb_trim((string) ($_POST["notes"] ?? "")),
-                            mb_trim((string) ($_POST["change_reason"] ?? "")),
-                            $amount,
-                            $method ?: null,
-                            $paid ? "efetivada" : "prevista",
-                            $paid ? 1 : 0,
-                            $id,
-                            $cid,
-                        ], []);
-                        \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
-                            $cid,
-                            $id,
-                            (int) $c["user"]["id"],
-                            $paymentDestination,
-                        );
-                    });
+                            : 'Agendamento não encontrado.',
+                        Closure::fromCallable([
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
+                            'agenda_conflict_message',
+                        ]),
+                        static fn(int $clinicId, int $procedureId): array =>
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
+                                $clinicId,
+                                $procedureId,
+                                (int) ($a["procedure_id"] ?? 0) === (int) $procId
+                                    ? (int) ($a["payment_amount_cents"] ?? 0)
+                                    : 0,
+                            ),
+                        Closure::fromCallable([
+                            \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class,
+                            'financial_sync_appointment',
+                        ]),
+                    );
                 } catch (Throwable $e) {
                     error_log("[Prontoo appointment update] " . $e->getMessage());
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -1000,74 +935,36 @@ final class AppointmentsRuntimeOperations05
                 );
                 $postRedirect();
             }
+            $appointmentNotes = mb_trim((string) ($_POST['notes'] ?? ''));
             try {
-                $appointmentId = (int) \Prontoo\Runtime\Operational\OperationalComposition::appointments()->atomic(function () use (
+                $appointmentId = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createAppointment(
                     $cid,
-                    $procId,
+                    $patient,
+                    $did,
                     $startAt,
                     $endAt,
-                    $did,
-                    $patient,
-                    $c,
-                ): int {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.35', [$cid], []);
-                    $lockedProcedure = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.36', [$procId, $cid], []);
-                    if (!$lockedProcedure) {
-                        throw new RuntimeException("O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.");
-                    }
-                    $durationMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_min_duration_message(
-                        $cid,
-                        $procId,
-                        $startAt,
-                        $endAt,
-                    );
-                    if ($durationMessage) {
-                        throw new RuntimeException($durationMessage);
-                    }
-                    $conflict = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_conflict_message(
-                        $cid,
-                        $did,
-                        $startAt,
-                        $endAt,
-                        "agendamento",
-                    );
-                    if ($conflict) {
-                        throw new RuntimeException($conflict);
-                    }
-                    [
-                        $paid,
-                        $method,
-                        $amount,
-                        $paymentDestination,
-                        $paymentError,
-                    ] = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context($cid, $procId, 0);
-                    if ($paymentError) {
-                        throw new RuntimeException((string) $paymentError);
-                    }
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.37', [
-                        $cid,
-                        $patient,
-                        $did,
-                        $startAt,
-                        $endAt,
-                        $procId,
-                        (string) $lockedProcedure["title"],
-                        mb_trim((string) ($_POST["notes"] ?? "")),
-                        $amount,
-                        $method ?: null,
-                        $paid ? "efetivada" : "prevista",
-                        $paid ? 1 : 0,
-                        (int) $c["user"]["id"],
-                    ], []);
-                    $newAppointmentId = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId();
-                    \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::financial_sync_appointment(
-                        $cid,
-                        $newAppointmentId,
-                        (int) $c["user"]["id"],
-                        $paymentDestination,
-                    );
-                    return $newAppointmentId;
-                });
+                    $procId,
+                    $appointmentNotes,
+                    (int) $c['user']['id'],
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::class,
+                        'appointment_min_duration_message',
+                    ]),
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
+                        'agenda_conflict_message',
+                    ]),
+                    static fn(int $clinicId, int $procedureId): array =>
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
+                            $clinicId,
+                            $procedureId,
+                            0,
+                        ),
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class,
+                        'financial_sync_appointment',
+                    ]),
+                );
             } catch (Throwable $e) {
                 error_log("[Prontoo appointment create] " . $e->getMessage());
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(

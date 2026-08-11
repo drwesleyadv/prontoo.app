@@ -301,26 +301,16 @@ final class FinancialRuntimeOperations05
             trim($reason) ?:
             "Atendimento cancelado ou ausência registrada; cobrança prevista cancelada pela regra operacional.";
         try {
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use ($cid, $appointmentId, $uid, $reason): void {
-    
-                $rev = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.05.cancel_appointment_revenue.01", [$cid, $appointmentId], []);
-                if (!$rev || (string) ($rev["status"] ?? "") !== "prevista") {
-                    return;
-                }
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.05.cancel_appointment_revenue.02", [$uid, (int) $rev["id"], $cid], []);
-                \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.05.cancel_appointment_revenue.03", [$reason, $cid, $appointmentId], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                    "receita_prevista_cancelada",
-                    "financeiro",
-                    (int) $rev["id"],
-                    [
-                        "appointment_id" => $appointmentId,
-                        "motivo" => $reason,
-                        "audit_body" =>
-                            "Receita prevista do agendamento foi cancelada por cancelamento, ausência ou remarcação sem cobrança.",
-                    ],
-                );
-            });
+            \Prontoo\Runtime\Financial\FinancialComposition::revenueService()->cancelAppointmentRevenue(
+                $cid,
+                $appointmentId,
+                $uid,
+                $reason,
+                Closure::fromCallable([
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                    'audit',
+                ]),
+            );
         } catch (Throwable $e) {
             error_log("[Prontoo cancel appointment revenue] " . $e->getMessage());
         }
@@ -347,94 +337,26 @@ final class FinancialRuntimeOperations05
                 "Recebimento pelo Administrador deve entrar em Cofre ou Banco do Consultório. Gaveta pertence ao fluxo da Recepção.",
             );
         }
-        return (int) \Prontoo\Runtime\Financial\FinancialComposition::dataService()->atomic(function () use (
+        return \Prontoo\Runtime\Financial\FinancialComposition::revenueService()->receiveByAdministrator(
             $cid,
             $uid,
             $revenueId,
             $method,
             $destinationLocationId,
             $notes,
-        ): int {
-    
-            $rev = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.05.admin_receive_expected_revenue.01", [$revenueId, $cid], []);
-            if (!$rev) {
-                throw new RuntimeException(
-                    "Selecione uma pendência de agendamento ainda não recebida.",
-                );
-            }
-            $amount = (int) $rev["amount_cents"];
-            $appointmentId = (int) $rev["appointment_id"];
-            $dest = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.05.admin_receive_expected_revenue.02", [$destinationLocationId, $cid], []);
-            if (!$dest) {
-                throw new RuntimeException("Destino financeiro inválido.");
-            }
-            $accountId =
-                (string) $dest["location_type"] === "bank_account"
-                    ? ((int) ($dest["account_id"] ?? 0) ?:
-                    null)
-                    : null;
-            $title =
-                "Recebimento · " .
-                trim(
-                    (string) ($rev["procedure_title"] ?:
-                    $rev["title"] ?:
-                    "Atendimento agendado"),
-                );
-            $movementNotes =
-                "Administrador recebeu pendência de agendamento em Cofre/Banco; não movimenta Gaveta." .
-                (trim($notes) !== "" ? " " . trim($notes) : "");
-            $existing = \Prontoo\Runtime\Financial\FinancialComposition::dataService()->row("financial.05.admin_receive_expected_revenue.03", [$cid, $appointmentId], []);
-            if ($existing) {
-                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_update_existing_movement(
-                    $cid,
-                    (int) $existing["id"],
-                    "receipt",
-                    $amount,
-                    null,
-                    $destinationLocationId,
-                    null,
-                    $uid,
-                    $title,
-                    $method,
-                    $movementNotes,
-                    "confirmed",
-                );
-                $movementId = (int) $existing["id"];
-            } else {
-                $movementId = \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::financial_create_movement(
-                    $cid,
-                    "receipt",
-                    $amount,
-                    null,
-                    $destinationLocationId,
-                    null,
-                    $uid,
-                    $title,
-                    $method,
-                    $movementNotes,
-                    "confirmed",
-                    "appointment",
-                    $appointmentId,
-                );
-            }
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.05.admin_receive_expected_revenue.04", [$method, $accountId, $uid, $revenueId, $cid], []);
-            \Prontoo\Runtime\Financial\FinancialComposition::dataService()->result("financial.05.admin_receive_expected_revenue.05", [$method, $amount, $revenueId, $appointmentId, $cid], []);
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                "recebimento_administrativo_pendencia_agendamento",
-                "financeiro",
-                $revenueId,
-                [
-                    "appointment_id" => $appointmentId,
-                    "movement_id" => $movementId,
-                    "valor" => $amount,
-                    "forma" => $method,
-                    "destino" => $destinationLocationId,
-                    "audit_body" =>
-                        "Administrador recebeu pendência financeira vinculada ao agendamento, evitando receita avulsa duplicada.",
-                ],
-            );
-            return $movementId;
-        });
+            Closure::fromCallable([
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations06::class,
+                'financial_validate_movement_invariants',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Domain\Financial\FinancialDomainOperations01::class,
+                'financial_human_movement_type',
+            ]),
+            Closure::fromCallable([
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class,
+                'audit',
+            ]),
+        );
     
     }
 

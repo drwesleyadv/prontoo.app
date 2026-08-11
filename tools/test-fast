@@ -35,6 +35,12 @@ foreach ([
     'app/Application/Financial/FinancialDataResult.php',
     'app/Application/Financial/FinancialDataPort.php',
     'app/Application/Financial/FinancialDataService.php',
+    'app/Application/Financial/FinancialDrawerService.php',
+    'app/Application/Financial/FinancialMovementService.php',
+    'app/Application/Financial/FinancialRevenueService.php',
+    'app/Application/Financial/FinancialCashSessionService.php',
+    'app/Application/Financial/FinancialReviewService.php',
+    'app/Application/Financial/FinancialConsolidationService.php',
     'app/Application/Financial/FinancialGoalPort.php',
     'app/Application/Financial/FinancialGoalService.php',
     'app/Application/Financial/PatientRevenueReceiptPort.php',
@@ -47,6 +53,7 @@ foreach ([
     'app/Application/Operational/OperationalSchemaPort.php',
     'app/Application/Operational/OperationalDatabaseContextPort.php',
     'app/Application/Operational/OperationalUseCaseService.php',
+    'app/Application/Operational/AppointmentCommandService.php',
     'app/Application/SecurityAccess/SecurityIncidentPort.php',
     'app/Application/SecurityAccess/SecurityIncidentService.php',
     'app/Application/SecurityAccess/MfaRecordPort.php',
@@ -76,11 +83,17 @@ use Prontoo\Application\Authorization\Definitions\SchedulingActionDefinitions;
 use Prontoo\Application\Authorization\Definitions\WorkforceActionDefinitions;
 use Prontoo\Application\Financial\FinancialCashierAttentionPort;
 use Prontoo\Application\Financial\FinancialCashierAttentionService;
+use Prontoo\Application\Financial\FinancialCashSessionService;
+use Prontoo\Application\Financial\FinancialConsolidationService;
 use Prontoo\Application\Financial\FinancialDataPort;
 use Prontoo\Application\Financial\FinancialDataResult;
 use Prontoo\Application\Financial\FinancialDataService;
+use Prontoo\Application\Financial\FinancialDrawerService;
 use Prontoo\Application\Financial\FinancialGoalPort;
 use Prontoo\Application\Financial\FinancialGoalService;
+use Prontoo\Application\Financial\FinancialMovementService;
+use Prontoo\Application\Financial\FinancialReviewService;
+use Prontoo\Application\Financial\FinancialRevenueService;
 use Prontoo\Application\Financial\PatientRevenueReceiptPort;
 use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Application\Identity\IdentityDataPort;
@@ -91,6 +104,7 @@ use Prontoo\Application\Operational\OperationalDataResult;
 use Prontoo\Application\Operational\OperationalDatabaseContextPort;
 use Prontoo\Application\Operational\OperationalSchemaPort;
 use Prontoo\Application\Operational\OperationalUseCaseService;
+use Prontoo\Application\Operational\AppointmentCommandService;
 use Prontoo\Application\Patients\PatientContactCommandPort;
 use Prontoo\Application\Patients\PatientContactCommandService;
 use Prontoo\Application\Patients\PatientReadPort;
@@ -334,6 +348,382 @@ try {
     $passed++;
 }
 
+$financialWorkflowPort = new class implements FinancialDataPort {
+    public array $calls = [];
+    public array $rowsByOperation = [];
+    public array $ensured = [];
+    public int $atomicCalls = 0;
+    public int $insertId = 901;
+    public function run(string $operation, array $parameters, array $context): FinancialDataResult
+    {
+        $this->calls[] = [$operation, $parameters, $context];
+        return new FinancialDataResult(
+            (array) ($this->rowsByOperation[$operation] ?? []),
+            1,
+        );
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        $this->atomicCalls++;
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return $this->insertId;
+    }
+    public function ensure(string $contract): void
+    {
+        $this->ensured[] = $contract;
+    }
+};
+$financialWorkflowData = new FinancialDataService($financialWorkflowPort);
+$drawerService = new FinancialDrawerService($financialWorkflowData);
+$drawerService->assignUser(7, 31, 91, 11);
+$same(
+    [
+        'financial.03.link_drawer_user.02',
+        'financial.03.link_drawer_user.03',
+    ],
+    array_column($financialWorkflowPort->calls, 0),
+    'application.financial_drawer.transaction_sequence',
+);
+$same(1, $financialWorkflowPort->atomicCalls, 'application.financial_drawer.atomic');
+
+$movementService = new FinancialMovementService($financialWorkflowData);
+$financialWorkflowPort->rowsByOperation['financial.06.update_existing_movement.01'] = [
+    ['id' => 44],
+];
+$movementValidations = [];
+$validateMovement = static function (...$arguments) use (&$movementValidations): void {
+    $movementValidations[] = $arguments;
+};
+$movementService->update(
+    7,
+    44,
+    'receipt',
+    1250,
+    null,
+    31,
+    null,
+    91,
+    'Recebimento',
+    'pix',
+    'observação',
+    'confirmed',
+    $validateMovement,
+);
+$createdMovementId = $movementService->create(
+    7,
+    'payment',
+    450,
+    31,
+    null,
+    null,
+    91,
+    '',
+    'dinheiro',
+    '',
+    'confirmed',
+    'test',
+    5,
+    $validateMovement,
+    static fn(string $type): string => 'Movimento ' . $type,
+);
+$same(2, count($movementValidations), 'application.financial_movement.validation');
+$same(901, $createdMovementId, 'application.financial_movement.deterministic_id');
+
+$revenueService = new FinancialRevenueService($financialWorkflowData, $movementService);
+$financialWorkflowPort->rowsByOperation['financial.05.cancel_appointment_revenue.01'] = [[
+    'id' => 51,
+    'status' => 'prevista',
+]];
+$financialWorkflowPort->rowsByOperation['financial.05.admin_receive_expected_revenue.01'] = [[
+    'amount_cents' => 1800,
+    'appointment_id' => 71,
+    'procedure_title' => 'Consulta',
+    'title' => '',
+]];
+$financialWorkflowPort->rowsByOperation['financial.05.admin_receive_expected_revenue.02'] = [[
+    'location_type' => 'safe',
+    'account_id' => null,
+]];
+$financialWorkflowPort->rowsByOperation['financial.05.admin_receive_expected_revenue.03'] = [];
+$financialWorkflowPort->rowsByOperation['financial.10.receive_expected_appointment_revenue.01'] = [[
+    'id' => 61,
+    'location_id' => 31,
+]];
+$financialWorkflowPort->rowsByOperation['financial.10.receive_expected_appointment_revenue.02'] = [[
+    'amount_cents' => 1900,
+    'appointment_id' => 72,
+    'procedure_title' => 'Retorno',
+    'title' => '',
+]];
+$financialWorkflowPort->rowsByOperation['financial.10.receive_expected_appointment_revenue.04'] = [];
+$financialAudits = [];
+$auditFinancial = static function (...$arguments) use (&$financialAudits): void {
+    $financialAudits[] = $arguments;
+};
+$revenueService->cancelAppointmentRevenue(7, 71, 91, 'cancelado', $auditFinancial);
+$adminMovementId = $revenueService->receiveByAdministrator(
+    7,
+    91,
+    51,
+    'pix',
+    41,
+    '',
+    $validateMovement,
+    static fn(string $type): string => $type,
+    $auditFinancial,
+);
+$cashierMovementId = $revenueService->receiveAtCashier(
+    7,
+    91,
+    52,
+    'dinheiro',
+    0,
+    '',
+    ['id' => 61],
+    static fn(int $clinicId, int $locationId): bool => true,
+    $validateMovement,
+    static fn(string $type): string => $type,
+    $auditFinancial,
+);
+$same(
+    [
+        'receita_prevista_cancelada',
+        'recebimento_administrativo_pendencia_agendamento',
+        'recebimento_atendimento_agendado',
+    ],
+    array_map(static fn(array $entry): string => (string) $entry[0], $financialAudits),
+    'application.financial_revenue.audit_sequence',
+);
+$same([901, 901], [$adminMovementId, $cashierMovementId], 'application.financial_revenue.movement_ids');
+
+$cashSessionService = new FinancialCashSessionService($financialWorkflowData, $movementService);
+$sessionAudits = [];
+$sessionAudit = static function (...$arguments) use (&$sessionAudits): void {
+    $sessionAudits[] = $arguments;
+};
+$noResult = static fn(...$arguments): null => null;
+$keepClosedId = $cashSessionService->keepClosed(
+    7,
+    91,
+    '2026-08-11',
+    static fn(int $clinicId, int $userId): int => 31,
+    static fn(int $clinicId, int $locationId): null => null,
+    $noResult,
+    $noResult,
+    $noResult,
+    $noResult,
+    static fn(int $clinicId, int $locationId, string $date): int => 500,
+    static fn(string $name): string => $name,
+    $sessionAudit,
+);
+$openResult = $cashSessionService->open(
+    7,
+    91,
+    500,
+    '2026-08-11',
+    static fn(int $clinicId, int $userId): int => 31,
+    static fn(int $clinicId, int $locationId): null => null,
+    $noResult,
+    $noResult,
+    $noResult,
+    $noResult,
+    static fn(string $name): string => $name,
+    static fn(int $amount, string $label = ''): int => $amount,
+    static fn(...$arguments): int => 500,
+    static fn(...$arguments): int => 0,
+    $sessionAudit,
+);
+$financialWorkflowPort->rowsByOperation['financial.08.close_session.01'] = [[
+    'id' => 901,
+    'location_id' => 31,
+    'business_date' => '2026-08-11',
+]];
+$closingHooks = [];
+$cashSessionService->close(
+    7,
+    91,
+    901,
+    500,
+    0,
+    0,
+    '',
+    static fn(array $session): int => 500,
+    static fn(int $amount, string $label = ''): int => $amount,
+    static fn(int $left, int $right, string $label = ''): int => $left + $right,
+    static fn(int $clinicId, int $locationId): bool => true,
+    static fn(int $clinicId, int $userId): int => 41,
+    $validateMovement,
+    static fn(string $type): string => $type,
+    static function (...$arguments) use (&$closingHooks): void {
+        $closingHooks[] = 'difference';
+    },
+    static function (...$arguments) use (&$closingHooks): void {
+        $closingHooks[] = 'lock';
+    },
+    $sessionAudit,
+);
+$same(
+    [901, 901],
+    [$keepClosedId, (int) $openResult['session_id']],
+    'application.financial_cash_session.ids',
+);
+$same(false, $openResult['authorization_requested'], 'application.financial_cash_session.authorization_state');
+$same(['difference', 'lock'], $closingHooks, 'application.financial_cash_session.closing_hooks');
+
+$reviewService = new FinancialReviewService($financialWorkflowData);
+$financialWorkflowPort->rowsByOperation['financial.08.review_opening_request.01'] = [[
+    'user_id' => 91,
+    'location_id' => 31,
+    'expected_closing_cents' => 500,
+    'opening_balance_cents' => 450,
+]];
+$financialWorkflowPort->rowsByOperation['financial.08.review_session.01'] = [[
+    'clinic_id' => 7,
+    'id' => 901,
+    'location_id' => 31,
+    'business_date' => '2026-08-11',
+    'expected_closing_cents' => 500,
+    'declared_closing_cents' => 450,
+    'transfer_to_safe_cents' => 0,
+    'difference_cents' => -50,
+]];
+$financialWorkflowPort->rowsByOperation['financial.08.review_session.05'] =
+    $financialWorkflowPort->rowsByOperation['financial.08.review_session.01'];
+$financialWorkflowPort->rowsByOperation['financial.08.review_session.06'] = [[
+    'remaining' => 0,
+]];
+$reviewAudits = [];
+$reviewHooks = [];
+$reviewAudit = static function (...$arguments) use (&$reviewAudits): void {
+    $reviewAudits[] = $arguments;
+};
+$reviewCallOffset = count($financialWorkflowPort->calls);
+$reviewService->reviewOpening(
+    7,
+    11,
+    901,
+    'reject',
+    'divergência',
+    static fn(int $left, int $right, string $label = ''): int => $left + $right,
+    static fn(int $amount): string => 'R$ ' . $amount,
+    static fn(...$arguments): null => null,
+    $reviewAudit,
+);
+$reviewService->reviewSession(
+    7,
+    11,
+    901,
+    'reject',
+    'recontar',
+    '',
+    static fn(...$arguments): null => null,
+    static fn(...$arguments): null => null,
+    static fn(...$arguments): null => null,
+    static fn(...$arguments): null => null,
+    $reviewAudit,
+);
+$reviewService->reviewOpening(
+    7,
+    11,
+    902,
+    'approve',
+    'conferido',
+    static fn(int $left, int $right, string $label = ''): int => $left + $right,
+    static fn(int $amount): string => 'R$ ' . $amount,
+    static function (...$arguments) use (&$reviewHooks): void {
+        $reviewHooks[] = 'opening_difference';
+    },
+    $reviewAudit,
+);
+$reviewService->reviewSession(
+    7,
+    11,
+    902,
+    'approve',
+    'conferido',
+    '',
+    static function (...$arguments) use (&$reviewHooks): void {
+        $reviewHooks[] = 'closing_adjustment';
+    },
+    static function (...$arguments) use (&$reviewHooks): void {
+        $reviewHooks[] = 'reconciled';
+    },
+    static fn(...$arguments): array => ['drawer_lock_status' => 'unlocked'],
+    static function (...$arguments) use (&$reviewHooks): void {
+        $reviewHooks[] = 'unlock';
+    },
+    $reviewAudit,
+);
+$reviewOperations = array_column(
+    array_slice($financialWorkflowPort->calls, $reviewCallOffset),
+    0,
+);
+$assert(
+    in_array('financial.08.review_opening_request.02', $reviewOperations, true) &&
+        in_array('financial.08.review_session.04', $reviewOperations, true),
+    'application.financial_review.decisions',
+);
+$same(
+    [
+        'abertura_caixa_divergente_recusada',
+        'fechamento_caixa_devolvido',
+        'abertura_caixa_divergente_autorizada',
+        'fechamento_caixa_conferido',
+    ],
+    array_map(static fn(array $entry): string => (string) $entry[0], $reviewAudits),
+    'application.financial_review.audit_events',
+);
+$same(
+    ['opening_difference', 'closing_adjustment', 'reconciled', 'unlock'],
+    $reviewHooks,
+    'application.financial_review.approval_hooks',
+);
+
+$consolidationService = new FinancialConsolidationService($financialWorkflowData);
+$consolidationAudit = [];
+$consolidationService->consolidateDay(
+    7,
+    11,
+    static fn(int $clinicId): string => '2026-08-11',
+    static fn(...$arguments): null => null,
+    static fn(int $clinicId, string $date): array => [
+        'consolidated' => false,
+        'conference_released' => true,
+        'can_consolidate' => true,
+        'closure' => ['opened_count' => 2],
+        'reconciliation' => [
+            'ok' => true,
+            'hash' => 'abc123',
+            'metrics' => [
+                'expected_cents' => 2000,
+                'received_cents' => 1800,
+                'pending_cents' => 200,
+                'movement_count' => 4,
+            ],
+            'position' => [
+                'pos_cents' => 300,
+                'safe_cents' => 700,
+                'bank_cents' => 800,
+            ],
+        ],
+    ],
+    static function (...$arguments) use (&$consolidationAudit): void {
+        $consolidationAudit[] = $arguments;
+    },
+);
+$assert(
+    in_array('financial_daily_closing', $financialWorkflowPort->ensured, true),
+    'application.financial_consolidation.schema',
+);
+$same(
+    'abc123',
+    $consolidationAudit[0][3]['reconciliation_hash'] ?? null,
+    'application.financial_consolidation.audit_hash',
+);
+
 $identityPort = new class implements IdentityDataPort {
     public array $last = [];
     public array $ensured = [];
@@ -550,6 +940,128 @@ try {
 } catch (InvalidArgumentException) {
     $passed++;
 }
+
+$appointmentPort = new class implements OperationalDataPort, OperationalSchemaPort, OperationalDatabaseContextPort {
+    public array $calls = [];
+    public array $rowsByOperation = [
+        'operational.appointments.05.page_appointments.31' => [['id' => 81]],
+        'operational.appointments.05.page_appointments.36' => [['title' => 'Consulta']],
+    ];
+    public int $insertId = 701;
+    public function run(string $operation, array $parameters, array $context): OperationalDataResult
+    {
+        $this->calls[] = [$operation, $parameters, $context];
+        return new OperationalDataResult(
+            (array) ($this->rowsByOperation[$operation] ?? []),
+            1,
+        );
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return $this->insertId;
+    }
+    public function ensure(string $contract): void
+    {
+    }
+    public function tableExists(string $table): bool
+    {
+        return false;
+    }
+    public function columnExists(string $table, string $column): bool
+    {
+        return false;
+    }
+    public function inTransaction(): bool
+    {
+        return true;
+    }
+};
+$appointmentData = new OperationalUseCaseService(
+    $appointmentPort,
+    $appointmentPort,
+    $appointmentPort,
+    'appointments',
+);
+$appointmentCommands = new AppointmentCommandService($appointmentData);
+$noConflict = static fn(...$arguments): string => '';
+$blockId = $appointmentCommands->createBlock(
+    7,
+    91,
+    '2026-08-11 09:00:00',
+    '2026-08-11 10:00:00',
+    'Reunião',
+    11,
+    $noConflict,
+);
+$appointmentCommands->updateBlock(
+    7,
+    701,
+    91,
+    '2026-08-11 10:00:00',
+    '2026-08-11 11:00:00',
+    'Reunião ajustada',
+    $noConflict,
+);
+$appointmentFinancialSync = [];
+$syncAppointment = static function (...$arguments) use (&$appointmentFinancialSync): void {
+    $appointmentFinancialSync[] = $arguments;
+};
+$appointmentCommands->updateAppointment(
+    7,
+    81,
+    91,
+    51,
+    '2026-08-11 13:00:00',
+    '2026-08-11 14:00:00',
+    31,
+    'Consulta',
+    'notas',
+    'ajuste',
+    11,
+    static fn(?array $locked): string => $locked ? '' : 'missing',
+    $noConflict,
+    static fn(int $clinicId, int $procedureId): array => [false, '', 1200, 0, ''],
+    $syncAppointment,
+);
+$createdAppointmentId = $appointmentCommands->createAppointment(
+    7,
+    51,
+    91,
+    '2026-08-11 15:00:00',
+    '2026-08-11 16:00:00',
+    31,
+    'notas',
+    11,
+    $noConflict,
+    $noConflict,
+    static fn(int $clinicId, int $procedureId): array => [true, 'pix', 1300, 41, ''],
+    $syncAppointment,
+);
+$appointmentConflict = '';
+try {
+    $appointmentCommands->createBlock(
+        7,
+        91,
+        '2026-08-11 09:00:00',
+        '2026-08-11 10:00:00',
+        'Conflito',
+        11,
+        static fn(...$arguments): string => 'Horário indisponível.',
+    );
+} catch (RuntimeException $error) {
+    $appointmentConflict = $error->getMessage();
+}
+$same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');
+$same('Horário indisponível.', $appointmentConflict, 'application.appointment_commands.conflict');
+$same(
+    [[7, 81, 11, 0], [7, 701, 11, 41]],
+    $appointmentFinancialSync,
+    'application.appointment_commands.financial_sync',
+);
 
 $incidentPort = new class implements SecurityIncidentPort {
     public array $records = [];

@@ -1,7 +1,7 @@
 {
     "schema": "prontoo-runtime-boundary-baseline-v1",
     "policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
-    "source_sha": "7fe4800f2752e4656f88820e77609e355f9f72f3",
+    "source_sha": "7f768f36d270aa09c3fa345bccaea3edfa414f6a",
     "source_version": "1.8.10.2",
     "composition_roots": {
         "app/Runtime/LayeredKernel.php": "wires the authorization service and its infrastructure proof store",
@@ -87,21 +87,12 @@
             "files": []
         },
         "runtime_transaction_orchestration_business": {
-            "total": 33,
-            "files_total": 22,
+            "total": 17,
+            "files_total": 14,
             "operations": {
-                "atomic": 33
+                "atomic": 17
             },
             "files": {
-                "app/Runtime/Appointments/AppointmentsRuntimeOperations05.php": {
-                    "count": 4,
-                    "fingerprints": {
-                        "02bc5c2c9ca14e17c70953b9ecdff37548c4a56aca2f347a42e63819a6867617": 4
-                    },
-                    "operations": {
-                        "atomic": 4
-                    }
-                },
                 "app/Runtime/AuditActivity/AuditActivityRuntimeOperations04.php": {
                     "count": 1,
                     "fingerprints": {
@@ -145,69 +136,6 @@
                     },
                     "operations": {
                         "atomic": 2
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations03.php": {
-                    "count": 1,
-                    "fingerprints": {
-                        "83e3f17f1307b0fb382212a6b46d8881f1360cf46042b52c7b2005af2de57e08": 1
-                    },
-                    "operations": {
-                        "atomic": 1
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations05.php": {
-                    "count": 2,
-                    "fingerprints": {
-                        "fc733a1f44b21cc14c1e286336546d512ae734ed89df144c50af5d114b67b69a": 2
-                    },
-                    "operations": {
-                        "atomic": 2
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations06.php": {
-                    "count": 2,
-                    "fingerprints": {
-                        "56956067e435608062a5e21f33301b45e5825e6596542d744edf329420f33339": 2
-                    },
-                    "operations": {
-                        "atomic": 2
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations07.php": {
-                    "count": 2,
-                    "fingerprints": {
-                        "c40122833de5859f85937c04b72030b4a42a1517bbc3447f18ed1f4f563d7bf3": 2
-                    },
-                    "operations": {
-                        "atomic": 2
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations08.php": {
-                    "count": 3,
-                    "fingerprints": {
-                        "d26ef0227d644d6fe68b039612ee4dc1e1a302a2c521a6579b9381cba7041c8b": 3
-                    },
-                    "operations": {
-                        "atomic": 3
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations10.php": {
-                    "count": 1,
-                    "fingerprints": {
-                        "636970eb51268fa37a65b7a52c9831c2c7a36e952d92e56d48de0c3d8cc7ebb1": 1
-                    },
-                    "operations": {
-                        "atomic": 1
-                    }
-                },
-                "app/Runtime/Financial/FinancialRuntimeOperations14.php": {
-                    "count": 1,
-                    "fingerprints": {
-                        "cc7b5ddfee9d97ceda803a00349ba6e52cc4675671c6c960d42e45b406fa0a44": 1
-                    },
-                    "operations": {
-                        "atomic": 1
                     }
                 },
                 "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php": {
@@ -317,16 +245,5 @@
                 }
             }
         }
-    },
-    "historical_source_sha": "081cdbb234b70f2fa8dc4a1ac95325e022c614ca",
-    "historical_source_version": "1.8.10.1",
-    "historical_totals": {
-        "runtime_business_sql": 913,
-        "runtime_structural_sql": 2,
-        "runtime_direct_pdo": 38,
-        "runtime_persistence_helper": 921,
-        "runtime_repository_instantiation_outside_composition": 0,
-        "runtime_transaction_orchestration_business": 71,
-        "runtime_transaction_orchestration_structural": 3
     }
 }
