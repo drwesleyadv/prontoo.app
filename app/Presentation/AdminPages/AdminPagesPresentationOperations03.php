@@ -55,9 +55,17 @@ final class AdminPagesPresentationOperations03
         $overallTitle = mb_trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
         $summaryLead = mb_trim((string) ($presentation["summary_lead"] ?? "indicadores exibem somente o tempo de carregamento."));
         $loadValues = array_map( fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
-        $responseValues = array_map(
-             fn($r) => (float) ($r["value"] ?? 0),
-            $responseSeries,
+        $responseValues = array_values(
+            array_map(
+                static fn(array $r): float => (float) $r["value"],
+                array_filter(
+                    $responseSeries,
+                    static fn(array $r): bool =>
+                        (!array_key_exists("observed", $r) || !empty($r["observed"])) &&
+                        isset($r["value"]) &&
+                        is_numeric($r["value"]),
+                ),
+            ),
         );
         if (!$loadValues) {
             $loadValues = [0.0];
@@ -92,7 +100,14 @@ final class AdminPagesPresentationOperations03
             $n = count($series);
             $points = [];
             foreach ($series as $idx => $row) {
-                $v = (float) ($row["value"] ?? 0);
+                if (
+                    (array_key_exists("observed", $row) && empty($row["observed"])) ||
+                    !isset($row["value"]) ||
+                    !is_numeric($row["value"])
+                ) {
+                    continue;
+                }
+                $v = (float) $row["value"];
                 $x = $padL + ($n <= 1 ? 0 : $idx * ($plotW / ($n - 1)));
                 $y = $padT + $plotH - (($v - $scaleMin) / $range) * $plotH;
                 $points[] = [

@@ -254,7 +254,8 @@ final class SupportTelemetryInfrastructureOperations03
                 "ts" => $day->getTimestamp(),
                 "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($day),
                 "tooltip" => $day->format("d/m/Y"),
-                "value" => 0,
+                "value" => null,
+                "observed" => false,
                 "period" => $offset > 15 ? "previous" : "current",
             ];
         }
@@ -270,6 +271,10 @@ final class SupportTelemetryInfrastructureOperations03
                 ->setTimezone($timezone)
                 ->format("Y-m-d");
             if (isset($days[$key])) {
+                if (empty($days[$key]["observed"])) {
+                    $days[$key]["value"] = 0;
+                    $days[$key]["observed"] = true;
+                }
                 $days[$key]["value"] += (int) ($sample["delta_records"] ?? 0);
             }
         }

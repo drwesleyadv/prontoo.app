@@ -362,6 +362,17 @@ final class AdminPagesRuntimeOperations02
         $landingDuration = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("landing_duration");
         $requests = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_requests_series_20d();
         $records = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
+        $recordObservedDays = count(
+            array_filter(
+                $records,
+                static fn(array $row): bool => !empty($row["observed"]),
+            ),
+        );
+        $recordCoverageNote = $recordObservedDays >= 30
+            ? "dados de Visualizações e Registros dos últimos 30 dias completos, em dias civis de America/Cuiaba."
+            : "Visualizações cobrem os últimos 30 dias completos. Registros têm " .
+                $recordObservedDays .
+                " dia(s) completo(s) observado(s) desde o início da nova coleta; dias sem amostra não são tratados como zero.";
         return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="900000" data-chart-window="5min">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Velocidade",
@@ -393,7 +404,7 @@ final class AdminPagesRuntimeOperations02
                     "recent_title" => "Média diária de visualizações · 15 dias recentes",
                     "middle_title" => "Média diária de visualizações · 15 dias anteriores",
                     "overall_title" => "Média diária de visualizações · últimos 30 dias",
-                    "summary_lead" => "dados de Visualizações e Registros dos últimos 30 dias completos, em dias civis de America/Cuiaba.",
+                    "summary_lead" => $recordCoverageNote,
                 ],
             ) .
             "</div>";
