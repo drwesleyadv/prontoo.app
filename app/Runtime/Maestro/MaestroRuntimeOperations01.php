@@ -82,15 +82,8 @@ final class MaestroRuntimeOperations01
         try {
             \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::with_scope_guard_disabled(static function (): void {
     
-                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(static function (): void {
-    
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.01', [], []);
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.02', [], []);
-                    foreach (["view", "add", "edit", "delete"] as $op) {
-                        \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.03', [], ['op' => $op]);
-                    }
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.01.maestro_grant_runtime_access.04', [], []);
-                });
+                \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+                    ->grantRuntimeAccess();
             });
             $GLOBALS["PRONTOO_MAESTRO_RUNTIME_ACCESS_READY"] = true;
         } catch (Throwable $e) {

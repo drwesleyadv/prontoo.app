@@ -46,12 +46,12 @@ A baseline corrente registra:
 - zero arquivos nativos vazios;
 - zero funções globais em arquivos nativos;
 - zero achados objetivos no auditor SOLID;
-- zero hotspots dentro do escopo do auditor SOLID; esse número não inclui os 41 input adapters Runtime acima de 500 linhas, medidos separadamente;
+- zero hotspots dentro do escopo do auditor SOLID; esse número não inclui os 39 input adapters Runtime acima de 500 linhas, medidos separadamente;
 - zero chamadas ou arquivos do `OperationGateway`.
-- 39 casos críticos de Application em 20 services, catalogados e ligados a 15 ports; 20 entradas são plumbing genérico e não constituem, isoladamente, casos de uso semânticos;
+- 49 casos críticos de Application em 30 services, catalogados e ligados a 15 ports; o plumbing genérico permanece distinguido dos casos semânticos;
 - 11 cenários MySQL críticos sem regressão de budget.
 
-A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. SQL de negócio, PDO direto e adapters concretos indevidos estão em zero. Após a extração dos 12 fluxos financeiros e 4 de Agenda, restam 17 orquestrações transacionais em 14 arquivos; Financeiro e Agenda estão em zero. `tools/runtime-input-boundary-check` congela também 615 dependências diretas a Infrastructure, 853 chamadas ao gateway genérico e 41 hotspots acima de 500 linhas. Esses contadores podem apenas diminuir.
+A persistência de negócio do Runtime é acompanhada pelo contrato tokenizado `tools/runtime-boundary-check`. SQL de negócio, PDO direto, adapters concretos indevidos e transações de caso de uso estão em zero. `tools/runtime-input-boundary-check` congela também 615 dependências diretas a Infrastructure, 784 chamadas ao gateway genérico e 39 hotspots acima de 500 linhas. Esses contadores podem apenas diminuir.
 
 A quantidade de unidades nativas efetivas não pode diminuir e o teto corrente de arquivos não nativos não pode aumentar. Novas funcionalidades devem nascer diretamente em unidades nativas.
 

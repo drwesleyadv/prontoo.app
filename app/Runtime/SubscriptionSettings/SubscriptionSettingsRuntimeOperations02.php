@@ -267,62 +267,22 @@ final class SubscriptionSettingsRuntimeOperations02
             $trustUntil,
         );
         try {
-            return \Prontoo\Runtime\Operational\OperationalComposition::administration()->atomic(function () use (
-                $blockedActive,
-                $cid,
-                $uid,
-                $price,
-                $own,
-                $holder,
-                $proof,
-                $until,
-                $provisionalUntil,
-            ): string {
-                if ($blockedActive) {
-                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.01', [
-                        $cid,
-                        $uid,
-                        $price,
-                        "pending_admin",
-                        0,
-                        $own,
-                        $holder !== "" ? $holder : null,
-                        $proof,
-                        $until,
-                    ], []);
-                    $pid = \Prontoo\Runtime\Operational\OperationalComposition::administration()->lastInsertId();
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_comprovante_enviado", "assinatura", $cid, [
-                        "pagamento_id" => $pid,
-                        "valor" => $price,
-                        "renovacao_ate" => $until,
-                        "audit_body" =>
-                            "Responsável enviou comprovante após recusa anterior. Uma nova Ação Recomendada foi disponibilizada para o Desenvolvedor visualizar, aprovar ou recusar o comprovante. O consultório permanece em Somente Leitura até aprovação administrativa.",
-                    ]);
-                    return "Comprovante enviado. A administração vai conferir o arquivo para liberar a assinatura.";
-                }
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.02', [$provisionalUntil, $cid], []);
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.subscription_settings.02.clinic_subscription_register_claim.03', [
-                        $cid,
-                        $uid,
-                        $price,
-                        "pending_admin",
-                        1,
-                        $own,
-                        $holder !== "" ? $holder : null,
-                        null,
-                        $until,
-                    ], []);
-                $pid = \Prontoo\Runtime\Operational\OperationalComposition::administration()->lastInsertId();
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("assinatura_pagamento_informado", "assinatura", $cid, [
-                    "pagamento_id" => $pid,
-                    "valor" => $price,
-                    "liberado_ate" => $provisionalUntil,
-                    "renovacao_ate" => $until,
-                    "audit_body" =>
-                        "Responsável informou pagamento da assinatura. Uma Ação Recomendada foi disponibilizada para confirmação ou recusa pelo Desenvolvedor. O acesso operacional foi liberado automaticamente em confiança por prazo operacional interno enquanto aguarda conferência administrativa.",
-                ]);
-                return "Obrigado. Já liberamos sua assinatura em confiança enquanto o banco confirma sua transação. Aproveite!";
-            });
+            return \Prontoo\Runtime\Operational\OperationalComposition::subscriptionClaim()
+                ->register(
+                    $blockedActive,
+                    $cid,
+                    $uid,
+                    $price,
+                    (bool) $own,
+                    $holder,
+                    $proof,
+                    $until,
+                    $provisionalUntil,
+                    static fn(...$arguments): bool =>
+                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                            ...$arguments,
+                        ),
+                );
         } catch (Throwable $e) {
             if ($proof !== null) {
                 \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_delete_proof($proof);

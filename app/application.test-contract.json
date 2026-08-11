@@ -498,6 +498,126 @@
             "criticality": "critical",
             "characteristics": ["happy_path", "conflict", "atomicity"],
             "assertions": ["application.appointment_commands.ids", "application.appointment_commands.conflict", "application.appointment_commands.financial_sync"]
+        },
+        {
+            "id": "identity.clinic.registration",
+            "service": "Prontoo\\Application\\Identity\\ClinicRegistrationService",
+            "service_file": "app/Application/Identity/ClinicRegistrationService.php",
+            "entry_points": ["register"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "wrong_tenant", "invalid_user", "fail_closed", "atomicity", "deterministic_return"],
+            "assertions": ["application.identity_registration.result", "application.identity_registration.sequence", "application.identity_registration.audit", "application.identity_registration.trial_scope", "application.identity_registration.inactive_fail_closed"]
+        },
+        {
+            "id": "identity.clinic.onboarding",
+            "service": "Prontoo\\Application\\Identity\\ClinicOnboardingService",
+            "service_file": "app/Application/Identity/ClinicOnboardingService.php",
+            "entry_points": ["complete"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "permission_denied", "atomicity", "deterministic_return"],
+            "assertions": ["application.identity_onboarding.audit_sequence", "application.identity_onboarding.permission_matrix"]
+        },
+        {
+            "id": "identity.user.credentials",
+            "service": "Prontoo\\Application\\Identity\\UserCredentialService",
+            "service_file": "app/Application/Identity/UserCredentialService.php",
+            "entry_points": ["updateProfile", "changePassword"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "invalid_user", "fail_closed", "atomicity"],
+            "assertions": ["application.identity_credentials.session_revocation", "application.identity_credentials.audit_sequence"]
+        },
+        {
+            "id": "identity.user.permissions",
+            "service": "Prontoo\\Application\\Identity\\UserPermissionService",
+            "service_file": "app/Application/Identity/UserPermissionService.php",
+            "entry_points": ["syncRoles", "createTeamMember", "updateTeamMember"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "invalid_input", "permission_denied", "atomicity", "deterministic_return"],
+            "assertions": ["application.identity_permissions.roles", "application.identity_permissions.sync_hooks", "application.identity_permissions.invalid_roles", "application.identity_permissions.create_member", "application.identity_permissions.update_member", "application.identity_permissions.update_propagates"]
+        },
+        {
+            "id": "operational.audit.write",
+            "service": "Prontoo\\Application\\Operational\\AuditWriteService",
+            "service_file": "app/Application/Operational/AuditWriteService.php",
+            "entry_points": ["write"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "invalid_input", "atomicity"],
+            "assertions": ["application.audit_write.parameters", "application.audit_write.invalid_record"]
+        },
+        {
+            "id": "operational.document.issuance",
+            "service": "Prontoo\\Application\\Operational\\DocumentIssuanceService",
+            "service_file": "app/Application/Operational/DocumentIssuanceService.php",
+            "entry_points": ["assignIdentifier", "confirmIssue"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "wrong_tenant", "conflict", "atomicity", "deterministic_return"],
+            "assertions": ["application.document_issuance.identifier", "application.document_issuance.confirm_identifier", "application.document_issuance.confirm_sequence", "application.document_issuance.invalid_tenant"]
+        },
+        {
+            "id": "operational.installation.account",
+            "service": "Prontoo\\Application\\Operational\\InstallationAccountService",
+            "service_file": "app/Application/Operational/InstallationAccountService.php",
+            "entry_points": ["createInitialDeveloper"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "port_failure", "fail_closed", "atomicity"],
+            "assertions": ["application.installation_account.user_id", "application.installation_account.transaction_guard"]
+        },
+        {
+            "id": "operational.maestro.commands",
+            "service": "Prontoo\\Application\\Operational\\MaestroCommandService",
+            "service_file": "app/Application/Operational/MaestroCommandService.php",
+            "entry_points": ["grantRuntimeAccess", "updateStats", "createClaimedAction", "createSupervisedAction"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "idempotency", "conflict", "atomicity", "deterministic_return"],
+            "assertions": ["application.maestro_commands.actions", "application.maestro_commands.stats_insert", "application.maestro_commands.supervised_sequence"]
+        },
+        {
+            "id": "operational.subscription.claim",
+            "service": "Prontoo\\Application\\Operational\\SubscriptionClaimService",
+            "service_file": "app/Application/Operational/SubscriptionClaimService.php",
+            "entry_points": ["register"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "invalid_transition", "atomicity", "deterministic_return"],
+            "assertions": ["application.subscription_claim.audit_branches", "application.subscription_claim.deterministic_branches"]
+        },
+        {
+            "id": "operational.task.commands",
+            "service": "Prontoo\\Application\\Operational\\TaskCommandService",
+            "service_file": "app/Application/Operational/TaskCommandService.php",
+            "entry_points": ["createWorkflowTask"],
+            "ports": [
+                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+            ],
+            "criticality": "critical",
+            "characteristics": ["happy_path", "idempotency", "atomicity", "deterministic_return"],
+            "assertions": ["application.task_commands.created", "application.task_commands.event", "application.task_commands.idempotent", "application.task_commands.no_duplicate_event"]
         }
     ]
 }

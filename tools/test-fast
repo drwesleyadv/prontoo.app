@@ -27,6 +27,9 @@ foreach ([
     'app/Application/Authorization/AuthorizationService.php',
     'app/Domain/Identity/IdentityDocumentValidator.php',
     'app/Domain/Financial/FinancialMovementMutationPolicy.php',
+    'app/Domain/ClinicConfig/ClinicConfigDomainOperations02.php',
+    'app/Domain/Documents/DocumentIdentifierPolicy.php',
+    'app/Domain/Maestro/MaestroDomainOperations02.php',
     'app/Core/Invariant/Workflow/StateMachine.php',
     'app/Runtime/Routing/RouteDefinition.php',
     'app/Runtime/Routing/RouteRegistry.php',
@@ -48,12 +51,22 @@ foreach ([
     'app/Application/Identity/IdentityDataResult.php',
     'app/Application/Identity/IdentityDataPort.php',
     'app/Application/Identity/IdentityDataService.php',
+    'app/Application/Identity/ClinicRegistrationService.php',
+    'app/Application/Identity/ClinicOnboardingService.php',
+    'app/Application/Identity/UserCredentialService.php',
+    'app/Application/Identity/UserPermissionService.php',
     'app/Application/Operational/OperationalDataResult.php',
     'app/Application/Operational/OperationalDataPort.php',
     'app/Application/Operational/OperationalSchemaPort.php',
     'app/Application/Operational/OperationalDatabaseContextPort.php',
     'app/Application/Operational/OperationalUseCaseService.php',
     'app/Application/Operational/AppointmentCommandService.php',
+    'app/Application/Operational/AuditWriteService.php',
+    'app/Application/Operational/DocumentIssuanceService.php',
+    'app/Application/Operational/InstallationAccountService.php',
+    'app/Application/Operational/MaestroCommandService.php',
+    'app/Application/Operational/SubscriptionClaimService.php',
+    'app/Application/Operational/TaskCommandService.php',
     'app/Application/SecurityAccess/SecurityIncidentPort.php',
     'app/Application/SecurityAccess/SecurityIncidentService.php',
     'app/Application/SecurityAccess/MfaRecordPort.php',
@@ -99,12 +112,22 @@ use Prontoo\Application\Financial\PatientRevenueReceiptService;
 use Prontoo\Application\Identity\IdentityDataPort;
 use Prontoo\Application\Identity\IdentityDataResult;
 use Prontoo\Application\Identity\IdentityDataService;
+use Prontoo\Application\Identity\ClinicRegistrationService;
+use Prontoo\Application\Identity\ClinicOnboardingService;
+use Prontoo\Application\Identity\UserCredentialService;
+use Prontoo\Application\Identity\UserPermissionService;
+use Prontoo\Application\Operational\AuditWriteService;
+use Prontoo\Application\Operational\DocumentIssuanceService;
+use Prontoo\Application\Operational\InstallationAccountService;
+use Prontoo\Application\Operational\MaestroCommandService;
 use Prontoo\Application\Operational\OperationalDataPort;
 use Prontoo\Application\Operational\OperationalDataResult;
 use Prontoo\Application\Operational\OperationalDatabaseContextPort;
 use Prontoo\Application\Operational\OperationalSchemaPort;
 use Prontoo\Application\Operational\OperationalUseCaseService;
 use Prontoo\Application\Operational\AppointmentCommandService;
+use Prontoo\Application\Operational\SubscriptionClaimService;
+use Prontoo\Application\Operational\TaskCommandService;
 use Prontoo\Application\Patients\PatientContactCommandPort;
 use Prontoo\Application\Patients\PatientContactCommandService;
 use Prontoo\Application\Patients\PatientReadPort;
@@ -724,6 +747,306 @@ $same(
     'application.financial_consolidation.audit_hash',
 );
 
+$identityWorkflowPort = new class implements IdentityDataPort {
+    public array $calls = [];
+    public array $rowsByOperation = [];
+    public array $insertIds = [101, 202];
+    public int $atomicCalls = 0;
+    public function run(string $operation, array $parameters, array $context): IdentityDataResult
+    {
+        $this->calls[] = [$operation, $parameters, $context];
+        return new IdentityDataResult(
+            (array) ($this->rowsByOperation[$operation] ?? []),
+            1,
+        );
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        $this->atomicCalls++;
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return (int) (array_shift($this->insertIds) ?? 901);
+    }
+    public function ensure(string $contract): void
+    {
+    }
+};
+$identityWorkflowData = new IdentityDataService($identityWorkflowPort);
+$identityWorkflowPort->rowsByOperation['identity.auth04.page_signup.07'] = [
+    ['role_id' => 77],
+];
+$identityWorkflowPort->rowsByOperation['identity.auth04.page_signup.08'] = [
+    ['role_code' => 'gerente'],
+    ['role_code' => 'medico'],
+];
+$registration = [
+    'doctor_name' => 'Ana Silva',
+    'cpf' => '12345678909',
+    'birth_date' => '1980-01-02',
+    'email' => 'ana@example.test',
+    'password' => 'safe-password',
+    'legal_type' => 'cpf',
+    'legal_name' => 'Ana Silva',
+    'document' => '12345678909',
+    'display_name' => 'Clínica Ana',
+    'phone' => '65999990000',
+    'profession' => 'Médica',
+    'accent_color' => '#123456',
+    'address_line' => 'Rua A',
+    'state' => 'MT',
+    'city' => 'Cuiabá',
+    'city_ibge' => 5103403,
+    'timezone' => 'America/Cuiaba',
+    'trial_start' => 1000,
+    'trial_end' => 2000,
+    'monthly_price_cents' => 9900,
+];
+$registrationHooks = [];
+$registrationAudit = [];
+$registrationService = new ClinicRegistrationService($identityWorkflowData);
+$upsertRegistrationPerson = static function (...$arguments) use (&$registrationHooks): int {
+    $registrationHooks[] = ['upsert', $arguments];
+    return 55;
+};
+$lockRegistrationPerson = static function (int $personId) use (&$registrationHooks): void {
+    $registrationHooks[] = ['lock', $personId];
+};
+$registrationResult = $registrationService->register(
+    $registration,
+    $upsertRegistrationPerson,
+    $lockRegistrationPerson,
+    static fn(string $plain, string $hash): bool => $plain === 'safe-password',
+    static fn(string $plain): bool => strlen($plain) >= 8,
+    static fn(string $plain): string => 'hash:' . $plain,
+    static function (string $counter) use (&$registrationHooks): void {
+        $registrationHooks[] = ['counter', $counter];
+    },
+    static function (int $clinicId, bool $force) use (&$registrationHooks): void {
+        $registrationHooks[] = ['trial', $clinicId, $force];
+    },
+    static function (int $clinicId) use (&$registrationHooks): void {
+        $registrationHooks[] = ['seed_permissions', $clinicId];
+    },
+    static function (int $clinicId) use (&$registrationHooks): void {
+        $registrationHooks[] = ['seed_roles', $clinicId];
+    },
+    static function (...$arguments) use (&$registrationAudit): void {
+        $registrationAudit[] = $arguments;
+    },
+);
+$same([101, 77], $registrationResult, 'application.identity_registration.result');
+$same(
+    [
+        'identity.auth04.page_signup.01',
+        'identity.auth04.page_signup.03',
+        'identity.auth04.page_signup.04',
+        'identity.auth04.page_signup.05',
+        'identity.auth04.page_signup.06',
+        'identity.auth04.page_signup.07',
+        'identity.auth04.page_signup.08',
+        'identity.auth04.page_signup.09',
+    ],
+    array_column($identityWorkflowPort->calls, 0),
+    'application.identity_registration.sequence',
+);
+$same('consultorio_criado', $registrationAudit[0][0] ?? null, 'application.identity_registration.audit');
+$assert(
+    in_array(['trial', 202, false], $registrationHooks, true),
+    'application.identity_registration.trial_scope',
+);
+$identityWorkflowPort->rowsByOperation['identity.auth04.page_signup.01'] = [[
+    'id' => 91,
+    'active' => 0,
+    'password_hash' => 'hash',
+]];
+try {
+    $registrationService->register(
+        $registration,
+        $upsertRegistrationPerson,
+        $lockRegistrationPerson,
+        static fn(string $plain, string $hash): bool => true,
+        static fn(string $plain): bool => true,
+        static fn(string $plain): string => $plain,
+        static fn(string $counter): null => null,
+        static fn(int $clinicId, bool $force): null => null,
+        static fn(int $clinicId): null => null,
+        static fn(int $clinicId): null => null,
+        static fn(...$arguments): null => null,
+    );
+    $assert(false, 'application.identity_registration.inactive_fail_closed');
+} catch (RuntimeException) {
+    $assert(true, 'application.identity_registration.inactive_fail_closed');
+}
+$identityWorkflowPort->rowsByOperation['identity.auth04.page_signup.01'] = [];
+
+$credentialService = new UserCredentialService($identityWorkflowData);
+$credentialHooks = [];
+$credentialAudit = [];
+$credentialService->updateProfile(
+    91,
+    55,
+    'Ana Atualizada',
+    'ana2@example.test',
+    static function (...$arguments) use (&$credentialAudit): void {
+        $credentialAudit[] = $arguments;
+    },
+);
+$credentialService->changePassword(
+    91,
+    'new-password',
+    'Ana Atualizada',
+    static fn(string $plain): string => 'hash:' . $plain,
+    static function (int $userId) use (&$credentialHooks): void {
+        $credentialHooks[] = ['rotate', $userId];
+    },
+    static function (int $userId) use (&$credentialHooks): void {
+        $credentialHooks[] = ['retire', $userId];
+    },
+    static function (...$arguments) use (&$credentialAudit): void {
+        $credentialAudit[] = $arguments;
+    },
+);
+$same(
+    [['rotate', 91], ['retire', 91]],
+    $credentialHooks,
+    'application.identity_credentials.session_revocation',
+);
+$same(
+    ['usuario_proprio_atualizado', 'senha_redefinida'],
+    array_map(static fn(array $entry): string => (string) $entry[0], $credentialAudit),
+    'application.identity_credentials.audit_sequence',
+);
+
+$onboardingService = new ClinicOnboardingService($identityWorkflowData);
+$onboardingAudit = [];
+$onboardingService->complete(
+    [
+        'clinic_id' => 202,
+        'display_name' => 'Clínica Ana',
+        'phone' => '65999990000',
+        'profession' => 'Médica',
+        'clinic_icon' => 'clinic',
+        'accent_color' => '#123456',
+        'address_line' => 'Rua A',
+        'state' => 'MT',
+        'city' => 'Cuiabá',
+        'city_ibge' => 5103403,
+        'timezone' => 'America/Cuiaba',
+        'trial_start' => 1000,
+        'trial_end' => 2000,
+    ],
+    ['medico' => 1, 'gerente' => 1],
+    ['medico' => 'Médico', 'gerente' => 'Administrativo'],
+    ['gerente' => 'Gestão'],
+    ['medico' => ['read'], 'gerente' => []],
+    ['read' => [], 'edit' => []],
+    ['name' => 'Novo membro'],
+    static fn(int $clinicId, array $payload): int => 303,
+    static function (...$arguments) use (&$onboardingAudit): void {
+        $onboardingAudit[] = $arguments;
+    },
+);
+$same(
+    ['usuario_salvo', 'onboarding_concluido'],
+    array_map(static fn(array $entry): string => (string) $entry[0], $onboardingAudit),
+    'application.identity_onboarding.audit_sequence',
+);
+$assert(
+    count(array_filter(
+        array_column($identityWorkflowPort->calls, 0),
+        static fn(string $operation): bool => $operation === 'identity.auth07.page_onboarding.04',
+    )) === 4,
+    'application.identity_onboarding.permission_matrix',
+);
+
+$permissionService = new UserPermissionService($identityWorkflowData);
+$identityWorkflowPort->rowsByOperation['identity.permissions02.sync_user_roles_for_clinic.01'] = [
+    ['owner_flag' => 1],
+];
+$permissionHooks = [];
+$activePermissionRoles = $permissionService->syncRoles(
+    202,
+    91,
+    ['medico'],
+    ['medico' => 'Médico', 'gerente' => 'Administrativo'],
+    true,
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'minimum';
+    },
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'enable';
+    },
+    static fn(int $clinicId, int $userId): array => ['medico'],
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'propagate';
+    },
+);
+$same(['medico'], $activePermissionRoles, 'application.identity_permissions.roles');
+$same(['minimum', 'enable', 'propagate'], $permissionHooks, 'application.identity_permissions.sync_hooks');
+try {
+    $permissionService->syncRoles(
+        202,
+        91,
+        [],
+        ['medico' => 'Médico'],
+        false,
+        static fn(...$arguments): null => null,
+        static fn(...$arguments): null => null,
+        static fn(int $clinicId, int $userId): array => [],
+        static fn(...$arguments): null => null,
+    );
+    $assert(false, 'application.identity_permissions.invalid_roles');
+} catch (RuntimeException) {
+    $assert(true, 'application.identity_permissions.invalid_roles');
+}
+$teamAudit = [];
+$createdMember = $permissionService->createTeamMember(
+    202,
+    ['roles' => ['medico']],
+    static fn(array $payload, int $clinicId): array => ['medico'],
+    static fn(int $clinicId, array $payload): int => 304,
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'hours_create';
+    },
+    static function (...$arguments) use (&$teamAudit): void {
+        $teamAudit[] = $arguments;
+    },
+);
+$same([['medico'], 304], $createdMember, 'application.identity_permissions.create_member');
+$updatedMember = $permissionService->updateTeamMember(
+    202,
+    304,
+    55,
+    'Membro atualizado',
+    'member@example.test',
+    ['medico'],
+    ['hours' => []],
+    ['legal_type' => 'cpf'],
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'profile';
+    },
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'signature';
+    },
+    static fn(int $clinicId, int $userId, array $roles, bool $propagate): array => ['medico'],
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'hours_update';
+    },
+    static function (...$arguments) use (&$permissionHooks): void {
+        $permissionHooks[] = 'propagate_update';
+    },
+    static function (...$arguments) use (&$teamAudit): void {
+        $teamAudit[] = $arguments;
+    },
+);
+$same(['medico'], $updatedMember, 'application.identity_permissions.update_member');
+$assert(
+    in_array('propagate_update', $permissionHooks, true),
+    'application.identity_permissions.update_propagates',
+);
+
 $identityPort = new class implements IdentityDataPort {
     public array $last = [];
     public array $ensured = [];
@@ -1062,6 +1385,276 @@ $same(
     $appointmentFinancialSync,
     'application.appointment_commands.financial_sync',
 );
+
+$operationalWorkflowPort = new class implements OperationalDataPort, OperationalSchemaPort, OperationalDatabaseContextPort {
+    public array $calls = [];
+    public array $rowsByOperation = [];
+    public array $affectedByOperation = [];
+    public array $insertIds = [801, 802, 803, 804];
+    public int $atomicCalls = 0;
+    public function run(string $operation, array $parameters, array $context): OperationalDataResult
+    {
+        $this->calls[] = [$operation, $parameters, $context];
+        return new OperationalDataResult(
+            (array) ($this->rowsByOperation[$operation] ?? []),
+            (int) ($this->affectedByOperation[$operation] ?? 1),
+        );
+    }
+    public function atomically(Closure $operation): mixed
+    {
+        $this->atomicCalls++;
+        return $operation();
+    }
+    public function lastInsertId(): int
+    {
+        return (int) (array_shift($this->insertIds) ?? 901);
+    }
+    public function ensure(string $contract): void
+    {
+    }
+    public function tableExists(string $table): bool
+    {
+        return false;
+    }
+    public function columnExists(string $table, string $column): bool
+    {
+        return false;
+    }
+    public function inTransaction(): bool
+    {
+        return true;
+    }
+};
+$administrationWorkflow = new OperationalUseCaseService(
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    'administration',
+);
+$auditWriteService = new AuditWriteService($administrationWorkflow);
+$auditParameters = range(1, 19);
+$auditWriteService->write(static fn(): array => $auditParameters);
+$same(
+    $auditParameters,
+    $operationalWorkflowPort->calls[array_key_last($operationalWorkflowPort->calls)][1] ?? null,
+    'application.audit_write.parameters',
+);
+try {
+    $auditWriteService->write(static fn(): array => [1]);
+    $assert(false, 'application.audit_write.invalid_record');
+} catch (RuntimeException) {
+    $assert(true, 'application.audit_write.invalid_record');
+}
+
+$documentWorkflow = new OperationalUseCaseService(
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    'documents',
+);
+$documentService = new DocumentIssuanceService($documentWorkflow);
+$operationalWorkflowPort->rowsByOperation['operational.documents.01.document_assign_identifier.01'] = [[
+    'document_identifier' => '',
+]];
+$operationalWorkflowPort->rowsByOperation['operational.documents.01.document_assign_identifier.02'] = [[
+    'document_code_alphabet' => 'BCDFGHJKLMNPQRSTVWXYZ',
+    'document_sequence' => 0,
+]];
+$operationalWorkflowPort->rowsByOperation['operational.documents.01.document_assign_identifier.03'] = [[
+    'maximum_sequence' => 0,
+]];
+$operationalWorkflowPort->rowsByOperation['operational.documents.01.document_assign_identifier.04'] = [[
+    'identifier_exists' => 0,
+]];
+$identifier = $documentService->assignIdentifier(7, 31);
+$confirmedIdentifier = $documentService->confirmIssue(7, 31);
+$same('BBB', $identifier, 'application.document_issuance.identifier');
+$same($identifier, $confirmedIdentifier, 'application.document_issuance.confirm_identifier');
+$assert(
+    in_array(
+        'operational.documents.01.confirm_document_issue.01',
+        array_column($operationalWorkflowPort->calls, 0),
+        true,
+    ),
+    'application.document_issuance.confirm_sequence',
+);
+try {
+    $documentService->assignIdentifier(0, 31);
+    $assert(false, 'application.document_issuance.invalid_tenant');
+} catch (RuntimeException) {
+    $assert(true, 'application.document_issuance.invalid_tenant');
+}
+
+$platformWorkflow = new OperationalUseCaseService(
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    'platform',
+);
+$installationService = new InstallationAccountService($platformWorkflow);
+$installationUserId = $installationService->createInitialDeveloper(
+    'Desenvolvedor',
+    'dev@example.test',
+    'hash',
+    static fn(): int => 55,
+    static fn(): bool => true,
+);
+$same(801, $installationUserId, 'application.installation_account.user_id');
+try {
+    $installationService->createInitialDeveloper(
+        'Desenvolvedor',
+        'dev@example.test',
+        'hash',
+        static fn(): int => 55,
+        static fn(): bool => false,
+    );
+    $assert(false, 'application.installation_account.transaction_guard');
+} catch (RuntimeException) {
+    $assert(true, 'application.installation_account.transaction_guard');
+}
+
+$maestroWorkflow = new OperationalUseCaseService(
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    'maestro',
+);
+$maestroCommands = new MaestroCommandService($maestroWorkflow);
+$maestroCommands->grantRuntimeAccess();
+$maestroCommands->updateStats('rule:1', 125.0, 3, 81.5);
+$maestroCommands->updateStats('rule:2', 0.0, 0, 20.0, true);
+$maestroActions = [];
+$maestroCommands->createClaimedAction(
+    ['id' => 9],
+    ['source_entity' => 'patient', 'source_entity_id' => '31'],
+    7,
+    'patient',
+    '31',
+    'create_task:9',
+    static function (array $rule, array $match) use (&$maestroActions): array {
+        $maestroActions[] = 'claimed';
+        return ['entity' => 'tarefa', 'id' => 501];
+    },
+);
+$maestroCommands->createSupervisedAction(
+    7,
+    ['id' => 10],
+    ['source_entity' => 'lead', 'source_entity_id' => '41'],
+    10,
+    'create_notice:10',
+    static function (int $clinicId, array $rule, array $match) use (&$maestroActions): array {
+        $maestroActions[] = 'supervised';
+        return ['entity' => 'aviso', 'id' => 502];
+    },
+);
+$same(['claimed', 'supervised'], $maestroActions, 'application.maestro_commands.actions');
+$assert(
+    in_array(
+        'operational.maestro.04.maestro_stats_update.05',
+        array_column($operationalWorkflowPort->calls, 0),
+        true,
+    ),
+    'application.maestro_commands.stats_insert',
+);
+$assert(
+    in_array(
+        'operational.maestro.05.maestro_supervised_run_rule.02',
+        array_column($operationalWorkflowPort->calls, 0),
+        true,
+    ),
+    'application.maestro_commands.supervised_sequence',
+);
+
+$subscriptionService = new SubscriptionClaimService($administrationWorkflow);
+$subscriptionAudits = [];
+$blockedMessage = $subscriptionService->register(
+    true,
+    7,
+    91,
+    9900,
+    false,
+    'Titular',
+    'proof.pdf',
+    '2026-09-11',
+    '2026-08-18',
+    static function (...$arguments) use (&$subscriptionAudits): void {
+        $subscriptionAudits[] = $arguments;
+    },
+);
+$trustedMessage = $subscriptionService->register(
+    false,
+    7,
+    91,
+    9900,
+    true,
+    '',
+    null,
+    '2026-09-11',
+    '2026-08-18',
+    static function (...$arguments) use (&$subscriptionAudits): void {
+        $subscriptionAudits[] = $arguments;
+    },
+);
+$same(
+    ['assinatura_comprovante_enviado', 'assinatura_pagamento_informado'],
+    array_map(static fn(array $entry): string => (string) $entry[0], $subscriptionAudits),
+    'application.subscription_claim.audit_branches',
+);
+$assert($blockedMessage !== $trustedMessage, 'application.subscription_claim.deterministic_branches');
+
+$tasksWorkflow = new OperationalUseCaseService(
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    $operationalWorkflowPort,
+    'tasks',
+);
+$taskCommands = new TaskCommandService($tasksWorkflow);
+$taskEvents = [];
+$taskOutcome = $taskCommands->createWorkflowTask(
+    7,
+    'Retornar paciente',
+    'user',
+    null,
+    91,
+    91,
+    '2026-08-12 09:00:00',
+    'Confirmar retorno',
+    31,
+    71,
+    'appointment_finished',
+    'appointment',
+    '71',
+    11,
+    static function (...$arguments) use (&$taskEvents): void {
+        $taskEvents[] = $arguments;
+    },
+);
+$same(['task_id' => 804, 'created' => true], $taskOutcome, 'application.task_commands.created');
+$same('criada', $taskEvents[0][2] ?? null, 'application.task_commands.event');
+$operationalWorkflowPort->rowsByOperation['operational.tasks_notices.02.create_workflow_task.02'] = [[
+    'id' => 804,
+]];
+$existingTask = $taskCommands->createWorkflowTask(
+    7,
+    'Retornar paciente',
+    'user',
+    null,
+    91,
+    91,
+    null,
+    '',
+    31,
+    71,
+    'appointment_finished',
+    'appointment',
+    '71',
+    11,
+    static function (...$arguments) use (&$taskEvents): void {
+        $taskEvents[] = $arguments;
+    },
+);
+$same(['task_id' => 804, 'created' => false], $existingTask, 'application.task_commands.idempotent');
+$same(1, count($taskEvents), 'application.task_commands.no_duplicate_event');
 
 $incidentPort = new class implements SecurityIncidentPort {
     public array $records = [];

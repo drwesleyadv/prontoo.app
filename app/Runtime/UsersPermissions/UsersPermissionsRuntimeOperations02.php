@@ -64,49 +64,38 @@ final class UsersPermissionsRuntimeOperations02
     ): array 
     {
     
-        if ($cid <= 0 || $uid <= 0) {
-            throw new RuntimeException("Colaborador ou consultório não informado.");
-        }
         $manageable = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::manageable_team_roles($cid);
-        $roles = array_values(
-            array_intersect(
-                array_keys($manageable),
-                array_values(array_unique(array_map("strval", $roles))),
-            ),
-        );
-        if (count($roles) < 1 || count($roles) > count($manageable)) {
-            throw new RuntimeException(
-                "Escolha de 1 a " .
-                    count($manageable) .
-                    " cargos para o colaborador.",
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::userPermission()
+            ->syncRoles(
+                $cid,
+                $uid,
+                $roles,
+                $manageable,
+                $propagate,
+                static fn(int $clinicId, int $userId, array $selected): mixed =>
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_minimum_roles_after_change(
+                        $clinicId,
+                        $userId,
+                        $selected,
+                    ),
+                static fn(int $clinicId, array $selected, string $reason): mixed =>
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_enable_roles_for_assignment(
+                        $clinicId,
+                        $selected,
+                        $reason,
+                    ),
+                static fn(int $clinicId, int $userId): array =>
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::active_role_codes_for_user_in_clinic(
+                        $clinicId,
+                        $userId,
+                    ),
+                static fn(int $clinicId, int $userId, string $reason): mixed =>
+                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions(
+                        $clinicId,
+                        $userId,
+                        $reason,
+                    ),
             );
-        }
-        \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_assert_minimum_roles_after_change($cid, $uid, $roles);
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(function () use ($cid, $uid, $roles): void {
-            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations01::clinic_enable_roles_for_assignment($cid, $roles, "roles_sync");
-            $ownerFlag = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.permissions02.sync_user_roles_for_clinic.01', [$uid, $cid], []) ?: 0);
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result(
-                'identity.permissions02.sync_user_roles_for_clinic.02',
-                array_merge([$uid, $cid], $roles),
-                ['role_count' => count($roles)],
-            );
-            foreach ($roles as $role) {
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.sync_user_roles_for_clinic.03', [$uid, $cid, $role, $ownerFlag], []);
-            }
-            $actualRoles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::active_role_codes_for_user_in_clinic($cid, $uid);
-            $expectedRoles = $roles;
-            sort($actualRoles);
-            sort($expectedRoles);
-            if ($actualRoles !== $expectedRoles) {
-                throw new RuntimeException(
-                    "Não foi possível aplicar todos os cargos selecionados ao colaborador.",
-                );
-            }
-        });
-        if ($propagate) {
-            \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
-        }
-        return \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::active_role_codes_for_user_in_clinic($cid, $uid);
     
     }
 

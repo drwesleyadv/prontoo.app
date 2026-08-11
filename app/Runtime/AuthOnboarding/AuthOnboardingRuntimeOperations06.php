@@ -95,17 +95,17 @@ final class AuthOnboardingRuntimeOperations06
                             );
                         }
                     }
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                        function () use ($name, $personId, $email, $uid): void {
-                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.03', [$name, $personId], []);
-                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.04', [$name, $email !== "" ? $email : null, $uid], []);
-                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_proprio_atualizado", "usuario", $uid, [
-                                "target_name" => $name,
-                                "audit_body" =>
-                                    "O próprio usuário atualizou nome e e-mail cadastrais. CPF e nascimento permanecem imutáveis.",
-                            ]);
-                        },
-                    );
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::userCredential()
+                        ->updateProfile(
+                            $uid,
+                            $personId,
+                            $name,
+                            $email,
+                            static fn(...$arguments): bool =>
+                                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                    ...$arguments,
+                                ),
+                        );
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Dados do usuário atualizados.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
                 }
@@ -434,18 +434,22 @@ final class AuthOnboardingRuntimeOperations06
                             "A nova senha precisa ser diferente da senha atual.",
                         );
                     }
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                        function () use ($new, $uid, $u): void {
-                            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.05', [\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($new), $uid], []);
-                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
-                            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
-                            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("senha_redefinida", "usuario", $uid, [
-                                "target_name" => (string) ($u["name"] ?? ""),
-                                "audit_body" =>
-                                    "O próprio usuário alterou a senha; todas as sessões anteriores foram revogadas.",
-                            ]);
-                        },
-                    );
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::userCredential()
+                        ->changePassword(
+                            $uid,
+                            $new,
+                            (string) ($u["name"] ?? ""),
+                            static fn(string $plain): string =>
+                                \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($plain),
+                            static fn(int $userId): int =>
+                                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($userId),
+                            static fn(int $userId): mixed =>
+                                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($userId),
+                            static fn(...$arguments): bool =>
+                                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                    ...$arguments,
+                                ),
+                        );
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
                     header(
                         "Location: " . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login", ["relogin" => "1"]),

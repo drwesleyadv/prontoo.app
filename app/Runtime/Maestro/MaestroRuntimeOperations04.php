@@ -148,38 +148,8 @@ final class MaestroRuntimeOperations04
     ): void 
     {
     
-        \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(function () use (
-            $key,
-            $duration,
-            $created,
-            $score,
-            $skipped,
-        ): void {
-    
-            $old = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->row('operational.maestro.04.maestro_stats_update.01', [$key], []);
-            if ($skipped) {
-                if ($old) {
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.04.maestro_stats_update.02', [$score, $key], []);
-                } else {
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.04.maestro_stats_update.03', [$key, $score], []);
-                }
-                return;
-            }
-            $hasObservation = $old && (int) ($old["run_count"] ?? 0) > 0;
-            $dur = (float) \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_ewma_observation(
-                $hasObservation ? (float) $old["ewma_duration_ms"] : null,
-                max(0.0, $duration),
-            );
-            $yield = (float) \Prontoo\Domain\Maestro\MaestroDomainOperations02::maestro_ewma_observation(
-                $hasObservation ? (float) $old["ewma_yield"] : null,
-                max(0, $created),
-            );
-            if ($old) {
-                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.04.maestro_stats_update.04', [$dur, $yield, $score, $key], []);
-            } else {
-                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.04.maestro_stats_update.05', [$key, $dur, $yield, $score], []);
-            }
-        });
+        \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+            ->updateStats($key, $duration, $created, $score, $skipped);
     
     }
 
@@ -243,25 +213,20 @@ final class MaestroRuntimeOperations04
                 continue;
             }
             try {
-                \Prontoo\Runtime\Operational\OperationalComposition::maestro()->atomic(function () use (
-                    $rule,
-                    $m,
-                    $cid,
-                    $source,
-                    $sourceId,
-                    $actionKey,
-                ): void {
-                    $res = \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action($rule, $m);
-                    \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.04.maestro_run_rule_scoped.03', [
-                        $res["entity"] ?? null,
-                        $res["id"] ?? null,
-                        (int) $rule["id"],
+                \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+                    ->createClaimedAction(
+                        $rule,
+                        $m,
+                        $cid,
                         $source,
                         $sourceId,
                         $actionKey,
-                        $cid,
-                    ], []);
-                });
+                        static fn(array $currentRule, array $match): array =>
+                            \Prontoo\Runtime\Maestro\MaestroRuntimeOperations04::maestro_create_action(
+                                $currentRule,
+                                $match,
+                            ),
+                    );
                 $created++;
             } catch (Throwable $e) {
                 $errors++;

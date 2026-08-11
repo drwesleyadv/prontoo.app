@@ -60,47 +60,65 @@ final class UsersPermissionsRuntimeOperations05
                     if ($name === "") {
                         throw new RuntimeException("Revise nome e cargos.");
                     }
-                    $activeRoles = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->atomic(
-                        function () use ($name, $person, $email, $uid, $cid, $roles): array {
-                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.03', [$name, (int) $person["person_id"]], []);
-                        if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'person_common_profile_update'])) {
-                            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_update(
-                                (int) $person["person_id"],
-                                array_merge(
-                                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_from_array($_POST, ""),
-                                    [
-                                        "legal_type" => "cpf",
-                                        "legal_document" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits(
-                                            (string) ($person["cpf"] ?? ""),
-                                        ),
-                                        "email" => $email !== "" ? $email : null,
-                                    ],
+                    $commonProfile = [];
+                    if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'person_common_profile_update'])) {
+                        $commonProfile = array_merge(
+                            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_from_array($_POST, ""),
+                            [
+                                "legal_type" => "cpf",
+                                "legal_document" => \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::only_digits(
+                                    (string) ($person["cpf"] ?? ""),
                                 ),
-                            );
-                        }
-                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified(
-                            (int) $person["person_id"],
+                                "email" => $email !== "" ? $email : null,
+                            ],
                         );
-                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions05.page_user.04', [$name, $email, $uid], []);
-                        $activeRoles = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::sync_user_roles_for_clinic(
+                    }
+                    $activeRoles = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::userPermission()
+                        ->updateTeamMember(
                             $cid,
                             $uid,
+                            (int) $person["person_id"],
+                            $name,
+                            $email,
                             $roles,
-                            false,
+                            $_POST,
+                            $commonProfile,
+                            static function (int $personId, array $profile): void {
+                                if (is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'person_common_profile_update'])) {
+                                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_common_profile_update(
+                                        $personId,
+                                        $profile,
+                                    );
+                                }
+                            },
+                            static fn(int $personId): mixed =>
+                                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::person_signature_refresh_verified(
+                                    $personId,
+                                ),
+                            static fn(int $clinicId, int $userId, array $selected, bool $propagate): array =>
+                                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::sync_user_roles_for_clinic(
+                                    $clinicId,
+                                    $userId,
+                                    $selected,
+                                    $propagate,
+                                ),
+                            static fn(int $clinicId, int $userId, array $payload): mixed =>
+                                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::save_user_work_hours(
+                                    $clinicId,
+                                    $userId,
+                                    $payload,
+                                ),
+                            static fn(int $clinicId, int $userId, string $reason): mixed =>
+                                \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions(
+                                    $clinicId,
+                                    $userId,
+                                    $reason,
+                                ),
+                            static fn(...$arguments): bool =>
+                                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                                    ...$arguments,
+                                ),
                         );
-                        if (in_array("medico", $roles, true)) {
-                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::save_user_work_hours($cid, $uid, $_POST);
-                        }
-                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("usuario_salvo", "usuario", $uid, [
-                            "perfil" => implode(",", $activeRoles),
-                            "clinic_id" => $cid,
-                            "audit_body" =>
-                                "Cadastro e cargos do colaborador atualizados em uma única transação.",
-                        ]);
-                            return $activeRoles;
-                        },
-                    );
-                    \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::propagate_user_role_permissions($cid, $uid, "roles_sync");
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Colaborador atualizado e permissões aplicadas.");
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("user", ["id" => $uid]);
                 }
