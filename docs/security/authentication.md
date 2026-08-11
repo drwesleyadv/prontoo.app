@@ -35,7 +35,8 @@ O terceiro estado falha fechado. Desenvolvedor deve manter MFA ativo. Usuários 
 - cookies seguros e apropriados;
 - inatividade máxima de 60 minutos;
 - geração canônica vinculada ao usuário;
-- logout rotaciona a geração do usuário e invalida contextos incompatíveis no próximo uso;
+- logout global segue `logout_global_session_revocation_v1`: a rotação da geração canônica é tentada até três vezes;
+- logout sempre destrói a sessão local; se a revogação global não puder ser confirmada, a resposta é `503` e não declara sucesso silencioso;
 - alteração de segurança revoga sessões incompatíveis.
 
 ## Recuperação

@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.11.2 — Manutenção arquitetural e hardening de sessão
+
+- formaliza `1.8.11.1` como baseline arquitetural consolidada e adota modo de manutenção incremental.
+- institui `refactor-on-touch` executável para hotspots Runtime acima de 500 linhas.
+- extrai o logout para coordinator dedicado com até três tentativas de revogação global.
+- torna explícita a degradação do logout com sessão local destruída e resposta HTTP 503 quando a revogação global não é confirmada.
+- adiciona smoke HTTP real para CSRF, rotação de sessão, revogação multissessão e falha de escrita da geração canônica.
+- preserva schema, banco e interface e mantém as invariantes arquiteturais de risco em zero.
+
 ## 1.8.11.1 — Engenharia arquitetural 16–21 e consolidação
 
 - institui análise tokenizada e baseline monotônica para a fronteira Runtime.
