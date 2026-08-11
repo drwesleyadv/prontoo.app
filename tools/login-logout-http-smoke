@@ -6,30 +6,33 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/prontoo-login-logout.XXXXXX")"
 PORT="$((18800 + RANDOM % 600))"
 CONFIG="$TMP/config.php"
 SERVER_LOG="$TMP/server.log"
-AUDIT_SPOOL="$ROOT/ssd/cache/maestro-audit"
+AUDIT_DIRS=("$ROOT/ssd/maestro-deferred" "$ROOT/ssd/logs/maestro-deferred-emergency")
 AUDIT_BEFORE="$TMP/audit-before.txt"
 SERVER_PID=""
 STEP="bootstrap"
 
-if [[ -d "$AUDIT_SPOOL" ]]; then
-  find "$AUDIT_SPOOL" -maxdepth 1 -type f -name 'audit-*.json' -printf '%f\n' | sort >"$AUDIT_BEFORE"
-else
-  : >"$AUDIT_BEFORE"
-fi
+: >"$AUDIT_BEFORE"
+for audit_dir in "${AUDIT_DIRS[@]}"; do
+  if [[ -d "$audit_dir" ]]; then
+    find "$audit_dir" -type f -print
+  fi
+done | sort -u >"$AUDIT_BEFORE"
 
 cleanup() {
   if [[ -n "$SERVER_PID" ]]; then
     kill "$SERVER_PID" >/dev/null 2>&1 || true
     wait "$SERVER_PID" >/dev/null 2>&1 || true
   fi
-  if [[ -d "$AUDIT_SPOOL" ]]; then
-    while IFS= read -r file; do
-      base="$(basename "$file")"
-      if ! grep -Fxq "$base" "$AUDIT_BEFORE"; then
-        rm -f -- "$file"
-      fi
-    done < <(find "$AUDIT_SPOOL" -maxdepth 1 -type f -name 'audit-*.json' -print)
-  fi
+  for audit_dir in "${AUDIT_DIRS[@]}"; do
+    if [[ -d "$audit_dir" ]]; then
+      while IFS= read -r file; do
+        if ! grep -Fxq "$file" "$AUDIT_BEFORE"; then
+          rm -f -- "$file"
+        fi
+      done < <(find "$audit_dir" -type f -print)
+      find "$audit_dir" -depth -type d -empty -delete 2>/dev/null || true
+    fi
+  done
   if [[ -f "$CONFIG" ]]; then
     PRONTOO_CONFIG_PATH="$CONFIG" php <<'PHP' >/dev/null 2>&1 || true
 <?php
