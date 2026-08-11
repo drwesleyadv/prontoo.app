@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - diagnostic/corrective-04-ci
+  pull_request:
 
 permissions:
   contents: read
