@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import hashlib
+import json
+import re
+from pathlib import Path
+import tinycss2
+
+ROOT = Path(__file__).resolve().parents[1]
+STYLE_ROOT = ROOT / 'app/Presentation/Styles'
+MANIFEST_PATH = STYLE_ROOT / 'styles.manifest.json'
+ARTIFACT_PATH = ROOT / 'public/assets/presentation.css'
+VISUAL_PATH = ROOT / 'app/presentation.visual-contract.json'
+VERSION_PATH = ROOT / 'version.json'
+CHECKER_PATH = ROOT / 'tools/presentation-visual-contract-check'
+PATTERN = re.compile(r'^(body\[data-route="[^"]+"\])\s+(\.[A-Za-z_][A-Za-z0-9_-]*)$')
+RULE_LIST_AT = {'media', 'supports', 'container', 'layer', 'scope', 'starting-style'}
+
+
+def fail(message: str) -> None:
+    raise SystemExit(f'presentation-route-scope-factorize: {message}')
+
+
+def split_selector_parts(tokens):
+    parts=[]; current=[]
+    for token in tokens:
+        if token.type == 'literal' and getattr(token, 'value', None) == ',':
+            parts.append(current); current=[]
+        else:
+            current.append(token)
+    parts.append(current)
+    return parts
+
+
+def factor_prelude(tokens):
+    parts = split_selector_parts(tokens)
+    texts = [tinycss2.serialize(part).strip() for part in parts]
+    groups = {}
+    for index, text in enumerate(texts):
+        match = PATTERN.match(text)
+        if match:
+            groups.setdefault(match.group(1), []).append((index, match.group(2)))
+    eligible = {prefix: members for prefix, members in groups.items() if len(members) >= 2}
+    if not eligible:
+        return None
+    replacement_at = {}
+    skip = set()
+    reduction = 0
+    for prefix, members in eligible.items():
+        first = members[0][0]
+        classes = [member[1] for member in members]
+        replacement_at[first] = f'{prefix} :is({",".join(classes)})'
+        for index, _ in members[1:]:
+            skip.add(index)
+        reduction += len(members) - 1
+    output = []
+    for index, text in enumerate(texts):
+        if index in skip:
+            continue
+        output.append(replacement_at.get(index, text))
+    return ',\n'.join(output), reduction, len(eligible)
+
+
+def collect_replacements(rules, replacements, stats):
+    for rule in rules:
+        if rule.type == 'qualified-rule':
+            factored = factor_prelude(rule.prelude)
+            if factored is None:
+                continue
+            new_prelude, reduction, groups = factored
+            old_prelude = tinycss2.serialize(rule.prelude)
+            existing = replacements.get(old_prelude)
+            if existing is not None and existing['new'] != new_prelude:
+                fail('same selector prelude produced different factorization')
+            if existing is None:
+                replacements[old_prelude] = {'new': new_prelude, 'expected_occurrences': 0}
+            replacements[old_prelude]['expected_occurrences'] += 1
+            stats['candidate_groups'] += groups
+            stats['route_scope_reduction'] += reduction
+        elif rule.type == 'at-rule' and rule.content is not None and str(rule.lower_at_keyword) in RULE_LIST_AT:
+            inner = tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+            collect_replacements(inner, replacements, stats)
+
+
+def remaining_factorable_groups(css: str) -> int:
+    rules = tinycss2.parse_stylesheet(css, skip_whitespace=False, skip_comments=False)
+    replacements = {}
+    stats = {'candidate_groups': 0, 'route_scope_reduction': 0}
+    collect_replacements(rules, replacements, stats)
+    return stats['candidate_groups']
+
+
+def duplicate_selector_headers(css: str) -> int:
+    selectors = {}
+    for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+        selector = re.sub(r'\s+', ' ', match.group(1).strip())
+        if selector and not selector.startswith('@'):
+            selectors[selector] = selectors.get(selector, 0) + 1
+    return sum(1 for count in selectors.values() if count > 1)
+
+
+def metrics(css: str) -> dict[str, int]:
+    return {
+        'css_lines': css.count('\n') + 1,
+        'css_nonblank_lines': sum(1 for line in css.splitlines() if line.strip()),
+        'css_bytes': len(css.encode()),
+        'important_count': css.count('!important'),
+        'route_scope_count': css.count('body[data-route='),
+        'duplicate_selector_headers': duplicate_selector_headers(css),
+        'duplicate_selector_list_entries': 0,
+        'factorable_route_scope_groups': remaining_factorable_groups(css),
+    }
+
+
+def patch_checker() -> None:
+    source = CHECKER_PATH.read_text(encoding='utf-8')
+    if 'factorable_route_scope_groups' in source:
+        return
+    anchor = '$duplicateSelectorListEntries = 0;'
+    if source.count(anchor) != 1:
+        fail('checker duplicate selector metric anchor missing')
+    source = source.replace(anchor, anchor + '\n$factorableRouteScopeGroups = 0;', 1)
+    loop_anchor = '''        if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
+            $seenSelectorParts = [];
+            foreach ($splitSelectorList($selector) as $selectorPart) {
+                $normalizedPart = preg_replace('/\\s+/', ' ', trim($selectorPart));
+                if (!is_string($normalizedPart) || $normalizedPart === '') {
+                    continue;
+                }
+                if (isset($seenSelectorParts[$normalizedPart])) {
+                    $duplicateSelectorListEntries++;
+                } else {
+                    $seenSelectorParts[$normalizedPart] = true;
+                }
+            }
+        }'''
+    addition = loop_anchor + '''
+        if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
+            $routeGroups = [];
+            foreach ($splitSelectorList($selector) as $selectorPart) {
+                $normalizedPart = preg_replace('/\\s+/', ' ', trim($selectorPart));
+                if (is_string($normalizedPart) && preg_match('/^(body\\[data-route="[^"]+"\\])\\s+(\\.[A-Za-z_][A-Za-z0-9_-]*)$/', $normalizedPart, $routeMatch)) {
+                    $routeGroups[(string) $routeMatch[1]] = (int) ($routeGroups[(string) $routeMatch[1]] ?? 0) + 1;
+                }
+            }
+            foreach ($routeGroups as $routeGroupCount) {
+                if ($routeGroupCount >= 2) {
+                    $factorableRouteScopeGroups++;
+                }
+            }
+        }'''
+    if source.count(loop_anchor) != 1:
+        fail('checker selector-list loop anchor missing')
+    source = source.replace(loop_anchor, addition, 1)
+    metric_anchor = "    'duplicate_selector_list_entries' => $duplicateSelectorListEntries,"
+    if source.count(metric_anchor) != 1:
+        fail('checker duplicate selector metric output anchor missing')
+    source = source.replace(metric_anchor, metric_anchor + "\n    'factorable_route_scope_groups' => $factorableRouteScopeGroups,", 1)
+    CHECKER_PATH.write_text(source, encoding='utf-8')
+
+
+def rebuild_sources_and_sequence(manifest, transformed_css, replacements):
+    sources = manifest['sources']; sequence = manifest['sequence']
+    source_data = {item['path']: (STYLE_ROOT / item['path']).read_bytes() for item in sources}
+    next_offset = {path: 0 for path in source_data}
+    segments=[]
+    replacement_counts={old:0 for old in replacements}
+    for item in sequence:
+        path=item['source']; offset=int(item['offset']); size=int(item['bytes'])
+        if offset != next_offset[path]: fail('non-contiguous source sequence')
+        raw=source_data[path][offset:offset+size]
+        if len(raw)!=size or hashlib.sha256(raw).hexdigest()!=item['sha256']: fail('slice drift before factorization')
+        text=raw.decode('utf-8')
+        for old, spec in replacements.items():
+            count=text.count(old)
+            if count:
+                text=text.replace(old, spec['new'])
+                replacement_counts[old]+=count
+        segments.append((path,text))
+        next_offset[path]+=size
+    for old,spec in replacements.items():
+        if replacement_counts[old] != spec['expected_occurrences']:
+            fail(f'replacement occurrence drift expected={spec["expected_occurrences"]} actual={replacement_counts[old]}')
+    owners={path:bytearray() for path in source_data}; new_sequence=[]; artifact_parts=[]
+    for order,(path,text) in enumerate(segments,1):
+        raw=text.encode(); offset=len(owners[path]); owners[path].extend(raw)
+        new_sequence.append({'order':order,'source':path,'offset':offset,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'important_count':text.count('!important'),'route_scope_count':text.count('body[data-route=')})
+        artifact_parts.append(text)
+    rebuilt=''.join(artifact_parts)
+    if rebuilt != transformed_css: fail('slice transform differs from direct artifact transform')
+    meta={item['path']:item for item in sources}; new_sources=[]
+    for item in sources:
+        path=item['path']; raw=bytes(owners[path]); text=raw.decode(); (STYLE_ROOT/path).write_bytes(raw)
+        new_sources.append({'path':path,'layer':meta[path]['layer'],'responsibility':meta[path]['responsibility'],'concern':meta[path]['concern'],'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'important_count':text.count('!important'),'route_scope_count':text.count('body[data-route=')})
+    return new_sources,new_sequence
+
+
+def main() -> None:
+    css=ARTIFACT_PATH.read_text(encoding='utf-8')
+    rules=tinycss2.parse_stylesheet(css, skip_whitespace=False, skip_comments=False)
+    replacements={}; stats={'candidate_groups':0,'route_scope_reduction':0}
+    collect_replacements(rules,replacements,stats)
+    if stats != {'candidate_groups':42,'route_scope_reduction':64}:
+        fail(f'audit drift {stats}')
+    transformed=css
+    for old,spec in replacements.items():
+        direct_count=transformed.count(old)
+        if direct_count != spec['expected_occurrences']:
+            fail(f'raw prelude occurrence mismatch expected={spec["expected_occurrences"]} actual={direct_count}')
+        transformed=transformed.replace(old,spec['new'])
+    if css.count('body[data-route=') - transformed.count('body[data-route=') != 64:
+        fail('route scope reduction is not exactly 64')
+    if remaining_factorable_groups(transformed) != 0:
+        fail('factorable route-scope group remains')
+
+    manifest=json.loads(MANIFEST_PATH.read_text(encoding='utf-8'))
+    if manifest.get('schema_version') != 5: fail('v5 manifest required')
+    new_sources,new_sequence=rebuild_sources_and_sequence(manifest,transformed,replacements)
+    ARTIFACT_PATH.write_text(transformed,encoding='utf-8',newline='')
+    before=metrics(css); after=metrics(transformed)
+    before['factorable_route_scope_groups']=42
+    after['factorable_route_scope_groups']=0
+    current_sha=hashlib.sha256(transformed.encode()).hexdigest()
+    manifest['artifact_contract']={'sha256':current_sha,'bytes':after['css_bytes'],'lines':after['css_lines'],'deterministic_source_required':True}
+    manifest['visual_debt_budget']['important_count_max']=after['important_count']
+    manifest['visual_debt_budget']['route_scope_count_max']=after['route_scope_count']
+    manifest['visual_debt_budget']['duplicate_selector_headers_max']=after['duplicate_selector_headers']
+    manifest['visual_debt_budget']['duplicate_selector_list_entries_max']=0
+    manifest['visual_debt_budget']['factorable_route_scope_groups_max']=0
+    manifest['sources']=new_sources; manifest['sequence']=new_sequence; manifest['sequence_segment_count']=len(new_sequence)
+    MANIFEST_PATH.write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+
+    visual=json.loads(VISUAL_PATH.read_text(encoding='utf-8'))
+    previous=dict(visual['metrics']['after']); previous['factorable_route_scope_groups']=42
+    final=dict(previous); final.update(after)
+    visual['version']='1.8.12.10'
+    visual['reference']['previous_release']='1.8.12.9'
+    visual['reference']['previous_visual_reference']='surgical_selector_list_deduplication'
+    visual['reference']['visual_reference']='route_scope_factorization_v1'
+    visual['reference']['functional_equivalence']='route_guard_and_specificity_preserved_plus_computed_style_geometry_baseline_stable'
+    visual['metrics']['before']=previous; visual['metrics']['after']=final
+    visual['metrics']['delta']={key:final[key]-previous[key] for key in final if isinstance(final.get(key),int) and isinstance(previous.get(key),int)}
+    visual['debt_budget']['important_count']=after['important_count']; visual['debt_budget']['route_scope_count']=after['route_scope_count']; visual['debt_budget']['duplicate_selector_headers']=after['duplicate_selector_headers']; visual['debt_budget']['duplicate_selector_list_entries']=0; visual['debt_budget']['factorable_route_scope_groups']=0
+    visual['delivery']['current_sha256']=current_sha; visual['delivery']['current_bytes']=after['css_bytes']; visual['delivery']['byte_identical_to_migration_reference']=False
+    VISUAL_PATH.write_text(json.dumps(visual,indent=4,ensure_ascii=False)+'\n',encoding='utf-8')
+
+    version=json.loads(VERSION_PATH.read_text(encoding='utf-8'))
+    version['version']='1.8.12.10'; version['release']='1.8.12.10'; version['build']='1.8.12.10-presentation-route-scope-factorization'; version['previous_version']='1.8.12.9'; version['database_changes']=False; version['schema_changes']=False; version['logic_changes']=True; version['visual_changes']=False; version['functional_equivalence_policy']='route_scope_factorization_preserves_guard_specificity_and_pinned_computed_style_geometry_baseline'; version['notes']='42 listas de seletores fatoram o mesmo guard de rota com :is(), removendo 64 scopes repetidos sem ampliar alcance ou especificidade.'
+    VERSION_PATH.write_text(json.dumps(version,indent=4,ensure_ascii=False)+'\n',encoding='utf-8')
+    patch_checker()
+    print(json.dumps({'ok':True,'factorized_groups':42,'route_scope_reduction':64,'before':before,'after':after,'byte_delta':after['css_bytes']-before['css_bytes'],'sha256':current_sha},indent=2,ensure_ascii=False))
+
+if __name__=='__main__': main()
