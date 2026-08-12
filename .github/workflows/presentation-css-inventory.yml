@@ -55,6 +55,7 @@ jobs:
           php tools/presentation-css-build --check
           php tools/presentation-visual-contract-check
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/quality-gate --fast
           git add -A
