@@ -1,0 +1,528 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+from pathlib import Path
+from zoneinfo import ZoneInfo
+import datetime as dt
+import hashlib
+import json
+import re
+import shutil
+
+ROOT = Path(__file__).resolve().parents[1]
+OLD = ROOT / "public/assets/design-system.css"
+NEW = ROOT / "public/assets/presentation.css"
+STYLES = ROOT / "app/Presentation/Styles"
+OLD_SHA = "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561"
+OLD_BYTES = 810078
+OLD_LINES = 15184
+OLD_IMPORTANT = 5083
+OLD_ROUTE_SCOPES = 1171
+
+
+def fail(message: str) -> None:
+    raise SystemExit(message)
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def replace_exact(path: Path, old: str, new: str, minimum: int = 1) -> None:
+    source = path.read_text(encoding="utf-8")
+    count = source.count(old)
+    if count < minimum:
+        fail(f"expected replacement missing: {path} {old}")
+    path.write_text(source.replace(old, new), encoding="utf-8")
+
+
+def split_units(source: str) -> list[str]:
+    boundaries: list[int] = []
+    depth = 0
+    in_string: str | None = None
+    in_comment = False
+    escaped = False
+    i = 0
+    length = len(source)
+    while i < length:
+        ch = source[i]
+        nxt = source[i + 1] if i + 1 < length else ""
+        if in_comment:
+            if ch == "*" and nxt == "/":
+                in_comment = False
+                i += 2
+                continue
+            i += 1
+            continue
+        if in_string is not None:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == in_string:
+                in_string = None
+            i += 1
+            continue
+        if ch == "/" and nxt == "*":
+            in_comment = True
+            i += 2
+            continue
+        if ch in ("'", '"'):
+            in_string = ch
+            i += 1
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth < 0:
+                fail("unbalanced CSS closing brace")
+            if depth == 0:
+                boundaries.append(i + 1)
+        elif ch == ";" and depth == 0:
+            boundaries.append(i + 1)
+        i += 1
+    if depth != 0 or in_comment or in_string is not None:
+        fail("unbalanced CSS source")
+    units: list[str] = []
+    start = 0
+    for end in boundaries:
+        if end > start:
+            units.append(source[start:end])
+            start = end
+    if start < len(source):
+        if units:
+            units[-1] += source[start:]
+        else:
+            units.append(source[start:])
+    if "".join(units) != source:
+        fail("CSS unit split changed source")
+    return units
+
+
+def concerns(chunk: str) -> list[str]:
+    lower = chunk.lower()
+    found: list[str] = []
+    if "--md-" in lower or "--pt-" in lower or "--clinic-" in lower:
+        found.append("tokens")
+    if "body[data-route=" in lower or "[data-route=" in lower:
+        found.append("routes")
+    if any(token in lower for token in ("is-read-only", "is-disabled", ":disabled", "[disabled]", "aria-disabled", "--danger", ".danger", ".warning")):
+        found.append("states")
+    if any(token in lower for token in ("pagehead", "modal", "dialog", "card", "chip", "button", "toolbar", "sidebar", "table", "field", "toast", "drawer", "tabs", "kpi", "search")):
+        found.append("components")
+    if any(token in lower for token in ("display:grid", "display:flex", "grid-template", ".stack", ".cluster", ".layout", ".columns")):
+        found.append("patterns")
+    if any(token in lower for token in ("material-symbols", "spinner", "skeleton", ".icon", ".badge")):
+        found.append("primitives")
+    if any(token in lower for token in ("sr-only", "visually-hidden", ".hidden", ".nowrap", ".u-")):
+        found.append("utilities")
+    if any(token in lower for token in ("html{", "body{", "*{", "@import", "@font-face")):
+        found.append("foundation")
+    if not found:
+        found.append("components")
+    order = ["tokens", "foundation", "primitives", "components", "patterns", "routes", "utilities", "states"]
+    return [name for name in order if name in found]
+
+
+def primary_layer(chunk: str, index: int) -> tuple[str, list[str]]:
+    detected = concerns(chunk)
+    route_count = chunk.count("body[data-route=") + chunk.count("[data-route=")
+    if index == 1 and "tokens" in detected:
+        return "tokens", detected
+    if route_count >= 3:
+        return "routes", detected
+    if "states" in detected and "routes" not in detected:
+        return "states", detected
+    if "foundation" in detected and index <= 2:
+        return "foundation", detected
+    if "patterns" in detected and "components" not in detected:
+        return "patterns", detected
+    if "primitives" in detected and "components" not in detected:
+        return "primitives", detected
+    if "utilities" in detected and len(detected) == 1:
+        return "utilities", detected
+    return "components", detected
+
+
+raw = OLD.read_bytes()
+if hashlib.sha256(raw).hexdigest() != OLD_SHA or len(raw) != OLD_BYTES:
+    fail("design-system.css no longer matches the migration reference")
+source = raw.decode("utf-8")
+if source.count("\n") + 1 != OLD_LINES:
+    fail("unexpected design-system.css line count")
+if source.count("!important") != OLD_IMPORTANT or source.count("body[data-route=") != OLD_ROUTE_SCOPES:
+    fail("unexpected visual-debt baseline")
+
+units = split_units(source)
+chunks: list[str] = []
+current: list[str] = []
+current_bytes = 0
+limit = 65536
+for unit in units:
+    unit_bytes = len(unit.encode("utf-8"))
+    if current and current_bytes + unit_bytes > limit:
+        chunks.append("".join(current))
+        current = [unit]
+        current_bytes = unit_bytes
+    else:
+        current.append(unit)
+        current_bytes += unit_bytes
+if current:
+    chunks.append("".join(current))
+if b"".join(chunk.encode("utf-8") for chunk in chunks) != raw:
+    fail("cascade-band grouping changed CSS bytes")
+
+for child in list(STYLES.iterdir()):
+    if child.name == "styles.manifest.json":
+        continue
+    if child.is_dir():
+        shutil.rmtree(child)
+    else:
+        child.unlink()
+
+modules: list[dict[str, object]] = []
+ownership_index: dict[str, list[str]] = {
+    "pagehead_control": [],
+    "clinic_identity_tokens": [],
+    "route_scopes": [],
+}
+layer_sequence: dict[str, int] = {}
+for index, chunk in enumerate(chunks, start=1):
+    layer, detected = primary_layer(chunk, index)
+    layer_sequence[layer] = layer_sequence.get(layer, 0) + 1
+    relative = f"{layer}/cascade-band-{layer_sequence[layer]:02d}.css"
+    path = STYLES / relative
+    data = chunk.encode("utf-8")
+    write_text(path, chunk)
+    module = {
+        "order": index,
+        "path": relative,
+        "layer": layer,
+        "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+        "concerns": detected,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "bytes": len(data),
+        "important_count": chunk.count("!important"),
+        "route_scope_count": chunk.count("body[data-route="),
+    }
+    modules.append(module)
+    if ".pagehead-control" in chunk:
+        ownership_index["pagehead_control"].append(relative)
+    if "--clinic-identity-" in chunk:
+        ownership_index["clinic_identity_tokens"].append(relative)
+    if "body[data-route=" in chunk:
+        ownership_index["route_scopes"].append(relative)
+
+manifest = {
+    "schema_version": 2,
+    "policy": "presentation-source-consolidation-v2",
+    "architecture": "ordered_modular_css_with_byte_equivalent_delivery",
+    "source_root": "app/Presentation/Styles",
+    "artifact": "public/assets/presentation.css",
+    "retired_artifact": "public/assets/design-system.css",
+    "complete": False,
+    "source_consolidated": True,
+    "publication_ready": True,
+    "debt_free": False,
+    "ownership_order": ["tokens", "foundation", "primitives", "components", "patterns", "routes", "utilities", "states"],
+    "forbidden_layers": ["legacy", "compatibility", "overrides"],
+    "delivery_equivalence": {
+        "reference_sha256": OLD_SHA,
+        "reference_bytes": OLD_BYTES,
+        "reference_lines": OLD_LINES,
+        "byte_identical_required": True,
+        "request_alias": "/public/assets/design-system.css",
+        "rewrite_target": "public/assets/presentation.css",
+        "alias_required_until_runtime_urls_are_migrated": True,
+    },
+    "source_consolidation_gates": {
+        "retired_artifact_absent": True,
+        "undeclared_source_modules": 0,
+        "duplicate_module_declarations": 0,
+        "generated_artifact_drift": 0,
+        "delivery_sha256_matches_reference": True,
+    },
+    "visual_debt_budget": {
+        "important_count_max": OLD_IMPORTANT,
+        "route_scope_count_max": OLD_ROUTE_SCOPES,
+        "policy": "existing_debt_may_only_decrease_after_source_consolidation",
+    },
+    "debt_elimination_completion_gates": {
+        "important_count": 0,
+        "generic_override_layers": 0,
+        "compatibility_layers": 0,
+        "legacy_layers": 0,
+        "authored_inline_style_declarations": 0,
+        "authored_style_blocks": 0,
+        "route_component_redefinitions": 0,
+    },
+    "ownership_index": ownership_index,
+    "modules": modules,
+}
+write_text(STYLES / "styles.manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+
+builder = r'''#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$manifestPath = $root . '/app/Presentation/Styles/styles.manifest.json';
+try {
+    $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+} catch (Throwable $error) {
+    fwrite(STDERR, "presentation-css-build: invalid manifest\n");
+    exit(1);
+}
+if (!is_array($manifest)) {
+    fwrite(STDERR, "presentation-css-build: invalid manifest\n");
+    exit(1);
+}
+$sourceRoot = (string) ($manifest['source_root'] ?? '');
+$artifact = (string) ($manifest['artifact'] ?? '');
+$retiredArtifact = (string) ($manifest['retired_artifact'] ?? '');
+$modules = (array) ($manifest['modules'] ?? []);
+$ownershipOrder = (array) ($manifest['ownership_order'] ?? []);
+$forbiddenLayers = (array) ($manifest['forbidden_layers'] ?? []);
+$equivalence = (array) ($manifest['delivery_equivalence'] ?? []);
+$budget = (array) ($manifest['visual_debt_budget'] ?? []);
+$sourceConsolidated = ($manifest['source_consolidated'] ?? false) === true;
+$publicationReady = ($manifest['publication_ready'] ?? false) === true;
+if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css' || $retiredArtifact !== 'public/assets/design-system.css') {
+    fwrite(STDERR, "presentation-css-build: canonical paths changed\n");
+    exit(1);
+}
+if (!$sourceConsolidated || !$publicationReady || $modules === [] || $ownershipOrder === []) {
+    fwrite(STDERR, "presentation-css-build: source consolidation incomplete\n");
+    exit(1);
+}
+if (count(array_unique($ownershipOrder)) !== count($ownershipOrder)) {
+    fwrite(STDERR, "presentation-css-build: duplicate ownership layer\n");
+    exit(1);
+}
+foreach ($forbiddenLayers as $forbiddenLayer) {
+    if (in_array($forbiddenLayer, $ownershipOrder, true)) {
+        fwrite(STDERR, "presentation-css-build: forbidden ownership layer\n");
+        exit(1);
+    }
+}
+$seen = [];
+$declaredCss = [];
+$built = '';
+$importantCount = 0;
+$routeScopeCount = 0;
+$expectedOrder = 1;
+foreach ($modules as $module) {
+    if (!is_array($module)) {
+        fwrite(STDERR, "presentation-css-build: invalid module entry\n");
+        exit(1);
+    }
+    $order = (int) ($module['order'] ?? 0);
+    $relativePath = (string) ($module['path'] ?? '');
+    $layer = (string) ($module['layer'] ?? '');
+    $expectedSha = strtolower((string) ($module['sha256'] ?? ''));
+    $expectedBytes = (int) ($module['bytes'] ?? -1);
+    $expectedImportant = (int) ($module['important_count'] ?? -1);
+    $expectedRoutes = (int) ($module['route_scope_count'] ?? -1);
+    if ($order !== $expectedOrder || $relativePath === '' || isset($seen[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {
+        fwrite(STDERR, "presentation-css-build: module order or ownership invalid\n");
+        exit(1);
+    }
+    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {
+        fwrite(STDERR, "presentation-css-build: unsafe module path\n");
+        exit(1);
+    }
+    $modulePath = $root . '/' . $sourceRoot . '/' . $relativePath;
+    $css = file_get_contents($modulePath);
+    if (!is_string($css)) {
+        fwrite(STDERR, "presentation-css-build: missing module {$relativePath}\n");
+        exit(1);
+    }
+    $actualSha = hash('sha256', $css);
+    $actualImportant = substr_count($css, '!important');
+    $actualRoutes = substr_count($css, 'body[data-route=');
+    if (!hash_equals($expectedSha, $actualSha) || strlen($css) !== $expectedBytes || $actualImportant !== $expectedImportant || $actualRoutes !== $expectedRoutes) {
+        fwrite(STDERR, "presentation-css-build: module contract drift {$relativePath}\n");
+        exit(1);
+    }
+    $seen[$relativePath] = true;
+    $declaredCss[str_replace('\\', '/', realpath($modulePath) ?: $modulePath)] = true;
+    $built .= $css;
+    $importantCount += $actualImportant;
+    $routeScopeCount += $actualRoutes;
+    $expectedOrder++;
+}
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/' . $sourceRoot, FilesystemIterator::SKIP_DOTS));
+foreach ($iterator as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'css') {
+        continue;
+    }
+    $canonical = str_replace('\\', '/', $file->getRealPath() ?: $file->getPathname());
+    if (!isset($declaredCss[$canonical])) {
+        fwrite(STDERR, "presentation-css-build: undeclared source module {$canonical}\n");
+        exit(1);
+    }
+}
+$referenceSha = strtolower((string) ($equivalence['reference_sha256'] ?? ''));
+$referenceBytes = (int) ($equivalence['reference_bytes'] ?? -1);
+$builtSha = hash('sha256', $built);
+if (($equivalence['byte_identical_required'] ?? false) !== true || !hash_equals($referenceSha, $builtSha) || strlen($built) !== $referenceBytes) {
+    fwrite(STDERR, "presentation-css-build: delivery equivalence failed\n");
+    exit(1);
+}
+if ($importantCount > (int) ($budget['important_count_max'] ?? -1) || $routeScopeCount > (int) ($budget['route_scope_count_max'] ?? -1)) {
+    fwrite(STDERR, "presentation-css-build: visual debt budget increased\n");
+    exit(1);
+}
+if (is_file($root . '/' . $retiredArtifact)) {
+    fwrite(STDERR, "presentation-css-build: retired monolith still present\n");
+    exit(1);
+}
+if (($equivalence['alias_required_until_runtime_urls_are_migrated'] ?? false) === true) {
+    $htaccess = (string) file_get_contents($root . '/.htaccess');
+    if (!str_contains($htaccess, 'RewriteRule ^public/assets/design-system\\.css$ public/assets/presentation.css [L,NC]')) {
+        fwrite(STDERR, "presentation-css-build: delivery alias missing\n");
+        exit(1);
+    }
+}
+$mode = $argv[1] ?? '--lint';
+if ($mode === '--lint') {
+    fwrite(STDOUT, json_encode([
+        'ok' => true,
+        'policy' => (string) ($manifest['policy'] ?? ''),
+        'modules' => count($modules),
+        'bytes' => strlen($built),
+        'sha256' => $builtSha,
+        'important_count' => $importantCount,
+        'route_scope_count' => $routeScopeCount,
+        'source_consolidated' => $sourceConsolidated,
+        'debt_free' => ($manifest['debt_free'] ?? false) === true,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(0);
+}
+$artifactPath = $root . '/' . $artifact;
+if ($mode === '--write') {
+    if (file_put_contents($artifactPath, $built) === false) {
+        fwrite(STDERR, "presentation-css-build: artifact write failed\n");
+        exit(1);
+    }
+    fwrite(STDOUT, "presentation-css-build: artifact written {$builtSha}\n");
+    exit(0);
+}
+if ($mode === '--check') {
+    $current = file_get_contents($artifactPath);
+    if (!is_string($current) || !hash_equals($builtSha, hash('sha256', $current)) || strlen($current) !== strlen($built)) {
+        fwrite(STDERR, "presentation-css-build: generated artifact drift\n");
+        exit(1);
+    }
+    fwrite(STDOUT, "presentation-css-build: artifact byte-equivalent {$builtSha}\n");
+    exit(0);
+}
+fwrite(STDERR, "presentation-css-build: use --lint, --check or --write\n");
+exit(1);
+'''
+write_text(ROOT / "tools/presentation-css-build", builder)
+
+NEW.write_bytes(raw)
+if hashlib.sha256(NEW.read_bytes()).hexdigest() != OLD_SHA:
+    fail("new presentation.css is not byte-identical")
+OLD.unlink()
+
+htaccess_path = ROOT / ".htaccess"
+htaccess = htaccess_path.read_text(encoding="utf-8")
+alias = "    RewriteRule ^public/assets/design-system\\.css$ public/assets/presentation.css [L,NC]\n"
+if alias not in htaccess:
+    needle = "    RewriteRule ^tools(?:/|$) - [F,L,NC]\n"
+    if needle not in htaccess:
+        fail("canonical htaccess insertion point missing")
+    htaccess = htaccess.replace(needle, alias + "\n" + needle, 1)
+    htaccess_path.write_text(htaccess, encoding="utf-8")
+
+for relative in (
+    "app/Core/Install/RuntimeContract.php",
+    "app/prontoo.php",
+    "app/architecture.manifest.json",
+    "tools/presentation-visual-contract-check",
+    "tools/telemetry-json-source-contract-check",
+    "tools/version-asset-contract-check.php",
+):
+    replace_exact(ROOT / relative, "public/assets/design-system.css", "public/assets/presentation.css")
+
+quality_gate = ROOT / "tools/quality-gate"
+quality = quality_gate.read_text(encoding="utf-8")
+old_gate = "$run('presentation-native-css-contract', 'tools/presentation-css-build');"
+new_gate = "$run('presentation-css-source-contract', 'tools/presentation-css-build');\n$run('presentation-css-artifact-equivalence', 'tools/presentation-css-build', ['--check']);"
+if quality.count(old_gate) != 1:
+    fail("quality gate insertion point missing")
+quality_gate.write_text(quality.replace(old_gate, new_gate, 1), encoding="utf-8")
+
+visual_path = ROOT / "app/presentation.visual-contract.json"
+visual = json.loads(visual_path.read_text(encoding="utf-8"))
+visual["version"] = "1.8.12.6"
+visual.setdefault("reference", {})["previous_release"] = "1.8.12.5"
+visual["reference"]["visual_reference"] = "byte_identical_modular_presentation_delivery"
+visual["reference"]["functional_equivalence"] = "same_css_bytes_same_cascade_same_pagehead_geometry_and_same_runtime_markup"
+visual["delivery"] = {
+    "artifact": "public/assets/presentation.css",
+    "retired_artifact": "public/assets/design-system.css",
+    "reference_sha256": OLD_SHA,
+    "reference_bytes": OLD_BYTES,
+    "source_consolidated": True,
+    "byte_identical": True,
+}
+write_text(visual_path, json.dumps(visual, ensure_ascii=False, indent=4) + "\n")
+
+version_path = ROOT / "version.json"
+version = json.loads(version_path.read_text(encoding="utf-8"))
+now = dt.datetime.now(ZoneInfo("America/Cuiaba")).replace(microsecond=0)
+stamp = now.isoformat()
+version.update({
+    "version": "1.8.12.6",
+    "release": "1.8.12.6",
+    "generated_at_unix": int(now.timestamp()),
+    "generated_at": stamp,
+    "updated_at": stamp,
+    "build": "1.8.12.6-presentation-css-source-consolidation",
+    "database_changes": False,
+    "schema_changes": False,
+    "logic_changes": True,
+    "visual_changes": False,
+    "functional_equivalence_policy": "byte_identical_css_delivery_after_modular_source_consolidation_and_internal_asset_alias",
+    "previous_version": "1.8.12.5",
+    "deployment_sync_id": "github-prontoo-1.8.12.6-presentation-css-source-consolidation",
+    "deployment_sync_requested_at": stamp,
+    "release_date": "2026-08-12",
+    "notes": "CSS autoral consolidado em módulos ordenados de Presentation; presentation.css reproduz byte a byte o stylesheet anterior e design-system.css deixa de existir como arquivo físico.",
+    "rewrite_scope": "presentation_css_source_consolidation_with_byte_identical_delivery",
+    "documentation_changes": True,
+})
+version["changelog"] = {
+    "title": "CSS de Presentation consolidado sem alteração de UX",
+    "items": [
+        "remove o arquivo físico public/assets/design-system.css e passa a gerar public/assets/presentation.css",
+        "divide os 810.078 bytes do stylesheet em módulos de cascade order sob app/Presentation/Styles sem reordenar regras",
+        "prova equivalência por SHA-256 e tamanho, mantendo exatamente os mesmos bytes entregues ao navegador",
+        "mantém temporariamente o URL histórico por rewrite interno para não tocar hotspots de Runtime nesta migração",
+        "separa conclusão da consolidação de fonte da eliminação futura da dívida visual",
+        "ratcheia o teto existente de 5.083 !important e 1.171 scopes de rota sem permitir aumento",
+        "integra lint de fonte e equivalência do artefato ao quality gate canônico",
+    ],
+}
+write_text(version_path, json.dumps(version, ensure_ascii=False, indent=4) + "\n")
+
+print(json.dumps({
+    "ok": True,
+    "modules": len(modules),
+    "old_sha256": OLD_SHA,
+    "new_sha256": hashlib.sha256(NEW.read_bytes()).hexdigest(),
+    "bytes": len(NEW.read_bytes()),
+    "important_count": source.count("!important"),
+    "route_scope_count": source.count("body[data-route="),
+    "version": "1.8.12.6",
+}, ensure_ascii=False, indent=2))
