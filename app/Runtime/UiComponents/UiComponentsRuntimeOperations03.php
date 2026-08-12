@@ -3,23 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Runtime\UiComponents;
 
-use \Closure;
-use \DateInterval;
-use \DateTime;
-use \DateTimeImmutable;
-use \DateTimeInterface;
-use \DateTimeZone;
-use \Exception;
-use \GdImage;
-use \InvalidArgumentException;
-use \JsonException;
-use \LogicException;
-use \PDO;
-use \PDOException;
-use \ProntooHttpError;
-use \RuntimeException;
-use \Throwable;
-
 final class UiComponentsRuntimeOperations03
 {
     private function __construct()
@@ -202,60 +185,6 @@ final class UiComponentsRuntimeOperations03
     
     }
 
-    public static function operation_menu_html(
-        string $label,
-        string $iconName,
-        array $items,
-        string $current,
-    ): string 
-    {
-    
-        $links = "";
-        $active = false;
-        $seen = [];
-        foreach ($items as $item) {
-            if (!is_array($item) || count($item) < 3) {
-                continue;
-            }
-            $route = (string) $item[0];
-            $params = (array) ($item[3] ?? []);
-            $key = $route . ":" . json_encode($params);
-            if ($route === "" || isset($seen[$key])) {
-                continue;
-            }
-            if (is_callable([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::class, 'can']) && !\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::can($route)) {
-                continue;
-            }
-            $seen[$key] = 1;
-            if (\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::operation_current_match($route, $params, $current)) {
-                $active = true;
-            }
-            $links .= \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::operation_link_html(
-                $route,
-                (string) $item[1],
-                (string) $item[2],
-                $current,
-                $params,
-            );
-        }
-        if ($links === "") {
-            return "";
-        }
-        $cls = "operation-menu" . ($active ? " is-active" : "");
-        return '<div class="' .
-            $cls .
-            '"><button type="button" class="operation-chip operation-menu-trigger" aria-haspopup="true" aria-expanded="false">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
-            "<span>" .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
-            "</span>" .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("expand_more") .
-            '</button><div class="operation-menu-panel" role="menu">' .
-            $links .
-            "</div></div>";
-    
-    }
-
     public static function page_operations_html(string $current, array $c): string
     
     {
@@ -271,15 +200,6 @@ final class UiComponentsRuntimeOperations03
                 continue;
             }
             $route = (string) $op[0];
-            if ($route === "__menu") {
-                $html .= \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::operation_menu_html(
-                    (string) $op[1],
-                    (string) $op[2],
-                    (array) ($op[3]["items"] ?? []),
-                    $current,
-                );
-                continue;
-            }
             if (
                 $route === "" ||
                 isset($seen[$route . ":" . json_encode($op[3] ?? [])])
@@ -299,7 +219,7 @@ final class UiComponentsRuntimeOperations03
             );
         }
         return $html !== ""
-            ? '<nav class="pagehead-operations" aria-label="Operações">' .
+            ? '<nav class="pagehead-controls pagehead-controls--navigation" aria-label="Operações">' .
                     $html .
                     "</nav>"
             : "";
@@ -435,36 +355,24 @@ final class UiComponentsRuntimeOperations03
     }
 
     public static function page_head(string $title, string $sub = "", string $action = ""): string
-    
     {
-    
-        $ico = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head_icon_name($title);
-        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
-        if (($c["scope"] ?? "") === "global") {
+        $icon = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head_icon_name($title);
+        $context = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
+        if (($context["scope"] ?? "") === "global") {
             $action = "";
         }
-        $ops =
-            $c && is_callable([\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::class, 'page_operations_html'])
-                ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_operations_html(\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(), $c)
-                : "";
-        $hasOps = $ops !== "";
-        $hasAction = $action !== "";
-        return '<section class="pagehead' .
-            ($hasOps ? " has-operations" : "") .
-            ($hasAction ? " has-actions" : "") .
-            '" aria-label="Operações da tela"><div class="pagehead-copy"><h1><span class="pagehead-icon">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($ico) .
-            "</span><span>" .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
-            "</span></h1></div>" .
-            $ops .
-            ($hasAction
-                ? '<div class="pagehead-actions" aria-label="Operações rápidas">' .
-                    $action .
-                    "</div>"
-                : "") .
-            "</section>";
-    
+        $operations = $context
+            ? \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_operations_html(
+                \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route(),
+                $context,
+            )
+            : "";
+        return \Prontoo\Presentation\UiComponents\PageHeadControlPresentationOperations01::pageHead(
+            $title,
+            $icon,
+            $operations,
+            $action,
+        );
     }
 
     public static function action_icon_for(string $label): string

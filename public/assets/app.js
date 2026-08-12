@@ -312,8 +312,8 @@
       if (!x.dataset.panelReady) {
         x.dataset.panelReady = "1";
         x.addEventListener("toggle", () => {
-          if (x.open && x.closest(".pagehead-actions"))
-            $$("details[open]", x.closest(".pagehead-actions")).forEach((y) => {
+          if (x.open && x.closest(".pagehead-controls--actions"))
+            $$("details[open]", x.closest(".pagehead-controls--actions")).forEach((y) => {
               if (y !== x) y.open = false;
             });
           updatePanels();
@@ -327,7 +327,7 @@
   }
   function updatePanels() {
     const scopes = $$(
-      ".pagehead,.pagehead-actions,.card,.patient-panel,.patient-tab-panels,.lead-card",
+      ".pagehead,.pagehead-controls--actions,.card,.patient-panel,.patient-tab-panels,.lead-card",
     );
     scopes.forEach((scope) =>
       scope.classList.toggle("has-open-panel", !!$(".form-panel[open]", scope)),
@@ -3870,7 +3870,7 @@ function initPasswordToggle(root = document) {
 (function () {
   function details() {
     return Array.prototype.slice.call(
-      document.querySelectorAll(".pagehead-actions details[open]"),
+      document.querySelectorAll(".pagehead-controls--actions details[open]"),
     );
   }
   function closePageheadActions(current) {
@@ -3882,7 +3882,7 @@ function initPasswordToggle(root = document) {
     "toggle",
     function (ev) {
       var menu = ev.target;
-      if (!menu || !menu.matches || !menu.matches(".pagehead-actions details"))
+      if (!menu || !menu.matches || !menu.matches(".pagehead-controls--actions details"))
         return;
       if (menu.open) {
         closePageheadActions(menu);
@@ -3937,7 +3937,7 @@ function initPasswordToggle(root = document) {
       }
       return;
     }
-    if (ev.target.closest && ev.target.closest(".pagehead-actions details"))
+    if (ev.target.closest && ev.target.closest(".pagehead-controls--actions details"))
       return;
     closePageheadActions(null);
   });
@@ -3966,7 +3966,7 @@ function initPasswordToggle(root = document) {
       !el ||
       !el.closest ||
       !!el.closest(
-        ".pagehead,.pagehead-actions,.top,.topbar,.cmdbar,.agenda-floating-kpis,.ds-fixed-agenda-kpis,.floating-clock,.top-account,.onboarding-tip-card",
+        ".pagehead,.pagehead-controls--actions,.top,.topbar,.cmdbar,.agenda-floating-kpis,.ds-fixed-agenda-kpis,.floating-clock,.top-account,.onboarding-tip-card",
       )
     );
   }
@@ -4031,7 +4031,7 @@ function initPasswordToggle(root = document) {
       !el ||
       !el.closest ||
       !!el.closest(
-        ".pagehead,.pagehead-actions,.top,.cmdbar,.agenda-floating-kpis,.onboarding-tip-card",
+        ".pagehead,.pagehead-controls--actions,.top,.cmdbar,.agenda-floating-kpis,.onboarding-tip-card",
       )
     );
   }
@@ -4344,7 +4344,7 @@ function initPasswordToggle(root = document) {
       !el ||
       !el.closest ||
       !!el.closest(
-        ".top,.cmdbar,.rolebar,.pagehead,.pagehead-actions,.agenda-floating-kpis,.context-floating-pending-kpis,.floating-clock,.onboarding-tip-card",
+        ".top,.cmdbar,.rolebar,.pagehead,.pagehead-controls--actions,.agenda-floating-kpis,.context-floating-pending-kpis,.floating-clock,.onboarding-tip-card",
       )
     );
   }
