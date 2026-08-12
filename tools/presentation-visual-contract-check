@@ -17,8 +17,10 @@ foreach ($iterator as $file) {
         $php .= (string) file_get_contents($file->getPathname());
     }
 }
+
 $identityPattern = '/(^|;)\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:/i';
-$routeIdentity = 0;
+$routeActionIdentity = 0;
+$routeOperationIdentity = 0;
 $legacyDirectIdentity = 0;
 $selectorCounts = [];
 if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
@@ -29,13 +31,17 @@ if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
             $selectorCounts[$selector] = ($selectorCounts[$selector] ?? 0) + 1;
         }
         if (str_contains((string) $selector, 'body[data-route=') && preg_match('/\.pagehead-actions\s+(?:[>+~]|\.)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
-            $routeIdentity++;
+            $routeActionIdentity++;
+        }
+        if (str_contains((string) $selector, 'body[data-route=') && str_contains((string) $selector, '.pagehead-operations .operation-chip') && preg_match($identityPattern, $declarations) === 1) {
+            $routeOperationIdentity++;
         }
         if (preg_match('/\.pagehead-actions\s*>\s*(?:a|button|summary)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
             $legacyDirectIdentity++;
         }
     }
 }
+
 $metrics = [
     'lines' => substr_count($css, "\n") + 1,
     'nonblank_lines' => count(array_filter(explode("\n", $css), static fn(string $line): bool => trim($line) !== '')),
@@ -44,34 +50,43 @@ $metrics = [
     'route_scope_count' => substr_count($css, 'body[data-route='),
     'duplicate_selector_headers' => count(array_filter($selectorCounts, static fn(int $count): bool => $count > 1)),
     'legacy_primary_small_cmdlike' => substr_count($php, 'primary small cmdlike'),
-    'pagehead_route_identity_overrides' => $routeIdentity,
+    'pagehead_route_identity_overrides' => $routeActionIdentity,
+    'pagehead_route_operation_identity_overrides' => $routeOperationIdentity,
     'pagehead_legacy_direct_identity_overrides' => $legacyDirectIdentity,
     'doc_pagehead_primary_overrides' => substr_count($css, '.doc-page-actions .primary{'),
     'pagehead_ds_action_overrides' => substr_count($css, '.pagehead-actions .ds-pagehead-action{'),
-    'canonical_pagehead_geometry_rules' => substr_count($css, '.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-height)'),
+    'finance_cash_pagehead_geometry_overrides' => substr_count($css, ".finance-cash-pagehead-actions .finance-cash-action{\n  min-height:"),
+    'canonical_pagehead_geometry_rules' => substr_count($css, '.pagehead-actions :is(a,button,summary){min-height:var(--pt-pagehead-control-height)'),
+    'canonical_pagehead_operation_geometry_rules' => substr_count($css, '.pagehead-operations .operation-chip{min-height:var(--pt-pagehead-control-height)'),
 ];
+
 $required = [
-    '--md-ref-palette-primary40: var(--clinic-accent,#2f6652)',
-    '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))',
-    '--md-sys-color-secondary:color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)',
-    '--pt-pagehead-action-height:34px',
-    '--pt-pagehead-action-radius:var(--md-sys-shape-corner-large)',
-    '--pt-pagehead-action-padding-block:7px',
-    '--pt-pagehead-action-padding-inline:12px',
-    '--pt-pagehead-action-gap:8px',
-    '--pt-pagehead-action-icon-size:20px',
-    '--pt-pagehead-action-mobile-height:42px',
-    '--pt-pagehead-action-mobile-padding-inline:13px',
-    '--pt-pagehead-action-font:var(--md-sys-typescale-label-medium)',
-    '--pt-pagehead-action-weight:700',
-    '--pt-pagehead-action-accent:var(--clinic-identity-accent,var(--md-sys-color-primary))',
-    '--pt-pagehead-action-on-accent:var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))',
-    '--pt-pagehead-action-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30))',
-    'body.is-read-only{--pt-pagehead-action-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary))',
-    '.pagehead-actions :where(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent)',
-    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent)',
-    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:color-mix(in srgb,var(--pt-pagehead-action-accent) 4%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-action-accent)',
-    '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}',
+    '--pt-pagehead-control-height:38px',
+    '--pt-pagehead-control-radius:var(--md-sys-shape-corner-large)',
+    '--pt-pagehead-control-padding-block:7px',
+    '--pt-pagehead-control-padding-inline:12px',
+    '--pt-pagehead-control-gap:8px',
+    '--pt-pagehead-control-icon-size:20px',
+    '--pt-pagehead-control-mobile-height:42px',
+    '--pt-pagehead-control-mobile-padding-inline:13px',
+    '--pt-pagehead-control-font:var(--md-sys-typescale-label-medium)',
+    '--pt-pagehead-control-weight:700',
+    '--pt-pagehead-operation-gap:3px',
+    '--pt-pagehead-group-gap:16px',
+    '--pt-pagehead-control-accent:var(--clinic-identity-accent,var(--md-sys-color-primary))',
+    '--pt-pagehead-control-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30))',
+    'body.is-read-only{--pt-pagehead-control-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary))',
+    '.pagehead-operations{display:flex;align-items:center;justify-content:flex-end;gap:var(--pt-pagehead-operation-gap)',
+    '.pagehead-operations .operation-chip{min-height:var(--pt-pagehead-control-height)',
+    '.pagehead-operations .operation-chip.is-active,.pagehead-operations .operation-chip[aria-current]{background:var(--pt-pagehead-control-container);color:var(--pt-pagehead-control-on-container)',
+    '.pagehead-operations .operation-chip :is(.material-symbols-rounded,.pt-icon-glyph){font-size:var(--pt-pagehead-control-icon-size)',
+    '@media(max-width:640px){.pagehead-operations .operation-chip{min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)',
+    '.pagehead-actions :is(a,button,summary){min-height:var(--pt-pagehead-control-height)',
+    '.pagehead-actions :is(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent)',
+    '.pagehead-actions :is(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent);box-shadow:var(--md-sys-elevation-level1)',
+    '@media(max-width:640px){.pagehead-actions :is(a,button,summary){min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)}}',
+    '.finance-cash-pagehead-actions .finance-cash-action.active{',
+    'background:var(--pt-pagehead-control-container);',
 ];
 $requiredPhp = [
     '--clinic-identity-accent:',
@@ -94,16 +109,23 @@ foreach ($required as $token) {
 if (($contract['version'] ?? '') !== ($version['version'] ?? '')) {
     $failures[] = 'version';
 }
-if (str_contains($css, '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--brand-dark,')) {
-    $failures[] = 'cyclic-primary30-brand-dark-fallback';
-}
-if (str_contains($css, '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong)')) {
-    $failures[] = 'pagehead-hover-must-use-clinic-identity-hover';
-}
-$desktop = (array) (($contract['pagehead_action'] ?? [])['desktop'] ?? []);
-$mobile = (array) (($contract['pagehead_action'] ?? [])['mobile'] ?? []);
 foreach ([
-    'desktop_height' => [(int) ($desktop['min_height_px'] ?? 0), 34],
+    '--pt-pagehead-action-height:34px',
+    '.pagehead-operations .operation-chip{min-height:42px',
+    '.pagehead-operations .operation-chip{min-height:40px',
+    ".finance-cash-pagehead-actions .finance-cash-action{\n  min-height:",
+] as $forbidden) {
+    if (str_contains($css, $forbidden)) {
+        $failures[] = 'forbidden:' . $forbidden;
+    }
+}
+
+$control = (array) ($contract['pagehead_control'] ?? []);
+$desktop = (array) ($control['desktop'] ?? []);
+$mobile = (array) ($control['mobile'] ?? []);
+$group = (array) ($control['group'] ?? []);
+foreach ([
+    'desktop_height' => [(int) ($desktop['min_height_px'] ?? 0), 38],
     'desktop_radius' => [(int) ($desktop['radius_px'] ?? 0), 16],
     'desktop_padding_block' => [(int) ($desktop['padding_block_px'] ?? 0), 7],
     'desktop_padding_inline' => [(int) ($desktop['padding_inline_px'] ?? 0), 12],
@@ -112,11 +134,14 @@ foreach ([
     'desktop_weight' => [(int) ($desktop['font_weight'] ?? 0), 700],
     'mobile_height' => [(int) ($mobile['min_height_px'] ?? 0), 42],
     'mobile_padding_inline' => [(int) ($mobile['padding_inline_px'] ?? 0), 13],
+    'operation_gap' => [(int) ($group['operations_inner_gap_px'] ?? 0), 3],
+    'pagehead_group_gap' => [(int) ($group['pagehead_group_gap_px'] ?? 0), 16],
 ] as $name => [$actual, $expected]) {
     if ($actual !== $expected) {
         $failures[] = $name . ':' . $actual . '!=' . $expected;
     }
 }
+
 $budget = (array) ($contract['debt_budget'] ?? []);
 foreach ([
     'important_count' => 'important_count_max',
@@ -124,9 +149,11 @@ foreach ([
     'duplicate_selector_headers' => 'duplicate_selector_headers_max',
     'legacy_primary_small_cmdlike' => 'legacy_primary_small_cmdlike_max',
     'pagehead_route_identity_overrides' => 'pagehead_route_identity_overrides_max',
+    'pagehead_route_operation_identity_overrides' => 'pagehead_route_operation_identity_overrides_max',
     'pagehead_legacy_direct_identity_overrides' => 'pagehead_legacy_direct_identity_overrides_max',
     'doc_pagehead_primary_overrides' => 'doc_pagehead_primary_overrides_max',
     'pagehead_ds_action_overrides' => 'pagehead_ds_action_overrides_max',
+    'finance_cash_pagehead_geometry_overrides' => 'finance_cash_pagehead_geometry_overrides_max',
 ] as $metric => $limit) {
     if ($metrics[$metric] > (int) ($budget[$limit] ?? -1)) {
         $failures[] = $metric . ':' . $metrics[$metric] . '>' . (int) ($budget[$limit] ?? -1);
@@ -135,13 +162,19 @@ foreach ([
 if ($metrics['canonical_pagehead_geometry_rules'] !== (int) ($budget['canonical_pagehead_geometry_rules_exact'] ?? 1)) {
     $failures[] = 'canonical_pagehead_geometry_rules';
 }
+if ($metrics['canonical_pagehead_operation_geometry_rules'] !== (int) ($budget['canonical_pagehead_operation_geometry_rules_exact'] ?? 1)) {
+    $failures[] = 'canonical_pagehead_operation_geometry_rules';
+}
+
 fwrite(STDOUT, json_encode([
     'ok' => $failures === [],
     'policy' => (string) ($contract['policy'] ?? ''),
     'version' => (string) ($version['version'] ?? ''),
     'metrics' => $metrics,
     'budget' => $budget,
+    'pagehead_control' => $control,
     'pagehead_action' => (array) ($contract['pagehead_action'] ?? []),
+    'pagehead_operation' => (array) ($contract['pagehead_operation'] ?? []),
     'failures' => $failures,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
 exit($failures === [] ? 0 : 1);
