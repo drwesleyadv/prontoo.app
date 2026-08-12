@@ -9966,7 +9966,17 @@
     "required": true,
     "baseline": "app/presentation.ux-baseline.json",
     "workflow": ".github/workflows/presentation-ux.yml",
-    "policy": "computed_style_and_geometry_must_not_drift_without_explicit_product_change"
+    "policy": "computed_style_and_geometry_must_not_drift_without_explicit_product_change",
+    "policy_version": "presentation-computed-style-ux-v2",
+    "scenario_count": 12,
+    "target_count": 33,
+    "asserted_surfaces": 396,
+    "covered_routes": [
+      "appointments",
+      "financial",
+      "patient",
+      "procedures"
+    ]
   },
   "important_shadow_reduction": {
     "policy": "earlier_identical_important_same_context_selector_property_value_is_inert_when_later_reassertion_exists",
