@@ -34,13 +34,17 @@ jobs:
           root = Path('.')
           css_path = root / 'public/assets/design-system.css'
           css = css_path.read_text()
-          replacements = {
-              'body.public[data-route="login"] .login-telemetry-wave-path{\n  stroke:none;\n  opacity:.3;\n}':
+          css_changes = [
+              (
+                  'body.public[data-route="login"] .login-telemetry-wave-path{\n  stroke:none;\n  opacity:.3;\n}',
                   'body.public[data-route="login"] .login-telemetry-wave-path{\n  stroke:none;\n  opacity:.5;\n}',
-              'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.3}':
+              ),
+              (
+                  'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.3}',
                   'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
-          }
-          for old, new in replacements.items():
+              ),
+          ]
+          for old, new in css_changes:
               if css.count(old) != 1:
                   raise SystemExit(f'CSS telemetry opacity target count != 1: {old!r}')
               css = css.replace(old, new, 1)
@@ -48,51 +52,67 @@ jobs:
 
           contract_path = root / 'tools/telemetry-json-source-contract-check'
           contract = contract_path.read_text()
-          old = "$admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');\n$admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');"
-          new = "$admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');\n$admin6 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php');\n$admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');"
+
+          old = "\n".join([
+              "$admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');",
+              "$admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');",
+          ])
+          new = "\n".join([
+              "$admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');",
+              "$admin6 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php');",
+              "$admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');",
+          ])
           if contract.count(old) != 1:
               raise SystemExit('admin6 insertion point not unique')
           contract = contract.replace(old, new, 1)
 
-          old = """$loadLinePos = strpos($presentation3, 'metric-chart-line-load');
-$recordLinePos = strpos($presentation3, 'metric-chart-line-response');
-$assert($loadLinePos !== false && $recordLinePos !== false && $recordLinePos > $loadLinePos, 'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias');
-$requestWavePos = strpos($login, 'data-wave-series=\"requests\"');
-$recordWavePos = strpos($login, 'data-wave-series=\"records\"');
-$assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');"""
-          new = """$loadAreaPos = strpos($presentation3, '$loadArea =');
-$responseAreaPos = strpos($presentation3, '$responseArea =');
-$fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');
-$assert(
-    $loadAreaPos !== false &&
-    $responseAreaPos !== false &&
-    $responseAreaPos > $loadAreaPos &&
-    $fillOrderPos !== false,
-    'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias',
-);
-$assert(
-    str_contains($admin6, 'page_admin_painel()') &&
-    str_contains($admin6, 'admin_performance_card_html()'),
-    'Painel do Desenvolvedor deixou de consumir o gráfico canônico de 30 dias',
-);
-$assert(
-    str_contains($admin3, 'page_status()') &&
-    str_contains($admin3, 'admin_performance_card_html(true)'),
-    'Status deixou de consumir o gráfico canônico de 30 dias',
-);
-$requestWavePos = strpos($login, 'data-wave-series=\"requests\"');
-$recordWavePos = strpos($login, 'data-wave-series=\"records\"');
-$assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');"""
+          old = "\n".join([
+              "$loadLinePos = strpos($presentation3, 'metric-chart-line-load');",
+              "$recordLinePos = strpos($presentation3, 'metric-chart-line-response');",
+              "$assert($loadLinePos !== false && $recordLinePos !== false && $recordLinePos > $loadLinePos, 'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias');",
+              "$requestWavePos = strpos($login, 'data-wave-series=\"requests\"');",
+              "$recordWavePos = strpos($login, 'data-wave-series=\"records\"');",
+              "$assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');",
+          ])
+          new = "\n".join([
+              "$loadAreaPos = strpos($presentation3, '$loadArea =');",
+              "$responseAreaPos = strpos($presentation3, '$responseArea =');",
+              "$fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');",
+              "$assert(",
+              "    $loadAreaPos !== false &&",
+              "    $responseAreaPos !== false &&",
+              "    $responseAreaPos > $loadAreaPos &&",
+              "    $fillOrderPos !== false,",
+              "    'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias',",
+              ");",
+              "$assert(",
+              "    str_contains($admin6, 'page_admin_painel()') &&",
+              "    str_contains($admin6, 'admin_performance_card_html()'),",
+              "    'Painel do Desenvolvedor deixou de consumir o gráfico canônico de 30 dias',",
+              ");",
+              "$assert(",
+              "    str_contains($admin3, 'page_status()') &&",
+              "    str_contains($admin3, 'admin_performance_card_html(true)'),",
+              "    'Status deixou de consumir o gráfico canônico de 30 dias',",
+              ");",
+              "$requestWavePos = strpos($login, 'data-wave-series=\"requests\"');",
+              "$recordWavePos = strpos($login, 'data-wave-series=\"records\"');",
+              "$assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');",
+          ])
           if contract.count(old) != 1:
               raise SystemExit('paint-order contract block not unique')
           contract = contract.replace(old, new, 1)
 
-          marker = """    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',
-    'body.public[data-route=\"login\"] .login-telemetry-wave-path.is-requests{',"""
-          replacement = """    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',
-    "body.public[data-route=\"login\"] .login-telemetry-wave-path{\\n  stroke:none;\\n  opacity:.5;\\n}",
-    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
-    'body.public[data-route=\"login\"] .login-telemetry-wave-path.is-requests{',"""
+          marker = "\n".join([
+              "    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',",
+              "    'body.public[data-route=\"login\"] .login-telemetry-wave-path.is-requests{',",
+          ])
+          replacement = "\n".join([
+              "    '.metric-dual-time-chart[data-metric-value-type=\"count\"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',",
+              "    \"body.public[data-route=\\\"login\\\"] .login-telemetry-wave-path{\\n  stroke:none;\\n  opacity:.5;\\n}\",",
+              "    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',",
+              "    'body.public[data-route=\"login\"] .login-telemetry-wave-path.is-requests{',",
+          ])
           if contract.count(marker) != 1:
               raise SystemExit('footer-opacity contract insertion point not unique')
           contract = contract.replace(marker, replacement, 1)
