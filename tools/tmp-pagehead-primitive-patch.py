@@ -56,6 +56,17 @@ if source.count(renderer_old) != 1:
     raise SystemExit('renderer contract anchor drift')
 source = source.replace(renderer_old, renderer_new, 1)
 
+for old_trim, new_trim in {
+    'trim($extra)': 'mb_trim($extra)',
+    'trim($html)': 'mb_trim($html)',
+    "trim((string) ($match[2] ?? ''))": "mb_trim((string) ($match[2] ?? ''))",
+    'trim($operations)': 'mb_trim($operations)',
+    'trim($actions)': 'mb_trim($actions)',
+}.items():
+    if source.count(old_trim) != 1:
+        raise SystemExit(f'multibyte renderer anchor drift: {old_trim}')
+    source = source.replace(old_trim, new_trim, 1)
+
 write_call = "run('php', 'tools/release-contract-reconcile', '--write')"
 if source.count(write_call) != 2:
     raise SystemExit(f'expected 2 release write calls, found {source.count(write_call)}')
