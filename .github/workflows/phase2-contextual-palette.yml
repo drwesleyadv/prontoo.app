@@ -1,0 +1,46 @@
+name: Phase 2 Contextual Palette
+
+on:
+  push:
+    branches:
+      - 'agent/presentation-contextual-palette'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-contextual-palette
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply contextual palette
+        run: python3 .github/phase2-contextual-palette.py
+      - name: Remove temporary phase files
+        run: |
+          rm .github/phase2-contextual-palette.py
+          rm .github/workflows/phase2-contextual-palette.yml
+      - name: Reconcile release manifest
+        run: php tools/release-contract-reconcile --write
+      - name: Validate
+        run: |
+          php tools/quality-gate
+          php tools/release-contract-reconcile --check
+          git diff --check
+      - name: Commit
+        run: |
+          git config user.name 'prontoo-ci'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'refactor(presentation): add contextual action palette'
+          git push origin HEAD:agent/presentation-contextual-palette
