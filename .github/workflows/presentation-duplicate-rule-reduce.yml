@@ -3,7 +3,7 @@ on:
   push:
     branches: [agent/presentation-important-debt-reduction]
     paths:
-      - tools/presentation-duplicate-rule-reduce
+      - tools/presentation-duplicate-rule-reduce-patch
       - .github/workflows/presentation-duplicate-rule-reduce.yml
 permissions:
   contents: write
@@ -30,6 +30,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python3 -m pip install --quiet tinycss2
+          python3 tools/presentation-duplicate-rule-reduce-patch
           python3 tools/presentation-duplicate-rule-reduce
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
@@ -46,7 +47,7 @@ jobs:
           with open(p,'w') as f: json.dump(data,f,indent=4,ensure_ascii=False); f.write('\n')
           PY
           rm -rf node_modules
-          git rm -f tools/presentation-important-audit tools/presentation-duplicate-rule-reduce .github/workflows/presentation-important-audit.yml .github/workflows/presentation-duplicate-rule-reduce.yml
+          git rm -f tools/presentation-important-audit tools/presentation-duplicate-rule-reduce tools/presentation-duplicate-rule-reduce-patch .github/workflows/presentation-important-audit.yml .github/workflows/presentation-duplicate-rule-reduce.yml
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
