@@ -215,8 +215,10 @@ def main() -> None:
     rows: list[dict] = []
     stylesheet = tinycss2.parse_stylesheet(css, skip_whitespace=False, skip_comments=False)
     collect_important(stylesheet, tuple(), rows, css, offsets)
-    if len(rows) != 5083:
-        fail(f'important parse count drift: expected 5083, got {len(rows)}')
+    if css.count('!important') != 5083:
+        fail(f'raw important count drift: expected 5083, got {css.count("!important")}')
+    if len(rows) != 5066:
+        fail(f'parseable important declaration inventory drift: expected 5066, got {len(rows)}')
 
     groups: dict[tuple, list[int]] = {}
     for index, row in enumerate(rows):
@@ -356,6 +358,9 @@ def main() -> None:
     manifest['visual_debt_budget']['duplicate_selector_headers_max'] = after['duplicate_selector_headers']
     manifest['important_shadow_reduction'] = {
         'policy': 'earlier_identical_important_same_context_selector_property_value_is_inert_when_later_reassertion_exists',
+        'raw_important_occurrences_before': 5083,
+        'parseable_important_declarations_before': 5066,
+        'unparsed_historical_important_occurrences_preserved': 17,
         'removed_declarations': 141,
         'distinct_reasserted_keys': 133,
         'remaining_important_count': 4942,
@@ -401,11 +406,14 @@ def main() -> None:
     version['logic_changes'] = True
     version['visual_changes'] = False
     version['functional_equivalence_policy'] = 'remove_only_formally_shadowed_identical_important_declarations_and_hold_pinned_ux_baseline'
-    version['notes'] = '141 declarações !important anteriores e formalmente inertes são removidas; a reasserção posterior idêntica no mesmo seletor/contexto é preservada.'
+    version['notes'] = '141 declarações !important anteriores e formalmente inertes são removidas; 17 ocorrências históricas não parseáveis ficam intocadas e a reasserção posterior idêntica é preservada.'
     VERSION_PATH.write_text(json.dumps(version, indent=4, ensure_ascii=False) + '\n', encoding='utf-8')
 
     print(json.dumps({
         'ok': True,
+        'raw_important_occurrences': 5083,
+        'parseable_important_declarations': 5066,
+        'unparsed_historical_occurrences_preserved': 17,
         'formal_candidates_removed': 141,
         'distinct_reasserted_keys': 133,
         'before': before,
