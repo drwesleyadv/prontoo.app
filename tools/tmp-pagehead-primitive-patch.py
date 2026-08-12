@@ -66,5 +66,33 @@ if source.count(css_comment) != 1:
     raise SystemExit('PageHead CSS comment anchor drift')
 source = source.replace(css_comment, '', 1)
 
+budget_anchor = "(ROOT / 'app/runtime.input-boundary-budget.json').write_text(budget_json)\nrun('php', 'tools/release-contract-reconcile', '--write')"
+budget_insert = r"""(ROOT / 'app/runtime.input-boundary-budget.json').write_text(budget_json)
+new_budget = json.loads(budget_json)
+new_totals = new_budget['totals']
+consolidation_path = ROOT / 'tools/architecture-consolidation-check'
+consolidation = consolidation_path.read_text()
+ratchets = {
+    "'runtime_input_adapter_infrastructure_references_max' => 615": "'runtime_input_adapter_infrastructure_references_max' => " + str(new_totals['infrastructure_references']),
+    "'runtime_generic_data_gateway_calls_max' => 784": "'runtime_generic_data_gateway_calls_max' => " + str(new_totals['generic_data_gateway_calls']),
+    "'runtime_input_adapter_hotspots_over_500_max' => 39": "'runtime_input_adapter_hotspots_over_500_max' => " + str(new_totals['hotspots_over_500']),
+}
+for old_target, new_target in ratchets.items():
+    if consolidation.count(old_target) != 1:
+        raise SystemExit(f'architecture consolidation target drift: {old_target}')
+    consolidation = consolidation.replace(old_target, new_target, 1)
+consolidation_path.write_text(consolidation)
+architecture_path = ROOT / 'app/architecture.manifest.json'
+architecture = json.loads(architecture_path.read_text())
+architecture_targets = architecture['architecture_contract_targets']
+architecture_targets['runtime_input_adapter_infrastructure_references_max'] = new_totals['infrastructure_references']
+architecture_targets['runtime_generic_data_gateway_calls_max'] = new_totals['generic_data_gateway_calls']
+architecture_targets['runtime_input_adapter_hotspots_over_500_max'] = new_totals['hotspots_over_500']
+architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n')
+run('php', 'tools/release-contract-reconcile', '--write')"""
+if source.count(budget_anchor) != 1:
+    raise SystemExit('runtime budget ratchet anchor drift')
+source = source.replace(budget_anchor, budget_insert, 1)
+
 path.write_text(source)
 Path(__file__).unlink()
