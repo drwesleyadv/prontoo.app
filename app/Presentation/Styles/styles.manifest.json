@@ -80,6 +80,11 @@
       "path": "components/page-head.css",
       "layer": "components",
       "responsibility": "canonical PageHeadControl component presentation"
+    },
+    {
+      "path": "states/readonly.css",
+      "layer": "states",
+      "responsibility": "readonly semantic color modulation without geometry changes"
     }
   ]
 }
