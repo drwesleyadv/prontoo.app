@@ -423,7 +423,7 @@ final class AdminPagesPresentationOperations03
     public static function admin_telemetry_variation_badge(?float $variation): string
     {
         if ($variation === null) {
-            return "";
+            return '<span class="telemetry-kpi-trend is-neutral is-pending" title="Aguardando base comparável" aria-label="Aguardando base comparável">⌛</span>';
         }
         if (abs($variation) < 0.05) {
             return '<span class="telemetry-kpi-trend is-neutral" title="Sem variação em relação aos 15 dias anteriores" aria-label="Sem variação em relação aos 15 dias anteriores">0%</span>';

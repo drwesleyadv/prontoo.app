@@ -68,9 +68,24 @@ $assert(
     str_contains($neutralTrend, 'is-neutral') &&
     str_contains($neutralTrend, '0%') &&
     !str_contains($neutralTrend, '▲') &&
-    !str_contains($neutralTrend, '▼') &&
-    $missingTrend === '',
-    'variação neutra/não comparável deve permanecer minimalista',
+    !str_contains($neutralTrend, '▼'),
+    'variação neutra deve permanecer minimalista',
+);
+$assert(
+    str_contains($missingTrend, 'is-pending') &&
+    str_contains($missingTrend, '⌛') &&
+    !str_contains($missingTrend, '%') &&
+    !str_contains($missingTrend, '▲') &&
+    !str_contains($missingTrend, '▼'),
+    'ausência de base comparável deve exibir somente ampulheta',
+);
+$valueMarkupPos = strpos($admin3, 'UiComponentsPresentationOperations01::n($value)');
+$trendMarkupPos = $valueMarkupPos === false ? false : strpos($admin3, '$trend .', $valueMarkupPos);
+$assert(
+    $valueMarkupPos !== false &&
+    $trendMarkupPos !== false &&
+    $trendMarkupPos > $valueMarkupPos,
+    'ordem visual dos KPIs deve ser Valor, Triângulo e Percentual',
 );
 foreach ([
     '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
@@ -126,4 +141,4 @@ $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_con
 foreach ([$admin2, $admin3, $admin9, $login] as $source) {
     $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
 }
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $trendCssToken, $visualToken, $opacityToken, $token, $source);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $opacityToken, $token, $source);

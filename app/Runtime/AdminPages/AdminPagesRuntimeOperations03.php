@@ -66,10 +66,11 @@ final class AdminPagesRuntimeOperations03
             $inner =
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
                 '<div><div class="telemetry-kpi-value">' .
-                $trend .
                 "<b>" .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
-                "</b></div><span>" .
+                "</b>" .
+                $trend .
+                "</div><span>" .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span></div>";
             return $linked
