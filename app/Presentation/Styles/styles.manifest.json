@@ -33,10 +33,11 @@
   },
   "visual_debt_budget": {
     "important_count_max": 5083,
-    "route_scope_count_max": 1171,
+    "route_scope_count_max": 1107,
     "policy": "observable_ux_stable_and_visual_debt_may_only_decrease",
     "duplicate_selector_headers_max": 715,
-    "duplicate_selector_list_entries_max": 0
+    "duplicate_selector_list_entries_max": 0,
+    "factorable_route_scope_groups_max": 0
   },
   "debt_elimination_completion_gates": {
     "important_count": 0,
@@ -169,40 +170,40 @@
       "layer": "routes",
       "responsibility": "appointments",
       "concern": "appointments",
-      "sha256": "ea02fe626b377ae2158cb387b54c0e3e5ddabb927db6b675e6f4e62a35171cb8",
-      "bytes": 140970,
+      "sha256": "f64aa850c06eb6fc33c32425ea1439fd0a707e8559b56b6d67e1055b335b8eec",
+      "bytes": 140033,
       "important_count": 1387,
-      "route_scope_count": 773
+      "route_scope_count": 742
     },
     {
       "path": "routes/financial.css",
       "layer": "routes",
       "responsibility": "financial",
       "concern": "financial",
-      "sha256": "5f97222dd18f19fe48e9e54af7f337bca94a48e9543ebc6d2e1ef4de918f5ec1",
-      "bytes": 8472,
+      "sha256": "e431d27f13ea947e1c8a5f759192fb83bb89b9a8cb26f1007a452eacb6de8d7e",
+      "bytes": 8448,
       "important_count": 2,
-      "route_scope_count": 73
+      "route_scope_count": 72
     },
     {
       "path": "routes/global-reauth.css",
       "layer": "routes",
       "responsibility": "global reauth",
       "concern": "global-reauth",
-      "sha256": "1c282eda11ae35288ec8109aa4fedc9ccf4d99390d584672358b6bfecd237718",
-      "bytes": 199,
+      "sha256": "5950ad8d0e27273399a24258fa9787a85f3578edb202eac34cac83442232b460",
+      "bytes": 171,
       "important_count": 0,
-      "route_scope_count": 3
+      "route_scope_count": 2
     },
     {
       "path": "routes/leads.css",
       "layer": "routes",
       "responsibility": "leads",
       "concern": "leads",
-      "sha256": "dfd209579237cee4dc8409d856967ed326d66c734933807a6df44e82f1597be8",
-      "bytes": 4167,
+      "sha256": "3323585397526d32d685bd75b03b9633dfe67fd83763fa9cc7a3945ee81a6c8b",
+      "bytes": 4123,
       "important_count": 0,
-      "route_scope_count": 31
+      "route_scope_count": 29
     },
     {
       "path": "routes/onboarding.css",
@@ -219,20 +220,20 @@
       "layer": "routes",
       "responsibility": "painel",
       "concern": "painel",
-      "sha256": "efe40d195b4ef5ebeb5966504d39e08bc68ede9653e18ebc51f3edee486c8f43",
-      "bytes": 11405,
+      "sha256": "fcaa5f8afc3ce2ed3a8bc137365aaa7491f30d5b6dfd3e78f70a485065e20454",
+      "bytes": 10968,
       "important_count": 148,
-      "route_scope_count": 104
+      "route_scope_count": 87
     },
     {
       "path": "routes/patient.css",
       "layer": "routes",
       "responsibility": "patient",
       "concern": "patient",
-      "sha256": "346710687aa73b1afbfeb59e3d40e46e21c79e4270f26d207716700211d5fdda",
-      "bytes": 13666,
+      "sha256": "1e7b7f80448d691750f8103de8ddd0ae11be816a99aa891fb369724a6181407f",
+      "bytes": 13358,
       "important_count": 168,
-      "route_scope_count": 81
+      "route_scope_count": 69
     },
     {
       "path": "routes/procedures.css",
@@ -2120,10 +2121,10 @@
       "order": 201,
       "source": "routes/appointments.css",
       "offset": 0,
-      "bytes": 37722,
-      "sha256": "17d4ac3f2391f75c17428ea5af4300ca66ef6c055e960491b91f2079df47d791",
+      "bytes": 37305,
+      "sha256": "711c032e7e6c948c3fe8313e06275f33fb67adb82dee4c5c02627c1cfaef37fb",
       "important_count": 471,
-      "route_scope_count": 220
+      "route_scope_count": 206
     },
     {
       "order": 202,
@@ -2263,7 +2264,7 @@
     {
       "order": 217,
       "source": "routes/appointments.css",
-      "offset": 37722,
+      "offset": 37305,
       "bytes": 4004,
       "sha256": "84fc677270e8ba5d663bc8eaa19d23ddeafeb3243aac7ee866e59d66ddfc9d8f",
       "important_count": 42,
@@ -3361,7 +3362,7 @@
     {
       "order": 339,
       "source": "routes/appointments.css",
-      "offset": 41726,
+      "offset": 41309,
       "bytes": 1354,
       "sha256": "2cae032f46de9eb7a2112aacfdd2a9bd6c3f539a3af260bf36f1559cace7b4df",
       "important_count": 33,
@@ -3460,7 +3461,7 @@
     {
       "order": 350,
       "source": "routes/appointments.css",
-      "offset": 43080,
+      "offset": 42663,
       "bytes": 6225,
       "sha256": "348c532562e1ed6ccb293ad684bad84c056c4923ebef777e9b068d7ec6ade33a",
       "important_count": 101,
@@ -3478,7 +3479,7 @@
     {
       "order": 352,
       "source": "routes/appointments.css",
-      "offset": 49305,
+      "offset": 48888,
       "bytes": 2396,
       "sha256": "f7456dc059bfd3e556711be3e471d7e61056d10c2cacb9a3a7ecf5e993880360",
       "important_count": 29,
@@ -3496,7 +3497,7 @@
     {
       "order": 354,
       "source": "routes/appointments.css",
-      "offset": 51701,
+      "offset": 51284,
       "bytes": 4148,
       "sha256": "44d52e230953dbdee08fdd543133288f613a2101464eac158d5bff4eb8a12e57",
       "important_count": 33,
@@ -3514,7 +3515,7 @@
     {
       "order": 356,
       "source": "routes/appointments.css",
-      "offset": 55849,
+      "offset": 55432,
       "bytes": 594,
       "sha256": "87eeb1430100dac5c68342fd69085201b69aa97ac6c304217a428325d1ab5686",
       "important_count": 8,
@@ -3541,7 +3542,7 @@
     {
       "order": 359,
       "source": "routes/appointments.css",
-      "offset": 56443,
+      "offset": 56026,
       "bytes": 1166,
       "sha256": "a093a2e89d106e5975db9927e88b4b434629ee0fe01198abe2231cac0da251db",
       "important_count": 9,
@@ -3568,7 +3569,7 @@
     {
       "order": 362,
       "source": "routes/appointments.css",
-      "offset": 57609,
+      "offset": 57192,
       "bytes": 4610,
       "sha256": "8c56eeaf82ac70b619f1feefd98742eb7f73cd858e1c70d44ed4786ff28f116c",
       "important_count": 69,
@@ -3586,7 +3587,7 @@
     {
       "order": 364,
       "source": "routes/appointments.css",
-      "offset": 62219,
+      "offset": 61802,
       "bytes": 1309,
       "sha256": "895c9095a08500225c6b7f1b8af3bd652ecf8a563e976a02bb7242be748f83dc",
       "important_count": 10,
@@ -3694,11 +3695,11 @@
     {
       "order": 376,
       "source": "routes/appointments.css",
-      "offset": 63528,
-      "bytes": 10691,
-      "sha256": "bad8902e9e8b9db81c56aec079e29de33e326c4089df554e6bee5f6523bd5a61",
+      "offset": 63111,
+      "bytes": 10597,
+      "sha256": "0d2611b6c02f6259556a39a7eb940ed74484ea60fcb8ffc8842aa2776ae2642c",
       "important_count": 111,
-      "route_scope_count": 63
+      "route_scope_count": 60
     },
     {
       "order": 377,
@@ -3712,11 +3713,11 @@
     {
       "order": 378,
       "source": "routes/appointments.css",
-      "offset": 74219,
-      "bytes": 15413,
-      "sha256": "b3702e98ceb36fece464868de94e973e13714bf0afa03d773f912e656952c391",
+      "offset": 73708,
+      "bytes": 15265,
+      "sha256": "1200d92a792b0e727ddfa13aee2f06e795a6d70b6eb2cfe11b51d213fde2feca",
       "important_count": 239,
-      "route_scope_count": 85
+      "route_scope_count": 80
     },
     {
       "order": 379,
@@ -6772,7 +6773,7 @@
     {
       "order": 718,
       "source": "routes/appointments.css",
-      "offset": 89632,
+      "offset": 88973,
       "bytes": 732,
       "sha256": "dfc460128607aff6dab6c24e3b79feb4cce7cde47e199b1bdc1ab596f8f5949b",
       "important_count": 1,
@@ -6790,11 +6791,11 @@
     {
       "order": 720,
       "source": "routes/appointments.css",
-      "offset": 90364,
-      "bytes": 9379,
-      "sha256": "283d347def0b6fad30e711096c51c6ac5573f64f8584c8bc3643188f4c0aca41",
+      "offset": 89705,
+      "bytes": 9351,
+      "sha256": "adff48ac5df1c19c8586c7ee92e903950e1c0890fa25b6014280e3fd2682ff50",
       "important_count": 85,
-      "route_scope_count": 43
+      "route_scope_count": 42
     },
     {
       "order": 721,
@@ -6808,7 +6809,7 @@
     {
       "order": 722,
       "source": "routes/appointments.css",
-      "offset": 99743,
+      "offset": 99056,
       "bytes": 3441,
       "sha256": "e9f4e8b28bb48ea0ee463bfa912b8391a38ac25dd15983ea6b2f0bdc107e1d68",
       "important_count": 18,
@@ -6826,7 +6827,7 @@
     {
       "order": 724,
       "source": "routes/appointments.css",
-      "offset": 103184,
+      "offset": 102497,
       "bytes": 6228,
       "sha256": "9e2810ec789adb872e5595ea7f63bd8ec0e7a9206727a4f2797c3c4a7bfcc203",
       "important_count": 26,
@@ -7735,7 +7736,7 @@
     {
       "order": 825,
       "source": "routes/appointments.css",
-      "offset": 109412,
+      "offset": 108725,
       "bytes": 5697,
       "sha256": "cd8535bc7056201ff62cb596e9c0c7c801487b65ec3194469a7612ec80412cc0",
       "important_count": 8,
@@ -7852,7 +7853,7 @@
     {
       "order": 838,
       "source": "routes/appointments.css",
-      "offset": 115109,
+      "offset": 114422,
       "bytes": 9065,
       "sha256": "4e0914d87125aeb824a3e3a529ebfe71da922bf41daa237a339d5973b7666855",
       "important_count": 3,
@@ -7879,7 +7880,7 @@
     {
       "order": 841,
       "source": "routes/appointments.css",
-      "offset": 124174,
+      "offset": 123487,
       "bytes": 920,
       "sha256": "74af262e61f4da7d7dd986f920488febf46a282127d9cdf85dd7e3dbce889405",
       "important_count": 0,
@@ -7906,11 +7907,11 @@
     {
       "order": 844,
       "source": "routes/appointments.css",
-      "offset": 125094,
-      "bytes": 545,
-      "sha256": "4e5127b5023e57f48c8e04f6e0f11b256618343726e5326f8e279800129cdce6",
+      "offset": 124407,
+      "bytes": 517,
+      "sha256": "b7223f900815559b38067060c3a5e3b7ea3d23bff1427727a25f6729fb9ea851",
       "important_count": 0,
-      "route_scope_count": 5
+      "route_scope_count": 4
     },
     {
       "order": 845,
@@ -7924,11 +7925,11 @@
     {
       "order": 846,
       "source": "routes/appointments.css",
-      "offset": 125639,
-      "bytes": 10535,
-      "sha256": "9fd63950a696c5d09506f156e6daac52ce5a5d272edb4aebc9320bd976e64332",
+      "offset": 124924,
+      "bytes": 10341,
+      "sha256": "48aa6036f845e072d5e2b8ca9fa4c82c56f8eb89e16a964ac5b9fe9c9342f175",
       "important_count": 37,
-      "route_scope_count": 88
+      "route_scope_count": 82
     },
     {
       "order": 847,
@@ -8113,7 +8114,7 @@
     {
       "order": 867,
       "source": "routes/appointments.css",
-      "offset": 136174,
+      "offset": 135265,
       "bytes": 2073,
       "sha256": "891a1b91f7f8a177f4c2c3a0019d6ef0862884028dd3694c35802db103ccf894",
       "important_count": 19,
@@ -8185,11 +8186,11 @@
     {
       "order": 875,
       "source": "routes/appointments.css",
-      "offset": 138247,
-      "bytes": 1111,
-      "sha256": "ae1165af07ada4e15269eab474d312987c8c180c5e67c501fc0e5872e494966d",
+      "offset": 137338,
+      "bytes": 1083,
+      "sha256": "c7225d00d41b6db369d87ee5da2bacf42f7e6d0af27aa0438a386bb077e05293",
       "important_count": 15,
-      "route_scope_count": 8
+      "route_scope_count": 7
     },
     {
       "order": 876,
@@ -8330,10 +8331,10 @@
       "order": 891,
       "source": "routes/financial.css",
       "offset": 0,
-      "bytes": 3321,
-      "sha256": "bc849762a93a17c6776008e73d2c3fa60e5d32ad525ff74ff7e1789ee60671f2",
+      "bytes": 3297,
+      "sha256": "c2e7e1b1673b623a12e334ad78d7fc3bcc9725d1c3d161092d96d0b83c8edc1c",
       "important_count": 2,
-      "route_scope_count": 27
+      "route_scope_count": 26
     },
     {
       "order": 892,
@@ -8653,7 +8654,7 @@
     {
       "order": 927,
       "source": "routes/financial.css",
-      "offset": 3321,
+      "offset": 3297,
       "bytes": 5151,
       "sha256": "e7f25ee58362076f9e6e846c64e8fb60901a9d673136f96a22555e5da11fdf79",
       "important_count": 0,
@@ -8662,7 +8663,7 @@
     {
       "order": 928,
       "source": "routes/appointments.css",
-      "offset": 139358,
+      "offset": 138421,
       "bytes": 1612,
       "sha256": "22b47b5a5b2fbc9299218c2a8f7662f1b778d3eb4920403c6a01550a53c45bd6",
       "important_count": 20,
@@ -8708,10 +8709,10 @@
       "order": 933,
       "source": "routes/leads.css",
       "offset": 0,
-      "bytes": 4167,
-      "sha256": "dfd209579237cee4dc8409d856967ed326d66c734933807a6df44e82f1597be8",
+      "bytes": 4123,
+      "sha256": "3323585397526d32d685bd75b03b9633dfe67fd83763fa9cc7a3945ee81a6c8b",
       "important_count": 0,
-      "route_scope_count": 31
+      "route_scope_count": 29
     },
     {
       "order": 934,
@@ -8897,19 +8898,19 @@
       "order": 954,
       "source": "routes/patient.css",
       "offset": 2531,
-      "bytes": 11135,
-      "sha256": "1fe55cf695df5d566fb03330982aac5b1ecc61bc42e03494d2f0bdff2ad2eeb1",
+      "bytes": 10827,
+      "sha256": "d010614a001abb7dd3d19a373d866fe61ccebc71bdcadd1d0ff63f607b217008",
       "important_count": 165,
-      "route_scope_count": 69
+      "route_scope_count": 57
     },
     {
       "order": 955,
       "source": "routes/painel.css",
       "offset": 0,
-      "bytes": 11405,
-      "sha256": "efe40d195b4ef5ebeb5966504d39e08bc68ede9653e18ebc51f3edee486c8f43",
+      "bytes": 10968,
+      "sha256": "fcaa5f8afc3ce2ed3a8bc137365aaa7491f30d5b6dfd3e78f70a485065e20454",
       "important_count": 148,
-      "route_scope_count": 104
+      "route_scope_count": 87
     },
     {
       "order": 956,
@@ -9734,10 +9735,10 @@
       "order": 1047,
       "source": "routes/global-reauth.css",
       "offset": 0,
-      "bytes": 199,
-      "sha256": "1c282eda11ae35288ec8109aa4fedc9ccf4d99390d584672358b6bfecd237718",
+      "bytes": 171,
+      "sha256": "5950ad8d0e27273399a24258fa9787a85f3578edb202eac34cac83442232b460",
       "important_count": 0,
-      "route_scope_count": 3
+      "route_scope_count": 2
     },
     {
       "order": 1048,
@@ -9956,9 +9957,9 @@
     "alias_required_until_runtime_urls_are_migrated": true
   },
   "artifact_contract": {
-    "sha256": "a4830722348b137f737d48a3b489cce6230eabf39e41fceb243135e36acb331c",
-    "bytes": 810039,
-    "lines": 15183,
+    "sha256": "aa5306df961bd3be603726114b8dfd7825954c3f43b6549defca53bbe0166ab4",
+    "bytes": 808261,
+    "lines": 15121,
     "deterministic_source_required": true
   },
   "observable_ux_contract": {

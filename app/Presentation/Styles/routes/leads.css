@@ -72,8 +72,7 @@ body[data-route="leads"] .lead-ds-section-head > span:first-child{
   background:var(--md-sys-color-surface-container-high);
   color:var(--md-sys-color-primary);
 }
-body[data-route="leads"] .lead-ds-form-grid,
-body[data-route="leads"] .lead-ds-extra-grid{
+body[data-route="leads"] :is(.lead-ds-form-grid,.lead-ds-extra-grid){
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
   gap:12px;
@@ -112,8 +111,7 @@ body[data-route="leads"] .lead-search.patient-search-bar .ghost{
 @media(max-width:640px){
   body[data-route="leads"] .lead-new-screen-card.card,
   body[data-route="leads"] .lead-ds-new-card.card{padding:14px;border-radius:24px;}
-  body[data-route="leads"] .lead-ds-intro,
-  body[data-route="leads"] .lead-ds-form-section{padding:12px;border-radius:22px;}
+  body[data-route="leads"] :is(.lead-ds-intro,.lead-ds-form-section){padding:12px;border-radius:22px;}
   body[data-route="leads"] .lead-ds-intro{align-items:start;}
   body[data-route="leads"] .lead-ds-create-form > .form-actions{align-items:stretch;}
   body[data-route="leads"] .lead-ds-create-form > .form-actions > *{flex:1 1 auto;}

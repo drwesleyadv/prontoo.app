@@ -24,6 +24,7 @@ foreach ($iterator as $file) {
 $selectors = [];
 $routeOverrides = 0;
 $duplicateSelectorListEntries = 0;
+$factorableRouteScopeGroups = 0;
 $splitSelectorList = static function (string $selector): array {
     $parts = [];
     $current = '';
@@ -89,6 +90,20 @@ if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
                 }
             }
         }
+        if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
+            $routeGroups = [];
+            foreach ($splitSelectorList($selector) as $selectorPart) {
+                $normalizedPart = preg_replace('/\s+/', ' ', trim($selectorPart));
+                if (is_string($normalizedPart) && preg_match('/^(body\[data-route="[^"]+"\])\s+(\.[A-Za-z_][A-Za-z0-9_-]*)$/', $normalizedPart, $routeMatch)) {
+                    $routeGroups[(string) $routeMatch[1]] = (int) ($routeGroups[(string) $routeMatch[1]] ?? 0) + 1;
+                }
+            }
+            foreach ($routeGroups as $routeGroupCount) {
+                if ($routeGroupCount >= 2) {
+                    $factorableRouteScopeGroups++;
+                }
+            }
+        }
         if (is_string($selector) && str_contains($selector, 'body[data-route=') && str_contains($selector, '.pagehead-control') && preg_match('/(^|;)\s*(min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:/i', (string) $match[2])) {
             $routeOverrides++;
         }
@@ -102,6 +117,7 @@ $metrics = [
     'route_scope_count' => substr_count($css, 'body[data-route='),
     'duplicate_selector_headers' => count(array_filter($selectors, static fn(int $count): bool => $count > 1)),
     'duplicate_selector_list_entries' => $duplicateSelectorListEntries,
+    'factorable_route_scope_groups' => $factorableRouteScopeGroups,
     'legacy_primary_small_cmdlike_inputs' => substr_count($php, 'primary small cmdlike'),
     'legacy_pagehead_actions_css' => substr_count($css, '.pagehead-actions'),
     'legacy_pagehead_operations_css' => substr_count($css, '.pagehead-operations'),

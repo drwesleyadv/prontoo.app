@@ -1,2 +1,2 @@
 body[data-route="global_reauth"] main#conteudo{width:100%}
-body[data-route="global_reauth"] .pagehead,body[data-route="global_reauth"] .security-reauth-card{width:min(780px,100%);margin-inline:auto}
+body[data-route="global_reauth"] :is(.pagehead,.security-reauth-card){width:min(780px,100%);margin-inline:auto}
