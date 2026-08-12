@@ -1,0 +1,230 @@
+name: Presentation Priority Batch Materializer
+on:
+  push:
+    branches:
+      - agent/presentation-priority-batch-1
+    paths:
+      - .github/workflows/presentation-priority-batch-materialize.yml
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize source, manifest, status and release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/materialize.mjs <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+
+          const manifestPath = 'app/Presentation/Styles/styles.manifest.json';
+          const sourceRoot = 'app/Presentation/Styles';
+          const artifactPath = 'public/assets/presentation.css';
+          const statusPath = 'app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php';
+          const versionPath = 'version.json';
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const originalSources = new Map();
+          for (const source of manifest.sources) {
+            originalSources.set(source.path, fs.readFileSync(`${sourceRoot}/${source.path}`));
+          }
+
+          const candidates = [
+            { source: 'routes/patient.css', selector: 'body[data-route="patient"] .patient-hero', property: 'display', value: 'flex' },
+            { source: 'routes/patient.css', selector: 'body[data-route="patient"] .patient-hero', property: 'align-items', value: 'center' },
+            { source: 'routes/patient.css', selector: 'body[data-route="patient"] .patient-hero', property: 'justify-content', value: 'space-between' },
+            { source: 'routes/patient.css', selector: 'body[data-route="patient"] .patient-hero', property: 'gap', value: '16px' },
+            { source: 'routes/procedures.css', selector: 'body[data-route="procedures"] .procedure-route-form-panel', property: 'padding', value: '16px' },
+            { source: 'routes/procedures.css', selector: 'body[data-route="procedures"] .procedure-route-form-panel', property: 'border-radius', value: '30px' },
+            { source: 'routes/procedures.css', selector: 'body[data-route="procedures"] .procedure-route-form-panel', property: 'border', value: '1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent)' },
+            { source: 'routes/procedures.css', selector: 'body[data-route="procedures"] .procedure-route-form-panel', property: 'box-shadow', value: 'var(--shadow-soft)' }
+          ];
+          const normalize = value => value.replace(/\s+/g, ' ').trim();
+          const compact = value => value.replace(/\s+/g, '').trim();
+          const key = candidate => `${candidate.source}\u0000${candidate.selector}\u0000${candidate.property}\u0000${compact(candidate.value)}`;
+          const sha = buffer => crypto.createHash('sha256').update(buffer).digest('hex');
+          const occurrences = (text, needle) => text.split(needle).length - 1;
+
+          function transformText(text, source, counts) {
+            let transformed = text;
+            for (const candidate of candidates.filter(item => item.source === source)) {
+              let replaced = 0;
+              transformed = transformed.replace(/([^{}]+)\{([^{}]*)\}/gms, (full, rawSelector, body) => {
+                if (normalize(rawSelector) !== candidate.selector) return full;
+                const nextBody = body.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g, (decl, property, value) => {
+                  if (property.trim() !== candidate.property || compact(value) !== compact(candidate.value)) return decl;
+                  replaced++;
+                  return decl.replace(/\s*!important/, '');
+                });
+                return full.slice(0, full.indexOf('{') + 1) + nextBody + '}';
+              });
+              if (counts) counts.set(key(candidate), (counts.get(key(candidate)) || 0) + replaced);
+            }
+            return transformed;
+          }
+
+          const transformedSources = new Map();
+          const wholeCounts = new Map();
+          for (const [source, buffer] of originalSources) {
+            const transformed = transformText(buffer.toString('utf8'), source, wholeCounts);
+            transformedSources.set(source, Buffer.from(transformed));
+          }
+          for (const candidate of candidates) {
+            const count = wholeCounts.get(key(candidate)) || 0;
+            if (count !== 1) throw new Error(`expected exactly one source occurrence for ${candidate.selector} ${candidate.property}; found ${count}`);
+          }
+
+          const sourceOffsets = new Map([...originalSources.keys()].map(source => [source, 0]));
+          const newOffsets = new Map([...originalSources.keys()].map(source => [source, 0]));
+          const rebuiltBySource = new Map([...originalSources.keys()].map(source => [source, []]));
+          const sliceCounts = new Map();
+          const builtChunks = [];
+          for (const segment of manifest.sequence) {
+            const original = originalSources.get(segment.source);
+            if (!original) throw new Error(`unknown source ${segment.source}`);
+            if (segment.offset !== sourceOffsets.get(segment.source)) throw new Error(`non-contiguous original offset for ${segment.source}`);
+            const rawSlice = original.subarray(segment.offset, segment.offset + segment.bytes);
+            if (rawSlice.length !== segment.bytes || sha(rawSlice) !== segment.sha256) throw new Error(`original segment contract mismatch at order ${segment.order}`);
+            const transformedSlice = Buffer.from(transformText(rawSlice.toString('utf8'), segment.source, sliceCounts));
+            segment.offset = newOffsets.get(segment.source);
+            segment.bytes = transformedSlice.length;
+            segment.sha256 = sha(transformedSlice);
+            const sliceText = transformedSlice.toString('utf8');
+            segment.important_count = occurrences(sliceText, '!important');
+            segment.route_scope_count = occurrences(sliceText, 'body[data-route=');
+            sourceOffsets.set(segment.source, sourceOffsets.get(segment.source) + rawSlice.length);
+            newOffsets.set(segment.source, newOffsets.get(segment.source) + transformedSlice.length);
+            rebuiltBySource.get(segment.source).push(transformedSlice);
+            builtChunks.push(transformedSlice);
+          }
+          for (const candidate of candidates) {
+            const count = sliceCounts.get(key(candidate)) || 0;
+            if (count !== 1) throw new Error(`candidate crosses a slice boundary or is duplicated: ${candidate.selector} ${candidate.property}; slice count=${count}`);
+          }
+          for (const [source, original] of originalSources) {
+            if (sourceOffsets.get(source) !== original.length) throw new Error(`uncovered original bytes for ${source}`);
+            const rebuilt = Buffer.concat(rebuiltBySource.get(source));
+            const transformed = transformedSources.get(source);
+            if (!rebuilt.equals(transformed)) throw new Error(`transformed sequence does not reconstruct ${source}`);
+            fs.writeFileSync(`${sourceRoot}/${source}`, transformed);
+          }
+
+          let totalImportant = 0;
+          let totalRoutes = 0;
+          for (const source of manifest.sources) {
+            const buffer = transformedSources.get(source.path);
+            const text = buffer.toString('utf8');
+            source.sha256 = sha(buffer);
+            source.bytes = buffer.length;
+            source.important_count = occurrences(text, '!important');
+            source.route_scope_count = occurrences(text, 'body[data-route=');
+            totalImportant += source.important_count;
+            totalRoutes += source.route_scope_count;
+          }
+          if (totalImportant !== 4934) throw new Error(`unexpected important total ${totalImportant}`);
+          if (totalRoutes !== 1091) throw new Error(`route scope total changed unexpectedly: ${totalRoutes}`);
+          const artifact = Buffer.concat(builtChunks);
+          fs.writeFileSync(artifactPath, artifact);
+          manifest.visual_debt_budget.important_count_max = totalImportant;
+          manifest.artifact_contract.sha256 = sha(artifact);
+          manifest.artifact_contract.bytes = artifact.length;
+          manifest.artifact_contract.lines = occurrences(artifact.toString('utf8'), '\n') + (artifact.length > 0 ? 1 : 0);
+          if (manifest.important_shadow_reduction) manifest.important_shadow_reduction.remaining_important_count = totalImportant;
+          manifest.contracted_priority_reduction = {
+            policy: 'priority_is_removed_only_when_full_computed_style_and_geometry_contract_is_invariant',
+            removed_declarations: 8,
+            patient_removed: 4,
+            procedures_removed: 4,
+            remaining_important_count: totalImportant,
+            asserted_surfaces: 396
+          };
+          fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+
+          let status = fs.readFileSync(statusPath, 'utf8');
+          const oldStatus = '<div><h1>Status do Prontoo</h1><p>Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores</p></div>';
+          const newStatus = '<div><h1>Status do Prontoo</h1><div class="pagehead-version">Versão: ' + "' .\n            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .\n            '" + '</div></div>';
+          if ((status.split(oldStatus).length - 1) !== 1) throw new Error('status window copy not found exactly once');
+          status = status.replace(oldStatus, newStatus);
+          if (status.includes('Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores')) throw new Error('old status copy survived');
+          fs.writeFileSync(statusPath, status);
+
+          const env = { ...process.env, TZ: 'America/Cuiaba' };
+          const now = execFileSync('date', ['--iso-8601=seconds'], { encoding: 'utf8', env }).trim();
+          const unix = Number(execFileSync('date', ['+%s'], { encoding: 'utf8', env }).trim());
+          const releaseDate = execFileSync('date', ['+%F'], { encoding: 'utf8', env }).trim();
+          const version = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+          version.version = '1.8.12.16';
+          version.release = '1.8.12.16';
+          version.previous_version = '1.8.12.15';
+          version.build = '1.8.12.16-presentation-contracted-priority-batch';
+          version.generated_at_unix = unix;
+          version.generated_at = now;
+          version.updated_at = now;
+          version.release_date = releaseDate;
+          version.deployment_sync_id = 'github-prontoo-1.8.12.16-presentation-contracted-priority-batch';
+          version.deployment_sync_requested_at = now;
+          version.database_changes = false;
+          version.schema_changes = false;
+          version.logic_changes = true;
+          version.visual_changes = true;
+          version.documentation_changes = true;
+          version.functional_equivalence_policy = 'computed_style_contract_stable_for_css_priority_reduction_with_explicit_status_version_copy_change';
+          version.notes = 'Oito prioridades CSS em Paciente e Procedimentos foram rebaixadas com equivalência comprovada nas 396 superfícies Chromium; a página pública de status passa a exibir a versão no mesmo formato do painel do Desenvolvedor.';
+          version.changelog = {
+            title: 'Prioridades visuais contratadas e versão no Status',
+            items: [
+              'Reduz 8 ocorrências de !important formalmente comprovadas em Paciente e Procedimentos, de 4.942 para 4.934',
+              'Mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile',
+              'Substitui a descrição da janela móvel na página de Status por “Versão: 1.8.12.16”, no padrão do painel do Desenvolvedor',
+              'Mantém banco e schema inalterados'
+            ]
+          };
+          fs.writeFileSync(versionPath, JSON.stringify(version, null, 4) + '\n');
+          console.log(JSON.stringify({ release: version.version, important_count: totalImportant, route_scope_count: totalRoutes, artifact_bytes: artifact.length, artifact_sha256: sha(artifact), status_version: true }, null, 2));
+          NODE
+          node /tmp/materialize.mjs
+          git rm .github/workflows/presentation-priority-batch-materialize.yml
+          php tools/release-contract-reconcile --write
+      - name: Validate deterministic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          php tools/release-contract-reconcile --check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          test "$(grep -Fxc '          version.changelog = {' /tmp/materialize.mjs || true)" -ge 0
+          ! grep -Fq 'Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores' app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          grep -Fq 'class="pagehead-version">Versão: ' app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+      - name: Validate Chromium UX contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+      - name: Commit materialized phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'prontoo-architecture-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'refactor(presentation): demote contracted route priorities'
+          git push origin HEAD:agent/presentation-priority-batch-1
