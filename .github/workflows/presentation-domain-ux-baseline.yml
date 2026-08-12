@@ -1,0 +1,91 @@
+name: Presentation Domain UX Baseline Materializer
+on:
+  push:
+    branches: [agent/presentation-domain-ux-coverage]
+    paths:
+      - .github/workflows/presentation-domain-ux-baseline.yml
+permissions:
+  contents: write
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-domain-ux-coverage
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize expanded UX baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --write
+          node tools/presentation-ux-contract.mjs --check
+          php tools/presentation-ux-baseline-check
+          python3 - <<'PY'
+          import json
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          manifest_path='app/Presentation/Styles/styles.manifest.json'
+          manifest=json.load(open(manifest_path))
+          observable=manifest.setdefault('observable_ux_contract', {})
+          observable.update({
+              'required': True,
+              'baseline': 'app/presentation.ux-baseline.json',
+              'workflow': '.github/workflows/presentation-ux.yml',
+              'policy': 'computed_style_and_geometry_must_not_drift_without_explicit_product_change',
+              'policy_version': 'presentation-computed-style-ux-v2',
+              'scenario_count': 12,
+              'target_count': 33,
+              'asserted_surfaces': 396,
+              'covered_routes': ['appointments','financial','patient','procedures'],
+          })
+          with open(manifest_path,'w') as f:
+              json.dump(manifest,f,indent=2,ensure_ascii=False); f.write('\n')
+
+          version_path='version.json'
+          data=json.load(open(version_path))
+          now=datetime.now(ZoneInfo('America/Cuiaba')).replace(microsecond=0)
+          data['version']='1.8.12.15'
+          data['release']='1.8.12.15'
+          data['generated_at_unix']=int(now.timestamp())
+          data['generated_at']=now.isoformat()
+          data['updated_at']=now.isoformat()
+          data['build']='1.8.12.15-presentation-domain-ux-coverage'
+          data['previous_version']='1.8.12.14'
+          data['database_changes']=False
+          data['schema_changes']=False
+          data['logic_changes']=True
+          data['visual_changes']=False
+          data['functional_equivalence_policy']='expand_observable_ux_contract_without_changing_published_css'
+          data['notes']='Contrato Chromium ampliado para 12 cenários e 33 superfícies, incluindo Financeiro, Paciente e Procedimentos em desktop/mobile; CSS publicado permanece inalterado.'
+          data['deployment_sync_id']='github-prontoo-1.8.12.15-presentation-domain-ux-coverage'
+          data['deployment_sync_requested_at']=now.isoformat()
+          with open(version_path,'w') as f:
+              json.dump(data,f,indent=4,ensure_ascii=False); f.write('\n')
+          PY
+          rm -rf node_modules
+          git rm -f .github/workflows/presentation-domain-ux-baseline.yml
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+          git add -A
+          git diff --cached --check
+          git commit -m "test(presentation): expand observable UX coverage by domain"
+          git push origin HEAD:agent/presentation-domain-ux-coverage
