@@ -48,25 +48,25 @@ body.public.has-top-shell main{
 }
 
 body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
-  padding-block-end:0!important;
+  
 }
 body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo{
   min-height:auto!important;
   padding-block-end:0!important;
 }
 body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
-  min-height:0!important;
-  height:auto!important;
-  flex:0 0 auto!important;
-  margin-block-end:0!important;
-  padding-block-end:0!important;
+  
+  
+  
+  
+  
   align-content:start!important;
 }
 body.has-seq-footer:not([data-route="appointments"]) .seq-footer{
   --pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));
   margin-block-start:0!important;
-  padding-block-start:var(--pt-seq-footer-gap)!important;
-  padding-block-end:var(--pt-seq-footer-gap)!important;
+  
+  
 }
 body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
   min-height:0!important;
@@ -227,12 +227,12 @@ body.scope-global{
     radial-gradient(circle at 94% 10%,rgba(226,244,232,.58) 0,transparent 320px),
     linear-gradient(180deg,#f8fdf9,#f2faf4 440px,#f7faf6)!important;
 }
-body.scope-global .global-compact-summary{display:grid!important;align-items:stretch!important;gap:14px!important;padding:16px!important;border-radius:24px!important;}
+body.scope-global .global-compact-summary{align-items:stretch!important;padding:16px!important;border-radius:24px!important;}
 body.scope-global .global-pill-title{display:flex;align-items:center;gap:8px;color:var(--md-sys-color-on-surface);font-weight:900;}
 body.scope-global .global-pill-title .material-symbols-rounded{color:#238763!important;}
-body.scope-global .global-pill-list{gap:8px!important;}
-body.scope-global .global-compact-pill{min-height:64px!important;padding:10px 12px!important;border-radius:18px!important;}
-body.scope-global .global-compact-pill b{font:var(--md-sys-typescale-title-small)!important;font-weight:900!important;color:var(--md-sys-color-on-surface)!important;}
+body.scope-global .global-pill-list{}
+body.scope-global .global-compact-pill{min-height:64px!important;padding:10px 12px!important;}
+body.scope-global .global-compact-pill b{font-weight:900!important;color:var(--md-sys-color-on-surface)!important;}
 body.scope-global .global-compact-pill span{font:var(--md-sys-typescale-body-small)!important;color:var(--md-sys-color-on-surface-variant)!important;}
 body.scope-global .global-performance-charts{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))!important;gap:14px!important;}
 body.scope-global .section-head.admin-performance-head{align-items:end;}
@@ -248,7 +248,7 @@ body.scope-global .global-compact-summary{
   gap:16px!important;
 }
 body.scope-global .global-pill-list{
-  display:grid!important;
+  
   grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))!important;
 }
 body.scope-global .global-compact-pill{
@@ -256,7 +256,7 @@ body.scope-global .global-compact-pill{
   display:grid!important;
   grid-template-columns:auto minmax(0,1fr)!important;
   grid-template-rows:auto auto auto!important;
-  align-items:center!important;
+  
   column-gap:10px!important;
   row-gap:0!important;
 }
@@ -296,7 +296,7 @@ body.public[data-route="login"].has-top-shell main#conteudo{
 body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{
   width:50px!important;
   height:50px!important;
-  border-radius:18px!important;
+  
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
 body.public[data-route="login"] .login-boot{
@@ -356,7 +356,7 @@ body.public[data-route="login"] .auth-footer .ghost{
 
 
 
-body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{width:52px!important;height:52px!important;border-radius:18px!important;background:transparent!important;}
+body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{border-radius:18px!important;}
 
 
 
