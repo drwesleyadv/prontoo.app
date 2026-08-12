@@ -1,6 +1,6 @@
 body[data-route="procedures"] .procedure-route-card.card{
-  max-width:min(100%,1040px)!important;
-  margin-inline:auto!important;
+  max-width:min(100%,1040px);
+  margin-inline:auto;
 }
 body[data-route="procedures"] .procedure-route-form-panel{
   position:relative;
@@ -108,8 +108,8 @@ body[data-route="procedures"] .procedure-route-summary small{
   letter-spacing:.045em!important;
 }
 body[data-route="procedures"] .procedure-route-form{
-  display:grid!important;
-  gap:12px!important;
+  display:grid;
+  gap:12px;
   margin:0!important;
   padding:0!important;
 }
