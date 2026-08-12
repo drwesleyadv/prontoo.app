@@ -1,0 +1,1 @@
+body[data-route="settings"] .pagehead-controls--navigation .pagehead-control--nav[href*="tab=perfil"] span:not(.material-symbols-rounded):not(.pt-icon-glyph)::before{content:""}

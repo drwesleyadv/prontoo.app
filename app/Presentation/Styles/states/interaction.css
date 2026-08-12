@@ -1,0 +1,443 @@
+body.is-read-only{--pt-pagehead-control-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary));--pt-pagehead-control-on-accent:var(--clinic-identity-on-readonly,var(--md-sys-color-on-secondary));--pt-pagehead-control-hover:var(--clinic-identity-readonly-hover,color-mix(in srgb,var(--pt-pagehead-control-accent) 88%,#000));--pt-pagehead-control-container:color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest));--pt-pagehead-control-on-container:color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018);}
+a:hover{text-decoration:none;color:var(--md-ref-palette-primary30)}
+button[disabled],.disabled,.is-disabled{cursor:not-allowed;opacity:.56;filter:saturate(.72)}:focus-visible{outline:0;box-shadow:var(--pt-focus-ring)!important}.skip-link:focus{transform:none}
+
+
+.brand:hover{color:var(--md-sys-color-on-surface)}.top-icon:hover,.notify-link:hover,.logout:hover{background:var(--state-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant));color:var(--md-sys-color-primary)}.role:hover,.cmd:hover{background:var(--state-hover);color:var(--md-sys-color-primary)}.role.active,.role.is-active,.role[aria-current],.cmd.active,.cmd.is-active,.cmd[aria-current]{background:var(--md-sys-color-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent);color:var(--md-sys-color-on-primary-container);box-shadow:none}.role.active .material-symbols-rounded,.role.is-active .material-symbols-rounded,.role[aria-current] .material-symbols-rounded,.cmd.active .material-symbols-rounded,.cmd.is-active .material-symbols-rounded,.cmd[aria-current] .material-symbols-rounded{font-variation-settings:"FILL" 1,"wght" 600,"GRAD" 0,"opsz" 24}.cmd:not(.active):not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.cmd-count){display:none}
+.primary:hover,button.primary:hover,a.primary:hover{background:var(--md-ref-palette-primary30);color:var(--md-sys-color-on-primary);box-shadow:var(--md-sys-elevation-level2)}.ghost:hover,button.ghost:hover,a.ghost:hover,.cmdlike:hover{background:var(--state-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant));color:var(--md-sys-color-primary)}.danger:hover,button.danger:hover{background:#93000a;color:#fff;box-shadow:var(--md-sys-elevation-level2)}button[disabled],.primary[disabled],.ghost[disabled]{background:var(--md-sys-color-surface-container);color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 62%,transparent);border-color:var(--md-sys-color-outline-variant);box-shadow:none;opacity:1}.card:hover,[class$="-card"]:where(a,button):hover{box-shadow:var(--md-sys-elevation-level1)}.stat-link:hover{background:var(--md-sys-color-secondary-container);text-decoration:none}
+
+
+input:hover,select:hover,textarea:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 2%,var(--md-sys-color-surface-container-lowest));border-color:var(--md-sys-color-outline)}input:focus,select:focus,textarea:focus{background:var(--md-sys-color-surface-container-lowest);border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring),inset 0 1px 0 rgba(255,255,255,.7)}input[readonly],textarea[readonly],select[readonly],input:disabled,textarea:disabled,select:disabled{background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface-variant);border-color:var(--md-sys-color-outline-variant);opacity:1}.checkline:hover,.role-check:hover,.permission-toggle:hover,.procedure-toggle:hover,.work-day-row:hover,.check:hover,.install-check:hover{background:var(--state-hover)}
+
+
+tbody tr:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))}
+
+
+.ds-filter-chip.is-active,.patient-filter-chip.is-active,.task-filter.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
+
+
+.titem:hover,.compact-audit:hover,.notice-minimal-row:hover,.reception-row:hover,.patient-card-row:hover,.guardian-row:hover,.lead-list-item:hover,.task-card:hover,.procedure-card:hover,.doc-history-row:hover,.finance-row:hover,.notice-gmail-row:hover,.collaborator-card-row:hover,.account-env-option:hover,.clinic-choice:hover,.credential-choice:hover,.clinic-admin-row:hover,.maestro-rule-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.signup-step.is-active,.wizard-progress .is-active{background:#d9f0df;color:#0b3322;border-color:rgba(45,111,85,.16)}.patient-tab-radio.is-active,.patient-new-tab-btn.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.is-open{z-index:90}.read-only-locked-form button:disabled .material-symbols-rounded,.read-only-locked-form button:disabled .pt-icon-glyph{color:currentColor!important}.clinic-menu-item:hover,.clinic-menu-form button:hover{background:var(--state-hover);color:var(--md-sys-color-primary)}
+
+
+.password-toggle:hover{background:var(--state-hover);color:var(--md-sys-color-primary)}.patient-suggest-option:hover,.counterparty-suggest-option:hover{background:var(--state-hover)}.credential-choice:hover,.clinic-choice:hover{transform:translateY(-1px);background:var(--pt-row-hover)}.admin-tile:hover,.stat-link:hover,.global-compact-pill:hover{background:var(--pt-row-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,var(--md-sys-color-outline-variant))}.reception-row:hover,.manager-action:hover{background:var(--pt-row-hover)}.doc-tool:hover{background:var(--state-hover);color:var(--md-sys-color-primary)}.notice-minimal-row:hover,.ds-notice-row:hover{background:var(--pt-row-hover)}.role-permission-tab.is-active,.role-permission-tab[aria-current]{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.inline-link:hover{background:var(--state-hover);text-decoration:none}
+.account-env-option:hover{background:var(--state-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant))}.account-env-item-form.is-active .account-env-option,.account-env-option.active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent)}
+
+
+.seq-footer-chip:is(:hover,:focus-visible){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 30%,var(--md-sys-color-outline-variant));
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 86%,var(--md-sys-color-primary) 14%);
+  box-shadow:0 1px 0 rgba(255,255,255,.82) inset,0 10px 24px rgba(28,42,34,.08);
+}
+.top form.logout:hover,
+.top form.logout:focus-within{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.top .logout-icon:hover,
+.top .logout-icon:focus-visible{
+  background:color-mix(in srgb,var(--md-sys-color-error) 8%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-error) 22%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-error)!important;
+  box-shadow:var(--pt-focus-ring-soft,0 0 0 3px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent))!important;
+}
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within) .seq-footer-label{
+  max-width:9.5rem!important;
+  margin-inline-end:7px!important;
+  opacity:1!important;
+  transform:translateX(0)!important;
+}
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+}
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::after,
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::before{
+  opacity:1;
+  transform:translate(-50%,0) rotate(0deg);
+}
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::before{
+  transform:translate(-50%,0) rotate(45deg);
+}
+:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,.clinic-actions-summary,.clinic-menu-item,.patient-new-tab-btn,.task-filter,.ds-filter-chip,.patient-filter-chip):where(:hover,:focus-visible){
+  text-decoration:none!important;
+}
+:where(.primary,.ghost,.danger,.danger-soft,.cmdlike)[disabled] .material-symbols-rounded,
+:where(button[disabled],.disabled,.is-disabled) .material-symbols-rounded{
+  opacity:.72!important;
+}
+
+
+.cmd:not(.active):not(.is-active):not([aria-current]) .material-symbols-rounded{margin-inline:0!important;}
+.manager-mini-grid > span:hover,.manager-procedure-list > span:hover,.finance-account-cards > article:hover{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 6%,var(--md-sys-color-surface-container-lowest));
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+}
+
+
+.manager-action:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 6%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant));transform:translateY(-1px);box-shadow:var(--md-sys-elevation-level1);}
+.finance-balance-kpis > .finance-balance-card:hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
+  background:
+    radial-gradient(circle at 0 0,color-mix(in srgb,var(--md-sys-color-primary) 15%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 89%,var(--md-sys-color-primary) 6%));
+  box-shadow:var(--md-sys-elevation-level2);
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span):where(:hover,:focus-visible){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  background:
+    radial-gradient(circle at 0 0,color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 90%,var(--md-sys-color-primary) 5%))!important;
+  box-shadow:var(--md-sys-elevation-level2)!important;
+  text-decoration:none!important;
+}
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row):where(:hover,:focus-within){
+  border-left-color:var(--md-sys-color-primary)!important;
+}
+
+
+
+.cmdbar .cmd.active,
+.cmdbar .cmd.is-active,
+.cmdbar .cmd[aria-current]{
+  width:auto!important;
+  min-width:42px!important;
+  max-width:min(58vw, 220px)!important;
+  padding-inline:12px!important;
+  gap:8px!important;
+  justify-content:center!important;
+}
+.cmdbar .cmd.active > span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+.cmdbar .cmd.is-active > span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+.cmdbar .cmd[aria-current] > span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+  display:inline-flex!important;
+  align-items:center!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.doc-issued-row:hover,.doc-ds-model-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant));transform:translateY(-1px)}.agenda-day-slot:focus-visible{outline:3px solid color-mix(in srgb,var(--md-sys-color-primary) 55%,transparent);outline-offset:-3px;border-radius:12px}.agenda-day-slot:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)}
+
+
+body:not([data-route="appointments"]) .context-floating-pending-card:hover{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant))!important;
+}
+body:not([data-route="appointments"]) .context-floating-pending-card:focus-visible,
+.pagehead-controls--navigation .pagehead-control--nav:focus-visible,
+.cmdbar .cmd:focus-visible{
+  outline:none!important;
+  box-shadow:var(--pt-focus-ring),var(--md-sys-elevation-level2)!important;
+}
+main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pill-section,.finance-drawer-admin-card,[data-ds-card-kind="card"]):hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--pt-ds-surface-line))!important;
+  background:var(--pt-ds-surface-bg-hover)!important;
+  box-shadow:var(--pt-ds-surface-shadow-hover)!important;
+}
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--pt-ds-surface-line))!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))!important;
+  box-shadow:0 8px 22px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset!important;
+}
+body.scope-global .cmdbar .cmd.active,
+body.scope-global .pagehead .pagehead-control--nav.is-active,
+body.scope-global .pagehead-control--nav:hover,
+body.scope-global .cmdbar .cmd:hover{
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-on-primary-container)!important;
+  border-color:rgba(45,111,85,.16)!important;
+}
+body.scope-global :where(.admin-tile,.global-compact-pill,.stat-link):hover{
+  transform:translateY(-1px)!important;
+  background:linear-gradient(180deg,#ffffff,#f1faf4)!important;
+  border-color:rgba(45,111,85,.22)!important;
+  box-shadow:0 16px 38px rgba(26,62,43,.075),0 1px 0 rgba(255,255,255,.76) inset!important;
+}
+body.scope-global :where(.admin-tile:hover,.stat-link:hover,.global-compact-pill:hover) > .material-symbols-rounded{
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-on-primary-container)!important;
+  font-variation-settings:"FILL" 1,"wght" 640,"GRAD" 0,"opsz" 24!important;
+}
+.clinic-attention-item:hover{border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,var(--md-sys-color-outline-variant));box-shadow:0 1px 0 rgba(255,255,255,.84) inset,0 14px 30px rgba(15,23,42,.07);}
+.activity-load-sentinel.is-loading::after{content:"Carregando mais atividades…";font:var(--md-sys-typescale-label-small);}
+}
+
+
+body.is-read-only .readonly-scope-note{display:none!important}
+
+body.is-read-only .read-only-locked-form::after{content:none!important;display:none!important}
+
+
+.subscription-pix-copy:hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant));
+  background:color-mix(in srgb,var(--md-sys-color-primary) 6%,var(--md-sys-color-surface-container-low));
+}
+body.scope-global .clinic-attention-item.ds-clinic-card:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.88) inset,0 18px 38px rgba(15,23,42,.08)!important;
+}
+body.scope-global .clinic-attention-item.ds-clinic-list-item:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,var(--md-sys-color-outline-variant))!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 16px 32px rgba(15,23,42,.075)!important;
+}
+.sector-card:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-low));box-shadow:var(--md-sys-elevation-level1);}
+.sector-option-card:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--md-sys-color-primary) 28%,transparent);outline-offset:2px;}
+.account-env-card .account-env-option:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low));border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant));box-shadow:var(--md-sys-elevation-level1)}
+.account-env-card .account-env-option[disabled]{opacity:1;cursor:default}
+.account-env-card .account-env-item-form.is-active .account-env-option,.account-env-card .account-env-option.active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset}
+.account-mfa-panel.is-active{background:color-mix(in srgb,var(--md-sys-color-primary-container) 24%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}
+.mfa-manual-setup summary:focus-visible,.account-mfa-management summary:focus-visible{outline:0;box-shadow:var(--pt-focus-ring);border-radius:8px}
+body.public .signup-ds-stepper li.is-active{
+  background:var(--md-sys-color-primary-container);
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent);
+  color:var(--md-sys-color-on-primary-container);
+}
+body.public .signup-ds-stepper li.is-active b,
+body.public .signup-ds-stepper li.is-complete b{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 16%,#fff);
+  color:var(--md-sys-color-primary);
+}
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .lead-filter-chips .lead-chip,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-on-primary-container)!important;
+  border-color:transparent!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
+}
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .lead-filter-chips .lead-chip,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(:hover,:focus-visible){
+  color:var(--md-sys-color-on-surface)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant))!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary-container) 22%,var(--md-sys-color-surface-container-lowest))!important;
+  text-decoration:none!important;
+}
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
+  color:var(--md-sys-color-on-primary-container)!important;
+  border-color:transparent!important;
+  background:var(--md-sys-color-primary-container)!important;
+}
+.ds-person-row:hover,
+.ds-patient-row:hover,
+.patient-card-row:hover{
+  background:var(--pt-row-hover)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  box-shadow:var(--md-sys-elevation-level1),0 1px 0 rgba(255,255,255,.72) inset!important;
+  transform:translateY(-1px)!important;
+}
+.ds-person-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible),
+.patient-card-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible){
+  background:color-mix(in srgb,var(--pt-patient-action-bg) 86%,#000 14%)!important;
+  color:var(--pt-patient-action-fg)!important;
+  border-color:color-mix(in srgb,var(--pt-patient-action-bg) 72%,#000 28%)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-primary) 24%,transparent),0 8px 18px color-mix(in srgb,var(--pt-patient-action-bg) 24%,transparent)!important;
+}
+.ds-person-actions > :where(a.primary.small,button.primary.small):active,
+.patient-card-actions > :where(a.primary.small,button.primary.small):active{
+  transform:translateY(1px)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset!important;
+}
+.patient-tab-nav label:hover{background:var(--state-hover);color:var(--md-sys-color-on-surface)}.patient-tab-nav label.is-active,.patient-tab-nav label[aria-selected="true"]{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 14%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 22%,transparent);color:var(--clinic-accent-strong,var(--md-sys-color-primary))}.patient-tab-nav label:focus-visible{outline:0;box-shadow:var(--pt-focus-ring)}.patient-tab-nav label.is-active em,.patient-tab-nav label[aria-selected="true"] em{background:var(--clinic-accent-strong,var(--md-sys-color-primary));color:#fff}.lead-history.lead-history-compact article:hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-story:hover{background:var(--md-sys-color-surface-container,var(--surface-container,#f1f5f9));border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary,#166534)) 20%,var(--md-sys-color-outline-variant,#e2e8f0))}
+.doc-stage-item:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,var(--md-sys-color-outline-variant));transform:translateY(-1px)}
+.doc-stage-item.is-active{background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 36%,var(--md-sys-color-outline-variant));box-shadow:0 1px 0 rgba(255,255,255,.78) inset,0 12px 26px color-mix(in srgb,var(--md-sys-color-primary) 10%,transparent)}
+.doc-template-card .task-details>summary:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))}
+.doc-tool.is-active{
+  background:var(--md-sys-color-primary-container);
+  color:var(--md-sys-color-on-primary-container);
+}
+.doc-editor:focus{
+  box-shadow:0 0 0 3px var(--md-sys-color-primary-container);
+}
+.doc-ds-row:hover,
+.doc-issued-row:hover,
+.doc-model-row:hover{
+  background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 4%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 18%,var(--md-sys-color-outline-variant))!important;
+  transform:translateY(-1px);
+}
+.doc-tool:hover{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 8%,transparent);color:var(--clinic-accent-strong,var(--md-sys-color-primary))}
+.doc-tool.is-active{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 13%,var(--md-sys-color-surface-container-lowest))!important;color:var(--clinic-accent-strong,var(--md-sys-color-primary))!important}
+.doc-field-token-button:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 6%,var(--md-sys-color-surface-container-lowest))!important;border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 20%,var(--md-sys-color-outline-variant))!important}
+.top .logout-icon,
+.top .logout-icon:where(:not(:hover):not(:focus-visible)){
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.top .logout-icon:hover,
+.top .logout-icon:focus-visible{
+  background:color-mix(in srgb,var(--md-sys-color-error) 7%,transparent)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-error) 18%,transparent)!important;
+}
+body.scope-global .clinic-menu-item:hover,
+body.scope-global .clinic-menu-form button:hover,
+body.scope-global .clinic-menu-panel[open] > .clinic-menu-panel-summary{
+  background:var(--md-sys-color-surface-container-low)!important;
+}
+body.scope-global .clinic-actions-close:hover,
+body.scope-global .clinic-actions-close:focus-visible{
+  color:var(--md-sys-color-primary)!important;
+  background:var(--md-sys-color-primary-container)!important;
+}
+body.scope-global dialog.clinic-actions-modal .clinic-actions-close:hover,
+body.scope-global dialog.clinic-actions-modal .clinic-actions-close:focus-visible{
+  background:var(--state-hover)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-primary)!important;
+  box-shadow:var(--pt-focus-ring)!important;
+}
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item:hover,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft):hover,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item:focus-visible,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft):focus-visible{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-primary)!important;
+  box-shadow:var(--pt-focus-ring)!important;
+}
+.settings-ds-screen :where(.field input:focus,.field select:focus,.field textarea:focus){box-shadow:var(--pt-focus-ring);border-color:color-mix(in srgb,var(--md-sys-color-primary) 50%,var(--md-sys-color-outline-variant));}
+.procedure-ds-card:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-low));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));box-shadow:var(--md-sys-elevation-level1);}
+.permission-role-block:hover{background:var(--md-sys-color-surface-container-low);transform:translateY(-1px)}
+.permission-role-block.is-active{background:var(--md-sys-color-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,transparent);color:var(--md-sys-color-on-primary-container)}
+.permission-role-block.is-active .permission-role-icon{background:color-mix(in srgb,var(--md-sys-color-on-primary-container) 10%,transparent);color:var(--md-sys-color-on-primary-container)}
+.permission-role-block.is-active .permission-role-copy small{color:inherit;opacity:.78}
+.agenda-action-item:hover{background:var(--state-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 32%,var(--md-sys-color-outline-variant));text-decoration:none}.finance-attention-item:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface-container-low));}
+.finance-consolidation-footer button[disabled]{opacity:.62;cursor:not-allowed;filter:saturate(.75)}.top form.logout:hover,.top form.logout:focus-within{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
+.top .logout-icon,.top .logout-icon:where(:not(:hover):not(:focus-visible)){
+  width:42px!important;min-width:42px!important;height:42px!important;padding:0 12px!important;
+  border-radius:var(--md-sys-shape-corner-large)!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;
+  color:var(--md-sys-color-on-surface-variant)!important;box-shadow:none!important;
+}
+.top .logout-icon:hover,.top .logout-icon:focus-visible{
+  background:var(--state-hover)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-primary)!important;
+}
+.patient-tab-icon-symbol-grid .patient-health-icon-only:hover .patient-tab-icon-symbol{
+  color:var(--clinic-accent-strong,var(--md-sys-color-primary));
+  border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 28%,transparent);
+  background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 8%,var(--md-sys-color-surface-container-lowest));
+}
+.patient-tab-icon-symbol-grid .patient-health-icon-only:focus-within{outline:0;box-shadow:var(--pt-focus-ring);}
+.collaborator-card-row.ds-collaborator-row:hover{transform:translateY(-1px);box-shadow:var(--md-sys-elevation-level1);}
+.activity-timeline.ds-activity-list .titem:hover{
+  background:var(--pt-row-hover)!important;
+}
+.reception-pending:hover{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+  text-decoration:none;
+}
+.pt-entity-row:hover{background:var(--pt-ds-surface-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));transform:translateY(-1px)}:where(.ds-person-row,.patient-card-row,.finance-row,.activity-row,.notice-row,.task-row,.procedure-row,.creditor-row,.employee-row):hover{background:var(--pt-ds-surface-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));transform:translateY(-1px)}
+body.scope-global .admin-alert-filters .ds-filter-chip.is-active{
+  color:var(--md-sys-color-on-primary-container);
+  background:var(--md-sys-color-primary-container);
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent);
+}
+body.scope-global .admin-alert-row:hover .admin-alert-open-icon{
+  transform:translateX(2px);
+}
+.mfa-secret code:focus,.recovery-code-list code:focus{outline:0;box-shadow:var(--pt-focus-ring)}
+.pagehead-control--primary:hover{background:var(--pt-pagehead-control-hover);color:var(--pt-pagehead-control-on-accent);box-shadow:var(--md-sys-elevation-level1)}
+.pagehead-control--secondary:hover{background:color-mix(in srgb,var(--pt-pagehead-control-hover) 10%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-control-hover);border-color:color-mix(in srgb,var(--pt-pagehead-control-hover) 34%,var(--md-sys-color-outline-variant))}
+.pagehead-control--nav:hover{background:color-mix(in srgb,var(--pt-pagehead-control-hover) 8%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-control-hover)}
+.pagehead-control--nav.is-active,.pagehead-control--nav[aria-current]{background:var(--pt-pagehead-control-container);color:var(--pt-pagehead-control-on-container);border-color:transparent}
+.pagehead-control--nav.is-active .material-symbols-rounded,.pagehead-control--nav[aria-current] .material-symbols-rounded{font-variation-settings:"FILL" 1,"wght" 650,"GRAD" 0,"opsz" 24}
+.pagehead-control--danger:hover{background:#93000a;color:#fff;box-shadow:var(--md-sys-elevation-level1)}
