@@ -1,12 +1,12 @@
 {
-    "version": "1.8.12.10",
+    "version": "1.8.12.11",
     "policy": "presentation-pagehead-control-primitive-v2",
     "architecture_scope": "presentation_ui_adapter_contract",
     "reference": {
-        "previous_release": "1.8.12.9",
-        "previous_visual_reference": "surgical_selector_list_deduplication",
-        "visual_reference": "route_scope_factorization_v1",
-        "functional_equivalence": "route_guard_and_specificity_preserved_plus_computed_style_geometry_baseline_stable"
+        "previous_release": "1.8.12.10",
+        "previous_visual_reference": "route_scope_factorization_v1",
+        "visual_reference": "exact_duplicate_rule_elimination_v1",
+        "functional_equivalence": "later_identical_rule_retained_in_same_context_plus_computed_style_geometry_baseline_stable"
     },
     "primitive": {
         "renderer": "Prontoo\\Presentation\\UiComponents\\PageHeadControlPresentationOperations01",
@@ -50,32 +50,6 @@
     ],
     "metrics": {
         "before": {
-            "css_lines": 15183,
-            "css_nonblank_lines": 14399,
-            "css_bytes": 810039,
-            "important_count": 5083,
-            "route_scope_count": 1171,
-            "duplicate_selector_headers": 715,
-            "legacy_primary_small_cmdlike_inputs": 14,
-            "legacy_pagehead_actions_css": 0,
-            "legacy_pagehead_operations_css": 0,
-            "legacy_operation_chip_css": 0,
-            "legacy_pagehead_actions_js": 0,
-            "pagehead_action_alias_tokens": 0,
-            "canonical_control_css_rules": 1,
-            "canonical_primary_css_rules": 1,
-            "canonical_secondary_css_rules": 1,
-            "canonical_nav_css_rules": 1,
-            "canonical_danger_css_rules": 1,
-            "canonical_renderer_runtime_calls": 2,
-            "renderer_lines": 112,
-            "runtime03_lines": 449,
-            "runtime03_dead_operation_menu": 0,
-            "route_pagehead_identity_overrides": 0,
-            "duplicate_selector_list_entries": 0,
-            "factorable_route_scope_groups": 42
-        },
-        "after": {
             "css_lines": 15121,
             "css_nonblank_lines": 14337,
             "css_bytes": 808261,
@@ -101,13 +75,39 @@
             "duplicate_selector_list_entries": 0,
             "factorable_route_scope_groups": 0
         },
+        "after": {
+            "css_lines": 15121,
+            "css_nonblank_lines": 14337,
+            "css_bytes": 807695,
+            "important_count": 5083,
+            "route_scope_count": 1107,
+            "duplicate_selector_headers": 711,
+            "legacy_primary_small_cmdlike_inputs": 14,
+            "legacy_pagehead_actions_css": 0,
+            "legacy_pagehead_operations_css": 0,
+            "legacy_operation_chip_css": 0,
+            "legacy_pagehead_actions_js": 0,
+            "pagehead_action_alias_tokens": 0,
+            "canonical_control_css_rules": 1,
+            "canonical_primary_css_rules": 1,
+            "canonical_secondary_css_rules": 1,
+            "canonical_nav_css_rules": 1,
+            "canonical_danger_css_rules": 1,
+            "canonical_renderer_runtime_calls": 2,
+            "renderer_lines": 112,
+            "runtime03_lines": 449,
+            "runtime03_dead_operation_menu": 0,
+            "route_pagehead_identity_overrides": 0,
+            "duplicate_selector_list_entries": 0,
+            "factorable_route_scope_groups": 0
+        },
         "delta": {
-            "css_lines": -62,
-            "css_nonblank_lines": -62,
-            "css_bytes": -1778,
+            "css_lines": 0,
+            "css_nonblank_lines": 0,
+            "css_bytes": -566,
             "important_count": 0,
-            "route_scope_count": -64,
-            "duplicate_selector_headers": 0,
+            "route_scope_count": 0,
+            "duplicate_selector_headers": -4,
             "legacy_primary_small_cmdlike_inputs": 0,
             "legacy_pagehead_actions_css": 0,
             "legacy_pagehead_operations_css": 0,
@@ -125,7 +125,7 @@
             "runtime03_dead_operation_menu": 0,
             "route_pagehead_identity_overrides": 0,
             "duplicate_selector_list_entries": 0,
-            "factorable_route_scope_groups": -42
+            "factorable_route_scope_groups": 0
         }
     },
     "exact": {
@@ -146,7 +146,7 @@
     "debt_budget": {
         "important_count": 5083,
         "route_scope_count": 1107,
-        "duplicate_selector_headers": 715,
+        "duplicate_selector_headers": 711,
         "legacy_primary_small_cmdlike_inputs": 14,
         "runtime03_lines": 449,
         "duplicate_selector_list_entries": 0,
@@ -156,8 +156,8 @@
         "artifact": "public/assets/presentation.css",
         "retired_artifact": "public/assets/design-system.css",
         "migration_reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
-        "current_sha256": "aa5306df961bd3be603726114b8dfd7825954c3f43b6549defca53bbe0166ab4",
-        "current_bytes": 808261,
+        "current_sha256": "f017fbb6cc9d9af9d3fb1479b714ab097bae890a6f682e948c337b18a04eaae0",
+        "current_bytes": 807695,
         "deterministic_source": true,
         "observable_ux_contract": "app/presentation.ux-baseline.json",
         "byte_identical_to_migration_reference": false
