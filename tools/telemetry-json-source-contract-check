@@ -33,6 +33,52 @@ $assert(
     str_contains($admin3, '$variations["landing_requests_pct"]'),
     'card Landing Page deixou de consumir total e comparação canônicos',
 );
+$assert(
+    str_contains($admin3, 'telemetry-kpi-card') &&
+    str_contains($admin3, 'telemetry-kpi-value') &&
+    !str_contains($admin3, 'admin_telemetry_variation_note') &&
+    !str_contains($admin3, '15 dias móveis') &&
+    !str_contains($admin3, 'vs. 15 dias anteriores'),
+    'cards de telemetria perderam a apresentação minimalista da variação',
+);
+$assert(
+    str_contains($admin6, 'admin_telemetry_kpi_cards_html(true)') &&
+    str_contains($admin3, 'admin_telemetry_kpi_cards_html()'),
+    'Painel do Desenvolvedor e Status devem compartilhar o renderer minimalista dos KPIs',
+);
+$positiveTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(12.34);
+$negativeTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(-8.0);
+$neutralTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(0.0);
+$missingTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(null);
+$assert(
+    str_contains($positiveTrend, 'is-positive') &&
+    str_contains($positiveTrend, '▲') &&
+    str_contains($positiveTrend, '12,3%') &&
+    !str_contains($positiveTrend, '+12'),
+    'variação positiva deve ser compacta, azul e precedida por triângulo para cima',
+);
+$assert(
+    str_contains($negativeTrend, 'is-negative') &&
+    str_contains($negativeTrend, '▼') &&
+    str_contains($negativeTrend, '8%') &&
+    !str_contains($negativeTrend, '-8'),
+    'variação negativa deve ser compacta, vermelha e precedida por triângulo para baixo',
+);
+$assert(
+    str_contains($neutralTrend, 'is-neutral') &&
+    str_contains($neutralTrend, '0%') &&
+    !str_contains($neutralTrend, '▲') &&
+    !str_contains($neutralTrend, '▼') &&
+    $missingTrend === '',
+    'variação neutra/não comparável deve permanecer minimalista',
+);
+foreach ([
+    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
+    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',
+    'top:-.28em',
+] as $trendCssToken) {
+    $assert(str_contains($css, $trendCssToken), 'CSS minimalista dos KPIs divergente: ' . $trendCssToken);
+}
 $loadAreaPos = strpos($presentation3, '$loadArea =');
 $responseAreaPos = strpos($presentation3, '$responseArea =');
 $fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');
@@ -80,4 +126,4 @@ $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_con
 foreach ([$admin2, $admin3, $admin9, $login] as $source) {
     $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
 }
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $visualToken, $opacityToken, $token, $source);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $trendCssToken, $visualToken, $opacityToken, $token, $source);

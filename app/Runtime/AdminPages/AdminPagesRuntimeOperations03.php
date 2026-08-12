@@ -60,17 +60,25 @@ final class AdminPagesRuntimeOperations03
             string $label,
             mixed $value,
             string $iconName,
-            string $note,
+            ?float $variation,
         ) use ($linked): string {
+            $trend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge($variation);
+            $inner =
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
+                '<div><div class="telemetry-kpi-value">' .
+                $trend .
+                "<b>" .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
+                "</b></div><span>" .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
+                "</span></div>";
             return $linked
-                ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
-                    $label,
-                    $value,
-                    $iconName,
-                    $note,
-                    "admin_performance",
-                )
-                : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card($label, $value, $iconName, $note);
+                ? '<a class="stat-card stat-link telemetry-kpi-card" href="' .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_performance") .
+                    '">' .
+                    $inner .
+                    "</a>"
+                : '<article class="stat-card telemetry-kpi-card">' . $inner . "</article>";
         };
         $averageMs = isset($current["average_ms"])
             ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms((float) $current["average_ms"])
@@ -83,39 +91,31 @@ final class AdminPagesRuntimeOperations03
             "Visualizações",
             max(0, (int) ($current["requests"] ?? 0)),
             "route",
-            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
-                isset($variations["requests_pct"])
-                    ? (float) $variations["requests_pct"]
-                    : null,
-            ),
+            isset($variations["requests_pct"])
+                ? (float) $variations["requests_pct"]
+                : null,
         ) .
             $card(
                 "Tempo médio das rotas",
                 $averageMs,
                 "speed",
-                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
-                    isset($variations["average_ms_pct"])
-                        ? (float) $variations["average_ms_pct"]
-                        : null,
-                ),
+                isset($variations["average_ms_pct"])
+                    ? (float) $variations["average_ms_pct"]
+                    : null,
             ) .
             $card(
                 "Registros",
                 (int) ($recordComparison["current_total"] ?? 0),
                 "database",
-                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
-                    $recordVariation,
-                ),
+                $recordVariation,
             ) .
             $card(
                 "Landing Page",
                 max(0, (int) ($current["landing_requests"] ?? 0)),
                 "language",
-                \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_note(
-                    isset($variations["landing_requests_pct"])
-                        ? (float) $variations["landing_requests_pct"]
-                        : null,
-                ),
+                isset($variations["landing_requests_pct"])
+                    ? (float) $variations["landing_requests_pct"]
+                    : null,
             );
     }
 
