@@ -1,0 +1,126 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$contract = json_decode((string) file_get_contents($root . '/app/presentation.visual-contract.json'), true, 512, JSON_THROW_ON_ERROR);
+$version = json_decode((string) file_get_contents($root . '/version.json'), true, 512, JSON_THROW_ON_ERROR);
+$css = (string) file_get_contents($root . '/public/assets/design-system.css');
+$php = '';
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
+foreach ($iterator as $file) {
+    if ($file instanceof SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
+        $php .= (string) file_get_contents($file->getPathname());
+    }
+}
+$identityPattern = '/(^|;)\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:/i';
+$routeIdentity = 0;
+$legacyDirectIdentity = 0;
+$selectorCounts = [];
+if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
+    foreach ($matches as $match) {
+        $selector = preg_replace('/\s+/', ' ', trim((string) $match[1]));
+        $declarations = (string) $match[2];
+        if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
+            $selectorCounts[$selector] = ($selectorCounts[$selector] ?? 0) + 1;
+        }
+        if (str_contains((string) $selector, 'body[data-route=') && preg_match('/\.pagehead-actions\s+(?:[>+~]|\.)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
+            $routeIdentity++;
+        }
+        if (preg_match('/\.pagehead-actions\s*>\s*(?:a|button|summary)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
+            $legacyDirectIdentity++;
+        }
+    }
+}
+$metrics = [
+    'lines' => substr_count($css, "\n") + 1,
+    'nonblank_lines' => count(array_filter(explode("\n", $css), static fn(string $line): bool => trim($line) !== '')),
+    'bytes' => strlen($css),
+    'important_count' => substr_count($css, '!important'),
+    'route_scope_count' => substr_count($css, 'body[data-route='),
+    'duplicate_selector_headers' => count(array_filter($selectorCounts, static fn(int $count): bool => $count > 1)),
+    'legacy_primary_small_cmdlike' => substr_count($php, 'primary small cmdlike'),
+    'pagehead_route_identity_overrides' => $routeIdentity,
+    'pagehead_legacy_direct_identity_overrides' => $legacyDirectIdentity,
+    'doc_pagehead_primary_overrides' => substr_count($css, '.doc-page-actions .primary{'),
+    'pagehead_ds_action_overrides' => substr_count($css, '.pagehead-actions .ds-pagehead-action{'),
+    'canonical_pagehead_geometry_rules' => substr_count($css, '.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-height)'),
+];
+$required = [
+    '--md-ref-palette-primary40: var(--clinic-accent,#2f6652)',
+    '--md-sys-color-secondary:color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)',
+    '--pt-pagehead-action-height:34px',
+    '--pt-pagehead-action-radius:var(--md-sys-shape-corner-large)',
+    '--pt-pagehead-action-padding-block:7px',
+    '--pt-pagehead-action-padding-inline:12px',
+    '--pt-pagehead-action-gap:8px',
+    '--pt-pagehead-action-icon-size:20px',
+    '--pt-pagehead-action-mobile-height:42px',
+    '--pt-pagehead-action-mobile-padding-inline:13px',
+    '--pt-pagehead-action-font:var(--md-sys-typescale-label-medium)',
+    '--pt-pagehead-action-weight:700',
+    '--pt-pagehead-action-accent:var(--md-sys-color-primary)',
+    '--pt-pagehead-action-on-accent:var(--md-sys-color-on-primary)',
+    'body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary)',
+    '.pagehead-actions :where(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent)',
+    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent)',
+    '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}',
+];
+$failures = [];
+foreach ($required as $token) {
+    if (!str_contains($css, $token)) {
+        $failures[] = 'missing:' . $token;
+    }
+}
+if (($contract['version'] ?? '') !== ($version['version'] ?? '')) {
+    $failures[] = 'version';
+}
+$desktop = (array) (($contract['pagehead_action'] ?? [])['desktop'] ?? []);
+$mobile = (array) (($contract['pagehead_action'] ?? [])['mobile'] ?? []);
+foreach ([
+    'desktop_height' => [(int) ($desktop['min_height_px'] ?? 0), 34],
+    'desktop_radius' => [(int) ($desktop['radius_px'] ?? 0), 16],
+    'desktop_padding_block' => [(int) ($desktop['padding_block_px'] ?? 0), 7],
+    'desktop_padding_inline' => [(int) ($desktop['padding_inline_px'] ?? 0), 12],
+    'desktop_gap' => [(int) ($desktop['gap_px'] ?? 0), 8],
+    'desktop_icon' => [(int) ($desktop['icon_px'] ?? 0), 20],
+    'desktop_weight' => [(int) ($desktop['font_weight'] ?? 0), 700],
+    'mobile_height' => [(int) ($mobile['min_height_px'] ?? 0), 42],
+    'mobile_padding_inline' => [(int) ($mobile['padding_inline_px'] ?? 0), 13],
+] as $name => [$actual, $expected]) {
+    if ($actual !== $expected) {
+        $failures[] = $name . ':' . $actual . '!=' . $expected;
+    }
+}
+$budget = (array) ($contract['debt_budget'] ?? []);
+foreach ([
+    'important_count' => 'important_count_max',
+    'route_scope_count' => 'route_scope_count_max',
+    'duplicate_selector_headers' => 'duplicate_selector_headers_max',
+    'legacy_primary_small_cmdlike' => 'legacy_primary_small_cmdlike_max',
+    'pagehead_route_identity_overrides' => 'pagehead_route_identity_overrides_max',
+    'pagehead_legacy_direct_identity_overrides' => 'pagehead_legacy_direct_identity_overrides_max',
+    'doc_pagehead_primary_overrides' => 'doc_pagehead_primary_overrides_max',
+    'pagehead_ds_action_overrides' => 'pagehead_ds_action_overrides_max',
+] as $metric => $limit) {
+    if ($metrics[$metric] > (int) ($budget[$limit] ?? -1)) {
+        $failures[] = $metric . ':' . $metrics[$metric] . '>' . (int) ($budget[$limit] ?? -1);
+    }
+}
+if ($metrics['canonical_pagehead_geometry_rules'] !== (int) ($budget['canonical_pagehead_geometry_rules_exact'] ?? 1)) {
+    $failures[] = 'canonical_pagehead_geometry_rules';
+}
+fwrite(STDOUT, json_encode([
+    'ok' => $failures === [],
+    'policy' => (string) ($contract['policy'] ?? ''),
+    'version' => (string) ($version['version'] ?? ''),
+    'metrics' => $metrics,
+    'budget' => $budget,
+    'pagehead_action' => (array) ($contract['pagehead_action'] ?? []),
+    'failures' => $failures,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);
