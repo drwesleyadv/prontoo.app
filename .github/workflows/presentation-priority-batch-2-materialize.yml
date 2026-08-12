@@ -1,0 +1,219 @@
+name: Presentation Priority Batch 2 Materializer
+on:
+  push:
+    branches:
+      - agent/presentation-priority-batch-2
+    paths:
+      - .github/workflows/presentation-priority-batch-2-materialize.yml
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize exact proven batch and final release state
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > materialize-batch-2.mjs <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+          const root = process.cwd();
+          const sourceRoot = 'app/Presentation/Styles';
+          const manifestPath = `${sourceRoot}/styles.manifest.json`;
+          const artifactPath = 'public/assets/presentation.css';
+          const versionPath = 'version.json';
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const candidates = [
+            { source:'routes/patient.css', selector:'body[data-route="patient"] .patient-data-list', property:'gap', value:'8px' },
+            { source:'routes/procedures.css', selector:'body[data-route="procedures"] .procedure-route-card.card', property:'margin-inline', value:'auto' },
+            { source:'routes/patient.css', selector:'body[data-route="patient"] .patient-data-list', property:'grid-template-columns', value:'1fr' },
+            { source:'routes/procedures.css', selector:'body[data-route="procedures"] .procedure-route-card.card', property:'max-width', value:'min(100%,1040px)' },
+            { source:'routes/patient.css', selector:'body[data-route="patient"] .patient-data-list', property:'grid-template-columns', value:'repeat(auto-fit,minmax(190px,1fr))' },
+            { source:'routes/procedures.css', selector:'body[data-route="procedures"] .procedure-route-form', property:'display', value:'grid' },
+            { source:'routes/patient.css', selector:'body[data-route="patient"] .patient-hero', property:'align-items', value:'flex-start' },
+            { source:'routes/procedures.css', selector:'body[data-route="procedures"] .procedure-route-form', property:'gap', value:'12px' }
+          ];
+          const normalize = value => value.replace(/\s+/g,' ').trim();
+          const compact = value => value.replace(/\s+/g,'').trim();
+          const sha = buffer => crypto.createHash('sha256').update(buffer).digest('hex');
+          const occurrences = (text, needle) => text.split(needle).length - 1;
+          const candidateKey = c => `${c.source}\u0000${c.selector}\u0000${c.property}\u0000${compact(c.value)}`;
+          function transform(text, source, counts) {
+            let output = text;
+            for (const c of candidates.filter(item => item.source === source)) {
+              let n = 0;
+              output = output.replace(/([^{}]+)\{([^{}]*)\}/gms,(full,rawSelector,body)=>{
+                if (normalize(rawSelector)!==c.selector) return full;
+                const next = body.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g,(decl,property,value)=>{
+                  if (property.trim()!==c.property || compact(value)!==compact(c.value)) return decl;
+                  n++;
+                  return decl.replace(/\s*!important/,'');
+                });
+                return full.slice(0,full.indexOf('{')+1)+next+'}';
+              });
+              if (counts) counts.set(candidateKey(c),(counts.get(candidateKey(c))||0)+n);
+            }
+            return output;
+          }
+          const originals = new Map();
+          const transformed = new Map();
+          const wholeCounts = new Map();
+          for (const source of manifest.sources) {
+            const buffer = fs.readFileSync(`${sourceRoot}/${source.path}`);
+            originals.set(source.path,buffer);
+            transformed.set(source.path,Buffer.from(transform(buffer.toString('utf8'),source.path,wholeCounts)));
+          }
+          for (const c of candidates) if ((wholeCounts.get(candidateKey(c))||0)!==1) throw new Error(`source occurrence mismatch ${candidateKey(c)}=${wholeCounts.get(candidateKey(c))||0}`);
+          const originalOffsets = new Map([...originals.keys()].map(k=>[k,0]));
+          const newOffsets = new Map([...originals.keys()].map(k=>[k,0]));
+          const rebuilt = new Map([...originals.keys()].map(k=>[k,[]]));
+          const sliceCounts = new Map();
+          const artifactChunks = [];
+          for (const segment of manifest.sequence) {
+            const original = originals.get(segment.source);
+            if (!original || segment.offset!==originalOffsets.get(segment.source)) throw new Error(`segment offset mismatch order=${segment.order}`);
+            const raw = original.subarray(segment.offset,segment.offset+segment.bytes);
+            if (raw.length!==segment.bytes || sha(raw)!==segment.sha256) throw new Error(`segment hash mismatch order=${segment.order}`);
+            const next = Buffer.from(transform(raw.toString('utf8'),segment.source,sliceCounts));
+            segment.offset = newOffsets.get(segment.source);
+            segment.bytes = next.length;
+            segment.sha256 = sha(next);
+            const text = next.toString('utf8');
+            segment.important_count = occurrences(text,'!important');
+            segment.route_scope_count = occurrences(text,'body[data-route=');
+            originalOffsets.set(segment.source,originalOffsets.get(segment.source)+raw.length);
+            newOffsets.set(segment.source,newOffsets.get(segment.source)+next.length);
+            rebuilt.get(segment.source).push(next);
+            artifactChunks.push(next);
+          }
+          for (const c of candidates) if ((sliceCounts.get(candidateKey(c))||0)!==1) throw new Error(`slice occurrence mismatch ${candidateKey(c)}=${sliceCounts.get(candidateKey(c))||0}`);
+          let totalImportant=0,totalRoutes=0;
+          for (const source of manifest.sources) {
+            const buffer = transformed.get(source.path);
+            if (originalOffsets.get(source.path)!==originals.get(source.path).length) throw new Error(`uncovered bytes ${source.path}`);
+            if (!Buffer.concat(rebuilt.get(source.path)).equals(buffer)) throw new Error(`rebuild mismatch ${source.path}`);
+            fs.writeFileSync(`${sourceRoot}/${source.path}`,buffer);
+            const text=buffer.toString('utf8');
+            source.sha256=sha(buffer);
+            source.bytes=buffer.length;
+            source.important_count=occurrences(text,'!important');
+            source.route_scope_count=occurrences(text,'body[data-route=');
+            totalImportant+=source.important_count;
+            totalRoutes+=source.route_scope_count;
+          }
+          if (totalImportant!==4926) throw new Error(`unexpected important count ${totalImportant}`);
+          if (totalRoutes!==1091) throw new Error(`unexpected route scope count ${totalRoutes}`);
+          const artifact=Buffer.concat(artifactChunks);
+          fs.writeFileSync(artifactPath,artifact);
+          manifest.visual_debt_budget.important_count_max=4926;
+          manifest.artifact_contract.sha256=sha(artifact);
+          manifest.artifact_contract.bytes=artifact.length;
+          manifest.artifact_contract.lines=occurrences(artifact.toString('utf8'),'\n')+(artifact.length?1:0);
+          if (manifest.important_shadow_reduction) manifest.important_shadow_reduction.remaining_important_count=4926;
+          manifest.contracted_priority_reduction={
+            policy:'priority_is_removed_only_when_full_computed_style_and_geometry_contract_is_invariant',
+            removed_declarations:16,
+            patient_removed:8,
+            procedures_removed:8,
+            financial_removed:0,
+            remaining_important_count:4926,
+            asserted_surfaces:396
+          };
+          fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
+          const env={...process.env,TZ:'America/Cuiaba'};
+          const now=execFileSync('date',['--iso-8601=seconds'],{encoding:'utf8',env}).trim();
+          const unix=Number(execFileSync('date',['+%s'],{encoding:'utf8',env}).trim());
+          const releaseDate=execFileSync('date',['+%F'],{encoding:'utf8',env}).trim();
+          const version=JSON.parse(fs.readFileSync(versionPath,'utf8'));
+          version.version='1.8.12.17';
+          version.release='1.8.12.17';
+          version.previous_version='1.8.12.16';
+          version.build='1.8.12.17-presentation-contracted-priority-batch-2';
+          version.generated_at_unix=unix;
+          version.generated_at=now;
+          version.updated_at=now;
+          version.release_date=releaseDate;
+          version.deployment_sync_id='github-prontoo-1.8.12.17-presentation-contracted-priority-batch-2';
+          version.deployment_sync_requested_at=now;
+          version.database_changes=false;
+          version.schema_changes=false;
+          version.logic_changes=true;
+          version.visual_changes=false;
+          version.documentation_changes=true;
+          version.functional_equivalence_policy='computed_style_contract_stable_for_second_contracted_css_priority_reduction';
+          version.notes='Segundo lote de oito prioridades CSS em Paciente e Procedimentos rebaixado somente após prova combinada nas 396 superfícies Chromium; nenhum comportamento visual publicado foi alterado.';
+          version.changelog={title:'Segundo lote de prioridades visuais contratadas',items:[
+            'reduz mais 8 ocorrências de !important formalmente comprovadas em Paciente e Procedimentos, de 4.934 para 4.926',
+            'mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile',
+            'mantém route scopes em 1.091 sem ampliar o alcance de seletores',
+            'mantém banco e schema inalterados',
+            'ratcheta o budget de !important para 4.926 sem ampliar qualquer outro budget visual'
+          ]};
+          fs.writeFileSync(versionPath,JSON.stringify(version,null,4)+'\n');
+          console.log(JSON.stringify({release:version.version,important_count:totalImportant,route_scope_count:totalRoutes,artifact_bytes:artifact.length,artifact_sha256:sha(artifact)},null,2));
+          NODE
+          node materialize-batch-2.mjs
+          rm -f \
+            .github/workflows/presentation-priority-batch-2-audit.yml \
+            .github/workflows/presentation-priority-batch-2-audit-run.yml \
+            .github/workflows/presentation-priority-batch-2-materialize.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate final state
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+      - name: Validate full Chromium baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+      - name: Publish validated ordinary-file delta
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git diff --check
+          cat > publish-batch-2.mjs <<'NODE'
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const token=process.env.GITHUB_TOKEN, repository=process.env.GITHUB_REPOSITORY, expectedHead=process.env.GITHUB_SHA;
+          const branch='agent/presentation-priority-batch-2';
+          if(!token||!repository||!expectedHead) throw new Error('publication environment incomplete');
+          const api='https://api.github.com/repos/'+repository;
+          async function request(method,path,body){const r=await fetch(api+path,{method,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const t=await r.text();if(!r.ok)throw new Error(`${method} ${path} ${r.status}: ${t}`);return t?JSON.parse(t):{};}
+          const changed=execFileSync('git',['diff','--name-only','HEAD','--','.'],{encoding:'utf8'}).split('\n').map(v=>v.trim()).filter(Boolean);
+          const paths=[...new Set(changed)].filter(p=>!p.startsWith('.github/workflows/')).filter(p=>p!=='materialize-batch-2.mjs'&&p!=='publish-batch-2.mjs').sort();
+          if(!paths.length)throw new Error('no ordinary changes');
+          const ref=await request('GET','/git/ref/heads/'+branch);
+          if(ref.object?.sha!==expectedHead)throw new Error(`branch advanced: ${ref.object?.sha}`);
+          const parent=await request('GET','/git/commits/'+expectedHead);const entries=[];
+          for(const p of paths){const line=execFileSync('git',['ls-tree','HEAD','--',p],{encoding:'utf8'}).trim();const mode=line?line.split(/\s+/)[0]:'100644';if(!fs.existsSync(p)){entries.push({path:p,mode,type:'blob',sha:null});continue;}const blob=await request('POST','/git/blobs',{content:fs.readFileSync(p).toString('base64'),encoding:'base64'});entries.push({path:p,mode,type:'blob',sha:blob.sha});}
+          const tree=await request('POST','/git/trees',{base_tree:parent.tree.sha,tree:entries});
+          const commit=await request('POST','/git/commits',{message:'refactor(presentation): demote second contracted priority batch',tree:tree.sha,parents:[expectedHead]});
+          await request('PATCH','/git/refs/heads/'+branch,{sha:commit.sha,force:false});
+          console.log(JSON.stringify({published:true,commit:commit.sha,files:paths},null,2));
+          NODE
+          node publish-batch-2.mjs
