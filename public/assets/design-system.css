@@ -14,7 +14,7 @@
 
   
   --md-ref-palette-primary40: var(--clinic-accent,#2f6652);
-  --md-ref-palette-primary30: var(--clinic-accent-strong,var(--brand-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)));
+  --md-ref-palette-primary30: var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)));
   --md-ref-palette-neutral98:#fbfdf9;
   --md-ref-palette-neutral95:#f2f5f0;
   --md-ref-palette-neutral90:#e3e8e1;
