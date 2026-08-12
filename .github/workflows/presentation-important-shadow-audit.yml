@@ -1,0 +1,22 @@
+name: Presentation Important Shadow Audit
+on:
+  push:
+    branches: [agent/presentation-important-shadow-reduction]
+    paths:
+      - tools/presentation-important-shadow-audit
+      - .github/workflows/presentation-important-shadow-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-important-shadow-reduction
+      - name: Audit shadowed identical important declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet tinycss2
+          python3 tools/presentation-important-shadow-audit
