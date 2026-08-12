@@ -1,0 +1,22 @@
+name: Presentation Route Scope Audit
+on:
+  push:
+    branches: [agent/presentation-route-scope-factorization]
+    paths:
+      - tools/presentation-route-scope-audit
+      - .github/workflows/presentation-route-scope-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-route-scope-factorization
+      - name: Audit route-scope factorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet tinycss2
+          python3 tools/presentation-route-scope-audit
