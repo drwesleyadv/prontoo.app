@@ -19,28 +19,33 @@ if (!is_array($manifest)) {
     fwrite(STDERR, "presentation-css-build: invalid manifest\n");
     exit(1);
 }
+
 $sourceRoot = (string) ($manifest['source_root'] ?? '');
 $artifact = (string) ($manifest['artifact'] ?? '');
 $retiredArtifact = (string) ($manifest['retired_artifact'] ?? '');
-$modules = (array) ($manifest['modules'] ?? []);
 $ownershipOrder = (array) ($manifest['ownership_order'] ?? []);
 $forbiddenLayers = (array) ($manifest['forbidden_layers'] ?? []);
 $equivalence = (array) ($manifest['delivery_equivalence'] ?? []);
 $budget = (array) ($manifest['visual_debt_budget'] ?? []);
+$sources = (array) ($manifest['sources'] ?? []);
+$sequence = (array) ($manifest['sequence'] ?? []);
 $sourceConsolidated = ($manifest['source_consolidated'] ?? false) === true;
 $publicationReady = ($manifest['publication_ready'] ?? false) === true;
 $semanticDecompositionComplete = ($manifest['semantic_decomposition_complete'] ?? false) === true;
 $cascadeBandCount = (int) ($manifest['cascade_band_count'] ?? -1);
+$sourceModel = (string) ($manifest['source_model'] ?? '');
+$sourceFileLimit = (int) ($manifest['physical_source_file_count_max'] ?? -1);
+
 if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css' || $retiredArtifact !== 'public/assets/design-system.css') {
     fwrite(STDERR, "presentation-css-build: canonical paths changed\n");
     exit(1);
 }
-if (!$sourceConsolidated || !$publicationReady || !$semanticDecompositionComplete || $cascadeBandCount !== 0 || $modules === [] || $ownershipOrder === []) {
-    fwrite(STDERR, "presentation-css-build: source consolidation incomplete\n");
+if (!$sourceConsolidated || !$publicationReady || !$semanticDecompositionComplete || $cascadeBandCount !== 0 || $sourceModel !== 'semantic_owner_files_with_ordered_slices' || $sources === [] || $sequence === [] || $ownershipOrder === []) {
+    fwrite(STDERR, "presentation-css-build: semantic owner source incomplete\n");
     exit(1);
 }
-if (count(array_unique($ownershipOrder)) !== count($ownershipOrder)) {
-    fwrite(STDERR, "presentation-css-build: duplicate ownership layer\n");
+if ($sourceFileLimit < 1 || count($sources) > $sourceFileLimit || count(array_unique($ownershipOrder)) !== count($ownershipOrder)) {
+    fwrite(STDERR, "presentation-css-build: source budget or ownership invalid\n");
     exit(1);
 }
 foreach ($forbiddenLayers as $forbiddenLayer) {
@@ -49,56 +54,50 @@ foreach ($forbiddenLayers as $forbiddenLayer) {
         exit(1);
     }
 }
-$seen = [];
+
+$sourceData = [];
 $declaredCss = [];
-$built = '';
-$importantCount = 0;
-$routeScopeCount = 0;
-$expectedOrder = 1;
-foreach ($modules as $module) {
-    if (!is_array($module)) {
-        fwrite(STDERR, "presentation-css-build: invalid module entry\n");
+$sourceNextOffset = [];
+$sourceImportant = 0;
+$sourceRoutes = 0;
+foreach ($sources as $source) {
+    if (!is_array($source)) {
+        fwrite(STDERR, "presentation-css-build: invalid source entry\n");
         exit(1);
     }
-    $order = (int) ($module['order'] ?? 0);
-    $relativePath = (string) ($module['path'] ?? '');
-    $layer = (string) ($module['layer'] ?? '');
-    $expectedSha = strtolower((string) ($module['sha256'] ?? ''));
-    $expectedBytes = (int) ($module['bytes'] ?? -1);
-    $expectedImportant = (int) ($module['important_count'] ?? -1);
-    $expectedRoutes = (int) ($module['route_scope_count'] ?? -1);
-    if ($order !== $expectedOrder || $relativePath === '' || isset($seen[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {
-        fwrite(STDERR, "presentation-css-build: module order or ownership invalid\n");
+    $relativePath = (string) ($source['path'] ?? '');
+    $layer = (string) ($source['layer'] ?? '');
+    $expectedSha = strtolower((string) ($source['sha256'] ?? ''));
+    $expectedBytes = (int) ($source['bytes'] ?? -1);
+    $expectedImportant = (int) ($source['important_count'] ?? -1);
+    $expectedRoutes = (int) ($source['route_scope_count'] ?? -1);
+    if ($relativePath === '' || isset($sourceData[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {
+        fwrite(STDERR, "presentation-css-build: source ownership invalid\n");
         exit(1);
     }
-    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {
-        fwrite(STDERR, "presentation-css-build: unsafe module path\n");
+    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css') || str_contains($relativePath, 'cascade-band') || !str_starts_with($relativePath, $layer . '/')) {
+        fwrite(STDERR, "presentation-css-build: unsafe semantic source path\n");
         exit(1);
     }
-    if (str_contains($relativePath, 'cascade-band') || !str_starts_with($relativePath, $layer . '/')) {
-        fwrite(STDERR, "presentation-css-build: semantic ownership path invalid\n");
-        exit(1);
-    }
-    $modulePath = $root . '/' . $sourceRoot . '/' . $relativePath;
-    $css = file_get_contents($modulePath);
+    $sourcePath = $root . '/' . $sourceRoot . '/' . $relativePath;
+    $css = file_get_contents($sourcePath);
     if (!is_string($css)) {
-        fwrite(STDERR, "presentation-css-build: missing module {$relativePath}\n");
+        fwrite(STDERR, "presentation-css-build: missing source {$relativePath}\n");
         exit(1);
     }
-    $actualSha = hash('sha256', $css);
     $actualImportant = substr_count($css, '!important');
     $actualRoutes = substr_count($css, 'body[data-route=');
-    if (!hash_equals($expectedSha, $actualSha) || strlen($css) !== $expectedBytes || $actualImportant !== $expectedImportant || $actualRoutes !== $expectedRoutes) {
-        fwrite(STDERR, "presentation-css-build: module contract drift {$relativePath}\n");
+    if (!hash_equals($expectedSha, hash('sha256', $css)) || strlen($css) !== $expectedBytes || $actualImportant !== $expectedImportant || $actualRoutes !== $expectedRoutes) {
+        fwrite(STDERR, "presentation-css-build: source contract drift {$relativePath}\n");
         exit(1);
     }
-    $seen[$relativePath] = true;
-    $declaredCss[str_replace('\\', '/', realpath($modulePath) ?: $modulePath)] = true;
-    $built .= $css;
-    $importantCount += $actualImportant;
-    $routeScopeCount += $actualRoutes;
-    $expectedOrder++;
+    $sourceData[$relativePath] = $css;
+    $sourceNextOffset[$relativePath] = 0;
+    $sourceImportant += $actualImportant;
+    $sourceRoutes += $actualRoutes;
+    $declaredCss[str_replace('\\', '/', realpath($sourcePath) ?: $sourcePath)] = true;
 }
+
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/' . $sourceRoot, FilesystemIterator::SKIP_DOTS));
 foreach ($iterator as $file) {
     if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'css') {
@@ -106,10 +105,59 @@ foreach ($iterator as $file) {
     }
     $canonical = str_replace('\\', '/', $file->getRealPath() ?: $file->getPathname());
     if (!isset($declaredCss[$canonical])) {
-        fwrite(STDERR, "presentation-css-build: undeclared source module {$canonical}\n");
+        fwrite(STDERR, "presentation-css-build: undeclared semantic source {$canonical}\n");
         exit(1);
     }
 }
+
+$built = '';
+$sequenceImportant = 0;
+$sequenceRoutes = 0;
+$expectedOrder = 1;
+foreach ($sequence as $segment) {
+    if (!is_array($segment)) {
+        fwrite(STDERR, "presentation-css-build: invalid sequence entry\n");
+        exit(1);
+    }
+    $order = (int) ($segment['order'] ?? 0);
+    $sourcePath = (string) ($segment['source'] ?? '');
+    $offset = (int) ($segment['offset'] ?? -1);
+    $bytes = (int) ($segment['bytes'] ?? -1);
+    $expectedSha = strtolower((string) ($segment['sha256'] ?? ''));
+    $expectedImportant = (int) ($segment['important_count'] ?? -1);
+    $expectedRoutes = (int) ($segment['route_scope_count'] ?? -1);
+    if ($order !== $expectedOrder || !isset($sourceData[$sourcePath]) || $offset < 0 || $bytes < 1 || $offset !== $sourceNextOffset[$sourcePath]) {
+        fwrite(STDERR, "presentation-css-build: sequence order or coverage invalid\n");
+        exit(1);
+    }
+    $slice = substr($sourceData[$sourcePath], $offset, $bytes);
+    if (strlen($slice) !== $bytes) {
+        fwrite(STDERR, "presentation-css-build: sequence slice outside source\n");
+        exit(1);
+    }
+    $actualImportant = substr_count($slice, '!important');
+    $actualRoutes = substr_count($slice, 'body[data-route=');
+    if (!hash_equals($expectedSha, hash('sha256', $slice)) || $actualImportant !== $expectedImportant || $actualRoutes !== $expectedRoutes) {
+        fwrite(STDERR, "presentation-css-build: sequence slice drift\n");
+        exit(1);
+    }
+    $built .= $slice;
+    $sourceNextOffset[$sourcePath] += $bytes;
+    $sequenceImportant += $actualImportant;
+    $sequenceRoutes += $actualRoutes;
+    $expectedOrder++;
+}
+foreach ($sourceData as $relativePath => $css) {
+    if ($sourceNextOffset[$relativePath] !== strlen($css)) {
+        fwrite(STDERR, "presentation-css-build: semantic source has uncovered bytes {$relativePath}\n");
+        exit(1);
+    }
+}
+if ($sourceImportant !== $sequenceImportant || $sourceRoutes !== $sequenceRoutes) {
+    fwrite(STDERR, "presentation-css-build: source and sequence debt metrics diverge\n");
+    exit(1);
+}
+
 $referenceSha = strtolower((string) ($equivalence['reference_sha256'] ?? ''));
 $referenceBytes = (int) ($equivalence['reference_bytes'] ?? -1);
 $builtSha = hash('sha256', $built);
@@ -117,7 +165,7 @@ if (($equivalence['byte_identical_required'] ?? false) !== true || !hash_equals(
     fwrite(STDERR, "presentation-css-build: delivery equivalence failed\n");
     exit(1);
 }
-if ($importantCount > (int) ($budget['important_count_max'] ?? -1) || $routeScopeCount > (int) ($budget['route_scope_count_max'] ?? -1)) {
+if ($sequenceImportant > (int) ($budget['important_count_max'] ?? -1) || $sequenceRoutes > (int) ($budget['route_scope_count_max'] ?? -1)) {
     fwrite(STDERR, "presentation-css-build: visual debt budget increased\n");
     exit(1);
 }
@@ -132,21 +180,25 @@ if (($equivalence['alias_required_until_runtime_urls_are_migrated'] ?? false) ==
         exit(1);
     }
 }
+
 $mode = $argv[1] ?? '--lint';
 if ($mode === '--lint') {
     fwrite(STDOUT, json_encode([
         'ok' => true,
         'policy' => (string) ($manifest['policy'] ?? ''),
-        'modules' => count($modules),
+        'physical_source_files' => count($sources),
+        'sequence_segments' => count($sequence),
         'bytes' => strlen($built),
         'sha256' => $builtSha,
-        'important_count' => $importantCount,
-        'route_scope_count' => $routeScopeCount,
+        'important_count' => $sequenceImportant,
+        'route_scope_count' => $sequenceRoutes,
         'source_consolidated' => $sourceConsolidated,
+        'semantic_decomposition_complete' => $semanticDecompositionComplete,
         'debt_free' => ($manifest['debt_free'] ?? false) === true,
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
     exit(0);
 }
+
 $artifactPath = $root . '/' . $artifact;
 if ($mode === '--write') {
     if (file_put_contents($artifactPath, $built) === false) {
