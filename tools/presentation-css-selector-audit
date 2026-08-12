@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+import tinycss2
+from pathlib import Path
+
+source = Path('public/assets/presentation.css').read_text(encoding='utf-8')
+
+def walk(rules, context='root'):
+    for rule in rules:
+        if rule.type == 'qualified-rule':
+            parts=[]; current=[]
+            for token in rule.prelude:
+                if token.type == 'literal' and getattr(token,'value',None) == ',':
+                    parts.append(current); current=[]
+                else:
+                    current.append(token)
+            parts.append(current)
+            seen={}
+            for index, part in enumerate(parts):
+                text=tinycss2.serialize(part).strip()
+                if text in seen and text:
+                    print(f'DUPLICATE context={context} selector={text!r} first={seen[text]} duplicate={index} prelude={tinycss2.serialize(rule.prelude)!r}')
+                elif text:
+                    seen[text]=index
+        elif rule.type == 'at-rule' and rule.content is not None and str(rule.lower_at_keyword) in {'media','supports','container','layer','scope','starting-style','keyframes','-webkit-keyframes'}:
+            inner=tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+            walk(inner, context + '/@' + str(rule.lower_at_keyword))
+
+rules=tinycss2.parse_stylesheet(source, skip_whitespace=False, skip_comments=False)
+walk(rules)
