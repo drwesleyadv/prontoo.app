@@ -9,7 +9,10 @@ const baselinePath = path.join(root, 'app/presentation.ux-baseline.json');
 const mode = process.argv[2] || '--check';
 const targets = [
   'topbar','cmdbar','pagehead','nav-group','nav-idle','nav-active','primary','secondary','danger',
-  'grid','card','stat','form-card','field','input','form-actions','feedback','pill'
+  'grid','card','stat','form-card','field','input','form-actions','feedback','pill',
+  'finance-workspace','finance-guides','finance-guide','finance-form-stack','finance-row',
+  'patient-hero','patient-tabs-shell','patient-tab-nav','patient-panel','patient-data-list',
+  'procedure-card','procedure-form-panel','procedure-hero','procedure-summary','procedure-form'
 ];
 const properties = [
   'display','position','top','zIndex','boxSizing','width','height','minWidth','minHeight','maxWidth','maxHeight',
@@ -27,12 +30,18 @@ const customProperties = [
   '--pt-pagehead-control-radius','--pt-pagehead-control-gap','--pt-pagehead-control-icon-size'
 ];
 const scenarios = [
-  { name: 'desktop', width: 1280, height: 900 },
-  { name: 'appointments', width: 1280, height: 900, route: 'appointments' },
-  { name: 'readonly', width: 1280, height: 900, readonly: true },
-  { name: 'primary-hover', width: 1280, height: 900, hover: '#primary' },
-  { name: 'mobile', width: 390, height: 844 },
-  { name: 'mobile-appointments', width: 390, height: 844, route: 'appointments' }
+  { name: 'desktop', width: 1280, height: 1200 },
+  { name: 'appointments', width: 1280, height: 1200, route: 'appointments' },
+  { name: 'readonly', width: 1280, height: 1200, readonly: true },
+  { name: 'primary-hover', width: 1280, height: 1200, hover: '#primary' },
+  { name: 'mobile', width: 390, height: 1200 },
+  { name: 'mobile-appointments', width: 390, height: 1200, route: 'appointments' },
+  { name: 'financial', width: 1280, height: 1600, route: 'financial' },
+  { name: 'mobile-financial', width: 390, height: 1800, route: 'financial' },
+  { name: 'patient', width: 1280, height: 1800, route: 'patient' },
+  { name: 'mobile-patient', width: 390, height: 2200, route: 'patient' },
+  { name: 'procedures', width: 1280, height: 1800, route: 'procedures' },
+  { name: 'mobile-procedures', width: 390, height: 2200, route: 'procedures' }
 ];
 
 function stable(value) {
@@ -45,7 +54,7 @@ function stable(value) {
 
 const browser = await chromium.launch({ headless: true });
 const output = {
-  policy: 'presentation-computed-style-ux-v1',
+  policy: 'presentation-computed-style-ux-v2',
   playwright: '1.59.1',
   fixture: 'tests/presentation/ux-fixture.html',
   scenarios: {}
