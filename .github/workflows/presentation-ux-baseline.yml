@@ -1,0 +1,67 @@
+name: Presentation UX Baseline Materializer
+on:
+  push:
+    branches: [agent/presentation-ux-regression-contract]
+    paths:
+      - .github/workflows/presentation-ux-baseline.yml
+permissions:
+  contents: write
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-ux-regression-contract
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize baseline and release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --write
+          node tools/presentation-ux-contract.mjs --check
+          python3 - <<'PY'
+          import json, time
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          p='version.json'
+          data=json.load(open(p))
+          now=datetime.now(ZoneInfo('America/Cuiaba')).replace(microsecond=0)
+          data['version']='1.8.12.8'
+          data['release']='1.8.12.8'
+          data['generated_at_unix']=int(now.timestamp())
+          data['generated_at']=now.isoformat()
+          data['updated_at']=now.isoformat()
+          data['build']='1.8.12.8-presentation-ux-regression-contract'
+          data['database_changes']=False
+          data['schema_changes']=False
+          data['logic_changes']=True
+          data['visual_changes']=False
+          data['functional_equivalence_policy']='presentation_css_ux_observable_baseline_without_visual_payload_change'
+          data['previous_version']='1.8.12.7'
+          data['notes']='Contrato observável de UX fixa geometria, computed styles, estados, responsividade e identidade visual antes da redução semântica da dívida CSS.'
+          data['deployment_sync_id']='github-prontoo-1.8.12.8-presentation-ux-regression-contract'
+          data['deployment_sync_requested_at']=now.isoformat()
+          with open(p,'w') as f: json.dump(data,f,indent=4,ensure_ascii=False); f.write('\n')
+          PY
+          git rm -f .github/workflows/presentation-ux-baseline.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+          git add -A
+          git diff --cached --check
+          git commit -m "test(presentation): establish observable UX regression baseline"
+          git push origin HEAD:agent/presentation-ux-regression-contract
