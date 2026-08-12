@@ -26,6 +26,8 @@ FileETag None
     RewriteCond %{HTTPS} !=on
     RewriteRule ^ https://prontoo.app%{REQUEST_URI} [R=308,L]
 
+    RewriteRule ^public/assets/design-system\.css$ public/assets/presentation.css [L,NC]
+
     RewriteRule ^tools(?:/|$) - [F,L,NC]
     RewriteRule ^cron(?:/|$) - [F,L,NC]
     RewriteRule ^app/ - [F,L]

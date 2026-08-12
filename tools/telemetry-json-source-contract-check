@@ -19,7 +19,7 @@ $admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPages
 $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
 $presentation3 = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $speedGeometry = (string) file_get_contents($root . '/app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php');
-$css = (string) file_get_contents($root . '/public/assets/design-system.css');
+$css = (string) file_get_contents($root . '/public/assets/presentation.css');
 foreach (['"primary_label" => "Visualizações"', '"secondary_label" => "Registros"', '"Velocidade"'] as $token) {
     $assert(str_contains($admin2, $token), 'gráficos perderam ' . $token);
 }

@@ -28,7 +28,7 @@ foreach ($assets as $assetFile) {
         throw new RuntimeException('Asset público ausente: ' . $assetFile);
     }
 }
-$css = (string) @file_get_contents($root . '/public/assets/design-system.css');
+$css = (string) @file_get_contents($root . '/public/assets/presentation.css');
 if (!str_contains($css, 'pix-' . $assetRevision . '.svg')) {
     throw new RuntimeException('CSS diverge do asset_version.');
 }

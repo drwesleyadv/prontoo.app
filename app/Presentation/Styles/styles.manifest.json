@@ -1,11 +1,15 @@
 {
-  "schema_version": 1,
-  "policy": "presentation-native-css-v1",
-  "architecture": "layered_presentation_css",
+  "schema_version": 2,
+  "policy": "presentation-source-consolidation-v2",
+  "architecture": "ordered_modular_css_with_byte_equivalent_delivery",
   "source_root": "app/Presentation/Styles",
-  "artifact": "public/assets/design-system.css",
+  "artifact": "public/assets/presentation.css",
+  "retired_artifact": "public/assets/design-system.css",
   "complete": false,
-  "layer_order": [
+  "source_consolidated": true,
+  "publication_ready": true,
+  "debt_free": false,
+  "ownership_order": [
     "tokens",
     "foundation",
     "primitives",
@@ -20,71 +24,303 @@
     "compatibility",
     "overrides"
   ],
-  "runtime_value_policy": {
-    "php_may_emit_custom_properties_only": true,
-    "allowed_custom_property_prefixes": [
-      "--pt-",
-      "--clinic-identity-"
-    ],
-    "authored_style_attributes": false,
-    "authored_style_blocks": false
+  "delivery_equivalence": {
+    "reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
+    "reference_bytes": 810078,
+    "reference_lines": 15184,
+    "byte_identical_required": true,
+    "request_alias": "/public/assets/design-system.css",
+    "rewrite_target": "public/assets/presentation.css",
+    "alias_required_until_runtime_urls_are_migrated": true
   },
-  "ownership": {
-    "tokens": "design decisions without component selectors",
-    "foundation": "document defaults typography accessibility and global element normalization",
-    "primitives": "small reusable visual building blocks",
-    "components": "canonical reusable UI components",
-    "patterns": "cross-component layout and interaction compositions",
-    "routes": "thin route composition adapters without component redefinition",
-    "utilities": "single-purpose explicit utilities without semantic component ownership",
-    "states": "cross-cutting semantic states such as readonly disabled warning and danger"
-  },
-  "completion_gates": {
-    "authoritative_css_outside_source_root": 0,
+  "source_consolidation_gates": {
+    "retired_artifact_absent": true,
     "undeclared_source_modules": 0,
     "duplicate_module_declarations": 0,
+    "generated_artifact_drift": 0,
+    "delivery_sha256_matches_reference": true
+  },
+  "visual_debt_budget": {
+    "important_count_max": 5083,
+    "route_scope_count_max": 1171,
+    "policy": "existing_debt_may_only_decrease_after_source_consolidation"
+  },
+  "debt_elimination_completion_gates": {
     "important_count": 0,
     "generic_override_layers": 0,
     "compatibility_layers": 0,
     "legacy_layers": 0,
     "authored_inline_style_declarations": 0,
     "authored_style_blocks": 0,
-    "route_component_redefinitions": 0,
-    "generated_artifact_drift": 0
+    "route_component_redefinitions": 0
   },
-  "imports": [
-    "@import url(\"https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap\") layer(foundation);"
-  ],
+  "ownership_index": {
+    "pagehead_control": [
+      "tokens/cascade-band-01.css",
+      "routes/cascade-band-01.css",
+      "routes/cascade-band-02.css",
+      "routes/cascade-band-03.css",
+      "routes/cascade-band-04.css",
+      "routes/cascade-band-06.css",
+      "routes/cascade-band-08.css",
+      "routes/cascade-band-09.css",
+      "routes/cascade-band-10.css"
+    ],
+    "clinic_identity_tokens": [
+      "tokens/cascade-band-01.css"
+    ],
+    "route_scopes": [
+      "routes/cascade-band-01.css",
+      "routes/cascade-band-02.css",
+      "routes/cascade-band-03.css",
+      "routes/cascade-band-04.css",
+      "routes/cascade-band-05.css",
+      "routes/cascade-band-06.css",
+      "routes/cascade-band-07.css",
+      "routes/cascade-band-08.css",
+      "routes/cascade-band-09.css",
+      "routes/cascade-band-10.css"
+    ]
+  },
   "modules": [
     {
-      "path": "tokens/reference.css",
+      "order": 1,
+      "path": "tokens/cascade-band-01.css",
       "layer": "tokens",
-      "responsibility": "reference palette shape elevation motion and type scale"
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "utilities",
+        "states"
+      ],
+      "sha256": "0756149f1b104356766e65a63ed2becb5a20f9738a941119ec111b4d291e432d",
+      "bytes": 64024,
+      "important_count": 20,
+      "route_scope_count": 0
     },
     {
-      "path": "tokens/semantic.css",
-      "layer": "tokens",
-      "responsibility": "application semantic colors and focus state tokens"
+      "order": 2,
+      "path": "routes/cascade-band-01.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "35218905cffd04b34ac591f6b6a34bcfad7c13a4d074363052d5325eebde13a3",
+      "bytes": 65513,
+      "important_count": 229,
+      "route_scope_count": 84
     },
     {
-      "path": "tokens/clinic.css",
-      "layer": "tokens",
-      "responsibility": "immutable clinic identity projection into semantic UI color"
+      "order": 3,
+      "path": "routes/cascade-band-02.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "e168629fe483a4b74d54beeb6dd6f5a831505f99ecb03c7ccdb187e0025ecb05",
+      "bytes": 65488,
+      "important_count": 684,
+      "route_scope_count": 169
     },
     {
-      "path": "tokens/component.css",
-      "layer": "tokens",
-      "responsibility": "component-scoped design tokens"
+      "order": 4,
+      "path": "routes/cascade-band-03.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "primitives",
+        "components",
+        "patterns",
+        "routes"
+      ],
+      "sha256": "f4724f13788f36f94dad103e73ed2cd025b866405f762cd3a0b42c78f9f81ccb",
+      "bytes": 65456,
+      "important_count": 463,
+      "route_scope_count": 58
     },
     {
-      "path": "components/page-head.css",
+      "order": 5,
+      "path": "routes/cascade-band-04.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes"
+      ],
+      "sha256": "c260be8d9f35caf6334123d0941ee60bbdfd2247106c68139c1bb7a677f9d8b5",
+      "bytes": 65515,
+      "important_count": 789,
+      "route_scope_count": 164
+    },
+    {
+      "order": 6,
+      "path": "components/cascade-band-01.css",
       "layer": "components",
-      "responsibility": "canonical PageHeadControl component presentation"
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "cc3762b39e2afd1950f478572f4aa24f27899e54d26c4978e522de38ce0ccde1",
+      "bytes": 65531,
+      "important_count": 221,
+      "route_scope_count": 0
     },
     {
-      "path": "states/readonly.css",
+      "order": 7,
+      "path": "states/cascade-band-01.css",
       "layer": "states",
-      "responsibility": "readonly semantic color modulation without geometry changes"
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "states"
+      ],
+      "sha256": "50e7142a6937432fbb240cb6644efc7fa915c4d04b1ef74adabbcf531c4d8f68",
+      "bytes": 65451,
+      "important_count": 422,
+      "route_scope_count": 0
+    },
+    {
+      "order": 8,
+      "path": "routes/cascade-band-05.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes"
+      ],
+      "sha256": "d81c311061810684dc73f13a95889240d78f71d6ed49b990e16ec050d1d05641",
+      "bytes": 65528,
+      "important_count": 560,
+      "route_scope_count": 91
+    },
+    {
+      "order": 9,
+      "path": "routes/cascade-band-06.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "d5ea1774f5c27f15c0980402edee580b5d0bb0ab7798c902f3aae7f3d9c17b48",
+      "bytes": 64952,
+      "important_count": 256,
+      "route_scope_count": 44
+    },
+    {
+      "order": 10,
+      "path": "routes/cascade-band-07.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "19473e1748483e43cc7402d2f6d7fd7bf2427af95add2bc7ffd21f492e0f2dc0",
+      "bytes": 65509,
+      "important_count": 363,
+      "route_scope_count": 227
+    },
+    {
+      "order": 11,
+      "path": "routes/cascade-band-08.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes"
+      ],
+      "sha256": "41f60684a8f40f0ef822f7f50e6988a1079d20a48a3cf699041c92a846a3ed12",
+      "bytes": 65515,
+      "important_count": 511,
+      "route_scope_count": 155
+    },
+    {
+      "order": 12,
+      "path": "routes/cascade-band-09.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "foundation",
+        "primitives",
+        "components",
+        "patterns",
+        "routes"
+      ],
+      "sha256": "ea183da6aad021cb9fda07e721d93d16a321642572ff8ac70494bda589368917",
+      "bytes": 65535,
+      "important_count": 399,
+      "route_scope_count": 176
+    },
+    {
+      "order": 13,
+      "path": "routes/cascade-band-10.css",
+      "layer": "routes",
+      "responsibility": "byte-preserving cascade band extracted from the former monolithic stylesheet",
+      "concerns": [
+        "tokens",
+        "primitives",
+        "components",
+        "patterns",
+        "routes",
+        "states"
+      ],
+      "sha256": "6f0cfe691f84d5a5f489b3133e1c04beabc454c3dc8fb2f48c1cb4c402f98481",
+      "bytes": 26061,
+      "important_count": 166,
+      "route_scope_count": 3
     }
   ]
 }

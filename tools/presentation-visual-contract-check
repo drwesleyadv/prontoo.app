@@ -8,7 +8,7 @@ if (PHP_SAPI !== 'cli') {
 }
 $root = dirname(__DIR__);
 $contract = json_decode((string) file_get_contents($root . '/app/presentation.visual-contract.json'), true, 512, JSON_THROW_ON_ERROR);
-$css = (string) file_get_contents($root . '/public/assets/design-system.css');
+$css = (string) file_get_contents($root . '/public/assets/presentation.css');
 $js = (string) file_get_contents($root . '/public/assets/app.js');
 $rt2 = (string) file_get_contents($root . '/app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php');
 $rt3 = (string) file_get_contents($root . '/app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php');

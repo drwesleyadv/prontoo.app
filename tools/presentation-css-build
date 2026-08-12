@@ -2,131 +2,162 @@
 <?php
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+
 $root = dirname(__DIR__);
 $manifestPath = $root . '/app/Presentation/Styles/styles.manifest.json';
-$manifestRaw = file_get_contents($manifestPath);
-if (!is_string($manifestRaw)) {
-    fwrite(STDERR, "presentation-css-build: manifest unreadable\n");
-    exit(1);
-}
-
 try {
-    $manifest = json_decode($manifestRaw, true, 512, JSON_THROW_ON_ERROR);
-} catch (JsonException $e) {
-    fwrite(STDERR, "presentation-css-build: invalid manifest JSON\n");
+    $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+} catch (Throwable $error) {
+    fwrite(STDERR, "presentation-css-build: invalid manifest\n");
     exit(1);
 }
-
 if (!is_array($manifest)) {
     fwrite(STDERR, "presentation-css-build: invalid manifest\n");
     exit(1);
 }
-
 $sourceRoot = (string) ($manifest['source_root'] ?? '');
 $artifact = (string) ($manifest['artifact'] ?? '');
-$layers = $manifest['layer_order'] ?? null;
-$modules = $manifest['modules'] ?? null;
-$imports = $manifest['imports'] ?? [];
-$forbiddenLayers = $manifest['forbidden_layers'] ?? [];
-$complete = ($manifest['complete'] ?? false) === true;
-
-if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/design-system.css') {
+$retiredArtifact = (string) ($manifest['retired_artifact'] ?? '');
+$modules = (array) ($manifest['modules'] ?? []);
+$ownershipOrder = (array) ($manifest['ownership_order'] ?? []);
+$forbiddenLayers = (array) ($manifest['forbidden_layers'] ?? []);
+$equivalence = (array) ($manifest['delivery_equivalence'] ?? []);
+$budget = (array) ($manifest['visual_debt_budget'] ?? []);
+$sourceConsolidated = ($manifest['source_consolidated'] ?? false) === true;
+$publicationReady = ($manifest['publication_ready'] ?? false) === true;
+if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css' || $retiredArtifact !== 'public/assets/design-system.css') {
     fwrite(STDERR, "presentation-css-build: canonical paths changed\n");
     exit(1);
 }
-if (!is_array($layers) || $layers === [] || !is_array($modules) || !is_array($imports) || !is_array($forbiddenLayers)) {
-    fwrite(STDERR, "presentation-css-build: invalid module contract\n");
+if (!$sourceConsolidated || !$publicationReady || $modules === [] || $ownershipOrder === []) {
+    fwrite(STDERR, "presentation-css-build: source consolidation incomplete\n");
     exit(1);
 }
-if (count(array_unique($layers)) !== count($layers)) {
-    fwrite(STDERR, "presentation-css-build: duplicate cascade layer\n");
+if (count(array_unique($ownershipOrder)) !== count($ownershipOrder)) {
+    fwrite(STDERR, "presentation-css-build: duplicate ownership layer\n");
     exit(1);
 }
 foreach ($forbiddenLayers as $forbiddenLayer) {
-    if (in_array($forbiddenLayer, $layers, true)) {
-        fwrite(STDERR, "presentation-css-build: forbidden cascade layer\n");
+    if (in_array($forbiddenLayer, $ownershipOrder, true)) {
+        fwrite(STDERR, "presentation-css-build: forbidden ownership layer\n");
         exit(1);
     }
 }
-
 $seen = [];
-$chunks = [];
-foreach ($imports as $import) {
-    if (!is_string($import) || !str_starts_with(trim($import), '@import ')) {
-        fwrite(STDERR, "presentation-css-build: invalid import\n");
-        exit(1);
-    }
-    $chunks[] = rtrim($import);
-}
-$chunks[] = '@layer ' . implode(', ', $layers) . ';';
-
+$declaredCss = [];
+$built = '';
+$importantCount = 0;
+$routeScopeCount = 0;
+$expectedOrder = 1;
 foreach ($modules as $module) {
     if (!is_array($module)) {
         fwrite(STDERR, "presentation-css-build: invalid module entry\n");
         exit(1);
     }
+    $order = (int) ($module['order'] ?? 0);
     $relativePath = (string) ($module['path'] ?? '');
     $layer = (string) ($module['layer'] ?? '');
-    $responsibility = trim((string) ($module['responsibility'] ?? ''));
-    if ($relativePath === '' || $responsibility === '' || !in_array($layer, $layers, true)) {
-        fwrite(STDERR, "presentation-css-build: incomplete module declaration\n");
+    $expectedSha = strtolower((string) ($module['sha256'] ?? ''));
+    $expectedBytes = (int) ($module['bytes'] ?? -1);
+    $expectedImportant = (int) ($module['important_count'] ?? -1);
+    $expectedRoutes = (int) ($module['route_scope_count'] ?? -1);
+    if ($order !== $expectedOrder || $relativePath === '' || isset($seen[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {
+        fwrite(STDERR, "presentation-css-build: module order or ownership invalid\n");
         exit(1);
     }
-    if (isset($seen[$relativePath])) {
-        fwrite(STDERR, "presentation-css-build: duplicate module declaration: {$relativePath}\n");
-        exit(1);
-    }
-    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/')) {
+    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {
         fwrite(STDERR, "presentation-css-build: unsafe module path\n");
         exit(1);
     }
-    $seen[$relativePath] = true;
     $modulePath = $root . '/' . $sourceRoot . '/' . $relativePath;
     $css = file_get_contents($modulePath);
     if (!is_string($css)) {
-        fwrite(STDERR, "presentation-css-build: missing module: {$relativePath}\n");
+        fwrite(STDERR, "presentation-css-build: missing module {$relativePath}\n");
         exit(1);
     }
-    if (preg_match('/@(?:import|layer)\b/i', $css) === 1) {
-        fwrite(STDERR, "presentation-css-build: module owns import or layer: {$relativePath}\n");
+    $actualSha = hash('sha256', $css);
+    $actualImportant = substr_count($css, '!important');
+    $actualRoutes = substr_count($css, 'body[data-route=');
+    if (!hash_equals($expectedSha, $actualSha) || strlen($css) !== $expectedBytes || $actualImportant !== $expectedImportant || $actualRoutes !== $expectedRoutes) {
+        fwrite(STDERR, "presentation-css-build: module contract drift {$relativePath}\n");
         exit(1);
     }
-    if (str_contains($css, '!important')) {
-        fwrite(STDERR, "presentation-css-build: !important forbidden: {$relativePath}\n");
-        exit(1);
-    }
-    $chunks[] = '@layer ' . $layer . " {\n" . trim($css) . "\n}";
+    $seen[$relativePath] = true;
+    $declaredCss[str_replace('\\', '/', realpath($modulePath) ?: $modulePath)] = true;
+    $built .= $css;
+    $importantCount += $actualImportant;
+    $routeScopeCount += $actualRoutes;
+    $expectedOrder++;
 }
-
-$mode = $argv[1] ?? '--lint';
-if ($mode === '--lint') {
-    fwrite(STDOUT, "presentation-css-build: source contract valid\n");
-    exit(0);
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/' . $sourceRoot, FilesystemIterator::SKIP_DOTS));
+foreach ($iterator as $file) {
+    if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'css') {
+        continue;
+    }
+    $canonical = str_replace('\\', '/', $file->getRealPath() ?: $file->getPathname());
+    if (!isset($declaredCss[$canonical])) {
+        fwrite(STDERR, "presentation-css-build: undeclared source module {$canonical}\n");
+        exit(1);
+    }
 }
-if (!$complete) {
-    fwrite(STDERR, "presentation-css-build: publication blocked until manifest complete=true\n");
+$referenceSha = strtolower((string) ($equivalence['reference_sha256'] ?? ''));
+$referenceBytes = (int) ($equivalence['reference_bytes'] ?? -1);
+$builtSha = hash('sha256', $built);
+if (($equivalence['byte_identical_required'] ?? false) !== true || !hash_equals($referenceSha, $builtSha) || strlen($built) !== $referenceBytes) {
+    fwrite(STDERR, "presentation-css-build: delivery equivalence failed\n");
     exit(1);
 }
-
-$built = implode("\n\n", $chunks) . "\n";
+if ($importantCount > (int) ($budget['important_count_max'] ?? -1) || $routeScopeCount > (int) ($budget['route_scope_count_max'] ?? -1)) {
+    fwrite(STDERR, "presentation-css-build: visual debt budget increased\n");
+    exit(1);
+}
+if (is_file($root . '/' . $retiredArtifact)) {
+    fwrite(STDERR, "presentation-css-build: retired monolith still present\n");
+    exit(1);
+}
+if (($equivalence['alias_required_until_runtime_urls_are_migrated'] ?? false) === true) {
+    $htaccess = (string) file_get_contents($root . '/.htaccess');
+    if (!str_contains($htaccess, 'RewriteRule ^public/assets/design-system\\.css$ public/assets/presentation.css [L,NC]')) {
+        fwrite(STDERR, "presentation-css-build: delivery alias missing\n");
+        exit(1);
+    }
+}
+$mode = $argv[1] ?? '--lint';
+if ($mode === '--lint') {
+    fwrite(STDOUT, json_encode([
+        'ok' => true,
+        'policy' => (string) ($manifest['policy'] ?? ''),
+        'modules' => count($modules),
+        'bytes' => strlen($built),
+        'sha256' => $builtSha,
+        'important_count' => $importantCount,
+        'route_scope_count' => $routeScopeCount,
+        'source_consolidated' => $sourceConsolidated,
+        'debt_free' => ($manifest['debt_free'] ?? false) === true,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+    exit(0);
+}
 $artifactPath = $root . '/' . $artifact;
 if ($mode === '--write') {
     if (file_put_contents($artifactPath, $built) === false) {
         fwrite(STDERR, "presentation-css-build: artifact write failed\n");
         exit(1);
     }
-    fwrite(STDOUT, "presentation-css-build: artifact written\n");
+    fwrite(STDOUT, "presentation-css-build: artifact written {$builtSha}\n");
     exit(0);
 }
 if ($mode === '--check') {
     $current = file_get_contents($artifactPath);
-    if (!is_string($current) || !hash_equals(hash('sha256', $built), hash('sha256', $current))) {
+    if (!is_string($current) || !hash_equals($builtSha, hash('sha256', $current)) || strlen($current) !== strlen($built)) {
         fwrite(STDERR, "presentation-css-build: generated artifact drift\n");
         exit(1);
     }
-    fwrite(STDOUT, "presentation-css-build: artifact deterministic\n");
+    fwrite(STDOUT, "presentation-css-build: artifact byte-equivalent {$builtSha}\n");
     exit(0);
 }
-
 fwrite(STDERR, "presentation-css-build: use --lint, --check or --write\n");
 exit(1);

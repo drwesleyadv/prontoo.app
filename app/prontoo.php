@@ -172,7 +172,7 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.12.5";
+const PRONTOO_VERSION_FALLBACK = "1.8.12.6";
 const PRONTOO_ASSET_REV_FALLBACK = "1.7.15.11";
 function prontoo_release_metadata(): array
 {
@@ -276,13 +276,13 @@ function prontoo_version_contract_status(): array
             $issues[] = "public/assets/" . $asset;
         }
     }
-    $cssFile = PRONTOO_ROOT . "/public/assets/design-system.css";
+    $cssFile = PRONTOO_ROOT . "/public/assets/presentation.css";
     if (!is_file($cssFile)) {
-        $issues[] = "public/assets/design-system.css:missing";
+        $issues[] = "public/assets/presentation.css:missing";
     } else {
         $css = @file_get_contents($cssFile);
         if (!is_string($css) || !str_contains($css, "pix-" . $assetRevision . ".svg")) {
-            $issues[] = "public/assets/design-system.css";
+            $issues[] = "public/assets/presentation.css";
         }
     }
     $status = [
@@ -294,7 +294,7 @@ function prontoo_version_contract_status(): array
     ];
     return $status;
 }
-const PRONTOO_PREVIOUS_VERSION = "1.8.12.4";
+const PRONTOO_PREVIOUS_VERSION = "1.8.12.5";
 const PRONTOO_PREVIOUS_ASSET_REV = "1.7.15.11";
 unset($prontooReleaseMetadata, $prontooVersion, $prontooRelease, $prontooAssetRevision);
 const PRONTOO_MIN_PHP_VERSION = "8.4.0";
