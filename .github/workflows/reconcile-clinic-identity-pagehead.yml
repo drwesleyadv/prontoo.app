@@ -1,0 +1,168 @@
+name: Reconcile Clinic Identity PageHead Colors
+
+on:
+  push:
+    branches:
+      - 'agent/clinic-identity-pagehead-colors'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/clinic-identity-pagehead-colors
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Preserve clinic identity across PageHead states
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+
+          domain_path = Path('app/Domain/ClinicConfig/ClinicConfigDomainOperations02.php')
+          domain = domain_path.read_text()
+          old_on = '''        $on = \\Prontoo\\Domain\\ClinicConfig\\ClinicConfigDomainOperations02::clinic_contrast_text($base);\n        $clockInk = "#ffffff";'''
+          new_on = '''        $on = \\Prontoo\\Domain\\ClinicConfig\\ClinicConfigDomainOperations02::clinic_contrast_text($base);\n        $identityReadOnly = \\Prontoo\\Domain\\ClinicConfig\\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#5d6b63", 0.62);\n        $identityReadOnlyHover = \\Prontoo\\Domain\\ClinicConfig\\ClinicConfigDomainOperations01::clinic_mix_hex($identityReadOnly, "#000000", 0.88);\n        $identityOnReadOnly = \\Prontoo\\Domain\\ClinicConfig\\ClinicConfigDomainOperations02::clinic_contrast_text($identityReadOnly);\n        $clockInk = "#ffffff";'''
+          if domain.count(old_on) != 1:
+              raise SystemExit('clinic identity calculation anchor not found uniquely')
+          domain = domain.replace(old_on, new_on)
+
+          old_css = '''        $css =\n            "--clinic-accent:" .\n            $base .'''
+          new_css = '''        $css =\n            "--clinic-identity-accent:" .\n            $base .\n            ";--clinic-identity-hover:" .\n            $hover .\n            ";--clinic-identity-pressed:" .\n            $pressed .\n            ";--clinic-identity-on-accent:" .\n            $on .\n            ";--clinic-identity-readonly:" .\n            $identityReadOnly .\n            ";--clinic-identity-readonly-hover:" .\n            $identityReadOnlyHover .\n            ";--clinic-identity-on-readonly:" .\n            $identityOnReadOnly .\n            ";--clinic-accent:" .\n            $base .'''
+          if domain.count(old_css) != 1:
+              raise SystemExit('clinic css token anchor not found uniquely')
+          domain = domain.replace(old_css, new_css)
+          domain_path.write_text(domain)
+
+          css_path = Path('public/assets/design-system.css')
+          css = css_path.read_text()
+          old_tokens = '''  --pt-pagehead-action-accent:var(--md-sys-color-primary);\n  --pt-pagehead-action-on-accent:var(--md-sys-color-on-primary);\n  --pt-pagehead-action-accent-strong:var(--md-ref-palette-primary30);'''
+          new_tokens = '''  --pt-pagehead-action-accent:var(--clinic-identity-accent,var(--md-sys-color-primary));\n  --pt-pagehead-action-on-accent:var(--clinic-identity-on-accent,var(--md-sys-color-on-primary));\n  --pt-pagehead-action-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30));\n  --pt-pagehead-action-accent-strong:var(--md-ref-palette-primary30);'''
+          if css.count(old_tokens) != 1:
+              raise SystemExit('pagehead token anchor not found uniquely')
+          css = css.replace(old_tokens, new_tokens)
+
+          old_readonly = 'body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary);--pt-pagehead-action-on-accent:var(--md-sys-color-on-secondary);--pt-pagehead-action-accent-strong:color-mix(in srgb,var(--md-sys-color-secondary) 78%,#000)}'
+          new_readonly = 'body.is-read-only{--pt-pagehead-action-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary));--pt-pagehead-action-on-accent:var(--clinic-identity-on-readonly,var(--md-sys-color-on-secondary));--pt-pagehead-action-hover:var(--clinic-identity-readonly-hover,color-mix(in srgb,var(--pt-pagehead-action-accent) 88%,#000));--pt-pagehead-action-accent-strong:var(--pt-pagehead-action-hover)}'
+          if css.count(old_readonly) != 1:
+              raise SystemExit('readonly pagehead token anchor not found uniquely')
+          css = css.replace(old_readonly, new_readonly)
+
+          old_secondary = '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 18%,var(--md-sys-color-outline-variant));box-shadow:none}'
+          new_secondary = '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:color-mix(in srgb,var(--pt-pagehead-action-accent) 4%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-action-accent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 18%,var(--md-sys-color-outline-variant));box-shadow:none}'
+          if css.count(old_secondary) != 1:
+              raise SystemExit('secondary pagehead anchor not found uniquely')
+          css = css.replace(old_secondary, new_secondary)
+
+          old_hovers = '.pagehead-actions :where(.ghost,.cmdlike):not(.primary):hover{background:color-mix(in srgb,var(--pt-pagehead-action-accent) 8%,transparent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 34%,var(--md-sys-color-outline-variant));color:var(--pt-pagehead-action-accent)}.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong);color:var(--pt-pagehead-action-on-accent);box-shadow:var(--md-sys-elevation-level2)}'
+          new_hovers = '.pagehead-actions :where(.ghost,.cmdlike):not(.primary):hover{background:color-mix(in srgb,var(--pt-pagehead-action-hover) 10%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--pt-pagehead-action-hover) 34%,var(--md-sys-color-outline-variant));color:var(--pt-pagehead-action-hover)}.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent);box-shadow:var(--md-sys-elevation-level2)}'
+          if css.count(old_hovers) != 1:
+              raise SystemExit('pagehead hover anchor not found uniquely')
+          css = css.replace(old_hovers, new_hovers)
+          css_path.write_text(css)
+
+          checker_path = Path('tools/presentation-visual-contract-check')
+          checker = checker_path.read_text()
+          replacements = {
+              "    '--pt-pagehead-action-accent:var(--md-sys-color-primary)',": "    '--pt-pagehead-action-accent:var(--clinic-identity-accent,var(--md-sys-color-primary))',",
+              "    '--pt-pagehead-action-on-accent:var(--md-sys-color-on-primary)',": "    '--pt-pagehead-action-on-accent:var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))',\n    '--pt-pagehead-action-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30))',",
+              "    'body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary)',": "    'body.is-read-only{--pt-pagehead-action-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary))',",
+              "    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong);color:var(--pt-pagehead-action-on-accent)',": "    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent)',",
+              "    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent)',": "    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:color-mix(in srgb,var(--pt-pagehead-action-accent) 4%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-action-accent)',",
+          }
+          for old, new in replacements.items():
+              if checker.count(old) != 1:
+                  raise SystemExit('checker anchor invalid: ' + old)
+              checker = checker.replace(old, new)
+          php_required_anchor = "$failures = [];\n"
+          php_required = '''$requiredPhp = [\n    '--clinic-identity-accent:',\n    '--clinic-identity-hover:',\n    '--clinic-identity-readonly:',\n    '--clinic-identity-readonly-hover:',\n    '--clinic-identity-on-readonly:',\n];\n$failures = [];\nforeach ($requiredPhp as $token) {\n    if (!str_contains($php, $token)) {\n        $failures[] = 'missing-php:' . $token;\n    }\n}\n'''
+          if checker.count(php_required_anchor) != 1 or '$requiredPhp = [' in checker:
+              raise SystemExit('checker php-required anchor invalid')
+          checker = checker.replace(php_required_anchor, php_required)
+          old_failure = "if (str_contains($css, '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--brand-dark,')) {\n    $failures[] = 'cyclic-primary30-brand-dark-fallback';\n}\n"
+          new_failure = old_failure + "if (str_contains($css, '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong)')) {\n    $failures[] = 'pagehead-hover-must-use-clinic-identity-hover';\n}\n"
+          if checker.count(old_failure) != 1:
+              raise SystemExit('checker hover failure anchor invalid')
+          checker = checker.replace(old_failure, new_failure)
+          checker_path.write_text(checker)
+
+          contract_path = Path('app/presentation.visual-contract.json')
+          contract = json.loads(contract_path.read_text())
+          contract['version'] = '1.8.12.3'
+          colors = contract['pagehead_action']['color_contract']
+          colors['clinic_identity_chain'] = '--clinic-accent -> immutable --clinic-identity-accent -> --pt-pagehead-action-accent'
+          colors['clinic_hover_chain'] = '--clinic-accent-hover -> immutable --clinic-identity-hover -> --pt-pagehead-action-hover'
+          colors['read_only_chain'] = '--clinic-identity-accent -> 62% identity + 38% neutral -> --clinic-identity-readonly -> --pt-pagehead-action-accent'
+          colors['read_only_hover_chain'] = '--clinic-identity-readonly -> 88% readonly identity + 12% black -> --clinic-identity-readonly-hover -> --pt-pagehead-action-hover'
+          colors['secondary_action_policy'] = 'ghost/cmdlike uses contextual clinic accent for text, border and a 4% tint; hover uses contextual clinic hover at 10% tint'
+          colors['read_only_preserves_clinic_hue'] = True
+          for invariant in [
+              'hover_uses_clinic_identity_hover_not_dark_variant',
+              'read_only_modulates_clinic_identity_without_overwriting_it',
+              'secondary_pagehead_actions_share_contextual_clinic_accent',
+          ]:
+              if invariant not in contract['invariants']:
+                  contract['invariants'].append(invariant)
+          contract['css_statistics']['after']['bytes'] = len(css.encode())
+          contract['css_statistics']['delta']['bytes'] = contract['css_statistics']['after']['bytes'] - contract['css_statistics']['before']['bytes']
+          contract_path.write_text(json.dumps(contract, indent=4, ensure_ascii=False) + '\n')
+          PY
+      - name: Increment release version
+        run: php tools/release-version --write --date=2026-08-12 --timestamp=2026-08-12T11:23:00-04:00 --expected-current=1.8.12.2
+      - name: Describe release
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+          path = Path('version.json')
+          data = json.loads(path.read_text())
+          if data.get('version') != '1.8.12.3':
+              raise SystemExit('unexpected release version')
+          data['build'] = '1.8.12.3-clinic-identity-pagehead-colors'
+          data['package_type'] = 'incremental_refinement'
+          data['logic_changes'] = True
+          data['visual_changes'] = True
+          data['documentation_changes'] = True
+          data['database_changes'] = False
+          data['schema_changes'] = False
+          data['functional_equivalence_policy'] = 'preserve_pagehead_geometry_flow_and_semantics_while_binding_interaction_colors_to_clinic_identity'
+          data['presentation_visual_policy'] = 'presentation-visual-contract-v1'
+          data['presentation_visual_contract'] = 'app/presentation.visual-contract.json'
+          data['presentation_visual_check'] = 'tools/presentation-visual-contract-check'
+          data['notes'] = 'PageHead hover e ações secundárias passam a derivar da identidade cromática do consultório; somente leitura modula a paleta sem substituí-la por preto/cinza no componente.'
+          data['deployment_sync_id'] = 'github-prontoo-1.8.12.3-clinic-identity-pagehead-colors'
+          data['deployment_sync_requested_at'] = '2026-08-12T11:23:00-04:00'
+          path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + '\n')
+          PY
+      - name: Remove temporary workflow
+        run: rm .github/workflows/reconcile-clinic-identity-pagehead.yml
+      - name: Reconcile deterministic release
+        run: |
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+      - name: Validate
+        run: |
+          php tools/presentation-visual-contract-check
+          php tools/quality-gate
+          php tools/release-contract-reconcile --check
+          git diff --check
+      - name: Commit
+        run: |
+          git config user.name 'prontoo-ci'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(presentation): bind pagehead states to clinic identity'
+          git push origin HEAD:agent/clinic-identity-pagehead-colors
