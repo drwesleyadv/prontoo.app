@@ -38,6 +38,10 @@ $expectedTargets = [
     'topbar', 'cmdbar', 'pagehead', 'nav-group', 'nav-idle', 'nav-active', 'primary', 'secondary', 'danger',
     'grid', 'card', 'stat', 'form-card', 'field', 'input', 'form-actions', 'feedback', 'pill',
 ];
+$sortedScenarios = $expectedScenarios;
+sort($sortedScenarios);
+$sortedTargets = $expectedTargets;
+sort($sortedTargets);
 
 if (($baseline['policy'] ?? '') !== 'presentation-computed-style-ux-v1') {
     $failures[] = 'baseline:policy';
@@ -49,12 +53,16 @@ if (($baseline['fixture'] ?? '') !== 'tests/presentation/ux-fixture.html') {
     $failures[] = 'baseline:fixture';
 }
 $scenarios = is_array($baseline['scenarios'] ?? null) ? $baseline['scenarios'] : [];
-if (array_keys($scenarios) !== $expectedScenarios) {
+$actualScenarioNames = array_keys($scenarios);
+sort($actualScenarioNames);
+if ($actualScenarioNames !== $sortedScenarios) {
     $failures[] = 'baseline:scenario_matrix';
 }
 foreach ($expectedScenarios as $scenario) {
     $targets = is_array($scenarios[$scenario] ?? null) ? $scenarios[$scenario] : [];
-    if (array_keys($targets) !== $expectedTargets) {
+    $actualTargets = array_keys($targets);
+    sort($actualTargets);
+    if ($actualTargets !== $sortedTargets) {
         $failures[] = 'baseline:targets:' . $scenario;
         continue;
     }
