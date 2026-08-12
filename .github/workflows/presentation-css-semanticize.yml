@@ -1,0 +1,67 @@
+name: Presentation CSS Semantic Decomposition
+on:
+  push:
+    branches: [agent/presentation-css-semantic-decomposition]
+    paths:
+      - tools/presentation-css-semanticize
+      - .github/workflows/presentation-css-semanticize.yml
+permissions:
+  contents: write
+jobs:
+  semanticize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-css-semantic-decomposition
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Semanticize and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 tools/presentation-css-semanticize
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/presentation-css-build')
+          s = p.read_text()
+          old = "$sourceConsolidated = ($manifest['source_consolidated'] ?? false) === true;\n$publicationReady = ($manifest['publication_ready'] ?? false) === true;"
+          new = old + "\n$semanticDecompositionComplete = ($manifest['semantic_decomposition_complete'] ?? false) === true;\n$cascadeBandCount = (int) ($manifest['cascade_band_count'] ?? -1);"
+          if s.count(old) != 1:
+              raise SystemExit('builder semantic flag anchor missing')
+          s = s.replace(old, new, 1)
+          old2 = "if (!$sourceConsolidated || !$publicationReady || $modules === [] || $ownershipOrder === []) {"
+          new2 = "if (!$sourceConsolidated || !$publicationReady || !$semanticDecompositionComplete || $cascadeBandCount !== 0 || $modules === [] || $ownershipOrder === []) {"
+          if s.count(old2) != 1:
+              raise SystemExit('builder consolidation guard anchor missing')
+          s = s.replace(old2, new2, 1)
+          old3 = "if ($order !== $expectedOrder || $relativePath === '' || isset($seen[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {"
+          new3 = old3 + "\n        // semantic module ownership is additionally checked below"
+          if s.count(old3) != 1:
+              raise SystemExit('builder module guard anchor missing')
+          s = s.replace(old3, new3, 1)
+          needle = "    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {\n        fwrite(STDERR, \"presentation-css-build: unsafe module path\\n\");\n        exit(1);\n    }"
+          replacement = needle + "\n    if (str_contains($relativePath, 'cascade-band') || !str_starts_with($relativePath, $layer . '/')) {\n        fwrite(STDERR, \"presentation-css-build: semantic ownership path invalid\\n\");\n        exit(1);\n    }"
+          if s.count(needle) != 1:
+              raise SystemExit('builder path guard anchor missing')
+          s = s.replace(needle, replacement, 1)
+          p.write_text(s)
+          PY
+          git rm -f tools/presentation-css-semanticize .github/workflows/presentation-css-semanticize.yml
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+          git add -A
+          git diff --cached --check -- ':!app/Presentation/Styles/**/*.css'
+          git commit -m "refactor(presentation): replace cascade bands with semantic CSS modules"
+          git push origin HEAD:agent/presentation-css-semantic-decomposition
