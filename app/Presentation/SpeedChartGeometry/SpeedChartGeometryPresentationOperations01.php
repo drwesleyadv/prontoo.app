@@ -81,16 +81,13 @@ final class SpeedChartGeometryPresentationOperations01
             );
         }
         return substr($html, 0, $start) . $chart . substr($html, $end);
-    
     }
 
     public static function prontoo_performance_transform_html(string $html): string
-    
     {
         if (!str_contains($html, 'data-admin-global-charts')) {
             return $html;
         }
-    
         $html = self::prontoo_performance_replace_chart(
             $html,
             'Velocidade',
@@ -113,9 +110,10 @@ final class SpeedChartGeometryPresentationOperations01
                 'Média diária de requisições nos últimos 20 dias' => 'Média diária de visualizações nos últimos 30 dias',
                 'dados de Requisições e Registros dos últimos 20 dias.' => 'dados de Visualizações e Registros dos últimos 30 dias, incluindo hoje.',
                 'Requisições' => 'Visualizações',
+                'class="metric-chart-fill-load"' => 'class="metric-chart-fill-load" style="fill-opacity:0.5"',
+                'class="metric-chart-fill-response"' => 'class="metric-chart-fill-response" style="fill-opacity:0.5"',
             ],
         );
-    
         return str_replace(
             [
                 '<h2>Telemetria das últimas 24 horas</h2>',
@@ -131,11 +129,9 @@ final class SpeedChartGeometryPresentationOperations01
             ],
             $html,
         );
-    
     }
 
     public static function prontoo_speed_chart_geometry_script(): string
-    
     {
         return <<<'HTML'
     <script>
@@ -186,22 +182,18 @@ final class SpeedChartGeometryPresentationOperations01
     })();
     </script>
     HTML;
-    
     }
 
     public static function prontoo_performance_geometry_transform_html(string $html): string
-    
     {
         $html = self::prontoo_performance_transform_html($html);
         if (!str_contains($html, 'data-performance-speed-chart="1"') || !str_contains($html, '</body>')) {
             return $html;
         }
         return str_replace('</body>', self::prontoo_speed_chart_geometry_script() . '</body>', $html);
-    
     }
 
     public static function prontoo_register_speed_chart_geometry(): void
-    
     {
         if (PHP_SAPI === 'cli') {
             return;
@@ -211,6 +203,5 @@ final class SpeedChartGeometryPresentationOperations01
             return;
         }
         ob_start([self::class, 'prontoo_performance_geometry_transform_html']);
-    
     }
 }
