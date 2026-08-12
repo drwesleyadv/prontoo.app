@@ -1,0 +1,50 @@
+name: Presentation CSS Inventory
+
+on:
+  push:
+    branches:
+      - agent/presentation-css-source-consolidation
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Inventory monolith
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+          p=Path('public/assets/design-system.css')
+          b=p.read_bytes(); s=b.decode('utf-8')
+          print('SHA256', hashlib.sha256(b).hexdigest())
+          print('BYTES', len(b))
+          print('LINES', s.count('\n')+1)
+          print('IMPORTANT', s.count('!important'))
+          print('ROUTE_SCOPES', s.count('body[data-route='))
+          print('COMMENTS')
+          for i,line in enumerate(s.splitlines(),1):
+              t=line.strip()
+              if t.startswith('/*') or t.startswith('* '):
+                  if len(t) <= 180:
+                      print(f'{i}: {t}')
+          print('REFERENCES')
+          for f in sorted(Path('.').rglob('*')):
+              if not f.is_file() or '.git' in f.parts or 'ssd' in f.parts:
+                  continue
+              try: txt=f.read_text(encoding='utf-8')
+              except Exception: continue
+              if 'design-system.css' in txt:
+                  for i,line in enumerate(txt.splitlines(),1):
+                      if 'design-system.css' in line:
+                          print(f'{f}:{i}:{line.strip()}')
+          PY
