@@ -1,10 +1,10 @@
 body[data-route="appointments"]{
-  --pt-agenda-slot-h:40px;
+  
   --pt-agenda-scale-w:clamp(50px,7vw,72px);
   --pt-agenda-grid-line:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-outline-variant));
   --pt-agenda-hour-bg:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest));
   --pt-agenda-band-a:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-lowest));
-  --pt-agenda-band-b:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest));
+  
   --pt-agenda-glass:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 72%,transparent);
   --pt-agenda-glass-strong:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 86%,transparent);
   --pt-agenda-glass-line:color-mix(in srgb,var(--md-sys-color-primary) 24%,rgba(255,255,255,.62));
@@ -18,8 +18,8 @@ body[data-route="appointments"] .agenda-profile.agenda-day-first,
 body[data-route="appointments"] .agenda-crown-page{max-width:none;min-width:0}
 body[data-route="appointments"] .agenda-day-shell.agenda-crown-shell,
 body[data-route="appointments"] .agenda-day-shell{
-  --slot-h:var(--pt-agenda-slot-h);
-  --agenda-slot-height:var(--pt-agenda-slot-h);
+  
+  
   position:relative!important;
   display:grid!important;
   grid-template-columns:var(--pt-agenda-scale-w) minmax(0,1fr)!important;
@@ -970,7 +970,7 @@ body[data-route="appointments"].has-floating-pending main#conteudo{
     --pt-floating-card-icon:26px;
     --pt-floating-card-pad-y:5px;
     --pt-floating-card-pad-x:7px;
-    --pt-floating-card-min-h:42px;
+    
     --pt-fixed-agenda-stack-h:132px;
   }
   body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
@@ -2167,8 +2167,8 @@ body[data-route="appointments"] .agenda-row-expanded .journey-ux--timeline-card.
 }
 body[data-route="appointments"] .agenda-action-panel-inline{
   position:static;
-  min-width:0;
-  width:100%;
+  
+  
   box-shadow:none;
   border-radius:18px;
   background:var(--md-sys-color-surface-container-low);
