@@ -1,0 +1,20 @@
+:root {
+  --pt-pagehead-control-height: 38px;
+  --pt-pagehead-control-radius: var(--md-sys-shape-corner-large);
+  --pt-pagehead-control-padding-block: 7px;
+  --pt-pagehead-control-padding-inline: 12px;
+  --pt-pagehead-control-gap: 8px;
+  --pt-pagehead-control-icon-size: 20px;
+  --pt-pagehead-control-mobile-height: 42px;
+  --pt-pagehead-control-mobile-padding-inline: 13px;
+  --pt-pagehead-control-font: var(--md-sys-typescale-label-medium);
+  --pt-pagehead-control-weight: 700;
+  --pt-pagehead-operation-gap: 3px;
+  --pt-pagehead-group-gap: 16px;
+  --pt-pagehead-control-accent: var(--clinic-identity-accent);
+  --pt-pagehead-control-on-accent: var(--clinic-identity-on-accent);
+  --pt-pagehead-control-hover: var(--clinic-identity-hover);
+  --pt-pagehead-control-pressed: var(--clinic-identity-pressed);
+  --pt-pagehead-control-container: color-mix(in srgb, var(--pt-pagehead-control-accent) 15%, var(--md-sys-color-surface-container-lowest));
+  --pt-pagehead-control-on-container: color-mix(in srgb, var(--pt-pagehead-control-accent) 74%, #102018);
+}

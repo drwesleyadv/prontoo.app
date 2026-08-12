@@ -110,6 +110,7 @@ $run('query-budget-contract', 'tools/query-budget-contract-check');
 $run('architecture-consolidation-contract', 'tools/architecture-consolidation-check');
 $run('operation-gateway-budget', 'tools/operation-gateway-budget-check');
 $run('presentation-visual-contract', 'tools/presentation-visual-contract-check');
+$run('presentation-native-css-contract', 'tools/presentation-css-build', ['--lint']);
 
 if ($fast) {
     fwrite(STDOUT, json_encode([
