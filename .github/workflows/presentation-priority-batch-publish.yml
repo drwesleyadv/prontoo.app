@@ -73,12 +73,15 @@ jobs:
           git status --short
           git config user.name 'prontoo-architecture-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add -A
+          git add -A -- . ':(exclude).github/workflows/**'
           git diff --cached --check
-          git diff --cached --name-only | grep -v '^\.github/workflows/' >/dev/null
+          git diff --cached --name-status
+          if git diff --cached --quiet; then
+            echo 'No ordinary implementation changes to publish' >&2
+            exit 1
+          fi
           if git diff --cached --name-only | grep -q '^\.github/workflows/'; then
-            echo 'Unexpected workflow mutation in implementation delta' >&2
-            git diff --cached --name-status
+            echo 'Workflow file entered ordinary implementation delta' >&2
             exit 1
           fi
           git commit -m 'refactor(presentation): demote contracted route priorities'
