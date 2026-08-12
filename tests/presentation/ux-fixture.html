@@ -25,6 +25,7 @@
       <button id="danger" class="pagehead-control pagehead-control--danger"><span class="material-symbols-rounded">delete</span><span>Excluir</span></button>
     </div>
   </header>
+
   <section id="grid" class="two">
     <article id="card" class="card"><div class="section-head"><h2>Dados</h2></div><p>Conteúdo de referência.</p></article>
     <article id="stat" class="stat-card"><span class="material-symbols-rounded">monitoring</span><div><b>42</b><span>Indicador</span></div></article>
@@ -37,6 +38,53 @@
   </section>
   <div id="feedback" class="flash info"><span class="material-symbols-rounded">info</span><span>Mensagem informativa.</span></div>
   <div id="pill" class="pill ok">Concluído</div>
+
+  <section id="finance-workspace" class="finance-workspace">
+    <div id="finance-guides" class="finance-operation-guides">
+      <article id="finance-guide"><span class="material-symbols-rounded">payments</span><b>Receber</b><span>Operação financeira</span></article>
+      <article><span class="material-symbols-rounded">receipt_long</span><b>Pagar</b><span>Operação financeira</span></article>
+      <article><span class="material-symbols-rounded">account_balance</span><b>Banco</b><span>Recurso financeiro</span></article>
+    </div>
+    <div id="finance-form-stack" class="finance-form-stack"><div class="card">Origem</div><div class="card">Destino</div></div>
+    <a id="finance-row" class="finance-operation-row card">
+      <span class="ds-person-avatar">P</span>
+      <span class="ds-person-main"><span class="ds-person-title"><strong>Paciente teste</strong></span><span class="ds-person-meta"><span>Recebimento</span></span></span>
+      <span class="ds-person-actions"><button class="ghost" type="button">Abrir</button></span>
+    </a>
+  </section>
+
+  <section id="patient-hero" class="patient-hero card">
+    <div><small>Paciente</small><h1>Paciente teste</h1><p>Resumo clínico e cadastral.</p></div>
+    <div class="patient-hero-actions"><button class="ghost" type="button">Editar</button></div>
+  </section>
+  <section id="patient-tabs-shell" class="patient-tabs-shell card">
+    <nav id="patient-tab-nav" class="patient-tab-nav">
+      <label class="is-active" aria-selected="true"><span class="material-symbols-rounded">person</span><span><b>Dados</b><em>1</em></span></label>
+      <label><span class="material-symbols-rounded">event</span><span><b>Agenda</b><em>2</em></span></label>
+    </nav>
+    <div class="patient-tab-panels">
+      <article id="patient-panel" class="patient-panel card"><h2>Dados pessoais</h2><p class="muted-copy">Informações do paciente.</p><div id="patient-data-list" class="patient-data-list"><div><span>CPF</span><b>000.000.000-00</b></div><div><span>Telefone</span><b>(00) 00000-0000</b></div></div></article>
+    </div>
+  </section>
+
+  <section id="procedure-card" class="procedure-route-card card">
+    <div id="procedure-form-panel" class="procedure-route-form-panel">
+      <div id="procedure-hero" class="procedure-route-hero">
+        <span class="procedure-route-hero-icon"><span class="material-symbols-rounded">medical_services</span></span>
+        <div class="procedure-route-hero-copy"><h2>Procedimento</h2><p>Cadastro de procedimento clínico.</p></div>
+        <button class="agenda-quick-back ghost" type="button">Voltar</button>
+      </div>
+      <div id="procedure-summary" class="procedure-route-summary">
+        <span><span class="material-symbols-rounded">schedule</span><b>30 min</b><small>Duração</small></span>
+        <span><span class="material-symbols-rounded">payments</span><b>R$ 100</b><small>Valor</small></span>
+        <span><span class="material-symbols-rounded">category</span><b>Clínico</b><small>Tipo</small></span>
+      </div>
+      <form id="procedure-form" class="procedure-route-form">
+        <fieldset class="agenda-quick-section"><legend><span class="material-symbols-rounded">edit</span>Dados</legend><div class="agenda-quick-grid"><label class="field"><span>Nome</span><input value="Consulta"></label><label class="field"><span>Duração</span><input value="30"></label></div></fieldset>
+        <div class="agenda-quick-actions"><button class="ghost" type="button">Cancelar</button><button class="primary" type="button">Salvar</button></div>
+      </form>
+    </div>
+  </section>
 </main>
 </body>
 </html>
