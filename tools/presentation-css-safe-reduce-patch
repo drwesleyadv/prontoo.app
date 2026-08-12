@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+path = Path('tools/presentation-css-safe-reduce')
+source = path.read_text()
+start = source.index('def dedupe_declarations(tokens, stats: dict[str, int]):')
+end = source.index('\ndef route_name(text: str)', start)
+replacement = '''def dedupe_declarations(tokens, stats: dict[str, int]):
+    items = tinycss2.parse_declaration_list(tokens, skip_whitespace=False, skip_comments=False)
+    output = []
+    previous_key = None
+    custom_last = {}
+    for item in items:
+        if item.type in {'whitespace', 'comment'}:
+            output.append(item)
+            continue
+        if item.type == 'declaration':
+            key = declaration_key(item)
+            duplicate = previous_key == key
+            if str(item.lower_name).startswith('--'):
+                if custom_last.get(str(item.lower_name)) == key:
+                    duplicate = True
+                custom_last[str(item.lower_name)] = key
+            if duplicate:
+                stats['duplicate_declarations_removed'] += 1
+                if item.important:
+                    stats['duplicate_important_removed'] += 1
+                continue
+            previous_key = key
+            output.append(item)
+            continue
+        previous_key = None
+        output.append(item)
+    return tinycss2.parse_component_value_list(tinycss2.serialize(output))
+
+
+def dedupe_selector_prelude(tokens, stats: dict[str, int]):
+    parts = []
+    current = []
+    for token in tokens:
+        if token.type == 'literal' and getattr(token, 'value', None) == ',':
+            parts.append(current)
+            current = []
+        else:
+            current.append(token)
+    parts.append(current)
+    if len(parts) < 2:
+        return tokens
+    unique = []
+    seen = set()
+    removed = 0
+    for part in parts:
+        text = tinycss2.serialize(part).strip()
+        if text and text in seen:
+            removed += 1
+            continue
+        if text:
+            seen.add(text)
+        unique.append(text)
+    if removed == 0:
+        return tokens
+    stats['duplicate_selectors_removed'] += removed
+    return tinycss2.parse_component_value_list(','.join(unique))
+
+
+def transform_rules(rules, stats: dict[str, int]):
+    output = []
+    previous_qualified_key = None
+    for rule in rules:
+        if rule.type in {'whitespace', 'comment'}:
+            output.append(rule)
+            continue
+        if rule.type == 'qualified-rule':
+            rule.prelude = dedupe_selector_prelude(rule.prelude, stats)
+            rule.content = dedupe_declarations(rule.content, stats)
+            key = tinycss2.serialize(rule.prelude).strip() + '{' + tinycss2.serialize(rule.content) + '}'
+            if previous_qualified_key == key:
+                stats['adjacent_duplicate_rules_removed'] += 1
+                stats['duplicate_rule_important_removed'] += tinycss2.serialize(rule.content).count('!important')
+                stats['duplicate_rule_route_scopes_removed'] += tinycss2.serialize(rule.prelude).count('body[data-route=')
+                continue
+            previous_qualified_key = key
+            output.append(rule)
+            continue
+        if rule.type == 'at-rule' and rule.content is not None:
+            name = str(rule.lower_at_keyword)
+            if name in RULE_LIST_AT:
+                inner = tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+                inner = transform_rules(inner, stats)
+                rule.content = tinycss2.parse_component_value_list(tinycss2.serialize(inner))
+            elif name in DECLARATION_AT:
+                rule.content = dedupe_declarations(rule.content, stats)
+        previous_qualified_key = None
+        output.append(rule)
+    return output
+
+'''
+source = source[:start] + replacement + source[end + 1:]
+old = "stats = {'duplicate_declarations_removed': 0, 'duplicate_important_removed': 0}"
+new = "stats = {'duplicate_declarations_removed': 0, 'duplicate_important_removed': 0, 'duplicate_selectors_removed': 0, 'adjacent_duplicate_rules_removed': 0, 'duplicate_rule_important_removed': 0, 'duplicate_rule_route_scopes_removed': 0}"
+if source.count(old) != 1:
+    raise SystemExit('stats anchor missing')
+source = source.replace(old, new, 1)
+old = "if stats['duplicate_declarations_removed'] < 1:\n        fail('no semantics-preserving duplicate declarations found')"
+new = "if stats['duplicate_declarations_removed'] + stats['duplicate_selectors_removed'] + stats['adjacent_duplicate_rules_removed'] < 1:\n        fail('no provably equivalent CSS redundancies found')"
+if source.count(old) != 1:
+    raise SystemExit('reduction guard anchor missing')
+source = source.replace(old, new, 1)
+path.write_text(source)
