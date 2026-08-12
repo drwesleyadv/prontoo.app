@@ -28,11 +28,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git config user.name 'prontoo-ci'
+          git config user.email 'actions@users.noreply.github.com'
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/tmp-pagehead-primitive.py')
+          source = path.read_text()
+          old = r'''    r'\n\.pagehead-controls--actions :where\(a,button,summary\)\{.*?@media\(max-width:640px\)\{\.pagehead-controls--actions :where\(a,button,summary\)\{[^{}]*\}\}\s*$',
+'''
+          new = r'''    r'\n\.pagehead-controls--actions :is\(a,button,summary\)\{.*?@media\(max-width:640px\)\{\.pagehead-controls--actions :is\(a,button,summary\)\{[^{}]*\}\}\s*$',
+'''
+          if source.count(old) != 1:
+              raise SystemExit('bridge regex anchor drift')
+          path.write_text(source.replace(old, new, 1))
+          PY
           python3 tools/tmp-pagehead-primitive.py
       - name: Push canonical commits
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'prontoo-ci'
-          git config user.email 'actions@users.noreply.github.com'
           git push origin HEAD:agent/pagehead-control-primitive
