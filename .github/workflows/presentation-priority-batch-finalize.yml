@@ -68,13 +68,21 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.59.1
           npx playwright install --with-deps chromium
           node tools/presentation-ux-contract.mjs --check
-      - name: Commit materialized phase
+      - name: Publish validated implementation state
         shell: bash
         run: |
           set -euo pipefail
+          git restore --source=HEAD -- \
+            .github/workflows/presentation-priority-batch-materialize.yml \
+            .github/workflows/presentation-priority-batch-reconcile.yml \
+            .github/workflows/presentation-priority-batch-finalize.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
           git config user.name 'prontoo-architecture-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
           git diff --cached --check
+          git diff --cached --quiet && { echo 'No implementation changes to publish'; exit 1; }
           git commit -m 'refactor(presentation): demote contracted route priorities'
           git push origin HEAD:agent/presentation-priority-batch-1
