@@ -26,6 +26,16 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 -m pip install --quiet tinycss2
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/presentation-css-semanticize')
+          s = p.read_text()
+          start = s.index('def split_top_level(source: str) -> list[str]:')
+          end = s.index('\ndef route_name(text: str)', start)
+          replacement = '''def split_top_level(source: str) -> list[str]:\n    import tinycss2\n    rules = tinycss2.parse_stylesheet(source, skip_comments=True, skip_whitespace=True)\n    if not rules:\n        return [source]\n    line_starts = [0]\n    for pos, ch in enumerate(source):\n        if ch == "\\n":\n            line_starts.append(pos + 1)\n    starts = []\n    for rule in rules:\n        line = max(1, int(getattr(rule, "source_line", 1)))\n        col = max(1, int(getattr(rule, "source_column", 1)))\n        base = line_starts[min(line - 1, len(line_starts) - 1)]\n        starts.append(min(len(source), base + col - 1))\n    starts = sorted(set(starts))\n    if starts[0] != 0:\n        starts[0] = 0\n    units = [source[starts[i]: starts[i + 1] if i + 1 < len(starts) else len(source)] for i in range(len(starts))]\n    units = [unit for unit in units if unit]\n    if "".join(units) != source:\n        fail("tinycss2 segmentation changed source bytes")\n    return units\n\n'''
+          p.write_text(s[:start] + replacement + s[end + 1:])
+          PY
           python3 tools/presentation-css-semanticize
           python3 - <<'PY'
           from pathlib import Path
@@ -41,11 +51,6 @@ jobs:
           if s.count(old2) != 1:
               raise SystemExit('builder consolidation guard anchor missing')
           s = s.replace(old2, new2, 1)
-          old3 = "if ($order !== $expectedOrder || $relativePath === '' || isset($seen[$relativePath]) || !in_array($layer, $ownershipOrder, true)) {"
-          new3 = old3 + "\n        // semantic module ownership is additionally checked below"
-          if s.count(old3) != 1:
-              raise SystemExit('builder module guard anchor missing')
-          s = s.replace(old3, new3, 1)
           needle = "    if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {\n        fwrite(STDERR, \"presentation-css-build: unsafe module path\\n\");\n        exit(1);\n    }"
           replacement = needle + "\n    if (str_contains($relativePath, 'cascade-band') || !str_starts_with($relativePath, $layer . '/')) {\n        fwrite(STDERR, \"presentation-css-build: semantic ownership path invalid\\n\");\n        exit(1);\n    }"
           if s.count(needle) != 1:
