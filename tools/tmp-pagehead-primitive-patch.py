@@ -56,5 +56,10 @@ if source.count(renderer_old) != 1:
     raise SystemExit('renderer contract anchor drift')
 source = source.replace(renderer_old, renderer_new, 1)
 
+write_call = "run('php', 'tools/release-contract-reconcile', '--write')"
+if source.count(write_call) != 2:
+    raise SystemExit(f'expected 2 release write calls, found {source.count(write_call)}')
+source = source.replace(write_call, write_call + "\n" + write_call)
+
 path.write_text(source)
 Path(__file__).unlink()
