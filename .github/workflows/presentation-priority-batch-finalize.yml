@@ -1,0 +1,80 @@
+name: Presentation Priority Batch Finalizer
+on:
+  push:
+    branches:
+      - agent/presentation-priority-batch-1
+    paths:
+      - .github/workflows/presentation-priority-batch-finalize.yml
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize proven batch and complete release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '
+            /- name: Materialize source, manifest, status and release/ { found=1 }
+            found && /run: \|/ { capture=1; next }
+            capture && /^      - name:/ { exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/presentation-priority-batch-materialize.yml > /tmp/materialize-run.sh
+          test -s /tmp/materialize-run.sh
+          bash /tmp/materialize-run.sh
+          php -r '
+            $p="version.json";
+            $v=json_decode(file_get_contents($p), true, 512, JSON_THROW_ON_ERROR);
+            $items=$v["changelog"]["items"] ?? [];
+            if (count($items)!==4) { fwrite(STDERR,"unexpected changelog item count\n"); exit(1); }
+            $items[]="ratcheta o budget de !important para 4.934 sem ampliar qualquer outro budget visual";
+            $v["changelog"]["items"]=$items;
+            file_put_contents($p, json_encode($v, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL);
+          '
+          git rm .github/workflows/presentation-priority-batch-reconcile.yml
+          git rm .github/workflows/presentation-priority-batch-finalize.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+      - name: Validate complete phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          ! grep -Fq 'Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores' app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          grep -Fq 'class="pagehead-version">Versão: ' app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          test "$(php -r '$v=json_decode(file_get_contents("version.json"),true); echo $v["version"] ?? "";')" = '1.8.12.16'
+      - name: Validate Chromium UX contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+      - name: Commit materialized phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'prontoo-architecture-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'refactor(presentation): demote contracted route priorities'
+          git push origin HEAD:agent/presentation-priority-batch-1
