@@ -90,10 +90,13 @@ $assert(
 foreach ([
     '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
     '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',
-    'top:-.28em',
+    '.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:7px;white-space:nowrap;width:max-content;min-width:max-content}',
+    '.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block;flex:0 0 auto;white-space:nowrap}',
+    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;flex:0 0 auto;gap:2px;position:static;top:auto;',
 ] as $trendCssToken) {
     $assert(str_contains($css, $trendCssToken), 'CSS minimalista dos KPIs divergente: ' . $trendCssToken);
 }
+$assert(!str_contains($css, 'top:-.28em'), 'KPIs não podem deslocar a tendência para fora da linha do valor');
 $loadAreaPos = strpos($presentation3, '$loadArea =');
 $responseAreaPos = strpos($presentation3, '$responseArea =');
 $fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');

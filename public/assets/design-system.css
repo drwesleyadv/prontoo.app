@@ -15175,9 +15175,9 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 
 .stat-card.telemetry-kpi-card{display:flex;align-items:center;gap:12px}
 .stat-card.telemetry-kpi-card>div{min-width:0}
-.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
-.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;gap:2px;position:relative;top:-.28em;font-size:.72rem!important;line-height:1!important;font-weight:800!important;letter-spacing:-.01em;white-space:nowrap}
+.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:7px;white-space:nowrap;width:max-content;min-width:max-content}
+.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block;flex:0 0 auto;white-space:nowrap}
+.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;flex:0 0 auto;gap:2px;position:static;top:auto;font-size:.72rem!important;line-height:1!important;font-weight:800!important;letter-spacing:-.01em;white-space:nowrap}
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend>span{display:inline!important;color:inherit!important;font:inherit!important}
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}

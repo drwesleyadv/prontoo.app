@@ -573,7 +573,7 @@
         "public/assets/app-icon-1.7.15.8.png": "a80e14f844ef7093e32f88d30a2da5352129679d56dda653cf65cdbcc712114e",
         "public/assets/app-icon-1.7.15.9.png": "a80e14f844ef7093e32f88d30a2da5352129679d56dda653cf65cdbcc712114e",
         "public/assets/app.js": "dc7b78cfb12f08cae73367829645baed01062846fb53d7675d28984e6cc21d24",
-        "public/assets/design-system.css": "c8c8cc1f16a55b1c6513c208c357968cdcb6f8fbb24c13536b455d85206be7db",
+        "public/assets/design-system.css": "a6d4420b66d557315b653754f7edaef7877555cc05c3ad97aa9ab0646179f27a",
         "public/assets/favicon-1.7.15.10.ico": "59ca3ba771c1832aee97850304c24f761d6f90cc4f8e469035529296b8665286",
         "public/assets/favicon-1.7.15.10.png": "3ddd61617bb38287f36dc4a298602aec012d11ff4a56cd44b60cc060ffbde488",
         "public/assets/favicon-1.7.15.11.ico": "59ca3ba771c1832aee97850304c24f761d6f90cc4f8e469035529296b8665286",
@@ -631,7 +631,7 @@
         "tools/schema-check.php": "3ef80640392ea1c503ec875c6758c8b025815f5ecc631943cbbbb3f2f6588c25",
         "tools/security-regression-check.php": "219f485d85b0fc6b2eef7a0762babb6568e528071806067f22d85ca1a721deaa",
         "tools/solid-audit": "7b29c95bec72bf23f1b830ad3ff8798524c4d874f9c6b44c60a4d01247c60f1f",
-        "tools/telemetry-json-source-contract-check": "d5b0271851e63605d2d5615c10e5827692a951b2cc2cbe72bce7e725a60c7d75",
+        "tools/telemetry-json-source-contract-check": "7a8fa62a49c5bc8e1e8931d6bd4b111b2848471f83a639f61128f69734f3ad79",
         "tools/test-fast": "58a2a352d9e27b3cea7b74e3155aab6a368bd2e4b5ab29b5f8c48fa56d1f4fc2",
         "tools/version-asset-contract-check.php": "c5005a904179bdbc26bdffec2e5657d3ef2d29ae5269baf517472ac7a0d0c35f",
         "version.json": "ac778cb82e58a2136f4d51f5011416173c8e80335f065ac01b63b144e969281a"
