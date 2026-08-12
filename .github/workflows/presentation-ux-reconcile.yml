@@ -1,0 +1,37 @@
+name: Presentation UX Reconcile
+on:
+  push:
+    branches: [agent/presentation-ux-regression-contract]
+    paths:
+      - .github/workflows/presentation-ux-reconcile.yml
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-ux-regression-contract
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Reconcile and self-remove
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/presentation-ux-reconcile.yml
+          php tools/presentation-ux-baseline-check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+          git add -A
+          git diff --cached --check
+          git commit -m "ci(presentation): reconcile native UX quality tool"
+          git push origin HEAD:agent/presentation-ux-regression-contract
