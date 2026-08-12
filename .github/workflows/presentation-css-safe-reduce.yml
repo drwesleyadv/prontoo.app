@@ -1,9 +1,9 @@
-name: Presentation CSS Safe Debt Reduction
+name: Presentation CSS Surgical Debt Reduction
 on:
   push:
     branches: [agent/presentation-css-debt-reduction-1]
     paths:
-      - tools/presentation-css-safe-reduce-patch
+      - tools/presentation-css-surgical-reduce
       - .github/workflows/presentation-css-safe-reduce.yml
 permissions:
   contents: write
@@ -23,15 +23,13 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reduce debt and prove UX equivalence
+      - name: Apply one exact CSS edit and prove UX equivalence
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          python3 -m pip install --quiet tinycss2
-          python3 tools/presentation-css-safe-reduce-patch
-          python3 tools/presentation-css-safe-reduce
+          python3 tools/presentation-css-surgical-reduce
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
           php tools/presentation-visual-contract-check
@@ -48,18 +46,17 @@ jobs:
           data['generated_at_unix']=int(now.timestamp())
           data['generated_at']=now.isoformat()
           data['updated_at']=now.isoformat()
-          data['notes']='Redução inicial da dívida CSS remove redundâncias formalmente equivalentes em declarations, selector lists e regras adjacentes; UX é provada pelo baseline Chromium.'
-          data['deployment_sync_id']='github-prontoo-1.8.12.9-presentation-css-safe-debt-reduction'
+          data['deployment_sync_id']='github-prontoo-1.8.12.9-presentation-css-surgical-debt-reduction'
           data['deployment_sync_requested_at']=now.isoformat()
           with open(p,'w') as f: json.dump(data,f,indent=4,ensure_ascii=False); f.write('\n')
           PY
           rm -rf node_modules
-          git rm -f tools/presentation-css-safe-reduce tools/presentation-css-safe-reduce-patch .github/workflows/presentation-css-safe-reduce.yml
+          git rm -f tools/presentation-css-safe-reduce tools/presentation-css-safe-reduce-patch tools/presentation-css-selector-audit tools/presentation-css-surgical-reduce .github/workflows/presentation-css-selector-audit.yml .github/workflows/presentation-css-safe-reduce.yml
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/quality-gate --fast
           git add -A
           git diff --cached --check -- ':!app/Presentation/Styles/**/*.css' ':!public/assets/presentation.css'
-          git commit -m "refactor(presentation): reduce semantics-neutral CSS debt"
+          git commit -m "refactor(presentation): eliminate duplicate selector-list debt"
           git push origin HEAD:agent/presentation-css-debt-reduction-1
