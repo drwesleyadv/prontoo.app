@@ -33,17 +33,23 @@ if (is_file($baselinePath)) {
     }
 }
 
-$expectedScenarios = ['desktop', 'appointments', 'readonly', 'primary-hover', 'mobile', 'mobile-appointments'];
+$expectedScenarios = [
+    'desktop', 'appointments', 'readonly', 'primary-hover', 'mobile', 'mobile-appointments',
+    'financial', 'mobile-financial', 'patient', 'mobile-patient', 'procedures', 'mobile-procedures',
+];
 $expectedTargets = [
     'topbar', 'cmdbar', 'pagehead', 'nav-group', 'nav-idle', 'nav-active', 'primary', 'secondary', 'danger',
     'grid', 'card', 'stat', 'form-card', 'field', 'input', 'form-actions', 'feedback', 'pill',
+    'finance-workspace', 'finance-guides', 'finance-guide', 'finance-form-stack', 'finance-row',
+    'patient-hero', 'patient-tabs-shell', 'patient-tab-nav', 'patient-panel', 'patient-data-list',
+    'procedure-card', 'procedure-form-panel', 'procedure-hero', 'procedure-summary', 'procedure-form',
 ];
 $sortedScenarios = $expectedScenarios;
 sort($sortedScenarios);
 $sortedTargets = $expectedTargets;
 sort($sortedTargets);
 
-if (($baseline['policy'] ?? '') !== 'presentation-computed-style-ux-v1') {
+if (($baseline['policy'] ?? '') !== 'presentation-computed-style-ux-v2') {
     $failures[] = 'baseline:policy';
 }
 if (($baseline['playwright'] ?? '') !== '1.59.1') {
@@ -87,7 +93,10 @@ if (is_file($fixturePath)) {
 }
 if (is_file($runnerPath)) {
     $runner = (string) file_get_contents($runnerPath);
-    foreach (['playwright', '--write', '--check', 'getComputedStyle', 'getBoundingClientRect', 'primary-hover', 'mobile-appointments'] as $needle) {
+    foreach ([
+        'playwright', '--write', '--check', 'getComputedStyle', 'getBoundingClientRect', 'primary-hover',
+        'mobile-appointments', 'mobile-financial', 'mobile-patient', 'mobile-procedures',
+    ] as $needle) {
         if (!str_contains($runner, $needle)) {
             $failures[] = 'runner:' . $needle;
         }
@@ -104,10 +113,11 @@ if (is_file($workflowPath)) {
 
 fwrite(STDOUT, json_encode([
     'ok' => $failures === [],
-    'policy' => 'presentation-observable-ux-contract-v1',
+    'policy' => 'presentation-observable-ux-contract-v2',
     'scenarios' => count($expectedScenarios),
     'targets_per_scenario' => count($expectedTargets),
     'asserted_surfaces' => count($expectedScenarios) * count($expectedTargets),
+    'covered_routes' => ['appointments', 'financial', 'patient', 'procedures'],
     'failures' => $failures,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
 exit($failures === [] ? 0 : 1);
