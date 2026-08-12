@@ -1,0 +1,204 @@
+name: Presentation Priority Batch 2 Audit
+on:
+  push:
+    branches:
+      - agent/presentation-priority-batch-2
+    paths:
+      - .github/workflows/presentation-priority-batch-2-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Validate current presentation contracts
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+      - name: Setup Chromium contract runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Discover and materialize deterministic candidate batch
+        run: |
+          cat > /tmp/audit-batch-2.mjs <<'NODE'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const root = process.cwd();
+          const fixtureHtml = fs.readFileSync(path.join(root, 'tests/presentation/ux-fixture.html'), 'utf8');
+          const artifactPath = path.join(root, 'public/assets/presentation.css');
+          const artifactCss = fs.readFileSync(artifactPath, 'utf8');
+          const domains = {
+            financial: { file: 'app/Presentation/Styles/routes/financial.css', route: 'financial', selectors: {
+              'body[data-route="financial"] .finance-workspace': 'finance-workspace',
+              'body[data-route="financial"] .finance-operation-guides': 'finance-guides',
+              'body[data-route="financial"] .finance-form-stack': 'finance-form-stack',
+              'body[data-route="financial"] .finance-operation-row': 'finance-row'
+            }},
+            patient: { file: 'app/Presentation/Styles/routes/patient.css', route: 'patient', selectors: {
+              'body[data-route="patient"] .patient-hero': 'patient-hero',
+              'body[data-route="patient"] .patient-tabs-shell': 'patient-tabs-shell',
+              'body[data-route="patient"] .patient-tab-nav': 'patient-tab-nav',
+              'body[data-route="patient"] .patient-panel': 'patient-panel',
+              'body[data-route="patient"] .patient-data-list': 'patient-data-list'
+            }},
+            procedures: { file: 'app/Presentation/Styles/routes/procedures.css', route: 'procedures', selectors: {
+              'body[data-route="procedures"] .procedure-route-card.card': 'procedure-card',
+              'body[data-route="procedures"] .procedure-route-form-panel': 'procedure-form-panel',
+              'body[data-route="procedures"] .procedure-route-hero': 'procedure-hero',
+              'body[data-route="procedures"] .procedure-route-summary': 'procedure-summary',
+              'body[data-route="procedures"] .procedure-route-form': 'procedure-form'
+            }}
+          };
+          const normalize = value => value.replace(/\s+/g, ' ').trim();
+          const compact = value => value.replace(/\s+/g, '').trim();
+          const grouped = new Map();
+          for (const [domain, config] of Object.entries(domains)) {
+            const css = fs.readFileSync(path.join(root, config.file), 'utf8');
+            const ruleRe = /([^{}]+)\{([^{}]*)\}/gms;
+            let rule;
+            while ((rule = ruleRe.exec(css)) !== null) {
+              const selector = normalize(rule[1]);
+              if (!Object.prototype.hasOwnProperty.call(config.selectors, selector)) continue;
+              const declRe = /([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g;
+              let decl;
+              while ((decl = declRe.exec(rule[2])) !== null) {
+                const item = { domain, file: config.file, route: config.route, selector, target: config.selectors[selector], property: decl[1].trim(), value: decl[2].trim() };
+                const key = JSON.stringify(item);
+                grouped.set(key, { ...item, source_occurrences: (grouped.get(key)?.source_occurrences || 0) + 1 });
+              }
+            }
+          }
+          const candidates = [...grouped.values()].sort((a, b) => {
+            const domainOrder = { financial: 0, patient: 1, procedures: 2 };
+            return domainOrder[a.domain] - domainOrder[b.domain]
+              || a.selector.localeCompare(b.selector)
+              || a.property.localeCompare(b.property)
+              || a.value.localeCompare(b.value);
+          });
+
+          function demote(css, candidate) {
+            let count = 0;
+            const transformed = css.replace(/([^{}]+)\{([^{}]*)\}/gms, (full, rawSelector, body) => {
+              if (normalize(rawSelector) !== candidate.selector) return full;
+              const nextBody = body.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g, (decl, property, value) => {
+                if (property.trim() !== candidate.property || compact(value) !== compact(candidate.value)) return decl;
+                count++;
+                return decl.replace(/\s*!important/, '');
+              });
+              return full.slice(0, full.indexOf('{') + 1) + nextBody + '}';
+            });
+            return { transformed, count };
+          }
+
+          function htmlWithCss(css) {
+            const style = `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`;
+            const html = fixtureHtml.replace(/<link\b[^>]*href=["'][^"']*public\/assets\/presentation\.css[^"']*["'][^>]*>/i, style);
+            if (html === fixtureHtml) throw new Error('presentation stylesheet link not found');
+            return html;
+          }
+
+          const properties = ['display','position','top','zIndex','boxSizing','width','height','minWidth','minHeight','maxWidth','maxHeight','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginRight','marginBottom','marginLeft','gap','rowGap','columnGap','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth','borderTopStyle','borderRightStyle','borderBottomStyle','borderLeftStyle','borderTopColor','borderRightColor','borderBottomColor','borderLeftColor','borderTopLeftRadius','borderTopRightRadius','borderBottomRightRadius','borderBottomLeftRadius','backgroundColor','backgroundImage','color','boxShadow','opacity','visibility','overflow','overflowX','overflowY','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','textAlign','whiteSpace','alignItems','justifyContent','flexDirection','flexWrap','gridTemplateColumns','transform'];
+          const scenarios = [{ name: 'desktop', width: 1280, height: 2200 }, { name: 'mobile', width: 390, height: 2400 }];
+          const browser = await chromium.launch({ headless: true });
+          async function snapshot(scenario, candidate, css) {
+            const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height }, deviceScaleFactor: 1 });
+            const page = await context.newPage();
+            await page.route('https://fonts.googleapis.com/**', r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+            await page.route('https://fonts.gstatic.com/**', r => r.fulfill({ status: 204, body: '' }));
+            await page.setContent(htmlWithCss(css), { waitUntil: 'load' });
+            const result = await page.evaluate(({ route, target, properties }) => {
+              document.body.style.setProperty('--clinic-identity-accent', '#2f6652');
+              document.body.style.setProperty('--clinic-identity-hover', '#295a48');
+              document.body.style.setProperty('--clinic-identity-pressed', '#244d40');
+              document.body.style.setProperty('--clinic-identity-on-accent', '#ffffff');
+              document.body.style.setProperty('--clinic-identity-readonly', '#52645a');
+              document.body.style.setProperty('--clinic-identity-readonly-hover', '#48584f');
+              document.body.style.setProperty('--clinic-identity-on-readonly', '#ffffff');
+              document.body.dataset.route = route;
+              const el = document.getElementById(target);
+              if (!el) return null;
+              const style = getComputedStyle(el);
+              const rect = el.getBoundingClientRect();
+              return {
+                rect: [rect.x, rect.y, rect.width, rect.height].map(v => Number(v.toFixed(3))),
+                style: Object.fromEntries(properties.map(prop => [prop, style[prop]]))
+              };
+            }, { route: candidate.route, target: candidate.target, properties });
+            await context.close();
+            return result;
+          }
+
+          const safe = [];
+          const rejected = [];
+          try {
+            for (const candidate of candidates) {
+              const { transformed, count } = demote(artifactCss, candidate);
+              let stable = count === 1;
+              const proof = [];
+              for (const scenario of scenarios) {
+                const before = await snapshot(scenario, candidate, artifactCss);
+                const after = await snapshot(scenario, candidate, transformed);
+                const equal = before !== null && JSON.stringify(before) === JSON.stringify(after);
+                proof.push({ scenario: scenario.name, stable: equal });
+                if (!equal) stable = false;
+              }
+              (stable ? safe : rejected).push({ ...candidate, artifact_occurrences: count, proof });
+            }
+          } finally {
+            await browser.close();
+          }
+
+          const selected = [];
+          const queues = {
+            financial: safe.filter(item => item.domain === 'financial'),
+            patient: safe.filter(item => item.domain === 'patient'),
+            procedures: safe.filter(item => item.domain === 'procedures')
+          };
+          const order = ['financial', 'patient', 'procedures'];
+          while (selected.length < 8 && order.some(domain => queues[domain].length > 0)) {
+            for (const domain of order) {
+              if (selected.length >= 8) break;
+              const item = queues[domain].shift();
+              if (item) selected.push(item);
+            }
+          }
+          if (selected.length === 0) throw new Error('No individually safe remaining direct-target priority candidate');
+          let combined = artifactCss;
+          for (const candidate of selected) {
+            const next = demote(combined, candidate);
+            if (next.count !== 1) throw new Error(`combined candidate occurrence mismatch: ${candidate.domain} ${candidate.selector} ${candidate.property}`);
+            combined = next.transformed;
+          }
+          fs.writeFileSync(artifactPath, combined);
+          console.log('SELECTED_BATCH_2=' + JSON.stringify(selected.map(({ proof, ...item }) => item)));
+          console.log(JSON.stringify({
+            policy: 'contracted_direct_target_priority_audit_v5',
+            remaining_candidate_groups: candidates.length,
+            individually_safe_groups: safe.length,
+            rejected_groups: rejected.length,
+            selected_groups: selected.length,
+            selected: selected.map(({ proof, ...item }) => item),
+            important_before: (artifactCss.match(/!important/g) || []).length,
+            important_after: (combined.match(/!important/g) || []).length
+          }, null, 2));
+          NODE
+          node /tmp/audit-batch-2.mjs
+      - name: Prove selected batch against full Chromium baseline
+        run: |
+          set -euo pipefail
+          node tools/presentation-ux-contract.mjs --check
