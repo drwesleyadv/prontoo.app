@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.12.16 — Prioridades visuais contratadas e versão no Status
+
+- Reduz 8 ocorrências de !important formalmente comprovadas em Paciente e Procedimentos, de 4.942 para 4.934.
+- Mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile.
+- Substitui a descrição da janela móvel na página de Status por “Versão: 1.8.12.16”, no padrão do painel do Desenvolvedor.
+- Mantém banco e schema inalterados.
+- ratcheta o budget de !important para 4.934 sem ampliar qualquer outro budget visual.
+
 ## 1.8.12.15 — CSS de Presentation consolidado sem alteração de UX
 
 - remove o arquivo físico public/assets/design-system.css e passa a gerar public/assets/presentation.css.

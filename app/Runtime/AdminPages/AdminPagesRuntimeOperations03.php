@@ -138,7 +138,9 @@ final class AdminPagesRuntimeOperations03
     $statusHeader =
         '<header class="status-page-header">' .
         '<span class="status-page-icon" aria-hidden="true">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitor_heart") . "</span>" .
-        '<div><h1>Status do Prontoo</h1><p>Janela móvel de 30 dias · 15 dias recentes comparados aos 15 imediatamente anteriores</p></div>' .
+        '<div><h1>Status do Prontoo</h1><div class="pagehead-version">Versão: ' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_VERSION) .
+            '</div></div>' .
         "</header>";
     $card = $statusHeader . $overviewCards . \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html(true);
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/status"><title>Status · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#238763"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><meta name="prontoo-version" content="' .
