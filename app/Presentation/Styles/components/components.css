@@ -294,12 +294,12 @@ main{
   align-items:center;
   justify-content:center;
   gap:8px;
-  max-width:none!important;
+  
   min-width:max-content;
   flex:0 0 auto;
-  overflow:visible!important;
+  
   text-overflow:clip!important;
-  white-space:nowrap!important;
+  
   color:var(--md-sys-color-on-surface-variant);
 }
 .top .top-account.top-user-name>span:not(.material-symbols-rounded){
@@ -390,19 +390,19 @@ body.public.has-top-shell{
   margin:0!important;
   min-width:max-content!important;
 }
-.top .top-actions{align-items:center!important;}
+.top .top-actions{}
 .top form.logout{
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
-  width:auto!important;
-  min-width:0!important;
+  
+  
   height:42px!important;
-  padding:0!important;
-  margin:0!important;
-  border:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
+  
+  
+  
+  
+  
 }
 .top .logout-icon{
   width:42px!important;
@@ -427,7 +427,7 @@ body.public.has-top-shell{
 }
 .seq-footer-chip{
   min-height:32px!important;
-  gap:7px!important;
+  
   padding:6px 11px 6px 10px!important;
   border-radius:999px!important;
   max-width:100%!important;
@@ -2240,9 +2240,9 @@ body.public .signup-ds-actions .ghost{
   gap:5px!important;
   min-height:28px!important;
   padding:0 10px!important;
-  border-radius:999px!important;
+  
   background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))!important;
-  color:var(--md-sys-color-primary)!important;
+  
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent)!important;
   font-weight:700!important;
   font-size:.82rem!important;
@@ -3115,7 +3115,7 @@ body.public .signup-ds-actions .ghost{
 .doc-overview-cards .doc-ds-metric.patient-kpi-card.kpi-card{
   min-height:82px!important;
   display:flex!important;
-  align-items:center!important;
+  
   gap:12px!important;
   padding:14px 15px!important;
   border-radius:20px!important;
@@ -3418,7 +3418,7 @@ body.public .signup-ds-actions .ghost{
   bottom:15mm;
   display:flex;
   justify-content:flex-end;
-  margin:0!important;
+  
   max-width:calc(100% - 40mm);
 }
 .doc-print-identifier{
@@ -3505,8 +3505,8 @@ body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
   justify-items:start!important;
   gap:var(--pt-floating-card-gap,7px)!important;
   min-height:var(--pt-floating-card-min-h,44px)!important;
-  width:max-content!important;
-  min-width:0!important;
+  
+  
   max-width:calc(100dvw - 28px)!important;
   padding:var(--pt-floating-card-pad-y,6px) var(--pt-floating-card-pad-x,9px)!important;
   border-radius:var(--pt-floating-attention-radius,16px) 0 0 var(--pt-floating-attention-radius,16px)!important;

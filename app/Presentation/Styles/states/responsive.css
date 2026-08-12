@@ -226,7 +226,7 @@
 @media(max-width:640px){
   body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
     min-height:0!important;
-    padding-block-end:0!important;
+    
   }
   
 }
@@ -1169,7 +1169,7 @@
   .document-print main.doc-a4{
     width:210mm!important;
     min-height:297mm!important;
-    padding:30mm 20mm 30mm 20mm!important;
+    
     margin:0!important;
     box-shadow:none!important;
     border:0!important;
@@ -1223,9 +1223,9 @@
   
   body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
   body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
-    max-height:calc(100dvh - 18px)!important;
+    
     border-radius:24px!important;
-    padding:12px!important;
+    
   }
 }
 
