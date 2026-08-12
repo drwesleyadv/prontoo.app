@@ -24,91 +24,18 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Apply KPI order and hourglass fallback
+      - name: Apply and validate KPI order
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          runtime_path = Path('app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php')
-          runtime = runtime_path.read_text()
-          old = '''                '<div><div class="telemetry-kpi-value">' .
-                $trend .
-                "<b>" .
-                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::n($value) .
-                "</b></div><span>" .'''
-          new = '''                '<div><div class="telemetry-kpi-value">' .
-                "<b>" .
-                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::n($value) .
-                "</b>" .
-                $trend .
-                "</div><span>" .'''
-          if runtime.count(old) != 1:
-              raise SystemExit('runtime KPI value/trend target count != 1')
-          runtime_path.write_text(runtime.replace(old, new, 1))
-
-          presentation_path = Path('app/Presentation/AdminPages/AdminPagesPresentationOperations03.php')
-          presentation = presentation_path.read_text()
-          old = '''        if ($variation === null) {
-            return "";
-        }'''
-          new = '''        if ($variation === null) {
-            return '<span class="telemetry-kpi-trend is-neutral is-pending" title="Aguardando base comparável" aria-label="Aguardando base comparável">⌛</span>';
-        }'''
-          if presentation.count(old) != 1:
-              raise SystemExit('presentation missing-base target count != 1')
-          presentation_path.write_text(presentation.replace(old, new, 1))
-
-          contract_path = Path('tools/telemetry-json-source-contract-check')
-          contract = contract_path.read_text()
-          old = '''$assert(
-    str_contains($neutralTrend, 'is-neutral') &&
-    str_contains($neutralTrend, '0%') &&
-    !str_contains($neutralTrend, '▲') &&
-    !str_contains($neutralTrend, '▼') &&
-    $missingTrend === '',
-    'variação neutra/não comparável deve permanecer minimalista',
-);'''
-          new = '''$assert(
-    str_contains($neutralTrend, 'is-neutral') &&
-    str_contains($neutralTrend, '0%') &&
-    !str_contains($neutralTrend, '▲') &&
-    !str_contains($neutralTrend, '▼'),
-    'variação neutra deve permanecer minimalista',
-);
-$assert(
-    str_contains($missingTrend, 'is-pending') &&
-    str_contains($missingTrend, '⌛') &&
-    !str_contains($missingTrend, '%') &&
-    !str_contains($missingTrend, '▲') &&
-    !str_contains($missingTrend, '▼'),
-    'ausência de base comparável deve exibir somente ampulheta',
-);
-$valueMarkupPos = strpos($admin3, 'UiComponentsPresentationOperations01::n($value)');
-$trendMarkupPos = $valueMarkupPos === false ? false : strpos($admin3, '$trend .', $valueMarkupPos);
-$assert(
-    $valueMarkupPos !== false &&
-    $trendMarkupPos !== false &&
-    $trendMarkupPos > $valueMarkupPos,
-    'ordem visual dos KPIs deve ser Valor, Triângulo e Percentual',
-);'''
-          if contract.count(old) != 1:
-              raise SystemExit('contract neutral/missing target count != 1')
-          contract = contract.replace(old, new, 1)
-          old_unset = 'unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $trendCssToken, $visualToken, $opacityToken, $token, $source);'
-          new_unset = 'unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $opacityToken, $token, $source);'
-          if contract.count(old_unset) != 1:
-              raise SystemExit('contract unset target count != 1')
-          contract_path.write_text(contract.replace(old_unset, new_unset, 1))
-          PY
-
+          php tools/tmp-telemetry-kpi-order.php
+          rm tools/tmp-telemetry-kpi-order.php
+          rm .github/workflows/reconcile-telemetry-kpi-order.yml
           php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
           php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
           php -l tools/telemetry-json-source-contract-check
           php tools/telemetry-json-source-contract-check
           php tools/code-comment-check.php
-          rm .github/workflows/reconcile-telemetry-kpi-order.yml
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/telemetry-json-source-contract-check
