@@ -52,6 +52,7 @@ $metrics = [
 ];
 $required = [
     '--md-ref-palette-primary40: var(--clinic-accent,#2f6652)',
+    '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))',
     '--md-sys-color-secondary:color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)',
     '--pt-pagehead-action-height:34px',
     '--pt-pagehead-action-radius:var(--md-sys-shape-corner-large)',
@@ -67,6 +68,7 @@ $required = [
     '--pt-pagehead-action-on-accent:var(--md-sys-color-on-primary)',
     'body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary)',
     '.pagehead-actions :where(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent)',
+    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong);color:var(--pt-pagehead-action-on-accent)',
     '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent)',
     '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}',
 ];
@@ -78,6 +80,9 @@ foreach ($required as $token) {
 }
 if (($contract['version'] ?? '') !== ($version['version'] ?? '')) {
     $failures[] = 'version';
+}
+if (str_contains($css, '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--brand-dark,')) {
+    $failures[] = 'cyclic-primary30-brand-dark-fallback';
 }
 $desktop = (array) (($contract['pagehead_action'] ?? [])['desktop'] ?? []);
 $mobile = (array) (($contract['pagehead_action'] ?? [])['mobile'] ?? []);

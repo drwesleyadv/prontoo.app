@@ -1,5 +1,5 @@
 {
-    "version": "1.8.12.1",
+    "version": "1.8.12.2",
     "policy": "presentation-visual-contract-v1",
     "architecture_scope": "presentation_ui_adapter_contract",
     "reference": {
@@ -43,12 +43,13 @@
         },
         "color_contract": {
             "clinic_accent_chain": "--clinic-accent -> --md-ref-palette-primary40 -> --md-sys-color-primary -> --pt-pagehead-action-accent",
-            "clinic_accent_strong_chain": "--clinic-accent-strong -> --md-ref-palette-primary30 -> --pt-pagehead-action-accent-strong",
+            "clinic_accent_strong_chain": "--clinic-accent-strong -> --clinic-accent-dark -> direct primary mix -> --md-ref-palette-primary30 -> --pt-pagehead-action-accent-strong",
             "read_only_scope": "body.is-read-only",
             "read_only_chain": "--md-sys-color-primary -> --md-sys-color-secondary -> --pt-pagehead-action-accent",
             "read_only_secondary_mix": "46% primary + neutral #5d6b63",
             "semantic_error_palette": "--md-sys-color-error",
-            "geometry_may_change_with_context": false
+            "geometry_may_change_with_context": false,
+            "strong_fallback_may_reference_brand_dark": false
         }
     },
     "invariants": [
@@ -60,7 +61,8 @@
         "mobile_preserves_42px_touch_target",
         "route_layout_may_change_but_route_action_identity_may_not",
         "module_specific_pagehead_primary_overrides_are_zero",
-        "visual_debt_may_not_increase_without_contract_change"
+        "visual_debt_may_not_increase_without_contract_change",
+        "strong_accent_fallback_is_acyclic_and_never_references_brand_dark"
     ],
     "css_statistics": {
         "before": {
@@ -80,7 +82,7 @@
         "after": {
             "lines": 15196,
             "nonblank_lines": 14424,
-            "bytes": 808316,
+            "bytes": 808324,
             "important_count": 5090,
             "route_scope_count": 1172,
             "duplicate_selector_headers": 715,
@@ -94,7 +96,7 @@
         "delta": {
             "lines": 10,
             "nonblank_lines": 6,
-            "bytes": 1260,
+            "bytes": 1268,
             "important_count": -5,
             "route_scope_count": -1,
             "duplicate_selector_headers": 0,
