@@ -6,7 +6,7 @@ on:
       - prontoo
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   reconcile:
@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout PR head
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: agent/native-presentation-css
           fetch-depth: 0
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
@@ -25,15 +25,16 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Materialize deterministic manifest
+      - name: Reconcile and self-remove
         shell: bash
         run: |
           set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/native-css-reconcile-probe.yml
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
-      - name: Upload reconciled manifest
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-css-reconciled-manifest
-          path: app/update.manifest.json
-          retention-days: 1
+          git add app/update.manifest.json
+          git diff --cached --check
+          git commit -m "chore(release): reconcile native CSS manifest"
+          git push origin HEAD:agent/native-presentation-css
