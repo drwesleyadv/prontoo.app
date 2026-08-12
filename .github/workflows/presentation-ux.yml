@@ -1,0 +1,24 @@
+name: Presentation UX Contract
+on:
+  pull_request:
+    branches: [prontoo]
+  push:
+    branches: [prontoo]
+permissions:
+  contents: read
+jobs:
+  computed-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned browser contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Verify computed-style UX baseline
+        run: node tools/presentation-ux-contract.mjs --check

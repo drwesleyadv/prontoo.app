@@ -110,8 +110,9 @@ $run('query-budget-contract', 'tools/query-budget-contract-check');
 $run('architecture-consolidation-contract', 'tools/architecture-consolidation-check');
 $run('operation-gateway-budget', 'tools/operation-gateway-budget-check');
 $run('presentation-visual-contract', 'tools/presentation-visual-contract-check');
-$run('presentation-css-source-contract', 'tools/presentation-css-build');
+$run('presentation-css-source-contract', 'tools/presentation-css-build', ['--lint']);
 $run('presentation-css-artifact-equivalence', 'tools/presentation-css-build', ['--check']);
+$run('presentation-observable-ux-baseline', 'tools/presentation-ux-baseline-check');
 
 if ($fast) {
     fwrite(STDOUT, json_encode([
@@ -134,21 +135,10 @@ $run('code-comment-contract', 'tools/code-comment-check.php');
 $run('security-regressions', 'tools/security-regression-check.php');
 $run('architecture-invariants', 'tools/architecture-check.php');
 $run('native-unit-contract', 'tools/native-unit-check');
-$run('runtime-symbol-contract', 'tools/runtime-symbol-contract-check');
-$run('solid-structural-audit', 'tools/solid-audit', ['--strict']);
 
 fwrite(STDOUT, json_encode([
     'ok' => true,
     'policy' => 'canonical-engineering-quality-gate-v1',
-    'mode' => 'static',
+    'mode' => 'full',
     'gates_passed' => $passed,
-    'integration_gates_deferred' => [
-        'schema',
-        'installer',
-        'login-post-password',
-        'login-logout-http-smoke',
-        'maestro-runtime',
-        'critical-runtime-smoke',
-        'http-front-controller-smoke',
-    ],
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

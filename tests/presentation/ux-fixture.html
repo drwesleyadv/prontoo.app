@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../public/assets/presentation.css">
+<title>Prontoo Presentation UX Contract</title>
+</head>
+<body>
+<header id="topbar" class="top">
+  <div class="brand"><span class="brand-mark"></span><div class="brand-copy"><b>Prontoo</b><small>Consultório de teste</small></div></div>
+  <div class="top-actions"><span class="pill neutral">Ambiente</span></div>
+</header>
+<nav id="cmdbar" class="cmdbar"><a class="pill neutral">Agenda</a><a class="pill neutral">Pacientes</a></nav>
+<main>
+  <header id="pagehead" class="pagehead has-operations">
+    <div class="pagehead-main"><h1>Agenda</h1></div>
+    <nav id="nav-group" class="pagehead-controls pagehead-controls--navigation">
+      <a id="nav-idle" class="pagehead-control pagehead-control--nav"><span class="material-symbols-rounded">space_dashboard</span><span>Painel</span></a>
+      <a id="nav-active" class="pagehead-control pagehead-control--nav" aria-current="page"><span class="material-symbols-rounded">today</span><span>Diário</span></a>
+    </nav>
+    <div class="pagehead-controls pagehead-controls--actions">
+      <a id="secondary" class="pagehead-control pagehead-control--secondary"><span class="material-symbols-rounded">sticky_note_2</span><span>Anotação</span></a>
+      <a id="primary" class="pagehead-control pagehead-control--primary"><span class="material-symbols-rounded">event_available</span><span>Agendar consulta</span></a>
+      <button id="danger" class="pagehead-control pagehead-control--danger"><span class="material-symbols-rounded">delete</span><span>Excluir</span></button>
+    </div>
+  </header>
+  <section id="grid" class="two">
+    <article id="card" class="card"><div class="section-head"><h2>Dados</h2></div><p>Conteúdo de referência.</p></article>
+    <article id="stat" class="stat-card"><span class="material-symbols-rounded">monitoring</span><div><b>42</b><span>Indicador</span></div></article>
+  </section>
+  <section id="form-card" class="form-panel">
+    <form>
+      <label id="field" class="field"><span>Nome</span><input id="input" value="Paciente de teste"><small class="field-help">Ajuda contextual</small></label>
+      <div id="form-actions" class="form-actions"><button class="pagehead-control pagehead-control--secondary" type="button">Cancelar</button><button class="pagehead-control pagehead-control--primary" type="button">Salvar</button></div>
+    </form>
+  </section>
+  <div id="feedback" class="flash info"><span class="material-symbols-rounded">info</span><span>Mensagem informativa.</span></div>
+  <div id="pill" class="pill ok">Concluído</div>
+</main>
+</body>
+</html>
