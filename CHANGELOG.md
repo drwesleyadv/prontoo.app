@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.12.4 — Harmonia global dos controles do PageHead
+
+- unifica em 38 px a altura desktop de navegação, ações primárias e ações secundárias do PageHead, preservando 42 px no mobile.
+- compartilha raio de 16 px, padding, tipografia, ícones de 20 px, alinhamento e ritmo entre todos os controles canônicos.
+- mantém operações como navegação segmentada, ações primárias preenchidas e ações secundárias com tint e borda sem apagar sua hierarquia.
+- remove exceções geométricas de Configurações, Procedimentos, Perfil e Caixa que criavam 40 px ou radius 999 px dentro do PageHead.
+- faz as operações de navegação consumirem a mesma identidade cromática contextual do consultório, inclusive em somente leitura.
+- reforça o Presentation Visual Contract para impedir novos overrides de identidade de operações ou ações por rota.
+- preserva posições, nomenclaturas, fluxos, permissões, banco, schema e estratégia de compactação mobile já conhecida pelos usuários.
+
 ## 1.8.12.3 — Engenharia arquitetural 16–21 e consolidação
 
 - institui análise tokenizada e baseline monotônica para a fronteira Runtime.
