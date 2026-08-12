@@ -47,9 +47,7 @@ body.public.has-top-shell main{
   background:transparent!important;
 }
 
-body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
-  
-}
+
 body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo{
   min-height:auto!important;
   padding-block-end:0!important;
@@ -230,7 +228,7 @@ body.scope-global{
 body.scope-global .global-compact-summary{align-items:stretch!important;padding:16px!important;border-radius:24px!important;}
 body.scope-global .global-pill-title{display:flex;align-items:center;gap:8px;color:var(--md-sys-color-on-surface);font-weight:900;}
 body.scope-global .global-pill-title .material-symbols-rounded{color:#238763!important;}
-body.scope-global .global-pill-list{}
+
 body.scope-global .global-compact-pill{min-height:64px!important;padding:10px 12px!important;}
 body.scope-global .global-compact-pill b{font-weight:900!important;color:var(--md-sys-color-on-surface)!important;}
 body.scope-global .global-compact-pill span{font:var(--md-sys-typescale-body-small)!important;color:var(--md-sys-color-on-surface-variant)!important;}
