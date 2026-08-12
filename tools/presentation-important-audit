@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import json
+from pathlib import Path
+import tinycss2
+
+CSS = Path('public/assets/presentation.css').read_text(encoding='utf-8')
+RULE_LIST_AT = {'media','supports','container','layer','scope','starting-style'}
+
+
+def normalize_selector(tokens):
+    return ' '.join(tinycss2.serialize(tokens).split())
+
+
+def rule_body(tokens):
+    return tinycss2.serialize(tokens)
+
+
+def context_key(context):
+    return tuple(context)
+
+
+def walk(rules, context, rows):
+    for rule in rules:
+        if rule.type == 'qualified-rule':
+            selector = normalize_selector(rule.prelude)
+            body = rule_body(rule.content)
+            rows.append({
+                'context': context_key(context),
+                'selector': selector,
+                'body': body,
+                'important': body.count('!important'),
+                'route_scopes': selector.count('body[data-route='),
+                'raw_rule': tinycss2.serialize([rule]),
+            })
+        elif rule.type == 'at-rule' and rule.content is not None and str(rule.lower_at_keyword) in RULE_LIST_AT:
+            prelude = ' '.join(tinycss2.serialize(rule.prelude).split())
+            inner = tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+            walk(inner, context + ((str(rule.lower_at_keyword), prelude),), rows)
+
+rows=[]
+rules=tinycss2.parse_stylesheet(CSS, skip_whitespace=False, skip_comments=False)
+walk(rules, tuple(), rows)
+seen={}
+duplicates=[]
+for index,row in enumerate(rows):
+    key=(row['context'],row['selector'],row['body'])
+    if key in seen:
+        duplicates.append({
+            'first_index':seen[key],
+            'duplicate_index':index,
+            'selector':row['selector'],
+            'context':row['context'],
+            'important':row['important'],
+            'route_scopes':row['route_scopes'],
+            'bytes':len(row['raw_rule'].encode()),
+        })
+    else:
+        seen[key]=index
+print(json.dumps({
+    'qualified_rules':len(rows),
+    'exact_duplicate_rule_instances':len(duplicates),
+    'potential_important_reduction':sum(d['important'] for d in duplicates),
+    'potential_route_scope_reduction':sum(d['route_scopes'] for d in duplicates),
+    'potential_rule_bytes_removed':sum(d['bytes'] for d in duplicates),
+    'duplicates':duplicates[:100],
+}, indent=2, ensure_ascii=False, default=list))
