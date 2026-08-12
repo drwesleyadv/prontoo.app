@@ -1,0 +1,47 @@
+name: Presentation Priority Batch 2 Audit Runner
+on:
+  push:
+    branches:
+      - agent/presentation-priority-batch-2
+    paths:
+      - .github/workflows/presentation-priority-batch-2-audit-run.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Validate current contracts
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+      - name: Setup Chromium
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Run audit harness from repository root
+        run: |
+          set -euo pipefail
+          awk '
+            /cat > \/tmp\/audit-batch-2\.mjs <<.NODE./ { capture=1; next }
+            capture && /^          NODE$/ { exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/presentation-priority-batch-2-audit.yml > audit-batch-2.mjs
+          test -s audit-batch-2.mjs
+          node audit-batch-2.mjs
+      - name: Prove selected batch against full Chromium baseline
+        run: |
+          set -euo pipefail
+          node tools/presentation-ux-contract.mjs --check
