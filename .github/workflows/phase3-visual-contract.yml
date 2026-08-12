@@ -39,8 +39,6 @@ jobs:
                   out.append('replacement = \'<div class="pagehead-actions" data-ui-contract="pagehead-actions-v1" aria-label="Operações rápidas">\'')
               elif line.startswith("if (!str_contains($ui, 'data-ui-contract="):
                   out.append("if (!str_contains($ui, 'pagehead-actions-v1')) {")
-              elif line.startswith("if (str_contains($css, 'body[data-route="):
-                  out.append("if (str_contains($css, 'body[data-route=\"appointments\"] .pagehead-actions .cmdlike')) {")
               else:
                   out.append(line)
           path.write_text('\n'.join(out) + '\n')
@@ -94,7 +92,9 @@ jobs:
           rm .github/phase3-visual-contract.py
           rm .github/workflows/phase3-visual-contract.yml
       - name: Reconcile deterministic release
-        run: php tools/release-contract-reconcile --write
+        run: |
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
       - name: Validate visual and architecture contracts
         run: |
           php tools/presentation-visual-contract-check
