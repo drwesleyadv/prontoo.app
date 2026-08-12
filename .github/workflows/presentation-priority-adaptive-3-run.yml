@@ -1,0 +1,62 @@
+name: Presentation Priority Adaptive 3 Runner
+on:
+  push:
+    branches: [agent/presentation-priority-adaptive-3]
+    paths: [.github/workflows/presentation-priority-adaptive-3-run.yml]
+permissions:
+  contents: write
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: shivammathur/setup-php@v2
+        with: {php-version: '8.4', coverage: none, tools: none}
+      - name: Validate and setup Chromium
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Run corrected audit and combined proof
+        run: |
+          set -euo pipefail
+          awk '/cat > adaptive-priority-audit\.mjs <<.NODE./{c=1;next} c&&/^          NODE$/{exit} c{sub(/^          /,"");print}' .github/workflows/presentation-priority-adaptive-3.yml > adaptive-priority-audit.mjs
+          sed -i 's/a.value.localeCompare(b.value));$/a.value.localeCompare(b.value)));/' adaptive-priority-audit.mjs
+          node --check adaptive-priority-audit.mjs
+          node adaptive-priority-audit.mjs
+          node tools/presentation-ux-contract.mjs --check
+      - name: Materialize selected owners and release
+        run: |
+          set -euo pipefail
+          awk '/cat > adaptive-priority-materialize\.mjs <<.NODE./{c=1;next} c&&/^          NODE$/{exit} c{sub(/^          /,"");print}' .github/workflows/presentation-priority-adaptive-3.yml > adaptive-priority-materialize.mjs
+          node --check adaptive-priority-materialize.mjs
+          node adaptive-priority-materialize.mjs
+          rm -f adaptive-priority-audit.mjs adaptive-priority-materialize.mjs adaptive-priority-selected.json \
+            .github/workflows/presentation-priority-adaptive-3.yml \
+            .github/workflows/presentation-priority-adaptive-3-run.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate final state
+        run: |
+          set -euo pipefail
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          node tools/presentation-ux-contract.mjs --check
+      - name: Publish validated ordinary delta
+        env: {GITHUB_TOKEN: '${{ github.token }}'}
+        run: |
+          cat > /tmp/pub.mjs <<'NODE'
+          import fs from 'node:fs';import{execFileSync}from'node:child_process';const token=process.env.GITHUB_TOKEN,repo=process.env.GITHUB_REPOSITORY,head=process.env.GITHUB_SHA,branch='agent/presentation-priority-adaptive-3',api='https://api.github.com/repos/'+repo;async function rq(method,p,body){const r=await fetch(api+p,{method,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}),t=await r.text();if(!r.ok)throw Error(`${method} ${p} ${r.status}: ${t}`);return t?JSON.parse(t):{};}const paths=[...new Set(execFileSync('git',['diff','--name-only','HEAD','--','.'],{encoding:'utf8'}).split('\n').map(x=>x.trim()).filter(Boolean))].filter(p=>!p.startsWith('.github/workflows/')).sort();if(!paths.length)throw Error('no changes');const ref=await rq('GET','/git/ref/heads/'+branch);if(ref.object.sha!==head)throw Error('branch advanced');const parent=await rq('GET','/git/commits/'+head),entries=[];for(const p of paths){const line=execFileSync('git',['ls-tree','HEAD','--',p],{encoding:'utf8'}).trim(),mode=line?line.split(/\s+/)[0]:'100644';if(!fs.existsSync(p)){entries.push({path:p,mode,type:'blob',sha:null});continue;}const b=await rq('POST','/git/blobs',{content:fs.readFileSync(p).toString('base64'),encoding:'base64'});entries.push({path:p,mode,type:'blob',sha:b.sha});}const tree=await rq('POST','/git/trees',{base_tree:parent.tree.sha,tree:entries}),commit=await rq('POST','/git/commits',{message:'refactor(presentation): demote third contracted priority batch',tree:tree.sha,parents:[head]});await rq('PATCH','/git/refs/heads/'+branch,{sha:commit.sha,force:false});console.log(JSON.stringify({commit:commit.sha,files:paths},null,2));
+          NODE
+          node /tmp/pub.mjs
