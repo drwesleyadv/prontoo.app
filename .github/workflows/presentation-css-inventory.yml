@@ -38,6 +38,13 @@ jobs:
           end = source.index('\ndef concerns(chunk: str)', start)
           replacement = '''def split_units(source: str) -> list[str]:\n    units = source.splitlines(keepends=True)\n    if not units or \"\".join(units) != source:\n        fail(\"line-fragment split changed source\")\n    return units\n\n'''
           path.write_text(source[:start] + replacement + source[end + 1:], encoding='utf-8')
+          quality = Path('tools/quality-gate')
+          q = quality.read_text(encoding='utf-8')
+          old = "$run('presentation-native-css-contract', 'tools/presentation-css-build', ['--lint']);"
+          new = "$run('presentation-native-css-contract', 'tools/presentation-css-build');"
+          if q.count(old) != 1:
+              raise SystemExit('quality gate pre-normalization point missing')
+          quality.write_text(q.replace(old, new, 1), encoding='utf-8')
           PY
           python3 tools/presentation-css-source-consolidate
           test ! -e public/assets/design-system.css
