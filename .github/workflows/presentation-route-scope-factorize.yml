@@ -1,0 +1,57 @@
+name: Presentation Route Scope Factorization
+on:
+  push:
+    branches: [agent/presentation-route-scope-factorization]
+    paths:
+      - tools/presentation-route-scope-factorize
+      - .github/workflows/presentation-route-scope-factorize.yml
+permissions:
+  contents: write
+jobs:
+  factorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-route-scope-factorization
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Factor route scopes and prove UX equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 -m pip install --quiet tinycss2
+          python3 tools/presentation-route-scope-factorize
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+          python3 - <<'PY'
+          import json
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          p='version.json'; data=json.load(open(p)); now=datetime.now(ZoneInfo('America/Cuiaba')).replace(microsecond=0)
+          data['generated_at_unix']=int(now.timestamp()); data['generated_at']=now.isoformat(); data['updated_at']=now.isoformat(); data['deployment_sync_id']='github-prontoo-1.8.12.10-presentation-route-scope-factorization'; data['deployment_sync_requested_at']=now.isoformat()
+          with open(p,'w') as f: json.dump(data,f,indent=4,ensure_ascii=False); f.write('\n')
+          PY
+          rm -rf node_modules
+          git rm -f tools/presentation-route-scope-audit tools/presentation-route-scope-factorize .github/workflows/presentation-route-scope-audit.yml .github/workflows/presentation-route-scope-factorize.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+          git add -A
+          git diff --cached --check -- ':!app/Presentation/Styles/**/*.css' ':!public/assets/presentation.css'
+          git commit -m "refactor(presentation): factor repeated route scopes"
+          git push origin HEAD:agent/presentation-route-scope-factorization
