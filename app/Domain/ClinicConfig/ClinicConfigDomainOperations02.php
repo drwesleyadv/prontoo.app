@@ -86,9 +86,26 @@ final class ClinicConfigDomainOperations02
         $focus = "rgba(" . $rgb[0] . "," . $rgb[1] . "," . $rgb[2] . ",.16)";
         $shadow = "rgba(" . $rgb[0] . "," . $rgb[1] . "," . $rgb[2] . ",.22)";
         $on = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_text($base);
+        $identityReadOnly = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($base, "#5d6b63", 0.62);
+        $identityReadOnlyHover = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations01::clinic_mix_hex($identityReadOnly, "#000000", 0.88);
+        $identityOnReadOnly = \Prontoo\Domain\ClinicConfig\ClinicConfigDomainOperations02::clinic_contrast_text($identityReadOnly);
         $clockInk = "#ffffff";
         $css =
-            "--clinic-accent:" .
+            "--clinic-identity-accent:" .
+            $base .
+            ";--clinic-identity-hover:" .
+            $hover .
+            ";--clinic-identity-pressed:" .
+            $pressed .
+            ";--clinic-identity-on-accent:" .
+            $on .
+            ";--clinic-identity-readonly:" .
+            $identityReadOnly .
+            ";--clinic-identity-readonly-hover:" .
+            $identityReadOnlyHover .
+            ";--clinic-identity-on-readonly:" .
+            $identityOnReadOnly .
+            ";--clinic-accent:" .
             $base .
             ";--clinic-accent-rgb:" .
             $rgb[0] .

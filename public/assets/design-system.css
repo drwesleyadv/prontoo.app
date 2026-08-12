@@ -180,8 +180,9 @@
   --pt-pagehead-action-mobile-padding-inline:13px;
   --pt-pagehead-action-font:var(--md-sys-typescale-label-medium);
   --pt-pagehead-action-weight:700;
-  --pt-pagehead-action-accent:var(--md-sys-color-primary);
-  --pt-pagehead-action-on-accent:var(--md-sys-color-on-primary);
+  --pt-pagehead-action-accent:var(--clinic-identity-accent,var(--md-sys-color-primary));
+  --pt-pagehead-action-on-accent:var(--clinic-identity-on-accent,var(--md-sys-color-on-primary));
+  --pt-pagehead-action-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30));
   --pt-pagehead-action-accent-strong:var(--md-ref-palette-primary30);
 }
 
@@ -217,7 +218,7 @@
 *{box-sizing:border-box}
 html{min-height:100%;background:var(--md-sys-color-background);scroll-behavior:smooth;text-size-adjust:100%}
 body{margin:0;min-height:100vh;background:var(--md-sys-color-background);color:var(--md-sys-color-on-background);font:var(--md-sys-typescale-body-large);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary);--pt-pagehead-action-on-accent:var(--md-sys-color-on-secondary);--pt-pagehead-action-accent-strong:color-mix(in srgb,var(--md-sys-color-secondary) 78%,#000)}
+body.is-read-only{--pt-pagehead-action-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary));--pt-pagehead-action-on-accent:var(--clinic-identity-on-readonly,var(--md-sys-color-on-secondary));--pt-pagehead-action-hover:var(--clinic-identity-readonly-hover,color-mix(in srgb,var(--pt-pagehead-action-accent) 88%,#000));--pt-pagehead-action-accent-strong:var(--pt-pagehead-action-hover)}
 body:not(.public){background:radial-gradient(circle at 0% -5%,color-mix(in srgb,var(--md-sys-color-primary) 6%,transparent) 0,transparent 330px),linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-background)),var(--md-sys-color-background) 360px)}
 a{color:var(--md-sys-color-primary);text-decoration:none;text-underline-offset:3px}
 a:hover{text-decoration:none;color:var(--md-ref-palette-primary30)}
@@ -15189,7 +15190,7 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 
 .pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-height);display:inline-flex;align-items:center;justify-content:center;gap:var(--pt-pagehead-action-gap);padding:var(--pt-pagehead-action-padding-block) var(--pt-pagehead-action-padding-inline);border-radius:var(--pt-pagehead-action-radius);font:var(--pt-pagehead-action-font);font-weight:var(--pt-pagehead-action-weight);line-height:1;white-space:nowrap;text-decoration:none;box-shadow:none}
 .pagehead-actions :where(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent);border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 18%,var(--md-sys-color-outline-variant));box-shadow:none}
-.pagehead-actions :where(.ghost,.cmdlike):not(.primary):hover{background:color-mix(in srgb,var(--pt-pagehead-action-accent) 8%,transparent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 34%,var(--md-sys-color-outline-variant));color:var(--pt-pagehead-action-accent)}.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong);color:var(--pt-pagehead-action-on-accent);box-shadow:var(--md-sys-elevation-level2)}
+.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:color-mix(in srgb,var(--pt-pagehead-action-accent) 4%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-action-accent);border-color:color-mix(in srgb,var(--pt-pagehead-action-accent) 18%,var(--md-sys-color-outline-variant));box-shadow:none}
+.pagehead-actions :where(.ghost,.cmdlike):not(.primary):hover{background:color-mix(in srgb,var(--pt-pagehead-action-hover) 10%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--pt-pagehead-action-hover) 34%,var(--md-sys-color-outline-variant));color:var(--pt-pagehead-action-hover)}.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent);box-shadow:var(--md-sys-elevation-level2)}
 .pagehead-actions :where(.material-symbols-rounded,.pt-icon-glyph){font-size:var(--pt-pagehead-action-icon-size);line-height:1;flex:0 0 auto}
 @media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}

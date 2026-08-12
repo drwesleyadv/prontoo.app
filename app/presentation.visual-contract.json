@@ -1,5 +1,5 @@
 {
-    "version": "1.8.12.2",
+    "version": "1.8.12.3",
     "policy": "presentation-visual-contract-v1",
     "architecture_scope": "presentation_ui_adapter_contract",
     "reference": {
@@ -45,11 +45,16 @@
             "clinic_accent_chain": "--clinic-accent -> --md-ref-palette-primary40 -> --md-sys-color-primary -> --pt-pagehead-action-accent",
             "clinic_accent_strong_chain": "--clinic-accent-strong -> --clinic-accent-dark -> direct primary mix -> --md-ref-palette-primary30 -> --pt-pagehead-action-accent-strong",
             "read_only_scope": "body.is-read-only",
-            "read_only_chain": "--md-sys-color-primary -> --md-sys-color-secondary -> --pt-pagehead-action-accent",
+            "read_only_chain": "--clinic-identity-accent -> 62% identity + 38% neutral -> --clinic-identity-readonly -> --pt-pagehead-action-accent",
             "read_only_secondary_mix": "46% primary + neutral #5d6b63",
             "semantic_error_palette": "--md-sys-color-error",
             "geometry_may_change_with_context": false,
-            "strong_fallback_may_reference_brand_dark": false
+            "strong_fallback_may_reference_brand_dark": false,
+            "clinic_identity_chain": "--clinic-accent -> immutable --clinic-identity-accent -> --pt-pagehead-action-accent",
+            "clinic_hover_chain": "--clinic-accent-hover -> immutable --clinic-identity-hover -> --pt-pagehead-action-hover",
+            "read_only_hover_chain": "--clinic-identity-readonly -> 88% readonly identity + 12% black -> --clinic-identity-readonly-hover -> --pt-pagehead-action-hover",
+            "secondary_action_policy": "ghost/cmdlike uses contextual clinic accent for text, border and a 4% tint; hover uses contextual clinic hover at 10% tint",
+            "read_only_preserves_clinic_hue": true
         }
     },
     "invariants": [
@@ -62,7 +67,10 @@
         "route_layout_may_change_but_route_action_identity_may_not",
         "module_specific_pagehead_primary_overrides_are_zero",
         "visual_debt_may_not_increase_without_contract_change",
-        "strong_accent_fallback_is_acyclic_and_never_references_brand_dark"
+        "strong_accent_fallback_is_acyclic_and_never_references_brand_dark",
+        "hover_uses_clinic_identity_hover_not_dark_variant",
+        "read_only_modulates_clinic_identity_without_overwriting_it",
+        "secondary_pagehead_actions_share_contextual_clinic_accent"
     ],
     "css_statistics": {
         "before": {
@@ -82,7 +90,7 @@
         "after": {
             "lines": 15196,
             "nonblank_lines": 14424,
-            "bytes": 808324,
+            "bytes": 808723,
             "important_count": 5090,
             "route_scope_count": 1172,
             "duplicate_selector_headers": 715,
@@ -96,7 +104,7 @@
         "delta": {
             "lines": 10,
             "nonblank_lines": 6,
-            "bytes": 1268,
+            "bytes": 1667,
             "important_count": -5,
             "route_scope_count": -1,
             "duplicate_selector_headers": 0,

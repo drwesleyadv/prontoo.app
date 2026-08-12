@@ -1,5 +1,16 @@
 # Histórico de versões
 
+## 1.8.12.3 — Engenharia arquitetural 16–21 e consolidação
+
+- institui análise tokenizada e baseline monotônica para a fronteira Runtime.
+- remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento.
+- mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime.
+- cataloga 49 casos críticos de 30 Application Services, ligados a 15 ports e 127 assertivas rastreáveis dentro de 194 assertivas rápidas sem banco.
+- amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil.
+- move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade.
+- consolida em CI os contratos finais de classificação, SOLID, símbolos, documentação, release e performance.
+- publica a conclusão das fases 16–21 sem mudança de schema, banco ou interface.
+
 ## 1.8.12.2 — Engenharia arquitetural 16–21 e consolidação
 
 - institui análise tokenizada e baseline monotônica para a fronteira Runtime.
