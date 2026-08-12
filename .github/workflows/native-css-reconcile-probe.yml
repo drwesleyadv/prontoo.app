@@ -1,0 +1,39 @@
+name: Native CSS Reconcile Probe
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    if: github.head_ref == 'agent/native-presentation-css'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Materialize deterministic manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Upload reconciled manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-css-reconciled-manifest
+          path: app/update.manifest.json
+          retention-days: 1
