@@ -24,6 +24,27 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
+      - name: Normalize source marker literals
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('.github/phase3-visual-contract.py')
+          lines = path.read_text().splitlines()
+          out = []
+          for line in lines:
+              if line.startswith('marker = '):
+                  out.append('marker = \'<div class="pagehead-actions" aria-label="Operações rápidas">\'')
+              elif line.startswith('replacement = '):
+                  out.append('replacement = \'<div class="pagehead-actions" data-ui-contract="pagehead-actions-v1" aria-label="Operações rápidas">\'')
+              elif line.startswith("if (!str_contains($ui, 'data-ui-contract="):
+                  out.append("if (!str_contains($ui, 'pagehead-actions-v1')) {")
+              elif line.startswith("if (str_contains($css, 'body[data-route="):
+                  out.append("if (str_contains($css, 'body[data-route=\"appointments\"] .pagehead-actions .cmdlike')) {")
+              else:
+                  out.append(line)
+          path.write_text('\n'.join(out) + '\n')
+          PY
       - name: Materialize visual contract
         run: python3 .github/phase3-visual-contract.py
       - name: Increment release version
