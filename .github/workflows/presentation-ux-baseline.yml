@@ -33,7 +33,7 @@ jobs:
           node tools/presentation-ux-contract.mjs --write
           node tools/presentation-ux-contract.mjs --check
           python3 - <<'PY'
-          import json, time
+          import json
           from datetime import datetime
           from zoneinfo import ZoneInfo
           p='version.json'
@@ -61,7 +61,8 @@ jobs:
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/quality-gate --fast
-          git add -A
+          git add -u
+          git add app/presentation.ux-baseline.json tests/presentation/ux-fixture.html tools/presentation-ux-contract.mjs version.json app/update.manifest.json app/architecture.manifest.json app/prontoo.php br/index.php CHANGELOG.md .github/workflows/architecture.yml .github/workflows/documentation.yml
           git diff --cached --check
           git commit -m "test(presentation): establish observable UX regression baseline"
           git push origin HEAD:agent/presentation-ux-regression-contract
