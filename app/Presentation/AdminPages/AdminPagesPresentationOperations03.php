@@ -420,19 +420,33 @@ final class AdminPagesPresentationOperations03
     
     }
 
-    public static function admin_telemetry_variation_note(?float $variation): string
+    public static function admin_telemetry_variation_badge(?float $variation): string
     {
         if ($variation === null) {
-            return "15 dias móveis · sem base comparável nos 15 dias anteriores";
+            return "";
         }
-        if (abs($variation) < 0.0000005) {
-            $variation = 0.0;
+        if (abs($variation) < 0.05) {
+            return '<span class="telemetry-kpi-trend is-neutral" title="Sem variação em relação aos 15 dias anteriores" aria-label="Sem variação em relação aos 15 dias anteriores">0%</span>';
         }
-        $prefix = $variation > 0 ? "+" : "";
-        return "15 dias móveis · " .
-            $prefix .
-            number_format($variation, 2, ",", ".") .
-            "% vs. 15 dias anteriores";
+        $positive = $variation > 0;
+        $compact = number_format(abs($variation), 1, ",", ".");
+        $compact = preg_replace('/,0$/', "", $compact) ?: "0";
+        $direction = $positive ? "▲" : "▼";
+        $description =
+            ($positive ? "Alta de " : "Queda de ") .
+            $compact .
+            "% em relação aos 15 dias anteriores";
+        return '<span class="telemetry-kpi-trend ' .
+            ($positive ? "is-positive" : "is-negative") .
+            '" title="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+            '" aria-label="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+            '"><span class="telemetry-kpi-trend-icon" aria-hidden="true">' .
+            $direction .
+            '</span><span class="telemetry-kpi-trend-rate">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($compact . "%") .
+            "</span></span>";
     }
 
     public static function onboarding_score(array $r): array
