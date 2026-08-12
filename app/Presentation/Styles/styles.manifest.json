@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "policy": "presentation-native-css-v1",
+  "architecture": "layered_presentation_css",
+  "source_root": "app/Presentation/Styles",
+  "artifact": "public/assets/design-system.css",
+  "complete": false,
+  "layer_order": [
+    "tokens",
+    "foundation",
+    "primitives",
+    "components",
+    "patterns",
+    "routes",
+    "utilities",
+    "states"
+  ],
+  "forbidden_layers": [
+    "legacy",
+    "compatibility",
+    "overrides"
+  ],
+  "runtime_value_policy": {
+    "php_may_emit_custom_properties_only": true,
+    "allowed_custom_property_prefixes": [
+      "--pt-",
+      "--clinic-identity-"
+    ],
+    "authored_style_attributes": false,
+    "authored_style_blocks": false
+  },
+  "ownership": {
+    "tokens": "design decisions without component selectors",
+    "foundation": "document defaults typography accessibility and global element normalization",
+    "primitives": "small reusable visual building blocks",
+    "components": "canonical reusable UI components",
+    "patterns": "cross-component layout and interaction compositions",
+    "routes": "thin route composition adapters without component redefinition",
+    "utilities": "single-purpose explicit utilities without semantic component ownership",
+    "states": "cross-cutting semantic states such as readonly disabled warning and danger"
+  },
+  "completion_gates": {
+    "authoritative_css_outside_source_root": 0,
+    "undeclared_source_modules": 0,
+    "duplicate_module_declarations": 0,
+    "important_count": 0,
+    "generic_override_layers": 0,
+    "compatibility_layers": 0,
+    "legacy_layers": 0,
+    "authored_inline_style_declarations": 0,
+    "authored_style_blocks": 0,
+    "route_component_redefinitions": 0,
+    "generated_artifact_drift": 0
+  },
+  "imports": [
+    "@import url(\"https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap\") layer(foundation);"
+  ],
+  "modules": [
+    {
+      "path": "tokens/reference.css",
+      "layer": "tokens",
+      "responsibility": "reference palette shape elevation motion and type scale"
+    },
+    {
+      "path": "tokens/semantic.css",
+      "layer": "tokens",
+      "responsibility": "application semantic colors and focus state tokens"
+    },
+    {
+      "path": "tokens/clinic.css",
+      "layer": "tokens",
+      "responsibility": "immutable clinic identity projection into semantic UI color"
+    },
+    {
+      "path": "tokens/component.css",
+      "layer": "tokens",
+      "responsibility": "component-scoped design tokens"
+    },
+    {
+      "path": "components/page-head.css",
+      "layer": "components",
+      "responsibility": "canonical PageHeadControl component presentation"
+    }
+  ]
+}
