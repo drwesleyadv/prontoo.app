@@ -96,15 +96,6 @@ jobs:
           data['presentation_visual_contract'] = 'app/presentation.visual-contract.json'
           data['presentation_visual_check'] = 'tools/presentation-visual-contract-check'
           data['notes'] = 'Correção de contraste no hover das ações primárias do PageHead: elimina fallback CSS cíclico entre primary30 e brand-dark e preserva fundo e texto legíveis em todos os contextos.'
-          data['changelog'] = {
-              'title': 'Contraste de hover do PageHead',
-              'items': [
-                  'elimina ciclo de fallback entre --md-ref-palette-primary30 e --brand-dark que podia invalidar o fundo no hover',
-                  'mantém Agendar consulta e ações primárias equivalentes legíveis ao passar o mouse',
-                  'adiciona invariante ao Presentation Visual Contract para impedir a reintrodução do ciclo',
-                  'não altera geometria, fluxo, Runtime, banco ou schema',
-              ],
-          }
           data['deployment_sync_id'] = 'github-prontoo-1.8.12.2-pagehead-hover-contrast'
           data['deployment_sync_requested_at'] = '2026-08-12T10:59:00-04:00'
           path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + '\n')
