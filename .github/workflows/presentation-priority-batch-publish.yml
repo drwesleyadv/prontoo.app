@@ -66,23 +66,82 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.59.1
           npx playwright install --with-deps chromium
           node tools/presentation-ux-contract.mjs --check
-      - name: Publish ordinary-file delta
+      - name: Publish ordinary-file delta through Git Data API
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git status --short
-          git config user.name 'prontoo-architecture-bot'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A -- . ':(exclude).github/workflows/**'
-          git diff --cached --check
-          git diff --cached --name-status
-          if git diff --cached --quiet; then
-            echo 'No ordinary implementation changes to publish' >&2
-            exit 1
-          fi
-          if git diff --cached --name-only | grep -q '^\.github/workflows/'; then
-            echo 'Workflow file entered ordinary implementation delta' >&2
-            exit 1
-          fi
-          git commit -m 'refactor(presentation): demote contracted route priorities'
-          git push origin HEAD:agent/presentation-priority-batch-1
+          git diff --check
+          cat > /tmp/publish-git-data.mjs <<'NODE'
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+
+          const token = process.env.GITHUB_TOKEN;
+          const repository = process.env.GITHUB_REPOSITORY;
+          const expectedHead = process.env.GITHUB_SHA;
+          const branch = 'agent/presentation-priority-batch-1';
+          if (!token || !repository || !expectedHead) throw new Error('GitHub publication environment is incomplete');
+
+          const api = 'https://api.github.com/repos/' + repository;
+          async function request(method, path, body = undefined) {
+            const response = await fetch(api + path, {
+              method,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Content-Type': 'application/json'
+              },
+              body: body === undefined ? undefined : JSON.stringify(body)
+            });
+            const text = await response.text();
+            const data = text === '' ? {} : JSON.parse(text);
+            if (!response.ok) throw new Error(`${method} ${path} failed (${response.status}): ${text}`);
+            return data;
+          }
+
+          const rawNames = execFileSync('git', ['diff', '--name-only', 'HEAD', '--', '.'], { encoding: 'utf8' })
+            .split('\n').map(value => value.trim()).filter(Boolean);
+          const paths = [...new Set(rawNames)].filter(path => !path.startsWith('.github/workflows/')).sort();
+          if (paths.length === 0) throw new Error('No ordinary implementation files changed');
+
+          const workflowChanges = rawNames.filter(path => path.startsWith('.github/workflows/'));
+          console.log(JSON.stringify({ ordinary_files: paths, excluded_workflow_files: workflowChanges }, null, 2));
+
+          const ref = await request('GET', '/git/ref/heads/' + branch);
+          if (ref.object?.sha !== expectedHead) {
+            throw new Error(`branch advanced concurrently: expected ${expectedHead}, found ${ref.object?.sha}`);
+          }
+          const parentCommit = await request('GET', '/git/commits/' + expectedHead);
+          const entries = [];
+          for (const path of paths) {
+            const exists = fs.existsSync(path);
+            const treeLine = execFileSync('git', ['ls-tree', 'HEAD', '--', path], { encoding: 'utf8' }).trim();
+            const mode = treeLine === '' ? '100644' : treeLine.split(/\s+/)[0];
+            if (!exists) {
+              entries.push({ path, mode, type: 'blob', sha: null });
+              continue;
+            }
+            const blob = await request('POST', '/git/blobs', {
+              content: fs.readFileSync(path).toString('base64'),
+              encoding: 'base64'
+            });
+            entries.push({ path, mode, type: 'blob', sha: blob.sha });
+          }
+          const tree = await request('POST', '/git/trees', {
+            base_tree: parentCommit.tree.sha,
+            tree: entries
+          });
+          const commit = await request('POST', '/git/commits', {
+            message: 'refactor(presentation): demote contracted route priorities',
+            tree: tree.sha,
+            parents: [expectedHead]
+          });
+          await request('PATCH', '/git/refs/heads/' + branch, {
+            sha: commit.sha,
+            force: false
+          });
+          console.log(JSON.stringify({ published: true, commit: commit.sha, parent: expectedHead, files: paths.length }, null, 2));
+          NODE
+          node /tmp/publish-git-data.mjs
