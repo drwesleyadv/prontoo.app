@@ -99,7 +99,7 @@ foreach ([
     'display:block;',
     'height:15vh;',
     'pointer-events:none;',
-    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.3}',
+    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
 ] as $contract) {
     if (!str_contains($css, $contract)) {
         throw new RuntimeException('Contrato CSS das faixas ausente: ' . $contract);

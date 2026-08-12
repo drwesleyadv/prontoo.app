@@ -633,7 +633,7 @@
         "tools/solid-audit": "7b29c95bec72bf23f1b830ad3ff8798524c4d874f9c6b44c60a4d01247c60f1f",
         "tools/telemetry-json-source-contract-check": "efb2a5a6a7a4ec19349b04942121aa7a0846722dae0844cba811fc54353c9889",
         "tools/test-fast": "58a2a352d9e27b3cea7b74e3155aab6a368bd2e4b5ab29b5f8c48fa56d1f4fc2",
-        "tools/version-asset-contract-check.php": "bee39fb8e3d8d462514ecd75c8514e6274c8c80cf687e93caa086362c7d0abea",
+        "tools/version-asset-contract-check.php": "c5005a904179bdbc26bdffec2e5657d3ef2d29ae5269baf517472ac7a0d0c35f",
         "version.json": "ac778cb82e58a2136f4d51f5011416173c8e80335f065ac01b63b144e969281a"
     },
     "removed_files": [
