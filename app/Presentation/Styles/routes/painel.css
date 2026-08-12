@@ -17,9 +17,7 @@ body[data-route="painel"] .pagehead h1{
 body[data-route="painel"] .pagehead p{
   max-width:760px!important;
 }
-body[data-route="painel"] .kpis,
-body[data-route="painel"] .reception-kpis,
-body[data-route="painel"] .manager-kpis{
+body[data-route="painel"] :is(.kpis,.reception-kpis,.manager-kpis){
   display:grid!important;
   grid-template-columns:repeat(auto-fit,minmax(172px,1fr))!important;
   gap:var(--pt-dashboard-gap)!important;
@@ -85,9 +83,7 @@ body[data-route="painel"] .manager-stat small{
   overflow:hidden!important;
   text-overflow:ellipsis!important;
 }
-body[data-route="painel"] .reception-dashboard,
-body[data-route="painel"] .reception-panel-grid,
-body[data-route="painel"] .triage-panel-grid{
+body[data-route="painel"] :is(.reception-dashboard,.reception-panel-grid,.triage-panel-grid){
   display:grid!important;
   gap:var(--pt-dashboard-gap)!important;
 }
@@ -126,17 +122,11 @@ body[data-route="painel"] .manager-goal header p{
   font:var(--md-sys-typescale-body-small)!important;
   line-height:1.35!important;
 }
-body[data-route="painel"] .reception-list,
-body[data-route="painel"] .timeline,
-body[data-route="painel"] .manager-action-list,
-body[data-route="painel"] .manager-procedure-list{
+body[data-route="painel"] :is(.reception-list,.timeline,.manager-action-list,.manager-procedure-list){
   display:grid!important;
   gap:10px!important;
 }
-body[data-route="painel"] .reception-row,
-body[data-route="painel"] .reception-row-block,
-body[data-route="painel"] .appointment-mini,
-body[data-route="painel"] .manager-action,
+body[data-route="painel"] :is(.reception-row,.reception-row-block,.appointment-mini,.manager-action),
 body[data-route="painel"] .manager-action-list a,
 body[data-route="painel"] .manager-procedure-list > span{
   min-height:56px!important;
@@ -249,8 +239,7 @@ body[data-route="painel"] .timeline small{
   text-overflow:ellipsis!important;
 }
 @media(max-width:980px){
-  body[data-route="painel"] .reception-panel-grid,
-  body[data-route="painel"] .triage-panel-grid{
+  body[data-route="painel"] :is(.reception-panel-grid,.triage-panel-grid){
     grid-template-columns:1fr!important;
   }
   body[data-route="painel"] .reception-card.reception-full,
@@ -266,9 +255,7 @@ body[data-route="painel"] .timeline small{
   body[data-route="painel"] .pagehead{
     align-items:flex-start!important;
   }
-  body[data-route="painel"] .kpis,
-  body[data-route="painel"] .reception-kpis,
-  body[data-route="painel"] .manager-kpis{
+  body[data-route="painel"] :is(.kpis,.reception-kpis,.manager-kpis){
     grid-template-columns:1fr 1fr!important;
     gap:10px!important;
   }
@@ -283,18 +270,14 @@ body[data-route="painel"] .timeline small{
     font:var(--md-sys-typescale-title-large)!important;
     font-weight:900!important;
   }
-  body[data-route="painel"] .reception-row,
-  body[data-route="painel"] .reception-row-block,
-  body[data-route="painel"] .manager-action,
-  body[data-route="painel"] .manager-action-list a,
-  body[data-route="painel"] .timeline .titem{
+  body[data-route="painel"] :is(.reception-row,.reception-row-block,.manager-action),
+body[data-route="painel"] .manager-action-list a,
+body[data-route="painel"] .timeline .titem{
     padding:10px!important;
   }
 }
 @media(max-width:520px){
-  body[data-route="painel"] .kpis,
-  body[data-route="painel"] .reception-kpis,
-  body[data-route="painel"] .manager-kpis{
+  body[data-route="painel"] :is(.kpis,.reception-kpis,.manager-kpis){
     grid-template-columns:1fr!important;
   }
   body[data-route="painel"] .card.manager-goal header{

@@ -48,10 +48,7 @@ body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appoin
 
 
 
-body[data-route="patient"] .patient-hero,
-body[data-route="patient"] .patient-tabs-shell,
-body[data-route="patient"] .patient-panel,
-body[data-route="patient"] .patient-crown-record{
+body[data-route="patient"] :is(.patient-hero,.patient-tabs-shell,.patient-panel,.patient-crown-record){
   border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 80%,transparent)!important;
   box-shadow:0 1px 0 rgba(255,255,255,.7) inset!important;
 }
@@ -77,8 +74,7 @@ body[data-route="patient"] .patient-hero p{
   font:var(--md-sys-typescale-body-medium)!important;
   line-height:1.35!important;
 }
-body[data-route="patient"] .patient-hero-actions,
-body[data-route="patient"] .pagehead-controls--actions{flex-wrap:wrap!important}
+body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions){flex-wrap:wrap!important}
 body[data-route="patient"] .patient-tabs-shell{
   display:grid!important;
   gap:14px!important;
@@ -230,19 +226,14 @@ body[data-route="patient"] .patient-data-list > div b{
   font-weight:850!important;
   line-height:1.25!important;
 }
-body[data-route="patient"] .patient-summary-cards,
-body[data-route="patient"] .patient-profile-summary-cards,
-body[data-route="patient"] .patient-profile-footer-cards,
-body[data-route="patient"] .patient-mini-grid{
+body[data-route="patient"] :is(.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-mini-grid){
   gap:10px!important;
 }
 body[data-route="patient"] .patient-summary-cards > *,
 body[data-route="patient"] .patient-profile-summary-cards > *,
 body[data-route="patient"] .patient-profile-footer-cards > *,
 body[data-route="patient"] .patient-mini-grid > *,
-body[data-route="patient"] .patient-clinical-card,
-body[data-route="patient"] .patient-guardian-card,
-body[data-route="patient"] .patient-existing-card{
+body[data-route="patient"] :is(.patient-clinical-card,.patient-guardian-card,.patient-existing-card){
   border-radius:20px!important;
   border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;
   box-shadow:0 1px 0 rgba(255,255,255,.65) inset!important;
@@ -267,9 +258,7 @@ body[data-route="patient"] .patient-panel .timeline .time-dot{
   color:var(--clinic-accent-strong,var(--md-sys-color-primary))!important;
   border:1px solid color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 14%,transparent)!important;
 }
-body[data-route="patient"] .patient-record-form,
-body[data-route="patient"] .patient-inline-note,
-body[data-route="patient"] .patient-edit{
+body[data-route="patient"] :is(.patient-record-form,.patient-inline-note,.patient-edit){
   border-radius:22px!important;
   border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;
 }
@@ -292,8 +281,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
     align-items:flex-start!important;
     flex-direction:column!important;
   }
-  body[data-route="patient"] .patient-hero-actions,
-  body[data-route="patient"] .pagehead-controls--actions{width:100%!important}
+  body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions){width:100%!important}
   body[data-route="patient"] .patient-tab-add-new{
     margin-left:0!important;
   }
