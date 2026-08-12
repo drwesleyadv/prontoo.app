@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import hashlib
+import json
+import re
+from pathlib import Path
+import tinycss2
+
+ROOT = Path(__file__).resolve().parents[1]
+STYLE_ROOT = ROOT / 'app/Presentation/Styles'
+MANIFEST_PATH = STYLE_ROOT / 'styles.manifest.json'
+ARTIFACT_PATH = ROOT / 'public/assets/presentation.css'
+VISUAL_PATH = ROOT / 'app/presentation.visual-contract.json'
+VERSION_PATH = ROOT / 'version.json'
+RULE_LIST_AT = {'media', 'supports', 'container', 'layer', 'scope', 'starting-style', 'keyframes', '-webkit-keyframes'}
+DECLARATION_AT = {'font-face', 'page', 'property', 'counter-style', 'font-feature-values'}
+
+
+def fail(message: str) -> None:
+    raise SystemExit(f'presentation-css-safe-reduce: {message}')
+
+
+def declaration_key(item) -> tuple[str, bool, str]:
+    return (str(item.lower_name), bool(item.important), tinycss2.serialize(item.value).strip())
+
+
+def dedupe_declarations(tokens, stats: dict[str, int]):
+    items = tinycss2.parse_declaration_list(tokens, skip_whitespace=False, skip_comments=False)
+    output = []
+    previous_key = None
+    for item in items:
+        if item.type in {'whitespace', 'comment'}:
+            output.append(item)
+            continue
+        if item.type == 'declaration':
+            key = declaration_key(item)
+            if previous_key == key:
+                stats['duplicate_declarations_removed'] += 1
+                if item.important:
+                    stats['duplicate_important_removed'] += 1
+                continue
+            previous_key = key
+            output.append(item)
+            continue
+        previous_key = None
+        output.append(item)
+    return tinycss2.parse_component_value_list(tinycss2.serialize(output))
+
+
+def transform_rules(rules, stats: dict[str, int]):
+    for rule in rules:
+        if rule.type == 'qualified-rule':
+            rule.content = dedupe_declarations(rule.content, stats)
+            continue
+        if rule.type != 'at-rule' or rule.content is None:
+            continue
+        name = str(rule.lower_at_keyword)
+        if name in RULE_LIST_AT:
+            inner = tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+            transform_rules(inner, stats)
+            rule.content = tinycss2.parse_component_value_list(tinycss2.serialize(inner))
+        elif name in DECLARATION_AT:
+            rule.content = dedupe_declarations(rule.content, stats)
+    return rules
+
+
+def route_name(text: str) -> str:
+    names = re.findall(r'body\[data-route=["\']([^"\']+)["\']\]', text)
+    unique = sorted(set(names))
+    if len(unique) == 1:
+        return re.sub(r'[^a-z0-9]+', '-', unique[0].lower()).strip('-') or 'route'
+    return 'routes'
+
+
+def classify(text: str) -> tuple[str, str]:
+    low = text.lower()
+    stripped = re.sub(r'/\*.*?\*/', '', low, flags=re.S).strip()
+    if 'body[data-route=' in text:
+        return 'routes', route_name(text)
+    if stripped.startswith('@media') or stripped.startswith('@supports') or stripped.startswith('@container'):
+        return 'states', 'responsive'
+    if re.search(r'(:hover|:focus(?:-visible)?|:active|:disabled|\[disabled\]|\[aria-(?:current|expanded|selected|disabled)|\.is-(?:active|open|selected|disabled|loading|read-only|readonly))', low):
+        return 'states', 'interaction'
+    custom_defs = len(re.findall(r'--[a-z0-9_-]+\s*:', low))
+    if custom_defs >= 3 or (':root' in low and '--' in low):
+        if 'clinic-' in low:
+            return 'tokens', 'clinic'
+        if '--md-' in low:
+            return 'tokens', 'material'
+        return 'tokens', 'semantic'
+    if re.match(r'^(?:@import|@font-face|html\b|body\b|\*\b|\*\s*[,:{]|h[1-6]\b|p\b|a\b|button\b|input\b|select\b|textarea\b)', stripped) and stripped.count('.') <= 3:
+        return 'foundation', 'document'
+    if re.search(r'\.(?:sr-only|visually-hidden|hidden|nowrap|truncate|muted|text-(?:left|right|center)|u-[a-z0-9_-]+)\b', low):
+        return 'utilities', 'utilities'
+    if re.search(r'\.(?:pagehead|page-head|cmdbar|command-bar|card|modal|dialog|drawer|toast|tooltip|chip|badge|avatar|field|search|table|tabs?|pagination|empty-state|notice|banner|menu|sidebar|topbar|toolbar|kpi|stat|metric|list-row)\b', low):
+        if 'pagehead' in low or 'page-head' in low:
+            return 'components', 'page-head'
+        return 'components', 'components'
+    if re.search(r'\.(?:grid|stack|cluster|directory|dashboard|editor|form-actions|split|layout|shell|panel|section|list)\b', low):
+        return 'patterns', 'layout'
+    if re.search(r'\b(?:button|input|select|textarea|summary|label|fieldset)\b', stripped):
+        return 'primitives', 'controls'
+    return 'components', 'components'
+
+
+def significant_segments(source: str) -> list[tuple[str, str, str]]:
+    rules = tinycss2.parse_stylesheet(source, skip_whitespace=False, skip_comments=False)
+    segments = []
+    prefix = ''
+    for rule in rules:
+        text = tinycss2.serialize([rule])
+        if rule.type in {'whitespace', 'comment'}:
+            prefix += text
+            continue
+        text = prefix + text
+        prefix = ''
+        layer, concern = classify(text)
+        segments.append((layer, concern, text))
+    if prefix:
+        if not segments:
+            segments.append(('foundation', 'document', prefix))
+        else:
+            layer, concern, text = segments[-1]
+            segments[-1] = (layer, concern, text + prefix)
+    if ''.join(text for _, _, text in segments) != source:
+        fail('semantic segmentation changed optimized CSS')
+    return segments
+
+
+def duplicate_selector_headers(css: str) -> int:
+    selectors: dict[str, int] = {}
+    for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+        selector = re.sub(r'\s+', ' ', match.group(1).strip())
+        if selector and not selector.startswith('@'):
+            selectors[selector] = selectors.get(selector, 0) + 1
+    return sum(1 for count in selectors.values() if count > 1)
+
+
+def css_metrics(css: str) -> dict[str, int]:
+    return {
+        'css_lines': css.count('\n') + 1,
+        'css_nonblank_lines': sum(1 for line in css.splitlines() if line.strip()),
+        'css_bytes': len(css.encode()),
+        'important_count': css.count('!important'),
+        'route_scope_count': css.count('body[data-route='),
+        'duplicate_selector_headers': duplicate_selector_headers(css),
+    }
+
+
+def write_owners(source: str, manifest: dict) -> tuple[list[dict], list[dict], dict[str, list[str]]]:
+    segments = significant_segments(source)
+    owner_bytes: dict[str, bytearray] = {}
+    owner_meta: dict[str, tuple[str, str]] = {}
+    sequence = []
+    ownership_index = {'pagehead_control': [], 'clinic_identity_tokens': [], 'route_scopes': []}
+    for order, (layer, concern, text) in enumerate(segments, 1):
+        owner = f'{layer}/{concern}.css'
+        data = text.encode()
+        bucket = owner_bytes.setdefault(owner, bytearray())
+        offset = len(bucket)
+        bucket.extend(data)
+        owner_meta[owner] = (layer, concern)
+        sequence.append({
+            'order': order,
+            'source': owner,
+            'offset': offset,
+            'bytes': len(data),
+            'sha256': hashlib.sha256(data).hexdigest(),
+            'important_count': text.count('!important'),
+            'route_scope_count': text.count('body[data-route='),
+        })
+        if '.pagehead-control' in text and owner not in ownership_index['pagehead_control']:
+            ownership_index['pagehead_control'].append(owner)
+        if '--clinic-identity-' in text and owner not in ownership_index['clinic_identity_tokens']:
+            ownership_index['clinic_identity_tokens'].append(owner)
+        if 'body[data-route=' in text and owner not in ownership_index['route_scopes']:
+            ownership_index['route_scopes'].append(owner)
+    old_limit = int(manifest.get('physical_source_file_count_max', 23))
+    if len(owner_bytes) > old_limit:
+        fail(f'physical source files increased {len(owner_bytes)}>{old_limit}')
+    for path in STYLE_ROOT.rglob('*.css'):
+        path.unlink()
+    rank = {name: index for index, name in enumerate(manifest['ownership_order'])}
+    sources = []
+    for owner in sorted(owner_bytes, key=lambda p: (rank[owner_meta[p][0]], p)):
+        data = bytes(owner_bytes[owner])
+        path = STYLE_ROOT / owner
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        text = data.decode()
+        layer, concern = owner_meta[owner]
+        sources.append({
+            'path': owner,
+            'layer': layer,
+            'responsibility': concern.replace('-', ' '),
+            'concern': concern,
+            'sha256': hashlib.sha256(data).hexdigest(),
+            'bytes': len(data),
+            'important_count': text.count('!important'),
+            'route_scope_count': text.count('body[data-route='),
+        })
+    rebuilt = bytearray()
+    data_map = {key: bytes(value) for key, value in owner_bytes.items()}
+    for segment in sequence:
+        data = data_map[segment['source']]
+        rebuilt.extend(data[segment['offset']:segment['offset'] + segment['bytes']])
+    if bytes(rebuilt).decode() != source:
+        fail('owner model failed to reproduce optimized source')
+    return sources, sequence, ownership_index
+
+
+def main() -> None:
+    original = ARTIFACT_PATH.read_text(encoding='utf-8')
+    old_metrics = css_metrics(original)
+    stats = {'duplicate_declarations_removed': 0, 'duplicate_important_removed': 0}
+    rules = tinycss2.parse_stylesheet(original, skip_whitespace=False, skip_comments=False)
+    transform_rules(rules, stats)
+    optimized = tinycss2.serialize(rules)
+    new_metrics = css_metrics(optimized)
+    if stats['duplicate_declarations_removed'] < 1:
+        fail('no semantics-preserving duplicate declarations found')
+    if new_metrics['important_count'] > old_metrics['important_count'] or new_metrics['route_scope_count'] > old_metrics['route_scope_count'] or new_metrics['duplicate_selector_headers'] > old_metrics['duplicate_selector_headers']:
+        fail('debt metric increased during safe reduction')
+
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding='utf-8'))
+    sources, sequence, ownership_index = write_owners(optimized, manifest)
+    ARTIFACT_PATH.write_text(optimized, encoding='utf-8', newline='')
+    current_sha = hashlib.sha256(optimized.encode()).hexdigest()
+    historical = manifest.get('delivery_equivalence', {})
+    manifest['schema_version'] = 5
+    manifest['policy'] = 'presentation-observable-ux-source-v5'
+    manifest['architecture'] = 'semantic_owner_files_with_deterministic_delivery_and_observable_ux'
+    manifest['migration_reference'] = {
+        'reference_sha256': historical.get('reference_sha256', ''),
+        'reference_bytes': historical.get('reference_bytes', 0),
+        'reference_lines': historical.get('reference_lines', 0),
+        'request_alias': historical.get('request_alias', '/public/assets/design-system.css'),
+        'rewrite_target': historical.get('rewrite_target', 'public/assets/presentation.css'),
+        'alias_required_until_runtime_urls_are_migrated': historical.get('alias_required_until_runtime_urls_are_migrated', True),
+    }
+    manifest.pop('delivery_equivalence', None)
+    manifest['artifact_contract'] = {
+        'sha256': current_sha,
+        'bytes': new_metrics['css_bytes'],
+        'lines': new_metrics['css_lines'],
+        'deterministic_source_required': True,
+    }
+    manifest['observable_ux_contract'] = {
+        'required': True,
+        'baseline': 'app/presentation.ux-baseline.json',
+        'workflow': '.github/workflows/presentation-ux.yml',
+        'policy': 'computed_style_and_geometry_must_not_drift_without_explicit_product_change',
+    }
+    manifest['source_consolidation_gates']['delivery_sha256_matches_reference'] = False
+    manifest['source_consolidation_gates']['generated_artifact_drift'] = 0
+    manifest['visual_debt_budget']['important_count_max'] = new_metrics['important_count']
+    manifest['visual_debt_budget']['route_scope_count_max'] = new_metrics['route_scope_count']
+    manifest['visual_debt_budget']['duplicate_selector_headers_max'] = new_metrics['duplicate_selector_headers']
+    manifest['visual_debt_budget']['policy'] = 'observable_ux_stable_and_visual_debt_may_only_decrease'
+    manifest['physical_source_file_count'] = len(sources)
+    manifest['physical_source_file_count_max'] = min(int(manifest.get('physical_source_file_count_max', len(sources))), len(sources))
+    manifest['sequence_segment_count'] = len(sequence)
+    manifest['ownership_index'] = ownership_index
+    manifest['sources'] = sources
+    manifest['sequence'] = sequence
+    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+
+    visual = json.loads(VISUAL_PATH.read_text(encoding='utf-8'))
+    previous_after = dict(visual['metrics']['after'])
+    visual['version'] = '1.8.12.9'
+    visual['reference']['previous_release'] = '1.8.12.8'
+    visual['reference']['previous_visual_reference'] = 'observable_ux_baseline_v1'
+    visual['reference']['visual_reference'] = 'semantics_preserving_css_debt_reduction'
+    visual['reference']['functional_equivalence'] = 'computed_style_and_geometry_baseline_stable'
+    visual['metrics']['before'] = previous_after
+    after = dict(previous_after)
+    after.update(new_metrics)
+    visual['metrics']['after'] = after
+    visual['metrics']['delta'] = {key: (after[key] - previous_after[key] if isinstance(after.get(key), int) and isinstance(previous_after.get(key), int) else 0) for key in after}
+    visual['debt_budget']['important_count'] = new_metrics['important_count']
+    visual['debt_budget']['route_scope_count'] = new_metrics['route_scope_count']
+    visual['debt_budget']['duplicate_selector_headers'] = new_metrics['duplicate_selector_headers']
+    visual['delivery'] = {
+        'artifact': 'public/assets/presentation.css',
+        'retired_artifact': 'public/assets/design-system.css',
+        'migration_reference_sha256': manifest['migration_reference']['reference_sha256'],
+        'current_sha256': current_sha,
+        'current_bytes': new_metrics['css_bytes'],
+        'deterministic_source': True,
+        'observable_ux_contract': 'app/presentation.ux-baseline.json',
+        'byte_identical_to_migration_reference': current_sha == manifest['migration_reference']['reference_sha256'],
+    }
+    VISUAL_PATH.write_text(json.dumps(visual, indent=4, ensure_ascii=False) + '\n', encoding='utf-8')
+
+    version = json.loads(VERSION_PATH.read_text(encoding='utf-8'))
+    version['version'] = '1.8.12.9'
+    version['release'] = '1.8.12.9'
+    version['build'] = '1.8.12.9-presentation-css-safe-debt-reduction'
+    version['previous_version'] = '1.8.12.8'
+    version['database_changes'] = False
+    version['schema_changes'] = False
+    version['logic_changes'] = True
+    version['visual_changes'] = False
+    version['functional_equivalence_policy'] = 'semantics_preserving_css_reduction_with_pinned_computed_style_geometry_baseline'
+    version['notes'] = 'Redução inicial da dívida CSS remove declarações consecutivas exatamente duplicadas; equivalência passa a ser provada por build determinístico e contrato UX Chromium.'
+    VERSION_PATH.write_text(json.dumps(version, indent=4, ensure_ascii=False) + '\n', encoding='utf-8')
+
+    print(json.dumps({
+        'ok': True,
+        'stats': stats,
+        'before': old_metrics,
+        'after': new_metrics,
+        'delta': {key: new_metrics[key] - old_metrics[key] for key in old_metrics},
+        'physical_source_files': len(sources),
+        'sequence_segments': len(sequence),
+        'sha256': current_sha,
+    }, indent=2))
+
+
+if __name__ == '__main__':
+    main()
