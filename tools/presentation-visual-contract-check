@@ -64,15 +64,28 @@ $required = [
     '--pt-pagehead-action-mobile-padding-inline:13px',
     '--pt-pagehead-action-font:var(--md-sys-typescale-label-medium)',
     '--pt-pagehead-action-weight:700',
-    '--pt-pagehead-action-accent:var(--md-sys-color-primary)',
-    '--pt-pagehead-action-on-accent:var(--md-sys-color-on-primary)',
-    'body.is-read-only{--pt-pagehead-action-accent:var(--md-sys-color-secondary)',
+    '--pt-pagehead-action-accent:var(--clinic-identity-accent,var(--md-sys-color-primary))',
+    '--pt-pagehead-action-on-accent:var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))',
+    '--pt-pagehead-action-hover:var(--clinic-identity-hover,var(--md-ref-palette-primary30))',
+    'body.is-read-only{--pt-pagehead-action-accent:var(--clinic-identity-readonly,var(--md-sys-color-secondary))',
     '.pagehead-actions :where(.primary){background:var(--pt-pagehead-action-accent);color:var(--pt-pagehead-action-on-accent)',
-    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong);color:var(--pt-pagehead-action-on-accent)',
-    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:var(--md-sys-color-surface-container-lowest);color:var(--pt-pagehead-action-accent)',
+    '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-hover);color:var(--pt-pagehead-action-on-accent)',
+    '.pagehead-actions :where(.ghost,.cmdlike):not(.primary){background:color-mix(in srgb,var(--pt-pagehead-action-accent) 4%,var(--md-sys-color-surface-container-lowest));color:var(--pt-pagehead-action-accent)',
     '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}',
 ];
+$requiredPhp = [
+    '--clinic-identity-accent:',
+    '--clinic-identity-hover:',
+    '--clinic-identity-readonly:',
+    '--clinic-identity-readonly-hover:',
+    '--clinic-identity-on-readonly:',
+];
 $failures = [];
+foreach ($requiredPhp as $token) {
+    if (!str_contains($php, $token)) {
+        $failures[] = 'missing-php:' . $token;
+    }
+}
 foreach ($required as $token) {
     if (!str_contains($css, $token)) {
         $failures[] = 'missing:' . $token;
@@ -83,6 +96,9 @@ if (($contract['version'] ?? '') !== ($version['version'] ?? '')) {
 }
 if (str_contains($css, '--md-ref-palette-primary30: var(--clinic-accent-strong,var(--brand-dark,')) {
     $failures[] = 'cyclic-primary30-brand-dark-fallback';
+}
+if (str_contains($css, '.pagehead-actions :where(.primary):hover{background:var(--pt-pagehead-action-accent-strong)')) {
+    $failures[] = 'pagehead-hover-must-use-clinic-identity-hover';
 }
 $desktop = (array) (($contract['pagehead_action'] ?? [])['desktop'] ?? []);
 $mobile = (array) (($contract['pagehead_action'] ?? [])['mobile'] ?? []);
