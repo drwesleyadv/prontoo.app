@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import json
+from pathlib import Path
+import tinycss2
+
+CSS = Path('public/assets/presentation.css').read_text(encoding='utf-8')
+RULE_LIST_AT = {'media','supports','container','layer','scope','starting-style'}
+
+
+def significant_raw(content) -> bool:
+    return any(item.type not in {'whitespace','comment'} for item in content)
+
+
+def walk(rules, context, result):
+    for rule in rules:
+        if rule.type == 'qualified-rule':
+            if not significant_raw(tinycss2.parse_component_value_list(tinycss2.serialize(rule.content))):
+                result['empty_qualified_rules'].append({
+                    'context': context,
+                    'selector': ' '.join(tinycss2.serialize(rule.prelude).split()),
+                })
+        elif rule.type == 'at-rule' and rule.content is not None and str(rule.lower_at_keyword) in RULE_LIST_AT:
+            inner = tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False)
+            significant = [item for item in inner if item.type not in {'whitespace','comment'}]
+            if not significant:
+                result['empty_at_rule_containers'].append({
+                    'context': context,
+                    'at_rule': str(rule.lower_at_keyword),
+                    'prelude': ' '.join(tinycss2.serialize(rule.prelude).split()),
+                })
+            else:
+                walk(inner, context + '/@' + str(rule.lower_at_keyword), result)
+
+result = {'empty_qualified_rules': [], 'empty_at_rule_containers': []}
+walk(tinycss2.parse_stylesheet(CSS, skip_whitespace=False, skip_comments=False), 'root', result)
+print(json.dumps({
+    'empty_qualified_rule_count': len(result['empty_qualified_rules']),
+    'empty_at_rule_container_count': len(result['empty_at_rule_containers']),
+    **result,
+}, indent=2, ensure_ascii=False))
