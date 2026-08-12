@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.12.1 — Contrato visual canônico da Presentation
+
+- canoniza as ações fixas do PageHead em 34 px de altura no desktop, radius de 16 px, padding de 7 por 12 px, gap de 8 px e ícone de 20 px.
+- preserva no mobile o alvo tátil mínimo de 42 px e padding horizontal de 13 px sem alterar posição, fluxo ou hierarquia dos comandos.
+- faz a paleta canônica derivar do destaque configurado por consultório e mantém estados destrutivos na semântica de erro do sistema.
+- usa no modo somente leitura uma variante secundária derivada da mesma cor do consultório, alterando cor sem alterar geometria.
+- remove exceções cosméticas específicas de Agenda e Documentos para ações que exercem o mesmo papel estrutural.
+- institui contrato de Presentation e ratchet monotônico para impedir crescimento de important, overrides de rota e combinações visuais legadas.
+- integra o contrato visual ao quality gate sem mudança de banco, schema ou regras de negócio.
+
 ## 1.8.11.6 — Telemetria visual e Landing Page
 
 - mantém Registros pintados depois de Visualizações no gráfico móvel de 30 dias.

@@ -459,7 +459,7 @@ final class UiComponentsRuntimeOperations03
             "</span></h1></div>" .
             $ops .
             ($hasAction
-                ? '<div class="pagehead-actions" aria-label="Operações rápidas">' .
+                ? '<div class="pagehead-actions" data-ui-contract="pagehead-actions-v1" aria-label="Operações rápidas">' .
                     $action .
                     "</div>"
                 : "") .

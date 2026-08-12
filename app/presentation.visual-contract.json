@@ -1,0 +1,120 @@
+{
+    "version": "1.8.12.1",
+    "policy": "presentation-visual-contract-v1",
+    "architecture_scope": "presentation_ui_adapter_contract",
+    "reference": {
+        "baseline_sha": "da597d5af26eae90b66b5a473150ce619310e527",
+        "phase_1_merge_sha": "5c8a450d4808eb052e483a31488f1dcc33c69707",
+        "phase_2_merge_sha": "485f8cca8f292adfc4b8510ea95294963f647e0e",
+        "visual_reference": "existing_primary_small_pagehead_action",
+        "ux_policy": "preserve_daily_use_memory_layout_flow_information_hierarchy_and_touch_targets"
+    },
+    "pagehead_action": {
+        "desktop": {
+            "min_height_px": 34,
+            "radius_px": 16,
+            "padding_block_px": 7,
+            "padding_inline_px": 12,
+            "gap_px": 8,
+            "icon_px": 20,
+            "font_token": "--md-sys-typescale-label-medium",
+            "font_weight": 700,
+            "line_height": 1,
+            "white_space": "nowrap",
+            "display": "inline-flex",
+            "align_items": "center",
+            "justify_content": "center",
+            "ratios": {
+                "icon_to_height": 0.5882,
+                "radius_to_height": 0.4706,
+                "padding_inline_to_height": 0.3529,
+                "gap_to_height": 0.2353
+            }
+        },
+        "mobile": {
+            "breakpoint_max_px": 640,
+            "min_height_px": 42,
+            "padding_inline_px": 13,
+            "ratios": {
+                "icon_to_height": 0.4762,
+                "radius_to_height": 0.381,
+                "padding_inline_to_height": 0.3095
+            }
+        },
+        "color_contract": {
+            "clinic_accent_chain": "--clinic-accent -> --md-ref-palette-primary40 -> --md-sys-color-primary -> --pt-pagehead-action-accent",
+            "clinic_accent_strong_chain": "--clinic-accent-strong -> --md-ref-palette-primary30 -> --pt-pagehead-action-accent-strong",
+            "read_only_scope": "body.is-read-only",
+            "read_only_chain": "--md-sys-color-primary -> --md-sys-color-secondary -> --pt-pagehead-action-accent",
+            "read_only_secondary_mix": "46% primary + neutral #5d6b63",
+            "semantic_error_palette": "--md-sys-color-error",
+            "geometry_may_change_with_context": false
+        }
+    },
+    "invariants": [
+        "pagehead_action_geometry_has_single_css_owner",
+        "primary_action_wins_over_legacy_cmdlike_composition",
+        "clinic_palette_changes_color_not_geometry",
+        "read_only_state_changes_context_color_not_geometry",
+        "danger_remains_semantic_error_not_clinic_accent",
+        "mobile_preserves_42px_touch_target",
+        "route_layout_may_change_but_route_action_identity_may_not",
+        "module_specific_pagehead_primary_overrides_are_zero",
+        "visual_debt_may_not_increase_without_contract_change"
+    ],
+    "css_statistics": {
+        "before": {
+            "lines": 15186,
+            "nonblank_lines": 14418,
+            "bytes": 807056,
+            "important_count": 5095,
+            "route_scope_count": 1173,
+            "duplicate_selector_headers": 715,
+            "pagehead_route_identity_overrides": 1,
+            "pagehead_legacy_direct_identity_overrides": 1,
+            "doc_pagehead_primary_overrides": 1,
+            "pagehead_ds_action_overrides": 1,
+            "canonical_pagehead_geometry_rules": 0,
+            "legacy_primary_small_cmdlike": 14
+        },
+        "after": {
+            "lines": 15196,
+            "nonblank_lines": 14424,
+            "bytes": 808316,
+            "important_count": 5090,
+            "route_scope_count": 1172,
+            "duplicate_selector_headers": 715,
+            "pagehead_route_identity_overrides": 0,
+            "pagehead_legacy_direct_identity_overrides": 0,
+            "doc_pagehead_primary_overrides": 0,
+            "pagehead_ds_action_overrides": 0,
+            "canonical_pagehead_geometry_rules": 1,
+            "legacy_primary_small_cmdlike": 14
+        },
+        "delta": {
+            "lines": 10,
+            "nonblank_lines": 6,
+            "bytes": 1260,
+            "important_count": -5,
+            "route_scope_count": -1,
+            "duplicate_selector_headers": 0,
+            "pagehead_route_identity_overrides": -1,
+            "pagehead_legacy_direct_identity_overrides": -1,
+            "doc_pagehead_primary_overrides": -1,
+            "pagehead_ds_action_overrides": -1,
+            "canonical_pagehead_geometry_rules": 1,
+            "legacy_primary_small_cmdlike": 0
+        }
+    },
+    "debt_budget": {
+        "important_count_max": 5090,
+        "route_scope_count_max": 1172,
+        "duplicate_selector_headers_max": 715,
+        "legacy_primary_small_cmdlike_max": 14,
+        "pagehead_route_identity_overrides_max": 0,
+        "pagehead_legacy_direct_identity_overrides_max": 0,
+        "doc_pagehead_primary_overrides_max": 0,
+        "pagehead_ds_action_overrides_max": 0,
+        "canonical_pagehead_geometry_rules_exact": 1
+    }
+}
